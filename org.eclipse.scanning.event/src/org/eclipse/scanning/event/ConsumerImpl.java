@@ -1,15 +1,18 @@
 package org.eclipse.scanning.event;
 
-import java.lang.reflect.ParameterizedType;
 import java.net.URI;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
 
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Queue;
+import javax.jms.QueueBrowser;
+import javax.jms.QueueConnection;
+import javax.jms.QueueConnectionFactory;
+import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -21,13 +24,17 @@ import org.eclipse.scanning.api.event.alive.TerminateBean;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
+import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> {
+public class ConsumerImpl<U extends StatusBean> extends AbstractConnection implements IConsumer<U> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ConsumerImpl.class);
 	private static final long ADAY = 24*60*60*1000; // ms
@@ -37,12 +44,16 @@ public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> 
 	private IPublisher<U>              status;
 	private IPublisher<HeartbeatBean>  alive;
 	private ISubscriber<IBeanListener<TerminateBean>> killer;
+	private ISubmitter<U>              mover;
+	
+	private Class<U>                   beanClass;
 
 	private IProcessCreator<U>         runner;
 	private boolean                    active;
 	private boolean                    durable;
 	private MessageConsumer            consumer;
 
+	@SuppressWarnings("unchecked")
 	ConsumerImpl(URI uri, String submitQName, 
 			              String statusQName,
 			              String statusTName, 
@@ -57,10 +68,13 @@ public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> 
 		consumerId = UUID.randomUUID();
 		name       = "Consumer "+consumerId; // This will hopefully be changed to something meaningful...
 		
+		mover  = eservice.createSubmitter(uri, statusQName, service);
 		status = eservice.createPublisher(uri, statusTName, service);
-		alive  = eservice.createPublisher(uri, heartbeatTName,  service);
-		killer = eservice.createSubscriber(uri, terminateTName, service);
+		status.setQueueName(statusQName); // We also update values in a queue.
 		
+		alive  = eservice.createPublisher(uri, heartbeatTName,  service);
+		
+		killer = eservice.createSubscriber(uri, terminateTName, service);
 		killer.addListener(new IBeanListener<TerminateBean>() {
 			@Override
 			public Class<TerminateBean> getBeanClass() {
@@ -84,6 +98,7 @@ public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> 
 	@Override
 	public void disconnect() throws EventException {
 		setActive(false);
+		mover.disconnect();
 		status.disconnect();
 		alive.disconnect();
 		killer.disconnect();
@@ -96,15 +111,22 @@ public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> 
 
 
 	@Override
-	public List<U> getSubmissionQueue() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<U> getSubmissionQueue() throws EventException {
+		return getQueue(getSubmitQueueName());
 	}
 
 	@Override
-	public List<U> getStatusQueue() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<U> getStatusQueue() throws EventException {
+		return getQueue(getStatusQueueName());
+	}
+
+	private List<U> getQueue(String qName) throws EventException {
+		QueueReader<U> reader = new QueueReader<U>(service);
+		try {
+			return reader.getBeans(uri, qName, getBeanClass());
+		} catch (Exception e) {
+			throw new EventException("Cannot get the beans for queue "+qName, e);
+		}
 	}
 
 	@Override
@@ -112,9 +134,26 @@ public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> 
 		this.runner = runner;
 		this.active = runner!=null;
 	}
+	
+	@Override
+	public void start() {
+		
+		final Thread consumerThread = new Thread("Consumer Thread "+getName()) {
+			public void run() {
+				try {
+					ConsumerImpl.this.run();
+				} catch (Exception ne) {
+					logger.error("Internal error running consumer "+getName(), ne);
+				}
+			}
+		};
+		consumerThread.setDaemon(true);
+		consumerThread.setPriority(Thread.NORM_PRIORITY-1);
+		consumerThread.start();
+	}
 
 	@Override
-	public void start() throws EventException {
+	public void run() throws EventException {
 		
 		if (runner!=null) {
 			alive.setAlive(true);
@@ -138,12 +177,8 @@ public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> 
 	            	TextMessage t = (TextMessage)m;
 	            	
 	            	final String     str  = t.getText();
-	            	
-	            	@SuppressWarnings("unchecked")
-					Class<U> typeOfT = (Class<U>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-	            	
-	            	final U bean = service.unmarshal(str, typeOfT);
-	            	status.broadcast(bean);
+                    final U bean   = service.unmarshal(str, beanClass);
+	            	executeBean(bean);
 	            	
 	            }
          		
@@ -178,6 +213,23 @@ public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> 
 		}
 	}
 	
+	private void executeBean(U bean) throws EventException {
+		
+		// We record the bean in the status queue
+		mover.submit(bean);
+		
+		// Run the process
+		if (runner == null) {
+			bean.setStatus(Status.FAILED);
+			bean.setMessage("No runner set for consumer "+getName()+". Nothing run");
+			status.broadcast(bean);
+			throw new EventException("You must set the runner before executing beans from the queue!");
+		}
+		
+		IConsumerProcess<U> process = runner.createProcess(bean, status);
+		process.execute();
+	}
+
 	protected void checkTime(long waitTime) {
 		
 		if (waitTime>ADAY) {
@@ -209,8 +261,8 @@ public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> 
 
 	private MessageConsumer createConsumer(URI uri, String submitQName) throws JMSException {
 		
-		ConnectionFactory connectionFactory = (ConnectionFactory)service.createConnectionFactory(uri);
-		this.connection = connectionFactory.createConnection();
+		QueueConnectionFactory connectionFactory = (QueueConnectionFactory)service.createConnectionFactory(uri);
+		this.connection = connectionFactory.createQueueConnection();
 		Session   session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		Queue queue = session.createQueue(submitQName);
 
@@ -259,4 +311,52 @@ public class ConsumerImpl<U> extends AbstractConnection implements IConsumer<U> 
 		this.durable = durable;
 	}
 
+	public Class<U> getBeanClass() {
+		return beanClass;
+	}
+
+	public void setBeanClass(Class<U> beanClass) {
+		this.beanClass = beanClass;
+	}
+
+	@Override
+	public void clearStatusQueue() throws EventException{
+		purgeQueue(getStatusQueueName());
+	}
+
+	private void purgeQueue(String qName) throws EventException {
+
+		QueueConnection qCon = null;
+		try {
+			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)service.createConnectionFactory(uri);
+			qCon  = connectionFactory.createQueueConnection(); // This times out when the server is not there.
+			QueueSession    qSes  = qCon.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+			Queue queue   = qSes.createQueue(qName);
+			qCon.start();
+
+			QueueBrowser qb = qSes.createBrowser(queue);
+
+			@SuppressWarnings("rawtypes")
+			Enumeration  e  = qb.getEnumeration();					
+			while(e.hasMoreElements()) {
+				Message msg = (Message)e.nextElement();
+				MessageConsumer consumer = qSes.createConsumer(queue, "JMSMessageID = '"+msg.getJMSMessageID()+"'");
+				Message rem = consumer.receive(1000);	
+				if (rem!=null) System.out.println("Removed "+rem);
+				consumer.close();
+			}
+
+		} catch (Exception ne) {
+			throw new EventException(ne);
+
+		} finally {
+			if (qCon!=null) {
+				try {
+					qCon.close();
+				} catch (JMSException e) {
+					logger.error("Cannot close queue!", e);
+				}
+			}
+		}
+	}
 }

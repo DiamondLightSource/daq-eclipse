@@ -1,7 +1,6 @@
 package org.eclipse.scanning.api.event.scan;
 
 import java.util.Arrays;
-import java.util.UUID;
 
 import org.eclipse.scanning.api.event.IdBean;
 
@@ -30,6 +29,7 @@ public final class ScanBean extends IdBean {
 	private String  deviceName;
 	private String  beamline;
 	private String  message;
+	private String  uniqueId;
 	
 	private String  scanName;
 	private double  start;
@@ -103,6 +103,8 @@ public final class ScanBean extends IdBean {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(stop);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result
+				+ ((uniqueId == null) ? 0 : uniqueId.hashCode());
 		return result;
 	}
 	@Override
@@ -163,6 +165,11 @@ public final class ScanBean extends IdBean {
 			return false;
 		if (Double.doubleToLongBits(stop) != Double
 				.doubleToLongBits(other.stop))
+			return false;
+		if (uniqueId == null) {
+			if (other.uniqueId != null)
+				return false;
+		} else if (!uniqueId.equals(other.uniqueId))
 			return false;
 		return true;
 	}
@@ -274,5 +281,13 @@ public final class ScanBean extends IdBean {
 
 	public void setStep(double step) {
 		this.step = step;
+	}
+
+	public String getUniqueId() {
+		return uniqueId;
+	}
+
+	public void setUniqueId(String uniqueId) {
+		this.uniqueId = uniqueId;
 	}
 }

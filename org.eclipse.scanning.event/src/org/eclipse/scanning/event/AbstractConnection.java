@@ -2,9 +2,11 @@ package org.eclipse.scanning.event;
 
 import java.net.URI;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
+import javax.jms.Queue;
+import javax.jms.QueueConnection;
+import javax.jms.QueueConnectionFactory;
+import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.Topic;
 
@@ -23,8 +25,9 @@ class AbstractConnection {
 
 	protected IEventConnectorService service;
 	
-	protected Connection      connection;
-	protected Session         session;
+	protected QueueConnection  connection;
+	protected QueueSession     qSession;
+	protected Session          session;
 
 	AbstractConnection(URI uri, String topic, IEventConnectorService service) {
 		this.uri = uri;
@@ -43,23 +46,41 @@ class AbstractConnection {
 	
 	protected Topic createTopic(String topicName) throws JMSException {
 		
-		if (connection==null) {
-			Object factory = service.createConnectionFactory(uri);
-			ConnectionFactory connectionFactory = (ConnectionFactory)factory;		
-			this.connection = connectionFactory.createConnection();
-			connection.start();
-		}
-		if (session == null) {
-		    this.session      = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		}
+		if (connection==null) createConnection();
+		if (session == null)  createSession();
 		
 		return session.createTopic(topicName);
 	}
 	
+	protected Queue createQueue(String queueName) throws JMSException {
+		
+		if (connection==null) createConnection();
+		if (qSession == null) createQSession();
+		
+		return qSession.createQueue(queueName);
+	}
+
+	
+	private void createSession() throws JMSException {
+		this.session      = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+	}
+	
+	private void createQSession() throws JMSException {
+		this.qSession     = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+	}
+
+	private void createConnection() throws JMSException {
+		Object factory = service.createConnectionFactory(uri);
+		QueueConnectionFactory connectionFactory = (QueueConnectionFactory)factory;		
+		this.connection = connectionFactory.createQueueConnection();
+		connection.start();
+	}
+
 	public void disconnect() throws EventException {
 		try {
 			if (connection!=null)        connection.close();
 			if (session!=null)           session.close();
+			if (qSession!=null)          qSession.close();
 			
 		} catch (JMSException ne) {
 			throw new EventException("Internal error - unable to close connection!", ne);

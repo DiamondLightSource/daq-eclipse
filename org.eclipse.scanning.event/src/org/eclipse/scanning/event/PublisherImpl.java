@@ -1,10 +1,17 @@
 package org.eclipse.scanning.event;
 
+import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.Enumeration;
 
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.QueueBrowser;
+import javax.jms.QueueConnection;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
 
@@ -12,6 +19,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +31,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	// are cleaned up at the end of a run.
 	private MessageProducer scanProducer, heartbeatProducer;
 	private boolean         alive;
+	private String          queueName;
 
 	public PublisherImpl(URI uri, String topic, IEventConnectorService service) {
 		super(uri, topic, service);
@@ -33,6 +42,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		
 		try {
 		    if (scanProducer==null) scanProducer = createProducer(getTopicName());
+			if (queueName!=null) updateQueue(bean);
 		    send(scanProducer, bean, 1000);
 
 		} catch (JMSException ne) {
@@ -141,6 +151,90 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			scanProducer = null;
 			heartbeatProducer = null;
 		}
+	}
+
+	public String getQueueName() {
+		return queueName;
+	}
+
+	public void setQueueName(String queueName) {
+		this.queueName = queueName;
+	}
+
+
+	/**
+	 * 
+	 * @param bean
+	 * @throws Exception 
+	 */
+	private void updateQueue(T bean) throws Exception {
+
+		Queue     queue = createQueue(getQueueName());
+		QueueBrowser qb = qSession.createBrowser(queue);
+
+		@SuppressWarnings("rawtypes")
+		Enumeration  e  = qb.getEnumeration();
+
+		String jMSMessageID = null;
+		while(e.hasMoreElements()) {
+			Message m = (Message)e.nextElement();
+			if (m==null) continue;
+			if (m instanceof TextMessage) {
+				TextMessage t = (TextMessage)m;
+
+				final T qbean = service.unmarshal(t.getText(), (Class<T>)bean.getClass());
+				if (qbean==null) continue;
+				if (isSame(qbean, bean)) {
+					jMSMessageID = t.getJMSMessageID();
+					break;
+				}
+			}
+		}
+
+		qb.close();
+
+		if (jMSMessageID!=null) {
+			MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
+			Message m = consumer.receive(1000);
+			if (m!=null && m instanceof TextMessage) {
+				MessageProducer producer = session.createProducer(queue);
+				producer.send(session.createTextMessage(service.marshal(bean)));
+			}
+		}
+
+	}
+	
+	private boolean isSame(T qbean, T bean) {
+		
+		Object id1 = getUniqueId(qbean);
+		if (id1==null) return qbean.equals(bean); // Probably it won't because we are updating it but they might have transient fields.
+
+		Object id2 = getUniqueId(bean);
+		if (id2==null) return qbean.equals(bean); // Probably it won't because we are updating it but they might have transient fields.
+
+		return id1.equals(id2);
+	}
+
+	private Object getUniqueId(T bean) {
+		
+		if (bean instanceof StatusBean) {
+			return ((StatusBean)bean).getUniqueId();
+		}
+		
+		Object value = null;
+		try {
+			Method method = bean.getClass().getDeclaredMethod("getUniqueId");
+			value = method.invoke(bean);
+		} catch (Exception e) {
+			try {
+				Method method = bean.getClass().getDeclaredMethod("getName");
+				value = method.invoke(bean);
+			} catch (Exception e1) {
+				value = null;
+			}
+		}
+		
+		return value;
 	}
 
 }

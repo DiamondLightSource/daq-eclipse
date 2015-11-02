@@ -29,4 +29,19 @@ public interface IPublisher<T> extends ITopicConnection {
 	 * Returns true if the producer is alive and sending a heartbeat.
 	 */
 	public boolean isAlive();
+	
+	
+	/**
+	 * Set the queue name (default none) to which to echo the bean.
+	 * If doing this the bean needs a UUID so that it can be found and replaced in the queue.
+	 * @param queueName
+	 */
+	public void setQueueName(String queueName);
+	
+	/**
+	 * The queue name to synch with the topic updates (if any)
+	 * @return
+	 */
+	public String getQueueName();
+
 }

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.event.core;
 
+import org.eclipse.scanning.api.event.EventException;
+
 
 /**
  * A consumer process is the process run when a consumer starts a job.
@@ -28,7 +30,7 @@ public interface IConsumerProcess<T> {
 	 * 
 	 * @throws Exception
 	 */
-	public void execute() throws Exception;
+	public void execute() throws EventException;
 	
 	/**
 	 * Please provide a termination for the process by implementing this method.
@@ -37,6 +39,6 @@ public interface IConsumerProcess<T> {
 	 * 
 	 * @throws Exception
 	 */
-	public void terminate() throws Exception;
+	public void terminate() throws EventException;
 
 }

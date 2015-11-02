@@ -1,5 +1,6 @@
 package org.eclipse.scanning.event.dry;
 
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
@@ -30,9 +31,9 @@ class DryRunProcess implements IConsumerProcess<StatusBean> {
 	}
 
 	@Override
-	public void execute() throws Exception {
+	public void execute() throws EventException {
 		
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i < 100; i++) {
 			
 			try {
 				Thread.sleep(100);
@@ -51,8 +52,8 @@ class DryRunProcess implements IConsumerProcess<StatusBean> {
 	}
 
 	@Override
-	public void terminate() throws Exception {
-		throw new Exception("Cannot terminate dry run!");
+	public void terminate() throws EventException {
+		throw new EventException("Cannot terminate dry run!");
 	}
 
 }

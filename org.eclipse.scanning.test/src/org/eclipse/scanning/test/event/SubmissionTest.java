@@ -10,7 +10,7 @@ package org.eclipse.scanning.test.event;
 
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
+import java.util.List;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -58,20 +58,44 @@ public class SubmissionTest {
 		submitter  = eservice.createSubmitter(uri, IEventService.SUBMISSION_QUEUE, new ActivemqConnectorService());
 		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.TERMINATE_TOPIC, new ActivemqConnectorService());
 		consumer.setName("Test Consumer");
+		consumer.clearStatusQueue();
 	}
 	
 	@After
 	public void dispose() throws EventException {
 		submitter.disconnect();
+		consumer.clearStatusQueue();
+		consumer.disconnect();
 	}
 	
     @Test
 	public void testSimpleConsumer() throws Exception {
     	
-		URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");
-        
+       
 		consumer.setRunner(new DryRunCreator());
+		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
+		
+		URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");
+		StatusBean bean = doSubmit(uri);
+		 	
+		Thread.sleep(12000); // 10000 to do the loop, 2000 for luck
+		
+		List<StatusBean> stati = consumer.getStatusQueue();
+		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
+		
+		StatusBean complete = stati.get(0);
+		
+       	if (complete.equals(bean)) {
+       		throw new Exception("The bean from the status queue was the same as that submitted! It should have a different status. q="+complete+" submit="+bean);
+       	}
+        
+       	if (complete.getStatus()!=Status.COMPLETE) {
+       		throw new Exception("The bean in the queue is not complete!"+complete);
+       	}
+       	if (complete.getPercentComplete()<100) {
+       		throw new Exception("The percent complete is less than 100!"+complete);
+       	}
     }
 
     @Test

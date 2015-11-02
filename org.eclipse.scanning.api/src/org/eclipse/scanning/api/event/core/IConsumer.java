@@ -82,11 +82,25 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	void setRunner(IProcessCreator<T> process) throws EventException ;
 	
 	/**
-	 * Starts the consumer and does not return. You must set the runner before calling this method
+	 * The consumer needs the class that it will deserialize to, should be set before starting the consumer.
+	 * @param clazz
+	 */
+	void setBeanClass(Class<T> clazz);
+	
+	/**
+	 * Starts the consumer in new thread and return. Similar to Thread.start()
+	 * You must set the runner before calling this method
 	 * @throws Exception
 	 */
 	void start() throws EventException;
 
+	/**
+	 * Starts the consumer and block. Similar to Thread.run()
+	 * You must set the runner before calling this method
+	 * @throws Exception
+	 */
+	void run() throws EventException;
+	
 	/**
 	 * 
 	 * @return the current active process which will run jobs 
@@ -123,4 +137,9 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	
 	public boolean isDurable();
 	public void setDurable(boolean durable);
+
+	/**
+	 * This method will purge the status queue
+	 */
+	public void clearStatusQueue() throws EventException;
 }

@@ -6,6 +6,7 @@ import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.status.StatusBean;
 
 /**
  * 
@@ -128,7 +129,7 @@ public interface IEventService {
 	 * @param queueName
 	 * @return
 	 */
-	public <U> ISubmitter<U> createSubmitter(URI uri, String queueName);
+	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName);
 	
 	
 	/**
@@ -138,7 +139,7 @@ public interface IEventService {
 	 * @param service, may be null
 	 * @return
 	 */
-	public <U> ISubmitter<U> createSubmitter(URI uri, String queueName, IEventConnectorService service);
+	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName, IEventConnectorService service);
 
 	/**
 	 * Create a consumer with the default, status topic, submission queue, status queue and termination topic.
@@ -146,7 +147,7 @@ public interface IEventService {
 	 * @param service
 	 * @return
 	 */
-	public <U> IConsumer<U> createConsumer(URI uri) throws EventException;
+	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri) throws EventException;
 	
 
 	/**
@@ -160,11 +161,11 @@ public interface IEventService {
 	 * @param service, may be null
 	 * @return
 	 */
-	public <U> IConsumer<U> createConsumer(URI uri, String submissionQName, 
-			                                        String statusQName,
-			                                        String statusTName,
-			                                        String heartbeatTName, 
-			                                        String terminateTName, 
-			                                        IEventConnectorService service) throws EventException;
+	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, String submissionQName, 
+						                                        String statusQName,
+						                                        String statusTName,
+						                                        String heartbeatTName, 
+						                                        String terminateTName, 
+						                                        IEventConnectorService service) throws EventException;
 
 }

@@ -10,6 +10,7 @@ import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.status.StatusBean;
 
 public class EventServiceImpl implements IEventService {
 	
@@ -53,23 +54,23 @@ public class EventServiceImpl implements IEventService {
 	}
 
 	@Override
-	public <U> ISubmitter<U> createSubmitter(URI uri, String queueName) {
+	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName) {
 		return createSubmitter(uri, SUBMISSION_QUEUE, null);
 	}
 
 	@Override
-	public <U> ISubmitter<U> createSubmitter(URI uri, String queueName, IEventConnectorService service) {
+	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName, IEventConnectorService service) {
 		if (service == null) service = eventConnectorService;
 		return new SubmissionImpl<U>(uri, queueName, service);
 	}
 
 	@Override
-	public <U> IConsumer<U> createConsumer(URI uri) throws EventException {
+	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri) throws EventException {
 		return createConsumer(uri, SUBMISSION_QUEUE, STATUS_QUEUE, STATUS_TOPIC, HEARTBEAT_TOPIC, TERMINATE_TOPIC, null);
 	}
 
 	@Override
-	public <U> IConsumer<U> createConsumer(URI uri, 
+	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, 
 			                               String submissionQName,
 			                               String statusQName, 
 			                               String statusTName, 

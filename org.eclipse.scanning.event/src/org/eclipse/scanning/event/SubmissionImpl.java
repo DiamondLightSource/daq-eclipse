@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event;
 
 import java.net.URI;
+import java.util.UUID;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
@@ -13,8 +14,9 @@ import javax.jms.TextMessage;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
+import org.eclipse.scanning.api.event.status.StatusBean;
 
-class SubmissionImpl<T> extends AbstractConnection implements ISubmitter<T> {
+class SubmissionImpl<T extends StatusBean> extends AbstractConnection implements ISubmitter<T> {
 
 	// Message things
 	private String uniqueId;
@@ -27,17 +29,13 @@ class SubmissionImpl<T> extends AbstractConnection implements ISubmitter<T> {
 		setSubmitQueueName(submitQueue);
 	}
 
-
 	@Override
 	public void submit(T bean) throws EventException {
-		
-		String json = null;
-        try {
-			json = service.marshal(bean);
-		} catch (Exception e) {
-			throw new EventException("Unable to marshall bean "+bean, e);
-		}
-        
+        submit(bean, true);
+	}
+	
+	public void submit(T bean, boolean prepareBean) throws EventException {
+		        
 		Connection      send     = null;
 		Session         session  = null;
 		MessageProducer producer = null;
@@ -56,6 +54,20 @@ class SubmissionImpl<T> extends AbstractConnection implements ISubmitter<T> {
 			if (getPriority()<1)  setPriority(1);
 			if (getLifeTime()<1)  setLifeTime(7*24*60*60*1000); // 7 days in ms
 			
+			if (uniqueId==null) uniqueId = UUID.randomUUID().toString();
+			if (prepareBean) {
+				if (bean.getUserName()==null)   bean.setUserName(System.getProperty("user.name"));
+				bean.setUniqueId(uniqueId);
+				bean.setSubmissionTime(getTimestamp());
+			}
+			
+			String json = null;
+	        try {
+				json = service.marshal(bean);
+			} catch (Exception e) {
+				throw new EventException("Unable to marshall bean "+bean, e);
+			}
+
 			TextMessage message = session.createTextMessage(json);
 			
 			message.setJMSMessageID(uniqueId);
