@@ -65,7 +65,7 @@ public interface IEventService {
 	/**
 	 * The default topic used for terminate events.
 	 */
-	public static final String TERMINATE_TOPIC = "org.eclipse.scanning.terminate.topic";
+	public static final String KILL_TOPIC = "org.eclipse.scanning.terminate.topic";
 
 	/**
 	 * The default queue used for holding status events.
@@ -165,7 +165,7 @@ public interface IEventService {
 						                                        String statusQName,
 						                                        String statusTName,
 						                                        String heartbeatTName, 
-						                                        String terminateTName, 
+						                                        String killTName, 
 						                                        IEventConnectorService service) throws EventException;
 
 }

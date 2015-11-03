@@ -21,7 +21,7 @@ class AbstractConnection {
 	protected String                 submitQueueName;
 	protected String                 statusQueueName;
 	protected String                 statusTopicName;
-	protected String                 terminateTopicName;
+	protected String                 killTopicName;
 
 	protected IEventConnectorService service;
 	
@@ -40,7 +40,7 @@ class AbstractConnection {
 		this.submitQueueName = submitQName;
 		this.statusQueueName = statusQName;
 		this.statusTopicName = statusTName;
-		this.terminateTopicName = terminateTName;
+		this.killTopicName = terminateTName;
 		this.service = service;
 	}
 	
@@ -181,11 +181,11 @@ class AbstractConnection {
 		this.statusTopicName = statusTopicName;
 	}
 
-	public String getTerminateTopicName() {
-		return terminateTopicName;
+	public String getKillTopicName() {
+		return killTopicName;
 	}
 
-	public void setTerminateTopicName(String terminateTopicName) {
-		this.terminateTopicName = terminateTopicName;
+	public void setKillTopicName(String terminateTopicName) {
+		this.killTopicName = terminateTopicName;
 	}
 }

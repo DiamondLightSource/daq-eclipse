@@ -37,7 +37,7 @@ public class ConsumerTest extends AbstractConsumerTest{
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
 		submitter  = eservice.createSubmitter(uri, IEventService.SUBMISSION_QUEUE, new ActivemqConnectorService());
-		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.TERMINATE_TOPIC, new ActivemqConnectorService());
+		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
 		consumer.setName("Test Consumer");
 		consumer.clearStatusQueue();
 	}

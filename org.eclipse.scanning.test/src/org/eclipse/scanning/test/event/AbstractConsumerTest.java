@@ -1,7 +1,6 @@
 package org.eclipse.scanning.test.event;
 
 import java.net.InetAddress;
-import java.net.URI;
 import java.util.List;
 
 import javax.jms.Connection;
@@ -13,6 +12,7 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -113,6 +113,31 @@ public class AbstractConsumerTest {
 		checkTerminatedProcess(bean);
 
 	}
+    
+	
+    @Test
+    public void testKillingAConsumer() throws Exception {
+    	
+		consumer.setRunner(new DryRunCreator());
+		consumer.setBeanClass(StatusBean.class);
+		consumer.start();
+
+		StatusBean bean = doSubmit();
+
+		Thread.sleep(2000);
+
+		IPublisher<KillBean> killer = eservice.createPublisher(submitter.getUri(), IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		KillBean kbean = new KillBean();
+		kbean.setConsumerId(consumer.getConsumerId());
+		kbean.setExitProcess(false); // Or tests would exit!
+		kbean.setDisconnect(false);  // Or we cannot ask for the list of what's left
+		killer.broadcast(kbean);
+		
+		Thread.sleep(2000);
+		checkTerminatedProcess(bean);
+		
+    }
+
 
 	@Test
 	public void testAbortingAJobRemotely() throws Exception {
@@ -150,10 +175,10 @@ public class AbstractConsumerTest {
        		throw new Exception("The percent complete should not be 100!"+complete);
        	}
 	}
-	
+    
     @Test
-    public void testKillingAConsumer() throws Exception {
-    	
+    public void testHeartbeat() throws Exception {
+    	throw new Exception("Patient dead!");
     }
 
 	private StatusBean doSubmit() throws Exception {

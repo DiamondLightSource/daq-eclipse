@@ -118,13 +118,13 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 * The topic used to terminate the running process and get the consumer to stop.
 	 * @return topic name
 	 */
-	public String getTerminateTopicName();
+	public String getKillTopicName();
 	
 	/**
 	 * The topic used to terminate the running process and get the consumer to stop.
 	 * @return topic name
 	 */
-	public void setTerminateTopicName(String terminateName);
+	public void setKillTopicName(String terminateName);
 	
     /**
      * The string UUID which denotes this consumer

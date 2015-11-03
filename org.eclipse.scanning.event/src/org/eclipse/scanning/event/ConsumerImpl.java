@@ -23,7 +23,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
-import org.eclipse.scanning.api.event.alive.TerminateBean;
+import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
@@ -47,7 +47,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	private IPublisher<U>                 status;
 	private IPublisher<HeartbeatBean>     alive;
 	private ISubscriber<IBeanListener<StatusBean>> terminator;
-	private ISubscriber<IBeanListener<TerminateBean>> killer;
+	private ISubscriber<IBeanListener<KillBean>> killer;
 	private ISubmitter<U>                 mover;
 	
 	private Class<U>                      beanClass;
@@ -64,11 +64,11 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 			              String statusQName,
 			              String statusTName, 
 			              String heartbeatTName,
-			              String terminateTName,
+			              String killTName,
 			              IEventConnectorService service,
 			              IEventService          eservice) throws EventException {
 		
-		super(uri, submitQName, statusQName, statusTName, terminateTName, service);
+		super(uri, submitQName, statusQName, statusTName, killTName, service);
 		
 		durable    = true;
 		consumerId = UUID.randomUUID();
@@ -107,21 +107,30 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 		});
 		
 		
-		killer = eservice.createSubscriber(uri, terminateTName, service);
-		killer.addListener(new IBeanListener<TerminateBean>() {
+		killer = eservice.createSubscriber(uri, killTName, service);
+		killer.addListener(new IBeanListener<KillBean>() {
 			@Override
-			public Class<TerminateBean> getBeanClass() {
-				return TerminateBean.class;
+			public Class<KillBean> getBeanClass() {
+				return KillBean.class;
 			}
 
 			@Override
-			public void beanChangePerformed(BeanEvent<TerminateBean> evt) {
-				TerminateBean tbean = evt.getBean();
-				if (tbean.getConsumerId().equals(getConsumerId())) {
+			public void beanChangePerformed(BeanEvent<KillBean> evt) {
+				KillBean kbean = evt.getBean();
+				if (kbean.getConsumerId().equals(getConsumerId())) {
 					try {
-						disconnect();
+						stop();
+						if (kbean.isDisconnect()) disconnect();
 					} catch (EventException e) {
 						logger.error("An internal error occurred trying to terminate the consumer "+getName()+" "+getConsumerId());
+					}
+					if (kbean.isExitProcess()) {
+						try {
+							Thread.sleep(2500);
+						} catch (InterruptedException e) {
+							logger.error("Unable to pause before exit", e);
+						}
+						System.exit(0); // Normal orderly exit
 					}
 				}
 			}

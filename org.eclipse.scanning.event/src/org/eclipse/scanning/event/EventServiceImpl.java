@@ -66,7 +66,7 @@ public class EventServiceImpl implements IEventService {
 
 	@Override
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri) throws EventException {
-		return createConsumer(uri, SUBMISSION_QUEUE, STATUS_QUEUE, STATUS_TOPIC, HEARTBEAT_TOPIC, TERMINATE_TOPIC, null);
+		return createConsumer(uri, SUBMISSION_QUEUE, STATUS_QUEUE, STATUS_TOPIC, HEARTBEAT_TOPIC, KILL_TOPIC, null);
 	}
 
 	@Override
@@ -75,12 +75,12 @@ public class EventServiceImpl implements IEventService {
 			                               String statusQName, 
 			                               String statusTName, 
 			                               String heartbeatTName,
-			                               String terminateTName,
+			                               String killTName,
 			                               IEventConnectorService service) throws EventException {
 		
 		if (service == null) service = eventConnectorService;
 		
-		return new ConsumerImpl<U>(uri, submissionQName, statusQName, statusTName, heartbeatTName, terminateTName, service, this);
+		return new ConsumerImpl<U>(uri, submissionQName, statusQName, statusTName, heartbeatTName, killTName, service, this);
 
 	}
 }
