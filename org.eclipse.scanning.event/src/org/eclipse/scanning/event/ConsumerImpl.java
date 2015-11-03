@@ -1,6 +1,8 @@
 package org.eclipse.scanning.event;
 
+import java.lang.ref.WeakReference;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
@@ -49,9 +51,11 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	private Class<U>                   beanClass;
 
 	private IProcessCreator<U>         runner;
-	private boolean                    active;
 	private boolean                    durable;
 	private MessageConsumer            consumer;
+	
+	private volatile boolean           active;
+	private volatile List<WeakReference<IConsumerProcess<U>>>  processes;
 
 	@SuppressWarnings("unchecked")
 	ConsumerImpl(URI uri, String submitQName, 
@@ -67,6 +71,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 		durable    = true;
 		consumerId = UUID.randomUUID();
 		name       = "Consumer "+consumerId; // This will hopefully be changed to something meaningful...
+		this.processes = new ArrayList<>(7);
 		
 		mover  = eservice.createSubmitter(uri, statusQName, service);
 		status = eservice.createPublisher(uri, statusTName, service);
@@ -103,7 +108,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 		alive.disconnect();
 		killer.disconnect();
 		try {
-			connection.close();
+			if (connection!=null) connection.close();
 		} catch (JMSException e) {
 			throw new EventException("Cannot close consumer connection!", e);
 		}
@@ -151,7 +156,16 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 		consumerThread.setPriority(Thread.NORM_PRIORITY-1);
 		consumerThread.start();
 	}
-
+	
+	@Override
+	public void stop() throws EventException {
+        setActive(false);
+        final WeakReference<IConsumerProcess<U>>[] wra = processes.toArray(new WeakReference[processes.size()]);
+        for (WeakReference<IConsumerProcess<U>> wr : wra) {
+			if (wr.get()!=null) wr.get().terminate();
+		}
+	}
+	
 	@Override
 	public void run() throws EventException {
 		
@@ -227,7 +241,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 		}
 		
 		IConsumerProcess<U> process = runner.createProcess(bean, status);
-		process.execute();
+		processes.add(new WeakReference<IConsumerProcess<U>>(process));
+		process.execute(); // Depending on the process this may or may not run in a separate thread.
 	}
 
 	protected void checkTime(long waitTime) {

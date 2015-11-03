@@ -10,7 +10,7 @@ Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  org.hamcrest.core;bundle-version="1.1.0",
  uk.ac.diamond.daq.activemq.connector;bundle-version="1.0.0",
  uk.ac.diamond.org.apache.activemq;bundle-version="5.9.0"
-Service-Component: OSGI-INF/component.xml
+Service-Component: OSGI-INF/*.xml
 Import-Package: javax.jms,
  org.junit;version="4.10.0"
 Bundle-ActivationPolicy: lazy

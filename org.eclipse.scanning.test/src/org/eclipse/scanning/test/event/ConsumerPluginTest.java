@@ -7,13 +7,11 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.junit.After;
 import org.junit.Before;
 
-/**
- * Scan Event Test but with OSGi container.
- * @author fcp94556
- *
- */
-public class ScanEventPluginTest extends AbstractScanEventTest{
+import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
+public class ConsumerPluginTest extends AbstractConsumerTest {
+
+	
     private static IEventService service;
 
 	public static IEventService getService() {
@@ -21,7 +19,7 @@ public class ScanEventPluginTest extends AbstractScanEventTest{
 	}
 
 	public static void setService(IEventService service) {
-		ScanEventPluginTest.service = service;
+		ConsumerPluginTest.service = service;
 	}
 
 	@Before
@@ -33,13 +31,17 @@ public class ScanEventPluginTest extends AbstractScanEventTest{
 		
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
-		publisher  = eservice.createPublisher(uri, IEventService.SCAN_TOPIC);		
-		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC);
+		submitter  = eservice.createSubmitter(uri, IEventService.SUBMISSION_QUEUE, new ActivemqConnectorService());
+		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.TERMINATE_TOPIC, new ActivemqConnectorService());
+		consumer.setName("Test Consumer");
+		consumer.clearStatusQueue();
 	}
 	
 	@After
 	public void dispose() throws EventException {
-		publisher.disconnect();
-		subscriber.disconnect();
+		submitter.disconnect();
+		consumer.clearStatusQueue();
+		consumer.disconnect();
 	}
+
 }

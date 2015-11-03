@@ -93,6 +93,13 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 * @throws Exception
 	 */
 	void start() throws EventException;
+	
+	/**
+	 * Ask the consumer to stop 
+	 * @throws EventException
+	 */
+	void stop() throws EventException;
+
 
 	/**
 	 * Starts the consumer and block. Similar to Thread.run()
@@ -142,4 +149,5 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 * This method will purge the status queue
 	 */
 	public void clearStatusQueue() throws EventException;
+
 }

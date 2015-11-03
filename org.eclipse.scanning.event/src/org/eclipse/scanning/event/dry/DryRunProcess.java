@@ -14,10 +14,14 @@ class DryRunProcess implements IConsumerProcess<StatusBean> {
 
 	private final StatusBean             bean;
 	private final IPublisher<StatusBean> publisher;
+	private boolean                      blocking;
+	
+	private boolean terminated;
 
-	public DryRunProcess(StatusBean bean, IPublisher<StatusBean> statusPublisher) {
+	public DryRunProcess(StatusBean bean, IPublisher<StatusBean> statusPublisher, boolean blocking) {
 		this.bean = bean;
 		this.publisher = statusPublisher;
+		this.blocking = blocking;
 	}
 
 	@Override
@@ -32,8 +36,34 @@ class DryRunProcess implements IConsumerProcess<StatusBean> {
 
 	@Override
 	public void execute() throws EventException {
+		if (isBlocking()) {
+			run(); // Block until process has run.
+		} else {
+			final Thread thread = new Thread(new Runnable() {
+				public void run() {
+					try {
+						DryRunProcess.this.run();
+					} catch (EventException ne) {
+						ne.printStackTrace(); // Only a test process!
+					}
+				}
+			});
+			thread.setDaemon(true);
+			thread.setPriority(Thread.MAX_PRIORITY);
+			thread.start();
+		}		
+	}
+	
+	private void run()  throws EventException {
 		
+		terminated = false;
 		for (int i = 0; i < 100; i++) {
+			
+			if (isTerminated()) {
+				bean.setStatus(Status.TERMINATED);
+				publisher.broadcast(bean);
+				return;
+			}
 			
 			try {
 				Thread.sleep(100);
@@ -53,7 +83,23 @@ class DryRunProcess implements IConsumerProcess<StatusBean> {
 
 	@Override
 	public void terminate() throws EventException {
-		throw new EventException("Cannot terminate dry run!");
+		terminated = true;
+	}
+
+	public boolean isBlocking() {
+		return blocking;
+	}
+
+	public void setBlocking(boolean blocking) {
+		this.blocking = blocking;
+	}
+
+	public boolean isTerminated() {
+		return terminated;
+	}
+
+	public void setTerminated(boolean terminated) {
+		this.terminated = terminated;
 	}
 
 }
