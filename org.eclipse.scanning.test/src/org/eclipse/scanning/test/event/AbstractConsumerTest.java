@@ -1,6 +1,9 @@
 package org.eclipse.scanning.test.event;
 
 import java.net.InetAddress;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.jms.Connection;
@@ -12,11 +15,15 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.HeartbeatBean;
+import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
+import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
+import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.dry.DryRunCreator;
@@ -178,10 +185,42 @@ public class AbstractConsumerTest {
     
     @Test
     public void testHeartbeat() throws Exception {
-    	throw new Exception("Patient dead!");
-    }
+    	
+		consumer.setRunner(new DryRunCreator());
+		consumer.setBeanClass(StatusBean.class);
+		consumer.start();
+		
+		ISubscriber<IHeartbeatListener> subscriber = eservice.createSubscriber(consumer.getUri(), IEventService.HEARTBEAT_TOPIC, new ActivemqConnectorService());
+		final List<HeartbeatBean> gotBack = new ArrayList<>(3);
+		subscriber.addListener(new IHeartbeatListener.Stub() {
+			@Override
+			public void heartbeatPerformed(HeartbeatEvent evt) {
+				gotBack.add(evt.getBean());
+				System.out.println("The heart beated at "+((new SimpleDateFormat()).format(new Date(evt.getBean().getPublishTime()))));
+			}
+		});
+		
+		Thread.sleep(3000);
+		if (gotBack.size()<1) throw new Exception("No hearbeat the paitent might be dead!");
 
-	private StatusBean doSubmit() throws Exception {
+		doSubmit();
+		Thread.sleep(5000);
+		consumer.stop();  // Should also stop heartbeat
+		Thread.sleep(1000);
+		
+		final int sizeBeforeSleep = gotBack.size();
+		if (sizeBeforeSleep<2) throw new Exception("No hearbeat the paitent might be dead!");
+		
+		Thread.sleep(4000); // Should 
+		
+		final int sizeAfterSleep = gotBack.size();
+		if (sizeAfterSleep!=sizeBeforeSleep) {
+			throw new Exception("The pulse continues to beat after death. Ahhhhhh! Is it a vampir? Do we need the garlic?!");
+		}
+
+   }
+
+   private StatusBean doSubmit() throws Exception {
 		
 		StatusBean bean = new StatusBean();
 		bean.setName("Test");
@@ -193,4 +232,9 @@ public class AbstractConsumerTest {
 		
 		return bean;
 	}
+   
+    @Test
+    public void testMultipleSubmissions() throws Exception {
+    	throw new Exception("Cannot deal with multiple submissions!");
+    }
 }

@@ -197,6 +197,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	@Override
 	public void stop() throws EventException {
         setActive(false);
+        alive.setAlive(false);
         final WeakReference<IConsumerProcess<U>>[] wra = processes.values().toArray(new WeakReference[processes.size()]);
         for (WeakReference<IConsumerProcess<U>> wr : wra) {
 			if (wr.get()!=null) wr.get().terminate();
