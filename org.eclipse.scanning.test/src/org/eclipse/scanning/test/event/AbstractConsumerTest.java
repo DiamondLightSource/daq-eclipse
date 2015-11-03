@@ -206,13 +206,13 @@ public class AbstractConsumerTest {
 
 		doSubmit();
 		Thread.sleep(5000);
-		consumer.stop();  // Should also stop heartbeat
-		Thread.sleep(1000);
+		consumer.stop();  // Should also stop heartbeat within 2s
+		Thread.sleep(3000);
 		
 		final int sizeBeforeSleep = gotBack.size();
 		if (sizeBeforeSleep<2) throw new Exception("No hearbeat the paitent might be dead!");
 		
-		Thread.sleep(4000); // Should 
+		Thread.sleep(4000); // Should beat again if not dead
 		
 		final int sizeAfterSleep = gotBack.size();
 		if (sizeAfterSleep!=sizeBeforeSleep) {
@@ -249,6 +249,7 @@ public class AbstractConsumerTest {
 		for (int i = 0; i < 10; i++) {
 			System.out.println("Submitted: Test "+i);
 			submissions.add(doSubmit("Test "+i));
+			Thread.sleep(10); // Guarantee that submission time cannot be same.
 		}
 		 	
 		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
