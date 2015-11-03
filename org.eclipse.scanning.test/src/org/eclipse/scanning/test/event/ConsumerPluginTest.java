@@ -32,13 +32,15 @@ public class ConsumerPluginTest extends AbstractConsumerTest {
 		submitter  = eservice.createSubmitter(uri, IEventService.SUBMISSION_QUEUE);
 		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, null);
 		consumer.setName("Test Consumer");
-		consumer.clearStatusQueue();
+		consumer.clearQueue(IEventService.SUBMISSION_QUEUE);
+		consumer.clearQueue(IEventService.STATUS_QUEUE);
 	}
 	
 	@After
 	public void dispose() throws EventException {
 		submitter.disconnect();
-		consumer.clearStatusQueue();
+		consumer.clearQueue(IEventService.SUBMISSION_QUEUE);
+		consumer.clearQueue(IEventService.STATUS_QUEUE);
 		consumer.disconnect();
 	}
 

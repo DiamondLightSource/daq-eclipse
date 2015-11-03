@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -221,12 +222,16 @@ public class AbstractConsumerTest {
    }
 
    private StatusBean doSubmit() throws Exception {
-		
+	   return doSubmit("Test");
+   }
+   private StatusBean doSubmit(String name) throws Exception {
+
 		StatusBean bean = new StatusBean();
-		bean.setName("Test");
+		bean.setName(name);
 		bean.setStatus(Status.SUBMITTED);
 		bean.setHostName(InetAddress.getLocalHost().getHostName());
 		bean.setMessage("Hello World");
+		bean.setUniqueId(UUID.randomUUID().toString());
 
 		submitter.submit(bean);
 		
@@ -235,6 +240,41 @@ public class AbstractConsumerTest {
    
     @Test
     public void testMultipleSubmissions() throws Exception {
-    	throw new Exception("Cannot deal with multiple submissions!");
+    	
+		consumer.setRunner(new DryRunCreator(false));
+		consumer.setBeanClass(StatusBean.class);
+		consumer.start();
+		
+		List<StatusBean> submissions = new ArrayList<StatusBean>(10);
+		for (int i = 0; i < 10; i++) {
+			System.out.println("Submitted: Test "+i);
+			submissions.add(doSubmit("Test "+i));
+		}
+		 	
+		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
+		
+		List<StatusBean> stati = consumer.getStatusQueue();
+		if (stati.size()!=10) throw new Exception("Unexpected status size in queue! Should be 10 size is "+stati.size());
+		
+		for (int i = 0; i < 10; i++) {
+			
+			StatusBean complete = stati.get(i);
+			if (!complete.getName().equals("Test "+(9-i))) {
+				throw new Exception("Unexpected run order detected! bean is named "+complete.getName()+" and should be 'Test "+(9-i)+"'");
+			}
+			
+			StatusBean bean     = submissions.get(i);
+	       	if (complete.equals(bean)) {
+	       		throw new Exception("The bean from the status queue was the same as that submitted! It should have a different status. q="+complete+" submit="+bean);
+	       	}
+	        
+	       	if (complete.getStatus()!=Status.COMPLETE) {
+	       		throw new Exception("The bean in the queue is not complete!"+complete);
+	       	}
+	       	if (complete.getPercentComplete()<100) {
+	       		throw new Exception("The percent complete is less than 100!"+complete);
+	       	}
+		}
+		
     }
 }

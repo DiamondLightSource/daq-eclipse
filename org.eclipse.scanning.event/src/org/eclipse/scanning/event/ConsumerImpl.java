@@ -2,6 +2,7 @@ package org.eclipse.scanning.event;
 
 import java.lang.ref.WeakReference;
 import java.net.URI;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -163,7 +164,20 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	}
 
 	private List<U> getQueue(String qName) throws EventException {
-		QueueReader<U> reader = new QueueReader<U>(service);
+		
+		Comparator<StatusBean> c = new Comparator<StatusBean>() {		
+			@Override
+			public int compare(StatusBean o1, StatusBean o2) {
+				// Newest first!
+		        long t1 = o2.getSubmissionTime();
+		        long t2 = o1.getSubmissionTime();
+		        if (t1<t2) return -1;
+		        if (t1==t2) return o1.equals(o2) ? 0 : 1;
+		        return 1;
+			}
+		};
+
+		QueueReader<U> reader = new QueueReader<U>(service, c);
 		try {
 			return reader.getBeans(uri, qName, getBeanClass());
 		} catch (Exception e) {
@@ -186,6 +200,12 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 					ConsumerImpl.this.run();
 				} catch (Exception ne) {
 					logger.error("Internal error running consumer "+getName(), ne);
+					ne.printStackTrace();
+					try {
+						ConsumerImpl.this.stop();
+					} catch (EventException e) {
+						ne.printStackTrace();
+					}
 				}
 			}
 		};
@@ -234,6 +254,9 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	            	executeBean(bean);
 	            	
 	            }
+	            
+        	} catch (EventException ne) {
+        		throw ne;
          		
         	} catch (Throwable ne) {
         		
@@ -377,12 +400,9 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 		this.beanClass = beanClass;
 	}
 
-	@Override
-	public void clearStatusQueue() throws EventException{
-		purgeQueue(getStatusQueueName());
-	}
 
-	private void purgeQueue(String qName) throws EventException {
+	@Override
+	public void clearQueue(String qName) throws EventException {
 
 		QueueConnection qCon = null;
 		try {

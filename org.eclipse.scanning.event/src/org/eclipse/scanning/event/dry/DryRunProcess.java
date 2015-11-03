@@ -70,7 +70,7 @@ class DryRunProcess implements IConsumerProcess<StatusBean> {
 			} catch (InterruptedException e) {
 				logger.error("Dry run sleeping failed", e);
 			}
-			System.out.println("Dry run : "+bean.getPercentComplete());
+			System.out.println("Dry run : "+bean.getPercentComplete()+" : "+bean.getName());
 			bean.setPercentComplete(i);
 			publisher.broadcast(bean);
 		}

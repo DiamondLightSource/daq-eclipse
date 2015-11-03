@@ -19,6 +19,7 @@ public class DryRunCreator implements IProcessCreator<StatusBean> {
 
 	@Override
 	public IConsumerProcess<StatusBean> createProcess(StatusBean bean, IPublisher<StatusBean> statusNotifier) {
+		System.out.println("Creating process for name = "+bean.getName()+" id = "+bean.getUniqueId());
 		return new DryRunProcess(bean, statusNotifier, blocking);
 	}
 

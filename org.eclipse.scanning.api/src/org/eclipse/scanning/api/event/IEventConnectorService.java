@@ -12,7 +12,7 @@ import java.net.URI;
 public interface IEventConnectorService {
 
 	/**
-	 * May be used to use the serializer to marshal any object using its serilization routine.
+	 * May be used to use the serializer to marshal any object using its serialization routine.
 	 * This can be used for objects other than T
 	 * @param event
 	 * @return

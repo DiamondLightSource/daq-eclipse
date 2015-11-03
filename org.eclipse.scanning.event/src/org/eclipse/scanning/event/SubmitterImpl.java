@@ -50,7 +50,7 @@ class SubmitterImpl<T extends StatusBean> extends AbstractConnection implements 
 			producer = session.createProducer(queue);
 			producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 			
-			if (getTimestamp()<1) setTimestamp(System.currentTimeMillis());
+			if (bean.getSubmissionTime()<1) bean.setSubmissionTime(System.currentTimeMillis());
 			if (getPriority()<1)  setPriority(1);
 			if (getLifeTime()<1)  setLifeTime(7*24*60*60*1000); // 7 days in ms
 			
@@ -58,9 +58,9 @@ class SubmitterImpl<T extends StatusBean> extends AbstractConnection implements 
 				uniqueId = bean.getUniqueId()!=null ? bean.getUniqueId() : UUID.randomUUID().toString();
 			}
 			if (prepareBean) {
-				if (bean.getUserName()==null)   bean.setUserName(System.getProperty("user.name"));
-				bean.setUniqueId(uniqueId);
-				bean.setSubmissionTime(getTimestamp());
+				if (bean.getUserName()==null) bean.setUserName(System.getProperty("user.name"));
+				if (bean.getUniqueId()==null) bean.setUniqueId(uniqueId);
+				if (getTimestamp()>0) bean.setSubmissionTime(getTimestamp());
 			}
 			
 			String json = null;
@@ -72,7 +72,7 @@ class SubmitterImpl<T extends StatusBean> extends AbstractConnection implements 
 
 			TextMessage message = session.createTextMessage(json);
 			
-			message.setJMSMessageID(uniqueId);
+			message.setJMSMessageID(bean.getUniqueId());
 			message.setJMSExpiration(getLifeTime());
 			message.setJMSTimestamp(getTimestamp());
 			message.setJMSPriority(getPriority());

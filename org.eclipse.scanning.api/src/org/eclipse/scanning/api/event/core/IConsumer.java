@@ -22,12 +22,18 @@ import org.eclipse.scanning.api.event.EventException;
 public interface IConsumer<T> extends IQueueConnection<T> {
 	/**
 	 * Get a copy of the current submission queue as a list of beans, type T
+	 * The list is ordered by submission time, not necessarily the ordering
+	 * of the JMS queue.
+	 * 
 	 * @return
 	 */
 	public List<T> getSubmissionQueue() throws EventException ;
 	
 	/**
 	 * Get a copy of the current status queue as a list of beans, type T
+	 * The list is ordered by submission time, not necessarily the ordering
+	 * of the JMS queue.
+	 * 
 	 * @return
 	 */
 	public List<T> getStatusQueue() throws EventException ;
@@ -146,8 +152,9 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	public void setDurable(boolean durable);
 
 	/**
-	 * This method will purge the status queue
+	 * This method will purge the queue
+	 * USE WITH CAUTION
 	 */
-	public void clearStatusQueue() throws EventException;
+	public void clearQueue(String queueName) throws EventException;
 
 }
