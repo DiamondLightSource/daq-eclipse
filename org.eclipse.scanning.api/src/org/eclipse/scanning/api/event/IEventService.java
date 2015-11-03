@@ -158,7 +158,7 @@ public interface IEventService {
 	 * @param statusQName
 	 * @param statusTName
 	 * @param terminateTName
-	 * @param service, may be null
+	 * @param service, may be null, should be null in the OSGi case
 	 * @return
 	 */
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, String submissionQName, 

@@ -2,7 +2,7 @@ package org.eclipse.scanning.api.event.core;
 
 import org.eclipse.scanning.api.event.EventException;
 
-public interface ITopicConnection {
+public interface ITopicConnection extends IURIConnection {
 	
 	/**
 	 * The string topic to publish events on for this manager.

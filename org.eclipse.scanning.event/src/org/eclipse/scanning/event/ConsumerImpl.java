@@ -2,9 +2,10 @@ package org.eclipse.scanning.event;
 
 import java.lang.ref.WeakReference;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.jms.JMSException;
@@ -39,23 +40,24 @@ import org.slf4j.LoggerFactory;
 public class ConsumerImpl<U extends StatusBean> extends AbstractConnection implements IConsumer<U> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ConsumerImpl.class);
-	private static final long ADAY = 24*60*60*1000; // ms
+	private static final long   ADAY   = 24*60*60*1000; // ms
 
-	private String                     name;
-	private UUID                       consumerId;
-	private IPublisher<U>              status;
-	private IPublisher<HeartbeatBean>  alive;
+	private String                        name;
+	private UUID                          consumerId;
+	private IPublisher<U>                 status;
+	private IPublisher<HeartbeatBean>     alive;
+	private ISubscriber<IBeanListener<StatusBean>> terminator;
 	private ISubscriber<IBeanListener<TerminateBean>> killer;
-	private ISubmitter<U>              mover;
+	private ISubmitter<U>                 mover;
 	
-	private Class<U>                   beanClass;
+	private Class<U>                      beanClass;
 
-	private IProcessCreator<U>         runner;
-	private boolean                    durable;
-	private MessageConsumer            consumer;
+	private IProcessCreator<U>            runner;
+	private boolean                       durable;
+	private MessageConsumer               consumer;
 	
-	private volatile boolean           active;
-	private volatile List<WeakReference<IConsumerProcess<U>>>  processes;
+	private volatile boolean              active;
+	private volatile Map<String, WeakReference<IConsumerProcess<U>>>  processes;
 
 	@SuppressWarnings("unchecked")
 	ConsumerImpl(URI uri, String submitQName, 
@@ -71,13 +73,39 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 		durable    = true;
 		consumerId = UUID.randomUUID();
 		name       = "Consumer "+consumerId; // This will hopefully be changed to something meaningful...
-		this.processes = new ArrayList<>(7);
+		this.processes = new Hashtable<>(7);
 		
 		mover  = eservice.createSubmitter(uri, statusQName, service);
 		status = eservice.createPublisher(uri, statusTName, service);
 		status.setQueueName(statusQName); // We also update values in a queue.
 		
 		alive  = eservice.createPublisher(uri, heartbeatTName,  service);
+		
+		terminator = eservice.createSubscriber(uri, statusTName, service);
+		terminator.addListener(new IBeanListener<StatusBean>() {
+			@Override
+			public Class<StatusBean> getBeanClass() {
+				return StatusBean.class;
+			}
+
+			@Override
+			public void beanChangePerformed(BeanEvent<StatusBean> evt) {
+				StatusBean bean = evt.getBean();
+				if (bean.getStatus()!=Status.REQUEST_TERMINATE) return;
+				
+				WeakReference<IConsumerProcess<U>> ref = processes.remove(bean.getUniqueId());
+				if (ref==null) return;
+				IConsumerProcess<U> process = ref.get();
+				if (process!=null) {
+					try {
+						process.terminate();
+					} catch (EventException e) {
+						logger.error("Cannot terminate process "+process.getBean().getUniqueId(), e);
+					}
+				}
+			}
+		});
+		
 		
 		killer = eservice.createSubscriber(uri, terminateTName, service);
 		killer.addListener(new IBeanListener<TerminateBean>() {
@@ -160,10 +188,11 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	@Override
 	public void stop() throws EventException {
         setActive(false);
-        final WeakReference<IConsumerProcess<U>>[] wra = processes.toArray(new WeakReference[processes.size()]);
+        final WeakReference<IConsumerProcess<U>>[] wra = processes.values().toArray(new WeakReference[processes.size()]);
         for (WeakReference<IConsumerProcess<U>> wr : wra) {
 			if (wr.get()!=null) wr.get().terminate();
 		}
+        processes.clear();
 	}
 	
 	@Override
@@ -240,8 +269,12 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 			throw new EventException("You must set the runner before executing beans from the queue!");
 		}
 		
+		if (processes.containsKey(bean.getUniqueId())) {
+			throw new EventException("The bean with unique id '"+bean.getUniqueId()+"' has already been used. Cannot run the same uuid twice!");
+		}
+		
 		IConsumerProcess<U> process = runner.createProcess(bean, status);
-		processes.add(new WeakReference<IConsumerProcess<U>>(process));
+		processes.put(bean.getUniqueId(), new WeakReference<IConsumerProcess<U>>(process));
 		process.execute(); // Depending on the process this may or may not run in a separate thread.
 	}
 

@@ -15,6 +15,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -34,11 +35,10 @@ public class AbstractConsumerTest {
     @Test
 	public void testSimpleSubmission() throws Exception {
 		
-		URI        uri  = new URI("tcp://sci-serv5.diamond.ac.uk:61616");		
-		StatusBean bean = doSubmit(uri);
+		StatusBean bean = doSubmit();
 		
-		// Manually take the submission back of the list
-		ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(uri);		
+		// Manually take the submission from the list not using event service for isolated test
+		ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(submitter.getUri());		
 		Connection connection = connectionFactory.createConnection();
 		
 		try {
@@ -67,10 +67,9 @@ public class AbstractConsumerTest {
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
-		URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");
-		StatusBean bean = doSubmit(uri);
+		StatusBean bean = doSubmit();
 		 	
-		Thread.sleep(12000); // 10000 to do the loop, 2000 for luck
+		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
 		
 		List<StatusBean> stati = consumer.getStatusQueue();
 		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
@@ -104,15 +103,37 @@ public class AbstractConsumerTest {
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 
-		URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");
-		StatusBean bean = doSubmit(uri);
+		StatusBean bean = doSubmit();
 
 		Thread.sleep(2000);
 		
 		consumer.stop();
 		
 		Thread.sleep(2000);
+		checkTerminatedProcess(bean);
+
+	}
+
+	@Test
+	public void testAbortingAJobRemotely() throws Exception {
+
+		consumer.setRunner(new DryRunCreator());
+		consumer.setBeanClass(StatusBean.class);
+		consumer.start();
+
+		StatusBean bean = doSubmit();
+
+		Thread.sleep(2000);
 		
+		IPublisher<StatusBean> terminator = eservice.createPublisher(submitter.getUri(), IEventService.STATUS_TOPIC, new ActivemqConnectorService());
+        bean.setStatus(Status.REQUEST_TERMINATE);
+        terminator.broadcast(bean);
+        
+        Thread.sleep(2000);
+		checkTerminatedProcess(bean);
+	}
+    
+	private void checkTerminatedProcess(StatusBean bean) throws Exception {
 		List<StatusBean> stati = consumer.getStatusQueue();
 		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
 		
@@ -129,28 +150,13 @@ public class AbstractConsumerTest {
        		throw new Exception("The percent complete should not be 100!"+complete);
        	}
 	}
-
-	@Test
-	public void testAbortingAJobRemotely() throws Exception {
-
-		consumer.setRunner(new DryRunCreator());
-		consumer.setBeanClass(StatusBean.class);
-		consumer.start();
-
-		URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");
-		StatusBean bean = doSubmit(uri);
-
-		Thread.sleep(2000);
-		
-		
-    }
-    
+	
     @Test
     public void testKillingAConsumer() throws Exception {
     	
     }
 
-	private StatusBean doSubmit(URI uri) throws Exception {
+	private StatusBean doSubmit() throws Exception {
 		
 		StatusBean bean = new StatusBean();
 		bean.setName("Test");

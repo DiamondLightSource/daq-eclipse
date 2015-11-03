@@ -7,8 +7,6 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.junit.After;
 import org.junit.Before;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-
 public class ConsumerPluginTest extends AbstractConsumerTest {
 
 	
@@ -27,12 +25,12 @@ public class ConsumerPluginTest extends AbstractConsumerTest {
 		
 		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");	
 		
-		eservice = service;
+		eservice = ConsumerPluginTest.service;
 		
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
-		submitter  = eservice.createSubmitter(uri, IEventService.SUBMISSION_QUEUE, new ActivemqConnectorService());
-		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.TERMINATE_TOPIC, new ActivemqConnectorService());
+		submitter  = eservice.createSubmitter(uri, IEventService.SUBMISSION_QUEUE);
+		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.TERMINATE_TOPIC, null);
 		consumer.setName("Test Consumer");
 		consumer.clearStatusQueue();
 	}

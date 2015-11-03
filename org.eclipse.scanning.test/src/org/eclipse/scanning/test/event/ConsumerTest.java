@@ -8,30 +8,13 @@
  */
 package org.eclipse.scanning.test.event;
 
-import java.net.InetAddress;
 import java.net.URI;
-import java.util.List;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.MessageConsumer;
-import javax.jms.Queue;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.core.IProcessCreator;
-import org.eclipse.scanning.api.event.core.ISubmitter;
-import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.EventServiceImpl;
-import org.eclipse.scanning.event.dry.DryRunCreator;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 

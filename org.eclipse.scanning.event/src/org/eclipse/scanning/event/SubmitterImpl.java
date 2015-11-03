@@ -16,7 +16,7 @@ import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
-class SubmissionImpl<T extends StatusBean> extends AbstractConnection implements ISubmitter<T> {
+class SubmitterImpl<T extends StatusBean> extends AbstractConnection implements ISubmitter<T> {
 
 	// Message things
 	private String uniqueId;
@@ -24,7 +24,7 @@ class SubmissionImpl<T extends StatusBean> extends AbstractConnection implements
 	private long   lifeTime;
 	private long   timestamp;
 
-	SubmissionImpl(URI uri, String submitQueue, IEventConnectorService service) {
+	SubmitterImpl(URI uri, String submitQueue, IEventConnectorService service) {
 		super(uri, null, service);
 		setSubmitQueueName(submitQueue);
 	}
@@ -54,7 +54,9 @@ class SubmissionImpl<T extends StatusBean> extends AbstractConnection implements
 			if (getPriority()<1)  setPriority(1);
 			if (getLifeTime()<1)  setLifeTime(7*24*60*60*1000); // 7 days in ms
 			
-			if (uniqueId==null) uniqueId = UUID.randomUUID().toString();
+			if (uniqueId==null) {
+				uniqueId = bean.getUniqueId()!=null ? bean.getUniqueId() : UUID.randomUUID().toString();
+			}
 			if (prepareBean) {
 				if (bean.getUserName()==null)   bean.setUserName(System.getProperty("user.name"));
 				bean.setUniqueId(uniqueId);

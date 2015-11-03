@@ -2,7 +2,7 @@ package org.eclipse.scanning.api.event.core;
 
 import org.eclipse.scanning.api.event.EventException;
 
-public interface IQueueConnection<T> {
+public interface IQueueConnection<T> extends IURIConnection {
 	
 	/**
 	 * The string to define the queue for submitting scan objects to.
