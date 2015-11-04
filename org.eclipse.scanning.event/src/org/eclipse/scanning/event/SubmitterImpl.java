@@ -1,5 +1,6 @@
 package org.eclipse.scanning.event;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
@@ -39,8 +40,9 @@ class SubmitterImpl<T extends StatusBean> extends AbstractConnection implements 
 		Connection      send     = null;
 		Session         session  = null;
 		MessageProducer producer = null;
-		
+
 		try {
+
 			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)service.createConnectionFactory(uri);
 			send              = connectionFactory.createConnection();
 
@@ -49,11 +51,11 @@ class SubmitterImpl<T extends StatusBean> extends AbstractConnection implements 
 
 			producer = session.createProducer(queue);
 			producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-			
+
 			if (bean.getSubmissionTime()<1) bean.setSubmissionTime(System.currentTimeMillis());
 			if (getPriority()<1)  setPriority(1);
 			if (getLifeTime()<1)  setLifeTime(7*24*60*60*1000); // 7 days in ms
-			
+
 			if (uniqueId==null) {
 				uniqueId = bean.getUniqueId()!=null ? bean.getUniqueId() : UUID.randomUUID().toString();
 			}
@@ -62,27 +64,27 @@ class SubmitterImpl<T extends StatusBean> extends AbstractConnection implements 
 				if (bean.getUniqueId()==null) bean.setUniqueId(uniqueId);
 				if (getTimestamp()>0) bean.setSubmissionTime(getTimestamp());
 			}
-			
+
 			String json = null;
-	        try {
+			try {
 				json = service.marshal(bean);
 			} catch (Exception e) {
 				throw new EventException("Unable to marshall bean "+bean, e);
 			}
 
 			TextMessage message = session.createTextMessage(json);
-			
+
 			message.setJMSMessageID(bean.getUniqueId());
 			message.setJMSExpiration(getLifeTime());
 			message.setJMSTimestamp(getTimestamp());
 			message.setJMSPriority(getPriority());
-			
+
 			producer.send(message);
 
 
 		} catch (Exception e) {
 			throw new EventException("Problem opening connection to queue! ", e);
-			
+
 		} finally {
 			try {
 				if (send!=null)     send.close();

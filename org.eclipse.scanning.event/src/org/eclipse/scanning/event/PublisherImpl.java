@@ -3,6 +3,7 @@ package org.eclipse.scanning.event;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Enumeration;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
@@ -161,14 +162,13 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		this.queueName = queueName;
 	}
 
-
 	/**
 	 * 
 	 * @param bean
 	 * @throws Exception 
 	 */
 	private void updateQueue(T bean) throws Exception {
-
+		
 		Queue     queue = createQueue(getQueueName());
 		QueueBrowser qb = qSession.createBrowser(queue);
 

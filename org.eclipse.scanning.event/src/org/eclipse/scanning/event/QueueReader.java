@@ -1,5 +1,6 @@
 package org.eclipse.scanning.event;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
 
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,41 +71,41 @@ class QueueReader<T> {
 	public List<T> getBeans(final URI uri, final String queueName, final Class<T> clazz) throws Exception {
 		
 		QueueConnection qCon = null;
-		try {
-	        
+		try {	        
 			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)service.createConnectionFactory(uri);
 			qCon  = connectionFactory.createQueueConnection(); // This times out when the server is not there.
 			QueueSession    qSes  = qCon.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 			Queue queue   = qSes.createQueue(queueName);
 			qCon.start();
-			
-		    QueueBrowser qb = qSes.createBrowser(queue);
-		    @SuppressWarnings("rawtypes")
+
+			QueueBrowser qb = qSes.createBrowser(queue);
+			@SuppressWarnings("rawtypes")
 			Enumeration  e  = qb.getEnumeration();
-		    
-			
+
+
 			final Collection<T> list;
 			if (comparator!=null) {
 				list = new TreeSet<T>(comparator);
 			} else {
 				list = new ArrayList<T>(17);
 			}
-	
-	        while(e.hasMoreElements()) {
-		    	Message m = (Message)e.nextElement();
-		    	if (m==null) continue;
-	        	if (m instanceof TextMessage) {
-	            	TextMessage t = (TextMessage)m;
+
+			while(e.hasMoreElements()) {
+				Message m = (Message)e.nextElement();
+				if (m==null) continue;
+				if (m instanceof TextMessage) {
+					TextMessage t = (TextMessage)m;
 					@SuppressWarnings("unchecked")
 					final T bean = (T)service.unmarshal(t.getText(), clazz);
-	              	list.add(bean);
-	        	}
-		    }
-	        return list instanceof List ? (List<T>)list : new ArrayList<T>(list);
-	        
+					list.add(bean);
+				}
+			}
+			return list instanceof List ? (List<T>)list : new ArrayList<T>(list);
+
 		} finally {
 			qCon.close();
 		}
+
 	}
 
 	/**

@@ -19,9 +19,9 @@ class DryRunProcess implements IConsumerProcess<StatusBean> {
 	private boolean terminated;
 
 	public DryRunProcess(StatusBean bean, IPublisher<StatusBean> statusPublisher, boolean blocking) {
-		this.bean = bean;
+		this.bean      = bean;
 		this.publisher = statusPublisher;
-		this.blocking = blocking;
+		this.blocking  = blocking;
 	}
 
 	@Override

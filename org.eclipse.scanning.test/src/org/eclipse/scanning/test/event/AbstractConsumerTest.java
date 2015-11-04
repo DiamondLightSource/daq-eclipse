@@ -15,6 +15,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
@@ -101,7 +102,7 @@ public class AbstractConsumerTest {
         testStop(new DryRunCreator());
     }
     @Test
-	public void testConsumerStopSeparateThread() throws Exception {
+	public void testConsumerStopNonBlockingProcess() throws Exception {
         testStop(new DryRunCreator(false));
     }
 
@@ -247,14 +248,20 @@ public class AbstractConsumerTest {
 		
 		List<StatusBean> submissions = new ArrayList<StatusBean>(10);
 		for (int i = 0; i < 10; i++) {
-			System.out.println("Submitted: Test "+i);
 			submissions.add(doSubmit("Test "+i));
+			System.out.println("Submitted: Test "+i);
 			Thread.sleep(10); // Guarantee that submission time cannot be same.
 		}
 		 	
 		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
 		
-		List<StatusBean> stati = consumer.getStatusQueue();
+		checkStatus(submissions);
+		
+    }
+    
+    private void checkStatus(List<StatusBean> submissions) throws Exception {
+    	
+    	List<StatusBean> stati = consumer.getStatusQueue();
 		if (stati.size()!=10) throw new Exception("Unexpected status size in queue! Should be 10 size is "+stati.size());
 		
 		for (int i = 0; i < 10; i++) {
@@ -275,7 +282,41 @@ public class AbstractConsumerTest {
 	       	if (complete.getPercentComplete()<100) {
 	       		throw new Exception("The percent complete is less than 100!"+complete);
 	       	}
-		}
+		}		
+	}
+
+	@Test
+    public void testMultipleSubmissionsUsingThreads() throws Exception {
 		
+		consumer.setRunner(new DryRunCreator(false));
+		consumer.setBeanClass(StatusBean.class);
+		consumer.start();
+		
+		final List<StatusBean> submissions = new ArrayList<StatusBean>(10);
+		for (int i = 0; i < 10; i++) {
+			final int finalI = i;
+			final Thread thread = new Thread(new Runnable() {
+				public void run () {
+					try {
+						submissions.add(doSubmit("Test "+finalI));
+						System.out.println("Submitted: Thread Test "+finalI);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			});
+			thread.setName("Thread "+i);
+			thread.setDaemon(true);
+			thread.start();
+			
+			Thread.sleep(100);
+		}
+		 	
+		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
+		
+		checkStatus(submissions);
+
     }
+    
+    
 }
