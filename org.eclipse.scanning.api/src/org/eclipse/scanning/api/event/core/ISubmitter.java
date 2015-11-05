@@ -17,6 +17,11 @@ public interface ISubmitter<T> extends IQueueConnection<T> {
 	 */
 	void submit(T bean) throws EventException;
 	
+	/**
+	 * Send a submission on to the queue.
+	 * @param bean
+	 */
+	void submit(T bean, boolean prepareBean) throws EventException;
 	
     /**
      * Unique id for the message.

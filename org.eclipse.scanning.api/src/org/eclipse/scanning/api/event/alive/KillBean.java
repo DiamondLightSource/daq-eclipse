@@ -13,6 +13,7 @@ public class KillBean {
 	private UUID    consumerId;
 	private boolean exitProcess=true;
 	private boolean disconnect=true;
+	private String  message;
 
 	public UUID getConsumerId() {
 		return consumerId;
@@ -30,6 +31,7 @@ public class KillBean {
 				+ ((consumerId == null) ? 0 : consumerId.hashCode());
 		result = prime * result + (disconnect ? 1231 : 1237);
 		result = prime * result + (exitProcess ? 1231 : 1237);
+		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		return result;
 	}
 
@@ -51,6 +53,11 @@ public class KillBean {
 			return false;
 		if (exitProcess != other.exitProcess)
 			return false;
+		if (message == null) {
+			if (other.message != null)
+				return false;
+		} else if (!message.equals(other.message))
+			return false;
 		return true;
 	}
 
@@ -68,5 +75,13 @@ public class KillBean {
 
 	public void setDisconnect(boolean disconnect) {
 		this.disconnect = disconnect;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
 	}
 }

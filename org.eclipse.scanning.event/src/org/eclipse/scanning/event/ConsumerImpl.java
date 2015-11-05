@@ -2,8 +2,6 @@ package org.eclipse.scanning.event;
 
 import java.lang.ref.WeakReference;
 import java.net.URI;
-import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -13,10 +11,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Queue;
-import javax.jms.QueueBrowser;
-import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
-import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -38,7 +33,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConsumerImpl<U extends StatusBean> extends AbstractConnection implements IConsumer<U> {
+public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<U> implements IConsumer<U> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ConsumerImpl.class);
 	private static final long   ADAY   = 24*60*60*1000; // ms
@@ -50,8 +45,6 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	private ISubscriber<IBeanListener<StatusBean>> terminator;
 	private ISubscriber<IBeanListener<KillBean>> killer;
 	private ISubmitter<U>                 mover;
-	
-	private Class<U>                      beanClass;
 
 	private IProcessCreator<U>            runner;
 	private boolean                       durable;
@@ -80,7 +73,11 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 		status = eservice.createPublisher(uri, statusTName, service);
 		status.setQueueName(statusQName); // We also update values in a queue.
 		
-		alive  = eservice.createPublisher(uri, heartbeatTName,  service);
+		if (heartbeatTName!=null) { 
+			alive  = eservice.createPublisher(uri, heartbeatTName,  service);
+			alive.setConsumerId(consumerId);
+			alive.setConsumerName(getName());
+		}
 		
 		terminator = eservice.createSubscriber(uri, statusTName, service);
 		terminator.addListener(new IBeanListener<StatusBean>() {
@@ -107,35 +104,36 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 			}
 		});
 		
-		
-		killer = eservice.createSubscriber(uri, killTName, service);
-		killer.addListener(new IBeanListener<KillBean>() {
-			@Override
-			public Class<KillBean> getBeanClass() {
-				return KillBean.class;
-			}
-
-			@Override
-			public void beanChangePerformed(BeanEvent<KillBean> evt) {
-				KillBean kbean = evt.getBean();
-				if (kbean.getConsumerId().equals(getConsumerId())) {
-					try {
-						stop();
-						if (kbean.isDisconnect()) disconnect();
-					} catch (EventException e) {
-						logger.error("An internal error occurred trying to terminate the consumer "+getName()+" "+getConsumerId());
-					}
-					if (kbean.isExitProcess()) {
+		if (killTName!=null) {
+			killer = eservice.createSubscriber(uri, killTName, service);
+			killer.addListener(new IBeanListener<KillBean>() {
+				@Override
+				public Class<KillBean> getBeanClass() {
+					return KillBean.class;
+				}
+	
+				@Override
+				public void beanChangePerformed(BeanEvent<KillBean> evt) {
+					KillBean kbean = evt.getBean();
+					if (kbean.getConsumerId().equals(getConsumerId())) {
 						try {
-							Thread.sleep(2500);
-						} catch (InterruptedException e) {
-							logger.error("Unable to pause before exit", e);
+							stop();
+							if (kbean.isDisconnect()) disconnect();
+						} catch (EventException e) {
+							logger.error("An internal error occurred trying to terminate the consumer "+getName()+" "+getConsumerId());
 						}
-						System.exit(0); // Normal orderly exit
+						if (kbean.isExitProcess()) {
+							try {
+								Thread.sleep(2500);
+							} catch (InterruptedException e) {
+								logger.error("Unable to pause before exit", e);
+							}
+							System.exit(0); // Normal orderly exit
+						}
 					}
 				}
-			}
-		});
+			});
+		}
 	}
 
 	@Override
@@ -161,28 +159,6 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	@Override
 	public List<U> getStatusQueue() throws EventException {
 		return getQueue(getStatusQueueName());
-	}
-
-	private List<U> getQueue(String qName) throws EventException {
-		
-		Comparator<StatusBean> c = new Comparator<StatusBean>() {		
-			@Override
-			public int compare(StatusBean o1, StatusBean o2) {
-				// Newest first!
-		        long t1 = o2.getSubmissionTime();
-		        long t2 = o1.getSubmissionTime();
-		        if (t1<t2) return -1;
-		        if (t1==t2) return o1.equals(o2) ? 0 : 1;
-		        return 1;
-			}
-		};
-
-		QueueReader<U> reader = new QueueReader<U>(service, c);
-		try {
-			return reader.getBeans(uri, qName, getBeanClass());
-		} catch (Exception e) {
-			throw new EventException("Cannot get the beans for queue "+qName, e);
-		}
 	}
 
 	@Override
@@ -250,7 +226,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	            	TextMessage t = (TextMessage)m;
 	            	
 	            	final String     str  = t.getText();
-                    final U bean   = service.unmarshal(str, beanClass);
+                    final U bean   = service.unmarshal(str, getBeanClass());
 	            	executeBean(bean);
 	            	
 	            }
@@ -374,6 +350,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 	@Override
 	public void setName(String name) {
 		this.name = name;
+		if (alive!=null) alive.setConsumerName(getName());
 	}
 
 	public boolean isActive() {
@@ -390,51 +367,5 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractConnection imple
 
 	public void setDurable(boolean durable) {
 		this.durable = durable;
-	}
-
-	public Class<U> getBeanClass() {
-		return beanClass;
-	}
-
-	public void setBeanClass(Class<U> beanClass) {
-		this.beanClass = beanClass;
-	}
-
-
-	@Override
-	public void clearQueue(String qName) throws EventException {
-
-		QueueConnection qCon = null;
-		try {
-			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)service.createConnectionFactory(uri);
-			qCon  = connectionFactory.createQueueConnection(); // This times out when the server is not there.
-			QueueSession    qSes  = qCon.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-			Queue queue   = qSes.createQueue(qName);
-			qCon.start();
-
-			QueueBrowser qb = qSes.createBrowser(queue);
-
-			@SuppressWarnings("rawtypes")
-			Enumeration  e  = qb.getEnumeration();					
-			while(e.hasMoreElements()) {
-				Message msg = (Message)e.nextElement();
-				MessageConsumer consumer = qSes.createConsumer(queue, "JMSMessageID = '"+msg.getJMSMessageID()+"'");
-				Message rem = consumer.receive(1000);	
-				if (rem!=null) System.out.println("Removed "+rem);
-				consumer.close();
-			}
-
-		} catch (Exception ne) {
-			throw new EventException(ne);
-
-		} finally {
-			if (qCon!=null) {
-				try {
-					qCon.close();
-				} catch (JMSException e) {
-					logger.error("Cannot close queue!", e);
-				}
-			}
-		}
 	}
 }

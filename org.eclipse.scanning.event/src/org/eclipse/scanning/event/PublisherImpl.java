@@ -1,9 +1,11 @@
 package org.eclipse.scanning.event;
 
+import java.io.PrintStream;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.Enumeration;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.UUID;
 
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
@@ -12,12 +14,12 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.QueueBrowser;
-import javax.jms.QueueConnection;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.alive.ConsumerStatus;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -33,6 +35,11 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	private MessageProducer scanProducer, heartbeatProducer;
 	private boolean         alive;
 	private String          queueName;
+	
+	private String          consumerName;
+	private UUID            consumerId;
+
+	private PrintStream     out;
 
 	public PublisherImpl(URI uri, String topic, IEventConnectorService service) {
 		super(uri, topic, service);
@@ -58,7 +65,8 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 
 		String json = service.marshal(message);
 		TextMessage temp = session.createTextMessage(json);
-		producer.send(temp, DeliveryMode.NON_PERSISTENT, 1, messageLifetime);			
+		producer.send(temp, DeliveryMode.NON_PERSISTENT, 1, messageLifetime);	
+		if (out!=null) out.println(json);
 	}
 
 	public boolean isAlive() {
@@ -83,7 +91,6 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 					long waitTime = 0;
 					
 					HeartbeatBean beat = new HeartbeatBean();
-					beat.setBeamline(System.getenv("BEAMLINE"));
 					beat.setConceptionTime(System.currentTimeMillis());
 					
 					// Here we are sending the message out to the topic
@@ -96,6 +103,12 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			                // The producer might need to be reconnected.
 							if (heartbeatProducer==null) heartbeatProducer = createProducer(getTopicName());
 							beat.setPublishTime(System.currentTimeMillis());
+							beat.setConsumerId(consumerId);
+							beat.setConsumerName(consumerName);
+							beat.setConsumerStatus(ConsumerStatus.ALIVE);
+							beat.setBeamline(System.getenv("BEAMLINE"));
+							beat.setHostName(InetAddress.getLocalHost().getHostName());
+
 							send(heartbeatProducer, beat, 5000);
 							waitTime = 0; // We sent something
 							
@@ -235,6 +248,30 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		}
 		
 		return value;
+	}
+
+	public String getConsumerName() {
+		return consumerName;
+	}
+
+	public void setConsumerName(String consumerName) {
+		this.consumerName = consumerName;
+	}
+
+	public UUID getConsumerId() {
+		return consumerId;
+	}
+
+	public void setConsumerId(UUID consumerId) {
+		this.consumerId = consumerId;
+	}
+
+	@Override
+	public void setLoggingStream(PrintStream stream) {
+		this.out = stream;
+		if (out!=null) {
+			out.println("Publisher for consumer name "+getConsumerName());
+		}
 	}
 
 }

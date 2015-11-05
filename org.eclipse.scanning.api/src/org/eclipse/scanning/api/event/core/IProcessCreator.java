@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.event.core;
 
+import org.eclipse.scanning.api.event.EventException;
+
 /**
  * 
  * @author Matthew Gerring
@@ -8,5 +10,5 @@ package org.eclipse.scanning.api.event.core;
  */
 public interface IProcessCreator<T> {
 
-	IConsumerProcess<T> createProcess(T bean, IPublisher<T> statusNotifier);
+	IConsumerProcess<T> createProcess(T bean, IPublisher<T> statusNotifier) throws EventException;
 }

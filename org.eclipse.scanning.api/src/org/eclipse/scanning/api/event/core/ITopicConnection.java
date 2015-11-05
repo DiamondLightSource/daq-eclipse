@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.event.core;
 
+import java.util.Map;
+
 import org.eclipse.scanning.api.event.EventException;
 
 public interface ITopicConnection extends IURIConnection {
@@ -26,5 +28,5 @@ public interface ITopicConnection extends IURIConnection {
 	 * @throws EventException
 	 */
 	public void disconnect() throws EventException;
-
+ 
 }

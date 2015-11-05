@@ -1,6 +1,5 @@
 package org.eclipse.scanning.event;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
@@ -17,7 +16,7 @@ import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
-class SubmitterImpl<T extends StatusBean> extends AbstractConnection implements ISubmitter<T> {
+class SubmitterImpl<T extends StatusBean> extends QueueAbstractConnection<T> implements ISubmitter<T> {
 
 	// Message things
 	private String uniqueId;
@@ -35,8 +34,9 @@ class SubmitterImpl<T extends StatusBean> extends AbstractConnection implements 
         submit(bean, true);
 	}
 	
+	@Override
 	public void submit(T bean, boolean prepareBean) throws EventException {
-		        
+		      
 		Connection      send     = null;
 		Session         session  = null;
 		MessageProducer producer = null;

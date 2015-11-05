@@ -1,5 +1,8 @@
 package org.eclipse.scanning.api.event.core;
 
+import java.io.PrintStream;
+import java.util.UUID;
+
 import org.eclipse.scanning.api.event.EventException;
 
 
@@ -16,7 +19,6 @@ public interface IPublisher<T> extends ITopicConnection {
 	 */
 	public void broadcast(T bean) throws EventException;
 
-	
 	/**
 	 * Calling this method true starts a thread which notifies of
 	 * 
@@ -44,4 +46,18 @@ public interface IPublisher<T> extends ITopicConnection {
 	 */
 	public String getQueueName();
 
+	
+	public String getConsumerName();
+	public void setConsumerName(String cname);
+	
+	public UUID getConsumerId();
+	public void setConsumerId(UUID id);
+
+	/**
+	 * You may optionally set a logging stream on a publisher so that 
+	 * publications can be recorded to file for debugging.
+	 * 
+	 * @param stream
+	 */
+	public void setLoggingStream(PrintStream stream);
 }

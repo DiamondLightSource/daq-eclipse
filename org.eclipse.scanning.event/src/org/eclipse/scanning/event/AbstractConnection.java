@@ -1,19 +1,36 @@
 package org.eclipse.scanning.event;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
 import javax.jms.Queue;
+import javax.jms.QueueBrowser;
 import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.QueueSession;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.jms.Topic;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.event.status.StatusBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class AbstractConnection {
+	
+	protected static Logger logger = LoggerFactory.getLogger(AbstractConnection.class);
 
 	protected final URI              uri;
 	protected String                 topicName;
@@ -188,4 +205,5 @@ class AbstractConnection {
 	public void setKillTopicName(String terminateTopicName) {
 		this.killTopicName = terminateTopicName;
 	}
+
 }

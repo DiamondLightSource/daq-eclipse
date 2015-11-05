@@ -6,6 +6,8 @@ import org.eclipse.scanning.api.event.IdBean;
 
 public class HeartbeatBean extends IdBean {
 
+	public static final HeartbeatBean EMPTY = new HeartbeatBean();
+
 	/**
 	 * Beamline that the acquisition server is controlling
 	 */
@@ -22,10 +24,23 @@ public class HeartbeatBean extends IdBean {
 	private long    conceptionTime;
 
 	/**
-	 * Tells you the unique id of the thing that is alive.
+	 * Time that the beat happened on the server
+	 */
+	private long    lastAlive;
+
+	/**
+	 * Provides the consumer name, may be null.
+	 */
+	private String consumerName;
+
+	/**
+	 * Tells you the unique id of the thing that is alive. May be null.
 	 */
 	private UUID consumerId;
 
+	private ConsumerStatus consumerStatus;
+	
+	private String hostName;
 
 	public long getConceptionTime() {
 		return conceptionTime;
@@ -61,6 +76,13 @@ public class HeartbeatBean extends IdBean {
 				+ (int) (conceptionTime ^ (conceptionTime >>> 32));
 		result = prime * result
 				+ ((consumerId == null) ? 0 : consumerId.hashCode());
+		result = prime * result
+				+ ((consumerName == null) ? 0 : consumerName.hashCode());
+		result = prime * result
+				+ ((consumerStatus == null) ? 0 : consumerStatus.hashCode());
+		result = prime * result
+				+ ((hostName == null) ? 0 : hostName.hashCode());
+		result = prime * result + (int) (lastAlive ^ (lastAlive >>> 32));
 		result = prime * result + (int) (publishTime ^ (publishTime >>> 32));
 		return result;
 	}
@@ -86,6 +108,20 @@ public class HeartbeatBean extends IdBean {
 				return false;
 		} else if (!consumerId.equals(other.consumerId))
 			return false;
+		if (consumerName == null) {
+			if (other.consumerName != null)
+				return false;
+		} else if (!consumerName.equals(other.consumerName))
+			return false;
+		if (consumerStatus != other.consumerStatus)
+			return false;
+		if (hostName == null) {
+			if (other.hostName != null)
+				return false;
+		} else if (!hostName.equals(other.hostName))
+			return false;
+		if (lastAlive != other.lastAlive)
+			return false;
 		if (publishTime != other.publishTime)
 			return false;
 		return true;
@@ -104,6 +140,38 @@ public class HeartbeatBean extends IdBean {
 		return "HeartbeatBean [beamline=" + beamline + ", publishTime="
 				+ publishTime + ", conceptionTime=" + conceptionTime
 				+ ", consumerId=" + consumerId + "]";
+	}
+
+	public String getConsumerName() {
+		return consumerName;
+	}
+
+	public void setConsumerName(String consumerName) {
+		this.consumerName = consumerName;
+	}
+
+	public long getLastAlive() {
+		return lastAlive;
+	}
+
+	public void setLastAlive(long lastAlive) {
+		this.lastAlive = lastAlive;
+	}
+
+	public ConsumerStatus getConsumerStatus() {
+		return consumerStatus;
+	}
+
+	public void setConsumerStatus(ConsumerStatus consumerStatus) {
+		this.consumerStatus = consumerStatus;
+	}
+
+	public String getHostName() {
+		return hostName;
+	}
+
+	public void setHostName(String hostName) {
+		this.hostName = hostName;
 	}
 
 }

@@ -20,6 +20,8 @@ import org.eclipse.scanning.api.event.EventException;
  * @param <T> The bean class used for the Queue
  */
 public interface IConsumer<T> extends IQueueConnection<T> {
+	
+	
 	/**
 	 * Get a copy of the current submission queue as a list of beans, type T
 	 * The list is ordered by submission time, not necessarily the ordering
@@ -37,21 +39,7 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 * @return
 	 */
 	public List<T> getStatusQueue() throws EventException ;
-	
-	/**
-	 * The string to define the queue for storing status of scans.
-	 * 
-	 * @return
-	 */
-	public String getStatusQueueName();
-	
-	/**
-	 * The string to define the queue for storing status of scans.
-	 * @param topic
-	 * @throws EventException
-	 */
-	public void setStatusQueueName(String queueName) throws EventException;
-	
+
 	/**
 	 * The string to define the queue for storing status of scans.
 	 * 
@@ -65,20 +53,6 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 * @throws EventException
 	 */
 	public void setStatusTopicName(String queueName) throws EventException;
-
-	/**
-	 * The string to define the queue for storing status of scans.
-	 * 
-	 * @return
-	 */
-	public String getSubmitQueueName();
-	
-	/**
-	 * The string to define the queue for storing status of scans.
-	 * @param topic
-	 * @throws EventException
-	 */
-	public void setSubmitQueueName(String queueName) throws EventException;
 
 	/**
 	 * Set the consumer process to run for each job.
@@ -150,11 +124,4 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	
 	public boolean isDurable();
 	public void setDurable(boolean durable);
-
-	/**
-	 * This method will purge the queue
-	 * USE WITH CAUTION
-	 */
-	public void clearQueue(String queueName) throws EventException;
-
 }
