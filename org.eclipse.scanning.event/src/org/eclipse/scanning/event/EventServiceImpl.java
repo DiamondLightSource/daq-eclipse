@@ -55,7 +55,7 @@ public class EventServiceImpl implements IEventService {
 
 	@Override
 	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName) {
-		return createSubmitter(uri, SUBMISSION_QUEUE, null);
+		return createSubmitter(uri, queueName, null);
 	}
 
 	@Override

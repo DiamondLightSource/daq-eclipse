@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.event.core;
 import java.util.List;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.status.StatusBean;
 
 public interface IQueueConnection<T> extends IURIConnection {
 	
@@ -55,5 +56,10 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 * It removes very old runs or those which are in a final failed state.
 	 */
 	public void cleanQueue(String queueName) throws EventException;
+
+	
+	public Class<T> getBeanClass();
+
+	public void setBeanClass(Class<T> beanClass);
 
 }

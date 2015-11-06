@@ -41,10 +41,12 @@ public abstract class QueueAbstractConnection<U extends StatusBean> extends Abst
 	}
 	
 
+	@Override
 	public Class<U> getBeanClass() {
 		return (Class<U>)beanClass;
 	}
 
+	@Override
 	public void setBeanClass(Class<U> beanClass) {
 		this.beanClass = beanClass;
 	}
