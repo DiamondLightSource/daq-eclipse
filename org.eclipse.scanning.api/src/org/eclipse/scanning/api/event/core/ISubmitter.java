@@ -23,7 +23,20 @@ public interface ISubmitter<T> extends IQueueConnection<T> {
 	 */
 	void submit(T bean, boolean prepareBean) throws EventException;
 	
-    /**
+	/**
+	 * Tries to remove the bean from the set
+	 * 
+	 * NOTE This method can end up reordering the items - only use on queues
+	 * which are being used like Sets, not queues like submission queues
+	 * in which order matters.
+	 * 
+	 * @param bean
+	 * @return
+	 * @throws EventException
+	 */
+	boolean remove(T bean) throws EventException;
+    
+	/**
      * Unique id for the message.
      * @return
      */

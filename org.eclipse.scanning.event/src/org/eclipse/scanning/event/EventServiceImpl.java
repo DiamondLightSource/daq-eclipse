@@ -66,7 +66,7 @@ public class EventServiceImpl implements IEventService {
 
 	@Override
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri) throws EventException {
-		return createConsumer(uri, SUBMISSION_QUEUE, STATUS_QUEUE, STATUS_TOPIC, HEARTBEAT_TOPIC, KILL_TOPIC, null);
+		return createConsumer(uri, SUBMISSION_QUEUE, STATUS_SET, STATUS_TOPIC, HEARTBEAT_TOPIC, KILL_TOPIC, null);
 	}
 
 	@Override

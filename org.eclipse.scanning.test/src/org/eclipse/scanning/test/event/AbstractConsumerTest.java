@@ -80,7 +80,7 @@ public class AbstractConsumerTest {
 		 	
 		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
 		
-		List<StatusBean> stati = consumer.getStatusQueue();
+		List<StatusBean> stati = consumer.getStatusSet();
 		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
 		
 		StatusBean complete = stati.get(0);
@@ -168,7 +168,7 @@ public class AbstractConsumerTest {
 	}
     
 	private void checkTerminatedProcess(StatusBean bean) throws Exception {
-		List<StatusBean> stati = consumer.getStatusQueue();
+		List<StatusBean> stati = consumer.getStatusSet();
 		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
 		
 		StatusBean complete = stati.get(0);
@@ -261,7 +261,7 @@ public class AbstractConsumerTest {
     
     private void checkStatus(List<StatusBean> submissions) throws Exception {
     	
-    	List<StatusBean> stati = consumer.getStatusQueue();
+    	List<StatusBean> stati = consumer.getStatusSet();
 		if (stati.size()!=10) throw new Exception("Unexpected status size in queue! Should be 10 size is "+stati.size());
 		
 		for (int i = 0; i < 10; i++) {

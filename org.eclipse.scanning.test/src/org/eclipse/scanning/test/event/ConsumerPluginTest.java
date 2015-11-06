@@ -30,17 +30,17 @@ public class ConsumerPluginTest extends AbstractConsumerTest {
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
 		submitter  = eservice.createSubmitter(uri, IEventService.SUBMISSION_QUEUE);
-		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, null);
+		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, null);
 		consumer.setName("Test Consumer");
 		consumer.clearQueue(IEventService.SUBMISSION_QUEUE);
-		consumer.clearQueue(IEventService.STATUS_QUEUE);
+		consumer.clearQueue(IEventService.STATUS_SET);
 	}
 	
 	@After
 	public void dispose() throws EventException {
 		submitter.disconnect();
 		consumer.clearQueue(IEventService.SUBMISSION_QUEUE);
-		consumer.clearQueue(IEventService.STATUS_QUEUE);
+		consumer.clearQueue(IEventService.STATUS_SET);
 		consumer.disconnect();
 	}
 

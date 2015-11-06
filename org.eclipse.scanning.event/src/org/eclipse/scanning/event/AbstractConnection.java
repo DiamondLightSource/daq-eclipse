@@ -1,29 +1,18 @@
 package org.eclipse.scanning.event;
 
+import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
 import javax.jms.Queue;
-import javax.jms.QueueBrowser;
 import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.QueueSession;
 import javax.jms.Session;
-import javax.jms.TextMessage;
 import javax.jms.Topic;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
-import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +31,9 @@ class AbstractConnection {
 
 	protected IEventConnectorService service;
 	
-	protected QueueConnection  connection;
-	protected QueueSession     qSession;
-	protected Session          session;
+	protected QueueConnection        connection;
+	protected QueueSession           qSession;
+	protected Session                session;
 
 	AbstractConnection(URI uri, String topic, IEventConnectorService service) {
 		this.uri = uri;
@@ -182,11 +171,11 @@ class AbstractConnection {
 		this.submitQueueName = submitQueueName;
 	}
 
-	public String getStatusQueueName() {
+	public String getStatusSetName() {
 		return statusQueueName;
 	}
 
-	public void setStatusQueueName(String statusQueueName) {
+	public void setStatusSetName(String statusQueueName) {
 		this.statusQueueName = statusQueueName;
 	}
 
@@ -204,6 +193,39 @@ class AbstractConnection {
 
 	public void setKillTopicName(String terminateTopicName) {
 		this.killTopicName = terminateTopicName;
+	}
+	
+	protected boolean isSame(Object qbean, Object bean) {
+		
+		Object id1 = getUniqueId(qbean);
+		if (id1==null) return qbean.equals(bean); // Probably it won't because we are updating it but they might have transient fields.
+
+		Object id2 = getUniqueId(bean);
+		if (id2==null) return qbean.equals(bean); // Probably it won't because we are updating it but they might have transient fields.
+
+		return id1.equals(id2);
+	}
+
+	private Object getUniqueId(Object bean) {
+		
+		if (bean instanceof StatusBean) {
+			return ((StatusBean)bean).getUniqueId();
+		}
+		
+		Object value = null;
+		try {
+			Method method = bean.getClass().getDeclaredMethod("getUniqueId");
+			value = method.invoke(bean);
+		} catch (Exception e) {
+			try {
+				Method method = bean.getClass().getDeclaredMethod("getName");
+				value = method.invoke(bean);
+			} catch (Exception e1) {
+				value = null;
+			}
+		}
+		
+		return value;
 	}
 
 }

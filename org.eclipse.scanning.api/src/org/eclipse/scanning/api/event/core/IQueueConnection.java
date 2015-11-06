@@ -1,9 +1,9 @@
 package org.eclipse.scanning.api.event.core;
 
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.status.StatusBean;
 
 public interface IQueueConnection<T> extends IURIConnection {
 	
@@ -12,14 +12,14 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 * 
 	 * @return
 	 */
-	public String getStatusQueueName();
+	public String getStatusSetName();
 	
 	/**
 	 * The string to define the queue for storing status of scans.
 	 * @param topic
 	 * @throws EventException
 	 */
-	public void setStatusQueueName(String queueName) throws EventException;
+	public void setStatusSetName(String queueName) throws EventException;
 
 	/**
 	 * The string to define the queue for submitting scan objects to.
@@ -41,10 +41,13 @@ public interface IQueueConnection<T> extends IURIConnection {
 	public void disconnect() throws EventException;
 
 	/**
-	 * This method will read a queue
+	 * This method will read a queue or a set from ActiveMQ into a list.
+	 * @param queueName
+	 * @param fieldName
+	 *   If field is set, it will be used to order the beans in the list by making a comparitor using it.
 	 */
-	public List<T> getQueue(String queueName) throws EventException;
-
+	public List<T> getQueue(String queueName, String fieldName) throws EventException;
+	
 	/**
 	 * This method will purge the queue
 	 * USE WITH CAUTION
@@ -60,6 +63,6 @@ public interface IQueueConnection<T> extends IURIConnection {
 	
 	public Class<T> getBeanClass();
 
-	public void setBeanClass(Class<T> beanClass);
+	public void setBeanClass(Class<T> beanClass) throws EventException;
 
 }

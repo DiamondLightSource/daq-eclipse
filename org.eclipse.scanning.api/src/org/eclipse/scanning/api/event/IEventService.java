@@ -75,7 +75,7 @@ public interface IEventService {
 	/**
 	 * The default queue used for holding status events.
 	 */
-	public static final String STATUS_QUEUE = "org.eclipse.scanning.status.queue";
+	public static final String STATUS_SET = "org.eclipse.scanning.status.set";
 
 
 	/**

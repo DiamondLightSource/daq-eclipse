@@ -49,9 +49,9 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	public void broadcast(T bean) throws EventException {
 		
 		try {
-		    if (scanProducer==null) scanProducer = createProducer(getTopicName());
-			if (queueName!=null) updateQueue(bean);
-		    send(scanProducer, bean, 1000);
+		    if (getTopicName()!=null) if (scanProducer==null) scanProducer = createProducer(getTopicName());
+			if (queueName!=null) updateSet(bean);
+			if (getTopicName()!=null) send(scanProducer, bean, 1000);
 
 		} catch (JMSException ne) {
 			throw new EventException("Unable to start the scan producer using uri "+uri+" and topic "+getTopicName(), ne);
@@ -180,7 +180,8 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	 * @param bean
 	 * @throws Exception 
 	 */
-	private void updateQueue(T bean) throws Exception {
+	private boolean updateSet(T bean) throws Exception {
+		
 		
 		Queue     queue = createQueue(getQueueName());
 		QueueBrowser qb = qSession.createBrowser(queue);
@@ -208,46 +209,26 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 
 		if (jMSMessageID!=null) {
 			MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
-			Message m = consumer.receive(1000);
+			Message m = consumer.receive(500);
 			if (m!=null && m instanceof TextMessage) {
 				MessageProducer producer = session.createProducer(queue);
-				producer.send(session.createTextMessage(service.marshal(bean)));
-			}
-		}
-
-	}
+				
+				TextMessage t = session.createTextMessage(service.marshal(bean));
+				t.setJMSMessageID(m.getJMSMessageID());
+				t.setJMSExpiration(m.getJMSExpiration());
+				t.setJMSTimestamp(m.getJMSTimestamp());
+				t.setJMSPriority(m.getJMSPriority());
+				t.setJMSCorrelationID(m.getJMSCorrelationID());
 	
-	private boolean isSame(T qbean, T bean) {
-		
-		Object id1 = getUniqueId(qbean);
-		if (id1==null) return qbean.equals(bean); // Probably it won't because we are updating it but they might have transient fields.
-
-		Object id2 = getUniqueId(bean);
-		if (id2==null) return qbean.equals(bean); // Probably it won't because we are updating it but they might have transient fields.
-
-		return id1.equals(id2);
-	}
-
-	private Object getUniqueId(T bean) {
-		
-		if (bean instanceof StatusBean) {
-			return ((StatusBean)bean).getUniqueId();
-		}
-		
-		Object value = null;
-		try {
-			Method method = bean.getClass().getDeclaredMethod("getUniqueId");
-			value = method.invoke(bean);
-		} catch (Exception e) {
-			try {
-				Method method = bean.getClass().getDeclaredMethod("getName");
-				value = method.invoke(bean);
-			} catch (Exception e1) {
-				value = null;
+				producer.send(t);
+				
+				producer.close();
+				
+				return true;
 			}
 		}
-		
-		return value;
+
+		return false;
 	}
 
 	public String getConsumerName() {

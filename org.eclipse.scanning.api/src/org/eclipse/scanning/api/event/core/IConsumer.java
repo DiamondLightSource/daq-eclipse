@@ -38,7 +38,7 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 * 
 	 * @return
 	 */
-	public List<T> getStatusQueue() throws EventException ;
+	public List<T> getStatusSet() throws EventException ;
 
 	/**
 	 * The string to define the queue for storing status of scans.
@@ -61,11 +61,6 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 */
 	void setRunner(IProcessCreator<T> process) throws EventException ;
 	
-	/**
-	 * The consumer needs the class that it will deserialize to, should be set before starting the consumer.
-	 * @param clazz
-	 */
-	void setBeanClass(Class<T> clazz);
 	
 	/**
 	 * Starts the consumer in new thread and return. Similar to Thread.start()

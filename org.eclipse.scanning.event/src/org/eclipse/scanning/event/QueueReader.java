@@ -1,6 +1,5 @@
 package org.eclipse.scanning.event;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
@@ -26,7 +25,6 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
 
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +101,7 @@ class QueueReader<T> {
 			return list instanceof List ? (List<T>)list : new ArrayList<T>(list);
 
 		} finally {
-			qCon.close();
+			if (qCon!=null) qCon.close();
 		}
 
 	}

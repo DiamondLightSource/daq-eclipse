@@ -33,7 +33,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<U> implements IConsumer<U> {
+public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U> implements IConsumer<U> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ConsumerImpl.class);
 	private static final long   ADAY   = 24*60*60*1000; // ms
@@ -42,7 +42,7 @@ public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<
 	private UUID                          consumerId;
 	private IPublisher<U>                 status;
 	private IPublisher<HeartbeatBean>     alive;
-	private ISubscriber<IBeanListener<StatusBean>> terminator;
+	private ISubscriber<IBeanListener<U>> terminator;
 	private ISubscriber<IBeanListener<KillBean>> killer;
 	private ISubmitter<U>                 mover;
 
@@ -52,6 +52,7 @@ public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<
 	
 	private volatile boolean              active;
 	private volatile Map<String, WeakReference<IConsumerProcess<U>>>  processes;
+	private IEventService                 eservice;
 
 	@SuppressWarnings("unchecked")
 	ConsumerImpl(URI uri, String submitQName, 
@@ -63,11 +64,12 @@ public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<
 			              IEventService          eservice) throws EventException {
 		
 		super(uri, submitQName, statusQName, statusTName, killTName, service);
+		this.eservice = eservice;
 		
 		durable    = true;
 		consumerId = UUID.randomUUID();
 		name       = "Consumer "+consumerId; // This will hopefully be changed to something meaningful...
-		this.processes = new Hashtable<>(7);
+		this.processes       = new Hashtable<>(7); // Synch!
 		
 		mover  = eservice.createSubmitter(uri, statusQName, service);
 		status = eservice.createPublisher(uri, statusTName, service);
@@ -78,32 +80,7 @@ public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<
 			alive.setConsumerId(consumerId);
 			alive.setConsumerName(getName());
 		}
-		
-		terminator = eservice.createSubscriber(uri, statusTName, service);
-		terminator.addListener(new IBeanListener<StatusBean>() {
-			@Override
-			public Class<StatusBean> getBeanClass() {
-				return StatusBean.class;
-			}
-
-			@Override
-			public void beanChangePerformed(BeanEvent<StatusBean> evt) {
-				StatusBean bean = evt.getBean();
-				if (bean.getStatus()!=Status.REQUEST_TERMINATE) return;
 				
-				WeakReference<IConsumerProcess<U>> ref = processes.remove(bean.getUniqueId());
-				if (ref==null) return;
-				IConsumerProcess<U> process = ref.get();
-				if (process!=null) {
-					try {
-						process.terminate();
-					} catch (EventException e) {
-						logger.error("Cannot terminate process "+process.getBean().getUniqueId(), e);
-					}
-				}
-			}
-		});
-		
 		if (killTName!=null) {
 			killer = eservice.createSubscriber(uri, killTName, service);
 			killer.addListener(new IBeanListener<KillBean>() {
@@ -135,6 +112,42 @@ public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<
 			});
 		}
 	}
+	
+	public void setBeanClass(Class<U> beanClass) throws EventException {
+		
+		super.setBeanClass(beanClass);
+		
+		if (terminator!=null) terminator.disconnect();
+		terminator = eservice.createSubscriber(uri, getStatusTopicName(), service);
+		terminator.addListener(new IBeanListener<U>() {
+			@Override
+			public Class<U> getBeanClass() {
+				return ConsumerImpl.this.getBeanClass();
+			}
+
+			@Override
+			public void beanChangePerformed(BeanEvent<U> evt) {
+				U bean = evt.getBean();
+				if (bean.getStatus()!=Status.REQUEST_TERMINATE) return;
+				
+				WeakReference<IConsumerProcess<U>> ref = processes.remove(bean.getUniqueId());
+				try {
+					if (ref==null) { // Might be in submit queue still
+						updateQueue(getSubmitQueueName(), bean);
+
+					} else {
+						IConsumerProcess<U> process = ref.get();
+						if (process!=null) {
+							process.terminate();
+						}
+					}
+				} catch (EventException e) {
+					logger.error("Cannot terminate process "+bean.getUniqueId(), e);
+				}
+			}
+		});
+
+	}
 
 	@Override
 	public void disconnect() throws EventException {
@@ -153,12 +166,12 @@ public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<
 
 	@Override
 	public List<U> getSubmissionQueue() throws EventException {
-		return getQueue(getSubmitQueueName());
+		return getQueue(getSubmitQueueName(), "submissionTime");
 	}
 
 	@Override
-	public List<U> getStatusQueue() throws EventException {
-		return getQueue(getStatusQueueName());
+	public List<U> getStatusSet() throws EventException {
+		return getQueue(getStatusSetName(), "submissionTime");
 	}
 
 	@Override
@@ -268,6 +281,7 @@ public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<
 	private void executeBean(U bean) throws EventException {
 		
 		// We record the bean in the status queue
+		logger.trace("Moving "+bean+" to "+mover.getSubmitQueueName());
 		mover.submit(bean);
 		
 		// Run the process
@@ -282,6 +296,17 @@ public class ConsumerImpl<U extends StatusBean> extends QueueAbstractConnection<
 			throw new EventException("The bean with unique id '"+bean.getUniqueId()+"' has already been used. Cannot run the same uuid twice!");
 		}
 		
+		// We peal off the most recent bean from the submission queue
+		
+		if (bean.getStatus()==Status.REQUEST_TERMINATE) {
+			bean.setStatus(Status.TERMINATED);
+			bean.setMessage("Run aborted before started");
+			status.broadcast(bean);
+			return;
+		}
+		
+		if (bean.getStatus().isFinal()) return; // This is not the bean you are looking for.
+
 		IConsumerProcess<U> process = runner.createProcess(bean, status);
 		processes.put(bean.getUniqueId(), new WeakReference<IConsumerProcess<U>>(process));
 		process.execute(); // Depending on the process this may or may not run in a separate thread.

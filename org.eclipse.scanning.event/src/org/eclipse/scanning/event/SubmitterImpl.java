@@ -1,13 +1,19 @@
 package org.eclipse.scanning.event;
 
 import java.net.URI;
+import java.util.Enumeration;
 import java.util.UUID;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
+import javax.jms.QueueBrowser;
+import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
+import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -16,7 +22,7 @@ import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
-class SubmitterImpl<T extends StatusBean> extends QueueAbstractConnection<T> implements ISubmitter<T> {
+class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> implements ISubmitter<T> {
 
 	// Message things
 	private String uniqueId;
@@ -86,6 +92,65 @@ class SubmitterImpl<T extends StatusBean> extends QueueAbstractConnection<T> imp
 			throw new EventException("Problem opening connection to queue! ", e);
 
 		} finally {
+			try {
+				if (send!=null)     send.close();
+				if (session!=null)  session.close();
+				if (producer!=null) producer.close();
+			} catch (Exception e) {
+				throw new EventException("Cannot close connection as expected!", e);
+			}
+		}
+
+	}
+	
+	@Override
+	public boolean remove(T bean) throws EventException {
+			
+		QueueConnection send     = null;
+		QueueSession    session  = null;
+		MessageProducer producer = null;
+
+		try {
+
+			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)service.createConnectionFactory(uri);
+			send              = connectionFactory.createQueueConnection();
+
+			session = send.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+			Queue queue = session.createQueue(getSubmitQueueName());
+			QueueBrowser qb = session.createBrowser(queue);
+	
+			@SuppressWarnings("rawtypes")
+			Enumeration  e  = qb.getEnumeration();
+	
+			String jMSMessageID = null;
+			while(e.hasMoreElements()) {
+				Message m = (Message)e.nextElement();
+				if (m==null) continue;
+				if (m instanceof TextMessage) {
+					TextMessage t = (TextMessage)m;
+	
+					final T qbean = service.unmarshal(t.getText(), (Class<T>)bean.getClass());
+					if (qbean==null) continue;
+					if (isSame(qbean, bean)) {
+						jMSMessageID = t.getJMSMessageID();
+						break;
+					}
+				}
+			}
+	
+			qb.close();
+	
+			if (jMSMessageID!=null) {
+				MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
+				Message m = consumer.receive(1000);
+				return m!=null;
+			}
+	
+			return false;
+			
+		} catch (Exception ne) {
+			throw new EventException("Cannot remove item "+bean, ne);
+		}  finally {
 			try {
 				if (send!=null)     send.close();
 				if (session!=null)  session.close();

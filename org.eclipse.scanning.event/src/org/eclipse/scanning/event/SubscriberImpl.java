@@ -89,8 +89,14 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 	    			Object bean = service.unmarshal(json, clazz);
 	    			diseminate(bean, listeners); // We simply use the event thread from JMS for this.
     			} catch (Exception ne) {
-    				logger.error("Internal error! - Unable to process an event!", ne);
-    				ne.printStackTrace();
+    				
+    				if (ne.getClass().getName().contains("com.fasterxml.jackson")) {
+        				logger.error("JSON Serilization Error! Have you set the bean class on the "+getClass().getSimpleName(), ne);     
+        				System.out.println("Bean class is "+clazz.getName());
+	   				} else {    				
+	    				logger.error("Internal error! - Unable to process an event!", ne);
+	   				}
+    				ne.printStackTrace(); // Unit tests without log4j config show this one.
     			}
     		}
     	};

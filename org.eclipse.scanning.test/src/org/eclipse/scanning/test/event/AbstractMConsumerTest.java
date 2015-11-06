@@ -28,11 +28,11 @@ public class AbstractMConsumerTest {
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
  
-		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
 		try {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
-			consumer2.clearQueue(IEventService.STATUS_QUEUE);
+			consumer2.clearQueue(IEventService.STATUS_SET);
 			consumer2.setRunner(new DryRunCreator(false));
 			consumer2.setBeanClass(StatusBean.class);
 			consumer2.start();
@@ -42,7 +42,7 @@ public class AbstractMConsumerTest {
 		} finally {
 
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
-			consumer2.clearQueue(IEventService.STATUS_QUEUE);
+			consumer2.clearQueue(IEventService.STATUS_SET);
 			consumer2.disconnect();
 		}
     }
@@ -54,11 +54,11 @@ public class AbstractMConsumerTest {
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
  
-		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
 		try {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
-			consumer2.clearQueue(IEventService.STATUS_QUEUE);
+			consumer2.clearQueue(IEventService.STATUS_SET);
 			consumer2.setRunner(new DryRunCreator(false));
 			consumer2.setBeanClass(StatusBean.class);
 			consumer2.start();
@@ -76,7 +76,7 @@ public class AbstractMConsumerTest {
 			
 		} finally {
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
-			consumer2.clearQueue(IEventService.STATUS_QUEUE);
+			consumer2.clearQueue(IEventService.STATUS_SET);
 			consumer2.disconnect();
 		}
     }
@@ -88,11 +88,11 @@ public class AbstractMConsumerTest {
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
  
-		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
 		try {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
-			consumer2.clearQueue(IEventService.STATUS_QUEUE);
+			consumer2.clearQueue(IEventService.STATUS_SET);
 			consumer2.setRunner(new DryRunCreator(false));
 			consumer2.setBeanClass(StatusBean.class);
 			consumer2.start();
@@ -123,7 +123,7 @@ public class AbstractMConsumerTest {
 			
 		} finally {
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
-			consumer2.clearQueue(IEventService.STATUS_QUEUE);
+			consumer2.clearQueue(IEventService.STATUS_SET);
 			consumer2.disconnect();
 		}
     }
@@ -140,10 +140,10 @@ public class AbstractMConsumerTest {
 		List<IConsumer<StatusBean>> consumers   = new ArrayList<>(9);
 		try {
 			for (int i = 2; i < 11; i++) {
-				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
 				c.setName("Test Consumer "+i);
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
-				c.clearQueue(IEventService.STATUS_QUEUE);
+				c.clearQueue(IEventService.STATUS_SET);
 				c.setRunner(new DryRunCreator(false));
 				c.setBeanClass(StatusBean.class);
 				c.start();
@@ -164,7 +164,7 @@ public class AbstractMConsumerTest {
 		} finally {
 			for (IConsumer<StatusBean> c : consumers) {
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
-				c.clearQueue(IEventService.STATUS_QUEUE);
+				c.clearQueue(IEventService.STATUS_SET);
 				c.disconnect();
 			}
 		}
@@ -182,10 +182,10 @@ public class AbstractMConsumerTest {
 		List<IConsumer<StatusBean>> consumers   = new ArrayList<>(9);
 		try {
 			for (int i = 2; i < 11; i++) {
-				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_QUEUE, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
 				c.setName("Test Consumer "+i);
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
-				c.clearQueue(IEventService.STATUS_QUEUE);
+				c.clearQueue(IEventService.STATUS_SET);
 				c.setRunner(new DryRunCreator(false));
 				c.setBeanClass(StatusBean.class);
 				c.start();
@@ -219,7 +219,7 @@ public class AbstractMConsumerTest {
 		} finally {
 			for (IConsumer<StatusBean> c : consumers) {
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
-				c.clearQueue(IEventService.STATUS_QUEUE);
+				c.clearQueue(IEventService.STATUS_SET);
 				c.disconnect();
 			}
 		}
@@ -228,7 +228,7 @@ public class AbstractMConsumerTest {
 
     private void checkStatus(List<StatusBean> submissions) throws Exception {
     	
-    	List<StatusBean> stati = consumer.getStatusQueue();
+    	List<StatusBean> stati = consumer.getStatusSet();
 		if (stati.size()!=10) throw new Exception("Unexpected status size in queue! Should be 10 size is "+stati.size());
 		
 		for (int i = 0; i < 10; i++) {
@@ -259,7 +259,7 @@ public class AbstractMConsumerTest {
 	 	
 		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
 		
-		List<StatusBean> stati = consumer.getStatusQueue();
+		List<StatusBean> stati = consumer.getStatusSet();
 		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! size = "+stati.size());
 		
 		StatusBean complete = stati.get(0);
