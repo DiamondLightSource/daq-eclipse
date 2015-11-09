@@ -2,6 +2,7 @@ package org.eclipse.scanning.event;
 
 import java.lang.ref.WeakReference;
 import java.net.URI;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,9 @@ import java.util.UUID;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
 import javax.jms.Queue;
+import javax.jms.QueueBrowser;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.Session;
 import javax.jms.TextMessage;
@@ -53,6 +56,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	private volatile boolean              active;
 	private volatile Map<String, WeakReference<IConsumerProcess<U>>>  processes;
 	private IEventService                 eservice;
+	private Map<String, U>                overrideMap;
 
 	@SuppressWarnings("unchecked")
 	ConsumerImpl(URI uri, String submitQName, 
@@ -133,8 +137,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 				WeakReference<IConsumerProcess<U>> ref = processes.remove(bean.getUniqueId());
 				try {
 					if (ref==null) { // Might be in submit queue still
-						updateQueue(getSubmitQueueName(), bean);
-
+						updateQueue(bean);
+						
 					} else {
 						IConsumerProcess<U> process = ref.get();
 						if (process!=null) {
@@ -149,13 +153,68 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 
 	}
 
+	protected void updateQueue(U bean) throws EventException {
+		
+		Session session = null;
+		try {
+			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+			Queue queue = session.createQueue(getSubmitQueueName());
+			QueueBrowser qb = session.createBrowser(queue);
+	
+			@SuppressWarnings("rawtypes")
+			Enumeration  e  = qb.getEnumeration();					
+			while(e.hasMoreElements()) {
+				
+				Message msg = (Message)e.nextElement();
+				TextMessage t = (TextMessage)msg;
+				final U b = service.unmarshal(t.getText(), getBeanClass());
+				
+				MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+msg.getJMSMessageID()+"'");
+				Message rem = consumer.receive(500);	
+				consumer.close();
+				
+				if(rem == null && b.getUniqueId().equals(bean.getUniqueId())) { // Something went wrong, not sure why it does this
+					if (overrideMap == null) overrideMap = new Hashtable<>(7);
+					overrideMap.put(b.getUniqueId(), bean);
+					continue;
+				}
+				
+				MessageProducer producer = session.createProducer(queue);
+				if (b.getUniqueId().equals(bean.getUniqueId())) {
+					
+					b.setStatus(bean.getStatus());
+					t = session.createTextMessage(service.marshal(b));
+					t.setJMSMessageID(rem.getJMSMessageID());
+					t.setJMSExpiration(rem.getJMSExpiration());
+					t.setJMSTimestamp(rem.getJMSTimestamp());
+					t.setJMSPriority(rem.getJMSPriority());
+					t.setJMSCorrelationID(rem.getJMSCorrelationID());
+				}
+				producer.send(t);
+				producer.close();
+			
+			}
+						
+		} catch (Exception ne) {
+			throw new EventException("Cannot reorder queue!", ne);
+		} finally {
+			try {
+				session.close();
+			} catch (JMSException e) {
+				throw new EventException("Cannot close session!", e);
+			}
+		}
+	}
+
 	@Override
 	public void disconnect() throws EventException {
+		super.disconnect();
 		setActive(false);
 		mover.disconnect();
 		status.disconnect();
 		alive.disconnect();
 		killer.disconnect();
+		if (overrideMap!=null) overrideMap.clear();
 		try {
 			if (connection!=null) connection.close();
 		} catch (JMSException e) {
@@ -281,6 +340,10 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	private void executeBean(U bean) throws EventException {
 		
 		// We record the bean in the status queue
+		if (overrideMap!=null && overrideMap.containsKey(bean.getUniqueId())) {
+			U o = overrideMap.remove(bean.getUniqueId());
+			bean.setStatus(o.getStatus());
+		}
 		logger.trace("Moving "+bean+" to "+mover.getSubmitQueueName());
 		mover.submit(bean);
 		
@@ -327,8 +390,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 			if (this.consumer == null) {
 				this.consumer = createConsumer(uri, submitQName);
 			}
-			
-			return consumer.receive(1000);
+			return consumer.receive(500);
 			
 		} catch (Exception ne) {
 			consumer = null;
@@ -345,7 +407,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		
 		QueueConnectionFactory connectionFactory = (QueueConnectionFactory)service.createConnectionFactory(uri);
 		this.connection = connectionFactory.createQueueConnection();
-		Session   session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		Queue queue = session.createQueue(submitQName);
 
 		final MessageConsumer consumer = session.createConsumer(queue);
