@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="resultsOpenHandler" name="Open Existing Results" schema="schema/resultsOpenHandler.exsd"/>
+   <extension-point id="rerunHandler" name="Rerun a given result" schema="schema/rerunHandler.exsd"/>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="true"
+            category="org.dawnsci.commandserver.category"
+            class="org.eclipse.scanning.event.ui.view.StatusQueueView"
+            icon="icons/computer--arrow.png"
+            id="org.eclipse.scanning.event.ui.queueView"
+            name="Queue"
+            restorable="true">
+      </view>
+      <category
+            id="org.dawnsci.commandserver.category"
+            name="Command Server">
+      </category>
+      <view
+            category="org.dawnsci.commandserver.category"
+            class="org.eclipse.scanning.event.ui.view.ConsumerView"
+            icon="icons/hand-share.png"
+            id="org.eclipse.scanning.event.ui.consumerView"
+            name="Active Consumers"
+            restorable="true">
+      </view>
+      <view
+            category="org.dawnsci.commandserver.category"
+            class="org.eclipse.scanning.event.ui.view.StatusQueueLaunchView"
+            icon="icons/computer--pencil.png"
+            id="org.dawnsci.commandserver.ui.statusQueueLaunchView"
+            name="Queue Launcher"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.eclipse.scanning.event.ui.preference.CommandInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="uk.ac.diamond.scisoft.ispybexplorer.rcp.category"
+            class="org.eclipse.scanning.event.ui.preference.ActiveMQPage"
+            id="org.dawnsci.commandserver.ui.activemqPage"
+            name="Command Server Configuration">
+      </page>
+   </extension>
+
+</plugin>
