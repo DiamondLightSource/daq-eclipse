@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Connector
+Bundle-SymbolicName: uk.ac.diamond.daq.malcom.connector
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Diamond Light Source
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: org.eclipse.malcolm.api;bundle-version="1.0.0",
+ com.fasterxml.jackson.core.jackson-annotations;bundle-version="2.2.0",
+ com.fasterxml.jackson.core.jackson-core;bundle-version="2.2.0",
+ com.fasterxml.jackson.core.jackson-databind;bundle-version="2.2.0",
+ org.zeromq;bundle-version="3.2.5",
+ uk.ac.diamond.org.apache.activemq;bundle-version="1.0.0"
+Export-Package: uk.ac.diamond.malcom.jacksonzeromq.connector
+Import-Package: org.slf4j;version="1.7.6"
+Bundle-ClassPath: lib/activemq-all-5.9.0.jar,
+ .
+Service-Component: OSGI-INF/*.xml
+Bundle-ActivationPolicy: lazy
