@@ -321,7 +321,7 @@ public class StatusQueueView extends ViewPart {
 					
 				} catch (Exception e) {
 					ErrorDialog.openError(getViewSite().getShell(), "Cannot terminate "+bean.getName(), "Cannot terminate "+bean.getName()+"\n\nPlease contact your support representative.",
-							new Status(IStatus.ERROR, "org.dawnsci.commandserver.ui", e.getMessage()));
+							new Status(IStatus.ERROR, "org.eclipse.scanning.event.ui", e.getMessage()));
 				}
 			}
 		};
@@ -456,7 +456,7 @@ public class StatusQueueView extends ViewPart {
 			copy.merge(bean);
 			copy.setMessage("Rerun of "+bean.getName());
 			
-			IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, "org.dawnsci.commandserver.ui");
+			IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, "org.eclipse.scanning.event.ui");
 			final URI    uri       = new URI(store.getString("org.dawnsci.commandserver.URI"));
 			
 			final ISubmitter<StatusBean> factory = service.createSubmitter(uri, getSubmissionQueueName());
@@ -467,7 +467,7 @@ public class StatusQueueView extends ViewPart {
 
 		} catch (Exception e) {
 			ErrorDialog.openError(getViewSite().getShell(), "Cannot rerun "+bean.getName(), "Cannot rerun "+bean.getName()+"\n\nPlease contact your support representative.",
-					new Status(IStatus.ERROR, "org.dawnsci.commandserver.ui", e.getMessage()));
+					new Status(IStatus.ERROR, "org.eclipse.scanning.event.ui", e.getMessage()));
 		}
 		
 	}

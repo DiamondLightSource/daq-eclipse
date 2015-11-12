@@ -114,7 +114,7 @@ public class StatusQueueLaunchView extends ViewPart {
 			Util.getPage().showView(StatusQueueView.ID, queueViewId, IWorkbenchPage.VIEW_VISIBLE);
 		} catch (PartInitException e) {
 			ErrorDialog.openError(Display.getDefault().getActiveShell(), "Cannot open view", "Cannot open view "+queueViewId, 
-					new Status(Status.ERROR, "org.dawnsci.commandserver.ui", e.getMessage()));
+					new Status(Status.ERROR, "org.eclipse.scanning.event.ui", e.getMessage()));
 			logger.error("Cannot open view", e);
 		}
 	}
