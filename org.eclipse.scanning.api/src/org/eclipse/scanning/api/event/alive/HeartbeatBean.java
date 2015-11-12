@@ -174,4 +174,41 @@ public class HeartbeatBean extends IdBean {
 		this.hostName = hostName;
 	}
 
+	public boolean equalsIgnoreLastAlive(HeartbeatBean obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		HeartbeatBean other = (HeartbeatBean) obj;
+		if (beamline == null) {
+			if (other.beamline != null)
+				return false;
+		} else if (!beamline.equals(other.beamline))
+			return false;
+		if (conceptionTime != other.conceptionTime)
+			return false;
+		if (consumerId == null) {
+			if (other.consumerId != null)
+				return false;
+		} else if (!consumerId.equals(other.consumerId))
+			return false;
+		if (consumerName == null) {
+			if (other.consumerName != null)
+				return false;
+		} else if (!consumerName.equals(other.consumerName))
+			return false;
+		if (consumerStatus != other.consumerStatus)
+			return false;
+		if (hostName == null) {
+			if (other.hostName != null)
+				return false;
+		} else if (!hostName.equals(other.hostName))
+			return false;
+		if (publishTime != other.publishTime)
+			return false;
+		return true;
+	}
+
 }

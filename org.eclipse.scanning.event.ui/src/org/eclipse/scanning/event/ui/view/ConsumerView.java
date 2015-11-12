@@ -11,10 +11,15 @@ package org.eclipse.scanning.event.ui.view;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -68,7 +73,7 @@ public class ConsumerView extends ViewPart {
 	private TableViewer                       viewer;
 	
 	// Data
-	private Map<Long, HeartbeatBean>        consumers;
+	private Map<UUID, HeartbeatBean>        consumers;
 
 	private ISubscriber<IHeartbeatListener>   heartMonitor;
 
@@ -77,6 +82,8 @@ public class ConsumerView extends ViewPart {
 	public ConsumerView() {
 		this.service = ServiceHolder.getEventService();
 	}
+	
+	private boolean dirty = true;
 
 	@Override
 	public void createPartControl(Composite content) {
@@ -92,7 +99,7 @@ public class ConsumerView extends ViewPart {
 		createColumns();
 		viewer.setContentProvider(createContentProvider());
 		
-		consumers = new TreeMap<>();
+		consumers = new ConcurrentHashMap<>();
 		viewer.setInput(consumers);	
 		
         createActions();
@@ -109,6 +116,9 @@ public class ConsumerView extends ViewPart {
                 while(!viewer.getTable().isDisposed()) {
                 	try {
 						Thread.sleep(UIConstants.NOTIFICATION_FREQUENCY);
+						
+						if (!dirty) continue;
+						
 						if (viewer.getControl().isDisposed()) return;
 						
 						viewer.getControl().getDisplay().syncExec(new Runnable() {
@@ -116,6 +126,8 @@ public class ConsumerView extends ViewPart {
 								viewer.refresh();
 							}
 						});
+						dirty = false;
+						
 					} catch (InterruptedException e) {
 						return;
 					}
@@ -146,7 +158,10 @@ public class ConsumerView extends ViewPart {
 						public void heartbeatPerformed(HeartbeatEvent evt) {
 							HeartbeatBean bean = evt.getBean();
 	        				bean.setLastAlive(System.currentTimeMillis());
-	                        consumers.put(bean.getConceptionTime(), bean);
+	        				HeartbeatBean old = consumers.put(bean.getId(), bean);
+	        				if (!old.equalsIgnoreLastAlive(bean)) {
+	        					dirty = true;
+	        				}
 						}
 					});
 					return Status.OK_STATUS;
@@ -257,7 +272,13 @@ public class ConsumerView extends ViewPart {
 			@Override
 			public Object[] getElements(Object inputElement) {
 				if (consumers==null) return new HeartbeatBean[]{HeartbeatBean.EMPTY};
-				return consumers.values().toArray(new HeartbeatBean[consumers.size()]);
+				final List<HeartbeatBean> beats = new ArrayList<>(consumers.values());
+				Collections.sort(beats, new Comparator<HeartbeatBean>() {
+					public int compare(HeartbeatBean o1, HeartbeatBean o2) {
+						return (int)(o2.getConceptionTime()-o1.getConceptionTime());
+					}
+				});
+				return beats.toArray(new HeartbeatBean[consumers.size()]);
 			}
 		};
 	}
