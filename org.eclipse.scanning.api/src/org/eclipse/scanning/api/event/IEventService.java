@@ -76,6 +76,11 @@ public interface IEventService {
 	 * The default queue used for holding status events.
 	 */
 	public static final String STATUS_SET = "org.eclipse.scanning.status.set";
+	
+	/**
+	 * Topic used to tell UI users that a give consumer will be going down.
+	 */
+	public static final String ADMIN_MESSAGE_TOPIC = "org.eclipse.scanning.consumer.administratorMessage";
 
 
 	/**
