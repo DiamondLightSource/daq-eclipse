@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -93,7 +92,7 @@ public class ConsumerView extends ViewPart {
 		createColumns();
 		viewer.setContentProvider(createContentProvider());
 		
-		consumers = new TreeMap<>(Collections.reverseOrder());
+		consumers = new TreeMap<>();
 		viewer.setInput(consumers);	
 		
         createActions();
