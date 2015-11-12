@@ -206,8 +206,6 @@ public class HeartbeatBean extends IdBean {
 				return false;
 		} else if (!hostName.equals(other.hostName))
 			return false;
-		if (publishTime != other.publishTime)
-			return false;
 		return true;
 	}
 
