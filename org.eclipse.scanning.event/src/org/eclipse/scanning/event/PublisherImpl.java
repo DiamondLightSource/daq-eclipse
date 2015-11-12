@@ -72,10 +72,13 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	public boolean isAlive() {
 		return alive;
 	}
+	
+	private volatile HeartbeatBean lastBeat;
 
 	@Override
 	public void setAlive(boolean alive) throws EventException {
 		
+		boolean wasAlive = this.alive;
 		this.alive = alive;
 		
 		if (alive) {
@@ -110,9 +113,9 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 							beat.setHostName(InetAddress.getLocalHost().getHostName());
 
 							send(heartbeatProducer, beat, 5000);
-							waitTime = 0; // We sent something
+							lastBeat = beat;
 							
-							
+							waitTime = 0; // We sent something		
 
 						} catch (Exception ne) {
 								
@@ -140,6 +143,17 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			aliveThread.setPriority(Thread.MIN_PRIORITY);
 			aliveThread.start();
 			
+		} else {
+			if (wasAlive) { // Might never have been a heartbeat publisher.
+				try {
+					Thread.sleep(Constants.getNotificationFrequency()+100); // Make sure dead			
+					lastBeat.setConsumerStatus(ConsumerStatus.STOPPED);
+				    send(heartbeatProducer, lastBeat, 5000);
+					
+				} catch (Exception ne) {
+					throw new EventException("Cannot send termination message!", ne);
+				}
+			}
 		}
 
 	}

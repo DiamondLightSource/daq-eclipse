@@ -264,8 +264,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	
 	@Override
 	public void stop() throws EventException {
+        alive.setAlive(false); // Broadcasts that we are being killed
         setActive(false);
-        alive.setAlive(false);
         final WeakReference<IConsumerProcess<U>>[] wra = processes.values().toArray(new WeakReference[processes.size()]);
         for (WeakReference<IConsumerProcess<U>> wr : wra) {
 			if (wr.get()!=null) wr.get().terminate();

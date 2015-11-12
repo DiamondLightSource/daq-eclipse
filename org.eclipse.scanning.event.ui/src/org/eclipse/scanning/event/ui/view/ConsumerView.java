@@ -73,7 +73,7 @@ public class ConsumerView extends ViewPart {
 	private TableViewer                       viewer;
 	
 	// Data
-	private Map<UUID, HeartbeatBean>        consumers;
+	private Map<UUID, HeartbeatBean>          consumers;
 
 	private ISubscriber<IHeartbeatListener>   heartMonitor;
 
@@ -83,8 +83,6 @@ public class ConsumerView extends ViewPart {
 		this.service = ServiceHolder.getEventService();
 	}
 	
-	private boolean dirty = true;
-
 	@Override
 	public void createPartControl(Composite content) {
 		
@@ -108,37 +106,6 @@ public class ConsumerView extends ViewPart {
 		} catch (Exception e) {
 			logger.error("Cannot listen to topic of command server!", e);
 		}
-        
-        final Thread job = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				
-                while(!viewer.getTable().isDisposed()) {
-                	try {
-						Thread.sleep(UIConstants.NOTIFICATION_FREQUENCY);
-						
-						if (!dirty) continue;
-						
-						if (viewer.getControl().isDisposed()) return;
-						
-						viewer.getControl().getDisplay().syncExec(new Runnable() {
-							public void run () {
-								viewer.refresh();
-							}
-						});
-						dirty = false;
-						
-					} catch (InterruptedException e) {
-						return;
-					}
-                }
- 			}
-        });
-        
-        job.setPriority(Thread.MIN_PRIORITY);
-        job.setDaemon(true);
-        job.setName("Refresh consumer table");
-        job.start();
 	}
 	
 	/**
@@ -156,11 +123,17 @@ public class ConsumerView extends ViewPart {
 					heartMonitor.addListener(new IHeartbeatListener.Stub() {
 						@Override
 						public void heartbeatPerformed(HeartbeatEvent evt) {
+							
 							HeartbeatBean bean = evt.getBean();
 	        				bean.setLastAlive(System.currentTimeMillis());
 	        				HeartbeatBean old = consumers.put(bean.getId(), bean);
-	        				if (!old.equalsIgnoreLastAlive(bean)) {
-	        					dirty = true;
+	        				
+	        				if (!bean.equalsIgnoreLastAlive(old)) {
+	    						viewer.getControl().getDisplay().syncExec(new Runnable() {
+	    							public void run () {
+	    								viewer.refresh();
+	    							}
+	    						});
 	        				}
 						}
 					});
@@ -301,12 +274,15 @@ public class ConsumerView extends ViewPart {
 			public String getText(Object element) {
 				final HeartbeatBean cbean = (HeartbeatBean)element;
 				ConsumerStatus status = cbean.getConsumerStatus();
-				if (cbean.getLastAlive()>(System.currentTimeMillis()-UIConstants.NOTIFICATION_FREQUENCY*10) && 
-					cbean.getLastAlive()<(System.currentTimeMillis()-UIConstants.NOTIFICATION_FREQUENCY*2)) {
-					status = ConsumerStatus.STOPPING;
-					
-				} else if (cbean.getLastAlive()<(System.currentTimeMillis()-UIConstants.NOTIFICATION_FREQUENCY*10)) {
-					status = ConsumerStatus.STOPPED;
+				
+				if (status==ConsumerStatus.ALIVE) {
+					if (cbean.getLastAlive()>(System.currentTimeMillis()-UIConstants.NOTIFICATION_FREQUENCY*10) && 
+						cbean.getLastAlive()<(System.currentTimeMillis()-UIConstants.NOTIFICATION_FREQUENCY*2)) {
+						status = ConsumerStatus.STOPPING;
+						
+					} else if (cbean.getLastAlive()<(System.currentTimeMillis()-UIConstants.NOTIFICATION_FREQUENCY*10)) {
+						status = ConsumerStatus.STOPPED;
+					}
 				}
 				return status.toString();
 			}
