@@ -6,7 +6,7 @@ import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.GridModel;
 
-public class GridIterator implements Iterator<Point> {
+class GridIterator implements Iterator<Point> {
 
 	private GridModel model;
 	private IPointContainer container;
