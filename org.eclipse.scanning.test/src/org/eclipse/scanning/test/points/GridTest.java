@@ -19,7 +19,10 @@
 package org.eclipse.scanning.test.points;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
@@ -54,7 +57,13 @@ public class GridTest {
 		// Get the point list
 		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
 		List<Point> pointList = gen.createPoints();
+		
+		assertEquals(pointList.size(), gen.size());
+		
+        checkPoints(pointList);
+	}
 
+	private void checkPoints(List<Point> pointList) {
 		// Check correct number of points
 		assertEquals(20 * 20, pointList.size());
 
@@ -73,4 +82,26 @@ public class GridTest {
 
 	}
 
+	@Test
+	public void testFillingBoundingRectangleIterator() throws Exception {
+		
+		// Create a simple bounding rectangle
+		RectangularROI boundingRectangle = new RectangularROI(0, 0, 3, 3, 0);
+
+		// Create a raster scan path
+		GridModel gridScanPath = new GridModel();
+		gridScanPath.setRows(20);
+		gridScanPath.setColumns(20);
+
+		// Get the point list
+		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
+        Iterator<Point> it = gen.iterator();
+        List<Point> pointList = new ArrayList<Point>(7);
+        while (it.hasNext()) pointList.add(it.next());
+        
+        assertArrayEquals(pointList.toArray(), gen.createPoints().toArray());
+        
+        checkPoints(pointList);
+       
+	}
 }

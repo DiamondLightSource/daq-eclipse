@@ -26,14 +26,13 @@ class GridIterator implements Iterator<Point> {
 
 	@Override
 	public boolean hasNext() {
-		return i < model.getRows() && j < model.getColumns();
+		int[] next = increment(model, i, j); // Is it right to increment on has next
+		return next[0] < model.getRows() && next[1] < model.getColumns();
 	}
 
 	private boolean forewards=true;
-	
-	@Override
-	public Point next() {
-		
+
+	private int[] increment(GridModel model, int i, int j) {
 		if (model.isBiDirectional()) {
 			if (forewards) {
 				j = j+1;
@@ -42,7 +41,7 @@ class GridIterator implements Iterator<Point> {
 					forewards = !forewards;
 				}
 			} else {
-				j= j-1;
+				j = j-1;
 				if (j<0) {
 					j=0;
 					i++;
@@ -57,9 +56,20 @@ class GridIterator implements Iterator<Point> {
 				i++;
 			}
 		}
+		return new int[]{i,j}; // Bit slow
+	}
+
+	
+	@Override
+	public Point next() {
+		
+		int[] next = increment(model, i, j); // Is it right to increment on has next
+		this.i = next[0];
+		this.j = next[1];
+		
 		if (i>(model.getRows()-1) || i<0)    return null;  // Normal termination
 		if (j>(model.getColumns()-1) || j<0) throw new NullPointerException("Unexpected index. The j index was "+j);
-		
+
 		double x = minX + j * model.getxStep();
 		double y = minY + i * model.getyStep();
 		if (container==null) {
