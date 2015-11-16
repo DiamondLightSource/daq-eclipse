@@ -20,6 +20,7 @@ package org.eclipse.scanning.test.points;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -104,4 +105,75 @@ public class GridTest {
         checkPoints(pointList);
        
 	}
+	
+	@Test
+	public void test10millTime() throws Exception {
+		
+		long start = System.currentTimeMillis();
+		
+		// Create a simple bounding rectangle
+		RectangularROI boundingRectangle = new RectangularROI(0, 0, 1000, 10000, 0);
+
+		// Create a raster scan path
+		GridModel gridScanPath = new GridModel();
+		gridScanPath.setRows(1000);
+		gridScanPath.setColumns(10000);
+
+		// Get the point list
+		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
+        Iterator<Point> it = gen.iterator();
+
+		long after1 = System.currentTimeMillis();
+
+		assertTrue(start>(after1-200)); // Shouldn't take that long to make it!
+		
+		// Now iterate a few, shouldn't take that long
+		int count = 0;
+		while (it.hasNext()) {
+			Point point = (Point) it.next();
+			count++;
+			if (count>10000) break;
+		}
+		
+		long after2 = System.currentTimeMillis();
+		assertTrue(after1>(after2-200)); // Shouldn't take that long to make it!
+
+		while (it.hasNext()) { // 10mill!
+			Point point = (Point) it.next();
+			count++;
+		}
+		
+		long after3 = System.currentTimeMillis();
+		assertTrue(after2>(after3-500)); // Shouldn't take that long to make it!
+		
+		assertEquals(10000000, count);
+		
+		System.out.println("It took "+(after3-after2)+"ms to iterate 10million. That is fast!");
+	}
+	
+	@Test
+	public void test10millTimeInMemory() throws Exception {
+
+		long start = System.currentTimeMillis();
+		
+		// Create a simple bounding rectangle
+		RectangularROI boundingRectangle = new RectangularROI(0, 0, 1000, 10000, 0);
+
+		// Create a raster scan path
+		GridModel gridScanPath = new GridModel();
+		gridScanPath.setRows(1000);
+		gridScanPath.setColumns(10000);
+
+		// Get the point list
+		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
+		List<Point> points = gen.createPoints();
+		
+		assertEquals(10000000, points.size());
+
+		long after = System.currentTimeMillis();
+		
+		System.out.println("It took "+(after-start)+"ms to make 10million Point and keep in memory");
+
+	}
+
 }
