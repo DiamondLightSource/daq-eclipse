@@ -8,12 +8,21 @@ package org.eclipse.scanning.api.points;
  * 
  * <usage><code>
  * IGeneratorService pservice  = ... // OSGi <br>
- * IGenerator<Point> generator = pservice.createGenerator(...); <br>
- * Iterator<Point>   it        = generator.iterator(); <br>
+ * 
+ * LissajousModel model = new LissajousModel();<br>
+ *  ... // Set values
+ * 
+ * IGenerator<LissajousModel> generator = pservice.createGenerator(model, roi); <br>
+ * 
+ * Iterator<Point> it = generator.iterator(); <br>
  * ... // Use iterator in a scan. <br>
+ * 
  *  <br>
- * int size = generator.size(); // Use size to tell user in GUI the whole size. <br>
- * List<Point> allPoints = generator.createPoints(); // Create and return all the points in memory (might be large). <br>
+ * // Use size to tell user in GUI the whole size. Avoids making all points if it can <br>
+ * int size = generator.size();<br>
+ * 
+ * // Create and return all the points in memory (might be large). Avoid if possible <br>
+ * List<Point> allPoints = generator.createPoints(); <br
  * 
  * </code></usage>
  * 
@@ -22,5 +31,12 @@ package org.eclipse.scanning.api.points;
  */
 public interface IGeneratorService {
 
-	<T> IGenerator<T> createGenerator(ScanType type);
+	/**
+	 * Used to create a point generator of a given type
+	 * @param model
+	 * @param region, a reference to an IROI for instance, maybe <b>null</b> if no IROI exists for this scan.
+	 * @return
+	 */
+	<T> IGenerator<T> createGenerator(T model, Object roi) throws GeneratorException;
+	
 }
