@@ -11,4 +11,5 @@ Export-Package: org.eclipse.scanning.api,
  org.eclipse.scanning.api.event.bean,
  org.eclipse.scanning.api.event.core,
  org.eclipse.scanning.api.event.scan,
- org.eclipse.scanning.api.event.status
+ org.eclipse.scanning.api.event.status,
+ org.eclipse.scanning.api.points
