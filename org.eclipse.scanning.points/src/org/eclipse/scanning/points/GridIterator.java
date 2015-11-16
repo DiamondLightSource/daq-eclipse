@@ -26,7 +26,7 @@ class GridIterator implements Iterator<Point> {
 
 	@Override
 	public boolean hasNext() {
-		int[] next = increment(model, i, j); // Is it right to increment on has next
+		int[] next = increment(model, i, j); 
 		return next[0] < model.getRows() && next[1] < model.getColumns();
 	}
 
@@ -63,7 +63,7 @@ class GridIterator implements Iterator<Point> {
 	@Override
 	public Point next() {
 		
-		int[] next = increment(model, i, j); // Is it right to increment on has next
+		int[] next = increment(model, i, j);
 		this.i = next[0];
 		this.j = next[1];
 		
