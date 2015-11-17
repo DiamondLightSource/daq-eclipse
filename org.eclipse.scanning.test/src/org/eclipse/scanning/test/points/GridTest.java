@@ -18,14 +18,16 @@
 
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
@@ -43,6 +45,28 @@ public class GridTest {
 	public void before() throws Exception {
 		service = new GeneratorServiceImpl();
 	}
+	
+	@Test
+	public void testFillingBoundingRectangleNoROI() throws Exception {
+		
+		// Create a raster scan path
+		GridModel gridScanPath = new GridModel();
+		gridScanPath.setRows(20);
+		gridScanPath.setColumns(20);
+		gridScanPath.setMinX(0);
+		gridScanPath.setMinY(0);
+		gridScanPath.setxLength(3);
+		gridScanPath.setyLength(3);
+
+		// Get the point list
+		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, null);
+		List<Point> pointList = gen.createPoints();
+		
+		assertEquals(pointList.size(), gen.size());
+		
+        checkPoints(pointList);
+	}
+
 
 	@Test
 	public void testFillingBoundingRectangle() throws Exception {
@@ -63,6 +87,47 @@ public class GridTest {
 		
         checkPoints(pointList);
 	}
+	
+	@Test
+	public void testFillingBoundingCircle() throws Exception {
+		
+		// Create a simple bounding rectangle
+		CircularROI circle = new CircularROI(1.5, 1.5, 1.5);
+
+		// Create a raster scan path
+		GridModel gridScanPath = new GridModel();
+		gridScanPath.setRows(20);
+		gridScanPath.setColumns(20);
+
+		// Get the point list
+		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, circle);
+		List<Point> pointList = gen.createPoints();
+		
+		assertEquals(pointList.size(), gen.size());
+		
+		// TODO Check circle performed!
+ 	}
+	
+	@Test
+	public void testFillingBoundingCircleSkewed() throws Exception {
+		
+		// Create a simple bounding rectangle
+		CircularROI circle = new CircularROI(1.5, 1.5, 15);
+
+		// Create a raster scan path
+		GridModel gridScanPath = new GridModel();
+		gridScanPath.setRows(20);
+		gridScanPath.setColumns(200);
+
+		// Get the point list
+		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, circle);
+		List<Point> pointList = gen.createPoints();
+		
+		assertEquals(pointList.size(), gen.size());
+		
+		// TODO Check circle performed!
+ 	}
+
 
 	private void checkPoints(List<Point> pointList) {
 		// Check correct number of points
@@ -107,21 +172,41 @@ public class GridTest {
 	}
 	
 	@Test
-	public void test10millTime() throws Exception {
+	public void testApprox10millIteratorTimeCircle() throws Exception {
+		
+		// Create a simple bounding rectangle
+		CircularROI roi = new CircularROI(500, 500, 500);
+
+		// Create a raster scan path
+		GridModel model = new GridModel();
+		model.setRows(3162);
+		model.setColumns(3162);
+
+		testIteratorTime(model, roi, 7852633, 10000);
+	}
+	
+	@Test
+	public void test10millIteratorTimeRectangle() throws Exception {
+		
+		// Create a simple bounding rectangle
+		RectangularROI roi = new RectangularROI(0, 0, 1000, 10000, 0);
+
+		// Create a raster scan path
+		GridModel model = new GridModel();
+		model.setRows(1000);
+		model.setColumns(10000);
+
+		testIteratorTime(model, roi, 10000000, 500);
+	}
+
+	
+	private void testIteratorTime(GridModel model, IROI roi, int size, long tenMilTime) throws Exception {
 		
 		long start = System.currentTimeMillis();
 		
-		// Create a simple bounding rectangle
-		RectangularROI boundingRectangle = new RectangularROI(0, 0, 1000, 10000, 0);
-
-		// Create a raster scan path
-		GridModel gridScanPath = new GridModel();
-		gridScanPath.setRows(1000);
-		gridScanPath.setColumns(10000);
-
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
-        Iterator<Point> it = gen.iterator();
+		IGenerator<GridModel> gen = service.createGenerator(model, roi);
+        Iterator<Point>       it  = gen.iterator();
 
 		long after1 = System.currentTimeMillis();
 
@@ -144,13 +229,13 @@ public class GridTest {
 		}
 		
 		long after3 = System.currentTimeMillis();
-		assertTrue(after2>(after3-500)); // Shouldn't take that long to make it!
+		System.out.println("It took "+(after3-after2)+"ms to iterate "+size+" with "+roi.getClass().getSimpleName());
+		assertTrue(after2>(after3-tenMilTime)); // Shouldn't take that long to make it!
 		
-		assertEquals(10000000, count);
+		assertEquals(size, count);
 		
-		System.out.println("It took "+(after3-after2)+"ms to iterate 10million. That is fast!");
 	}
-	
+
 	@Test
 	public void test10millTimeInMemory() throws Exception {
 

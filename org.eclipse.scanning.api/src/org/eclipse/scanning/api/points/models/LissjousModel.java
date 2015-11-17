@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class LissjousModel extends RectangularModel {
+public class LissjousModel extends BoundingBoxModel {
 
 	private double a = 1;
 	private double b = 0.25;

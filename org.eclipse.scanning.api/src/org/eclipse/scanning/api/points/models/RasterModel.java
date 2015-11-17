@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class RasterModel  extends RectangularModel{
+public class RasterModel  extends BoundingBoxModel{
 
 	private double xStep = 1;
 	private double yStep = 1;

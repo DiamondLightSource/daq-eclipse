@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class SpiralModel  extends RectangularModel{
+public class SpiralModel  extends BoundingBoxModel{
 	
 	private double scale = 1;
 

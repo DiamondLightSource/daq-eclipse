@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class RectangularModel {
+public class BoundingBoxModel {
 
 	private double minX;
 	private double minY;
@@ -9,6 +9,8 @@ public class RectangularModel {
 	private double yLength;
 	
 	private double angle;
+	
+	private boolean isParentRectangle;
 	
 	/**
 	 * @return angle, in radians
@@ -56,6 +58,7 @@ public class RectangularModel {
 		long temp;
 		temp = Double.doubleToLongBits(angle);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + (isParentRectangle ? 1231 : 1237);
 		temp = Double.doubleToLongBits(minX);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(minY);
@@ -74,9 +77,11 @@ public class RectangularModel {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		RectangularModel other = (RectangularModel) obj;
+		BoundingBoxModel other = (BoundingBoxModel) obj;
 		if (Double.doubleToLongBits(angle) != Double
 				.doubleToLongBits(other.angle))
+			return false;
+		if (isParentRectangle != other.isParentRectangle)
 			return false;
 		if (Double.doubleToLongBits(minX) != Double
 				.doubleToLongBits(other.minX))
@@ -91,5 +96,13 @@ public class RectangularModel {
 				.doubleToLongBits(other.yLength))
 			return false;
 		return true;
+	}
+
+	public boolean isParentRectangle() {
+		return isParentRectangle;
+	}
+
+	public void setParentRectangle(boolean isParentRectangle) {
+		this.isParentRectangle = isParentRectangle;
 	}
 }

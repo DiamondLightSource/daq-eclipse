@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class SinglePointModel  extends RectangularModel {
+public class SinglePointModel  extends BoundingBoxModel {
 
 	
 }

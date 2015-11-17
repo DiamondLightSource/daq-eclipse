@@ -14,13 +14,13 @@ class GridGenerator extends AbstractGenerator<GridModel> {
 	@Override
 	public int size() throws GeneratorException {
 		
-		if (model.getAngle() == 0.0) {
+		if (model.isParentRectangle() && model.getAngle() == 0.0) {
 			// Need to update the xStep and yStep in this call
 			// Get the info from the bounding rectangle
             createSteps();
 			return model.getColumns() * model.getRows();
 		}
-		return super.size(); // Slow
+		return super.size(); // Slower
 	}
 
 	private void createSteps() {
@@ -51,7 +51,7 @@ class GridGenerator extends AbstractGenerator<GridModel> {
 		List<Point> pointList = new ArrayList<>(model.getColumns() * model.getRows());
 
 		// Start generating points
-		if (model.isBiDirectional()) {
+		if (model.isSnake()) {
 			for (int i = 0; i < model.getRows(); i++) {
 				for (int j = 0; j < model.getColumns(); j++) {
 					double x = minX + j * model.getxStep();

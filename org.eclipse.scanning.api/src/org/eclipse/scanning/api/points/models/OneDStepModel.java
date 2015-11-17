@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class OneDStepModel  extends RectangularModel{
+public class OneDStepModel  extends BoundingBoxModel{
 
 	private double step = 1;
 

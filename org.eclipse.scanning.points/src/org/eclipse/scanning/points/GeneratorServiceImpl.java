@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.api.points.models.RectangularModel;
+import org.eclipse.scanning.api.points.models.BoundingBoxModel;
 
 public class GeneratorServiceImpl implements IGeneratorService {
 	
@@ -33,8 +33,8 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		try {
 			IGenerator<T> gen = generators.get(model.getClass()).newInstance();
 			 
-			if (region != null && RectangularModel.class.isAssignableFrom(model.getClass())) {
-			    synchModel((RectangularModel)model, (IROI)region);
+			if (region != null && BoundingBoxModel.class.isAssignableFrom(model.getClass())) {
+			    synchModel((BoundingBoxModel)model, (IROI)region);
 			    gen.setContainer(wrap(region));
 			}
 			gen.setModel(model);
@@ -59,9 +59,9 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		};
 	}
 	
-	private <T extends RectangularModel> void synchModel(T model, IROI roi) throws GeneratorException {
+	private <T extends BoundingBoxModel> void synchModel(T model, IROI roi) throws GeneratorException {
 		
-		if (model instanceof RectangularModel) {
+		if (model instanceof BoundingBoxModel) {
 			IRectangularROI boundingRectangle = roi.getBounds();
 			model.setMinX(boundingRectangle.getPoint()[0]);
 			model.setMinY(boundingRectangle.getPoint()[1]);
@@ -70,6 +70,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 
 			if (roi instanceof IRectangularROI) {
 				model.setAngle(((IRectangularROI)roi).getAngle());
+				model.setParentRectangle(true);
 			}
 			return;
 		}

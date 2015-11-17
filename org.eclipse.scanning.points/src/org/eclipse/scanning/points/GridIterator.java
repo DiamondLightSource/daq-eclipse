@@ -23,17 +23,19 @@ class GridIterator implements Iterator<Point> {
         i=0;
         j=-1;
 	}
+	
+	private boolean forewards=true;
 
 	@Override
 	public boolean hasNext() {
-		int[] next = increment(model, i, j); 
+		int[] next = increment(model, i, j, forewards); 
 		return next[0] < model.getRows() && next[1] < model.getColumns();
 	}
 
-	private boolean forewards=true;
 
-	private int[] increment(GridModel model, int i, int j) {
-		if (model.isBiDirectional()) {
+	private static final int[] increment(GridModel model, int i, int j, boolean forewards) {
+		
+		if (model.isSnake()) {
 			if (forewards) {
 				j = j+1;
 				if (j>(model.getColumns()-1)) {
@@ -56,16 +58,17 @@ class GridIterator implements Iterator<Point> {
 				i++;
 			}
 		}
-		return new int[]{i,j}; // Bit slow
+		return new int[]{i,j, forewards?1:0}; // Bit slow because makes array object to return int values
 	}
 
 	
 	@Override
 	public Point next() {
 		
-		int[] next = increment(model, i, j);
+		int[] next = increment(model, i, j, forewards);
 		this.i = next[0];
 		this.j = next[1];
+		this.forewards = next[2]==1;
 		
 		if (i>(model.getRows()-1) || i<0)    return null;  // Normal termination
 		if (j>(model.getColumns()-1) || j<0) throw new NullPointerException("Unexpected index. The j index was "+j);
