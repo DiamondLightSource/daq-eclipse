@@ -210,7 +210,7 @@ public class GridTest {
 
 		long after1 = System.currentTimeMillis();
 
-		assertTrue(start>(after1-200)); // Shouldn't take that long to make it!
+		assertTrue(start>(after1-50)); // Shouldn't take that long to make it!
 		
 		// Now iterate a few, shouldn't take that long
 		int count = 0;
