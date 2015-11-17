@@ -5,11 +5,13 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
+import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,5 +66,51 @@ public class LinearTest {
 		IGenerator<OneDEqualSpacingModel> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 	}
+
+	
+	@Test
+	public void testOneDStep() throws GeneratorException {
+		
+		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
+
+        OneDStepModel model = new OneDStepModel();
+        model.setStep(0.3);
+		
+		// Get the point list
+		IGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
+		List<Point> pointList = gen.createPoints();
+		
+		assertEquals(pointList.size(), gen.size());
+		assertEquals(15, pointList.size());
+	}
+	
+	@Test(expected = GeneratorException.class)
+	public void testOneDStepNoStep() throws GeneratorException {
+		
+		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
+
+        OneDStepModel model = new OneDStepModel();
+        model.setStep(0);
+		
+		// Get the point list
+		IGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
+		List<Point> pointList = gen.createPoints();
+		
+	}
+	
+	@Test(expected = GeneratorException.class)
+	public void testOneDStepWrongROI() throws GeneratorException {
+		
+		RectangularROI roi = new RectangularROI(new double[]{0,0}, new double[]{3,3});
+
+        OneDStepModel model = new OneDStepModel();
+        model.setStep(0);
+		
+		// Get the point list
+		IGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
+		List<Point> pointList = gen.createPoints();
+		
+	}
+
 
 }

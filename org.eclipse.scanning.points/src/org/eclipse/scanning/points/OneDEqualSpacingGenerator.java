@@ -11,6 +11,8 @@ import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 
 public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacingModel> {
 
+	// TODO FIXME implement iterator() and size()?
+	
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
 		

@@ -16,6 +16,7 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.LinearModel;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
+import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.PointModel;
 
 public class GeneratorServiceImpl implements IGeneratorService {
@@ -30,6 +31,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		tmp.put(GridModel.class,             GridGenerator.class);
 		tmp.put(LissajousModel.class,        LissajousGenerator.class);
 		tmp.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
+		tmp.put(OneDStepModel.class,         OneDStepGenerator.class);
 		
 		generators = Collections.unmodifiableMap(tmp);
 	}
