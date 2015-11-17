@@ -11,6 +11,7 @@ public class BoundingBoxModel {
 	private double angle;
 	
 	private boolean isParentRectangle;
+	private boolean lock;
 	
 	/**
 	 * @return angle, in radians
@@ -24,6 +25,7 @@ public class BoundingBoxModel {
 	 * @param angle from 0 to pi/2 is from x-axis to y-axis
 	 */
 	public void setAngle(double angle) {
+		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.angle = angle;
 	}
 	
@@ -31,24 +33,28 @@ public class BoundingBoxModel {
 		return minX;
 	}
 	public void setMinX(double minX) {
+		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.minX = minX;
 	}
 	public double getMinY() {
 		return minY;
 	}
 	public void setMinY(double minY) {
+		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.minY = minY;
 	}
 	public double getxLength() {
 		return xLength;
 	}
 	public void setxLength(double xLength) {
+		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.xLength = xLength;
 	}
 	public double getyLength() {
 		return yLength;
 	}
 	public void setyLength(double yLength) {
+		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.yLength = yLength;
 	}
 	@Override
@@ -59,6 +65,7 @@ public class BoundingBoxModel {
 		temp = Double.doubleToLongBits(angle);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + (isParentRectangle ? 1231 : 1237);
+		result = prime * result + (lock ? 1231 : 1237);
 		temp = Double.doubleToLongBits(minX);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(minY);
@@ -83,6 +90,8 @@ public class BoundingBoxModel {
 			return false;
 		if (isParentRectangle != other.isParentRectangle)
 			return false;
+		if (lock != other.lock)
+			return false;
 		if (Double.doubleToLongBits(minX) != Double
 				.doubleToLongBits(other.minX))
 			return false;
@@ -103,6 +112,15 @@ public class BoundingBoxModel {
 	}
 
 	public void setParentRectangle(boolean isParentRectangle) {
+		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.isParentRectangle = isParentRectangle;
+	}
+
+	public boolean isLock() {
+		return lock;
+	}
+
+	public void setLock(boolean lock) {
+		this.lock = lock;
 	}
 }

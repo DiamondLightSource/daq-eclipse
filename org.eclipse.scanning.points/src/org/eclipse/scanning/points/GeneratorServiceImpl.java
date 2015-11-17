@@ -61,20 +61,16 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	
 	private <T extends BoundingBoxModel> void synchModel(T model, IROI roi) throws GeneratorException {
 		
-		if (model instanceof BoundingBoxModel) {
-			IRectangularROI boundingRectangle = roi.getBounds();
-			model.setMinX(boundingRectangle.getPoint()[0]);
-			model.setMinY(boundingRectangle.getPoint()[1]);
-			model.setxLength(boundingRectangle.getLength(0));
-			model.setyLength(boundingRectangle.getLength(1));
+		if (model.isLock()) return; // They locked the bounding rectangle.
+		IRectangularROI rect = roi.getBounds();
+		model.setMinX(rect.getPoint()[0]);
+		model.setMinY(rect.getPoint()[1]);
+		model.setxLength(rect.getLength(0));
+		model.setyLength(rect.getLength(1));
 
-			if (roi instanceof IRectangularROI) {
-				model.setAngle(((IRectangularROI)roi).getAngle());
-				model.setParentRectangle(true);
-			}
-			return;
+		if (roi instanceof IRectangularROI) {
+			model.setAngle(((IRectangularROI)roi).getAngle());
+			model.setParentRectangle(true);
 		}
-		
-		throw new GeneratorException("The model type "+model.getClass().getSimpleName()+" is not supported!");
 	}
 }
