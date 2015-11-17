@@ -1,6 +1,7 @@
 package org.eclipse.scanning.points;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
@@ -10,7 +11,11 @@ import org.eclipse.scanning.api.points.models.LissajousModel;
 
 class LissajousGenerator extends AbstractGenerator<LissajousModel> {
 
-	
+	@Override
+	public Iterator<Point> iterator() throws GeneratorException {
+		return new LissajousIterator(model, container);
+	}
+
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
 		

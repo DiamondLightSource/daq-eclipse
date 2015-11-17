@@ -72,7 +72,7 @@ public class GridTest {
 	public void testFillingRectangle() throws Exception {
 		
 		// Create a simple bounding rectangle
-		RectangularROI boundingRectangle = new RectangularROI(0, 0, 3, 3, 0);
+		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
 		// Create a raster scan path
 		GridModel gridScanPath = new GridModel();
@@ -80,7 +80,7 @@ public class GridTest {
 		gridScanPath.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
+		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, roi);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
