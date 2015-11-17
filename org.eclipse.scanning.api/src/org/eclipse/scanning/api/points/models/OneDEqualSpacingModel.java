@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class OneDEqualSpacingModel  extends BoundingBoxModel{
+public class OneDEqualSpacingModel  extends LinearModel {
 
 	public int points;
 

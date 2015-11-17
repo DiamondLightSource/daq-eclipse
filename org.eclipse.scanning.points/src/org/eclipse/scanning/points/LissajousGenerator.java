@@ -22,8 +22,8 @@ class LissajousGenerator extends AbstractGenerator<LissajousModel> {
 		// Pick A and B so we will fill the bounding rectangle
 		double A = model.getxLength() / 2;
 		double B = model.getyLength() / 2;
-		double xCentre = model.getMinX() + A;
-		double yCentre = model.getMinY() + B;
+		double xCentre = model.getX() + A;
+		double yCentre = model.getY() + B;
 		// double maxRadius = Math.sqrt(radiusX * radiusX + radiusY * radiusY);
 
 		List<Point> pointList = new ArrayList<>();

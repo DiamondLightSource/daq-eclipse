@@ -33,8 +33,8 @@ class LissajousIterator implements Iterator<Point> {
 		
 		double A = model.getxLength() / 2;
 		double B = model.getyLength() / 2;
-		double xCentre = model.getMinX() + A;
-		double yCentre = model.getMinY() + B;
+		double xCentre = model.getX() + A;
+		double yCentre = model.getY() + B;
 		
 		double x = xCentre + A * Math.sin(model.getA() * theta + model.getDelta());
 		double y = yCentre + B * Math.cos(model.getB() * theta);

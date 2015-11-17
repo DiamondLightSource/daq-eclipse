@@ -7,7 +7,7 @@ package org.eclipse.scanning.api.points;
  * @author Matthew Gerring
  *
  */
-public interface IPointContainer {
+public interface IPointContainer<T> {
 
 	/**
 	 * Check a given point is contained by the implementor of this interface.
@@ -16,4 +16,11 @@ public interface IPointContainer {
 	 * @return
 	 */
 	public boolean containsPoint(double x, double y);
+	
+	/**
+	 * If this point container is backed by org.eclipse.dawnsci.analysis.api.roi.IROI,
+	 * it may be returned via this method.
+	 * @return
+	 */
+	public T getROI();
 }

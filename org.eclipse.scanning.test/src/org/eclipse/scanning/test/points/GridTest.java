@@ -54,8 +54,8 @@ public class GridTest {
 		GridModel gridScanPath = new GridModel();
 		gridScanPath.setRows(20);
 		gridScanPath.setColumns(20);
-		gridScanPath.setMinX(0);
-		gridScanPath.setMinY(0);
+		gridScanPath.setX(0);
+		gridScanPath.setY(0);
 		gridScanPath.setxLength(3);
 		gridScanPath.setyLength(3);
 
@@ -164,8 +164,8 @@ public class GridTest {
 		GridModel model = new GridModel();
 		model.setRows(20);
 		model.setColumns(20);
-		model.setMinX(0);
-		model.setMinY(0);
+		model.setX(0);
+		model.setY(0);
 		model.setxLength(3);
 		model.setyLength(3);
 		model.setLock(true); // Isolate the bounding box which can come back from the ROI wrong

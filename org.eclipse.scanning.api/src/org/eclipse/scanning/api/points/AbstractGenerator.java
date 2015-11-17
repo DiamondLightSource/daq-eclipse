@@ -5,7 +5,7 @@ import java.util.Iterator;
 public abstract class AbstractGenerator<T> implements IGenerator<T> {
 
 	protected T model;
-	protected IPointContainer container;
+	protected IPointContainer<?> container;
 
 	@Override
 	public T getModel() {
@@ -36,12 +36,12 @@ public abstract class AbstractGenerator<T> implements IGenerator<T> {
 	}
 
 	@Override
-	public IPointContainer getContainer() {
-		return container;
+	public <R> IPointContainer<R> getContainer() {
+		return (IPointContainer<R>)container;
 	}
 
 	@Override
-	public void setContainer(IPointContainer container) {
+	public <R> void setContainer(IPointContainer<R> container) {
 		this.container = container;
 	}
 

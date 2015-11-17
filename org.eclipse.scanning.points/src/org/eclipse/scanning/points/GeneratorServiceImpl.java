@@ -6,13 +6,17 @@ import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.models.BoundingBoxModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.LinearModel;
 import org.eclipse.scanning.api.points.models.LissajousModel;
+import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
+import org.eclipse.scanning.api.points.models.PointModel;
 
 public class GeneratorServiceImpl implements IGeneratorService {
 	
@@ -23,19 +27,20 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	// to allow point generators to be dynamically registered. 
 	static {
 		Map<Class<?>, Class<? extends IGenerator>> tmp = new HashMap<>(7);
-		tmp.put(GridModel.class, GridGenerator.class);
-		tmp.put(LissajousModel.class, LissajousGenerator.class);
+		tmp.put(GridModel.class,             GridGenerator.class);
+		tmp.put(LissajousModel.class,        LissajousGenerator.class);
+		tmp.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
 		
 		generators = Collections.unmodifiableMap(tmp);
 	}
 
 	@Override
-	public <T> IGenerator<T> createGenerator(T model, Object region) throws GeneratorException {
+	public <T,R> IGenerator<T> createGenerator(T model, R region) throws GeneratorException {
 		try {
 			IGenerator<T> gen = generators.get(model.getClass()).newInstance();
 			 
-			if (region != null && BoundingBoxModel.class.isAssignableFrom(model.getClass())) {
-			    synchModel((BoundingBoxModel)model, (IROI)region);
+			if (region != null && PointModel.class.isAssignableFrom(model.getClass())) {
+			    synchModel((PointModel)model, (IROI)region);
 			    gen.setContainer(wrap(region));
 			}
 			gen.setModel(model);
@@ -48,30 +53,52 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		}
 	}
 
-	private IPointContainer wrap(Object region) throws GeneratorException {
+	private IPointContainer<IROI> wrap(Object region) throws GeneratorException {
 		if (!(region instanceof IROI)) throw new GeneratorException("Currently only type "+IROI.class.getName()+" can be wrapped!");
 		
 		final IROI roi = (IROI)region;
-		return new IPointContainer() {
+		return new IPointContainer<IROI>() {
 			@Override
 			public boolean containsPoint(double x, double y) {
 				return roi.containsPoint(x, y);
 			}
+
+			@Override
+			public IROI getROI() {
+				return roi;
+			}
 		};
 	}
 	
-	private <T extends BoundingBoxModel> void synchModel(T model, IROI roi) throws GeneratorException {
+	private <T extends PointModel> void synchModel(T model, IROI roi) throws GeneratorException {
 		
 		if (model.isLock()) return; // They locked the bounding rectangle.
-		IRectangularROI rect = roi.getBounds();
-		model.setMinX(rect.getPoint()[0]);
-		model.setMinY(rect.getPoint()[1]);
-		model.setxLength(rect.getLength(0));
-		model.setyLength(rect.getLength(1));
-
-		if (roi instanceof IRectangularROI) {
-			model.setAngle(((IRectangularROI)roi).getAngle());
-			model.setParentRectangle(true);
+		
+		if (model instanceof BoundingBoxModel) {
+			
+			BoundingBoxModel box = (BoundingBoxModel)model;
+			IRectangularROI rect = roi.getBounds();
+			box.setX(rect.getPoint()[0]);
+			box.setY(rect.getPoint()[1]);
+			box.setxLength(rect.getLength(0));
+			box.setyLength(rect.getLength(1));
+	
+			if (roi instanceof IRectangularROI) {
+				box.setAngle(((IRectangularROI)roi).getAngle());
+				box.setParentRectangle(true);
+			}
+			return;
+			
+		} else if (model instanceof LinearModel) {
+			
+			LinearModel line = (LinearModel)model;
+            LinearROI   lroi = (LinearROI)roi;
+            line.setX(lroi.getPoint()[0]);
+            line.setY(lroi.getPoint()[1]);
+            line.setAngle(lroi.getAngle());
+			return;
 		}
+		
+		throw new GeneratorException("Cannot deal with model "+model.getClass());
 	}
 }

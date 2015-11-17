@@ -16,6 +16,8 @@ import org.junit.Test;
 
 public class LissajousTest {
 
+	// TODO FIXME Test Lissajous Numerically
+	
 	private IGeneratorService service;
 	
 	@Before
@@ -28,8 +30,8 @@ public class LissajousTest {
 	public void testLissajousNoROI() throws GeneratorException {
 		
 		LissajousModel model = new LissajousModel();
-		model.setMinX(0);
-		model.setMinY(0);
+		model.setX(0);
+		model.setY(0);
 		model.setxLength(3);
 		model.setyLength(3);
 

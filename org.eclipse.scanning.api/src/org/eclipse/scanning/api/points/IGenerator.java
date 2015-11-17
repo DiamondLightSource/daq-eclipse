@@ -24,8 +24,8 @@ public interface IGenerator<T> {
 	 * The class which contains points, may be null.
 	 * @return
 	 */
-	IPointContainer getContainer();
-	void setContainer(IPointContainer container) throws GeneratorException;
+	<R> IPointContainer<R> getContainer();
+	<R> void setContainer(IPointContainer<R> container) throws GeneratorException;
 
 	/**
 	 * The size of the points iterator. This call will be as fast as possible

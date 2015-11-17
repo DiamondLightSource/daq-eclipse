@@ -15,3 +15,4 @@ Export-Package: org.eclipse.scanning.api,
  org.eclipse.scanning.api.points,
  org.eclipse.scanning.api.points.models
 Require-Bundle: org.eclipse.dawnsci.analysis.api;bundle-version="1.0.0"
+Import-Package: org.eclipse.scanning.api.points
