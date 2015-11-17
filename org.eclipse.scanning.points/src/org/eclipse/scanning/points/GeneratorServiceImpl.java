@@ -10,8 +10,9 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPointContainer;
-import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.BoundingBoxModel;
+import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.LissajousModel;
 
 public class GeneratorServiceImpl implements IGeneratorService {
 	
@@ -23,7 +24,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	static {
 		Map<Class<?>, Class<? extends IGenerator>> tmp = new HashMap<>(7);
 		tmp.put(GridModel.class, GridGenerator.class);
-		
+		tmp.put(LissajousModel.class, LissajousGenerator.class);
 		
 		generators = Collections.unmodifiableMap(tmp);
 	}

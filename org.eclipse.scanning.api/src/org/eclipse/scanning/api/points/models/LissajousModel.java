@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class LissjousModel extends BoundingBoxModel {
+public class LissajousModel extends BoundingBoxModel {
 
 	private double a = 1;
 	private double b = 0.25;
@@ -53,7 +53,7 @@ public class LissjousModel extends BoundingBoxModel {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		LissjousModel other = (LissjousModel) obj;
+		LissajousModel other = (LissajousModel) obj;
 		if (Double.doubleToLongBits(a) != Double.doubleToLongBits(other.a))
 			return false;
 		if (Double.doubleToLongBits(b) != Double.doubleToLongBits(other.b))
