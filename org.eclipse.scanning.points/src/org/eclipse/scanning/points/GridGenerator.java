@@ -33,7 +33,7 @@ class GridGenerator extends AbstractGenerator<GridModel> {
 	}
 
 	@Override
-	public Iterator<Point> iterator() throws GeneratorException {
+	public Iterator<Point> iterator() {
 		createSteps();
 		return new GridIterator(model, container);
 	}

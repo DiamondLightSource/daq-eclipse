@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.points.models.LissajousModel;
 class LissajousGenerator extends AbstractGenerator<LissajousModel> {
 
 	@Override
-	public Iterator<Point> iterator() throws GeneratorException {
+	public Iterator<Point> iterator() {
 		return new LissajousIterator(model, container);
 	}
 

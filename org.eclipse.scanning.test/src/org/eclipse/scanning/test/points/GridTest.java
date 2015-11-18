@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
@@ -51,16 +50,16 @@ public class GridTest {
 	public void testFillingRectangleNoROI() throws Exception {
 		
 		// Create a raster scan path
-		GridModel gridScanPath = new GridModel();
-		gridScanPath.setRows(20);
-		gridScanPath.setColumns(20);
-		gridScanPath.setX(0);
-		gridScanPath.setY(0);
-		gridScanPath.setxLength(3);
-		gridScanPath.setyLength(3);
+		GridModel model = new GridModel();
+		model.setRows(20);
+		model.setColumns(20);
+		model.setX(0);
+		model.setY(0);
+		model.setxLength(3);
+		model.setyLength(3);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, null);
+		IGenerator<GridModel> gen = service.createGenerator(model, null);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -75,12 +74,12 @@ public class GridTest {
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
 		// Create a raster scan path
-		GridModel gridScanPath = new GridModel();
-		gridScanPath.setRows(20);
-		gridScanPath.setColumns(20);
+		GridModel model = new GridModel();
+		model.setRows(20);
+		model.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, roi);
+		IGenerator<GridModel> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -92,15 +91,15 @@ public class GridTest {
 	public void testFillingRectangleIterator() throws Exception {
 		
 		// Create a simple bounding rectangle
-		RectangularROI boundingRectangle = new RectangularROI(0, 0, 3, 3, 0);
+		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
 		// Create a raster scan path
-		GridModel gridScanPath = new GridModel();
-		gridScanPath.setRows(20);
-		gridScanPath.setColumns(20);
+		GridModel model = new GridModel();
+		model.setRows(20);
+		model.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
+		IGenerator<GridModel> gen = service.createGenerator(model, roi);
         Iterator<Point> it = gen.iterator();
         List<Point> pointList = new ArrayList<Point>(7);
         while (it.hasNext()) pointList.add(it.next());

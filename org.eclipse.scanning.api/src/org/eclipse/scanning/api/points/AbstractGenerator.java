@@ -2,7 +2,7 @@ package org.eclipse.scanning.api.points;
 
 import java.util.Iterator;
 
-public abstract class AbstractGenerator<T> implements IGenerator<T> {
+public abstract class AbstractGenerator<T> implements IGenerator<T>, Iterable<Point> {
 
 	protected T model;
 	protected IPointContainer<?> container;
@@ -31,8 +31,12 @@ public abstract class AbstractGenerator<T> implements IGenerator<T> {
 	 * returns their iterator
 	 */
 	@Override
-	public Iterator<Point> iterator() throws GeneratorException {
-		return createPoints().iterator();
+	public Iterator<Point> iterator() {
+		try {
+			return createPoints().iterator();
+		} catch (GeneratorException e) {
+			throw new IllegalArgumentException("Cannot generate an iterator!", e);
+		}
 	}
 
 	@Override
