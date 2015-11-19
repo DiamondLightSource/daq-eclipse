@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
-import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.Point;
@@ -26,7 +25,7 @@ public class RasterTest {
 	}
 
 	@Test
-	public void testFillingBoundingRectangle() throws GeneratorException {
+	public void testFillingBoundingRectangle() throws Exception {
 		// Create a simple bounding rectangle
 		RectangularROI boundingRectangle = new RectangularROI(0, 0, 3, 3, 0);
 
@@ -54,11 +53,12 @@ public class RasterTest {
 
 		assertEquals(3.0, pointList.get(11).getX(), 1e-8);
 		assertEquals(2.0, pointList.get(11).getY(), 1e-8);
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 	// Note this is a bit of a integration test not a strict unit test
 	@Test
-	public void testFillingAMoreComplicatedBoundingRectangle() throws GeneratorException {
+	public void testFillingAMoreComplicatedBoundingRectangle() throws Exception {
 		double xStart = 0.0;
 		double xStop = 25.5;
 		double yStart = 0.0;
@@ -89,11 +89,12 @@ public class RasterTest {
 		assertEquals(new Point(xStart, yStart), pointList.get(0));
 		assertEquals(xStart + 3 * xStep, pointList.get(3).getX(), 1e-8);
 		// TODO more
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 	// Note this is a bit of a integration test not a strict unit test
 	@Test
-	public void testFillingACircle() throws GeneratorException {
+	public void testFillingACircle() throws Exception {
 		double xCentre = 0;
 		double yCentre = 0;
 		double radius = 1;
@@ -129,6 +130,7 @@ public class RasterTest {
 		// 4
 		assertEquals(0, pointList.get(4).getX(), 1e-8);
 		assertEquals(1, pointList.get(4).getY(), 1e-8);
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 }

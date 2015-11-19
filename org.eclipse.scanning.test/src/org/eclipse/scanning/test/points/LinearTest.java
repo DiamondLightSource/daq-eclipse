@@ -28,7 +28,7 @@ public class LinearTest {
 	}
 	
 	@Test
-	public void testOneDEqualSpacing() throws GeneratorException {
+	public void testOneDEqualSpacing() throws Exception {
 		
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
 
@@ -41,6 +41,7 @@ public class LinearTest {
 		
 		assertEquals(pointList.size(), gen.size());
 		assertEquals(pointList.size(), 10);
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 	
 	@Test(expected = GeneratorException.class)
@@ -55,7 +56,7 @@ public class LinearTest {
 	}
 
 	@Test(expected = GeneratorException.class)
-	public void testOneDEqualSpacingNoPoints() throws GeneratorException {
+	public void testOneDEqualSpacingNoPoints() throws Exception {
 		
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
 
@@ -65,11 +66,12 @@ public class LinearTest {
 		// Get the point list
 		IGenerator<OneDEqualSpacingModel> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 	
 	@Test
-	public void testOneDStep() throws GeneratorException {
+	public void testOneDStep() throws Exception {
 		
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
 
@@ -82,10 +84,11 @@ public class LinearTest {
 		
 		assertEquals(pointList.size(), gen.size());
 		assertEquals(15, pointList.size());
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 	
 	@Test(expected = GeneratorException.class)
-	public void testOneDStepNoStep() throws GeneratorException {
+	public void testOneDStepNoStep() throws Exception {
 		
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
 
@@ -95,11 +98,12 @@ public class LinearTest {
 		// Get the point list
 		IGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
+        GeneratorUtil.testGeneratorPoints(gen);
 		
 	}
 	
 	@Test(expected = GeneratorException.class)
-	public void testOneDStepWrongROI() throws GeneratorException {
+	public void testOneDStepWrongROI() throws Exception {
 		
 		RectangularROI roi = new RectangularROI(new double[]{0,0}, new double[]{3,3});
 
@@ -109,6 +113,7 @@ public class LinearTest {
 		// Get the point list
 		IGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
+        GeneratorUtil.testGeneratorPoints(gen);
 		
 	}
 

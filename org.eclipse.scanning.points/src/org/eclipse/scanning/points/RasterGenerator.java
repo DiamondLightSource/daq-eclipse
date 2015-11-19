@@ -11,10 +11,10 @@ import org.eclipse.scanning.api.points.models.RasterModel;
 
 class RasterGenerator extends AbstractGenerator<RasterModel> {
 	
-	// TODO 
-//	public Iterator<Point> iterator() {
-//		
-//	}
+
+	public Iterator<Point> iterator() {
+		return new RasterIterator(model, container);
+	}
 
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
@@ -30,7 +30,7 @@ class RasterGenerator extends AbstractGenerator<RasterModel> {
 		List<Point> pointList = new ArrayList<>(listSizeEstimate);
 
 		// Start generating points
-		if (model.isBiDirectional()) {
+		if (model.isSnake()) {
 			for (double y = minY; y <= (minY + yLength); y += model.getyStep()) {
 				// Initialise x outside for so it can be iterated over in both directions
 				double x = minX;

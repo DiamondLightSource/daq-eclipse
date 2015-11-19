@@ -4,7 +4,7 @@ public class RasterModel  extends BoundingBoxModel{
 
 	private double xStep = 1;
 	private double yStep = 1;
-	private boolean biDirectional = false;
+	private boolean snake = false;
 	public double getxStep() {
 		return xStep;
 	}
@@ -17,17 +17,17 @@ public class RasterModel  extends BoundingBoxModel{
 	public void setyStep(double yStep) {
 		this.yStep = yStep;
 	}
-	public boolean isBiDirectional() {
-		return biDirectional;
+	public boolean isSnake() {
+		return snake;
 	}
-	public void setBiDirectional(boolean biDirectional) {
-		this.biDirectional = biDirectional;
+	public void setSnake(boolean biDirectional) {
+		this.snake = biDirectional;
 	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + (biDirectional ? 1231 : 1237);
+		result = prime * result + (snake ? 1231 : 1237);
 		long temp;
 		temp = Double.doubleToLongBits(xStep);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -44,7 +44,7 @@ public class RasterModel  extends BoundingBoxModel{
 		if (getClass() != obj.getClass())
 			return false;
 		RasterModel other = (RasterModel) obj;
-		if (biDirectional != other.biDirectional)
+		if (snake != other.snake)
 			return false;
 		if (Double.doubleToLongBits(xStep) != Double
 				.doubleToLongBits(other.xStep))

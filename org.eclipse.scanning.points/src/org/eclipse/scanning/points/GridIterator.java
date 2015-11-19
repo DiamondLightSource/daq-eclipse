@@ -9,13 +9,13 @@ import org.eclipse.scanning.api.points.models.GridModel;
 class GridIterator implements Iterator<Point> {
 
 	private GridModel model;
-	private IPointContainer container;
+	private IPointContainer<?> container;
 	private double    minX;
 	private double    minY;
 	
 	private int i,j;
 
-	public GridIterator(GridModel model, IPointContainer container) {
+	public GridIterator(GridModel model, IPointContainer<?> container) {
 		this.model     = model;	
 		this.container = container;
         this.minX = model.getX() + model.getxStep() / 2;
@@ -29,7 +29,13 @@ class GridIterator implements Iterator<Point> {
 	@Override
 	public boolean hasNext() {
 		int[] next = increment(model, i, j, forewards); 
-		return next[0] < model.getRows() && next[1] < model.getColumns();
+		int i = next[0];
+		int j = next[1];
+		if (i>(model.getRows()-1) || i<0)    {
+			return false;  // Normal termination
+		}
+		if (j>(model.getColumns()-1) || j<0) return false;
+		return true;
 	}
 
 

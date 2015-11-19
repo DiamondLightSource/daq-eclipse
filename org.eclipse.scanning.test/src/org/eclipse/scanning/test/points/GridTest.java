@@ -65,6 +65,8 @@ public class GridTest {
 		assertEquals(pointList.size(), gen.size());
 		
         checkPoints(pointList);
+        
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 	@Test
@@ -85,6 +87,7 @@ public class GridTest {
 		assertEquals(pointList.size(), gen.size());
 		
         checkPoints(pointList);
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 	@Test
@@ -107,6 +110,7 @@ public class GridTest {
         assertArrayEquals(pointList.toArray(), gen.createPoints().toArray());
         
         checkPoints(pointList);
+        GeneratorUtil.testGeneratorPoints(gen);
        
 	}
 
@@ -128,6 +132,7 @@ public class GridTest {
 		assertEquals(pointList.size(), gen.size());
 		
 		assertEquals(pointList.size(), 316); 
+        GeneratorUtil.testGeneratorPoints(gen);
  	}
 	
 	@Test
@@ -148,6 +153,7 @@ public class GridTest {
 		assertEquals(pointList.size(), gen.size());
 		
 		assertEquals(pointList.size(), 3156); 
+        GeneratorUtil.testGeneratorPoints(gen);
  	}
 	
 	
@@ -175,7 +181,8 @@ public class GridTest {
 		
 		assertEquals(pointList.size(), gen.size());
 		
-		assertTrue(pointList.size()<400); 
+		assertTrue(pointList.size()<400); // Some must not be in the polygon!
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 	private void checkPoints(List<Point> pointList) {

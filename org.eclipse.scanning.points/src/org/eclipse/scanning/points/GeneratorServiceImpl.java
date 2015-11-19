@@ -22,13 +22,13 @@ import org.eclipse.scanning.api.points.models.RasterModel;
 
 public class GeneratorServiceImpl implements IGeneratorService {
 	
-	private static final Map<Class<?>, Class<? extends IGenerator>> generators;
+	private static final Map<Class<?>, Class<? extends IGenerator<?>>> generators;
 	
 	// Use a factory pattern to register the types.
 	// This pattern can always be replaced by extension points
 	// to allow point generators to be dynamically registered. 
 	static {
-		Map<Class<?>, Class<? extends IGenerator>> tmp = new HashMap<>(7);
+		Map<Class<?>, Class<? extends IGenerator<?>>> tmp = new HashMap<>(7);
 		tmp.put(GridModel.class,             GridGenerator.class);
 		tmp.put(LissajousModel.class,        LissajousGenerator.class);
 		tmp.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
@@ -41,7 +41,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	@Override
 	public <T,R> IGenerator<T> createGenerator(T model, R region) throws GeneratorException {
 		try {
-			IGenerator<T> gen = generators.get(model.getClass()).newInstance();
+			IGenerator<T> gen = (IGenerator<T>)generators.get(model.getClass()).newInstance();
 			 
 			if (region != null && PointModel.class.isAssignableFrom(model.getClass())) {
 			    synchModel((PointModel)model, (IROI)region);

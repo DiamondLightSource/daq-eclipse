@@ -27,7 +27,7 @@ public class LissajousTest {
 	
 
 	@Test
-	public void testLissajousNoROI() throws GeneratorException {
+	public void testLissajousNoROI() throws Exception {
 		
 		LissajousModel model = new LissajousModel();
 		model.setX(0);
@@ -39,13 +39,13 @@ public class LissajousTest {
 		IGenerator<LissajousModel> gen = service.createGenerator(model, null);
 		List<Point> pointList = gen.createPoints();
 		
-		assertTrue(gen.size()==1257);
 		assertEquals(pointList.size(), gen.size());
-		
+		assertEquals(1257, gen.size());
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 	
 	@Test
-	public void testLissajous() throws GeneratorException {
+	public void testLissajous() throws Exception {
 		
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
@@ -53,9 +53,9 @@ public class LissajousTest {
 		IGenerator<LissajousModel> gen = service.createGenerator(new LissajousModel(), roi);
 		List<Point> pointList = gen.createPoints();
 		
-		assertTrue(gen.size()==1257);
 		assertEquals(pointList.size(), gen.size());
-		
+		assertEquals(1257, gen.size());
+        GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 }

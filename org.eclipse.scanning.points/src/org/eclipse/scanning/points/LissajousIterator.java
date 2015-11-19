@@ -9,24 +9,25 @@ import org.eclipse.scanning.api.points.models.LissajousModel;
 class LissajousIterator implements Iterator<Point> {
 
 	private LissajousModel model;
-	private double theta, x, y;
-	private IPointContainer container;
+	private double theta;
+	private IPointContainer<?> container;
 	
 	// TODO work out if we should only allow closed paths?
 	// TODO need to calculate maxTheta needed to close the path.
 	private static final double maxTheta = 20 * Math.PI;
 
 
-	public LissajousIterator(LissajousModel model, IPointContainer container) {
+	public LissajousIterator(LissajousModel model, IPointContainer<?> container) {
 		this.model     = model;
 		this.container = container;
+		this.theta     = -model.getThetaStep();
 	}
 
 	@Override
 	public boolean hasNext() {
-		double[] da = increment(model, theta);
+		double[] da = increment(model, this.theta);
 		double theta = da[0];
-		return theta <= theta;
+		return theta <= maxTheta;
 	}
 
 	private final static double[] increment(LissajousModel model, double theta) {
@@ -52,7 +53,8 @@ class LissajousIterator implements Iterator<Point> {
 		double y     = da[2];
 
 		if (theta > maxTheta) return null;
-		
+		this.theta += model.getThetaStep();
+	
 		if (container!=null) {
 			if (container.containsPoint(x, y)) {
 				return new Point(x, y);

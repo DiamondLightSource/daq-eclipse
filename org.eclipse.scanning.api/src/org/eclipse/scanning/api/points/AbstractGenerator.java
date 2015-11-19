@@ -23,7 +23,17 @@ public abstract class AbstractGenerator<T> implements IGenerator<T>, Iterable<Po
 	 */
 	@Override
 	public int size() throws GeneratorException {
-		return createPoints().size();
+		// For those generators which implement an iterator,
+		// doing this loop is *much* faster for large arrays
+		// because memory does not have to be allocated.
+		Iterator<Point> it = iterator();
+		int index = -1;
+		while(it.hasNext()) {
+			Object next = it.next();
+			if (next==null) break;
+			index++;
+		}
+		return index+1;
 	}
 	
 	/**
