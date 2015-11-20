@@ -6,7 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
 
-	GridTest.class, LargeGridTest.class, LinearTest.class, LissajousTest.class, RasterTest.class
+	GridTest.class, GridTestLarge.class, LinearTest.class, LissajousTest.class, RasterTest.class, RasterTestLarge.class
 
 })
 public class Suite {

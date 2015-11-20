@@ -161,10 +161,10 @@ public class GridTest {
 	public void testFillingPolygon() throws Exception {
 
         PolygonalROI diamond = new PolygonalROI(new double[]{1.5, 0});
-        diamond.addPoint(new double[]{3,1.5});
-        diamond.addPoint(new double[]{1.5,3});
-        diamond.addPoint(new double[]{0,1.5});
-        diamond.addPoint(new double[]{1.5, 0});
+        diamond.insertPoint(new double[]{3,1.5});
+        diamond.insertPoint(new double[]{1.5,3});
+        diamond.insertPoint(new double[]{0,1.5});
+        diamond.insertPoint(new double[]{1.5, 0});
                
 		GridModel model = new GridModel();
 		model.setRows(20);

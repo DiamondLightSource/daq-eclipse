@@ -12,13 +12,14 @@ import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.Point;
-import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LargeGridTest {
+public class RasterTestLarge {
 
+	
 	private IGeneratorService service;
 	
 	@Before
@@ -33,11 +34,11 @@ public class LargeGridTest {
 		CircularROI roi = new CircularROI(500, 500, 500);
 
 		// Create a raster scan path
-		GridModel model = new GridModel();
-		model.setRows(3162);
-		model.setColumns(3162);
+		RasterModel model = new RasterModel();
+		model.setxStep(1);
+		model.setyStep(1);
 
-		testIteratorTime(model, roi, 7852633, 10000);
+		testIteratorTime(model, roi, 785350, 10000);
 	}
 	
 	@Test
@@ -47,20 +48,22 @@ public class LargeGridTest {
 		RectangularROI roi = new RectangularROI(0, 0, 1000, 10000, 0);
 
 		// Create a raster scan path
-		GridModel model = new GridModel();
-		model.setRows(1000);
-		model.setColumns(10000);
+		RasterModel model = new RasterModel();
+		model.setxStep(1);
+		model.setyStep(1);
 
-		testIteratorTime(model, roi, 10000000, 500);
+		testIteratorTime(model, roi, 10011001, 5000); // TODO Is 10011001 correct?
 	}
 
 	
-	private void testIteratorTime(GridModel model, IROI roi, int size, long tenMilTime) throws Exception {
+	private void testIteratorTime(RasterModel model, IROI roi, int size, long tenMilTime) throws Exception {
 		
-		long start = System.currentTimeMillis();
 		
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(model, roi);
+		IGenerator<RasterModel> gen = service.createGenerator(model, roi);
+		GeneratorUtil.testGeneratorPoints(gen);
+		
+		long start = System.currentTimeMillis();		
         Iterator<Point>       it  = gen.iterator();
 
 		long after1 = System.currentTimeMillis();
@@ -100,20 +103,19 @@ public class LargeGridTest {
 		RectangularROI boundingRectangle = new RectangularROI(0, 0, 1000, 10000, 0);
 
 		// Create a raster scan path
-		GridModel gridScanPath = new GridModel();
-		gridScanPath.setRows(1000);
-		gridScanPath.setColumns(10000);
+		RasterModel model = new RasterModel();
+		model.setxStep(1);
+		model.setyStep(1);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
+		IGenerator<RasterModel> gen = service.createGenerator(model, boundingRectangle);
 		List<Point> points = gen.createPoints();
 		
-		assertEquals(10000000, points.size());
+		assertEquals(10011001, points.size()); // TODO Is 10011001 correct?
 
 		long after = System.currentTimeMillis();
 		
 		System.out.println("It took "+(after-start)+"ms to make 10million Point and keep in memory");
 
 	}
-
 }

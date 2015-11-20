@@ -53,6 +53,7 @@ public class RasterTest {
 
 		assertEquals(3.0, pointList.get(11).getX(), 1e-8);
 		assertEquals(2.0, pointList.get(11).getY(), 1e-8);
+		
         GeneratorUtil.testGeneratorPoints(gen);
 	}
 
@@ -89,6 +90,7 @@ public class RasterTest {
 		assertEquals(new Point(xStart, yStart), pointList.get(0));
 		assertEquals(xStart + 3 * xStep, pointList.get(3).getX(), 1e-8);
 		// TODO more
+		
         GeneratorUtil.testGeneratorPoints(gen);
 	}
 
@@ -130,6 +132,7 @@ public class RasterTest {
 		// 4
 		assertEquals(0, pointList.get(4).getX(), 1e-8);
 		assertEquals(1, pointList.get(4).getY(), 1e-8);
+		
         GeneratorUtil.testGeneratorPoints(gen);
 	}
 
