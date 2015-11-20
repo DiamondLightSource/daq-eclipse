@@ -104,11 +104,13 @@ public class EventServiceImpl implements IEventService {
 
 	public static Class getClassFromJson(String json) throws ClassNotFoundException {
 		
-		Matcher mbundle = pBundle.matcher(json);
 		Matcher mclass  = pClass.matcher(json);
-		if (mbundle.matches() && mclass.matches()) {
-			String bundleName = mbundle.group(1);
+		if (mclass.matches()) {
+			
 			String beanName   = mclass.group(1);
+		
+			Matcher mbundle = pBundle.matcher(json);
+			String bundleName = mbundle.matches() ? mbundle.group(1) : null; // non-OSGi mode allowed
 			
 			if (context!=null) {
 	            Bundle[] bundles = context.getBundleContext().getBundles();

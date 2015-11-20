@@ -107,8 +107,6 @@ public class AbstractConsumerTest {
 		
      	FredStatusBean bean = new FredStatusBean();
 		bean.setName("Frederick");
-		bean.setBundle("org.eclipse.scanning.test");
-		bean.setBeanClass(FredStatusBean.class.getName());
 		doSubmit(bean);
 		
 		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
