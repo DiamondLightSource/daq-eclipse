@@ -1,6 +1,8 @@
 package org.eclipse.scanning.event;
 
 import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
@@ -11,6 +13,8 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.osgi.framework.Bundle;
+import org.osgi.service.component.ComponentContext;
 
 public class EventServiceImpl implements IEventService {
 	
@@ -26,6 +30,16 @@ public class EventServiceImpl implements IEventService {
 
 	public static void setEventConnectorService(IEventConnectorService eventService) {
 		EventServiceImpl.eventConnectorService = eventService;
+	}
+
+	private static ComponentContext context;
+
+	public void start(ComponentContext context) {
+		EventServiceImpl.context = context;
+	}
+	
+	public void stop() {
+		context = null;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -83,4 +97,32 @@ public class EventServiceImpl implements IEventService {
 		return new ConsumerImpl<U>(uri, submissionQName, statusQName, statusTName, heartbeatTName, killTName, service, this);
 
 	}
+	
+	
+	private static Pattern pBundle = Pattern.compile(".+\\\"bundle\\\"\\:\\\"([a-zA-Z\\.]+)\\\".+");
+	private static Pattern pClass  = Pattern.compile(".+\\\"beanClass\\\"\\:\\\"([a-zA-Z\\.]+)\\\".+");
+
+	public static Class getClassFromJson(String json) throws ClassNotFoundException {
+		
+		Matcher mbundle = pBundle.matcher(json);
+		Matcher mclass  = pClass.matcher(json);
+		if (mbundle.matches() && mclass.matches()) {
+			String bundleName = mbundle.group(1);
+			String beanName   = mclass.group(1);
+			
+			if (context!=null) {
+	            Bundle[] bundles = context.getBundleContext().getBundles();
+	            for (Bundle bundle : bundles) {
+					if (bundle.getSymbolicName().equals(bundleName)) {
+						return bundle.loadClass(beanName);
+					}
+ 				}
+			} else {
+				return Class.forName(beanName);
+			}
+		}
+		
+		return null;
+ 	}
+
 }

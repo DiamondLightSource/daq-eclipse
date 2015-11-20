@@ -49,6 +49,14 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 	public Class<U> getBeanClass() {
 		return (Class<U>)beanClass;
 	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Class<U> getBeanClass(String json) throws ClassNotFoundException {
+		return getBeanClass() !=null
+		       ? getBeanClass()
+			   : (Class)EventServiceImpl.getClassFromJson(json);
+	}
+	
 
 	@Override
 	public void setBeanClass(Class<U> beanClass)  throws EventException{
@@ -168,7 +176,8 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 						TextMessage t = (TextMessage)m;
 	
 						try {
-							final StatusBean qbean = service.unmarshal(t.getText(), getBeanClass());
+							final String     json  = t.getText();
+							final StatusBean qbean = service.unmarshal(json, getBeanClass(json));
 							if (qbean==null)               continue;
 							if (qbean.getStatus()==null)   continue;
 							if (!qbean.getStatus().isStarted()) {

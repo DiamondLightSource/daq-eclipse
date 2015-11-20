@@ -75,24 +75,32 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 		}
 	}
 
-	private MessageConsumer createConsumer(final String topicName, 
-			                               final Class<?>  clazz, 
+	private MessageConsumer createConsumer(final String    topicName, 
+			                               final Class<?>  staticClass, 
 			                               final Map<UUID, Collection<T>> listeners) throws JMSException {
 		
 		Topic topic = super.createTopic(topicName);
+		
+
        	final MessageConsumer consumer = session.createConsumer(topic);
     	MessageListener listener = new MessageListener() {
     		public void onMessage(Message message) {
+    			
     			try {
-	    			TextMessage txt  = (TextMessage)message;
-	    			String      json = txt.getText(); 
+	    			TextMessage txt   = (TextMessage)message;
+	    			String      json  = txt.getText(); 
+	    			Class<?>    clazz = staticClass !=null
+			                          ? staticClass
+			                          : EventServiceImpl.getClassFromJson(json);
+	    			
 	    			Object bean = service.unmarshal(json, clazz);
 	    			diseminate(bean, listeners); // We simply use the event thread from JMS for this.
+	    			
     			} catch (Exception ne) {
     				
     				if (ne.getClass().getName().contains("com.fasterxml.jackson")) {
         				logger.error("JSON Serilization Error! Have you set the bean class on the "+getClass().getSimpleName(), ne);     
-        				System.out.println("Bean class is "+clazz.getName());
+        				System.out.println("Bean class is "+staticClass);
 	   				} else {    				
 	    				logger.error("Internal error! - Unable to process an event!", ne);
 	   				}

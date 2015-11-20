@@ -94,7 +94,9 @@ class QueueReader<T> {
 				if (m instanceof TextMessage) {
 					TextMessage t = (TextMessage)m;
 					@SuppressWarnings("unchecked")
-					final T bean = (T)service.unmarshal(t.getText(), clazz);
+					String json   = t.getText();
+					final Class<T> bclazz = clazz!=null ? clazz : (Class<T>)EventServiceImpl.getClassFromJson(json);
+					final T bean = (T)service.unmarshal(json, bclazz);
 					list.add(bean);
 				}
 			}

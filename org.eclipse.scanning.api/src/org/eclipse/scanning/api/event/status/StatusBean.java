@@ -52,6 +52,22 @@ public class StatusBean {
 	 * Additional properties which may be set.
 	 */
 	private Properties properties;
+	
+	/**
+	 * The name of the bundle which donates this bean.
+	 * Used where a given queue can have beans with different
+	 * types. The client sets bundle and beanClass and 
+	 * deserializes the string using these values.
+	 */
+	private String bundle;
+	
+	/**
+	 * The name of the bundle which donates this bean.
+	 * Used where a given queue can have beans with different
+	 * types. The client sets bundle and beanClass and 
+	 * deserializes the string using these values.
+	 */
+	private String beanClass;
 
 	private StatusBean( Status none,String name, String message, double percentComplete,
 			String userName, String uniqueId, long submissionTime) {
@@ -109,7 +125,9 @@ public class StatusBean {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((properties == null) ? 0 : properties.hashCode());
+		result = prime * result
+				+ ((beanClass == null) ? 0 : beanClass.hashCode());
+		result = prime * result + ((bundle == null) ? 0 : bundle.hashCode());
 		result = prime * result
 				+ ((hostName == null) ? 0 : hostName.hashCode());
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
@@ -117,6 +135,8 @@ public class StatusBean {
 		long temp;
 		temp = Double.doubleToLongBits(percentComplete);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result
+				+ ((properties == null) ? 0 : properties.hashCode());
 		result = prime * result
 				+ ((runDirectory == null) ? 0 : runDirectory.hashCode());
 		result = prime * result + ((status == null) ? 0 : status.hashCode());
@@ -137,6 +157,16 @@ public class StatusBean {
 		if (getClass() != obj.getClass())
 			return false;
 		StatusBean other = (StatusBean) obj;
+		if (beanClass == null) {
+			if (other.beanClass != null)
+				return false;
+		} else if (!beanClass.equals(other.beanClass))
+			return false;
+		if (bundle == null) {
+			if (other.bundle != null)
+				return false;
+		} else if (!bundle.equals(other.bundle))
+			return false;
 		if (hostName == null) {
 			if (other.hostName != null)
 				return false;
@@ -155,15 +185,15 @@ public class StatusBean {
 		if (Double.doubleToLongBits(percentComplete) != Double
 				.doubleToLongBits(other.percentComplete))
 			return false;
-		if (runDirectory == null) {
-			if (other.runDirectory != null)
-				return false;
-		} else if (!runDirectory.equals(other.runDirectory))
-			return false;
 		if (properties == null) {
 			if (other.properties != null)
 				return false;
 		} else if (!properties.equals(other.properties))
+			return false;
+		if (runDirectory == null) {
+			if (other.runDirectory != null)
+				return false;
+		} else if (!runDirectory.equals(other.runDirectory))
 			return false;
 		if (status != other.status)
 			return false;
@@ -238,8 +268,13 @@ public class StatusBean {
 
 	@Override
 	public String toString() {
-		return "StatusBean [status=" + status + ", name=" + name + ", percentComplete=" + percentComplete
-				+ ", userName=" + userName + ", submissionTime=" + submissionTime + ", message=" + message + "]";
+		return "StatusBean [status=" + status + ", name=" + name + ", message="
+				+ message + ", percentComplete=" + percentComplete
+				+ ", userName=" + userName + ", hostName=" + hostName
+				+ ", runDirectory=" + runDirectory + ", uniqueId=" + uniqueId
+				+ ", submissionTime=" + submissionTime + ", properties="
+				+ properties + ", bundle=" + bundle + ", beanClass="
+				+ beanClass + "]";
 	}
 	
 
@@ -280,6 +315,26 @@ public class StatusBean {
 
 	public String getProperty(String key) {
 		return properties.getProperty(key);
+	}
+
+
+	public String getBundle() {
+		return bundle;
+	}
+
+
+	public void setBundle(String bundle) {
+		this.bundle = bundle;
+	}
+
+
+	public String getBeanClass() {
+		return beanClass;
+	}
+
+
+	public void setBeanClass(String beanClass) {
+		this.beanClass = beanClass;
 	}
 
 }

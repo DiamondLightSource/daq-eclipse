@@ -8,29 +8,29 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class DryRunProcess implements IConsumerProcess<StatusBean> {
+class DryRunProcess<T extends StatusBean> implements IConsumerProcess<T> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DryRunProcess.class);
 
-	private final StatusBean             bean;
-	private final IPublisher<StatusBean> publisher;
+	private final T                      bean;
+	private final IPublisher<T>          publisher;
 	private boolean                      blocking;
 	
 	private boolean terminated;
 
-	public DryRunProcess(StatusBean bean, IPublisher<StatusBean> statusPublisher, boolean blocking) {
+	public DryRunProcess(T bean, IPublisher<T> statusPublisher, boolean blocking) {
 		this.bean      = bean;
 		this.publisher = statusPublisher;
 		this.blocking  = blocking;
 	}
 
 	@Override
-	public StatusBean getBean() {
+	public T getBean() {
 		return bean;
 	}
 
 	@Override
-	public IPublisher<StatusBean> getPublisher() {
+	public IPublisher<T> getPublisher() {
 		return publisher;
 	}
 

@@ -15,7 +15,6 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
@@ -72,7 +71,7 @@ public class AbstractConsumerTest {
     @Test
 	public void testSimpleConsumer() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator());
+		consumer.setRunner(new DryRunCreator<StatusBean>());
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
@@ -97,16 +96,53 @@ public class AbstractConsumerTest {
        	}
     }
     
+    
+    @Test
+    public void testBeanClass() throws Exception {
+    	
+		IConsumer<FredStatusBean> consumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		consumer.setRunner(new DryRunCreator<FredStatusBean>());
+		consumer.setBeanClass(null); // Call 
+		consumer.start(); // No bean!
+		
+     	FredStatusBean bean = new FredStatusBean();
+		bean.setName("Frederick");
+		bean.setBundle("org.eclipse.scanning.test");
+		bean.setBeanClass(FredStatusBean.class.getName());
+		doSubmit(bean);
+		
+		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
+		
+		List<FredStatusBean> stati = consumer.getStatusSet();
+		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
+		
+		FredStatusBean complete = stati.get(0);
+		
+       	if (complete.equals(bean)) {
+       		throw new Exception("The bean from the status queue was the same as that submitted! It should have a different status. q="+complete+" submit="+bean);
+       	}
+        
+       	if (complete.getStatus()!=Status.COMPLETE) {
+       		throw new Exception("The bean in the queue is not complete!"+complete);
+       	}
+       	if (complete.getPercentComplete()<100) {
+       		throw new Exception("The percent complete is less than 100!"+complete);
+       	}
+
+
+    }
+
+    
     @Test
 	public void testConsumerStop() throws Exception {
-        testStop(new DryRunCreator());
+        testStop(new DryRunCreator<StatusBean>());
     }
     @Test
 	public void testConsumerStopNonBlockingProcess() throws Exception {
-        testStop(new DryRunCreator(false));
+        testStop(new DryRunCreator<StatusBean>(false));
     }
 
-    private void testStop(IProcessCreator dryRunCreator) throws Exception {
+    private void testStop(IProcessCreator<StatusBean> dryRunCreator) throws Exception {
     	
 		consumer.setRunner(dryRunCreator);
 		consumer.setBeanClass(StatusBean.class);
@@ -127,7 +163,7 @@ public class AbstractConsumerTest {
     @Test
     public void testKillingAConsumer() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator());
+		consumer.setRunner(new DryRunCreator<StatusBean>());
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 
@@ -151,7 +187,7 @@ public class AbstractConsumerTest {
 	@Test
 	public void testAbortingAJobRemotely() throws Exception {
 
-		consumer.setRunner(new DryRunCreator());
+		consumer.setRunner(new DryRunCreator<StatusBean>());
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 
@@ -188,7 +224,7 @@ public class AbstractConsumerTest {
     @Test
     public void testHeartbeat() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator());
+		consumer.setRunner(new DryRunCreator<StatusBean>());
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
@@ -229,6 +265,10 @@ public class AbstractConsumerTest {
 
 		StatusBean bean = new StatusBean();
 		bean.setName(name);
+		return doSubmit(bean);
+   }
+   private StatusBean doSubmit(StatusBean bean) throws Exception {
+
 		bean.setStatus(Status.SUBMITTED);
 		bean.setHostName(InetAddress.getLocalHost().getHostName());
 		bean.setMessage("Hello World");
@@ -242,7 +282,7 @@ public class AbstractConsumerTest {
     @Test
     public void testMultipleSubmissions() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator(false));
+		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
@@ -288,7 +328,7 @@ public class AbstractConsumerTest {
 	@Test
     public void testMultipleSubmissionsUsingThreads() throws Exception {
 		
-		consumer.setRunner(new DryRunCreator(false));
+		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		

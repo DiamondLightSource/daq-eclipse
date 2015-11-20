@@ -60,9 +60,26 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 */
 	public void cleanQueue(String queueName) throws EventException;
 
-	
+	/**
+	 * Class of bean usually extending StatusBean. An alternative
+	 * where the class of the bean is variable for a given queue is
+	 * to set the string fields 'bundle' and 'beanClass' in the bean.
+	 * The system will then look to see if these strings are set in the
+	 * json and attempt to deserialize using these.
+	 * 
+	 * @return class or null
+	 */
 	public Class<T> getBeanClass();
 
+	/**
+	 * Class of bean usually extending StatusBean. An alternative
+	 * where the class of the bean is variable for a given queue is
+	 * to set the string fields 'bundle' and 'beanClass' in the bean.
+	 * The system will then look to see if these strings are set in the
+	 * serialized string and attempt to deserialize using these.
+	 * 
+	 * @return
+	 */
 	public void setBeanClass(Class<T> beanClass) throws EventException;
 
 }

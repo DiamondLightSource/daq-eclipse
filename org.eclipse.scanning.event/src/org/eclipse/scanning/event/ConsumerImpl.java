@@ -167,7 +167,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 				
 				Message msg = (Message)e.nextElement();
 				TextMessage t = (TextMessage)msg;
-				final U b = service.unmarshal(t.getText(), getBeanClass());
+				String json   = t.getText();
+				final U b = service.unmarshal(json, getBeanClass(json));
 				
 				MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+msg.getJMSMessageID()+"'");
 				Message rem = consumer.receive(500);	
@@ -273,6 +274,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
         processes.clear();
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void run() throws EventException {
 		
@@ -297,8 +299,9 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	            	
 	            	TextMessage t = (TextMessage)m;
 	            	
-	            	final String     str  = t.getText();
-                    final U bean   = service.unmarshal(str, getBeanClass());
+	            	final String json  = t.getText();	                               
+                    final U bean   = service.unmarshal(json, getBeanClass(json));
+                    
 	            	executeBean(bean);
 	            	
 	            }
