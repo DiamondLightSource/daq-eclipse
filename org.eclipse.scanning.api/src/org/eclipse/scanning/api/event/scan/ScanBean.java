@@ -28,7 +28,6 @@ public final class ScanBean extends StatusBean {
 	// General Information
 	private String  deviceName;
 	private String  beamline;
-	private String  uniqueId;
 	
 	private int     frame;
 	private double  start;
@@ -46,7 +45,7 @@ public final class ScanBean extends StatusBean {
     private int[]   newShape;
 		
 	public ScanBean() {
-
+        super();
 	}
 	
 	public ScanBean(DeviceState state, String message) {
@@ -97,8 +96,6 @@ public final class ScanBean extends StatusBean {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(stop);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result
-				+ ((uniqueId == null) ? 0 : uniqueId.hashCode());
 		return result;
 	}
 	@Override
@@ -148,11 +145,6 @@ public final class ScanBean extends StatusBean {
 			return false;
 		if (Double.doubleToLongBits(stop) != Double
 				.doubleToLongBits(other.stop))
-			return false;
-		if (uniqueId == null) {
-			if (other.uniqueId != null)
-				return false;
-		} else if (!uniqueId.equals(other.uniqueId))
 			return false;
 		return true;
 	}
@@ -250,11 +242,11 @@ public final class ScanBean extends StatusBean {
 		this.step = step;
 	}
 
-	public String getUniqueId() {
-		return uniqueId;
+	public int getFrame() {
+		return frame;
 	}
 
-	public void setUniqueId(String uniqueId) {
-		this.uniqueId = uniqueId;
+	public void setFrame(int frame) {
+		this.frame = frame;
 	}
 }

@@ -92,7 +92,8 @@ public class StatusBean extends IdBean {
 	}
 
 	
-	public StatusBean() {		
+	public StatusBean() {
+		super();
 		this.status          = Status.SUBMITTED;
 		this.percentComplete = 0;
 	}
