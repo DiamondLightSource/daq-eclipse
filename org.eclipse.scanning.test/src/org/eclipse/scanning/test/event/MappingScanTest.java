@@ -73,6 +73,8 @@ public class MappingScanTest {
 		bean.setDeviceState(DeviceState.IDLE);
 		bean.setPreviousStatus(Status.SUBMITTED);
 		bean.setStatus(Status.QUEUED);
+		bean.setFilePath("/dls/tmp/fred.h5");
+		bean.setDatasetPath("/entry/data");
 		publisher.broadcast(bean);
         
 		// Tell them we started it.
