@@ -150,8 +150,8 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 				ScanBean sbean  = (ScanBean)bean;
 				IScanListener l = (IScanListener)e;
 				
-				DeviceState now = sbean.getState();
-				DeviceState was = sbean.getPreviousState();
+				DeviceState now = sbean.getDeviceState();
+				DeviceState was = sbean.getPreviousDeviceState();
 				if (now!=null && now!=was) {
 					l.scanStateChanged(new ScanEvent(sbean));
 				}

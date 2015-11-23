@@ -89,7 +89,7 @@ public class EventServiceImpl implements IEventService {
 			                               String statusQName, 
 			                               String statusTName, 
 			                               IEventConnectorService service) throws EventException {
-		return createConsumer(uri, submissionQName, statusQName, statusTName, HEARTBEAT_TOPIC, KILL_TOPIC, null);
+		return createConsumer(uri, submissionQName, statusQName, statusTName, HEARTBEAT_TOPIC, KILL_TOPIC, service);
 	}
 	
 

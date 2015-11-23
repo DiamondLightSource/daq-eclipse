@@ -12,6 +12,7 @@ import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.event.status.Status;
 import org.junit.After;
 import org.junit.Test;
 
@@ -48,9 +49,6 @@ public class AbstractScanEventTest {
 
 		final ScanBean bean = new ScanBean();
 		bean.setName("fred");
-		bean.setStart(0);
-		bean.setStop(10);
-		bean.setStep(2);
 		publisher.broadcast(bean);
 	}
 
@@ -58,10 +56,8 @@ public class AbstractScanEventTest {
 	public void checkedBroadcastTest() throws Exception {
 
 		final ScanBean bean = new ScanBean();
+		bean.setStatus(Status.SUBMITTED);
 		bean.setName("fred");
-		bean.setStart(0);
-		bean.setStop(10);
-		bean.setStep(2);
 		
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>(3);
 		subscriber.addListener(new IScanListener.Stub() {
@@ -83,7 +79,7 @@ public class AbstractScanEventTest {
 
 		final ScanBean bean = new ScanBean();
 		bean.setName("fred");
-		bean.setState(DeviceState.IDLE);
+		bean.setDeviceState(DeviceState.IDLE);
 		
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>(3);
 		subscriber.addListener(new IScanListener.Stub() {
@@ -94,19 +90,19 @@ public class AbstractScanEventTest {
 		});
 		
 		// Mimic a scan
-		bean.setState(DeviceState.CONFIGURING);
+		bean.setDeviceState(DeviceState.CONFIGURING);
 		publisher.broadcast(bean);
 
-		bean.setState(DeviceState.READY);
+		bean.setDeviceState(DeviceState.READY);
 		publisher.broadcast(bean);
 
 		for (int i = 0; i < 10; i++) {
-			bean.setState(DeviceState.RUNNING);
+			bean.setDeviceState(DeviceState.RUNNING);
 			bean.setPercentComplete(i*10);
 			publisher.broadcast(bean);
 		}
 		
-		bean.setState(DeviceState.IDLE);
+		bean.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean);
 		
 		Thread.sleep(500); // The bean should go back and forth in ms anyway
@@ -124,11 +120,11 @@ public class AbstractScanEventTest {
 
 		final ScanBean bean = new ScanBean();
 		bean.setName("fred");
-		bean.setState(DeviceState.IDLE);
+		bean.setDeviceState(DeviceState.IDLE);
 		
 		final ScanBean bean2 = new ScanBean();
 		bean2.setName("fred2");
-		bean2.setState(DeviceState.IDLE);
+		bean2.setDeviceState(DeviceState.IDLE);
 		
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>(3);
 		subscriber.addListener(bean.getUniqueId(), new IScanListener.Stub() {
@@ -148,28 +144,28 @@ public class AbstractScanEventTest {
 
 		
 		// Mimic scan
-		bean.setState(DeviceState.CONFIGURING);
+		bean.setDeviceState(DeviceState.CONFIGURING);
 		publisher.broadcast(bean);
-		bean2.setState(DeviceState.CONFIGURING);
+		bean2.setDeviceState(DeviceState.CONFIGURING);
 		publisher.broadcast(bean2);
 
-		bean.setState(DeviceState.READY);
+		bean.setDeviceState(DeviceState.READY);
 		publisher.broadcast(bean);
-		bean2.setState(DeviceState.READY);
+		bean2.setDeviceState(DeviceState.READY);
 		publisher.broadcast(bean2);
 
 		for (int i = 0; i < 10; i++) {
-			bean.setState(DeviceState.RUNNING);
+			bean.setDeviceState(DeviceState.RUNNING);
 			bean.setPercentComplete(i*10);
 			publisher.broadcast(bean);
-			bean2.setState(DeviceState.RUNNING);
+			bean2.setDeviceState(DeviceState.RUNNING);
 			bean2.setPercentComplete(i*10);
 			publisher.broadcast(bean2);
 		}
 		
-		bean.setState(DeviceState.IDLE);
+		bean.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean);
-		bean2.setState(DeviceState.IDLE);
+		bean2.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean2);
 		
 		Thread.sleep(500); // The bean should go back and forth in ms anyway
@@ -187,7 +183,7 @@ public class AbstractScanEventTest {
 	}
 	
 	private void checkState(int i, DeviceState state, List<ScanBean> gotBack) throws Exception {
-	    if (gotBack.get(i).getState()!=state) throw new Exception("The "+i+" change was not "+state);
+	    if (gotBack.get(i).getDeviceState()!=state) throw new Exception("The "+i+" change was not "+state);
 	}
 
 }

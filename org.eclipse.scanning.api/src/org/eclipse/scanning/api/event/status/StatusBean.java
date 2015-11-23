@@ -24,6 +24,7 @@ public class StatusBean extends IdBean {
 
 	public static final StatusBean EMPTY = new StatusBean(Status.NONE,"", "", Double.NaN, "", "EMPTY", System.currentTimeMillis());
 
+	protected Status previousStatus;
 	protected Status status;
 	protected String name;
 	protected String message; // null or the error message if status is FAILED for instance.
@@ -108,6 +109,7 @@ public class StatusBean extends IdBean {
 		return status;
 	}
 	public void setStatus(Status status) {
+		this.previousStatus = this.status;
 		this.status = status;
 	}
 	public double getPercentComplete() {
@@ -130,6 +132,8 @@ public class StatusBean extends IdBean {
 		long temp;
 		temp = Double.doubleToLongBits(percentComplete);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result
+				+ ((previousStatus == null) ? 0 : previousStatus.hashCode());
 		result = prime * result
 				+ ((properties == null) ? 0 : properties.hashCode());
 		result = prime * result
@@ -177,6 +181,8 @@ public class StatusBean extends IdBean {
 			return false;
 		if (Double.doubleToLongBits(percentComplete) != Double
 				.doubleToLongBits(other.percentComplete))
+			return false;
+		if (previousStatus != other.previousStatus)
 			return false;
 		if (properties == null) {
 			if (other.properties != null)
@@ -248,13 +254,13 @@ public class StatusBean extends IdBean {
 
 	@Override
 	public String toString() {
-		return "StatusBean [status=" + status + ", name=" + name + ", message="
-				+ message + ", percentComplete=" + percentComplete
-				+ ", userName=" + userName + ", hostName=" + hostName
-				+ ", runDirectory=" + runDirectory + ", uniqueId=" + getUniqueId()
-				+ ", submissionTime=" + submissionTime + ", properties="
-				+ properties + ", bundle=" + bundle + ", beanClass="
-				+ beanClass + "]";
+		return "StatusBean [previousStatus=" + previousStatus + ", status="
+				+ status + ", name=" + name + ", message=" + message
+				+ ", percentComplete=" + percentComplete + ", userName="
+				+ userName + ", hostName=" + hostName + ", runDirectory="
+				+ runDirectory + ", submissionTime=" + submissionTime
+				+ ", properties=" + properties + ", bundle=" + bundle
+				+ ", beanClass=" + beanClass + "]";
 	}
 	
 
@@ -317,4 +323,13 @@ public class StatusBean extends IdBean {
 		this.beanClass = beanClass;
 	}
 
+
+	public Status getPreviousStatus() {
+		return previousStatus;
+	}
+
+
+	public void setPreviousStatus(Status previousStatus) {
+		this.previousStatus = previousStatus;
+	}
 }

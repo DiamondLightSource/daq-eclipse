@@ -1,7 +1,10 @@
 package org.eclipse.scanning.api.event.scan;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
 
@@ -29,14 +32,14 @@ public final class ScanBean extends StatusBean {
 	private String  deviceName;
 	private String  beamline;
 	
-	private int     frame;
-	private double  start;
-	private double  stop;
-	private double  step;
+	// Where are we in the scan
+	private int     point;
+	private int     size;
+	private Map<String, Object> value;
 	
 	// State information
-	private DeviceState   state;
-	private DeviceState   previousState;
+	private DeviceState   deviceState;
+	private DeviceState   previousDeviceState;
 	
 	// Dataset information
 	private String  filePath;
@@ -54,7 +57,7 @@ public final class ScanBean extends StatusBean {
 	}
 
 	public ScanBean(DeviceState state) {
-		this.state = state;
+		this.deviceState = state;
 	}
 	
 	
@@ -82,20 +85,18 @@ public final class ScanBean extends StatusBean {
 		result = prime * result
 				+ ((deviceName == null) ? 0 : deviceName.hashCode());
 		result = prime * result
+				+ ((deviceState == null) ? 0 : deviceState.hashCode());
+		result = prime * result
 				+ ((filePath == null) ? 0 : filePath.hashCode());
-		result = prime * result + frame;
 		result = prime * result + Arrays.hashCode(newShape);
 		result = prime * result + Arrays.hashCode(oldShape);
-		result = prime * result
-				+ ((previousState == null) ? 0 : previousState.hashCode());
-		long temp;
-		temp = Double.doubleToLongBits(start);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + ((state == null) ? 0 : state.hashCode());
-		temp = Double.doubleToLongBits(step);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(stop);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + point;
+		result = prime
+				* result
+				+ ((previousDeviceState == null) ? 0 : previousDeviceState
+						.hashCode());
+		result = prime * result + size;
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
 	@Override
@@ -122,29 +123,27 @@ public final class ScanBean extends StatusBean {
 				return false;
 		} else if (!deviceName.equals(other.deviceName))
 			return false;
+		if (deviceState != other.deviceState)
+			return false;
 		if (filePath == null) {
 			if (other.filePath != null)
 				return false;
 		} else if (!filePath.equals(other.filePath))
 			return false;
-		if (frame != other.frame)
-			return false;
 		if (!Arrays.equals(newShape, other.newShape))
 			return false;
 		if (!Arrays.equals(oldShape, other.oldShape))
 			return false;
-		if (previousState != other.previousState)
+		if (point != other.point)
 			return false;
-		if (Double.doubleToLongBits(start) != Double
-				.doubleToLongBits(other.start))
+		if (previousDeviceState != other.previousDeviceState)
 			return false;
-		if (state != other.state)
+		if (size != other.size)
 			return false;
-		if (Double.doubleToLongBits(step) != Double
-				.doubleToLongBits(other.step))
-			return false;
-		if (Double.doubleToLongBits(stop) != Double
-				.doubleToLongBits(other.stop))
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
 			return false;
 		return true;
 	}
@@ -165,13 +164,13 @@ public final class ScanBean extends StatusBean {
 		this.beamline = beanline;
 	}
 
-	public DeviceState getState() {
-		return state;
+	public DeviceState getDeviceState() {
+		return deviceState;
 	}
 
-	public void setState(DeviceState state) {
-		this.previousState = this.state;
-		this.state = state;
+	public void setDeviceState(DeviceState state) {
+		this.previousDeviceState = this.deviceState;
+		this.deviceState = state;
 	}
 
 	public int[] getOldShape() {
@@ -201,52 +200,57 @@ public final class ScanBean extends StatusBean {
 	@Override
 	public String toString() {
 		return "ScanBean [deviceName=" + deviceName + ", beamline=" + beamline
-				+ ", message=" + message + ", name=" + name
-				+ ", start=" + start + ", stop=" + stop + ", step=" + step
-				+ ", percentComplete=" + percentComplete + ", state=" + state
-				+ ", previousState=" + previousState + ", filePath=" + filePath
+				+ ", point=" + point + ", size=" + size + ", value=" + value
+				+ ", deviceState=" + deviceState + ", previousDeviceState="
+				+ previousDeviceState + ", filePath=" + filePath
 				+ ", datasetPath=" + datasetPath + ", oldShape="
 				+ Arrays.toString(oldShape) + ", newShape="
-				+ Arrays.toString(newShape) + "]";
+				+ Arrays.toString(newShape) + super.toString()+"]";
 	}
 
-	public DeviceState getPreviousState() {
-		return previousState;
+	public DeviceState getPreviousDeviceState() {
+		return previousDeviceState;
 	}
 
-	public void setPreviousState(DeviceState previousState) {
-		this.previousState = previousState;
+	public void setPreviousDeviceState(DeviceState previousState) {
+		this.previousDeviceState = previousState;
 	}
 
-	public double getStart() {
-		return start;
+	public int getPoint() {
+		return point;
 	}
 
-	public void setStart(double start) {
-		this.start = start;
+	public void setPoint(int frame) {
+		this.point = frame;
 	}
 
-	public double getStop() {
-		return stop;
+	public int getSize() {
+		return size;
 	}
 
-	public void setStop(double stop) {
-		this.stop = stop;
+	public void setSize(int size) {
+		this.size = size;
 	}
 
-	public double getStep() {
-		return step;
+	public Map<String, Object> getValue() {
+		return value;
 	}
 
-	public void setStep(double step) {
-		this.step = step;
+	public void setValue(Map<String, Object> value) {
+		this.value = value;
+	}
+	
+	public void putValue(String name, Object val) {
+		if (value == null) value = new HashMap<>(3);
+		value.put(name, val);
+	}
+	
+	public boolean scanStart() {
+		return Status.QUEUED ==previousStatus && Status.RUNNING==status;
 	}
 
-	public int getFrame() {
-		return frame;
+	public boolean scanEnd() {
+		return Status.RUNNING ==previousStatus && Status.RUNNING!=status;
 	}
 
-	public void setFrame(int frame) {
-		this.frame = frame;
-	}
 }
