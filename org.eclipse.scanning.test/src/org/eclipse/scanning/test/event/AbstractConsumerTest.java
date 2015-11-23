@@ -15,6 +15,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
@@ -28,6 +29,7 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.dry.DryRunCreator;
+import org.junit.After;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
@@ -39,6 +41,14 @@ public class AbstractConsumerTest {
 	protected ISubmitter<StatusBean> submitter;
 	protected IConsumer<StatusBean>  consumer;
 
+	
+	@After
+	public void dispose() throws EventException {
+		submitter.disconnect();
+		consumer.clearQueue(IEventService.SUBMISSION_QUEUE);
+		consumer.clearQueue(IEventService.STATUS_SET);
+		consumer.disconnect();
+	}
 	
     @Test
 	public void testSimpleSubmission() throws Exception {
@@ -100,18 +110,55 @@ public class AbstractConsumerTest {
     @Test
     public void testBeanClass() throws Exception {
     	
-		IConsumer<FredStatusBean> consumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
-		consumer.setRunner(new DryRunCreator<FredStatusBean>());
-		consumer.setBeanClass(null); // Call 
-		consumer.start(); // No bean!
-		
-     	FredStatusBean bean = new FredStatusBean();
-		bean.setName("Frederick");
+		IConsumer<FredStatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		try {
+			fconsumer.setRunner(new DryRunCreator<FredStatusBean>());
+			fconsumer.start(); // No bean!
+			
+	     	FredStatusBean bean = new FredStatusBean();
+			bean.setName("Frederick");
+	       	
+			dynamicBean(bean, fconsumer);
+			
+		} finally {
+			fconsumer.clearQueue(IEventService.SUBMISSION_QUEUE);
+			fconsumer.clearQueue(IEventService.STATUS_SET);
+			fconsumer.disconnect();
+		}
+
+    }
+
+	@Test
+    public void testBeanClass2Beans() throws Exception {
+    	
+		IConsumer<FredStatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		try {
+			fconsumer.setRunner(new DryRunCreator<FredStatusBean>());
+			fconsumer.start(); // No bean!
+			
+	     	FredStatusBean fred = new FredStatusBean();
+			fred.setName("Frederick");       	
+			dynamicBean(fred, fconsumer);
+			
+			BillStatusBean bill = new BillStatusBean();
+			bill.setName("Bill");
+			dynamicBean(bill, fconsumer);
+
+		} finally {
+			fconsumer.clearQueue(IEventService.SUBMISSION_QUEUE);
+			fconsumer.clearQueue(IEventService.STATUS_SET);
+			fconsumer.disconnect();
+		}
+
+    }
+    
+    private void dynamicBean(StatusBean bean, IConsumer<FredStatusBean> fconsumer) throws Exception {
+    	
 		doSubmit(bean);
 		
 		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
 		
-		List<FredStatusBean> stati = consumer.getStatusSet();
+		List<FredStatusBean> stati = fconsumer.getStatusSet();
 		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
 		
 		FredStatusBean complete = stati.get(0);
@@ -126,11 +173,8 @@ public class AbstractConsumerTest {
        	if (complete.getPercentComplete()<100) {
        		throw new Exception("The percent complete is less than 100!"+complete);
        	}
+	}
 
-
-    }
-
-    
     @Test
 	public void testConsumerStop() throws Exception {
         testStop(new DryRunCreator<StatusBean>());
@@ -152,7 +196,7 @@ public class AbstractConsumerTest {
 		
 		consumer.stop();
 		
-		Thread.sleep(3000);
+		Thread.sleep(5000);
 		checkTerminatedProcess(bean);
 
 	}

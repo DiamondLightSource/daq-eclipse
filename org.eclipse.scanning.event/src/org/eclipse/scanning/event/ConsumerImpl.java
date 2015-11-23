@@ -173,6 +173,9 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 
 	@Override
 	public void disconnect() throws EventException {
+		
+		if (isActive()) stop();
+		
 		super.disconnect();
 		setActive(false);
 		mover.disconnect();

@@ -42,12 +42,4 @@ public class ConsumerTest extends AbstractConsumerTest{
 		consumer.clearQueue(IEventService.SUBMISSION_QUEUE);
 		consumer.clearQueue(IEventService.STATUS_SET);
 	}
-	
-	@After
-	public void dispose() throws EventException {
-		submitter.disconnect();
-		consumer.clearQueue(IEventService.SUBMISSION_QUEUE);
-		consumer.clearQueue(IEventService.STATUS_SET);
-		consumer.disconnect();
-	}
 }
