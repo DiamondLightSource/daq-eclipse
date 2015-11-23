@@ -159,7 +159,7 @@ public class AbstractConsumerTest {
 		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
 		
 		List<FredStatusBean> stati = fconsumer.getStatusSet();
-		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
+		if (stati.size()!=statusSize) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
 		
 		FredStatusBean complete = stati.get(0);
 		
