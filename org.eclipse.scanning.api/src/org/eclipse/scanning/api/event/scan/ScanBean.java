@@ -2,7 +2,7 @@ package org.eclipse.scanning.api.event.scan;
 
 import java.util.Arrays;
 
-import org.eclipse.scanning.api.event.IdBean;
+import org.eclipse.scanning.api.event.status.StatusBean;
 
 
 /**
@@ -23,23 +23,21 @@ import org.eclipse.scanning.api.event.IdBean;
  * @author Matthew Gerring
  *
  */
-public final class ScanBean extends IdBean { 
+public final class ScanBean extends StatusBean { 
 		
 	// General Information
 	private String  deviceName;
 	private String  beamline;
-	private String  message;
 	private String  uniqueId;
 	
-	private String  scanName;
+	private int     frame;
 	private double  start;
 	private double  stop;
 	private double  step;
-	private double  percentComplete;
 	
 	// State information
-	private State   state;
-	private State   previousState;
+	private DeviceState   state;
+	private DeviceState   previousState;
 	
 	// Dataset information
 	private String  filePath;
@@ -51,12 +49,12 @@ public final class ScanBean extends IdBean {
 
 	}
 	
-	public ScanBean(State state, String message) {
+	public ScanBean(DeviceState state, String message) {
 		this(state);
 		this.message = message;
 	}
 
-	public ScanBean(State state) {
+	public ScanBean(DeviceState state) {
 		this.state = state;
 	}
 	
@@ -86,16 +84,12 @@ public final class ScanBean extends IdBean {
 				+ ((deviceName == null) ? 0 : deviceName.hashCode());
 		result = prime * result
 				+ ((filePath == null) ? 0 : filePath.hashCode());
-		result = prime * result + ((message == null) ? 0 : message.hashCode());
+		result = prime * result + frame;
 		result = prime * result + Arrays.hashCode(newShape);
 		result = prime * result + Arrays.hashCode(oldShape);
-		long temp;
-		temp = Double.doubleToLongBits(percentComplete);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result
 				+ ((previousState == null) ? 0 : previousState.hashCode());
-		result = prime * result
-				+ ((scanName == null) ? 0 : scanName.hashCode());
+		long temp;
 		temp = Double.doubleToLongBits(start);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
@@ -136,24 +130,13 @@ public final class ScanBean extends IdBean {
 				return false;
 		} else if (!filePath.equals(other.filePath))
 			return false;
-		if (message == null) {
-			if (other.message != null)
-				return false;
-		} else if (!message.equals(other.message))
+		if (frame != other.frame)
 			return false;
 		if (!Arrays.equals(newShape, other.newShape))
 			return false;
 		if (!Arrays.equals(oldShape, other.oldShape))
 			return false;
-		if (Double.doubleToLongBits(percentComplete) != Double
-				.doubleToLongBits(other.percentComplete))
-			return false;
 		if (previousState != other.previousState)
-			return false;
-		if (scanName == null) {
-			if (other.scanName != null)
-				return false;
-		} else if (!scanName.equals(other.scanName))
 			return false;
 		if (Double.doubleToLongBits(start) != Double
 				.doubleToLongBits(other.start))
@@ -190,19 +173,11 @@ public final class ScanBean extends IdBean {
 		this.beamline = beanline;
 	}
 
-	public double getPercentComplete() {
-		return percentComplete;
-	}
-
-	public void setPercentComplete(double percentComplete) {
-		this.percentComplete = percentComplete;
-	}
-
-	public State getState() {
+	public DeviceState getState() {
 		return state;
 	}
 
-	public void setState(State state) {
+	public void setState(DeviceState state) {
 		this.previousState = this.state;
 		this.state = state;
 	}
@@ -234,7 +209,7 @@ public final class ScanBean extends IdBean {
 	@Override
 	public String toString() {
 		return "ScanBean [deviceName=" + deviceName + ", beamline=" + beamline
-				+ ", message=" + message + ", scanName=" + scanName
+				+ ", message=" + message + ", name=" + name
 				+ ", start=" + start + ", stop=" + stop + ", step=" + step
 				+ ", percentComplete=" + percentComplete + ", state=" + state
 				+ ", previousState=" + previousState + ", filePath=" + filePath
@@ -243,20 +218,12 @@ public final class ScanBean extends IdBean {
 				+ Arrays.toString(newShape) + "]";
 	}
 
-	public State getPreviousState() {
+	public DeviceState getPreviousState() {
 		return previousState;
 	}
 
-	public void setPreviousState(State previousState) {
+	public void setPreviousState(DeviceState previousState) {
 		this.previousState = previousState;
-	}
-
-	public String getScanName() {
-		return scanName;
-	}
-
-	public void setScanName(String scanName) {
-		this.scanName = scanName;
 	}
 
 	public double getStart() {

@@ -154,7 +154,6 @@ public interface IEventService {
 	 */
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri) throws EventException;
 	
-
 	/**
 	 * Create a consumer with the submission queue, status queue, status topic and termination topic passed in.
 	 * 
@@ -163,6 +162,22 @@ public interface IEventService {
 	 * @param statusQName
 	 * @param statusTName
 	 * @param terminateTName
+	 * @param service, may be null, should be null in the OSGi case
+	 * @return
+	 */
+	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, String submissionQName, 
+						                                        String statusQName,
+						                                        String statusTName,
+						                                        IEventConnectorService service) throws EventException;
+
+	/**
+	 * Create a consumer with the submission queue, status queue, status topic and termination topic passed in.
+	 * 
+	 * @param uri
+	 * @param submissionQName
+	 * @param statusQName
+	 * @param statusTName
+	 * @param killTName
 	 * @param service, may be null, should be null in the OSGi case
 	 * @return
 	 */

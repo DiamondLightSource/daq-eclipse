@@ -82,6 +82,16 @@ public class EventServiceImpl implements IEventService {
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri) throws EventException {
 		return createConsumer(uri, SUBMISSION_QUEUE, STATUS_SET, STATUS_TOPIC, HEARTBEAT_TOPIC, KILL_TOPIC, null);
 	}
+	
+	@Override
+	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, 
+			                               String submissionQName,
+			                               String statusQName, 
+			                               String statusTName, 
+			                               IEventConnectorService service) throws EventException {
+		return createConsumer(uri, submissionQName, statusQName, statusTName, HEARTBEAT_TOPIC, KILL_TOPIC, null);
+	}
+	
 
 	@Override
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, 

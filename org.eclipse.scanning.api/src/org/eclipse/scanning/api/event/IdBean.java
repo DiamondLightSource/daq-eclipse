@@ -2,27 +2,31 @@ package org.eclipse.scanning.api.event;
 
 import java.util.UUID;
 
+
 public class IdBean {
 	
-	private UUID    id;         // Unique id for each object.
-
-	public IdBean() {
-		id = UUID.randomUUID();
-	}
+	private String    uniqueId;         // Unique id for each object.
+	private boolean   explicitlySetId;
 	
-	public UUID getId() {
-		return id;
+	public IdBean() {
+		uniqueId = UUID.randomUUID().toString(); // Normally overridden
 	}
 
-	public void setId(UUID id) {
-		this.id = id;
+	public String getUniqueId() {
+		return uniqueId;
+	}
+
+	public void setUniqueId(String uniqueId) {
+		this.uniqueId        = uniqueId;
+		this.explicitlySetId = true;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result
+				+ ((uniqueId == null) ? 0 : uniqueId.hashCode());
 		return result;
 	}
 
@@ -35,12 +39,23 @@ public class IdBean {
 		if (getClass() != obj.getClass())
 			return false;
 		IdBean other = (IdBean) obj;
-		if (id == null) {
-			if (other.id != null)
+		if (explicitlySetId) {
+			if (uniqueId == null) {
+				if (other.uniqueId != null)
+					return false;
+			} else if (!uniqueId.equals(other.uniqueId))
 				return false;
-		} else if (!id.equals(other.id))
-			return false;
+		}
 		return true;
+	}
+
+	/**
+	 * Subclasses must override this method calling super.merge(...)
+	 * 
+	 * @param with
+	 */
+	public void merge(IdBean with) {
+		this.uniqueId = with.uniqueId;
 	}
 
 }

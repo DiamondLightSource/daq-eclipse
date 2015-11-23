@@ -71,12 +71,12 @@ public interface ISubscriber<T> extends ITopicConnection {
 	 * @param listener
 	 * @throws event exception if the remote event cannot be connected to.
 	 */
-	public void addListener(UUID id, T listener) throws EventException;
+	public void addListener(String id, T listener) throws EventException;
 	
 	/**
 	 * Unregister events for a given scanId to be reported.
 	 * @param id
 	 * @param listener
 	 */
-	public void removeListener(UUID id, T listener);
+	public void removeListener(String id, T listener);
 }

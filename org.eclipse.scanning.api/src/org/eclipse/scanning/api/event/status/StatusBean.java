@@ -10,6 +10,8 @@ package org.eclipse.scanning.api.event.status;
 
 import java.util.Properties;
 
+import org.eclipse.scanning.api.event.IdBean;
+
 
 /**
  * A bean whose JSON value can sit in a queue on the JMS server and 
@@ -18,14 +20,10 @@ import java.util.Properties;
  * @author Matthew Gerring
  *
  */
-public class StatusBean {
+public class StatusBean extends IdBean {
 
 	public static final StatusBean EMPTY = new StatusBean(Status.NONE,"", "", Double.NaN, "", "EMPTY", System.currentTimeMillis());
-	/**
-	 * The uid is generally provided by the client
-	 * then returned back from the server to know
-	 * which run we are talking about.
-	 */
+
 	protected Status status;
 	protected String name;
 	protected String message; // null or the error message if status is FAILED for instance.
@@ -37,11 +35,6 @@ public class StatusBean {
 	 * Directory of rerun, may be null
 	 */
 	private String   runDirectory;
-	
-	/**
-	 * We intentionally ignore the JMS version of this
-	 */
-	protected String uniqueId;
 	
 	/**
 	 * We intentionally ignore the JMS version of this
@@ -70,27 +63,28 @@ public class StatusBean {
 	private String beanClass;
 
 	private StatusBean( Status none,String name, String message, double percentComplete,
-			String userName, String uniqueId, long submissionTime) {
+			            String userName, String uniqueId, long submissionTime) {
+		
 		this.status          = none;
 		this.name            = name;
 		this.percentComplete = percentComplete;
         this.userName        = userName;
-        this.uniqueId        = uniqueId;
         this.submissionTime  = submissionTime;
 	}
 
 	
 	/**
-	 * Subclasses must override this method.
+	 * Subclasses must override this method calling super.merge(...)
+	 * 
 	 * @param with
 	 */
 	public void merge(StatusBean with) {
+		super.merge(with);
 		this.status          = with.status;
 		this.name            = with.name;
 		this.percentComplete = with.percentComplete;
         this.userName        = with.userName;
         this.hostName        = with.hostName;
-        this.uniqueId        = with.uniqueId;
         this.submissionTime  = with.submissionTime;
         this.message         = with.message;
         this.runDirectory    = with.runDirectory;
@@ -124,7 +118,7 @@ public class StatusBean {
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
+		int result = super.hashCode();
 		result = prime * result
 				+ ((beanClass == null) ? 0 : beanClass.hashCode());
 		result = prime * result + ((bundle == null) ? 0 : bundle.hashCode());
@@ -143,8 +137,6 @@ public class StatusBean {
 		result = prime * result
 				+ (int) (submissionTime ^ (submissionTime >>> 32));
 		result = prime * result
-				+ ((uniqueId == null) ? 0 : uniqueId.hashCode());
-		result = prime * result
 				+ ((userName == null) ? 0 : userName.hashCode());
 		return result;
 	}
@@ -152,7 +144,7 @@ public class StatusBean {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
@@ -199,11 +191,6 @@ public class StatusBean {
 			return false;
 		if (submissionTime != other.submissionTime)
 			return false;
-		if (uniqueId == null) {
-			if (other.uniqueId != null)
-				return false;
-		} else if (!uniqueId.equals(other.uniqueId))
-			return false;
 		if (userName == null) {
 			if (other.userName != null)
 				return false;
@@ -239,14 +226,6 @@ public class StatusBean {
 		this.userName = userName;
 	}
 
-	public String getUniqueId() {
-		return uniqueId;
-	}
-
-	public void setUniqueId(String uniqueId) {
-		this.uniqueId = uniqueId;
-	}
-
 	public long getSubmissionTime() {
 		return submissionTime;
 	}
@@ -271,7 +250,7 @@ public class StatusBean {
 		return "StatusBean [status=" + status + ", name=" + name + ", message="
 				+ message + ", percentComplete=" + percentComplete
 				+ ", userName=" + userName + ", hostName=" + hostName
-				+ ", runDirectory=" + runDirectory + ", uniqueId=" + uniqueId
+				+ ", runDirectory=" + runDirectory + ", uniqueId=" + getUniqueId()
 				+ ", submissionTime=" + submissionTime + ", properties="
 				+ properties + ", bundle=" + bundle + ", beanClass="
 				+ beanClass + "]";

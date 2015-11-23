@@ -17,8 +17,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -73,7 +71,7 @@ public class ConsumerView extends ViewPart {
 	private TableViewer                       viewer;
 	
 	// Data
-	private Map<UUID, HeartbeatBean>          consumers;
+	private Map<String, HeartbeatBean>        consumers;
 
 	private ISubscriber<IHeartbeatListener>   heartMonitor;
 
@@ -126,7 +124,7 @@ public class ConsumerView extends ViewPart {
 							
 							HeartbeatBean bean = evt.getBean();
 	        				bean.setLastAlive(System.currentTimeMillis());
-	        				HeartbeatBean old = consumers.put(bean.getId(), bean);
+	        				HeartbeatBean old = consumers.put(bean.getUniqueId(), bean);
 	        				
 	        				if (!bean.equalsIgnoreLastAlive(old)) {
 	    						viewer.getControl().getDisplay().syncExec(new Runnable() {

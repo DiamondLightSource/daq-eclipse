@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.scan.ScanBean;
-import org.eclipse.scanning.api.event.scan.State;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.junit.After;
 import org.junit.Before;

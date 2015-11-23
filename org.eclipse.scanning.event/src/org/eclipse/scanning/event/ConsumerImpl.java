@@ -164,7 +164,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 			throw new EventException("Cannot reorder queue!", ne);
 		} finally {
 			try {
-				session.close();
+				if (session!=null) session.close();
 			} catch (JMSException e) {
 				throw new EventException("Cannot close session!", e);
 			}

@@ -32,7 +32,7 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
-import org.eclipse.scanning.api.event.scan.State;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,19 +41,18 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 	
 	private static final Logger logger = LoggerFactory.getLogger(SubscriberImpl.class);
 	
-	private static UUID DEFAULT_KEY = UUID.randomUUID(); // Does not really matter what key is used for the default collection.
+	private static String DEFAULT_KEY = UUID.randomUUID().toString(); // Does not really matter what key is used for the default collection.
 
-	private Map<UUID, Collection<T>>  slisteners; // Scan listeners
-	private Map<UUID, Collection<T>>  hlisteners; // Scan listeners
-	@SuppressWarnings("rawtypes")
+	private Map<String, Collection<T>>  slisteners; // Scan listeners
+	private Map<String, Collection<T>>  hlisteners; // Scan listeners
 	private Map<Class, DiseminateHandler> dMap;
 	
 	private MessageConsumer scanConsumer, hearbeatConsumer;
 	
 	public SubscriberImpl(URI uri, String topic, IEventConnectorService service) {
 		super(uri, topic, service);
-		slisteners = new ConcurrentHashMap<UUID, Collection<T>>(31); // Concurrent overkill?
-		hlisteners = new ConcurrentHashMap<UUID, Collection<T>>(31); // Concurrent overkill?
+		slisteners = new ConcurrentHashMap<String, Collection<T>>(31); // Concurrent overkill?
+		hlisteners = new ConcurrentHashMap<String, Collection<T>>(31); // Concurrent overkill?
 		
 		dMap       = createDiseminateHandlers();
 	}
@@ -64,7 +63,7 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 	}
 
 	@Override
-	public void addListener(UUID scanID, T listener) throws EventException{
+	public void addListener(String scanID, T listener) throws EventException{
 		registerListener(scanID, listener, slisteners);
 		if (scanConsumer == null) {
 			try {
@@ -77,7 +76,7 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 
 	private MessageConsumer createConsumer(final String    topicName, 
 			                               final Class<?>  staticClass, 
-			                               final Map<UUID, Collection<T>> listeners) throws JMSException {
+			                               final Map<String, Collection<T>> listeners) throws JMSException {
 		
 		Topic topic = super.createTopic(topicName);
 		
@@ -112,11 +111,11 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
         return consumer;
 	}
 	
-	private void diseminate(Object bean, Map<UUID, Collection<T>> listeners) throws EventException {
+	private void diseminate(Object bean, Map<String, Collection<T>> listeners) throws EventException {
 		diseminate(bean, listeners.get(DEFAULT_KEY));  // general listeners
 		if (bean instanceof IdBean) {
 			IdBean idBean = (IdBean)bean;
-		    diseminate(bean, listeners.get(idBean.getId())); // scan specific listeners, if any
+		    diseminate(bean, listeners.get(idBean.getUniqueId())); // scan specific listeners, if any
 		}
 	}
 
@@ -151,8 +150,8 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 				ScanBean sbean  = (ScanBean)bean;
 				IScanListener l = (IScanListener)e;
 				
-				State now = sbean.getState();
-				State was = sbean.getPreviousState();
+				DeviceState now = sbean.getState();
+				DeviceState was = sbean.getPreviousState();
 				if (now!=null && now!=was) {
 					l.scanStateChanged(new ScanEvent(sbean));
 				}
@@ -186,11 +185,11 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 	}
 
 
-	private void registerListener(UUID key, T listener, Map<UUID, Collection<T>> listeners) {
+	private void registerListener(String key, T listener, Map<String, Collection<T>> listeners) {
 		Collection<T> ls = listeners.get(key);
 		if (ls == null) {
 			ls = new ArrayList<T>(3);
-			listeners.put(key, ls);
+			listeners.put(key.toString(), ls);
 		}
 		ls.add(listener);
 	}
@@ -201,7 +200,7 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 	}
 
 	@Override
-	public void removeListener(UUID id, T listener) {
+	public void removeListener(String id, T listener) {
 		if (slisteners.containsKey(id)) {
 			slisteners.get(id).remove(listener);
 		}
