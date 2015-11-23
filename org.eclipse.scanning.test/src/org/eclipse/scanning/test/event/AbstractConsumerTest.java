@@ -118,7 +118,7 @@ public class AbstractConsumerTest {
 	     	FredStatusBean bean = new FredStatusBean();
 			bean.setName("Frederick");
 	       	
-			dynamicBean(bean, fconsumer);
+			dynamicBean(bean, fconsumer, 1);
 			
 		} finally {
 			fconsumer.clearQueue(IEventService.SUBMISSION_QUEUE);
@@ -138,11 +138,11 @@ public class AbstractConsumerTest {
 			
 	     	FredStatusBean fred = new FredStatusBean();
 			fred.setName("Frederick");       	
-			dynamicBean(fred, fconsumer);
+			dynamicBean(fred, fconsumer, 1);
 			
 			BillStatusBean bill = new BillStatusBean();
 			bill.setName("Bill");
-			dynamicBean(bill, fconsumer);
+			dynamicBean(bill, fconsumer, 2);
 
 		} finally {
 			fconsumer.clearQueue(IEventService.SUBMISSION_QUEUE);
@@ -152,7 +152,7 @@ public class AbstractConsumerTest {
 
     }
     
-    private void dynamicBean(StatusBean bean, IConsumer<FredStatusBean> fconsumer) throws Exception {
+    private void dynamicBean(StatusBean bean, IConsumer<FredStatusBean> fconsumer, int statusSize) throws Exception {
     	
 		doSubmit(bean);
 		

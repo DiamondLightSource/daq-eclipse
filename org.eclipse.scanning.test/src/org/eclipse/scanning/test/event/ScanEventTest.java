@@ -45,11 +45,5 @@ public class ScanEventTest extends AbstractScanEventTest{
 		publisher  = eservice.createPublisher(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService());		
 		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService());
 	}
-	
-	@After
-	public void dispose() throws EventException {
-		publisher.disconnect();
-		subscriber.disconnect();
-	}
 
 }

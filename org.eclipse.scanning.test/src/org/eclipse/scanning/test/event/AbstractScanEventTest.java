@@ -12,6 +12,7 @@ import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.State;
+import org.junit.After;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
@@ -21,6 +22,12 @@ public class AbstractScanEventTest {
 	protected IEventService              eservice;
 	protected IPublisher<ScanBean>       publisher;
 	protected ISubscriber<IScanListener> subscriber;
+
+	@After
+	public void dispose() throws EventException {
+		publisher.disconnect();
+		subscriber.disconnect();
+	}
 
 	@Test
 	public void badURITest() throws Exception {

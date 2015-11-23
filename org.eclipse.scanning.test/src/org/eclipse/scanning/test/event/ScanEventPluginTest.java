@@ -36,10 +36,4 @@ public class ScanEventPluginTest extends AbstractScanEventTest{
 		publisher  = eservice.createPublisher(uri, IEventService.SCAN_TOPIC);		
 		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC);
 	}
-	
-	@After
-	public void dispose() throws EventException {
-		publisher.disconnect();
-		subscriber.disconnect();
-	}
 }
