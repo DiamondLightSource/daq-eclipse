@@ -109,7 +109,6 @@ public class StatusBean extends IdBean {
 		return status;
 	}
 	public void setStatus(Status status) {
-		this.previousStatus = this.status;
 		this.status = status;
 	}
 	public double getPercentComplete() {

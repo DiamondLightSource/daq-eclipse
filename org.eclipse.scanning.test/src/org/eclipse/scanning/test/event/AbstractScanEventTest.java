@@ -12,7 +12,6 @@ import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.event.status.Status;
 import org.junit.After;
 import org.junit.Test;
 
@@ -56,7 +55,6 @@ public class AbstractScanEventTest {
 	public void checkedBroadcastTest() throws Exception {
 
 		final ScanBean bean = new ScanBean();
-		bean.setStatus(Status.SUBMITTED);
 		bean.setName("fred");
 		
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>(3);

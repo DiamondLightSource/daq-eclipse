@@ -35,7 +35,7 @@ public final class ScanBean extends StatusBean {
 	// Where are we in the scan
 	private int     point;
 	private int     size;
-	private Map<String, Object> value;
+	private Map<String, Object> position;
 	
 	// State information
 	private DeviceState   deviceState;
@@ -96,7 +96,7 @@ public final class ScanBean extends StatusBean {
 				+ ((previousDeviceState == null) ? 0 : previousDeviceState
 						.hashCode());
 		result = prime * result + size;
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		result = prime * result + ((position == null) ? 0 : position.hashCode());
 		return result;
 	}
 	@Override
@@ -140,10 +140,10 @@ public final class ScanBean extends StatusBean {
 			return false;
 		if (size != other.size)
 			return false;
-		if (value == null) {
-			if (other.value != null)
+		if (position == null) {
+			if (other.position != null)
 				return false;
-		} else if (!value.equals(other.value))
+		} else if (!position.equals(other.position))
 			return false;
 		return true;
 	}
@@ -200,7 +200,7 @@ public final class ScanBean extends StatusBean {
 	@Override
 	public String toString() {
 		return "ScanBean [deviceName=" + deviceName + ", beamline=" + beamline
-				+ ", point=" + point + ", size=" + size + ", value=" + value
+				+ ", point=" + point + ", size=" + size + ", value=" + position
 				+ ", deviceState=" + deviceState + ", previousDeviceState="
 				+ previousDeviceState + ", filePath=" + filePath
 				+ ", datasetPath=" + datasetPath + ", oldShape="
@@ -232,17 +232,17 @@ public final class ScanBean extends StatusBean {
 		this.size = size;
 	}
 
-	public Map<String, Object> getValue() {
-		return value;
+	public Map<String, Object> getPosition() {
+		return position;
 	}
 
-	public void setValue(Map<String, Object> value) {
-		this.value = value;
+	public void setPosition(Map<String, Object> value) {
+		this.position = value;
 	}
 	
-	public void putValue(String name, Object val) {
-		if (value == null) value = new HashMap<>(3);
-		value.put(name, val);
+	public void putPosition(String name, Object val) {
+		if (position == null) position = new HashMap<>(3);
+		position.put(name, val);
 	}
 	
 	public boolean scanStart() {
