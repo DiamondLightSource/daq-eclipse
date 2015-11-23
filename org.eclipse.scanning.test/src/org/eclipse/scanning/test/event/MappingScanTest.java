@@ -100,6 +100,7 @@ public class MappingScanTest {
 			bean.setPoint(ipoint);
 			bean.putPosition("temperature", temp);
 			testDeviceScan(bean, gen);
+			Thread.sleep(1000); // Moving to the new temp takes non-zero time so I've heard.
 			++ipoint;
 		}
 
