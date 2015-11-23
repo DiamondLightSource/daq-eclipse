@@ -29,6 +29,9 @@ public class RasterIterator implements Iterator<Point> {
 		double y = next[1];
 		double minX = model.getX();
 		double minY = model.getY();
+		
+		// TODO should check if the next position is in the container!
+		
 		if (y<model.getY() || y > (minY + model.getyLength())) return false;
 		if (x<model.getX() || x > (minX + model.getxLength())) return false;
 		

@@ -31,6 +31,9 @@ class GridIterator implements Iterator<Point> {
 		int[] next = increment(model, i, j, forewards); 
 		int i = next[0];
 		int j = next[1];
+		
+		// TODO should check if the next position is in the container!
+		
 		if (i>(model.getRows()-1) || i<0)    {
 			return false;  // Normal termination
 		}

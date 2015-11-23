@@ -37,6 +37,8 @@ class LissajousIterator implements Iterator<Point> {
 		double xCentre = model.getX() + A;
 		double yCentre = model.getY() + B;
 		
+		// TODO should check if the next position is in the container!
+
 		double x = xCentre + A * Math.sin(model.getA() * theta + model.getDelta());
 		double y = yCentre + B * Math.cos(model.getB() * theta);
 		theta += model.getThetaStep();
