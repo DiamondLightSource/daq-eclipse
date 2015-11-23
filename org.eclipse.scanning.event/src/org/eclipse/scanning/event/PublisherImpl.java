@@ -1,7 +1,6 @@
 package org.eclipse.scanning.event;
 
 import java.io.PrintStream;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Enumeration;
@@ -22,7 +21,6 @@ import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.alive.ConsumerStatus;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +48,12 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		
 		try {
 		    if (getTopicName()!=null) if (scanProducer==null) scanProducer = createProducer(getTopicName());
-			if (queueName!=null) updateSet(bean);
+		    try {
+			    if (queueName!=null) updateSet(bean);
+		    } catch (Throwable notFatal) {
+		    	// Updating the set is not a fatal error
+		    	logger.error("Did not update the set", notFatal);
+		    }
 			if (getTopicName()!=null) send(scanProducer, bean, 1000);
 
 		} catch (JMSException ne) {

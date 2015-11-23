@@ -117,42 +117,6 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		}
 	}
 	
-	public void setBeanClass(Class<U> beanClass) throws EventException {
-		
-		super.setBeanClass(beanClass);
-		
-		if (terminator!=null) terminator.disconnect();
-		terminator = eservice.createSubscriber(uri, getStatusTopicName(), service);
-		terminator.addListener(new IBeanListener<U>() {
-			@Override
-			public Class<U> getBeanClass() {
-				return ConsumerImpl.this.getBeanClass();
-			}
-
-			@Override
-			public void beanChangePerformed(BeanEvent<U> evt) {
-				U bean = evt.getBean();
-				if (bean.getStatus()!=Status.REQUEST_TERMINATE) return;
-				
-				WeakReference<IConsumerProcess<U>> ref = processes.remove(bean.getUniqueId());
-				try {
-					if (ref==null) { // Might be in submit queue still
-						updateQueue(bean);
-						
-					} else {
-						IConsumerProcess<U> process = ref.get();
-						if (process!=null) {
-							process.terminate();
-						}
-					}
-				} catch (EventException e) {
-					logger.error("Cannot terminate process "+bean.getUniqueId(), e);
-				}
-			}
-		});
-
-	}
-
 	protected void updateQueue(U bean) throws EventException {
 		
 		Session session = null;
@@ -241,7 +205,9 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	}
 	
 	@Override
-	public void start() {
+	public void start() throws EventException {
+		
+		startTerminator();
 		
 		final Thread consumerThread = new Thread("Consumer Thread "+getName()) {
 			public void run() {
@@ -263,6 +229,39 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		consumerThread.start();
 	}
 	
+	private void startTerminator() throws EventException {
+		
+		if (terminator!=null) terminator.disconnect();
+		terminator = eservice.createSubscriber(uri, getStatusTopicName(), service);
+		terminator.addListener(new IBeanListener<U>() {
+			@Override
+			public Class<U> getBeanClass() {
+				return ConsumerImpl.this.getBeanClass();
+			}
+
+			@Override
+			public void beanChangePerformed(BeanEvent<U> evt) {
+				U bean = evt.getBean();
+				if (bean.getStatus()!=Status.REQUEST_TERMINATE) return;
+				
+				WeakReference<IConsumerProcess<U>> ref = processes.remove(bean.getUniqueId());
+				try {
+					if (ref==null) { // Might be in submit queue still
+						updateQueue(bean);
+						
+					} else {
+						IConsumerProcess<U> process = ref.get();
+						if (process!=null) {
+							process.terminate();
+						}
+					}
+				} catch (EventException e) {
+					logger.error("Cannot terminate process "+bean.getUniqueId(), e);
+				}
+			}
+		});
+	}
+
 	@Override
 	public void stop() throws EventException {
         alive.setAlive(false); // Broadcasts that we are being killed

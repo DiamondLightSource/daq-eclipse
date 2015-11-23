@@ -78,6 +78,13 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 * The system will then look to see if these strings are set in the
 	 * serialized string and attempt to deserialize using these.
 	 * 
+	 * It is not compulsory to set the bean class. If the bean being sent
+	 * is being transmitted using an ISubmitter, it will set the fields for
+	 * bundle and bean class in the json string. This allows queue with 
+	 * different sorts of beans to exist. When setting the bean class an extra
+	 * loop is avoided as the class that the consumer can deal with is 
+	 * know and not searched for, therefore this consumer is faster.
+	 * 
 	 * @return
 	 */
 	public void setBeanClass(Class<T> beanClass) throws EventException;

@@ -152,7 +152,7 @@ public class AbstractConsumerTest {
 		
 		consumer.stop();
 		
-		Thread.sleep(2000);
+		Thread.sleep(3000);
 		checkTerminatedProcess(bean);
 
 	}
@@ -176,7 +176,7 @@ public class AbstractConsumerTest {
 		kbean.setDisconnect(false);  // Or we cannot ask for the list of what's left
 		killer.broadcast(kbean);
 		
-		Thread.sleep(2000);
+		Thread.sleep(5000);
 		checkTerminatedProcess(bean);
 		
     }
@@ -197,9 +197,28 @@ public class AbstractConsumerTest {
         bean.setStatus(Status.REQUEST_TERMINATE);
         terminator.broadcast(bean);
         
-        Thread.sleep(2000);
+        Thread.sleep(3000);
 		checkTerminatedProcess(bean);
 	}
+	
+	@Test
+	public void testAbortingAJobRemotelyNoBeanClass() throws Exception {
+
+		consumer.setRunner(new DryRunCreator<StatusBean>());
+		consumer.start();
+
+		StatusBean bean = doSubmit();
+
+		Thread.sleep(2000);
+		
+		IPublisher<StatusBean> terminator = eservice.createPublisher(submitter.getUri(), IEventService.STATUS_TOPIC, new ActivemqConnectorService());
+        bean.setStatus(Status.REQUEST_TERMINATE);
+        terminator.broadcast(bean);
+        
+        Thread.sleep(3000);
+		checkTerminatedProcess(bean);
+	}
+
     
 	private void checkTerminatedProcess(StatusBean bean) throws Exception {
 		List<StatusBean> stati = consumer.getStatusSet();
