@@ -20,26 +20,35 @@ import java.util.Map;
  * Usage:
  * <code>
  <p>
-        IMalcolmService service = ... // OSGi service
-        IMalcolmConnection        connection = service.createConnection("tcp://127.0.0.1:7800");
-
-		IMalcolmDevice zebra =  connection.getDevice("zebra");
-	    Map<String, Object> config = new HashMap<String,Object>(2);
-		config.put("PC_BIT_CAP", 1);
-		config.put("PC_TSPRE", "ms");
-		
-		zebra.configure(config);
-		zebra.run(); // blocks until finished
-		
-		final State state = zebra.getState();
-        // ... We did something!
+        IMalcolmService service = ... // OSGi service<br>
+        IMalcolmConnection        connection = service.createConnection("tcp://127.0.0.1:7800");<br>
+<br>
+		IMalcolmDevice zebra =  connection.getDevice("zebra");<br>
+	    Map<String, Object> config = new HashMap<String,Object>(2);<br>
+		config.put("PC_BIT_CAP", 1);<br>
+		config.put("PC_TSPRE", "ms");<br>
+		<br>
+		zebra.configure(config);<br>
+		zebra.run(); // blocks until finished<br>
+		<br>
+		final State state = zebra.getState();<br>
+        // ... We did something!<br>
 </p>        
 </code>
 
  * @author Matthew Gerring
  *
  */
-public interface IMalcolmDevice extends IMalcolmEventPublisher, IMalcolmStateManager {
+public interface IMalcolmDevice<T> extends IMalcolmEventPublisher, IMalcolmStateManager {
+	
+	// TODO setAttribute, getAttribute
+	
+	// TODO Table of 'positions' in configure map. Needed for wrapping with external dimension, sets the position in nexus file to write.
+	// Name (String), Type desrc (Map<String, int>), Value (double[] or numeric list), String unit (can be null/unset)
+	// List of rows in the object to serialize.
+	// Sending this to Malcolm for the info for a write, positions of frames 
+	// Examples from Tom's tests 
+	
 	
 	/**
 	 * allowed in any state. Can be used to check a param dict for validity. Will always report the same result whatever
@@ -49,7 +58,7 @@ public interface IMalcolmDevice extends IMalcolmEventPublisher, IMalcolmStateMan
 	 * 
 	 * @throws MalcolmDeviceException if params are not a just not allowed.
 	 */
-	public Map<String, Object> validate(Map<String, Object> params) throws MalcolmDeviceException;
+	public T validate(T params) throws MalcolmDeviceException;
 	
 	/**
 	 * Allowed in any state except Fault. Will abort the current operation. Will block until the device is in a reset state.
@@ -64,7 +73,7 @@ public interface IMalcolmDevice extends IMalcolmEventPublisher, IMalcolmStateMan
 	/**
 	 * Allowed when the device is in Ready or Paused state. Will block until the device is in a rest state.
 	 */
-	public void configure(Map<String, Object> params) throws MalcolmDeviceException;
+	public void configure(T params) throws MalcolmDeviceException;
 	
 	/**
 	 * Allowed when the device is in Ready or Paused state. Will block until the device is in a rest state.
@@ -72,12 +81,7 @@ public interface IMalcolmDevice extends IMalcolmEventPublisher, IMalcolmStateMan
 	 * A paused device must have resume() called on the same thread.
 	 */
 	public void run() throws MalcolmDeviceException;
-	
-	/**
-	 * Convenience function that does an abort() or reset() if needed, then a configure(params) and a run()
-	 */
-	public void configureRun(Map<String, Object> params) throws MalcolmDeviceException;
-	
+		
 	/**
 	 * Allowed when the device is in Running state. Will block until the device is in a rest state. 
 	 * 

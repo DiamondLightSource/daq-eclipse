@@ -39,7 +39,7 @@ public interface MessageGenerator<T> {
 	 * @return
 	 * @throws MalcolmDeviceException
 	 */
-	T createCallMessage(String methodName, Map<String, Object> params) throws MalcolmDeviceException;
+	T createCallMessage(String methodName, Object params) throws MalcolmDeviceException;
 
 	
     /**

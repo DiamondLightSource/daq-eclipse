@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-public class MalcolmDevice extends AbstractMalcolmDevice {
+public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 	private static Logger logger = LoggerFactory.getLogger(MalcolmDevice.class);
 		
@@ -108,15 +108,15 @@ public class MalcolmDevice extends AbstractMalcolmDevice {
 
 
 	@Override
-	public Map<String, Object> validate(Map<String, Object> params) throws MalcolmDeviceException {
+	public T validate(T params) throws MalcolmDeviceException {
 		
 		final JsonMessage msg   = connectionDelegate.createCallMessage("validate", params);
 		final JsonMessage reply = service.send(this, msg);
-        return (Map<String, Object>)reply.getValue();
+        return (T)reply.getValue();
 	}
 	
 	@Override
-	public void configure(Map<String, Object> params) throws MalcolmDeviceException {
+	public void configure(T params) throws MalcolmDeviceException {
 		final JsonMessage msg   = connectionDelegate.createCallMessage("configure", params);
 		service.send(this, msg);
 	}

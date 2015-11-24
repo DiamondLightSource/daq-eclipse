@@ -12,12 +12,14 @@ public interface IMalcolmConnection {
 	public Collection<String> getDeviceNames() throws MalcolmDeviceException;
 	
 	/**
-	 * Get a device by name
+	 * Get a device by name. At the point where the device is retrieved the
+	 * caller may know the type of device and use a generic to declare it.
+	 * 
 	 * @param name
 	 * @return
 	 * @throws MalcolmDeviceException
 	 */
-	public IMalcolmDevice getDevice(String name) throws MalcolmDeviceException;
+	public <T> IMalcolmDevice<T> getDevice(String name) throws MalcolmDeviceException;
 
 	/**
 	 * Disposes the connections to all devices made by this connection.

@@ -16,7 +16,7 @@ import org.eclipse.malcolm.core.AbstractMalcolmDevice;
 
 import uk.ac.diamond.malcom.jacksonzeromq.connector.ZeromqConnectorService;
 
-class MockedMalcolmDevice extends AbstractMalcolmDevice {
+class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	
 	protected Map<String,Object> params;
 	

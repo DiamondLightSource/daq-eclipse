@@ -23,7 +23,7 @@ public class JsonMessage {
 	private String endpoint;
 	private String method;
 	private String message;
-	private Map<String, Object> arguments;
+	private Object arguments;
 	private Object value;
 	
 	public Type getType() {
@@ -106,10 +106,10 @@ public class JsonMessage {
 			return false;
 		return true;
 	}
-	public Map<String, Object> getArguments() {
+	public Object getArguments() {
 		return arguments;
 	}
-	public void setArguments(Map<String, Object> args) {
+	public void setArguments(Object args) {
 		this.arguments = args;
 	}
 	@Override

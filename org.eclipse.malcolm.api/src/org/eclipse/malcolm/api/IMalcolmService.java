@@ -9,6 +9,25 @@ import org.eclipse.malcolm.api.message.JsonMessage;
 /**
  * An OSGi service for creating Malcolm connections
  * 
+ * Usage:
+ * <code>
+ <p>
+        IMalcolmService service = ... // OSGi service <br>
+        IMalcolmConnection        connection = service.createConnection("tcp://127.0.0.1:7800");<br>
+<br>
+		IMalcolmDevice zebra =  connection.getDevice("zebra");<br>
+	    Map<String, Object> config = new HashMap<String,Object>(2);<br>
+		config.put("PC_BIT_CAP", 1);<br>
+		config.put("PC_TSPRE", "ms");<br>
+		<br>
+		zebra.configure(config);<br>
+		zebra.run(); // blocks until finished<br>
+		<br>
+		final State state = zebra.getState();<br>
+        // ... We did something!<br>
+</p>        
+</code>
+
  * @author Matthew Gerring
  *
  */

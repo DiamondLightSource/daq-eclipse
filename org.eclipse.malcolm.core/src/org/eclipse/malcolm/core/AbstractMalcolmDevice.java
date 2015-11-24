@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * Base class for non-pausable Malcolm devices
  *
  */
-public abstract class AbstractMalcolmDevice implements IMalcolmDevice {
+public abstract class AbstractMalcolmDevice<T> implements IMalcolmDevice<T> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMalcolmDevice.class);
 
@@ -147,19 +147,8 @@ public abstract class AbstractMalcolmDevice implements IMalcolmDevice {
 	}
 
 	@Override
-	public void configure(Map<String, Object> params) throws MalcolmDeviceException {
+	public void configure(T params) throws MalcolmDeviceException {
 		throw new MalcolmDeviceException(this, "Configure has not been implemented!");
-	}
-
-
-	@Override
-	public void configureRun(Map<String, Object> params) throws MalcolmDeviceException {
-		
-		// TODO need to check if this is true
-		if (getState() == State.RUNNING)  abort();
-		if (getState() != State.IDLE)     reset();
-		configure(params);
-		run();
 	}
 
 	protected void sendEvent(MalcolmEventBean event) throws Exception {

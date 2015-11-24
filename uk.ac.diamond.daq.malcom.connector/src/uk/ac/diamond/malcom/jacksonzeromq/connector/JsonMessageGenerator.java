@@ -71,9 +71,9 @@ class JsonMessageGenerator implements MessageGenerator<JsonMessage> {
 		return msg;
 	}
 	@Override
-	public JsonMessage createCallMessage(final String methodName, Map<String, Object> args) throws MalcolmDeviceException {
+	public JsonMessage createCallMessage(final String methodName, Object arg) throws MalcolmDeviceException {
 		final JsonMessage msg = createCallMessage(methodName);
-		msg.setArguments(args);
+		msg.setArguments(arg);
 		return msg;
 	}
 	
