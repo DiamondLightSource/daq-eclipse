@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @param <T>
  */
-public interface IGenerator<T> extends Iterable<Point> {
+public interface IGenerator<T, P> extends Iterable<P> {
 	
 	/**
 	 * The model for the generator.
@@ -40,7 +40,7 @@ public interface IGenerator<T> extends Iterable<Point> {
 	 * 
 	 * @return
 	 */
-	Iterator<Point> iterator();
+	Iterator<P> iterator();
 	
 	/**
 	 * Relatively slow because all the points have to exist in memory.
@@ -49,5 +49,5 @@ public interface IGenerator<T> extends Iterable<Point> {
 	 * 
 	 * @return
 	 */
-	List<Point> createPoints() throws GeneratorException;
+	List<P> createPoints() throws GeneratorException;
 }

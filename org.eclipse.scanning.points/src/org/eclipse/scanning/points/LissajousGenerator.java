@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 
-class LissajousGenerator extends AbstractGenerator<LissajousModel> {
+class LissajousGenerator extends AbstractGenerator<LissajousModel,Point> {
 
 	@Override
 	public Iterator<Point> iterator() {

@@ -60,7 +60,7 @@ public class RasterTestLarge {
 		
 		
 		// Get the point list
-		IGenerator<RasterModel> gen = service.createGenerator(model, roi);
+		IGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
 		GeneratorUtil.testGeneratorPoints(gen);
 		
 		long start = System.currentTimeMillis();		
@@ -108,7 +108,7 @@ public class RasterTestLarge {
 		model.setyStep(1);
 
 		// Get the point list
-		IGenerator<RasterModel> gen = service.createGenerator(model, boundingRectangle);
+		IGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);
 		List<Point> points = gen.createPoints();
 		
 		assertEquals(10011001, points.size()); // TODO Is 10011001 correct?

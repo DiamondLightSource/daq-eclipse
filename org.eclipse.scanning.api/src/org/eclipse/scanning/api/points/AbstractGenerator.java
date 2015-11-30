@@ -2,7 +2,7 @@ package org.eclipse.scanning.api.points;
 
 import java.util.Iterator;
 
-public abstract class AbstractGenerator<T> implements IGenerator<T>, Iterable<Point> {
+public abstract class AbstractGenerator<T,P> implements IGenerator<T,P>, Iterable<P> {
 
 	protected T model;
 	protected IPointContainer<?> container;
@@ -26,7 +26,7 @@ public abstract class AbstractGenerator<T> implements IGenerator<T>, Iterable<Po
 		// For those generators which implement an iterator,
 		// doing this loop is *much* faster for large arrays
 		// because memory does not have to be allocated.
-		Iterator<Point> it = iterator();
+		Iterator<P> it = iterator();
 		int index = -1;
 		while(it.hasNext()) {
 			Object next = it.next();
@@ -41,7 +41,7 @@ public abstract class AbstractGenerator<T> implements IGenerator<T>, Iterable<Po
 	 * returns their iterator
 	 */
 	@Override
-	public Iterator<Point> iterator() {
+	public Iterator<P> iterator() {
 		try {
 			return createPoints().iterator();
 		} catch (GeneratorException e) {

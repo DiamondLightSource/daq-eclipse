@@ -36,7 +36,7 @@ public class LissajousTest {
 		model.setyLength(3);
 
 		// Get the point list
-		IGenerator<LissajousModel> gen = service.createGenerator(model, null);
+		IGenerator<LissajousModel,Point> gen = service.createGenerator(model, null);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -50,7 +50,7 @@ public class LissajousTest {
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
 		// Get the point list
-		IGenerator<LissajousModel> gen = service.createGenerator(new LissajousModel(), roi);
+		IGenerator<LissajousModel,Point> gen = service.createGenerator(new LissajousModel(), roi);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());

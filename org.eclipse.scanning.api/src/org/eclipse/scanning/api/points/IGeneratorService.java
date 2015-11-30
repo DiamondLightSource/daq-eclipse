@@ -12,7 +12,7 @@ package org.eclipse.scanning.api.points;
  * LissajousModel model = new LissajousModel();<br>
  *  ... // Set values
  * 
- * IGenerator<LissajousModel> generator = pservice.createGenerator(model, roi); <br>
+ * IGenerator<LissajousModel,Point> generator = pservice.createGenerator(model, roi); <br>
  * 
  * Iterator<Point> it = generator.iterator(); <br>
  * ... // Use iterator in a scan. <br>
@@ -22,7 +22,7 @@ package org.eclipse.scanning.api.points;
  * int size = generator.size();<br>
  * 
  * // Create and return all the points in memory (might be large). Avoid if possible <br>
- * List<Point> allPoints = generator.createPoints(); <br
+ * List<Point> allPoints = generator.createPoints(); <br>
  * 
  * </code></usage>
  * 
@@ -37,6 +37,6 @@ public interface IGeneratorService {
 	 * @param region, a reference to an IROI for instance, maybe <b>null</b> if no IROI exists for this scan.
 	 * @return
 	 */
-	<T,R> IGenerator<T> createGenerator(T model, R roi) throws GeneratorException;
-	
+	<T,R,P> IGenerator<T,P> createGenerator(T model, R roi) throws GeneratorException;
+
 }

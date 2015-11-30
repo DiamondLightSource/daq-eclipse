@@ -209,9 +209,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	
 	@Override
 	public void start() throws EventException {
-		
-		startTerminator();
-		
+				
 		final Thread consumerThread = new Thread("Consumer Thread "+getName()) {
 			public void run() {
 				try {
@@ -280,6 +278,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	@Override
 	public void run() throws EventException {
 		
+		startTerminator();
+
 		if (runner!=null) {
 			alive.setAlive(true);
 		} else {

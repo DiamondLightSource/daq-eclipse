@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.GridModel;
 
-class GridGenerator extends AbstractGenerator<GridModel> {
+class GridGenerator extends AbstractGenerator<GridModel,Point> {
 
 	@Override
 	public int size() throws GeneratorException {

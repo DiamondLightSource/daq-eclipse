@@ -18,15 +18,20 @@
 
 package org.eclipse.scanning.api.points;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * An immutable class used to represent a point for use in a mapping scan.
+ * 
+ * This class represents an x,y position for a mapping scan.
  *
  * @author James Mudd
  */
-public class Point {
+public class Point extends AbstractPosition {
 
-	private double x;
-	private double y;
+	private Double x;
+	private Double y;
 
 	public Point(double xPosition, double yPosition) {
 		this.x = xPosition;
@@ -72,5 +77,22 @@ public class Point {
 		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int size() {
+		return 2;
+	}
+
+	@Override
+	public List<String> getNames() {
+		return Arrays.asList("X", "Y");
+	}
+
+	@Override
+	public Double get(String name) {
+		if ("X".equals(name)) return getX();
+		if ("Y".equals(name)) return getY();
+		return null;
 	}
 }

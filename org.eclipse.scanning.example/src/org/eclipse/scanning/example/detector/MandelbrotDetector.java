@@ -104,7 +104,7 @@ public class MandelbrotDetector implements IScannable<IDataset> {
 		} else if (outputDimensions == OutputDimensions.TWO_D) {
 			ret = calculateJuliaSet(a, b, COLUMNS, ROWS);
 		}
-//		ret.getM
+        // TODO FIXME Store 'value' in 
 
 		return ret;
 	}

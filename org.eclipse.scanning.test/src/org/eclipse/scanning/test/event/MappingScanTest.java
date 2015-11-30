@@ -16,6 +16,7 @@ import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.event.EventServiceImpl;
@@ -93,7 +94,7 @@ public class MappingScanTest {
 		model.setRows(2);
 		model.setColumns(5);
 		
-		IGenerator<GridModel> gen = gservice.createGenerator(model, null);
+		IGenerator<GridModel,Point> gen = gservice.createGenerator(model, null);
 		
 		// Outer loop temperature, will be scan command driven when sequencer exists.
 		for (double temp = 273; temp < 283; temp++) {
@@ -115,7 +116,7 @@ public class MappingScanTest {
 		assertTrue(gotBack.get(gotBack.size()-1).scanEnd());
 	}
 	
-	private void testDeviceScan(ScanBean bean, IGenerator<GridModel> gen) throws Exception {
+	private void testDeviceScan(ScanBean bean, IGenerator<GridModel,Point> gen) throws Exception {
 				
 		// Mimic a scan
 		bean.setDeviceState(DeviceState.CONFIGURING);
@@ -126,9 +127,9 @@ public class MappingScanTest {
 
 		bean.setDeviceState(DeviceState.RUNNING);
 		int size = 0;
-		for (Point pnt : gen) {
-			bean.putPosition("zebra_x", pnt.getX());
-			bean.putPosition("zebra_y", pnt.getY());
+		for (IPosition pnt : gen) {
+			bean.putPosition("zebra_x", pnt.get("X"));
+			bean.putPosition("zebra_y", pnt.get("Y"));
 			publisher.broadcast(bean);
 			++size;
 		}

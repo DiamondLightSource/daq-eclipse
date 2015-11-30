@@ -36,7 +36,7 @@ public class LinearTest {
         model.setPoints(10);
 		
 		// Get the point list
-		IGenerator<OneDEqualSpacingModel> gen = service.createGenerator(model, roi);
+		IGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -51,7 +51,7 @@ public class LinearTest {
         model.setPoints(10);
 		
 		// Get the point list
-		IGenerator<OneDEqualSpacingModel> gen = service.createGenerator(model, null);
+		IGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, null);
 		gen.createPoints();
 	}
 
@@ -64,7 +64,7 @@ public class LinearTest {
         model.setPoints(0);
 		
 		// Get the point list
-		IGenerator<OneDEqualSpacingModel> gen = service.createGenerator(model, roi);
+		IGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
         GeneratorUtil.testGeneratorPoints(gen);
 	}
@@ -79,7 +79,7 @@ public class LinearTest {
         model.setStep(0.3);
 		
 		// Get the point list
-		IGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
+		IGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -96,7 +96,7 @@ public class LinearTest {
         model.setStep(0);
 		
 		// Get the point list
-		IGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
+		IGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
         GeneratorUtil.testGeneratorPoints(gen);
 		
@@ -111,7 +111,7 @@ public class LinearTest {
         model.setStep(0);
 		
 		// Get the point list
-		IGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
+		IGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
         GeneratorUtil.testGeneratorPoints(gen);
 		

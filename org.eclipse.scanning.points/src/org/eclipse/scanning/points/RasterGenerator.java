@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.RasterModel;
 
-class RasterGenerator extends AbstractGenerator<RasterModel> {
+class RasterGenerator extends AbstractGenerator<RasterModel,Point> {
 	
 
 	public Iterator<Point> iterator() {

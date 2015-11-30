@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 
-public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacingModel> {
+public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacingModel,Point> {
 
 	// TODO FIXME implement iterator() and size()?
 	

@@ -35,7 +35,7 @@ public class RasterTest {
 		model.setyStep(1);
 
 		// Get the point list
-		IGenerator<RasterModel> gen = service.createGenerator(model, boundingRectangle);
+		IGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);
 		List<Point> pointList = gen.createPoints();
 
 		// Check correct number of points
@@ -78,7 +78,7 @@ public class RasterTest {
 		model.setyStep(yStep);
 
 		// Get the point list
-		IGenerator<RasterModel> gen = service.createGenerator(model, roi);
+		IGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 
 		int rows = (int) (Math.floor((xStop - xStart) / xStep) + 1);
@@ -110,7 +110,7 @@ public class RasterTest {
 		model.setyStep(1);
 
 		// Get the point list
-		IGenerator<RasterModel> gen = service.createGenerator(model, roi);
+		IGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 
 		// Check the length of the lists are equal

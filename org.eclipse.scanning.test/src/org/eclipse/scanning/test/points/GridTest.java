@@ -31,6 +31,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
@@ -59,7 +60,7 @@ public class GridTest {
 		model.setyLength(3);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(model, null);
+		IGenerator<GridModel,Point> gen = service.createGenerator(model, null);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -81,7 +82,7 @@ public class GridTest {
 		model.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(model, roi);
+		IGenerator<GridModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -102,7 +103,7 @@ public class GridTest {
 		model.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(model, roi);
+		IGenerator<GridModel,Point> gen = service.createGenerator(model, roi);
         Iterator<Point> it = gen.iterator();
         List<Point> pointList = new ArrayList<Point>(7);
         while (it.hasNext()) pointList.add(it.next());
@@ -126,7 +127,7 @@ public class GridTest {
 		gridScanPath.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, circle);
+		IGenerator<GridModel,Point> gen = service.createGenerator(gridScanPath, circle);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -147,7 +148,7 @@ public class GridTest {
 		gridScanPath.setColumns(200);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, circle);
+		IGenerator<GridModel,Point> gen = service.createGenerator(gridScanPath, circle);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -176,7 +177,7 @@ public class GridTest {
 		model.setLock(true); // Isolate the bounding box which can come back from the ROI wrong
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(model, diamond);
+		IGenerator<GridModel,Point> gen = service.createGenerator(model, diamond);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());

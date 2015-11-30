@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 
-class OneDStepGenerator extends AbstractGenerator<OneDStepModel> {
+class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 
 	@Override
 	public List<Point> createPoints() throws GeneratorException {

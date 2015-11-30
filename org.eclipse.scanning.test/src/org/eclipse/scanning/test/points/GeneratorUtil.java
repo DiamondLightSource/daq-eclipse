@@ -4,11 +4,11 @@
 package org.eclipse.scanning.test.points;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.points.IGenerator;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 
 /**
@@ -22,14 +22,15 @@ class GeneratorUtil {
 	 * @param gen
 	 * @throws Exception 
 	 */
-	public static void testGeneratorPoints(IGenerator<?> gen) throws Exception {
-		final List<Point> ponts = gen.createPoints();
-		final List<Point> its   = new ArrayList<Point>(gen.size());
-		final Iterator<Point> it = gen.iterator();
+	public static void testGeneratorPoints(IGenerator<?,?> gen) throws Exception {
+		
+		final List ponts = gen.createPoints();
+		final List its   = new ArrayList<>(gen.size());
+		final Iterator it = gen.iterator();
 		while(it.hasNext()) its.add(it.next());
 		
-		Point[] pnts1 = array(ponts);
-		Point[] pnts2 = array(ponts);
+		IPosition[] pnts1 = array(ponts);
+		IPosition[] pnts2 = array(ponts);
 		
 		if (pnts2.length!=pnts1.length) throw new Exception("Not the same size!");
         for (int i = 0; i < pnts1.length; i++) {
@@ -39,7 +40,7 @@ class GeneratorUtil {
 		}
  	}
 
-	private static Point[] array(List<Point> p) {
-		return p.toArray(new Point[p.size()]);
+	private static IPosition[] array(List<IPosition> p) {
+		return p.toArray(new IPosition[p.size()]);
 	}
 }

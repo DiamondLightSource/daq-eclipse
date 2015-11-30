@@ -60,7 +60,7 @@ public class GridTestLarge {
 		long start = System.currentTimeMillis();
 		
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(model, roi);
+		IGenerator<GridModel,Point> gen = service.createGenerator(model, roi);
         Iterator<Point>       it  = gen.iterator();
 
 		long after1 = System.currentTimeMillis();
@@ -105,7 +105,7 @@ public class GridTestLarge {
 		gridScanPath.setColumns(10000);
 
 		// Get the point list
-		IGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
+		IGenerator<GridModel,Point> gen = service.createGenerator(gridScanPath, boundingRectangle);
 		List<Point> points = gen.createPoints();
 		
 		assertEquals(10000000, points.size());
