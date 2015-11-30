@@ -35,4 +35,13 @@ public interface IPosition {
 	 * @return
 	 */
 	Object get(String name);
+	
+	/**
+	 * Creates a composite position with the values of this position 
+	 * and the values of the passed in position.
+	 * 
+	 * @param other
+	 * @return
+	 */
+	IPosition composite(IPosition other);
 }

@@ -47,5 +47,5 @@ public interface IGeneratorService {
 	 * @return
 	 * @throws GeneratorException
 	 */
-	<T> IGenerator<T,IPosition> createCompoundGenerator(IGenerator... generators) throws GeneratorException;
+	IGenerator<?,IPosition> createCompoundGenerator(IGenerator<?,? extends IPosition>... generators) throws GeneratorException;
 }

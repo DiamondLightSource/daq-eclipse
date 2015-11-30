@@ -119,7 +119,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	}
 
 	@Override
-	public <T> IGenerator<T, IPosition> createCompoundGenerator(IGenerator... generators) throws GeneratorException {
-		throw new GeneratorException();
+	public IGenerator<?, IPosition> createCompoundGenerator(IGenerator<?,? extends IPosition>... generators) throws GeneratorException {
+		return new CompoundGenerator(generators);
 	}
 }

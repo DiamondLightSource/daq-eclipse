@@ -3,6 +3,14 @@ package org.eclipse.scanning.api.points;
 import java.util.List;
 
 public abstract class AbstractPosition implements IPosition {
+	
+	public IPosition composite(IPosition with) {
+		if (with==null) return this; // this+null = this
+		final MapPosition ret = new MapPosition();
+		ret.putAll(with);
+		ret.putAll(this);
+		return ret;
+	}
 
 	@Override
 	public int hashCode() {

@@ -9,7 +9,7 @@ import java.util.List;
  * @author fcp94556
  *
  */
-public class Scalar implements IPosition {
+public class Scalar extends AbstractPosition {
 	
 	private String name;
 	private double value;
