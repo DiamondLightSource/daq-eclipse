@@ -3,7 +3,6 @@ package org.eclipse.scanning.test.points;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.points.IGenerator;
@@ -26,7 +25,7 @@ public class CompoundTest {
 	}
 	
 	@Test
-	public void testSimpleCompoundStep() throws Exception {
+	public void testSimpleCompoundStep2Step() throws Exception {
 		
 		IGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
 		assertEquals(6, temp.size());
@@ -65,6 +64,60 @@ public class CompoundTest {
 
 
 	}
+	
+	@Test
+	public void testSimpleCompoundStep3Step() throws Exception {
+		
+		IGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
+		assertEquals(6, temp.size());
+
+		IGenerator<StepModel, IPosition> y = service.createGenerator(new StepModel("Y", 11, 14, 0.6));
+		assertEquals(6, y.size());
+
+		IGenerator<StepModel, IPosition> x = service.createGenerator(new StepModel("X", 1, 4, 0.6));
+		assertEquals(6, x.size());
+	
+
+		IGenerator<?,IPosition> scan = service.createCompoundGenerator(temp, y, x);
+		assertEquals(216, scan.size());
+
+		final List<IPosition> points = scan.createPoints();
+		
+		// 290K
+		assertEquals(new Double(290), (Double)points.get(0).get("Temperature"));
+		assertEquals(new Double(11),  (Double)points.get(0).get("Y"));
+		assertEquals(new Double(1),   (Double)points.get(0).get("X"));
+		assertEquals(new Double(290), (Double)points.get(1).get("Temperature"));
+		assertEquals(new Double(11),  (Double)points.get(1).get("Y"));
+		assertEquals(new Double(1.6), (Double)points.get(1).get("X"));
+		assertEquals(new Double(290), (Double)points.get(2).get("Temperature"));
+		assertEquals(new Double(11),  (Double)points.get(2).get("Y"));
+		assertEquals(new Double(2.2), (Double)points.get(2).get("X"));
+		
+		// 291K
+		assertEquals(new Double(291), (Double)points.get(36).get("Temperature"));
+		assertEquals(new Double(11),  (Double)points.get(36).get("Y"));
+		assertEquals(new Double(1),   (Double)points.get(36).get("X"));
+		assertEquals(new Double(291), (Double)points.get(37).get("Temperature"));
+		assertEquals(new Double(11),  (Double)points.get(37).get("Y"));
+		assertEquals(new Double(1.6), (Double)points.get(37).get("X"));
+		assertEquals(new Double(291), (Double)points.get(38).get("Temperature"));
+		assertEquals(new Double(11),  (Double)points.get(38).get("Y"));
+		assertEquals(new Double(2.2), (Double)points.get(38).get("X"));
+
+		// 295K
+		assertEquals(new Double(295), (Double)points.get(180).get("Temperature"));
+		assertEquals(new Double(11),  (Double)points.get(180).get("Y"));
+		assertEquals(new Double(1),   (Double)points.get(180).get("X"));
+		assertEquals(new Double(295), (Double)points.get(181).get("Temperature"));
+		assertEquals(new Double(11),  (Double)points.get(181).get("Y"));
+		assertEquals(new Double(1.6), (Double)points.get(181).get("X"));
+		assertEquals(new Double(295), (Double)points.get(182).get("Temperature"));
+		assertEquals(new Double(11),  (Double)points.get(182).get("Y"));
+		assertEquals(new Double(2.2), (Double)points.get(182).get("X"));
+
+	}
+
 	
 
 	@Test

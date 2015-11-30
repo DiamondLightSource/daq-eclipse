@@ -100,9 +100,14 @@ public class StepTest {
 		checkSequence(gen, 0d, 0.6, 1.2, 1.8, 2.4, 3.0);
 		GeneratorUtil.testGeneratorPoints(gen);
 
-		model = new StepModel("Temperature", 1,4, 0.6);	
+		model = new StepModel("Temperature", 1, 4, 0.6);	
 		gen.setModel(model);
 		checkSequence(gen, 1.0, 1.6, 2.2, 2.8, 3.4, 4.0);
+		GeneratorUtil.testGeneratorPoints(gen);
+		
+		model = new StepModel("Temperature", 11, 14, 0.6);	
+		gen.setModel(model);
+		checkSequence(gen, 11.0, 11.6, 12.2, 12.8, 13.4, 14.0);
 		GeneratorUtil.testGeneratorPoints(gen);
 
 		model = new StepModel("Temperature", 1,4, 0.5);	
