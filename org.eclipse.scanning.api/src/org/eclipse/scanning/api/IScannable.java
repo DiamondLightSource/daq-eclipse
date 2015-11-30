@@ -1,12 +1,13 @@
 package org.eclipse.scanning.api;
 
 /**
- * TODO Migrate current acquisition scannable to this interface.
+ * 
+ * Something that can take part in a sequenced scan which can have its position set.
  * 
  * @author fcp94556
  *
  */
-public interface IScannable {
+public interface IScannable<T> {
 
 	/**
 	 * Name of the scannable
@@ -15,5 +16,11 @@ public interface IScannable {
 	public String getName();
 	public void setName(String name);
 	
-	
+	/**
+	 * Returns the current position of the Scannable. Called by ConcurentScan at the end of the point. 
+	 * 
+	 * @return Current position with an element for each input and extra field. null if their are no fields.
+	 * @throws DeviceException
+	 */
+	public T getPosition() throws Exception;
 }
