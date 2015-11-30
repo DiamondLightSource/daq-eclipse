@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.points;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.points.IGenerator;
@@ -25,7 +26,49 @@ public class CompoundTest {
 	}
 	
 	@Test
-	public void testSimpleCompound() throws Exception {
+	public void testSimpleCompoundStep() throws Exception {
+		
+		IGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
+		assertEquals(6, temp.size());
+
+		IGenerator<StepModel, IPosition> pos = service.createGenerator(new StepModel("Position", 1,4, 0.6));
+		assertEquals(6, pos.size());
+
+		IGenerator<?,IPosition> scan = service.createCompoundGenerator(temp, pos);
+		assertEquals(36, scan.size());
+
+		final List<IPosition> points = scan.createPoints();
+		
+		// 290K
+		assertEquals(new Double(290), (Double)points.get(0).get("Temperature"));
+		assertEquals(new Double(1),   (Double)points.get(0).get("Position"));
+		assertEquals(new Double(290), (Double)points.get(1).get("Temperature"));
+		assertEquals(new Double(1.6), (Double)points.get(1).get("Position"));
+		assertEquals(new Double(290), (Double)points.get(2).get("Temperature"));
+		assertEquals(new Double(2.2), (Double)points.get(2).get("Position"));
+		
+		// 291K
+		assertEquals(new Double(291), (Double)points.get(6).get("Temperature"));
+		assertEquals(new Double(1),   (Double)points.get(6).get("Position"));
+		assertEquals(new Double(291), (Double)points.get(7).get("Temperature"));
+		assertEquals(new Double(1.6), (Double)points.get(7).get("Position"));
+		assertEquals(new Double(291), (Double)points.get(8).get("Temperature"));
+		assertEquals(new Double(2.2), (Double)points.get(8).get("Position"));
+		
+		// 295K
+		assertEquals(new Double(295), (Double)points.get(30).get("Temperature"));
+		assertEquals(new Double(1),   (Double)points.get(30).get("Position"));
+		assertEquals(new Double(295), (Double)points.get(31).get("Temperature"));
+		assertEquals(new Double(1.6), (Double)points.get(31).get("Position"));
+		assertEquals(new Double(295), (Double)points.get(32).get("Temperature"));
+		assertEquals(new Double(2.2), (Double)points.get(32).get("Position"));
+
+
+	}
+	
+
+	@Test
+	public void testSimpleCompoundGrid() throws Exception {
 		
 		IGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,300,1));
 		assertEquals(11, temp.size());
