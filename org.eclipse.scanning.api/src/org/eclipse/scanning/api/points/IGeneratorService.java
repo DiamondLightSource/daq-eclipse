@@ -39,4 +39,13 @@ public interface IGeneratorService {
 	 */
 	<T,R,P> IGenerator<T,P> createGenerator(T model, R... roi) throws GeneratorException;
 
+	/**
+	 * Create a nested or compound generator.
+	 * Each generator in the varargs argument is another level to the loop.
+	 * 
+	 * @param generators
+	 * @return
+	 * @throws GeneratorException
+	 */
+	<T> IGenerator<T,IPosition> createCompoundGenerator(IGenerator... generators) throws GeneratorException;
 }

@@ -13,6 +13,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPointContainer;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBoxModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.LinearModel;
@@ -21,6 +22,7 @@ import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.PointModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
+import org.eclipse.scanning.api.points.models.StepModel;
 
 public class GeneratorServiceImpl implements IGeneratorService {
 	
@@ -31,6 +33,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	// to allow point generators to be dynamically registered. 
 	static {
 		Map<Class<?>, Class<? extends IGenerator<?,?>>> tmp = new HashMap<>(7);
+		tmp.put(StepModel.class,             StepGenerator.class);
 		tmp.put(GridModel.class,             GridGenerator.class);
 		tmp.put(LissajousModel.class,        LissajousGenerator.class);
 		tmp.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
@@ -113,5 +116,10 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		}
 		
 		throw new GeneratorException("Cannot deal with model "+model.getClass());
+	}
+
+	@Override
+	public <T> IGenerator<T, IPosition> createCompoundGenerator(IGenerator... generators) throws GeneratorException {
+		throw new GeneratorException();
 	}
 }

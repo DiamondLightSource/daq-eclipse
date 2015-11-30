@@ -6,6 +6,7 @@ import java.util.List;
 public abstract class AbstractGenerator<T,P> implements IGenerator<T,P>, Iterable<P> {
 
 	protected T model;
+	protected List<IPointContainer<?>> containers;
 
 	@Override
 	public T getModel() {
@@ -48,8 +49,6 @@ public abstract class AbstractGenerator<T,P> implements IGenerator<T,P>, Iterabl
 			throw new IllegalArgumentException("Cannot generate an iterator!", e);
 		}
 	}
-
-	protected List<IPointContainer<?>> containers;
 
 	@Override
 	public List<IPointContainer<?>> getContainers() {
