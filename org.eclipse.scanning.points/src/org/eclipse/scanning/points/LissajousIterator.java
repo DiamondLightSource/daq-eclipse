@@ -10,16 +10,16 @@ class LissajousIterator implements Iterator<Point> {
 
 	private LissajousModel model;
 	private double theta;
-	private IPointContainer<?> container;
+	private LissajousGenerator gen;
 	
 	// TODO work out if we should only allow closed paths?
 	// TODO need to calculate maxTheta needed to close the path.
 	private static final double maxTheta = 20 * Math.PI;
 
 
-	public LissajousIterator(LissajousModel model, IPointContainer<?> container) {
-		this.model     = model;
-		this.container = container;
+	public LissajousIterator(LissajousGenerator gen) {
+		this.model     = gen.getModel();
+		this.gen       = gen;
 		this.theta     = -model.getThetaStep();
 	}
 
@@ -56,17 +56,12 @@ class LissajousIterator implements Iterator<Point> {
 
 		if (theta > maxTheta) return null;
 		this.theta += model.getThetaStep();
-	
-		if (container!=null) {
-			if (container.containsPoint(x, y)) {
-				return new Point(x, y);
-			} else {
-				return next();
-			}
-		} else {
-			return new Point(x, y);
-		}
 
+		if (gen.containsPoint(x, y)) {
+			return new Point(x, y);
+		} else {
+			return next();
+		}
 	}
 
 }

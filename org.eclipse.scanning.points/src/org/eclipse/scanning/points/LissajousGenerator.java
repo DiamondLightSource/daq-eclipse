@@ -13,7 +13,7 @@ class LissajousGenerator extends AbstractGenerator<LissajousModel,Point> {
 
 	@Override
 	public Iterator<Point> iterator() {
-		return new LissajousIterator(model, container);
+		return new LissajousIterator(this);
 	}
 
 	@Override
@@ -35,11 +35,7 @@ class LissajousGenerator extends AbstractGenerator<LissajousModel,Point> {
 		while (theta <= maxTheta) {
 			double x = xCentre + A * Math.sin(model.getA() * theta + model.getDelta());
 			double y = yCentre + B * Math.cos(model.getB() * theta);
-			if (container!=null) {
-				if (container.containsPoint(x, y)) {
-					pointList.add(new Point(x, y));
-			     }
-			} else {
+			if (containsPoint(x, y)) {
 				pointList.add(new Point(x, y));
 			}
 			theta += model.getThetaStep();

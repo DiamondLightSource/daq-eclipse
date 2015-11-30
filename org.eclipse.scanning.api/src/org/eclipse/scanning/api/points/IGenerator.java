@@ -24,8 +24,8 @@ public interface IGenerator<T, P> extends Iterable<P> {
 	 * The class which contains points, may be null.
 	 * @return
 	 */
-	<R> IPointContainer<R> getContainer();
-	<R> void setContainer(IPointContainer<R> container) throws GeneratorException;
+	List<IPointContainer<?>> getContainers();
+	void setContainers(List<IPointContainer<?>> container) throws GeneratorException;
 
 	/**
 	 * The size of the points iterator. This call will be as fast as possible

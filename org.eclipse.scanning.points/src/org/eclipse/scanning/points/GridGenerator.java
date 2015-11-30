@@ -35,7 +35,7 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 	@Override
 	public Iterator<Point> iterator() {
 		createSteps();
-		return new GridIterator(model, container);
+		return new GridIterator(this);
 	}
 
 	@Override
@@ -57,11 +57,7 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 					double x = minX + j * model.getxStep();
 					double y = minY + i * model.getyStep();
 					// Check if point is inside the roi if so add it to the list
-					if (container==null) {
-						pointList.add(new Point(x, y));
-						continue;
-					}
-					if (container.containsPoint(x, y)) {
+					if (containsPoint(x, y)) {
 						pointList.add(new Point(x, y));
 					}
 				}
@@ -71,11 +67,7 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 					double x = minX + j * model.getxStep();
 					double y = minY + i * model.getyStep();
 					// Check if point is inside the roi if so add it to the list
-					if (container==null) {
-						pointList.add(new Point(x, y));
-						continue;
-					}
-					if (container.containsPoint(x, y)) {
+					if (containsPoint(x, y)) {
 						pointList.add(new Point(x, y));
 					}
 				}
@@ -88,11 +80,7 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 					double x = minX + j * model.getxStep();
 					double y = minY + i * model.getyStep();
 					// Check if point is inside the roi if so add it to the list
-					if (container==null) {
-						pointList.add(new Point(x, y));
-						continue;
-					}
-					if (container.containsPoint(x, y)) {
+					if (containsPoint(x, y)) {
 						pointList.add(new Point(x, y));
 					}
 				}

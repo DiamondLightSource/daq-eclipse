@@ -2,22 +2,21 @@ package org.eclipse.scanning.points;
 
 import java.util.Iterator;
 
-import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.GridModel;
 
 class GridIterator implements Iterator<Point> {
 
 	private GridModel model;
-	private IPointContainer<?> container;
 	private double    minX;
 	private double    minY;
 	
 	private int i,j;
+	private GridGenerator gen;
 
-	public GridIterator(GridModel model, IPointContainer<?> container) {
-		this.model     = model;	
-		this.container = container;
+	public GridIterator(GridGenerator gen) {
+		this.model = gen.getModel();	
+		this.gen   = gen;
         this.minX = model.getX() + model.getxStep() / 2;
 		this.minY = model.getY() + model.getyStep() / 2;
         i=0;
@@ -84,10 +83,7 @@ class GridIterator implements Iterator<Point> {
 
 		double x = minX + j * model.getxStep();
 		double y = minY + i * model.getyStep();
-		if (container==null) {
-			return new Point(x, y);
-		}
-		if (container.containsPoint(x, y)) {
+		if (gen.containsPoint(x, y)) {
 			return new Point(x, y);
 		} else {
 			return next();

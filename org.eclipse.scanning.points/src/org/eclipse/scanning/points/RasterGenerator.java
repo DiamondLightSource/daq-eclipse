@@ -13,7 +13,7 @@ class RasterGenerator extends AbstractGenerator<RasterModel,Point> {
 	
 
 	public Iterator<Point> iterator() {
-		return new RasterIterator(model, container);
+		return new RasterIterator(this);
 	}
 
 	@Override
@@ -36,21 +36,13 @@ class RasterGenerator extends AbstractGenerator<RasterModel,Point> {
 				double x = minX;
 				for (; x <= (minX + xLength); x += model.getxStep()) {
 					// Check if point is inside the roi if so add it to the list
-					if (container!=null) {
-						if (container.containsPoint(x, y)) pointList.add(new Point(x, y));
-					} else {
-						pointList.add(new Point(x, y));
-					}
+					if (containsPoint(x, y)) pointList.add(new Point(x, y));
 				}
 				// Move to the next line and go in the opposite direction
 				y += model.getyStep();
 				for (; x >= minX; x -= model.getxStep()) {
 					// Check if point is inside the roi if so add it to the list
-					if (container!=null) {
-						if (container.containsPoint(x, y)) pointList.add(new Point(x, y));
-					} else {
-						pointList.add(new Point(x, y));
-					}
+					if (containsPoint(x, y)) pointList.add(new Point(x, y));
 				}
 			}
 		}
@@ -59,11 +51,7 @@ class RasterGenerator extends AbstractGenerator<RasterModel,Point> {
 			for (double y = minY; y <= (minY + yLength); y += model.getyStep()) {
 				for (double x = minX; x <= (minX + xLength); x += model.getxStep()) {
 					// Check if point is inside the roi if so add it to the list
-					if (container!=null) {
-						if (container.containsPoint(x, y)) pointList.add(new Point(x, y));
-					} else {
-						pointList.add(new Point(x, y));
-					}
+					if (containsPoint(x, y)) pointList.add(new Point(x, y));
 				}
 			}
 		}

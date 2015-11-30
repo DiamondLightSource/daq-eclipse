@@ -9,12 +9,12 @@ import org.eclipse.scanning.api.points.models.RasterModel;
 public class RasterIterator implements Iterator<Point> {
 
 	private RasterModel        model;
-	private IPointContainer<?> container;
-	double  x,y;
+	private double             x,y;
+	private RasterGenerator    gen;
 	
-	public RasterIterator(RasterModel model, IPointContainer<?> container) {
-		this.model     = model;
-		this.container = container;
+	public RasterIterator(RasterGenerator gen) {
+		this.model = gen.getModel();
+		this.gen   = gen;
 		this.x = model.getX()-model.getxStep();
 		this.y = model.getY();
 	}
@@ -81,10 +81,7 @@ public class RasterIterator implements Iterator<Point> {
 		if (y<model.getY() || y > (minY + model.getyLength())) return null;
 		if (x<model.getX() || x > (minX + model.getxLength())) throw new NullPointerException("Unexpected index. The x value was "+x);
 
-		if (container==null) {
-			return new Point(x, y);
-		}
-		if (container.containsPoint(x, y)) {
+		if (gen.containsPoint(x, y)) {
 			return new Point(x, y);
 		} else {
 			return next();

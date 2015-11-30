@@ -1,7 +1,9 @@
 package org.eclipse.scanning.points;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
@@ -39,13 +41,13 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	}
 
 	@Override
-	public <T,R,P> IGenerator<T,P> createGenerator(T model, R region) throws GeneratorException {
+	public <T,R,P> IGenerator<T,P> createGenerator(T model, R... regions) throws GeneratorException {
 		try {
 			IGenerator<T,P> gen = (IGenerator<T,P>)generators.get(model.getClass()).newInstance();
 			 
-			if (region != null && PointModel.class.isAssignableFrom(model.getClass())) {
-			    synchModel((PointModel)model, (IROI)region);
-			    gen.setContainer(wrap(region));
+			if (regions!=null && regions.length > 0 && PointModel.class.isAssignableFrom(model.getClass())) {
+			    synchModel((PointModel)model, (IROI)regions[0]);
+			    gen.setContainers(wrap(regions));
 			}
 			gen.setModel(model);
 			return gen;
@@ -57,21 +59,28 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		}
 	}
 
-	private IPointContainer<IROI> wrap(Object region) throws GeneratorException {
-		if (!(region instanceof IROI)) throw new GeneratorException("Currently only type "+IROI.class.getName()+" can be wrapped!");
+	private List<IPointContainer<?>> wrap(Object... regions) throws GeneratorException {
 		
-		final IROI roi = (IROI)region;
-		return new IPointContainer<IROI>() {
-			@Override
-			public boolean containsPoint(double x, double y) {
-				return roi.containsPoint(x, y);
-			}
+		if (regions==null || regions.length<1) return null;
+		if (!(regions[0] instanceof IROI)) throw new GeneratorException("Currently only type "+IROI.class.getName()+" can be wrapped!");
+		
+		List<IPointContainer<?>> ret = new ArrayList<>();
+		for (Object region : regions) {
+			final IROI roi = (IROI)region;
+			IPointContainer<IROI> container = new IPointContainer<IROI>() {
+				@Override
+				public boolean containsPoint(double x, double y) {
+					return roi.containsPoint(x, y);
+				}
 
-			@Override
-			public IROI getROI() {
-				return roi;
-			}
-		};
+				@Override
+				public IROI getROI() {
+					return roi;
+				}
+			};
+			ret.add(container);
+		}
+		return ret;
 	}
 	
 	private <T extends PointModel> void synchModel(T model, IROI roi) throws GeneratorException {

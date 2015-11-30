@@ -37,6 +37,6 @@ public interface IGeneratorService {
 	 * @param region, a reference to an IROI for instance, maybe <b>null</b> if no IROI exists for this scan.
 	 * @return
 	 */
-	<T,R,P> IGenerator<T,P> createGenerator(T model, R roi) throws GeneratorException;
+	<T,R,P> IGenerator<T,P> createGenerator(T model, R... roi) throws GeneratorException;
 
 }

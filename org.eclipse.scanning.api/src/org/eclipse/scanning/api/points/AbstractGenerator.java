@@ -1,11 +1,11 @@
 package org.eclipse.scanning.api.points;
 
 import java.util.Iterator;
+import java.util.List;
 
 public abstract class AbstractGenerator<T,P> implements IGenerator<T,P>, Iterable<P> {
 
 	protected T model;
-	protected IPointContainer<?> container;
 
 	@Override
 	public T getModel() {
@@ -49,14 +49,31 @@ public abstract class AbstractGenerator<T,P> implements IGenerator<T,P>, Iterabl
 		}
 	}
 
+	protected List<IPointContainer<?>> containers;
+
 	@Override
-	public <R> IPointContainer<R> getContainer() {
-		return (IPointContainer<R>)container;
+	public List<IPointContainer<?>> getContainers() {
+		return containers;
 	}
 
 	@Override
-	public <R> void setContainer(IPointContainer<R> container) {
-		this.container = container;
+	public void setContainers(List<IPointContainer<?>> containers) throws GeneratorException {
+		this.containers = containers;
+	}
+	
+	/**
+	 * If there are no containers, the point is considered contained.
+	 * 
+	 * @param x
+	 * @param y
+	 */
+	public boolean containsPoint(double x, double y) {
+		if (containers==null)    return true;
+		if (containers.size()<1) return true;
+		for (IPointContainer<?> container : containers) {
+			if (container.containsPoint(x, y)) return true;
+		}
+		return false;
 	}
 
 }

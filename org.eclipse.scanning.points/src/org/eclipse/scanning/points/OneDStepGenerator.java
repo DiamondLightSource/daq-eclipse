@@ -15,9 +15,10 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 	public List<Point> createPoints() throws GeneratorException {
 		
 		if (model.getStep()==0) throw new GeneratorException("The step cannot be zero!");
-		if (container==null) throw new GeneratorException("For "+getClass().getName()+" a "+LinearROI.class.getName()+" must be provided!");
+		if (containers==null) throw new GeneratorException("For "+getClass().getName()+" a "+LinearROI.class.getName()+" must be provided!");
+		if (containers.size()!=1) throw new GeneratorException("For "+getClass().getName()+" a single "+LinearROI.class.getName()+" must be provided!");
 		
-		LinearROI line = (LinearROI)container.getROI();
+		LinearROI line = (LinearROI)containers.get(0).getROI();
 
 		double length = line.getLength();
 		double proportionalStep = model.getStep() / length;
