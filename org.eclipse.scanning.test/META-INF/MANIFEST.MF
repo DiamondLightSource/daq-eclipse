@@ -12,7 +12,8 @@ Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  uk.ac.diamond.org.apache.activemq;bundle-version="5.9.0",
  org.eclipse.dawnsci.analysis.dataset;bundle-version="1.0.0",
  org.eclipse.scanning.points;bundle-version="1.0.0",
- org.eclipse.dawnsci.analysis.api;bundle-version="1.0.0"
+ org.eclipse.dawnsci.analysis.api;bundle-version="1.0.0",
+ org.eclipse.scanning.sequencer;bundle-version="1.0.0"
 Service-Component: OSGI-INF/*.xml
 Import-Package: javax.jms,
  org.junit;version="4.10.0",
