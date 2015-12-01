@@ -38,7 +38,7 @@ public class RasterTestLarge {
 		model.setxStep(1);
 		model.setyStep(1);
 
-		testIteratorTime(model, roi, 785350, 10000);
+		testIteratorTime(model, roi, 785349, 10000);
 	}
 	
 	@Test
