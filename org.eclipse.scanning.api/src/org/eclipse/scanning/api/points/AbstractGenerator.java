@@ -30,8 +30,7 @@ public abstract class AbstractGenerator<T,P> implements IGenerator<T,P>, Iterabl
 		Iterator<P> it = iterator();
 		int index = -1;
 		while(it.hasNext()) {
-			Object next = it.next();
-			if (next==null) break;
+			it.next();
 			index++;
 		}
 		return index+1;

@@ -27,16 +27,25 @@ class GridIterator implements Iterator<Point> {
 
 	@Override
 	public boolean hasNext() {
+		
 		int[] next = increment(model, i, j, forewards); 
 		int i = next[0];
 		int j = next[1];
-		
-		// TODO should check if the next position is in the container!
-		
+			
 		if (i>(model.getRows()-1) || i<0)    {
 			return false;  // Normal termination
 		}
 		if (j>(model.getColumns()-1) || j<0) return false;
+		
+		double x = minX + j * model.getxStep();
+		double y = minY + i * model.getyStep();
+		if (!gen.containsPoint(x, y)) {
+			this.i = i;
+			this.j = j;
+			this.forewards = next[2]==1;
+			return hasNext();
+		}
+
 		return true;
 	}
 

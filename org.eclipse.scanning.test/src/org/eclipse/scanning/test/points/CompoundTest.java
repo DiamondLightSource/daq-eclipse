@@ -62,7 +62,7 @@ public class CompoundTest {
 		assertEquals(new Double(295), (Double)points.get(32).get("Temperature"));
 		assertEquals(new Double(2.2), (Double)points.get(32).get("Position"));
 
-
+        GeneratorUtil.testGeneratorPoints(scan);
 	}
 	
 	@Test
@@ -116,6 +116,7 @@ public class CompoundTest {
 		assertEquals(new Double(11),  (Double)points.get(182).get("Y"));
 		assertEquals(new Double(2.2), (Double)points.get(182).get("X"));
 
+        GeneratorUtil.testGeneratorPoints(scan);
 	}
 
 	
@@ -158,6 +159,7 @@ public class CompoundTest {
 		for (int i = 4399; i >= 4000; i--) {
 			assertEquals(new Double(300.0), points.get(i).get("Temperature"));
 		}
+        GeneratorUtil.testGeneratorPoints(scan);
 
 	}
 	

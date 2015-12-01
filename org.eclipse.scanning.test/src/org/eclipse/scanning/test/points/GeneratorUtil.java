@@ -32,7 +32,7 @@ class GeneratorUtil {
 		IPosition[] pnts1 = array(ponts);
 		IPosition[] pnts2 = array(its);
 		
-		if (pnts2.length!=pnts1.length) throw new Exception("Not the same size!");
+		if (pnts2.length!=pnts1.length) throw new Exception("Not the same size! Iterator size is "+its.size()+" full list size is "+ponts.size());
         for (int i = 0; i < pnts1.length; i++) {
 			if (!pnts1[i].equals(pnts2[i])) {
 				throw new Exception(pnts1[i]+" does not equal "+pnts2[i]);

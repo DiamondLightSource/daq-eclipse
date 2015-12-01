@@ -24,6 +24,15 @@ class CompoundGenerator extends AbstractGenerator<Object, IPosition> {
 		for (int i = 0; i < generators.length; i++) size*=generators[i].size();
         return size;
 	}
+	
+	@Override
+	public Iterator<IPosition> iterator() {
+		try {
+			return new CompoundIterator(this);
+		} catch (GeneratorException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
 
 	@Override
 	public List<IPosition> createPoints() throws GeneratorException {
@@ -38,14 +47,14 @@ class CompoundGenerator extends AbstractGenerator<Object, IPosition> {
 	 * 
 	 * @param igen
 	 * @param points
-	 * @param point
+	 * @param parent
 	 */
-	private void createPoints(int igen, List<IPosition> points, IPosition point) {
+	private void createPoints(int igen, List<IPosition> points, IPosition parent) {
 		
 		IGenerator<?,? extends IPosition> gen = generators[igen];
 		Iterator<? extends IPosition>     it  = gen.iterator();
 		while(it.hasNext()) {
-			IPosition pos = it.next().composite(point);
+			IPosition pos = it.next().composite(parent);
 			int nextGen = igen+1;
 			if (nextGen<generators.length) {
 				createPoints(nextGen, points, pos);
@@ -54,6 +63,10 @@ class CompoundGenerator extends AbstractGenerator<Object, IPosition> {
 			}
 		}
 	
+	}
+
+	public IGenerator<?, ? extends IPosition>[] getGenerators() {
+		return generators;
 	}
 
 }

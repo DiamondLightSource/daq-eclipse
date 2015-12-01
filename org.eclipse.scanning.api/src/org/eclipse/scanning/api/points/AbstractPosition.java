@@ -55,4 +55,17 @@ public abstract class AbstractPosition implements IPosition {
 		
 		return true;
 	}
+	
+	public String toString() {
+		StringBuilder buf = new StringBuilder("[");
+		final List<String> names   = getNames();
+        for (String name : names) {
+        	buf.append(name);
+        	buf.append("=");
+        	buf.append(get(name));
+        	buf.append(", ");
+		}
+    	buf.append("]");
+    	return buf.toString();
+	}
 }

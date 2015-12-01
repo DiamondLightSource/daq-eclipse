@@ -2,7 +2,6 @@ package org.eclipse.scanning.points;
 
 import java.util.Iterator;
 
-import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 
@@ -25,23 +24,30 @@ class LissajousIterator implements Iterator<Point> {
 
 	@Override
 	public boolean hasNext() {
-		double[] da = increment(model, this.theta);
-		double theta = da[0];
-		return theta <= maxTheta;
+		
+		double[] pos = increment(model, this.theta);
+		double t = pos[0];
+		
+		if (t > maxTheta) return false;
+
+		if (!gen.containsPoint(pos[1], pos[2])) {
+			this.theta = t;
+            return hasNext();
+		}
+		return true;
 	}
 
-	private final static double[] increment(LissajousModel model, double theta) {
+	private final double[] increment(LissajousModel model, double theta) {
 		
+		theta += model.getThetaStep();
+
 		double A = model.getxLength() / 2;
 		double B = model.getyLength() / 2;
 		double xCentre = model.getX() + A;
 		double yCentre = model.getY() + B;
 		
-		// TODO should check if the next position is in the container!
-
 		double x = xCentre + A * Math.sin(model.getA() * theta + model.getDelta());
 		double y = yCentre + B * Math.cos(model.getB() * theta);
-		theta += model.getThetaStep();
 		
 		return new double[]{theta, x, y};
 	}
@@ -55,7 +61,7 @@ class LissajousIterator implements Iterator<Point> {
 		double y     = da[2];
 
 		if (theta > maxTheta) return null;
-		this.theta += model.getThetaStep();
+		this.theta = theta;
 
 		if (gen.containsPoint(x, y)) {
 			return new Point(x, y);

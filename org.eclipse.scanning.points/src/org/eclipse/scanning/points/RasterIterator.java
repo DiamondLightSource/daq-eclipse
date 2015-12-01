@@ -35,6 +35,13 @@ public class RasterIterator implements Iterator<Point> {
 		if (y<model.getY() || y > (minY + model.getyLength())) return false;
 		if (x<model.getX() || x > (minX + model.getxLength())) return false;
 		
+		if (!gen.containsPoint(x, y)) {
+			this.x = next[0];
+			this.y = next[1];
+			this.forewards = next[2]==1;
+			return hasNext();
+		}
+
 		return true;
 	}
 
