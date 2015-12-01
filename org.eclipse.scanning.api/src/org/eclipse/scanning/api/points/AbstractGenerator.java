@@ -3,6 +3,13 @@ package org.eclipse.scanning.api.points;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * 
+ * @author fcp94556
+ *
+ * @param <T>
+ * @param <P>
+ */
 public abstract class AbstractGenerator<T,P> implements IGenerator<T,P>, Iterable<P> {
 
 	protected T model;

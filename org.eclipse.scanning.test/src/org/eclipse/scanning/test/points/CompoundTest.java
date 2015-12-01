@@ -1,8 +1,9 @@
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.points.IGenerator;
@@ -22,6 +23,30 @@ public class CompoundTest {
 	@Before
 	public void before() throws Exception {
 		service = new GeneratorServiceImpl();
+	}
+	
+	
+	@Test
+	public void testIteratedSize() throws Exception {
+
+		IGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
+		assertEquals(6, temp.size());
+
+		IGenerator<StepModel, IPosition> pos = service.createGenerator(new StepModel("Position", 1,4, 0.6));
+		assertEquals(6, pos.size());
+
+		IGenerator<?,IPosition> scan = service.createCompoundGenerator(temp, pos);
+		assertTrue(scan.iterator().next()!=null);
+		assertEquals(36, scan.size());
+		
+		Iterator<IPosition> it = scan.iterator();
+		int size = scan.size();
+		int sz=0;
+		while(it.hasNext()) {
+			it.next();
+			sz++;
+			if (sz>size) throw new Exception("Iterator grew too large!");
+		}
 	}
 	
 	@Test

@@ -40,8 +40,6 @@ public abstract class AbstractPosition implements IPosition {
 		if (getClass() != obj.getClass())
 			return false;
 		
-		if (!super.equals(obj)) return false;
-		
 		final List<String> ours   = getNames();
 		final List<String> theirs = ((IPosition)obj).getNames();
 		if (!ours.equals(theirs)) return false;		
