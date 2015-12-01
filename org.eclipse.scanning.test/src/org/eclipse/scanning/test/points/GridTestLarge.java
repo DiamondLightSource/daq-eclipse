@@ -37,7 +37,7 @@ public class GridTestLarge {
 		model.setRows(3162);
 		model.setColumns(3162);
 
-		testIteratorTime(model, roi, 7852633, 10000);
+		testIteratorTime(model, roi, 7852632, 20000);
 	}
 	
 	@Test
@@ -51,7 +51,7 @@ public class GridTestLarge {
 		model.setRows(1000);
 		model.setColumns(10000);
 
-		testIteratorTime(model, roi, 10000000, 500);
+		testIteratorTime(model, roi, 10000000, 20000);
 	}
 
 	
@@ -85,7 +85,7 @@ public class GridTestLarge {
 		
 		long after3 = System.currentTimeMillis();
 		System.out.println("It took "+(after3-after2)+"ms to iterate "+size+" with "+roi.getClass().getSimpleName());
-		assertTrue(after2>(after3-tenMilTime)); // Shouldn't take that long to make it!
+		if ((after3-after2)>tenMilTime) throw new Exception(" The time was longer than "+tenMilTime+" to iterate "+size+". It took "+(after3-after2));
 		
 		assertEquals(size, count);
 		
