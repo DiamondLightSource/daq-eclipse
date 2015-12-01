@@ -30,7 +30,7 @@ class GeneratorUtil {
 		while(it.hasNext()) its.add(it.next());
 		
 		IPosition[] pnts1 = array(ponts);
-		IPosition[] pnts2 = array(ponts);
+		IPosition[] pnts2 = array(its);
 		
 		if (pnts2.length!=pnts1.length) throw new Exception("Not the same size!");
         for (int i = 0; i < pnts1.length; i++) {
