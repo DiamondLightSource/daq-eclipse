@@ -155,8 +155,8 @@ public class CompoundTest {
 		GridModel model = new GridModel();
 		model.setRows(20);
 		model.setColumns(20);
-		model.setX(0);
-		model.setY(0);
+		model.setxStart(0);
+		model.setyStart(0);
 		model.setxLength(3);
 		model.setyLength(3);
 

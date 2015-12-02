@@ -20,8 +20,8 @@ class RasterGenerator extends AbstractGenerator<RasterModel,Point> {
 	public List<Point> createPoints() throws GeneratorException {
 		
 		// Get the info from the bounding rectangle
-		double minX = model.getX();
-		double minY = model.getY();
+		double minX = model.getxStart();
+		double minY = model.getyStart();
 		double xLength = model.getxLength();
 		double yLength = model.getyLength();
 

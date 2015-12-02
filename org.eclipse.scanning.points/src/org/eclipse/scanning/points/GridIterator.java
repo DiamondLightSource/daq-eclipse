@@ -17,8 +17,8 @@ class GridIterator implements Iterator<Point> {
 	public GridIterator(GridGenerator gen) {
 		this.model = gen.getModel();	
 		this.gen   = gen;
-        this.minX = model.getX() + model.getxStep() / 2;
-		this.minY = model.getY() + model.getyStep() / 2;
+        this.minX = model.getxStart() + model.getxStep() / 2;
+		this.minY = model.getyStart() + model.getyStep() / 2;
         i=0;
         j=-1;
 	}

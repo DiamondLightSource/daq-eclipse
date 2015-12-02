@@ -15,8 +15,8 @@ public class RasterIterator implements Iterator<Point> {
 	public RasterIterator(RasterGenerator gen) {
 		this.model = gen.getModel();
 		this.gen   = gen;
-		this.x = model.getX()-model.getxStep();
-		this.y = model.getY();
+		this.x = model.getxStart()-model.getxStep();
+		this.y = model.getyStart();
 	}
 
 	private boolean forewards=true;
@@ -27,13 +27,13 @@ public class RasterIterator implements Iterator<Point> {
 		
 		double x = next[0];
 		double y = next[1];
-		double minX = model.getX();
-		double minY = model.getY();
+		double minX = model.getxStart();
+		double minY = model.getyStart();
 		
 		// TODO should check if the next position is in the container!
 		
-		if (y<model.getY() || y > (minY + model.getyLength())) return false;
-		if (x<model.getX() || x > (minX + model.getxLength())) return false;
+		if (y<model.getyStart() || y > (minY + model.getyLength())) return false;
+		if (x<model.getxStart() || x > (minX + model.getxLength())) return false;
 		
 		if (!gen.containsPoint(x, y)) {
 			this.x = next[0];
@@ -51,7 +51,7 @@ public class RasterIterator implements Iterator<Point> {
 		if (model.isSnake()) {
 			if (forewards) {
 				x += model.getxStep();
-				if (x > (model.getX() + model.getxLength())) {
+				if (x > (model.getxStart() + model.getxLength())) {
 					y+=model.getyStep();
 					forewards = !forewards;
 				}
@@ -66,8 +66,8 @@ public class RasterIterator implements Iterator<Point> {
 
 		} else {
 			x += model.getxStep();
-			if (x > (model.getX() + model.getxLength())) {
-				x=model.getX();
+			if (x > (model.getxStart() + model.getxLength())) {
+				x=model.getxStart();
 				y+=model.getyStep();
 			}
 		}
@@ -83,10 +83,10 @@ public class RasterIterator implements Iterator<Point> {
 		this.y = next[1];
 		this.forewards = next[2]==1;
 
-		double minX = model.getX();
-		double minY = model.getY();
-		if (y<model.getY() || y > (minY + model.getyLength())) return null;
-		if (x<model.getX() || x > (minX + model.getxLength())) throw new NullPointerException("Unexpected index. The x value was "+x);
+		double minX = model.getxStart();
+		double minY = model.getyStart();
+		if (y<model.getyStart() || y > (minY + model.getyLength())) return null;
+		if (x<model.getxStart() || x > (minX + model.getxLength())) throw new NullPointerException("Unexpected index. The x value was "+x);
 
 		if (gen.containsPoint(x, y)) {
 			return new Point(x, y);

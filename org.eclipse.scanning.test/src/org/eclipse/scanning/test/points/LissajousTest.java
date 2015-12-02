@@ -30,8 +30,8 @@ public class LissajousTest {
 	public void testLissajousNoROI() throws Exception {
 		
 		LissajousModel model = new LissajousModel();
-		model.setX(0);
-		model.setY(0);
+		model.setxStart(0);
+		model.setyStart(0);
 		model.setxLength(3);
 		model.setyLength(3);
 

@@ -1,11 +1,13 @@
 package org.eclipse.scanning.api.points.models;
 
-public class LissajousModel extends BoundingBoxModel {
+public class LissajousModel implements IBoundingBoxModel {
 
+	private IBoundingBoxModel boundingBox = new BoundingBoxModel();
 	private double a = 1;
 	private double b = 0.25;
 	private double delta = 0;
 	private double thetaStep = 0.05;
+
 	public double getA() {
 		return a;
 	}
@@ -31,6 +33,54 @@ public class LissajousModel extends BoundingBoxModel {
 		this.thetaStep = thetaStep;
 	}
 	@Override
+	public double getxLength() {
+		return boundingBox.getxLength();
+	}
+	@Override
+	public void setxLength(double xLength) {
+		boundingBox.setxLength(xLength);
+	}
+	@Override
+	public double getyLength() {
+		return boundingBox.getyLength();
+	}
+	@Override
+	public void setyLength(double yLength) {
+		boundingBox.setyLength(yLength);
+	}
+	@Override
+	public boolean isParentRectangle() {
+		return boundingBox.isParentRectangle();
+	}
+	@Override
+	public void setParentRectangle(boolean isParentRectangle) {
+		boundingBox.setParentRectangle(isParentRectangle);
+	}
+	@Override
+	public double getxStart() {
+		return boundingBox.getxStart();
+	}
+	@Override
+	public void setxStart(double minX) {
+		boundingBox.setxStart(minX);
+	}
+	@Override
+	public double getyStart() {
+		return boundingBox.getyStart();
+	}
+	@Override
+	public void setyStart(double minY) {
+		boundingBox.setyStart(minY);
+	}
+	@Override
+	public double getAngle() {
+		return boundingBox.getAngle();
+	}
+	@Override
+	public void setAngle(double angle) {
+		boundingBox.setAngle(angle);
+	}
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
@@ -39,6 +89,8 @@ public class LissajousModel extends BoundingBoxModel {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(b);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result
+				+ ((boundingBox == null) ? 0 : boundingBox.hashCode());
 		temp = Double.doubleToLongBits(delta);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(thetaStep);
@@ -58,6 +110,11 @@ public class LissajousModel extends BoundingBoxModel {
 			return false;
 		if (Double.doubleToLongBits(b) != Double.doubleToLongBits(other.b))
 			return false;
+		if (boundingBox == null) {
+			if (other.boundingBox != null)
+				return false;
+		} else if (!boundingBox.equals(other.boundingBox))
+			return false;
 		if (Double.doubleToLongBits(delta) != Double
 				.doubleToLongBits(other.delta))
 			return false;
@@ -66,6 +123,4 @@ public class LissajousModel extends BoundingBoxModel {
 			return false;
 		return true;
 	}
-
-	
 }
