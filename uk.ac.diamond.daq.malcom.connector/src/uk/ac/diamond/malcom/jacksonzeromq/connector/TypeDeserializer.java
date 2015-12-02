@@ -2,7 +2,7 @@ package uk.ac.diamond.malcom.jacksonzeromq.connector;
 
 import java.io.IOException;
 
-import org.eclipse.malcolm.api.message.Type;
+import org.eclipse.scanning.api.malcolm.message.Type;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
