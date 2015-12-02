@@ -18,9 +18,15 @@
 
 package org.eclipse.scanning.example.detector;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
-import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.IDetector;
+import org.eclipse.scanning.api.points.IPosition;
 
 
 /**
@@ -29,25 +35,24 @@ import org.eclipse.scanning.api.IScannable;
  * <p>
  * Note: values will always be high if used at (x, y) positions more than 2 units away from the origin.
  */
-public class MandelbrotDetector implements IScannable<IDataset> {
+public class MandelbrotDetector implements IDetector<IDataset> {
 
 	public enum OutputDimensions { ONE_D, TWO_D }
 
 	public static final String VALUE_NAME = "mandelbrot_value";
 
 	// Constants
-	private static final int MAX_ITERATIONS = 500;
+	private static final int    MAX_ITERATIONS = 500;
 	private static final double ESCAPE_RADIUS = 10.0;
-	private static final int COLUMNS = 301;
-	private static final int ROWS = 241;
-	private static final int POINTS = 1000;
+	private static final int    COLUMNS = 301;
+	private static final int    ROWS = 241;
+	private static final int    POINTS = 1000;
 	private static final double MAX_X = 1.5;
 	private static final double MAX_Y = 1.2;
 
 
 	// Configurable fields
-	private IScannable<Double> xPos;
-	private IScannable<Double> yPos;
+	private IPosition pos;
 	private OutputDimensions outputDimensions = OutputDimensions.TWO_D;
 
 	private String name;
@@ -56,12 +61,8 @@ public class MandelbrotDetector implements IScannable<IDataset> {
 		super();
 	}
 
-	public void setxPos(IScannable<Double> xPos) {
-		this.xPos = xPos;
-	}
-
-	public void setyPos(IScannable<Double> yPos) {
-		this.yPos = yPos;
+	public void setPosition(IPosition pos) {
+		this.pos = pos;
 	}
 
 	public void setOutputDimensions(OutputDimensions outputDimensions) {
@@ -89,11 +90,17 @@ public class MandelbrotDetector implements IScannable<IDataset> {
 		this.name = name;
 	}
 
+
 	@Override
-	public IDataset getPosition() throws Exception {
+	public void collectData() throws Exception {
+		// Not required
+	}
+
+	@Override
+	public IDataset readout() throws Exception {
 		
-		final double a = xPos.getPosition();
-		final double b = yPos.getPosition();
+		final double a = (Double)pos.get("X");
+		final double b = (Double)pos.get("Y");
 
 		double value = mandelbrot(a, b);
 		// TODO FIXME store value
@@ -104,8 +111,11 @@ public class MandelbrotDetector implements IScannable<IDataset> {
 		} else if (outputDimensions == OutputDimensions.TWO_D) {
 			ret = calculateJuliaSet(a, b, COLUMNS, ROWS);
 		}
-        // TODO FIXME Store 'value' in 
-
+		final Map<String, Serializable> mp = new HashMap<>(1);
+		mp.put("value", value);
+		Metadata meta = new Metadata(mp);
+        ret.addMetadata(meta);
+        
 		return ret;
 	}
 
@@ -176,5 +186,17 @@ public class MandelbrotDetector implements IScannable<IDataset> {
 		}
 		// Otherwise just return the iteration count
 		return iteration;
+	}
+
+	private int level = 1000;
+	
+	@Override
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	@Override
+	public int getLevel() {
+		return level;
 	}
 }

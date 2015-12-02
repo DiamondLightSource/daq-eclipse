@@ -7,14 +7,7 @@ package org.eclipse.scanning.api;
  * @author fcp94556
  *
  */
-public interface IScannable<T> {
-
-	/**
-	 * Name of the scannable
-	 * @return
-	 */
-	public String getName();
-	public void setName(String name);
+public interface IScannable<T> extends ILevel, INameable {
 	
 	/**
 	 * Returns the current position of the Scannable. Called by ConcurentScan at the end of the point. 

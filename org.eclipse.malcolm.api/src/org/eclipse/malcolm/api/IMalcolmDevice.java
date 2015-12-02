@@ -1,6 +1,5 @@
 package org.eclipse.malcolm.api;
 
-import java.util.Map;
 
 /**
  * This service talks to the middleware layer state machine for controlling

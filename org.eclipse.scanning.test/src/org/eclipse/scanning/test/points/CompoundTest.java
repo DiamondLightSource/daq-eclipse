@@ -166,7 +166,7 @@ public class CompoundTest {
 
 		IGenerator<?,IPosition> scan = service.createCompoundGenerator(temp, grid);
 		assertEquals(4400, scan.size());
-		
+
 		List<IPosition> points = scan.createPoints();
 
 		List<IPosition> first400 = new ArrayList<>(400);
