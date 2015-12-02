@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.event.core;
 
-import java.util.Map;
-
 import org.eclipse.scanning.api.event.EventException;
 
 public interface ITopicConnection extends IURIConnection {
@@ -24,7 +22,7 @@ public interface ITopicConnection extends IURIConnection {
 
 	
 	/**
-	 * Call to disconnect all publishers and subscribers when the connection goes down.
+	 * Call to disconnect this publisher or subscriber. Typically used in a try-finally block.
 	 * @throws EventException
 	 */
 	public void disconnect() throws EventException;
