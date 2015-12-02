@@ -1,30 +1,35 @@
 package org.eclipse.scanning.api.points.models;
 
 public class SinglePointModel implements IPointModel {
-
-	private IPointModel point = new PointModel();
+	
+	private double x;
+	private double y;
 
 	@Override
 	public double getX() {
-		return point.getX();
+		return x;
 	}
 	@Override
-	public void setX(double minX) {
-		point.setX(minX);
+	public void setX(double x) {
+		this.x = x;
 	}
 	@Override
 	public double getY() {
-		return point.getY();
+		return y;
 	}
 	@Override
-	public void setY(double minY) {
-		point.setY(minY);
+	public void setY(double y) {
+		this.y = y;
 	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((point == null) ? 0 : point.hashCode());
+		long temp;
+		temp = Double.doubleToLongBits(x);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(y);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
 	@Override
@@ -36,10 +41,9 @@ public class SinglePointModel implements IPointModel {
 		if (getClass() != obj.getClass())
 			return false;
 		SinglePointModel other = (SinglePointModel) obj;
-		if (point == null) {
-			if (other.point != null)
-				return false;
-		} else if (!point.equals(other.point))
+		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
+			return false;
+		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
 			return false;
 		return true;
 	}

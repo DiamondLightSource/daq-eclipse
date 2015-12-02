@@ -2,7 +2,8 @@ package org.eclipse.scanning.api.points.models;
 
 public class LinearModel implements ILinearModel {
 
-	private IPointModel startPoint = new PointModel();
+	private double xStart;
+	private double yStart;
 	private double angle;
 	private double length;
 
@@ -22,21 +23,17 @@ public class LinearModel implements ILinearModel {
 	public void setLength(double length) {
 		this.length = length;
 	}
-	@Override
 	public double getxStart() {
-		return startPoint.getX();
+		return xStart;
 	}
-	@Override
-	public void setxStart(double minX) {
-		startPoint.setX(minX);
+	public void setxStart(double xStart) {
+		this.xStart = xStart;
 	}
-	@Override
 	public double getyStart() {
-		return startPoint.getY();
+		return yStart;
 	}
-	@Override
-	public void setyStart(double minY) {
-		startPoint.setY(minY);
+	public void setyStart(double yStart) {
+		this.yStart = yStart;
 	}
 	@Override
 	public int hashCode() {
@@ -47,8 +44,10 @@ public class LinearModel implements ILinearModel {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(length);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result
-				+ ((startPoint == null) ? 0 : startPoint.hashCode());
+		temp = Double.doubleToLongBits(xStart);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(yStart);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
 	@Override
@@ -66,10 +65,11 @@ public class LinearModel implements ILinearModel {
 		if (Double.doubleToLongBits(length) != Double
 				.doubleToLongBits(other.length))
 			return false;
-		if (startPoint == null) {
-			if (other.startPoint != null)
-				return false;
-		} else if (!startPoint.equals(other.startPoint))
+		if (Double.doubleToLongBits(xStart) != Double
+				.doubleToLongBits(other.xStart))
+			return false;
+		if (Double.doubleToLongBits(yStart) != Double
+				.doubleToLongBits(other.yStart))
 			return false;
 		return true;
 	}

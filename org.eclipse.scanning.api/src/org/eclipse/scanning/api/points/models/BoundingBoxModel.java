@@ -2,59 +2,48 @@ package org.eclipse.scanning.api.points.models;
 
 public class BoundingBoxModel implements IBoundingBoxModel {
 
-	private IPointModel startPoint = new PointModel();
-	private double angle;
+	private double xStart;
+	private double yStart;
 	private double xLength;
 	private double yLength;
+	private double angle;
 	private boolean isParentRectangle;
 
-	@Override
-	public double getAngle() {
-		return angle;
+	public double getxStart() {
+		return xStart;
 	}
-	@Override
-	public void setAngle(double angle) {
-		this.angle = angle;
+	public void setxStart(double xStart) {
+		this.xStart = xStart;
 	}
-	@Override
+	public double getyStart() {
+		return yStart;
+	}
+	public void setyStart(double yStart) {
+		this.yStart = yStart;
+	}
 	public double getxLength() {
 		return xLength;
 	}
-	@Override
 	public void setxLength(double xLength) {
 		this.xLength = xLength;
 	}
-	@Override
 	public double getyLength() {
 		return yLength;
 	}
-	@Override
 	public void setyLength(double yLength) {
 		this.yLength = yLength;
 	}
-	@Override
+	public double getAngle() {
+		return angle;
+	}
+	public void setAngle(double angle) {
+		this.angle = angle;
+	}
 	public boolean isParentRectangle() {
 		return isParentRectangle;
 	}
-	@Override
 	public void setParentRectangle(boolean isParentRectangle) {
 		this.isParentRectangle = isParentRectangle;
-	}
-	@Override
-	public double getxStart() {
-		return startPoint.getX();
-	}
-	@Override
-	public void setxStart(double minX) {
-		startPoint.setX(minX);
-	}
-	@Override
-	public double getyStart() {
-		return startPoint.getY();
-	}
-	@Override
-	public void setyStart(double minY) {
-		startPoint.setY(minY);
 	}
 	@Override
 	public int hashCode() {
@@ -64,11 +53,13 @@ public class BoundingBoxModel implements IBoundingBoxModel {
 		temp = Double.doubleToLongBits(angle);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + (isParentRectangle ? 1231 : 1237);
-		result = prime * result
-				+ ((startPoint == null) ? 0 : startPoint.hashCode());
 		temp = Double.doubleToLongBits(xLength);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(xStart);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(yLength);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(yStart);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
@@ -86,17 +77,19 @@ public class BoundingBoxModel implements IBoundingBoxModel {
 			return false;
 		if (isParentRectangle != other.isParentRectangle)
 			return false;
-		if (startPoint == null) {
-			if (other.startPoint != null)
-				return false;
-		} else if (!startPoint.equals(other.startPoint))
-			return false;
 		if (Double.doubleToLongBits(xLength) != Double
 				.doubleToLongBits(other.xLength))
+			return false;
+		if (Double.doubleToLongBits(xStart) != Double
+				.doubleToLongBits(other.xStart))
 			return false;
 		if (Double.doubleToLongBits(yLength) != Double
 				.doubleToLongBits(other.yLength))
 			return false;
+		if (Double.doubleToLongBits(yStart) != Double
+				.doubleToLongBits(other.yStart))
+			return false;
 		return true;
 	}
+
 }
