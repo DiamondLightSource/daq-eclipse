@@ -11,11 +11,11 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 /**
  * This bean is used to disseminate messages about what has happened
  * to the scan while it is being written.
- * 
+ * <p>
  * Do not extend this class to allow arbitrary information to be sent.
  * The event encapsulated by this bean should be sending just the information
  * defined here, metadata that cannot circumvent the nexus file. 
- * 
+ * <p>
  * For instance adding a dynamic set of information, a map perhaps, would
  * allow information which should be saved in the Nexus file to circumvent
  * the file and be set in the event. It was decided in various meetings
