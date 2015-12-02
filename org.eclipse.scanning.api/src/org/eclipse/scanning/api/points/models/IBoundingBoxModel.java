@@ -10,13 +10,13 @@ public interface IBoundingBoxModel {
 
 	public void setyStart(double yStart);
 
-	public double getxLength();
+	public double getWidth();
 
-	public void setxLength(double xLength);
+	public void setWidth(double width);
 
-	public double getyLength();
+	public double getHeight();
 
-	public void setyLength(double yLength);
+	public void setHeight(double height);
 
 	/**
 	 * @return angle, in radians

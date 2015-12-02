@@ -33,20 +33,20 @@ public class LissajousModel implements IBoundingBoxModel {
 		this.thetaStep = thetaStep;
 	}
 	@Override
-	public double getxLength() {
-		return boundingBox.getxLength();
+	public double getWidth() {
+		return boundingBox.getWidth();
 	}
 	@Override
-	public void setxLength(double xLength) {
-		boundingBox.setxLength(xLength);
+	public void setWidth(double width) {
+		boundingBox.setWidth(width);
 	}
 	@Override
-	public double getyLength() {
-		return boundingBox.getyLength();
+	public double getHeight() {
+		return boundingBox.getHeight();
 	}
 	@Override
-	public void setyLength(double yLength) {
-		boundingBox.setyLength(yLength);
+	public void setHeight(double height) {
+		boundingBox.setHeight(height);
 	}
 	@Override
 	public boolean isParentRectangle() {
@@ -61,16 +61,16 @@ public class LissajousModel implements IBoundingBoxModel {
 		return boundingBox.getxStart();
 	}
 	@Override
-	public void setxStart(double minX) {
-		boundingBox.setxStart(minX);
+	public void setxStart(double xStart) {
+		boundingBox.setxStart(xStart);
 	}
 	@Override
 	public double getyStart() {
 		return boundingBox.getyStart();
 	}
 	@Override
-	public void setyStart(double minY) {
-		boundingBox.setyStart(minY);
+	public void setyStart(double yStart) {
+		boundingBox.setyStart(yStart);
 	}
 	@Override
 	public double getAngle() {

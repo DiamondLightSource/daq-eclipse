@@ -88,9 +88,9 @@ public class MappingScanTest {
 		
 		final GridModel model = new GridModel();
 		model.setxStart(10);
-		model.setxLength(5);
+		model.setWidth(5);
 		model.setyStart(10);
-		model.setyLength(2);
+		model.setHeight(2);
 		model.setRows(2);
 		model.setColumns(5);
 		

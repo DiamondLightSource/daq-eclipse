@@ -32,8 +32,8 @@ public class RasterIterator implements Iterator<Point> {
 		
 		// TODO should check if the next position is in the container!
 		
-		if (y<model.getyStart() || y > (minY + model.getyLength())) return false;
-		if (x<model.getxStart() || x > (minX + model.getxLength())) return false;
+		if (y<model.getyStart() || y > (minY + model.getHeight())) return false;
+		if (x<model.getxStart() || x > (minX + model.getWidth())) return false;
 		
 		if (!gen.containsPoint(x, y)) {
 			this.x = next[0];
@@ -51,7 +51,7 @@ public class RasterIterator implements Iterator<Point> {
 		if (model.isSnake()) {
 			if (forewards) {
 				x += model.getxStep();
-				if (x > (model.getxStart() + model.getxLength())) {
+				if (x > (model.getxStart() + model.getWidth())) {
 					y+=model.getyStep();
 					forewards = !forewards;
 				}
@@ -66,7 +66,7 @@ public class RasterIterator implements Iterator<Point> {
 
 		} else {
 			x += model.getxStep();
-			if (x > (model.getxStart() + model.getxLength())) {
+			if (x > (model.getxStart() + model.getWidth())) {
 				x=model.getxStart();
 				y+=model.getyStep();
 			}
@@ -85,8 +85,8 @@ public class RasterIterator implements Iterator<Point> {
 
 		double minX = model.getxStart();
 		double minY = model.getyStart();
-		if (y<model.getyStart() || y > (minY + model.getyLength())) return null;
-		if (x<model.getxStart() || x > (minX + model.getxLength())) throw new NullPointerException("Unexpected index. The x value was "+x);
+		if (y<model.getyStart() || y > (minY + model.getHeight())) return null;
+		if (x<model.getxStart() || x > (minX + model.getWidth())) throw new NullPointerException("Unexpected index. The x value was "+x);
 
 		if (gen.containsPoint(x, y)) {
 			return new Point(x, y);

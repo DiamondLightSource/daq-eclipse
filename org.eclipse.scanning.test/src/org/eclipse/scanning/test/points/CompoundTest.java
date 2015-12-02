@@ -157,8 +157,8 @@ public class CompoundTest {
 		model.setColumns(20);
 		model.setxStart(0);
 		model.setyStart(0);
-		model.setxLength(3);
-		model.setyLength(3);
+		model.setWidth(3);
+		model.setHeight(3);
 
 		// Get the point list
 		IGenerator<GridModel,Point> grid = service.createGenerator(model, null);

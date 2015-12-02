@@ -93,8 +93,8 @@ public class GeneratorServiceImpl implements IGeneratorService {
 			IRectangularROI rect = roi.getBounds();
 			box.setxStart(rect.getPoint()[0]);
 			box.setyStart(rect.getPoint()[1]);
-			box.setxLength(rect.getLength(0));
-			box.setyLength(rect.getLength(1));
+			box.setWidth(rect.getLength(0));
+			box.setHeight(rect.getLength(1));
 	
 			if (roi instanceof IRectangularROI) {
 				box.setAngle(((IRectangularROI)roi).getAngle());

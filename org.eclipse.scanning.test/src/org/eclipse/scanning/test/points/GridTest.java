@@ -55,8 +55,8 @@ public class GridTest {
 		model.setColumns(20);
 		model.setxStart(0);
 		model.setyStart(0);
-		model.setxLength(3);
-		model.setyLength(3);
+		model.setWidth(3);
+		model.setHeight(3);
 
 		// Get the point list
 		IGenerator<GridModel,Point> gen = service.createGenerator(model);
@@ -169,8 +169,8 @@ public class GridTest {
 		model.setColumns(20);
 		model.setxStart(0);
 		model.setyStart(0);
-		model.setxLength(3);
-		model.setyLength(3);
+		model.setWidth(3);
+		model.setHeight(3);
 
 		// Get the point list
 		IGenerator<GridModel,Point> gen = service.createGenerator(model, diamond);

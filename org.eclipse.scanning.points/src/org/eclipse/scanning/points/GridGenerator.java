@@ -24,8 +24,8 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 	}
 
 	private void createSteps() {
-		double xLength = model.getxLength();
-		double yLength = model.getyLength();
+		double xLength = model.getWidth();
+		double yLength = model.getHeight();
 
 		// Calculate the required step size
 		model.setxStep(xLength / model.getColumns());

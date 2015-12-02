@@ -4,8 +4,8 @@ public class BoundingBoxModel implements IBoundingBoxModel {
 
 	private double xStart;
 	private double yStart;
-	private double xLength;
-	private double yLength;
+	private double width;
+	private double height;
 	private double angle;
 	private boolean isParentRectangle;
 
@@ -21,17 +21,17 @@ public class BoundingBoxModel implements IBoundingBoxModel {
 	public void setyStart(double yStart) {
 		this.yStart = yStart;
 	}
-	public double getxLength() {
-		return xLength;
+	public double getWidth() {
+		return width;
 	}
-	public void setxLength(double xLength) {
-		this.xLength = xLength;
+	public void setWidth(double width) {
+		this.width = width;
 	}
-	public double getyLength() {
-		return yLength;
+	public double getHeight() {
+		return height;
 	}
-	public void setyLength(double yLength) {
-		this.yLength = yLength;
+	public void setHeight(double height) {
+		this.height = height;
 	}
 	public double getAngle() {
 		return angle;
@@ -53,11 +53,11 @@ public class BoundingBoxModel implements IBoundingBoxModel {
 		temp = Double.doubleToLongBits(angle);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + (isParentRectangle ? 1231 : 1237);
-		temp = Double.doubleToLongBits(xLength);
+		temp = Double.doubleToLongBits(width);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(xStart);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(yLength);
+		temp = Double.doubleToLongBits(height);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(yStart);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -77,14 +77,14 @@ public class BoundingBoxModel implements IBoundingBoxModel {
 			return false;
 		if (isParentRectangle != other.isParentRectangle)
 			return false;
-		if (Double.doubleToLongBits(xLength) != Double
-				.doubleToLongBits(other.xLength))
+		if (Double.doubleToLongBits(width) != Double
+				.doubleToLongBits(other.width))
 			return false;
 		if (Double.doubleToLongBits(xStart) != Double
 				.doubleToLongBits(other.xStart))
 			return false;
-		if (Double.doubleToLongBits(yLength) != Double
-				.doubleToLongBits(other.yLength))
+		if (Double.doubleToLongBits(height) != Double
+				.doubleToLongBits(other.height))
 			return false;
 		if (Double.doubleToLongBits(yStart) != Double
 				.doubleToLongBits(other.yStart))
