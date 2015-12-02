@@ -171,7 +171,6 @@ public class GridTest {
 		model.setY(0);
 		model.setxLength(3);
 		model.setyLength(3);
-		model.setLock(true); // Isolate the bounding box which can come back from the ROI wrong
 
 		// Get the point list
 		IGenerator<GridModel,Point> gen = service.createGenerator(model, diamond);

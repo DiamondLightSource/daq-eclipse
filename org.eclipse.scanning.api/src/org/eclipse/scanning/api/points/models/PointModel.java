@@ -7,20 +7,16 @@ public class PointModel {
 	
 	private double angle;
 
-	protected boolean lock;
-
 	public double getX() {
 		return x;
 	}
 	public void setX(double minX) {
-		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.x = minX;
 	}
 	public double getY() {
 		return y;
 	}
 	public void setY(double minY) {
-		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.y = minY;
 	}
 	
@@ -36,7 +32,6 @@ public class PointModel {
 	 * @param angle from 0 to pi/2 is from x-axis to y-axis
 	 */
 	public void setAngle(double angle) {
-		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.angle = angle;
 	}
 
@@ -47,7 +42,6 @@ public class PointModel {
 		long temp;
 		temp = Double.doubleToLongBits(angle);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + (lock ? 1231 : 1237);
 		temp = Double.doubleToLongBits(x);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(y);
@@ -66,21 +60,10 @@ public class PointModel {
 		if (Double.doubleToLongBits(angle) != Double
 				.doubleToLongBits(other.angle))
 			return false;
-		if (lock != other.lock)
-			return false;
 		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
 			return false;
 		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
 			return false;
 		return true;
 	}
-
-	public boolean isLock() {
-		return lock;
-	}
-
-	public void setLock(boolean lock) {
-		this.lock = lock;
-	}
-
 }

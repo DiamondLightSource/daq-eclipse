@@ -12,14 +12,12 @@ public class BoundingBoxModel extends PointModel {
 		return xLength;
 	}
 	public void setxLength(double xLength) {
-		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.xLength = xLength;
 	}
 	public double getyLength() {
 		return yLength;
 	}
 	public void setyLength(double yLength) {
-		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.yLength = yLength;
 	}
 	@Override
@@ -59,7 +57,6 @@ public class BoundingBoxModel extends PointModel {
 	}
 
 	public void setParentRectangle(boolean isParentRectangle) {
-		if (lock) throw new IllegalArgumentException("The model is locked and cannot be edited!");
 		this.isParentRectangle = isParentRectangle;
 	}
 }

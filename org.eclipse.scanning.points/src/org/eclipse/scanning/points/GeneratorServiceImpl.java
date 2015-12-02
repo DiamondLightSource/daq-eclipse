@@ -88,8 +88,6 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	
 	private <T extends PointModel> void synchModel(T model, IROI roi) throws GeneratorException {
 		
-		if (model.isLock()) return; // They locked the bounding rectangle.
-		
 		if (model instanceof BoundingBoxModel) {
 			
 			BoundingBoxModel box = (BoundingBoxModel)model;
