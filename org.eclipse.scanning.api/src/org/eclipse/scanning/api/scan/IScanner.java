@@ -7,6 +7,22 @@ import org.eclipse.scanning.api.points.IPosition;
  * 
  * A scanner behaves a lot like a malcolm device - should it just be one?
  * 
+ * Anatomy of a CPU scan (non-malcolm)
+ * 
+ *  
+ *  ___________
+ *  |         |
+ * _|         |___________  collectData() Tell detector to collect
+ *            ___________
+ *            |         |
+ * ___________|         |_  readout() Tell detector to readout
+ * 
+ *            ________
+ *            |      |
+ * ___________|      |____  moveTo()  Scannables move motors to new position
+ * 
+ * 
+
  * @author Matthew Gerring
  *
  */

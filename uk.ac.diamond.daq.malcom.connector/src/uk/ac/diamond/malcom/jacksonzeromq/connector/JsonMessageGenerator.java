@@ -2,13 +2,13 @@ package uk.ac.diamond.malcom.jacksonzeromq.connector;
 
 import java.util.Map;
 
-import org.eclipse.malcolm.api.IMalcolmDevice;
-import org.eclipse.malcolm.api.MalcolmDeviceException;
-import org.eclipse.malcolm.api.State;
-import org.eclipse.malcolm.api.connector.IMalcolmConnectorService;
-import org.eclipse.malcolm.api.connector.MessageGenerator;
-import org.eclipse.malcolm.api.message.JsonMessage;
-import org.eclipse.malcolm.api.message.Type;
+import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
+import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
+import org.eclipse.scanning.api.malcolm.State;
+import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
+import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
+import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.message.Type;
 
 /**
  * Class to encapsulate the details of sending stuff.
