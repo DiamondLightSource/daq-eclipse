@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.malcolm;
 
+import org.eclipse.scanning.api.IScanner;
+
 
 /**
  * This service talks to the middleware layer state machine for controlling
@@ -38,7 +40,7 @@ package org.eclipse.scanning.api.malcolm;
  * @author Matthew Gerring
  *
  */
-public interface IMalcolmDevice<T> extends IMalcolmEventPublisher, IMalcolmStateManager {
+public interface IMalcolmDevice<T> extends IScanner<T>, IMalcolmEventPublisher, IMalcolmStateManager {
 	
 	// TODO setAttribute, getAttribute
 	

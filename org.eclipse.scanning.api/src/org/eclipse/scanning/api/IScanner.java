@@ -1,9 +1,10 @@
-package org.eclipse.scanning.api.scan;
+package org.eclipse.scanning.api;
 
-import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.IScanner;
+import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
+ * 
  * 
  * Anatomy of a CPU scan (non-malcolm)
  * 
@@ -28,7 +29,7 @@ import org.eclipse.scanning.api.IScanner;
  * // Now use the parser to create a generator<br>
  * IGeneratorService gservice = ...// OSGi<br>
  * StepModel model = parser.getModel("x");<br>
- * Iterable<IPosition>    gen = gservice.createGenerator(model)<br>
+ * Iterable<IPosition> gen = gservice.createGenerator(model)<br>
  * <br>
  * // Now scan the point iterator<br>
  * IScanningService sservice = ...// OSGi<br>
@@ -40,22 +41,47 @@ import org.eclipse.scanning.api.IScanner;
  *
  * @author Matthew Gerring
  *
- *
  */
-public interface IScanningService {
-
-	/**
-	 * Create an empty scanner which can run an iterable to complete a scan.
-	 * @return
-	 * @throws ScanningException
-	 */
-	<T> IScanner<T> createScanner(T model) throws ScanningException;
+public interface IScanner<T> {
+		
 	
 	/**
+	 * Scan the points in this iterator, moving each position to its required
+	 * scannable using moveTo(...) and using the level value to order the moves.
 	 * 
-	 * @param name
-	 * @return
+	 * @param list
+	 * @param parser
+	 */
+	public void configure(T model) throws ScanningException ;
+
+	/**
+	 * Blocking call to execute the scan
+	 * 
 	 * @throws ScanningException
 	 */
-	<T> IScannable<T> getScannable(String name) throws ScanningException;
+	public void run() throws ScanningException;
+	
+	/**
+	 * Call to terminate the scan before it has finished.
+	 * 
+	 * @throws ScanningException
+	 */
+	public void abort() throws ScanningException;
+
+	/**
+	 * Allowed when the device is in Running state. Will block until the device is in a rest state. 
+	 * 
+	 * When paused the same thread must call resume() or abort() which has paused or an
+	 * IllegalMonitorState Exception will be thrown.
+	 */
+	public void pause() throws ScanningException;
+	
+	/**
+	 * Allowed when the device is in Paused state. Will block until the device is unpaused.
+	 * 
+	 * When paused the same thread must call resume() or abort() which has paused or an
+	 * 
+	 * IllegalMonitorState Exception will be thrown.
+	 */
+	public void resume() throws ScanningException;
 }

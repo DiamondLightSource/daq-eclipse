@@ -1,14 +1,14 @@
 package org.eclipse.scanning.sequencer;
 
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.scan.IScanner;
+import org.eclipse.scanning.api.IScanner;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 public class ScannerServiceImpl implements IScanningService {
 
 	@Override
-	public IScanner createScanner() throws ScanningException {
+	public <T> IScanner<T> createScanner(T model) throws ScanningException {
 		ScannerImpl impl = new ScannerImpl();
 		return impl;
 	}

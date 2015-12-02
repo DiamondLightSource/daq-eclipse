@@ -24,8 +24,8 @@ import java.util.Map;
  * <br>
  * // Now scan the point iterator<br>
  * IScanningService sservice = ...// OSGi<br>
- * IScanner scanner = sservice.createScanner();
- * scanner.configure(gen, parser);
+ * IScanner<ScanModel> scanner = sservice.createScanner(...);
+ * scanner.configure(model);
  * scanner.run();
  * 
  * </code></usage>
@@ -77,7 +77,7 @@ public interface IParser<T> {
 	 * Get the point generation model for a given scannable
 	 * For instance in the example:
 	 * scan x 0 5 0.1 analyser
-	 * Would gove getModel("x") StepModel with start stop and step set to  0, 5 and 0.1 respectively.
+	 * Would be getModel("x") giving a StepModel with start stop and step set to  0, 5 and 0.1 respectively.
 	 * 
 	 * @param scannableName
 	 * @return
