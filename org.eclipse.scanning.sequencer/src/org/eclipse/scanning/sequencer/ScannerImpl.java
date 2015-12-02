@@ -1,25 +1,16 @@
 package org.eclipse.scanning.sequencer;
 
-import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.IParser;
-import org.eclipse.scanning.api.scan.IScanner;
+import org.eclipse.scanning.api.IScanner;
 import org.eclipse.scanning.api.scan.ScanningException;
 
-class ScannerImpl implements IScanner {
+class ScannerImpl<T> implements IScanner<T> {
 
+	
+	private T model;
+	
 	@Override
-	public Status getState() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void configure(Iterable<IPosition> list, IParser<?> parser)
-			throws ScanningException {
-		// TODO Auto-generated method stub
-		
+	public void configure(T model) throws ScanningException {
+		this.model = model;
 	}
 
 	@Override
