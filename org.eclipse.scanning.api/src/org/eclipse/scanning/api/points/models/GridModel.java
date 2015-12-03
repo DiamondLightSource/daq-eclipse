@@ -6,17 +6,20 @@ public class GridModel implements IPathModelWithBoundingBox {
 	private int columns = 1;
 	private int rows = 1;
 	
-	/** snake = true<br>
-	  -------------------->  <br>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     | <br>
-	  <--------------------  <br>
-      |                             <br>
-      --------------------> etc. <br>
-      <br>
-      snake = false<br>
- 	  --------------------> <br>
-	  --------------------> <br>
-	  --------------------> <br>
+	/**
+	 * <pre>
+	 * snake = true
+	 * -------------------->
+	 *                     |
+	 * <--------------------
+	 * |
+	 * --------------------> etc.
+     * 
+     * snake = false
+     * -------------------->
+     * -------------------->
+     * -------------------->
+     * </pre>
 	**/
 	private boolean snake = false;
 	
@@ -36,17 +39,20 @@ public class GridModel implements IPathModelWithBoundingBox {
 		this.rows = rows;
 	}
 	
-	/** snake = true<br>
-	  -------------------->  <br>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     | <br>
-	  <--------------------  <br>
-    |                             <br>
-    --------------------> etc. <br>
-    <br>
-    snake = false<br>
-	  --------------------> <br>
-	  --------------------> <br>
-	  --------------------> <br>
+	/**
+	 * <pre>
+	 * snake = true
+	 * -------------------->
+	 *                     |
+	 * <--------------------
+	 * |
+	 * --------------------> etc.
+     * 
+     * snake = false
+     * -------------------->
+     * -------------------->
+     * -------------------->
+     * </pre>
 	**/
 	public boolean isSnake() {
 		return snake;
