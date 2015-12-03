@@ -44,6 +44,7 @@ public final class ScanBean extends StatusBean {
 	// Dataset information
 	private String  filePath;
 	private String  datasetPath;
+	private int     scanNumber;
     private int[]   oldShape;
     private int[]   newShape;
 		
@@ -67,85 +68,19 @@ public final class ScanBean extends StatusBean {
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
 	}
+
+	public int getScanNumber() {
+		return scanNumber;
+	}
+	public void setScanNumber(int scanNumber) {
+		this.scanNumber = scanNumber;
+	}
+
 	public String getDatasetPath() {
 		return datasetPath;
 	}
 	public void setDatasetPath(String datasetPath) {
 		this.datasetPath = datasetPath;
-	}
-	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result
-				+ ((beamline == null) ? 0 : beamline.hashCode());
-		result = prime * result
-				+ ((datasetPath == null) ? 0 : datasetPath.hashCode());
-		result = prime * result
-				+ ((deviceName == null) ? 0 : deviceName.hashCode());
-		result = prime * result
-				+ ((deviceState == null) ? 0 : deviceState.hashCode());
-		result = prime * result
-				+ ((filePath == null) ? 0 : filePath.hashCode());
-		result = prime * result + Arrays.hashCode(newShape);
-		result = prime * result + Arrays.hashCode(oldShape);
-		result = prime * result + point;
-		result = prime
-				* result
-				+ ((previousDeviceState == null) ? 0 : previousDeviceState
-						.hashCode());
-		result = prime * result + size;
-		result = prime * result + ((position == null) ? 0 : position.hashCode());
-		return result;
-	}
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ScanBean other = (ScanBean) obj;
-		if (beamline == null) {
-			if (other.beamline != null)
-				return false;
-		} else if (!beamline.equals(other.beamline))
-			return false;
-		if (datasetPath == null) {
-			if (other.datasetPath != null)
-				return false;
-		} else if (!datasetPath.equals(other.datasetPath))
-			return false;
-		if (deviceName == null) {
-			if (other.deviceName != null)
-				return false;
-		} else if (!deviceName.equals(other.deviceName))
-			return false;
-		if (deviceState != other.deviceState)
-			return false;
-		if (filePath == null) {
-			if (other.filePath != null)
-				return false;
-		} else if (!filePath.equals(other.filePath))
-			return false;
-		if (!Arrays.equals(newShape, other.newShape))
-			return false;
-		if (!Arrays.equals(oldShape, other.oldShape))
-			return false;
-		if (point != other.point)
-			return false;
-		if (previousDeviceState != other.previousDeviceState)
-			return false;
-		if (size != other.size)
-			return false;
-		if (position == null) {
-			if (other.position != null)
-				return false;
-		} else if (!position.equals(other.position))
-			return false;
-		return true;
 	}
 
 	public String getDeviceName() {
@@ -199,13 +134,19 @@ public final class ScanBean extends StatusBean {
 
 	@Override
 	public String toString() {
-		return "ScanBean [deviceName=" + deviceName + ", beamline=" + beamline
-				+ ", point=" + point + ", size=" + size + ", value=" + position
-				+ ", deviceState=" + deviceState + ", previousDeviceState="
-				+ previousDeviceState + ", filePath=" + filePath
-				+ ", datasetPath=" + datasetPath + ", oldShape="
-				+ Arrays.toString(oldShape) + ", newShape="
-				+ Arrays.toString(newShape) + super.toString()+"]";
+		return "ScanBean [deviceName=" + deviceName
+				+ ", beamline=" + beamline
+				+ ", point=" + point
+				+ ", size=" + size
+				+ ", value=" + position
+				+ ", deviceState=" + deviceState
+				+ ", previousDeviceState=" + previousDeviceState
+				+ ", filePath=" + filePath
+				+ ", scanNumber=" + scanNumber
+				+ ", datasetPath=" + datasetPath
+				+ ", oldShape=" + Arrays.toString(oldShape)
+				+ ", newShape=" + Arrays.toString(newShape)
+				+ super.toString()+"]";
 	}
 
 	public DeviceState getPreviousDeviceState() {
@@ -251,6 +192,85 @@ public final class ScanBean extends StatusBean {
 
 	public boolean scanEnd() {
 		return Status.RUNNING ==previousStatus && Status.RUNNING!=status;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((beamline == null) ? 0 : beamline.hashCode());
+		result = prime * result
+				+ ((datasetPath == null) ? 0 : datasetPath.hashCode());
+		result = prime * result
+				+ ((deviceName == null) ? 0 : deviceName.hashCode());
+		result = prime * result
+				+ ((deviceState == null) ? 0 : deviceState.hashCode());
+		result = prime * result
+				+ ((filePath == null) ? 0 : filePath.hashCode());
+		result = prime * result + Arrays.hashCode(newShape);
+		result = prime * result + Arrays.hashCode(oldShape);
+		result = prime * result + point;
+		result = prime * result
+				+ ((position == null) ? 0 : position.hashCode());
+		result = prime
+				* result
+				+ ((previousDeviceState == null) ? 0 : previousDeviceState
+						.hashCode());
+		result = prime * result + scanNumber;
+		result = prime * result + size;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ScanBean other = (ScanBean) obj;
+		if (beamline == null) {
+			if (other.beamline != null)
+				return false;
+		} else if (!beamline.equals(other.beamline))
+			return false;
+		if (datasetPath == null) {
+			if (other.datasetPath != null)
+				return false;
+		} else if (!datasetPath.equals(other.datasetPath))
+			return false;
+		if (deviceName == null) {
+			if (other.deviceName != null)
+				return false;
+		} else if (!deviceName.equals(other.deviceName))
+			return false;
+		if (deviceState != other.deviceState)
+			return false;
+		if (filePath == null) {
+			if (other.filePath != null)
+				return false;
+		} else if (!filePath.equals(other.filePath))
+			return false;
+		if (!Arrays.equals(newShape, other.newShape))
+			return false;
+		if (!Arrays.equals(oldShape, other.oldShape))
+			return false;
+		if (point != other.point)
+			return false;
+		if (position == null) {
+			if (other.position != null)
+				return false;
+		} else if (!position.equals(other.position))
+			return false;
+		if (previousDeviceState != other.previousDeviceState)
+			return false;
+		if (scanNumber != other.scanNumber)
+			return false;
+		if (size != other.size)
+			return false;
+		return true;
 	}
 
 }
