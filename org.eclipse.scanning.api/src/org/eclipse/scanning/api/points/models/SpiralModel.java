@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class SpiralModel implements IPathModelWithBoundingBox {
+public class SpiralModel implements IModelWithBoundingBox {
 
 	private BoundingBox boundingBox;
 	private double scale = 1;

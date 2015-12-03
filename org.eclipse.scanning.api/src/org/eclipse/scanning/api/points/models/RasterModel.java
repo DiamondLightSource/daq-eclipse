@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class RasterModel implements IPathModelWithBoundingBox {
+public class RasterModel implements IModelWithBoundingBox {
 
 	private BoundingBox boundingBox;
 	private double xStep = 1;

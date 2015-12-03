@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class LissajousModel implements IPathModelWithBoundingBox {
+public class LissajousModel implements IModelWithBoundingBox {
 
 	private BoundingBox boundingBox;
 	private double a = 1;

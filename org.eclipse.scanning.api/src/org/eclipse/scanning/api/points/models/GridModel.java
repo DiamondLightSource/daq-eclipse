@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class GridModel implements IPathModelWithBoundingBox {
+public class GridModel implements IModelWithBoundingBox {
 	
 	private BoundingBox boundingBox;
 	private int columns = 1;

@@ -18,7 +18,7 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IModelWithBoundingLine;
-import org.eclipse.scanning.api.points.models.IPathModelWithBoundingBox;
+import org.eclipse.scanning.api.points.models.IModelWithBoundingBox;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
@@ -98,7 +98,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	
 	private <T> void synchModel(T model, IROI roi) throws GeneratorException {
 
-		if (model instanceof IPathModelWithBoundingBox) {
+		if (model instanceof IModelWithBoundingBox) {
 
 			BoundingBox box = new BoundingBox();
 			IRectangularROI rect = roi.getBounds();
@@ -106,7 +106,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 			box.setyStart(rect.getPoint()[1]);
 			box.setWidth(rect.getLength(0));
 			box.setHeight(rect.getLength(1));
-			((IPathModelWithBoundingBox) model).setBoundingBox(box);
+			((IModelWithBoundingBox) model).setBoundingBox(box);
 //			return;
 
 		} else if (model instanceof IModelWithBoundingLine) {
