@@ -10,12 +10,7 @@ public class ScanModel {
 	 */
 	private Iterable<IPosition> positionIterator;
 	
-	/**
-	 * The parser from the scan command, may be null
-	 * if no scan command was parsed.
-	 */
-	private IParser<?>          parser;
-
+	
 	public Iterable<IPosition> getPositionIterator() {
 		return positionIterator;
 	}

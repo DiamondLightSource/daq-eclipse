@@ -2,6 +2,11 @@ package org.eclipse.scanning.api.scan;
 
 public class ScanningException extends Exception {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2587074494060854407L;
+
 	public ScanningException() {
 		super();
 	}
@@ -22,10 +27,5 @@ public class ScanningException extends Exception {
 	public ScanningException(Throwable cause) {
 		super(cause);
 	}
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2587074494060854407L;
 
 }

@@ -24,9 +24,9 @@ import java.util.Map;
  * <br>
  * // Now scan the point iterator<br>
  * IScanningService sservice = ...// OSGi<br>
- * IScanner<ScanModel> scanner = sservice.createScanner(...);
- * scanner.configure(model);
- * scanner.run();
+ * IScanner<ScanModel> scanner = sservice.createScanner(...);<br>
+ * scanner.configure(model);<br>
+ * scanner.run();<br>
  * 
  * </code></usage>
  * 
