@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.scan;
 
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.IScannableConnectorService;
 import org.eclipse.scanning.api.scan.IScanner;
@@ -19,13 +20,16 @@ public class AbstractScanTest {
 	public void testSimpleScan() throws Exception {
 				
 		// Create a grid scan model
+		BoundingBox box = new BoundingBox();
+		box.setxStart(0);
+		box.setyStart(0);
+		box.setWidth(3);
+		box.setHeight(3);
+
 		GridModel model = new GridModel();
 		model.setRows(20);
 		model.setColumns(20);
-		model.setxStart(0);
-		model.setyStart(0);
-		model.setWidth(3);
-		model.setHeight(3);
+		model.setBoundingBox(box);
 		
 		Iterable<IPosition> gen = gservice.createGenerator(model);
 

@@ -15,8 +15,8 @@ public class RasterIterator implements Iterator<Point> {
 	public RasterIterator(RasterGenerator gen) {
 		this.model = gen.getModel();
 		this.gen   = gen;
-		this.x = model.getxStart()-model.getxStep();
-		this.y = model.getyStart();
+		this.x = model.getBoundingBox().getxStart() - model.getxStep();
+		this.y = model.getBoundingBox().getyStart();
 	}
 
 	private boolean forewards=true;
@@ -27,13 +27,13 @@ public class RasterIterator implements Iterator<Point> {
 		
 		double x = next[0];
 		double y = next[1];
-		double minX = model.getxStart();
-		double minY = model.getyStart();
+		double minX = model.getBoundingBox().getxStart();
+		double minY = model.getBoundingBox().getyStart();
 		
 		// TODO should check if the next position is in the container!
 		
-		if (y<model.getyStart() || y > (minY + model.getHeight())) return false;
-		if (x<model.getxStart() || x > (minX + model.getWidth())) return false;
+		if (y < model.getBoundingBox().getyStart() || y > (minY + model.getBoundingBox().getHeight())) return false;
+		if (x < model.getBoundingBox().getxStart() || x > (minX + model.getBoundingBox().getWidth())) return false;
 		
 		if (!gen.containsPoint(x, y)) {
 			this.x = next[0];
@@ -51,7 +51,7 @@ public class RasterIterator implements Iterator<Point> {
 		if (model.isSnake()) {
 			if (forewards) {
 				x += model.getxStep();
-				if (x > (model.getxStart() + model.getWidth())) {
+				if (x > (model.getBoundingBox().getxStart() + model.getBoundingBox().getWidth())) {
 					y+=model.getyStep();
 					forewards = !forewards;
 				}
@@ -66,9 +66,9 @@ public class RasterIterator implements Iterator<Point> {
 
 		} else {
 			x += model.getxStep();
-			if (x > (model.getxStart() + model.getWidth())) {
-				x=model.getxStart();
-				y+=model.getyStep();
+			if (x > (model.getBoundingBox().getxStart() + model.getBoundingBox().getWidth())) {
+				x = model.getBoundingBox().getxStart();
+				y += model.getyStep();
 			}
 		}
 		return new double[]{x, y, forewards?1:0}; // Bit slow because makes array object to return int values
@@ -83,10 +83,10 @@ public class RasterIterator implements Iterator<Point> {
 		this.y = next[1];
 		this.forewards = next[2]==1;
 
-		double minX = model.getxStart();
-		double minY = model.getyStart();
-		if (y<model.getyStart() || y > (minY + model.getHeight())) return null;
-		if (x<model.getxStart() || x > (minX + model.getWidth())) throw new NullPointerException("Unexpected index. The x value was "+x);
+		double minX = model.getBoundingBox().getxStart();
+		double minY = model.getBoundingBox().getyStart();
+		if (y < model.getBoundingBox().getyStart() || y > (minY + model.getBoundingBox().getHeight())) return null;
+		if (x < model.getBoundingBox().getxStart() || x > (minX + model.getBoundingBox().getWidth())) throw new NullPointerException("Unexpected index. The x value was "+x);
 
 		if (gen.containsPoint(x, y)) {
 			return new Point(x, y);
