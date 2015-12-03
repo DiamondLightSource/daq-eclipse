@@ -9,7 +9,7 @@ import org.eclipse.scanning.test.malcolm.device.MockedMalcolmService;
 import org.junit.After;
 import org.junit.Before;
 
-import uk.ac.diamond.malcom.jacksonzeromq.connector.ZeromqConnectorService;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
 public class MockAbortingMalcolmTest extends AbstractAbortingMalcolmTest {
 

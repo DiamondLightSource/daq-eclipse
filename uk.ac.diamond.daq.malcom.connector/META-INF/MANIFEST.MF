@@ -10,7 +10,7 @@ Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  com.fasterxml.jackson.core.jackson-core;bundle-version="2.2.0",
  com.fasterxml.jackson.core.jackson-databind;bundle-version="2.2.0",
  org.zeromq;bundle-version="3.2.5"
-Export-Package: uk.ac.diamond.malcom.jacksonzeromq.connector
+Export-Package: uk.ac.diamond.malcolm.jacksonzeromq.connector
 Import-Package: javax.jms,
  org.apache.activemq,
  org.slf4j;version="1.7.6"

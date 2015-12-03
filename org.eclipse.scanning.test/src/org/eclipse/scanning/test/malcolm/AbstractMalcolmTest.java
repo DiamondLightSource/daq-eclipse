@@ -34,10 +34,10 @@ import org.eclipse.scanning.api.malcolm.message.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.malcom.jacksonzeromq.connector.StateDeserializer;
-import uk.ac.diamond.malcom.jacksonzeromq.connector.StateSerializer;
-import uk.ac.diamond.malcom.jacksonzeromq.connector.TypeDeserializer;
-import uk.ac.diamond.malcom.jacksonzeromq.connector.TypeSerializer;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.StateDeserializer;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.StateSerializer;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.TypeDeserializer;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.TypeSerializer;
 
 public abstract class AbstractMalcolmTest {
 	

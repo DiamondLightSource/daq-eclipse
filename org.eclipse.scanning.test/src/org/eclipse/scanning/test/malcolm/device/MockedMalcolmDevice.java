@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 
-import uk.ac.diamond.malcom.jacksonzeromq.connector.ZeromqConnectorService;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
 class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	

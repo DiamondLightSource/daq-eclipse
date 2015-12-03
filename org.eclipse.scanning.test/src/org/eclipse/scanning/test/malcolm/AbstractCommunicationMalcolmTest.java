@@ -28,10 +28,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import uk.ac.diamond.malcom.jacksonzeromq.connector.StateDeserializer;
-import uk.ac.diamond.malcom.jacksonzeromq.connector.StateSerializer;
-import uk.ac.diamond.malcom.jacksonzeromq.connector.TypeDeserializer;
-import uk.ac.diamond.malcom.jacksonzeromq.connector.TypeSerializer;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.StateDeserializer;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.StateSerializer;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.TypeDeserializer;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.TypeSerializer;
 
 @RunWith(Parameterized.class)
 public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTest {

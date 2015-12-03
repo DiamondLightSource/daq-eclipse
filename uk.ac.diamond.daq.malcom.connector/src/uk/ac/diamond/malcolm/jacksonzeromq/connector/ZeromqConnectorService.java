@@ -1,4 +1,4 @@
-package uk.ac.diamond.malcom.jacksonzeromq.connector;
+package uk.ac.diamond.malcolm.jacksonzeromq.connector;
 
 import java.net.URI;
 import java.util.Arrays;
