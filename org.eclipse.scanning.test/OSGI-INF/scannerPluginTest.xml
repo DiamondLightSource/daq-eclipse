@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="Test Scanning Service OSGi Declarative">
+   <implementation class="org.eclipse.scanning.test.scan.ScanPluginTest"/>
+   <reference bind="setGeneratorService" cardinality="0..1" interface="org.eclipse.scanning.api.points.IGeneratorService" name="IGeneratorService" policy="static"/>
+   <reference bind="setScanningService" cardinality="0..1" interface="org.eclipse.scanning.api.scan.IScanningService" name="IScanningService" policy="static"/>
+</scr:component>

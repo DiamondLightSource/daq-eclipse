@@ -1,7 +1,5 @@
-package org.eclipse.scanning.api;
+package org.eclipse.scanning.api.scan;
 
-import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
  * 

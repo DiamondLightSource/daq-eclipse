@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.malcolm;
 
-import org.eclipse.scanning.api.IScanner;
+import org.eclipse.scanning.api.scan.IScanner;
 
 
 /**

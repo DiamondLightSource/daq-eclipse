@@ -31,6 +31,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	// This pattern can always be replaced by extension points
 	// to allow point generators to be dynamically registered. 
 	static {
+		System.out.println("Starting generator service");
 		Map<Class<?>, Class<? extends IGenerator<?,?>>> tmp = new HashMap<>(7);
 		tmp.put(StepModel.class,             StepGenerator.class);
 		tmp.put(GridModel.class,             GridGenerator.class);

@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.scan;
 
-import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.IScanner;
 
 /**
  * 
@@ -46,16 +44,27 @@ public interface IScanningService {
 
 	/**
 	 * Create an empty scanner which can run an iterable to complete a scan.
+	 * 
+	 * The model is provided and the configure(...) method called on the scanner 
+	 * automatically. A ScanningException is thrown if the model is invalid.
+	 * 
+	 * @param model, information to do the scan
 	 * @return
 	 * @throws ScanningException
 	 */
 	<T> IScanner<T> createScanner(T model) throws ScanningException;
 	
 	/**
+	 * Create an empty scanner which can run an iterable to complete a scan.
 	 * 
-	 * @param name
+	 * The model is provided and the configure(...) method called on the scanner 
+	 * automatically. A ScanningException is thrown if the model is invalid.
+	 * 
+	 * @param model, information to do the scan
+	 * @param cservice, may be null, in which case system looks for service using OSGi
 	 * @return
 	 * @throws ScanningException
 	 */
-	<T> IScannable<T> getScannable(String name) throws ScanningException;
+	<T> IScanner<T> createScanner(T model, IScannableConnectorService cservice) throws ScanningException;
+
 }
