@@ -20,10 +20,10 @@ class LissajousGenerator extends AbstractGenerator<LissajousModel,Point> {
 	public List<Point> createPoints() throws GeneratorException {
 		
 		// Pick A and B so we will fill the bounding rectangle
-		double A = model.getxLength() / 2;
-		double B = model.getyLength() / 2;
-		double xCentre = model.getX() + A;
-		double yCentre = model.getY() + B;
+		double A = model.getWidth() / 2;
+		double B = model.getHeight() / 2;
+		double xCentre = model.getxStart() + A;
+		double yCentre = model.getyStart() + B;
 		// double maxRadius = Math.sqrt(radiusX * radiusX + radiusY * radiusY);
 
 		List<Point> pointList = new ArrayList<>();

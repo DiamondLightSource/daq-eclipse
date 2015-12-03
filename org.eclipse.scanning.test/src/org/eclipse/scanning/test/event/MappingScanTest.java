@@ -87,10 +87,10 @@ public class MappingScanTest {
 		int ipoint = 0;
 		
 		final GridModel model = new GridModel();
-		model.setX(10);
-		model.setxLength(5);
-		model.setY(10);
-		model.setyLength(2);
+		model.setxStart(10);
+		model.setWidth(5);
+		model.setyStart(10);
+		model.setHeight(2);
 		model.setRows(2);
 		model.setColumns(5);
 		

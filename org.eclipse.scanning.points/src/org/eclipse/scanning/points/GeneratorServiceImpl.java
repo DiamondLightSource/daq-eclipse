@@ -14,13 +14,12 @@ import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.models.BoundingBoxModel;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.api.points.models.LinearModel;
+import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
+import org.eclipse.scanning.api.points.models.ILinearModel;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
-import org.eclipse.scanning.api.points.models.PointModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 
@@ -48,8 +47,8 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		try {
 			IGenerator<T,P> gen = (IGenerator<T,P>)generators.get(model.getClass()).newInstance();
 			 
-			if (regions!=null && regions.length > 0 && PointModel.class.isAssignableFrom(model.getClass())) {
-			    synchModel((PointModel)model, (IROI)regions[0]);
+			if (regions!=null && regions.length > 0) {
+			    synchModel(model, (IROI)regions[0]);
 			    gen.setContainers(wrap(regions));
 			}
 			gen.setModel(model);
@@ -86,18 +85,16 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		return ret;
 	}
 	
-	private <T extends PointModel> void synchModel(T model, IROI roi) throws GeneratorException {
+	private <T> void synchModel(T model, IROI roi) throws GeneratorException {
 		
-		if (model.isLock()) return; // They locked the bounding rectangle.
-		
-		if (model instanceof BoundingBoxModel) {
+		if (model instanceof IBoundingBoxModel) {
 			
-			BoundingBoxModel box = (BoundingBoxModel)model;
+			IBoundingBoxModel box = (IBoundingBoxModel)model;
 			IRectangularROI rect = roi.getBounds();
-			box.setX(rect.getPoint()[0]);
-			box.setY(rect.getPoint()[1]);
-			box.setxLength(rect.getLength(0));
-			box.setyLength(rect.getLength(1));
+			box.setxStart(rect.getPoint()[0]);
+			box.setyStart(rect.getPoint()[1]);
+			box.setWidth(rect.getLength(0));
+			box.setHeight(rect.getLength(1));
 	
 			if (roi instanceof IRectangularROI) {
 				box.setAngle(((IRectangularROI)roi).getAngle());
@@ -105,17 +102,17 @@ public class GeneratorServiceImpl implements IGeneratorService {
 			}
 			return;
 			
-		} else if (model instanceof LinearModel) {
+		} else if (model instanceof ILinearModel) {
 			
-			LinearModel line = (LinearModel)model;
+			ILinearModel line = (ILinearModel)model;
             LinearROI   lroi = (LinearROI)roi;
-            line.setX(lroi.getPoint()[0]);
-            line.setY(lroi.getPoint()[1]);
+            line.setxStart(lroi.getPoint()[0]);
+            line.setyStart(lroi.getPoint()[1]);
             line.setAngle(lroi.getAngle());
 			return;
 		}
 		
-		throw new GeneratorException("Cannot deal with model "+model.getClass());
+		//throw new GeneratorException("Cannot deal with model "+model.getClass());
 	}
 
 	@Override
