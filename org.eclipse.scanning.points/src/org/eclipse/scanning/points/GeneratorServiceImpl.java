@@ -39,6 +39,13 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		tmp.put(OneDStepModel.class,         OneDStepGenerator.class);
 		tmp.put(RasterModel.class,           RasterGenerator.class);
 		
+		// TODO We should support beamline specific generators here one day.
+		// This step is very similar to how loaders were added to DAWN.
+		// Lots of default loaders added and then allowing loaders from
+		// extension point as well. For mapping we should add all the 
+		// point generators here so extendable generators should be done
+		// at a later step.
+		
 		generators = Collections.unmodifiableMap(tmp);
 	}
 
