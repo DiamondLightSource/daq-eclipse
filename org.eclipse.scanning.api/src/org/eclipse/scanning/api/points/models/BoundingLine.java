@@ -1,28 +1,12 @@
 package org.eclipse.scanning.api.points.models;
 
-public class LinearModel implements ILinearModel {
+public class BoundingLine {
 
 	private double xStart;
 	private double yStart;
 	private double angle;
 	private double length;
 
-	@Override
-	public double getAngle() {
-		return angle;
-	}
-	@Override
-	public void setAngle(double angle) {
-		this.angle = angle;
-	}
-	@Override
-	public double getLength() {
-		return length;
-	}
-	@Override
-	public void setLength(double length) {
-		this.length = length;
-	}
 	public double getxStart() {
 		return xStart;
 	}
@@ -34,6 +18,18 @@ public class LinearModel implements ILinearModel {
 	}
 	public void setyStart(double yStart) {
 		this.yStart = yStart;
+	}
+	public double getAngle() {
+		return angle;
+	}
+	public void setAngle(double angle) {
+		this.angle = angle;
+	}
+	public double getLength() {
+		return length;
+	}
+	public void setLength(double length) {
+		this.length = length;
 	}
 	@Override
 	public int hashCode() {
@@ -58,7 +54,7 @@ public class LinearModel implements ILinearModel {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		LinearModel other = (LinearModel) obj;
+		BoundingLine other = (BoundingLine) obj;
 		if (Double.doubleToLongBits(angle) != Double
 				.doubleToLongBits(other.angle))
 			return false;

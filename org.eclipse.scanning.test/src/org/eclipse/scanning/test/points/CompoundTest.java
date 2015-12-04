@@ -10,6 +10,7 @@ import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
@@ -151,17 +152,20 @@ public class CompoundTest {
 		
 		IGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,300,1));
 		assertEquals(11, temp.size());
-		
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(0);
+		box.setyStart(0);
+		box.setWidth(3);
+		box.setHeight(3);
+
 		GridModel model = new GridModel();
 		model.setRows(20);
 		model.setColumns(20);
-		model.setxStart(0);
-		model.setyStart(0);
-		model.setWidth(3);
-		model.setHeight(3);
+		model.setBoundingBox(box);
 
 		// Get the point list
-		IGenerator<GridModel,Point> grid = service.createGenerator(model, null);
+		IGenerator<GridModel,Point> grid = service.createGenerator(model);
 		assertEquals(400, grid.size());
 
 		IGenerator<?,IPosition> scan = service.createCompoundGenerator(temp, grid);

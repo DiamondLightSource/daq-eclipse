@@ -14,9 +14,11 @@ import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
-import org.eclipse.scanning.api.points.models.ILinearModel;
+import org.eclipse.scanning.api.points.models.IModelWithBoundingLine;
+import org.eclipse.scanning.api.points.models.IModelWithBoundingBox;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
@@ -54,10 +56,11 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	public <T,R,P> IGenerator<T,P> createGenerator(T model, R... regions) throws GeneratorException {
 		try {
 			IGenerator<T,P> gen = (IGenerator<T,P>)generators.get(model.getClass()).newInstance();
-			 
-			if (regions!=null && regions.length > 0) {
-			    synchModel(model, (IROI)regions[0]);
-			    gen.setContainers(wrap(regions));
+			
+			// FIXME need to generate a bounding box covering all regions, not just the first
+			if (regions != null && regions.length > 0) {
+				synchModel(model, (IROI) regions[0]);
+				gen.setContainers(wrap(regions));
 			}
 			gen.setModel(model);
 			return gen;
@@ -94,32 +97,29 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	}
 	
 	private <T> void synchModel(T model, IROI roi) throws GeneratorException {
-		
-		if (model instanceof IBoundingBoxModel) {
-			
-			IBoundingBoxModel box = (IBoundingBoxModel)model;
+
+		if (model instanceof IModelWithBoundingBox) {
+
+			BoundingBox box = new BoundingBox();
 			IRectangularROI rect = roi.getBounds();
 			box.setxStart(rect.getPoint()[0]);
 			box.setyStart(rect.getPoint()[1]);
 			box.setWidth(rect.getLength(0));
 			box.setHeight(rect.getLength(1));
-	
-			if (roi instanceof IRectangularROI) {
-				box.setAngle(((IRectangularROI)roi).getAngle());
-				box.setParentRectangle(true);
-			}
-			return;
-			
-		} else if (model instanceof ILinearModel) {
-			
-			ILinearModel line = (ILinearModel)model;
-            LinearROI   lroi = (LinearROI)roi;
-            line.setxStart(lroi.getPoint()[0]);
-            line.setyStart(lroi.getPoint()[1]);
-            line.setAngle(lroi.getAngle());
-			return;
+			((IModelWithBoundingBox) model).setBoundingBox(box);
+//			return;
+
+		} else if (model instanceof IModelWithBoundingLine) {
+
+			BoundingLine line = new BoundingLine();
+			LinearROI lroi = (LinearROI) roi;
+			line.setxStart(lroi.getPoint()[0]);
+			line.setyStart(lroi.getPoint()[1]);
+			line.setAngle(lroi.getAngle());
+			((IModelWithBoundingLine) model).setBoundingLine(line);
+//			return;
 		}
-		
+
 		//throw new GeneratorException("Cannot deal with model "+model.getClass());
 	}
 

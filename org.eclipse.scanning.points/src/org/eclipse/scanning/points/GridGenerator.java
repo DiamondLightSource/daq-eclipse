@@ -13,19 +13,20 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 
 	@Override
 	public int size() throws GeneratorException {
-		
-		if (model.isParentRectangle() && model.getAngle() == 0.0) {
-			// Need to update the xStep and yStep in this call
-			// Get the info from the bounding rectangle
-            createSteps();
-			return model.getColumns() * model.getRows();
-		}
+
+		// TODO restore the speed optimisation once the model (rather than the generator) contains the pointcontainers
+//		if (model.isParentRectangle() && model.getAngle() == 0.0) {
+//			// Need to update the xStep and yStep in this call
+//			// Get the info from the bounding rectangle
+//			createSteps();
+//			return model.getColumns() * model.getRows();
+//		}
 		return super.size(); // Slower
 	}
 
 	private void createSteps() {
-		double xLength = model.getWidth();
-		double yLength = model.getHeight();
+		double xLength = model.getBoundingBox().getWidth();
+		double yLength = model.getBoundingBox().getHeight();
 
 		// Calculate the required step size
 		model.setxStep(xLength / model.getColumns());
@@ -40,12 +41,12 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
-		
-        createSteps();
+
+		createSteps();
 
 		// Calculate the start coordinates
-		double minX = model.getxStart() + model.getxStep() / 2;
-		double minY = model.getyStart() + model.getyStep() / 2;
+		double minX = model.getBoundingBox().getxStart() + model.getxStep() / 2;
+		double minY = model.getBoundingBox().getyStart() + model.getyStep() / 2;
 
 		// Create a list of points
 		List<Point> pointList = new ArrayList<>(model.getColumns() * model.getRows());

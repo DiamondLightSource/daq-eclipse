@@ -1,6 +1,6 @@
 package org.eclipse.scanning.test.scan;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +9,7 @@ import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.IHardwareConnectorService;
 import org.eclipse.scanning.api.scan.IPositionListener;
@@ -75,13 +76,16 @@ public class AbstractScanTest {
 	public void testSimpleScan() throws Exception {
 				
 		// Create a grid scan model
+		BoundingBox box = new BoundingBox();
+		box.setxStart(0);
+		box.setyStart(0);
+		box.setWidth(3);
+		box.setHeight(3);
+
 		GridModel model = new GridModel();
 		model.setRows(20);
 		model.setColumns(20);
-		model.setxStart(0);
-		model.setyStart(0);
-		model.setWidth(3);
-		model.setHeight(3);
+		model.setBoundingBox(box);
 		
 		Iterable<IPosition> gen = gservice.createGenerator(model);
 		final ScanModel  smodel = new ScanModel(gen, "det", 0.1);

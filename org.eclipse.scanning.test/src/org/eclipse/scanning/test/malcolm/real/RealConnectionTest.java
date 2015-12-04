@@ -20,7 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.ac.diamond.malcom.jacksonzeromq.connector.ZeromqConnectorService;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
 
 /**

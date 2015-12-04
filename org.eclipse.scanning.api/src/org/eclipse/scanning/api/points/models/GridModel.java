@@ -1,22 +1,25 @@
 package org.eclipse.scanning.api.points.models;
 
-public class GridModel implements IBoundingBoxModel {
+public class GridModel implements IModelWithBoundingBox {
 	
-	private IBoundingBoxModel boundingBox = new BoundingBoxModel();
+	private BoundingBox boundingBox;
 	private int columns = 1;
 	private int rows = 1;
 	
-	/** snake = true<br>
-	  -------------------->  <br>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     | <br>
-	  <--------------------  <br>
-      |                             <br>
-      --------------------> etc. <br>
-      <br>
-      snake = false<br>
- 	  --------------------> <br>
-	  --------------------> <br>
-	  --------------------> <br>
+	/**
+	 * <pre>
+	 * snake = true
+	 * -------------------->
+	 *                     |
+	 * <--------------------
+	 * |
+	 * --------------------> etc.
+     * 
+     * snake = false
+     * -------------------->
+     * -------------------->
+     * -------------------->
+     * </pre>
 	**/
 	private boolean snake = false;
 	
@@ -36,17 +39,20 @@ public class GridModel implements IBoundingBoxModel {
 		this.rows = rows;
 	}
 	
-	/** snake = true<br>
-	  -------------------->  <br>
-	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     | <br>
-	  <--------------------  <br>
-    |                             <br>
-    --------------------> etc. <br>
-    <br>
-    snake = false<br>
-	  --------------------> <br>
-	  --------------------> <br>
-	  --------------------> <br>
+	/**
+	 * <pre>
+	 * snake = true
+	 * -------------------->
+	 *                     |
+	 * <--------------------
+	 * |
+	 * --------------------> etc.
+     * 
+     * snake = false
+     * -------------------->
+     * -------------------->
+     * -------------------->
+     * </pre>
 	**/
 	public boolean isSnake() {
 		return snake;
@@ -67,52 +73,12 @@ public class GridModel implements IBoundingBoxModel {
 		this.yStep = yStep;
 	}
 	@Override
-	public double getWidth() {
-		return boundingBox.getWidth();
+	public BoundingBox getBoundingBox() {
+		return boundingBox;
 	}
 	@Override
-	public void setWidth(double width) {
-		boundingBox.setWidth(width);
-	}
-	@Override
-	public double getHeight() {
-		return boundingBox.getHeight();
-	}
-	@Override
-	public void setHeight(double height) {
-		boundingBox.setHeight(height);
-	}
-	@Override
-	public boolean isParentRectangle() {
-		return boundingBox.isParentRectangle();
-	}
-	@Override
-	public void setParentRectangle(boolean isParentRectangle) {
-		boundingBox.setParentRectangle(isParentRectangle);
-	}
-	@Override
-	public double getxStart() {
-		return boundingBox.getxStart();
-	}
-	@Override
-	public void setxStart(double xStart) {
-		boundingBox.setxStart(xStart);
-	}
-	@Override
-	public double getyStart() {
-		return boundingBox.getyStart();
-	}
-	@Override
-	public void setyStart(double yStart) {
-		boundingBox.setyStart(yStart);
-	}
-	@Override
-	public double getAngle() {
-		return boundingBox.getAngle();
-	}
-	@Override
-	public void setAngle(double angle) {
-		boundingBox.setAngle(angle);
+	public void setBoundingBox(BoundingBox boundingBox) {
+		this.boundingBox = boundingBox;
 	}
 	@Override
 	public int hashCode() {

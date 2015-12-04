@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
 import org.junit.Test;
 
-import uk.ac.diamond.malcom.jacksonzeromq.connector.ZeromqConnectorService;
+import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
 public class SerializationTest {
 

@@ -18,6 +18,7 @@ import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
@@ -28,35 +29,36 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class MappingScanTest {
 
-	protected IEventService              eservice;
-	protected IPublisher<ScanBean>       publisher;
+	protected IEventService eservice;
+	protected IPublisher<ScanBean> publisher;
 	protected ISubscriber<IScanListener> subscriber;
-	protected IGeneratorService          gservice;
+	protected IGeneratorService gservice;
 
 	@Before
 	public void createServices() throws Exception {
-		
+
 		// Do not copy this get the service from OSGi!
-		eservice = new EventServiceImpl();     
+		eservice = new EventServiceImpl();
 		gservice = new GeneratorServiceImpl();
-		
-		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");	
-		
+
+		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");
+
 		// We use the long winded constructor because we need to pass in the connector.
-		// In production we would normally 
-		publisher  = eservice.createPublisher(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService());	// Do not copy this leave as null!	 
-		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService());  // Do not copy this leave as null!
+		// In production we would normally
+		publisher = eservice.createPublisher(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService()); // Do not copy this leave as null!
+		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService()); // Do not copy this leave as null!
 	}
 
 	/**
 	 * This test mimics a scan being run
 	 * 
 	 * Eventually we will need a test running the sequencing system.
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 */
 	@Test
 	public void testSimpleMappingScan() throws Exception {
-		
+
 		// Listen to events sent
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>(3);
 		subscriber.addListener(new IScanListener.Stub() {
@@ -77,25 +79,28 @@ public class MappingScanTest {
 		bean.setFilePath("/dls/tmp/fred.h5");
 		bean.setDatasetPath("/entry/data");
 		publisher.broadcast(bean);
-        
+
 		// Tell them we started it.
 		bean.setPreviousStatus(Status.QUEUED);
 		bean.setStatus(Status.RUNNING);
 		publisher.broadcast(bean);
-		
+
 		bean.setSize(10);
 		int ipoint = 0;
-		
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(10);
+		box.setyStart(10);
+		box.setWidth(5);
+		box.setHeight(2);
+
 		final GridModel model = new GridModel();
-		model.setxStart(10);
-		model.setWidth(5);
-		model.setyStart(10);
-		model.setHeight(2);
 		model.setRows(2);
 		model.setColumns(5);
-		
-		IGenerator<GridModel,Point> gen = gservice.createGenerator(model, null);
-		
+		model.setBoundingBox(box);
+
+		IGenerator<GridModel, Point> gen = gservice.createGenerator(model, null);
+
 		// Outer loop temperature, will be scan command driven when sequencer exists.
 		for (double temp = 273; temp < 283; temp++) {
 			bean.setPoint(ipoint);
@@ -110,14 +115,15 @@ public class MappingScanTest {
 		publisher.broadcast(bean);
 
 		Thread.sleep(1000); // Just to make sure all the message events come in
-		
-		assertTrue(gotBack.size()>10);
+
+		assertTrue(gotBack.size() > 10);
 		assertTrue(gotBack.get(1).scanStart());
-		assertTrue(gotBack.get(gotBack.size()-1).scanEnd());
+		assertTrue(gotBack.get(gotBack.size() - 1).scanEnd());
 	}
-	
-	private void testDeviceScan(ScanBean bean, IGenerator<GridModel,Point> gen) throws Exception {
-				
+
+	private void testDeviceScan(ScanBean bean, IGenerator<GridModel, Point> gen)
+			throws Exception {
+
 		// Mimic a scan
 		bean.setDeviceState(DeviceState.CONFIGURING);
 		publisher.broadcast(bean);
@@ -133,13 +139,12 @@ public class MappingScanTest {
 			publisher.broadcast(bean);
 			++size;
 		}
-		System.out.println("Did hardware scan of size "+size);
-		assertTrue(size==gen.size());
-		
+		System.out.println("Did hardware scan of size " + size);
+		assertTrue(size == gen.size());
+
 		bean.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean);
 
 	}
-	
-	
+
 }

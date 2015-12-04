@@ -32,44 +32,48 @@ import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 
 public class GridTest {
-	
+
 	private IGeneratorService service;
-	
+
 	@Before
 	public void before() throws Exception {
 		service = new GeneratorServiceImpl();
 	}
-	
+
 	@Test
 	public void testFillingRectangleNoROI() throws Exception {
-		
+
 		// Create a grid scan model
+		BoundingBox box = new BoundingBox();
+		box.setxStart(0);
+		box.setyStart(0);
+		box.setWidth(3);
+		box.setHeight(3);
+
 		GridModel model = new GridModel();
 		model.setRows(20);
 		model.setColumns(20);
-		model.setxStart(0);
-		model.setyStart(0);
-		model.setWidth(3);
-		model.setHeight(3);
+		model.setBoundingBox(box);
 
 		// Get the point list
-		IGenerator<GridModel,Point> gen = service.createGenerator(model);
+		IGenerator<GridModel, Point> gen = service.createGenerator(model);
 		List<Point> pointList = gen.createPoints();
-		
+
 		assertEquals(pointList.size(), gen.size());
-        checkPoints(pointList);
-        GeneratorUtil.testGeneratorPoints(gen);
+		checkPoints(pointList);
+		GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 	@Test
 	public void testFillingRectangle() throws Exception {
-		
+
 		// Create a simple bounding rectangle
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
@@ -79,18 +83,18 @@ public class GridTest {
 		model.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel,Point> gen = service.createGenerator(model, roi);
+		IGenerator<GridModel, Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
-		
+
 		assertEquals(pointList.size(), gen.size());
-		
-        checkPoints(pointList);
-        GeneratorUtil.testGeneratorPoints(gen);
+
+		checkPoints(pointList);
+		GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 	@Test
 	public void testFillingRectangleIterator() throws Exception {
-		
+
 		// Create a simple bounding rectangle
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
@@ -100,21 +104,22 @@ public class GridTest {
 		model.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel,Point> gen = service.createGenerator(model, roi);
-        Iterator<Point> it = gen.iterator();
-        List<Point> pointList = new ArrayList<Point>(7);
-        while (it.hasNext()) pointList.add(it.next());
-        
-        assertArrayEquals(pointList.toArray(), gen.createPoints().toArray());
-        
-        checkPoints(pointList);
-        GeneratorUtil.testGeneratorPoints(gen);
-       
+		IGenerator<GridModel, Point> gen = service.createGenerator(model, roi);
+		Iterator<Point> it = gen.iterator();
+		List<Point> pointList = new ArrayList<Point>(7);
+		while (it.hasNext())
+			pointList.add(it.next());
+
+		assertArrayEquals(pointList.toArray(), gen.createPoints().toArray());
+
+		checkPoints(pointList);
+		GeneratorUtil.testGeneratorPoints(gen);
+
 	}
 
 	@Test
 	public void testFillingCircle() throws Exception {
-		
+
 		// Create a simple bounding rectangle
 		CircularROI circle = new CircularROI(1.5, 1.5, 1.5);
 
@@ -124,18 +129,19 @@ public class GridTest {
 		gridScanPath.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel,Point> gen = service.createGenerator(gridScanPath, circle);
+		IGenerator<GridModel, Point> gen = service.createGenerator(
+				gridScanPath, circle);
 		List<Point> pointList = gen.createPoints();
-		
+
 		assertEquals(pointList.size(), gen.size());
-		
-		assertEquals(pointList.size(), 316); 
-        GeneratorUtil.testGeneratorPoints(gen);
- 	}
-	
+
+		assertEquals(pointList.size(), 316);
+		GeneratorUtil.testGeneratorPoints(gen);
+	}
+
 	@Test
 	public void testFillingBoundingCircleSkewed() throws Exception {
-		
+
 		// Create a simple bounding rectangle
 		CircularROI circle = new CircularROI(1.5, 1.5, 15);
 
@@ -145,41 +151,45 @@ public class GridTest {
 		gridScanPath.setColumns(200);
 
 		// Get the point list
-		IGenerator<GridModel,Point> gen = service.createGenerator(gridScanPath, circle);
+		IGenerator<GridModel, Point> gen = service.createGenerator(
+				gridScanPath, circle);
 		List<Point> pointList = gen.createPoints();
-		
+
 		assertEquals(pointList.size(), gen.size());
-		
-		assertEquals(pointList.size(), 3156); 
-        GeneratorUtil.testGeneratorPoints(gen);
- 	}
-	
-	
+
+		assertEquals(pointList.size(), 3156);
+		GeneratorUtil.testGeneratorPoints(gen);
+	}
+
 	@Test
 	public void testFillingPolygon() throws Exception {
 
-        PolygonalROI diamond = new PolygonalROI(new double[]{1.5, 0});
-        diamond.insertPoint(new double[]{3,1.5});
-        diamond.insertPoint(new double[]{1.5,3});
-        diamond.insertPoint(new double[]{0,1.5});
-        diamond.insertPoint(new double[]{1.5, 0});
-               
+		PolygonalROI diamond = new PolygonalROI(new double[] { 1.5, 0 });
+		diamond.insertPoint(new double[] { 3, 1.5 });
+		diamond.insertPoint(new double[] { 1.5, 3 });
+		diamond.insertPoint(new double[] { 0, 1.5 });
+		diamond.insertPoint(new double[] { 1.5, 0 });
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(0);
+		box.setyStart(0);
+		box.setWidth(3);
+		box.setHeight(3);
+
 		GridModel model = new GridModel();
 		model.setRows(20);
 		model.setColumns(20);
-		model.setxStart(0);
-		model.setyStart(0);
-		model.setWidth(3);
-		model.setHeight(3);
+		model.setBoundingBox(box);
 
 		// Get the point list
-		IGenerator<GridModel,Point> gen = service.createGenerator(model, diamond);
+		IGenerator<GridModel, Point> gen = service.createGenerator(model,
+				diamond);
 		List<Point> pointList = gen.createPoints();
-		
+
 		assertEquals(pointList.size(), gen.size());
-		
-		assertTrue(pointList.size()<400); // Some must not be in the polygon!
-        GeneratorUtil.testGeneratorPoints(gen);
+
+		assertTrue(pointList.size() < 400); // Some must not be in the polygon!
+		GeneratorUtil.testGeneratorPoints(gen);
 	}
 
 	private void checkPoints(List<Point> pointList) {

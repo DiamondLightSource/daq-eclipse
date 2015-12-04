@@ -21,7 +21,7 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 		if (containers.size()!=1) throw new GeneratorException("For "+getClass().getName()+" a single "+LinearROI.class.getName()+" must be provided!");
 		LinearROI roi = (LinearROI)containers.get(0).getROI();
 
-		double length = model.getLength();
+		double length = model.getBoundingLine().getLength();
 		double proportionalStep = (length / model.getPoints()) / length;
 		double start = proportionalStep / 2;
 		
