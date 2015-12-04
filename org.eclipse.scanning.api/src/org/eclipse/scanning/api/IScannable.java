@@ -16,4 +16,13 @@ public interface IScannable<T> extends ILevel, INameable {
 	 * @throws DeviceException
 	 */
 	public T getPosition() throws Exception;
+	
+	/**
+	 * Moves to the position required, blocking until it is complete.
+	 * 
+	 * @param position
+	 * @throws Exception
+	 */
+	public void moveTo(T position) throws Exception;
+
 }

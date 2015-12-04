@@ -86,13 +86,13 @@ public class Point extends AbstractPosition {
 
 	@Override
 	public List<String> getNames() {
-		return Arrays.asList("X", "Y");
+		return Arrays.asList("x", "y");
 	}
 
 	@Override
 	public Double get(String name) {
-		if ("X".equals(name)) return getX();
-		if ("Y".equals(name)) return getY();
+		if ("x".equalsIgnoreCase(name)) return getX();
+		if ("y".equalsIgnoreCase(name)) return getY();
 		return null;
 	}
 }

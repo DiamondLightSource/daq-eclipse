@@ -4,7 +4,11 @@ import java.util.List;
 
 /**
  * 
- * A position is a location of scannable values used in a scan.
+ * A position is a location of one or more values.
+ * For instance a group of scannables which need to be at a
+ * certain location. For exmaple at the start of a scan or
+ * for a scan datapoint.
+ * 
  * The position might be X and Y or Temperature or all three.
  * 
  * @author Matthew Gerring
@@ -39,6 +43,10 @@ public interface IPosition {
 	/**
 	 * Creates a composite position with the values of this position 
 	 * and the values of the passed in position.
+	 * 
+	 * This position's values take precedence if the names conflict.
+	 * This is like an implementation of Map where the putAll does not
+	 * overwrite.
 	 * 
 	 * @param other
 	 * @return

@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.scan;
 
+import org.eclipse.scanning.api.IDetector;
 import org.eclipse.scanning.api.IScannable;
 
 /**
@@ -14,7 +15,7 @@ import org.eclipse.scanning.api.IScannable;
  * @author Matthew Gerring
  *
  */
-public interface IScannableConnectorService {
+public interface IHardwareConnectorService {
 
 	/**
 	 * 
@@ -23,5 +24,14 @@ public interface IScannableConnectorService {
 	 * @throws ScanningException
 	 */
 	<T> IScannable<T> getScannable(String name) throws ScanningException;
+
+	
+	/**
+	 * 
+	 * @param name
+	 * @return
+	 * @throws ScanningException
+	 */
+	<U> IDetector<U> getDetector(String name) throws ScanningException;
 
 }

@@ -4,7 +4,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.scanning.api.scan.IScannableConnectorService;
+import org.eclipse.scanning.api.scan.IHardwareConnectorService;
+import org.eclipse.scanning.api.scan.IPositioner;
 import org.eclipse.scanning.api.scan.IScanner;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanModel;
@@ -13,7 +14,7 @@ import org.osgi.service.component.ComponentContext;
 
 public class ScannerServiceImpl implements IScanningService {
 	
-	private static IScannableConnectorService scanningConnectorService;
+	private static IHardwareConnectorService hardwareConnectorService;
 
 	private static final Map<Class<?>, Class<? extends IScanner<?>>> scanners;
 	
@@ -28,15 +29,29 @@ public class ScannerServiceImpl implements IScanningService {
 		scanners = Collections.unmodifiableMap(tmp);
 	}
 	
+	
+
+	@Override
+	public IPositioner createPositioner() throws ScanningException {
+		return createPositioner(null);
+	}
+
+	@Override
+	public IPositioner createPositioner(IHardwareConnectorService hservice) throws ScanningException {
+		if (hservice==null) hservice = ScannerServiceImpl.hardwareConnectorService;
+		return new Positioner(hservice);
+	}
+
+	
 	@Override
 	public <T> IScanner<T> createScanner(T model) throws ScanningException {
         return createScanner(model, null);
 	}
 
 	@Override
-	public <T> IScanner<T> createScanner(T model, IScannableConnectorService sservice) throws ScanningException {
+	public <T> IScanner<T> createScanner(T model, IHardwareConnectorService hservice) throws ScanningException {
 		
-		if (sservice==null) sservice = ScannerServiceImpl.scanningConnectorService;
+		if (hservice==null) hservice = ScannerServiceImpl.hardwareConnectorService;
 		
 		try {
 			final IScanner<T> scanner = (IScanner<T>)scanners.get(model.getClass()).newInstance();
@@ -50,14 +65,13 @@ public class ScannerServiceImpl implements IScanningService {
 		}
 	}
 
-	public static IScannableConnectorService getScanningConnectorService() {
-		return scanningConnectorService;
+	public static IHardwareConnectorService getHardwareConnectorService() {
+		return hardwareConnectorService;
 	}
 
-	public static void setScanningConnectorService(IScannableConnectorService connectorService) {
-		ScannerServiceImpl.scanningConnectorService = connectorService;
+	public static void setHardwareConnectorService(IHardwareConnectorService connectorService) {
+		ScannerServiceImpl.hardwareConnectorService = connectorService;
 	}
-	
 
 	private static ComponentContext context;
 

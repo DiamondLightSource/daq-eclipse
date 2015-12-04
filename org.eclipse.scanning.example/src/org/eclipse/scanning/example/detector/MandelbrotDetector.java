@@ -54,6 +54,8 @@ public class MandelbrotDetector implements IDetector<IDataset> {
 	// Configurable fields
 	private IPosition pos;
 	private OutputDimensions outputDimensions = OutputDimensions.TWO_D;
+	
+	private double collectionTime;
 
 	private String name;
 
@@ -198,5 +200,13 @@ public class MandelbrotDetector implements IDetector<IDataset> {
 	@Override
 	public int getLevel() {
 		return level;
+	}
+
+	public double getCollectionTime() {
+		return collectionTime;
+	}
+
+	public void setCollectionTime(double collectionTime) {
+		this.collectionTime = collectionTime;
 	}
 }

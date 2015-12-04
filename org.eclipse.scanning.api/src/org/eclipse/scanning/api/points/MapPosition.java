@@ -17,6 +17,27 @@ public class MapPosition extends AbstractPosition {
 	public MapPosition() {
 		values = new LinkedHashMap<String, Object>(7);
 	}
+	
+	/**
+	 * Define the values as a comma separate list of values of the form:
+	 * name1:value1, name2:value2, ... etc. namen:valuen
+	 * 
+	 * The value string must parse as a double or a NumberFormatException is thrown
+	 * 
+	 * Spaces between commas and between names and values will be trimed
+	 * 
+	 * @param value
+	 */
+	public MapPosition(String value) throws NumberFormatException {
+		
+		values = new LinkedHashMap<String, Object>(7);
+		String[] pairs = value.split(",");
+		for (String pair : pairs) {
+			String[] nv = pair.trim().split("\\:");
+		    values.put(nv[0].trim(), Double.parseDouble(nv[1].trim()));
+		}
+	}
+
 
 	@Override
 	public int size() {

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.scan;
 
+import org.eclipse.scanning.api.points.IPosition;
+
 
 /**
  * 
@@ -41,6 +43,26 @@ package org.eclipse.scanning.api.scan;
  *
  */
 public interface IScanningService {
+	
+	/**
+	 * This method sets the value of the scannables named to this position.
+	 * It takes into account the levels of the scannbles. 
+	 * It is blocking until all the scannables have reached the desired location.
+	 * 
+	 * @return
+	 * @throws ScanningException
+	 */
+	IPositioner createPositioner() throws ScanningException;
+
+	/**
+	 * This method sets the value of the scannables named to this position.
+	 * It takes into account the levels of the scannbles. 
+	 * It is blocking until all the scannables have reached the desired location.
+	 * 
+	 * @return
+	 * @throws ScanningException
+	 */
+	IPositioner createPositioner(IHardwareConnectorService hservice) throws ScanningException;
 
 	/**
 	 * Create an empty scanner which can run an iterable to complete a scan.
@@ -61,10 +83,10 @@ public interface IScanningService {
 	 * automatically. A ScanningException is thrown if the model is invalid.
 	 * 
 	 * @param model, information to do the scan
-	 * @param cservice, may be null, in which case system looks for service using OSGi
+	 * @param hservice, may be null, in which case system looks for service using OSGi
 	 * @return
 	 * @throws ScanningException
 	 */
-	<T> IScanner<T> createScanner(T model, IScannableConnectorService cservice) throws ScanningException;
-
+	<T> IScanner<T> createScanner(T model, IHardwareConnectorService hservice) throws ScanningException;
+	
 }

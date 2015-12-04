@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api;
 
+
 /**
  * 
  * Anatomy of a CPU scan (non-malcolm)
@@ -32,8 +33,24 @@ public interface IDetector<T> extends INameable, ILevel {
 	 * 
 	 * @throws Exception
 	 */
-	public void collectData() throws Exception;
+	void collectData() throws Exception;
 	
+	/**
+	 * Sets the collection time, in seconds, to be used during the next call of collectData.
+	 * 
+	 * @param time
+	 *            the collection time in seconds
+	 * @throws DeviceException
+	 */
+	void setCollectionTime(double time) throws Exception;
+	
+	/**
+	 * Returns the time, in seconds, the detector collects for during the next call to collectData()
+	 * 
+	 * @return double
+	 */
+	double getCollectionTime() throws Exception;
+
 	
 	/**
 	 * For GDA9 detectors, returns a boolean for the readout completed, true for complete, false for error.
@@ -45,6 +62,6 @@ public interface IDetector<T> extends INameable, ILevel {
 	 * @return the data collected
 	 * @throws DeviceException
 	 */
-	public T readout() throws Exception;
+	T readout() throws Exception;
 
 }

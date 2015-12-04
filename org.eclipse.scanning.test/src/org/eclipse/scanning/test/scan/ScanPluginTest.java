@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.scan;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 
 public class ScanPluginTest extends AbstractScanTest {
