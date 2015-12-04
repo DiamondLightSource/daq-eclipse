@@ -1,26 +1,26 @@
 package org.eclipse.scanning.api.points.models;
 
+/**
+ * <pre>
+ * snake = true
+ * -------------------->
+ *                     |
+ * <--------------------
+ * |
+ * --------------------> etc.
+ * 
+ * snake = false
+ * -------------------->
+ * -------------------->
+ * -------------------->
+ * </pre>
+**/
 public class GridModel implements IModelWithBoundingBox {
 	
 	private BoundingBox boundingBox;
 	private int columns = 1;
 	private int rows = 1;
 	
-	/**
-	 * <pre>
-	 * snake = true
-	 * -------------------->
-	 *                     |
-	 * <--------------------
-	 * |
-	 * --------------------> etc.
-     * 
-     * snake = false
-     * -------------------->
-     * -------------------->
-     * -------------------->
-     * </pre>
-	**/
 	private boolean snake = false;
 	
 	private transient double xStep = 0.0;

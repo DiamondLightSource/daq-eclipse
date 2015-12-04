@@ -1,5 +1,20 @@
 package org.eclipse.scanning.api.points.models;
 
+/**
+ * <pre>
+ * snake = true
+ * -------------------->
+ *                     |
+ * <--------------------
+ * |
+ * --------------------> etc.
+ * 
+ * snake = false
+ * -------------------->
+ * -------------------->
+ * -------------------->
+ * </pre>
+**/
 public class RasterModel implements IModelWithBoundingBox {
 
 	private BoundingBox boundingBox;
