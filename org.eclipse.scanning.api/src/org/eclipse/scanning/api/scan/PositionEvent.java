@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.scan;
 import java.util.EventObject;
 import java.util.List;
 
+import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IPosition;
 
@@ -19,8 +20,8 @@ public class PositionEvent extends EventObject {
 	 */
 	private static final long serialVersionUID = 6101070929612847926L;
 	
-	private int                 level;
-	private List<IScannable<?>> scannables;
+	private int          level;
+	private List<? extends ILevel> levelObjects;
 	
 	public PositionEvent(IPosition position) {
 		super(position);
@@ -31,7 +32,7 @@ public class PositionEvent extends EventObject {
 	 * position at the end of a move.
 	 * 
 	 * If during a move the position will be read from the
-	 * Scannables.
+	 * levelObjects.
 	 * 
 	 * @return
 	 */
@@ -47,12 +48,12 @@ public class PositionEvent extends EventObject {
 		this.level = level;
 	}
 
-	public List<IScannable<?>> getScannables() {
-		return scannables;
+	public List<? extends ILevel> getLevelObjects() {
+		return levelObjects;
 	}
 
-	public void setScannables(List<IScannable<?>> scannables) {
-		this.scannables = scannables;
+	public void setLevelObjects(List<? extends ILevel> levelObjects) {
+		this.levelObjects = levelObjects;
 	}
 
 }

@@ -3,14 +3,13 @@ package org.eclipse.scanning.test.scan.mock;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
-import org.eclipse.scanning.api.IDetector;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.scan.IHardwareConnectorService;
+import org.eclipse.scanning.api.scan.IDeviceConnectorService;
+import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 
-public class MockScannableConnector implements IHardwareConnectorService {
+public class MockScannableConnector implements IDeviceConnectorService {
 	
 	private static Map<String, INameable> cache;
 	
@@ -33,19 +32,19 @@ public class MockScannableConnector implements IHardwareConnectorService {
 	}
 
 	@Override
-	public IScannable<Double> getScannable(String name) throws ScanningException {
+	public IScannable<?> getScannable(String name) throws ScanningException {
 		if (cache==null) cache = new HashMap<String, INameable>(3);
-		if (cache.containsKey(name)) return (IScannable<Double>)cache.get(name);
+		if (cache.containsKey(name)) return (IScannable<?>)cache.get(name);
 		register(new MockScannable(name, 0d));
-		return (IScannable<Double>)cache.get(name);
+		return (IScannable<?>)cache.get(name);
 	}
 
 	@Override
-	public IDetector<IDataset> getDetector(String name) throws ScanningException {
+	public IRunnableDevice<?> getDetector(String name) throws ScanningException {
 		if (cache==null) cache = new HashMap<String, INameable>(3);
-		if (cache.containsKey(name)) return (IDetector<IDataset>)cache.get(name);
-		register(new MockDetector(name));
-		return (IDetector<IDataset>)cache.get(name);
+		if (cache.containsKey(name)) return (IRunnableDevice<?>)cache.get(name);
+		register(new MockReadableDetector(name));
+		return (IRunnableDevice<?>)cache.get(name);
 	}
 
 }

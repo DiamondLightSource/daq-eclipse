@@ -3,6 +3,9 @@ package org.eclipse.scanning.api.scan;
 
 /**
  * 
+ * An IDevice is the runner for the whole scan but also for individual
+ * detectors. Detectors, for instance an IMalcolmDevice can be run in 
+ * the system as if it were an IDetector.
  * 
  * Anatomy of a CPU scan (non-malcolm)
  * 
@@ -15,7 +18,7 @@ package org.eclipse.scanning.api.scan;
  *_________|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|___  moveTo()  Scannables move motors to new position<br>
  * <br>
  *<br>
- * A MalcolmDevice is also an IScanner which may operate with an arbitrary model, usually driving hardware.<br>
+ * A MalcolmDevice is also an IDetector which may operate with an arbitrary model, usually driving hardware.<br>
  * <br>
  * <usage><code>
  * IParserService pservice = ...// OSGi<br>
@@ -31,18 +34,17 @@ package org.eclipse.scanning.api.scan;
  * <br>
  * // Now scan the point iterator<br>
  * IScanningService sservice = ...// OSGi<br>
- * IScanner<ScanModel> scanner = sservice.createScanner(...);
- * scanner.configure(model);
- * scanner.run();
+ * IDetector<ScanModel> scanner = sservice.createScanner(...);<br>
+ * scanner.configure(model);<br>
+ * scanner.run();<br>
  * 
  * </code></usage>
  *
  * @author Matthew Gerring
  *
  */
-public interface IScanner<T> {
+public interface IRunnableDevice<T> {
 		
-	
 	/**
 	 * Scan the points in this iterator, moving each position to its required
 	 * scannable using moveTo(...) and using the level value to order the moves.

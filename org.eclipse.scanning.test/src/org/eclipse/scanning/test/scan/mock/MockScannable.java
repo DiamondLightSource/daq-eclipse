@@ -2,11 +2,12 @@ package org.eclipse.scanning.test.scan.mock;
 
 import org.eclipse.scanning.api.IScannable;
 
-public class MockScannable implements IScannable<Double> {
+public class MockScannable implements IScannable<Number> {
 
-	private int    level;
-	private String name;
-	private Double position = 0d;
+	private int     level;
+	private String  name;
+	private Number  position = 0d;
+	private boolean requireSleep=true;
 
 	
     public MockScannable() {
@@ -39,20 +40,28 @@ public class MockScannable implements IScannable<Double> {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public Double getPosition() {
+	public Number getPosition() {
 		return position;
 	}
-	public void setPosition(Double position) throws InterruptedException {
+	public void setPosition(Number position) throws InterruptedException {
 		moveTo(position);
 	}
-	public void moveTo(Double position) throws InterruptedException {
-		Thread.sleep(Math.abs(Math.round((position-this.position)/1)*100));
+	public void moveTo(Number position) throws InterruptedException {
+		if (requireSleep) {
+			Thread.sleep(Math.abs(Math.round((position.doubleValue()-this.position.doubleValue())/1)*100));
+		}
 		this.position = position;
 	}
 	@Override
 	public String toString() {
 		return "MockScannable [level=" + level + ", name=" + name
 				+ ", position=" + position + "]";
+	}
+	public boolean isRequireSleep() {
+		return requireSleep;
+	}
+	public void setRequireSleep(boolean requireSleep) {
+		this.requireSleep = requireSleep;
 	}
 
 

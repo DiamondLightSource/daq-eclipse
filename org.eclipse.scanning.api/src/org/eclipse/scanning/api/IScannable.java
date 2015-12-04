@@ -4,6 +4,9 @@ package org.eclipse.scanning.api;
  * 
  * Something that can take part in a sequenced scan which can have its position set.
  * 
+ * Unlike a detector, a scannable does not have a model and has attributes directly 
+ * on the interface
+ * 
  * @author fcp94556
  *
  */

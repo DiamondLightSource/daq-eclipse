@@ -25,8 +25,9 @@ import java.util.Map;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
-import org.eclipse.scanning.api.IDetector;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.IReadableDetector;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 
 /**
@@ -35,47 +36,31 @@ import org.eclipse.scanning.api.points.IPosition;
  * <p>
  * Note: values will always be high if used at (x, y) positions more than 2 units away from the origin.
  */
-public class MandelbrotDetector implements IDetector<IDataset> {
+public class MandelbrotDetector implements IReadableDetector<MandelbrotModel> {
 
 	public enum OutputDimensions { ONE_D, TWO_D }
 
 	public static final String VALUE_NAME = "mandelbrot_value";
 
-	// Constants
-	private static final int    MAX_ITERATIONS = 500;
-	private static final double ESCAPE_RADIUS = 10.0;
-	private static final int    COLUMNS = 301;
-	private static final int    ROWS = 241;
-	private static final int    POINTS = 1000;
-	private static final double MAX_X = 1.5;
-	private static final double MAX_Y = 1.2;
-
-
 	// Configurable fields
 	private IPosition pos;
-	private OutputDimensions outputDimensions = OutputDimensions.TWO_D;
 	
-	private double collectionTime;
-
 	private String name;
 
 	public MandelbrotDetector() {
 		super();
+		this.model = new MandelbrotModel();
 	}
 
 	public void setPosition(IPosition pos) {
 		this.pos = pos;
 	}
 
-	public void setOutputDimensions(OutputDimensions outputDimensions) {
-		this.outputDimensions = outputDimensions;
-	}
-
 	public int[] getDataDimensions() throws Exception {
-		if (outputDimensions == OutputDimensions.ONE_D) {
-			return new int[] { POINTS };
-		} else if (outputDimensions == OutputDimensions.TWO_D) {
-			return new int[] { COLUMNS, ROWS };
+		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
+			return new int[] { model.getPoints() };
+		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
+			return new int[] { model.getColumns(), model.getRows() };
 		} else {
 			throw new IllegalStateException("Unknown number of dimensions!");
 		}
@@ -93,13 +78,17 @@ public class MandelbrotDetector implements IDetector<IDataset> {
 	}
 
 
-	@Override
-	public void collectData() throws Exception {
-		// Not required
-	}
+	private MandelbrotModel model;
 
 	@Override
-	public IDataset readout() throws Exception {
+	public void configure(MandelbrotModel model) throws ScanningException {
+		this.model = model;
+	}
+
+	private IDataset read;
+	
+	@Override
+	public void run() throws ScanningException {
 		
 		final double a = (Double)pos.get("X");
 		final double b = (Double)pos.get("Y");
@@ -108,27 +97,35 @@ public class MandelbrotDetector implements IDetector<IDataset> {
 		// TODO FIXME store value
 		
 		IDataset ret = null;
-		if (outputDimensions == OutputDimensions.ONE_D) {
-			ret = calculateJuliaSetLine(a, b, 0.0, 0.0, MAX_X, POINTS);
-		} else if (outputDimensions == OutputDimensions.TWO_D) {
-			ret = calculateJuliaSet(a, b, COLUMNS, ROWS);
+		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
+			ret = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
+		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
+			ret = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
 		}
 		final Map<String, Serializable> mp = new HashMap<>(1);
 		mp.put("value", value);
 		Metadata meta = new Metadata(mp);
         ret.addMetadata(meta);
+		
+        read = ret;
+	}
+
+	@Override
+	public boolean read() throws ScanningException {
+		
+        // TODO Read the IDataset to an HDF5 file?
         
-		return ret;
+		return true;
 	}
 
 	/**
 	 * Fill a Julia set around the origin for the value C = a + bi
 	 */
 	private IDataset calculateJuliaSet(final double a, final double b, int columns, int rows) {
-		final double xStart = -MAX_X;
-		final double xStop = MAX_X;
-		final double yStart = -MAX_Y;
-		final double yStop = MAX_Y;
+		final double xStart = -model.getMaxx();
+		final double xStop = model.getMaxx();
+		final double yStart = -model.getMaxy();
+		final double yStop = model.getMaxy();
 		final double yStep = (yStop - yStart) / (rows - 1);
 		double y;
 		IDataset juliaSet = new DoubleDataset(rows,columns);
@@ -169,7 +166,7 @@ public class MandelbrotDetector implements IDetector<IDataset> {
 	private double julia(double x, double y, final double a, final double b) {
 		int iteration = 0;
 		double xSquared, ySquared, tempX;
-		double escapeRadiusSquared = ESCAPE_RADIUS * ESCAPE_RADIUS;
+		double escapeRadiusSquared = model.getEscapeRadius() * model.getEscapeRadius();
 		do {
 			xSquared = x * x;
 			ySquared = y * y;
@@ -177,7 +174,7 @@ public class MandelbrotDetector implements IDetector<IDataset> {
 			y = 2 * x * y + b;
 			x = tempX;
 			iteration++;
-		} while (iteration < MAX_ITERATIONS && xSquared + ySquared < escapeRadiusSquared);
+		} while (iteration < model.getMaxIterations() && xSquared + ySquared < escapeRadiusSquared);
 
 		double modulus = Math.sqrt(x * x + y * y);
 
@@ -191,6 +188,7 @@ public class MandelbrotDetector implements IDetector<IDataset> {
 	}
 
 	private int level = 1000;
+
 	
 	@Override
 	public void setLevel(int level) {
@@ -202,11 +200,18 @@ public class MandelbrotDetector implements IDetector<IDataset> {
 		return level;
 	}
 
-	public double getCollectionTime() {
-		return collectionTime;
+	@Override
+	public void abort() throws ScanningException {
+		throw new ScanningException("Operation not supported!");
 	}
 
-	public void setCollectionTime(double collectionTime) {
-		this.collectionTime = collectionTime;
+	@Override
+	public void pause() throws ScanningException {
+		throw new ScanningException("Operation not supported!");
+	}
+
+	@Override
+	public void resume() throws ScanningException {
+		throw new ScanningException("Operation not supported!");
 	}
 }

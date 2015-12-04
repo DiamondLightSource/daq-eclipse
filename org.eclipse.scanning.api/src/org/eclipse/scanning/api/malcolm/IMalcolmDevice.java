@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.malcolm;
 
-import org.eclipse.scanning.api.scan.IScanner;
+import org.eclipse.scanning.api.scan.IRunnableDevice;
 
 
 /**
@@ -40,7 +40,7 @@ import org.eclipse.scanning.api.scan.IScanner;
  * @author Matthew Gerring
  *
  */
-public interface IMalcolmDevice<T> extends IScanner<T>, IMalcolmEventPublisher, IMalcolmStateManager {
+public interface IMalcolmDevice<T> extends IRunnableDevice<T>, IMalcolmEventPublisher, IMalcolmStateManager {
 	
 	// TODO setAttribute, getAttribute
 	

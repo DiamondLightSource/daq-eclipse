@@ -62,10 +62,12 @@ public interface IScanningService {
 	 * @return
 	 * @throws ScanningException
 	 */
-	IPositioner createPositioner(IHardwareConnectorService hservice) throws ScanningException;
+	IPositioner createPositioner(IDeviceConnectorService hservice) throws ScanningException;
 
 	/**
 	 * Create an empty scanner which can run an iterable to complete a scan.
+	 * The scanner returned will be an IScanner for running the whole scan rather than
+	 * for a particular detector. The model passed in however defines the required detector.
 	 * 
 	 * The model is provided and the configure(...) method called on the scanner 
 	 * automatically. A ScanningException is thrown if the model is invalid.
@@ -74,7 +76,7 @@ public interface IScanningService {
 	 * @return
 	 * @throws ScanningException
 	 */
-	<T> IScanner<T> createScanner(T model) throws ScanningException;
+	<T> IRunnableDevice<T> createScanner(T model) throws ScanningException;
 	
 	/**
 	 * Create an empty scanner which can run an iterable to complete a scan.
@@ -87,6 +89,6 @@ public interface IScanningService {
 	 * @return
 	 * @throws ScanningException
 	 */
-	<T> IScanner<T> createScanner(T model, IHardwareConnectorService hservice) throws ScanningException;
+	<T> IRunnableDevice<T> createScanner(T model, IDeviceConnectorService hservice) throws ScanningException;
 	
 }

@@ -7,7 +7,7 @@ package org.eclipse.scanning.api;
  * @author fcp94556
  *
  */
-public interface ILevel {
+public interface ILevel extends INameable {
 
 	/**
 	 * Used for ordering the operations of Scannables during scans

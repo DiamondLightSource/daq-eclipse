@@ -3,6 +3,9 @@ package org.eclipse.scanning.api.event;
 import java.net.URI;
 
 /**
+ * Clients do not need to consume this service, it is provided by a bundle in the
+ * workspace. Tests can hardcode an implementation of this service.
+ * 
  * A service which provides the marshalling (the implementation uses Jackson) and
  * the JMS service provider (the implementation uses ActiveMQ)
  * 

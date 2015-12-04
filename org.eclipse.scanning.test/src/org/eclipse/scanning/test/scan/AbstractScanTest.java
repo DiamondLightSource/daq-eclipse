@@ -1,29 +1,35 @@
 package org.eclipse.scanning.test.scan;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
+import org.eclipse.scanning.api.ILevel;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.api.scan.IHardwareConnectorService;
+import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IPositionListener;
 import org.eclipse.scanning.api.scan.IPositioner;
-import org.eclipse.scanning.api.scan.IScanner;
+import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanModel;
+import org.eclipse.scanning.test.scan.mock.MockScannable;
 import org.junit.Test;
 
 public class AbstractScanTest {
 
 	protected IScanningService              sservice;
-	protected IHardwareConnectorService     connector;
+	protected IDeviceConnectorService     connector;
 	protected IGeneratorService             gservice;
 
 	@Test
@@ -46,7 +52,7 @@ public class AbstractScanTest {
 			@Override
 			public void levelPerformed(PositionEvent evt) {
 				System.out.println("Level complete "+evt.getLevel());
-				for (IScannable<?> s : evt.getScannables()) scannablesMoved.add(s.getName());
+				for (INameable s : evt.getLevelObjects()) scannablesMoved.add(s.getName());
 			}
 		});
 		
@@ -67,7 +73,57 @@ public class AbstractScanTest {
 	@Test
 	public void testMassiveMove() throws Exception {
 
+		MapPosition pos = new MapPosition();
+		for (int ilevel = 0; ilevel < 100; ilevel++) {
+			for (int iscannable = 0; iscannable < 1000; iscannable++) {
+				String name = "pos"+ilevel+"_"+iscannable;
+				
+				// We set the level in this loop, normally this comes
+				// in via spring.
+				IScannable<?> motor = connector.getScannable(name);
+				motor.setLevel(ilevel);
+				if (motor instanceof MockScannable) ((MockScannable)motor).setRequireSleep(false);
+				
+				// We set the position required
+				pos.put(name, ilevel+iscannable);
+ 			}
+		} 
 		
+		IPositioner positioner   = sservice.createPositioner(connector);
+
+		final List<String> levelsMoved = new ArrayList<>(6);
+		positioner.addPositionListener(new IPositionListener.Stub() {
+			@Override
+			public void levelPerformed(PositionEvent evt) {
+				System.out.println("Level complete "+evt.getLevel());
+				for (ILevel s : evt.getLevelObjects()) {
+					levelsMoved.add(String.valueOf(s.getLevel()));
+				}
+			}
+		});
+
+		long start = System.currentTimeMillis();
+		positioner.setPosition(pos);
+		long end   = System.currentTimeMillis();
+		
+		// Check the size
+		assertTrue(levelsMoved.size()==100000);
+		
+		// Check that the level order was right
+		final List<String> sorted = new ArrayList<String>(levelsMoved.size());
+	    sorted.addAll(levelsMoved);
+	    Collections.sort(sorted, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return Integer.parseInt(o1)-Integer.parseInt(o2);
+			}
+		});
+		
+	    for (int i = 0; i < levelsMoved.size(); i++) {
+		    assertEquals("The wrong level was encountered sorted='"+sorted.get(i)+"' moved='"+levelsMoved.get(i)+"'", levelsMoved.get(i), sorted.get(i));
+		}
+	    
+		System.out.println("Positioning 100,000 test motor with 100 levels took "+(end-start)+" ms");
 	}
 
 
@@ -88,11 +144,9 @@ public class AbstractScanTest {
 		model.setBoundingBox(box);
 		
 		Iterable<IPosition> gen = gservice.createGenerator(model);
-		final ScanModel  smodel = new ScanModel(gen, "det", 0.1);
-		final IPosition  start  = new MapPosition("x:0, y:0");
-		smodel.setStart(start);
+		final ScanModel  smodel = new ScanModel(gen);
 		
-		IScanner<ScanModel> scanner = sservice.createScanner(smodel, connector);
+		IRunnableDevice<ScanModel> scanner = sservice.createScanner(smodel, connector);
 		
 		scanner.run();
 		

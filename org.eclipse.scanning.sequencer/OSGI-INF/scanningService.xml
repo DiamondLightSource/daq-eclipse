@@ -4,5 +4,5 @@
    <service>
       <provide interface="org.eclipse.scanning.api.scan.IScanningService"/>
    </service>
-   <reference bind="setHardwareConnectorService" cardinality="0..1" interface="org.eclipse.scanning.api.scan.IHardwareConnectorService" name="IHardwareConnectorService" policy="static" />
+   <reference bind="setDeviceService" cardinality="0..1" interface="org.eclipse.scanning.api.scan.IDeviceConnectorService" name="IDeviceConnectorService" policy="static" />
 </scr:component>
