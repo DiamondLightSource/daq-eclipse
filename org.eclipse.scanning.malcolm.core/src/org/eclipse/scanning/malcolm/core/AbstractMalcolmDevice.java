@@ -30,6 +30,7 @@ public abstract class AbstractMalcolmDevice<T> implements IMalcolmDevice<T> {
 
 	// Fields
 	protected String              name;
+	protected int                 level;
 	
 	// Events
 	protected MalcolmEventDelegate eventDelegate;
@@ -179,6 +180,14 @@ public abstract class AbstractMalcolmDevice<T> implements IMalcolmDevice<T> {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
 	}
 
 }

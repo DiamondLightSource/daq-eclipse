@@ -1,5 +1,8 @@
 package org.eclipse.scanning.api.scan;
 
+import org.eclipse.scanning.api.ILevel;
+import org.eclipse.scanning.api.INameable;
+
 
 /**
  * 
@@ -43,7 +46,7 @@ package org.eclipse.scanning.api.scan;
  * @author Matthew Gerring
  *
  */
-public interface IRunnableDevice<T> {
+public interface IRunnableDevice<T> extends INameable, ILevel {
 		
 	/**
 	 * Scan the points in this iterator, moving each position to its required

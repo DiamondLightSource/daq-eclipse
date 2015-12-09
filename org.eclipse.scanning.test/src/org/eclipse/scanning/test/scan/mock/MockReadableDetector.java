@@ -37,6 +37,7 @@ public class MockReadableDetector implements IReadableDetector<MockDetectorModel
 	public void run() throws ScanningException {
 		try {
 			Thread.sleep((long)(model.getCollectionTime()*1000));
+			model.setRan(model.getRan()+1);
 		} catch (Exception ne) {
 			throw new ScanningException("Cannot to do readout", ne);
 		}
@@ -46,6 +47,7 @@ public class MockReadableDetector implements IReadableDetector<MockDetectorModel
 	public boolean read() throws ScanningException {
 		
 		IDataset next = Random.rand(new int[]{1024, 1024});
+		model.setRead(model.getRead()+1);
 		// TODO write next somewhere?
 		
 		return true;

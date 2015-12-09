@@ -15,12 +15,9 @@ public class ScanModel {
 	/**
 	 * This is the set of detectors which should be collected
 	 * and (if they are IReadableDetector) read out during the 
-	 * scan. The detectors should be configured and ready to 
-	 * have run called. For instance IMalcolmDevice should be
-	 * configured and have a State from which it can be run,
-	 * ideally READY.
+	 * scan.
 	 */
-	private Collection<IRunnableDevice<?>> scanners;
+	private Collection<IRunnableDevice<?>> detectors;
 	
 	public ScanModel() {
 	    this(null);
@@ -38,11 +35,12 @@ public class ScanModel {
 		this.positionIterator = positionIterator;
 	}
 
-	public Collection<IRunnableDevice<?>> getScanners() {
-		return scanners;
+	public Collection<IRunnableDevice<?>> getDetectors() {
+		return detectors;
 	}
 
-	public void setScanners(Collection<IRunnableDevice<?>> scanners) {
-		this.scanners = scanners;
+	public void setDetectors(Collection<IRunnableDevice<?>> ds) {
+		this.detectors = ds;
 	}
+
 }

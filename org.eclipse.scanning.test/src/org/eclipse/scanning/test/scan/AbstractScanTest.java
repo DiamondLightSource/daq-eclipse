@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
@@ -23,6 +25,7 @@ import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanModel;
+import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
 import org.junit.Test;
 
@@ -131,25 +134,36 @@ public class AbstractScanTest {
 	@Test
 	public void testSimpleScan() throws Exception {
 				
-		// Create a grid scan model
+		// Configure a detector
+		IRunnableDevice<MockDetectorModel> detector = connector.getDetector("detector");
+		MockDetectorModel dmodel = new MockDetectorModel();
+		dmodel.setCollectionTime(0.1);
+		detector.configure(dmodel);
+		
+		// Create scan points for a grid
 		BoundingBox box = new BoundingBox();
 		box.setxStart(0);
 		box.setyStart(0);
 		box.setWidth(3);
 		box.setHeight(3);
 
-		GridModel model = new GridModel();
-		model.setRows(20);
-		model.setColumns(20);
-		model.setBoundingBox(box);
+		GridModel gmodel = new GridModel();
+		gmodel.setRows(20);
+		gmodel.setColumns(20);
+		gmodel.setBoundingBox(box);
 		
-		Iterable<IPosition> gen = gservice.createGenerator(model);
-		final ScanModel  smodel = new ScanModel(gen);
+		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+
+		// Create the model for a scan and scan.
+		final ScanModel  smodel = new ScanModel();
+		smodel.setPositionIterator(gen);
+		smodel.setDetectors(Arrays.asList(new IRunnableDevice<?>[]{detector}));
 		
 		IRunnableDevice<ScanModel> scanner = sservice.createScanner(smodel, connector);
-		
 		scanner.run();
 		
+		assertEquals(gen.size(), dmodel.getRan());
+		assertEquals(gen.size(), dmodel.getRead());
 	}
 
 }
