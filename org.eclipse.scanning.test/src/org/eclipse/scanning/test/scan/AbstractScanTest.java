@@ -134,28 +134,29 @@ public class AbstractScanTest {
 	@Test
 	public void testSimpleScan() throws Exception {
 				
-		// Configure a detector
+		// Configure a detector with a collection time.
 		IRunnableDevice<MockDetectorModel> detector = connector.getDetector("detector");
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setCollectionTime(0.1);
 		detector.configure(dmodel);
 		
-		// Create scan points for a grid
+		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
 		gmodel.setRows(20);
 		gmodel.setColumns(20);
-		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
-		
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
 		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 
-		// Create the model for a scan and scan.
+		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterator(gen);
 		smodel.setDetectors(Arrays.asList(new IRunnableDevice<?>[]{detector}));
 		
+		// Create a scan and run it
 		IRunnableDevice<ScanModel> scanner = sservice.createScanner(smodel, connector);
 		scanner.run();
 		
+		// Check the details of how often it was run
 		assertEquals(gen.size(), dmodel.getRan());
 		assertEquals(gen.size(), dmodel.getRead());
 	}
