@@ -1,8 +1,12 @@
 package org.eclipse.scanning.sequencer;
 
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IPositioner;
+import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -21,9 +25,17 @@ import org.eclipse.scanning.api.scan.ScanningException;
 final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	
-	private ScanModel    model;
-	private DetectorRunner detectors;
-	private DetectorReader readers;
+	private ScanModel        model;
+	private DetectorRunner   detectors;
+	private DetectorReader   readers;
+	private ReentrantLock    lock;
+	private Condition        paused;
+	private volatile boolean awaitPaused;
+	
+	AcquisitionDevice() {
+		this.lock   = new ReentrantLock();
+		this.paused = lock.newCondition();
+	}
 	
 	@Override
 	public void configure(ScanModel model) throws ScanningException {
@@ -41,10 +53,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        final IPositioner positioner = scanningService.createPositioner(deviceService);
 	        
 	        for (IPosition pos : model.getPositionIterator()) {
+	        	if (awaitPaused) paused.await();
+
 	        	positioner.setPosition(pos);   // moveTo
 	        	readers.latch();               // Wait for the previous read out to return, if any
 	        	detectors.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
 	        	readers.run(pos, false);       // Do not block on the readout, move to the next position immeadiately.
+		        	
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
@@ -64,11 +79,46 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	@Override
 	public void pause() throws ScanningException {
-		throw new ScanningException("Not implemented!");
+		try {
+			lock.lockInterruptibly();
+		} catch (Exception ne) {
+			throw new ScanningException(ne);
+		}
+		
+		try {
+			awaitPaused = true;
+			for (IRunnableDevice<?> device : model.getDetectors()) {
+				device.pause();
+			}
+			
+		} catch (ScanningException s) {
+			throw s;
+		} catch (Exception ne) {
+			throw new ScanningException(ne);
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	@Override
 	public void resume() throws ScanningException {
-		throw new ScanningException("Not implemented!");
+		try {
+			lock.lockInterruptibly();
+		} catch (Exception ne) {
+			throw new ScanningException(ne);
+		}
+		
+		try {
+			awaitPaused = false;
+			for (IRunnableDevice<?> device : model.getDetectors()) {
+				device.resume();
+			}
+			paused.signalAll();
+			
+		} catch (ScanningException s) {
+			throw s;
+		} finally {
+			lock.unlock();
+		}
 	}
 }
