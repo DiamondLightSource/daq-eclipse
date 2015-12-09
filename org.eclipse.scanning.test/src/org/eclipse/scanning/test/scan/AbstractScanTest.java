@@ -141,16 +141,10 @@ public class AbstractScanTest {
 		detector.configure(dmodel);
 		
 		// Create scan points for a grid
-		BoundingBox box = new BoundingBox();
-		box.setxStart(0);
-		box.setyStart(0);
-		box.setWidth(3);
-		box.setHeight(3);
-
 		GridModel gmodel = new GridModel();
 		gmodel.setRows(20);
 		gmodel.setColumns(20);
-		gmodel.setBoundingBox(box);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
 		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 
