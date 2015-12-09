@@ -1,7 +1,17 @@
 package org.eclipse.scanning.api.points.models;
 
 public class BoundingBox {
-
+	
+	public BoundingBox() {
+		
+	}
+	public BoundingBox(double xStart, double yStart, double width, double height) {
+		super();
+		this.xStart = xStart;
+		this.yStart = yStart;
+		this.width = width;
+		this.height = height;
+	}
 	private double xStart;
 	private double yStart;
 	private double width;
