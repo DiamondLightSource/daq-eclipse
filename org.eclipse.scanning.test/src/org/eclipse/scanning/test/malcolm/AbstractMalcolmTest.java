@@ -171,37 +171,6 @@ public abstract class AbstractMalcolmTest {
 			}
 		});	
 	}
-
-	protected Connection createPauseTopicListener(IMalcolmDevice zebra, final List<MalcolmEventBean> beans) throws Exception {
-		
-		Connection      send     = null;
-			
-		// Add a topic consumer which deserializes to 
-		QueueConnectionFactory connectionFactory = (QueueConnectionFactory)connectorService.createConnectionFactory(zebra.getURI());
-		send = connectionFactory.createConnection();
-
-		final Session session = send.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		final Topic   topic   = session.createTopic(zebra.getTopicName());		
-
-		final MessageConsumer consumer = session.createConsumer(topic);
-		MessageListener listener = new MessageListener() {
-			public void onMessage(Message message) {		 
-				TextMessage txt = (TextMessage)message;
-				MalcolmEventBean bean;
-				try {
-					bean = connectorService.unmarshal(txt.getText(), MalcolmEventBean.class);
-					if (bean.getState()==State.PAUSED) {
-						beans.add(bean);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		};
-		consumer.setMessageListener(listener);
-		send.start();
-		return send;
-	}
 	
 	/**
 	 * Override to provide alternative connections for tests that look at multiple connections.
@@ -244,58 +213,52 @@ public abstract class AbstractMalcolmTest {
 		});
 		
         final List<MalcolmEventBean> beans = new ArrayList<MalcolmEventBean>(IMAGE_COUNT);
-        Connection send = createPauseTopicListener(device, beans);	
+        createPauseEventListener(device, beans);	
         
         final List<Integer> usedThreads = new ArrayList<>();
-        try {
-  	
-			for (int i = 0; i < threadcount; i++) {
-				final Integer current = i;
-				Thread thread = new Thread(new Runnable() {
-					public void run() {
-						try {
-							IMalcolmDevice sdevice = separateDevice ? createAdditionalConnection() : device;
-							System.out.println("Running thread Thread"+current+". Device = "+sdevice.getName());
-							checkPauseResume(sdevice, 1000, true);
-							
-						} catch(MalcolmDeviceOperationCancelledException mdoce) {
-							mdoce.printStackTrace();
-						    usedThreads.add(current);
-							exceptions.add(mdoce);
-							
-						} catch (Exception e) {
-							e.printStackTrace();
-							exceptions.add(e);
-						}
-					}
-				}, "Thread"+i);
-				
-				thread.setPriority(9);
-				if (sleepTime>0) {
-					thread.setDaemon(true); // Otherwise we are running them in order anyway
-				}
-				thread.start();
-				System.out.println("Started thread Thread"+i);
-				
-				if (sleepTime>0) {
-					Thread.sleep(sleepTime);
-				} else{
-					Thread.sleep(100);
-					thread.join();
-				}
-			}
-			
-			if (expectExceptions && exceptions.size()>0) return device; // Pausing failed as expected
-			
-			// Wait for end of run for 30 seconds, otherwise we carry on (test will then likely fail)
-			if (doLatch && device.getState()!=State.IDLE) {
-				device.latch(30, TimeUnit.SECONDS, State.RUNNING, State.PAUSED, State.PAUSING); // Wait until not running.
-			}
-			
-        } finally {
-        	send.close();
+        for (int i = 0; i < threadcount; i++) {
+        	final Integer current = i;
+        	Thread thread = new Thread(new Runnable() {
+        		public void run() {
+        			try {
+        				IMalcolmDevice sdevice = separateDevice ? createAdditionalConnection() : device;
+        				System.out.println("Running thread Thread"+current+". Device = "+sdevice.getName());
+        				checkPauseResume(sdevice, 1000, true);
+
+        			} catch(MalcolmDeviceOperationCancelledException mdoce) {
+        				mdoce.printStackTrace();
+        				usedThreads.add(current);
+        				exceptions.add(mdoce);
+
+        			} catch (Exception e) {
+        				e.printStackTrace();
+        				exceptions.add(e);
+        			}
+        		}
+        	}, "Thread"+i);
+
+        	thread.setPriority(9);
+        	if (sleepTime>0) {
+        		thread.setDaemon(true); // Otherwise we are running them in order anyway
+        	}
+        	thread.start();
+        	System.out.println("Started thread Thread"+i);
+
+        	if (sleepTime>0) {
+        		Thread.sleep(sleepTime);
+        	} else{
+        		Thread.sleep(100);
+        		thread.join();
+        	}
         }
-        
+
+        if (expectExceptions && exceptions.size()>0) return device; // Pausing failed as expected
+
+        // Wait for end of run for 30 seconds, otherwise we carry on (test will then likely fail)
+        if (doLatch && device.getState()!=State.IDLE) {
+        	device.latch(30, TimeUnit.SECONDS, State.RUNNING, State.PAUSED, State.PAUSING); // Wait until not running.
+        }
+
 		if (exceptions.size()>0) throw exceptions.get(0);
 		if (doLatch) { // If we waited we can check it completed, otherwise it is probably still going.
 			if (device.getState()!=State.IDLE) throw new Exception("The state at the end of the pause/resume cycle(s) must be "+State.IDLE);

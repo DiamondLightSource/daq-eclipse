@@ -72,14 +72,9 @@ public abstract class AbstractPausingMalcolmTest extends AbstractMalcolmTest {
 		runDeviceInThread(device,exceptions);
 		
         final List<MalcolmEventBean> beans = new ArrayList<MalcolmEventBean>(IMAGE_COUNT);
-        Connection send = createPauseTopicListener(device, beans);	
-        try {
-			checkPauseResume(device, -1, false);
-			device.latch(-1, TimeUnit.SECONDS, State.RUNNING);  // Wait while running
-			
-		} finally {
-			send.close();
-		}
+        createPauseEventListener(device, beans);	
+        checkPauseResume(device, -1, false);
+        device.latch(-1, TimeUnit.SECONDS, State.RUNNING);  // Wait while running
 		
 		if (beans.size()!=1) throw new Exception("The pause event was not encountered!");
 		if (exceptions.size()>0) throw exceptions.get(0);

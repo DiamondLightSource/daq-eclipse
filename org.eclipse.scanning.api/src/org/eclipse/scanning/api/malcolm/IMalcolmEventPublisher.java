@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.malcolm;
 
-import java.net.URI;
-
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 
 /**
@@ -17,62 +15,6 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
  *
  */
 public interface IMalcolmEventPublisher {
-
-	/**
-	 * The URI used for the topic connection to the JMS messaging system used.
-	 * @return
-	 */
-	public URI getURI();
-	
-	/**
-	 * The URI used for the topic connection to the JMS messaging system used.
-	 * @param uri
-	 * @return the old URI, if any.
-	 * @throws Exception if the device is already connected to the previous URI and has not been closed.
-	 */
-	public URI setURI(URI uri) throws MalcolmDeviceException;
-
-	
-	/**
-	 * The name of the publisher, used in the auto-generated 
-	 * topic name but not the full topic name!.
-	 * 
-	 * @return
-	 */
-	public String getName();
-	
-	/**
-	 * The name of the publisher, used in the auto-generated 
-	 * topic name but not the full topic name!.
-	 * 
-	 * @param name
-	 */
-	public void setName(String name);
-
-	/**
-	 * The topic string to publish events using JMS/ActiveMQ
-	 * Each device will default a topic anyway.
-	 * 
-	 * NOTE: This is not the topic with with we talk to Malcolm. It is
-	 * the topic which we publish events from Malcolm.
-	 * 
-	 * A topic should be unique for Diamond in case the same broker is used.
-	 * 
-	 * @return
-	 */
-	public String getTopicName();
-	
-	/**
-	 * Set the topic name to publish events to. Most devices will
-	 * start with a default event based on their name and beamline,
-	 * therefore there is normally no need to override the topic.
-	 * 
-	 * A topic should be unique for Diamond in case the same broker is used.
-	 * 
-	 * @param topicName
-	 */
-	public void setTopicName(String topicName);
-
 	/**
 	 * Add a listener which can be used instead of monitoring
 	 * JMS topics. Useful if the device connection to Malcolm

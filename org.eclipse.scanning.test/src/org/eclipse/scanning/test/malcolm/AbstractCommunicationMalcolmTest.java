@@ -1,19 +1,8 @@
 package org.eclipse.scanning.test.malcolm;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.jms.Connection;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
-import javax.jms.QueueConnectionFactory;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.jms.Topic;
 
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
@@ -23,15 +12,9 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
-import org.eclipse.scanning.api.malcolm.message.Type;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.StateDeserializer;
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.StateSerializer;
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.TypeDeserializer;
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.TypeSerializer;
 
 @RunWith(Parameterized.class)
 public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTest {
@@ -124,116 +107,6 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 		final State state = zebra.getState();
 		
 		if (!state.isBeforeRun()) throw new Exception("Problem with state at end of test!");
-	}
-	
-	@Test
-	public void testStartAndStopTopicPausableDevice() throws Exception {
-		startAndStopTopic(device);
-	}
-
-	private void startAndStopTopic(IMalcolmDevice zebra) throws JMSException, MalcolmDeviceException, InterruptedException, Exception {
-		
-		Connection      send     = null;
-		try {
-			
-			// Add a topic consumer which deserliazes to 
-			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)connectorService.createConnectionFactory(zebra.getURI());
-			send = connectionFactory.createConnection();
-
-			final Session session = send.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			final Topic   topic   = session.createTopic(zebra.getTopicName());		
-            final List<MalcolmEventBean> beans = new ArrayList<MalcolmEventBean>(IMAGE_COUNT);
-		   	
-			
-        	final MessageConsumer consumer = session.createConsumer(topic);
-	    	MessageListener listener = new MessageListener() {
-	    		public void onMessage(Message message) {		 
-	    			TextMessage txt = (TextMessage)message;
-	    			MalcolmEventBean bean;
-					try {
-						bean = connectorService.unmarshal(txt.getText(), MalcolmEventBean.class);
-			   			if (bean.isScanEnd() || bean.isScanStart()) {
-						    beans.add(bean);
-		    			}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-	    		}
-	    	};
-	    	consumer.setMessageListener(listener);
-	    	send.start();
-	    	
-	    	configure(zebra, IMAGE_COUNT);
-			zebra.run(); 						// blocks until finished
-			Thread.sleep(MESSAGE_GRACE);		// allow for messaging delays			
-			
-			if (beans.size()!=2) throw new Exception("Scan start and end not encountered!");
-						
-			final State state = zebra.getState();
-			
-			if (!state.isBeforeRun()) throw new Exception("Problem with state at end of test!");
-
-		} finally {
-			if (send!=null)     send.close();
-		}
-	}
-
-	@Test
-	public void testMalcolmTopicPausableDevice() throws Exception {
-		runMalcolmTopic(device);
-	}
-
-	private void runMalcolmTopic(IMalcolmDevice zebra) throws JMSException, MalcolmDeviceException, InterruptedException, Exception {
-		
-		final boolean[] scanHasStarted = {false};
-        
-		Connection      send     = null;
-		try {
-			
-			// Add a topic consumer which deserializes to 
-			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)connectorService.createConnectionFactory(zebra.getURI());
-			send = connectionFactory.createConnection();
-
-			final Session session = send.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			final Topic   topic   = session.createTopic(zebra.getTopicName());		
-            final List<MalcolmEventBean> beans = new ArrayList<MalcolmEventBean>(IMAGE_COUNT);
-			
-        	final MessageConsumer consumer = session.createConsumer(topic);
-	    	MessageListener listener = new MessageListener() {
-	    		public void onMessage(Message message) {		 
-	    			TextMessage txt = (TextMessage)message;
-	    			MalcolmEventBean bean;
-					try {
-						bean = connectorService.unmarshal(txt.getText(), MalcolmEventBean.class);
-						if (bean.isScanStart()) {
-							scanHasStarted[0] = true;
-						}
-			   			if (MalcolmUtil.isScanning(bean) && scanHasStarted[0]) {						
-						    beans.add(bean);
-		    			}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-	    		}
-	    	};
-	    	consumer.setMessageListener(listener);
-	    	send.start();
-	    	
-	    	configure(zebra, IMAGE_COUNT);
-			zebra.run(); 						// blocks until finished
-			Thread.sleep(MESSAGE_GRACE);		// allow for messaging delays
-			
-			if (beans.size()!=IMAGE_COUNT) {
-				throw new Exception("Unexpected number of images written! Expected: "+IMAGE_COUNT+" got "+beans.size());
-			}
-			
-			final State state = zebra.getState();
-			
-			if (!state.isBeforeRun()) throw new Exception("Problem with state at end of test!");
-
-		} finally {
-			if (send!=null)     send.close();
-		}
 	}
 
 	@Test

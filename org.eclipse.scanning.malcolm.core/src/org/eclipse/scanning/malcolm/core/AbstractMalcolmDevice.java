@@ -1,12 +1,7 @@
 package org.eclipse.scanning.malcolm.core;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Map;
-
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
@@ -39,13 +34,8 @@ public abstract class AbstractMalcolmDevice<T> implements IMalcolmDevice<T> {
 	protected MessageGenerator<JsonMessage> connectionDelegate;
 	
 	public AbstractMalcolmDevice(IMalcolmConnectorService<JsonMessage> connector) throws MalcolmDeviceException {
-		
-        try {
-    		this.connectionDelegate = connector.createDeviceConnection(this);
-			this.eventDelegate = new MalcolmEventDelegate(new URI("tcp://sci-serv5.diamond.ac.uk:61616"), name, connector);
-		} catch (URISyntaxException e) {
-			throw new MalcolmDeviceException(this, "Internal error, cannot create event delegate!", e);
-		}
+   		this.connectionDelegate = connector.createDeviceConnection(this);
+   		this.eventDelegate = new MalcolmEventDelegate(name, connector);
 	}
 		
 	/**
@@ -107,16 +97,6 @@ public abstract class AbstractMalcolmDevice<T> implements IMalcolmDevice<T> {
 
 
 	@Override
-	public URI getURI() {
-		return eventDelegate.getURI();
-	}
-
-	@Override
-	public URI setURI(URI uri) throws MalcolmDeviceException {
-		return eventDelegate.setURI(uri);
-	}
-
-	@Override
 	public String getName() {
 		return name;
 	}
@@ -125,17 +105,6 @@ public abstract class AbstractMalcolmDevice<T> implements IMalcolmDevice<T> {
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	@Override
-	public String getTopicName() {
-		return eventDelegate.getTopicName();
-	}
-
-	@Override
-	public void setTopicName(String topicName) {
-		eventDelegate.setTopicName(topicName);
-	}
-
 
 	@Override
 	public void addMalcolmListener(IMalcolmListener l) {
