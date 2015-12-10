@@ -29,12 +29,12 @@ import org.eclipse.scanning.api.scan.ScanningException;
  */
 final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
-	
+	// Scanning stuff
 	private ScanModel        model;
 	private DetectorRunner   detectors;
 	private DetectorReader   readers;
 	
-	/**
+	/*
 	 * Concurrency design recommended by Keith Ralphs after investigating
 	 * how to pause and resume a collection cycle using Reentrant locks.
 	 * Design requires these three fields.
@@ -87,11 +87,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	}
 	        	
 	        	// Run the position
-	        	System.out.println(pos);
 	        	positioner.setPosition(pos);   // moveTo
 	        	readers.await();               // Wait for the previous read out to return, if any
 	        	detectors.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
-	        	readers.run(pos, false);       // Do not block on the readout, move to the next position immeadiately.
+	        	readers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        	
 	        }
 	        
