@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.scan;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.eclipse.scanning.api.points.IPosition;
@@ -43,4 +44,7 @@ public class ScanModel {
 		this.detectors = ds;
 	}
 
+	public void setDetectors(IRunnableDevice<?>... detectors) {
+		this.detectors = Arrays.asList(detectors);
+	}
 }
