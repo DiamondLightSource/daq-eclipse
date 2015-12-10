@@ -103,6 +103,9 @@ public class MappingScanTest {
 		IGenerator<GridModel, Point> gen = gservice.createGenerator(model, null);
 
 		// Outer loop temperature, will be scan command driven when sequencer exists.
+		bean.setDeviceState(DeviceState.CONFIGURING);
+		publisher.broadcast(bean);
+		
 		for (double temp = 273; temp < 283; temp++) {
 			bean.setPoint(ipoint);
 			bean.putPosition("temperature", temp);
@@ -122,17 +125,11 @@ public class MappingScanTest {
 		assertTrue(gotBack.get(gotBack.size() - 1).scanEnd());
 	}
 
-	private void testDeviceScan(ScanBean bean, IGenerator<GridModel, Point> gen)
-			throws Exception {
+	private void testDeviceScan(ScanBean bean, IGenerator<GridModel, Point> gen) throws Exception {
 
-		// Mimic a scan
-		bean.setDeviceState(DeviceState.CONFIGURING);
-		publisher.broadcast(bean);
-
-		bean.setDeviceState(DeviceState.READY);
-		publisher.broadcast(bean);
 
 		bean.setDeviceState(DeviceState.RUNNING);
+		publisher.broadcast(bean);
 		int size = 0;
 		for (IPosition pnt : gen) {
 			bean.putPosition("zebra_x", pnt.get("X"));
@@ -143,7 +140,7 @@ public class MappingScanTest {
 		System.out.println("Did hardware scan of size " + size);
 		assertTrue(size == gen.size());
 
-		bean.setDeviceState(DeviceState.IDLE);
+		bean.setDeviceState(DeviceState.READY);
 		publisher.broadcast(bean);
 
 	}

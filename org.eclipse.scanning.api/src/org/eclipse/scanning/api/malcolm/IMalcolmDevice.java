@@ -64,44 +64,10 @@ public interface IMalcolmDevice<T> extends IRunnableDevice<T>, IMalcolmEventPubl
 	public T validate(T params) throws MalcolmDeviceException;
 	
 	/**
-	 * Allowed in any state except Fault. Will abort the current operation. Will block until the device is in a reset state.
-	 */
-	public void abort() throws MalcolmDeviceException;
-	
-	/**
 	 * Allowed from Fault. Will try to reset the device into Idle state. Will block until the device is in a rest state.
 	 */
 	public void reset() throws MalcolmDeviceException; 
 	
-	/**
-	 * Allowed when the device is in Ready or Paused state. Will block until the device is in a rest state.
-	 */
-	public void configure(T params) throws MalcolmDeviceException;
-	
-	/**
-	 * Allowed when the device is in Ready or Paused state. Will block until the device is in a rest state.
-	 * A device which has a blocking run active cannot call run again or an exception will be thrown.
-	 * A paused device must have resume() called on the same thread.
-	 */
-	public void run() throws MalcolmDeviceException;
-		
-	/**
-	 * Allowed when the device is in Running state. Will block until the device is in a rest state. 
-	 * 
-	 * When paused the same thread must call resume() or abort() which has paused or an
-	 * IllegalMonitorState Exception will be thrown.
-	 */
-	public void pause() throws MalcolmDeviceException;
-	
-	/**
-	 * Allowed when the device is in Paused state. Will block until the device is unpaused.
-	 * 
-	 * When paused the same thread must call resume() or abort() which has paused or an
-	 * 
-	 * IllegalMonitorState Exception will be thrown.
-	 */
-	public void resume() throws MalcolmDeviceException;
-
 	/**
 	 * Attempts to determine if the device is locked doing something like a configure or a run.
 	 * 

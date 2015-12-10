@@ -124,7 +124,7 @@ public abstract class AbstractMalcolmTest {
 			public void run() {
 				try {
 					device.run();
-				} catch (MalcolmDeviceException e) {
+				} catch (Exception e) {
 					exceptions.add(e);
 				} // blocks until finished
 			}

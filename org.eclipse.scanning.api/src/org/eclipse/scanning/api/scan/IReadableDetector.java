@@ -37,10 +37,9 @@ public interface IReadableDetector<T> extends IRunnableDevice<T>, INameable, ILe
 	
 	/**
 	 * For GDA9 detectors, returns a boolean for the readout completed, true for complete, false for error.
-	 * Generally detectors running in GDA9 will be IDetector<Boolean>.
+	 * Generally detectors running in GDA9 will be IDetector.
 	 * 
-	 * For GDA8 detectors, the readout will return something which should be written.
-	 * Generally detectors running in GDA8 will be IDetector<Object>.
+	 * For GDA8 detectors, the readout will be overridden.
 	 * 
 	 * @return usually true for a sucessfull readout
 	 * @throws DeviceException
