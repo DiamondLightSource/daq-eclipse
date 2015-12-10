@@ -38,6 +38,8 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
  * scanner.run();
  * 
  * </code></usage>
+ * 
+ * <img src="./doc/device_state.png" />
  *
  * @author Matthew Gerring
  *
