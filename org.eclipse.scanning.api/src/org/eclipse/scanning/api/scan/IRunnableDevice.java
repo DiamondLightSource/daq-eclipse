@@ -45,6 +45,8 @@ import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
  * 
  * </code></usage>
  *
+ * <img src="./doc/device_state.png" />
+ * 
  * @author Matthew Gerring
  *
  */

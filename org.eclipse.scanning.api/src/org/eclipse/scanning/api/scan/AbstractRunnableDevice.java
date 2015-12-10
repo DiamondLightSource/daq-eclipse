@@ -8,6 +8,12 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
 
+/**
+ * @see IRunnableDevice
+ * @author fcp94556
+ *
+ * @param <T>
+ */
 public abstract class AbstractRunnableDevice<T> implements IRunnableDevice<T> {
 
 	private   String                     scanId;
