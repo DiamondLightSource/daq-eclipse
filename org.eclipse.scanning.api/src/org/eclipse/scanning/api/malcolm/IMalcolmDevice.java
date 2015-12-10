@@ -37,10 +37,12 @@ import org.eclipse.scanning.api.scan.IRunnableDevice;
 </p>        
 </code>
 
+ * <img src="./doc/device_state.png" />
+
  * @author Matthew Gerring
  *
  */
-public interface IMalcolmDevice<T> extends IRunnableDevice<T>, IMalcolmEventPublisher, IMalcolmStateManager {
+public interface IMalcolmDevice<T> extends IRunnableDevice<T>, IMalcolmEventPublisher, ILatchableDevice {
 	
 	// TODO setAttribute, getAttribute
 	

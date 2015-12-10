@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
-import org.eclipse.scanning.api.malcolm.State;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -78,14 +78,14 @@ public abstract class AbstractAbortingMalcolmTest extends AbstractMalcolmTest {
 		thread.start();
 		
 		// Wait for pause
-		if (device.getState()!=State.PAUSED) {
-		    device.latch(10, TimeUnit.SECONDS, State.PAUSING, State.RUNNING);
+		if (device.getState()!=DeviceState.PAUSED) {
+		    device.latch(10, TimeUnit.SECONDS, DeviceState.PAUSING, DeviceState.RUNNING);
 		}
 		
 		System.out.println("Aborting paused run, current state is "+device.getState());
 		device.abort();
         
-        if (device.getState()!=State.ABORTED) {
+        if (device.getState()!=DeviceState.ABORTED) {
         	throw new Exception("State was not aborted after abort!");
         }
 		
@@ -100,7 +100,7 @@ public abstract class AbstractAbortingMalcolmTest extends AbstractMalcolmTest {
 		System.out.println("Aborting paused run, current state is "+device.getState());
 		device.abort();
         
-        if (device.getState()!=State.ABORTED) {
+        if (device.getState()!=DeviceState.ABORTED) {
         	throw new Exception("State was not aborted after abort!");
         }
 		
@@ -112,7 +112,7 @@ public abstract class AbstractAbortingMalcolmTest extends AbstractMalcolmTest {
         
         zebra.abort();
         
-        if (zebra.getState()!=State.ABORTED) {
+        if (zebra.getState()!=DeviceState.ABORTED) {
         	throw new Exception("State was not aborted after abort!");
         }
 	}

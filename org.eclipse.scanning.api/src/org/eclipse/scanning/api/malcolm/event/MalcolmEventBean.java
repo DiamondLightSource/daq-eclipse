@@ -2,7 +2,7 @@ package org.eclipse.scanning.api.malcolm.event;
 
 import java.util.Arrays;
 
-import org.eclipse.scanning.api.malcolm.State;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 
 
 /**
@@ -32,8 +32,8 @@ public final class MalcolmEventBean {
 	private String  message;
 	
 	// State information
-	private State   state;
-	private State   previousState;
+	private DeviceState   state;
+	private DeviceState   previousState;
 	private boolean scanStart, scanEnd;
 	
 	// Dataset information
@@ -46,20 +46,20 @@ public final class MalcolmEventBean {
 
 	}
 	
-	public MalcolmEventBean(State state, String message) {
+	public MalcolmEventBean(DeviceState state, String message) {
 		this(state, false);
 		this.message = message;
 	}
 
-	public MalcolmEventBean(State state) {
+	public MalcolmEventBean(DeviceState state) {
 		this(state, false);
 	}
 	
-	public MalcolmEventBean(State state, boolean scanStart) {
+	public MalcolmEventBean(DeviceState state, boolean scanStart) {
 		this(state, scanStart, false);
 	}
 	
-	public MalcolmEventBean(State state, boolean scanStart, boolean scanEnd) {
+	public MalcolmEventBean(DeviceState state, boolean scanStart, boolean scanEnd) {
 		this.state     = state;
 		this.scanStart = scanStart;
 		this.scanEnd   = scanEnd;
@@ -179,11 +179,11 @@ public final class MalcolmEventBean {
 		this.percentComplete = percentComplete;
 	}
 
-	public State getState() {
+	public DeviceState getState() {
 		return state;
 	}
 
-	public void setState(State state) {
+	public void setState(DeviceState state) {
 		this.state = state;
 	}
 
@@ -238,11 +238,11 @@ public final class MalcolmEventBean {
 				+ Arrays.toString(newShape) + "]";
 	}
 
-	public State getPreviousState() {
+	public DeviceState getPreviousState() {
 		return previousState;
 	}
 
-	public void setPreviousState(State previousState) {
+	public void setPreviousState(DeviceState previousState) {
 		this.previousState = previousState;
 	}
 }

@@ -25,6 +25,7 @@ import java.util.Map;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.IReadableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -43,9 +44,10 @@ public class MandelbrotDetector implements IReadableDetector<MandelbrotModel> {
 	public static final String VALUE_NAME = "mandelbrot_value";
 
 	// Configurable fields
-	private IPosition pos;
-	
-	private String name;
+	private IPosition pos;	
+	private String    name;
+	private int       level = 1000;
+	private DeviceState state = DeviceState.IDLE;
 
 	public MandelbrotDetector() {
 		super();
@@ -83,6 +85,7 @@ public class MandelbrotDetector implements IReadableDetector<MandelbrotModel> {
 	@Override
 	public void configure(MandelbrotModel model) throws ScanningException {
 		this.model = model;
+		this.state = DeviceState.READY;
 	}
 
 	private IDataset read;
@@ -187,8 +190,6 @@ public class MandelbrotDetector implements IReadableDetector<MandelbrotModel> {
 		return iteration;
 	}
 
-	private int level = 1000;
-
 	
 	@Override
 	public void setLevel(int level) {
@@ -213,5 +214,13 @@ public class MandelbrotDetector implements IReadableDetector<MandelbrotModel> {
 	@Override
 	public void resume() throws ScanningException {
 		throw new ScanningException("Operation not supported!");
+	}
+
+	public DeviceState getState() {
+		return state;
+	}
+
+	public void setState(DeviceState state) {
+		this.state = state;
 	}
 }

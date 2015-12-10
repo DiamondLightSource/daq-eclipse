@@ -2,6 +2,8 @@ package org.eclipse.scanning.api.scan;
 
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
+import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 
 
 /**
@@ -47,7 +49,14 @@ import org.eclipse.scanning.api.INameable;
  *
  */
 public interface IRunnableDevice<T> extends INameable, ILevel {
-		
+	
+	/**
+	 * 
+	 * @return the current device State. This is not the same as the Status of the scan.
+	 */
+	public DeviceState getState() throws MalcolmDeviceException ;
+
+
 	/**
 	 * Scan the points in this iterator, moving each position to its required
 	 * scannable using moveTo(...) and using the level value to order the moves.

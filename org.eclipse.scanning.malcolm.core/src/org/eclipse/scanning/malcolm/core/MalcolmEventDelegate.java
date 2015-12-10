@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 
-import org.eclipse.scanning.api.malcolm.State;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
@@ -69,7 +69,7 @@ public class MalcolmEventDelegate {
 		for (IMalcolmListener<MalcolmEventBean> l : la) l.eventPerformed(evt);
 	}
 
-	public void sendStateChanged(State state, State old, String message) throws Exception {
+	public void sendStateChanged(DeviceState state, DeviceState old, String message) throws Exception {
 		final MalcolmEventBean evt = new MalcolmEventBean();
 		evt.setPreviousState(old);
 		evt.setState(state);

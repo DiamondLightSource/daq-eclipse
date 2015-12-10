@@ -17,7 +17,16 @@ public class MapPosition extends AbstractPosition {
 	public MapPosition() {
 		values = new LinkedHashMap<String, Object>(7);
 	}
+
+	public MapPosition(Map<String, Object> map) {
+		values = map;
+	}
 	
+	public MapPosition(String name, Object value) {
+		this();
+		values.put(name, value);
+	}
+
 	/**
 	 * Define the values as a comma separate list of values of the form:
 	 * name1:value1, name2:value2, ... etc. namen:valuen

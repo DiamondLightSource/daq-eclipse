@@ -2,14 +2,10 @@ package org.eclipse.scanning.api.malcolm;
 
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 
-public interface IMalcolmStateManager {
 
-	/**
-	 * 
-	 * @return the current state of Malcolm even if 
-	 */
-	public State getState() throws MalcolmDeviceException ;
+public interface ILatchableDevice {
 
 	/**
 	 * Instruct the device to return once a given state is reached.
@@ -18,5 +14,5 @@ public interface IMalcolmStateManager {
 	 * @param ignoredStates
 	 * @throws MalcolmDeviceException
 	 */
-	public State latch(long time, TimeUnit unit, State... ignoredStates) throws MalcolmDeviceException; 
+	public DeviceState latch(long time, TimeUnit unit, DeviceState... ignoredStates) throws MalcolmDeviceException; 
 }

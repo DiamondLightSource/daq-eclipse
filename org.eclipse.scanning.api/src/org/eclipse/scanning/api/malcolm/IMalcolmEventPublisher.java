@@ -22,7 +22,7 @@ public interface IMalcolmEventPublisher {
 	 * 
 	 * @param l
 	 */
-	public void addMalcolmListener(IMalcolmListener l);
+	public void addMalcolmListener(IMalcolmListener<?> l);
 	
 	/**
 	 * Remove a listener which can be used instead of monitoring
@@ -30,7 +30,7 @@ public interface IMalcolmEventPublisher {
      *
 	 * @param l
 	 */
-	public void removeMalcolmListener(IMalcolmListener l);
+	public void removeMalcolmListener(IMalcolmListener<?> l);
 	
 	
 	/**

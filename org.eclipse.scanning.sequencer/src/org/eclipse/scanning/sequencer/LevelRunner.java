@@ -119,16 +119,31 @@ abstract class LevelRunner<L extends ILevel> {
 	 * Blocks until all the tasks have complete. In order for this call to be worth
 	 * using run(position, false) should have been used to run the service.
 	 * 
+	 * If executor does not shutdown within 1 minute, throws an exception.
+	 * 
 	 * If nothing has been run by the runner, there will be no executor service
 	 * created and latch() will directly return.
 	 * 
 	 * @throws InterruptedException 
 	 */
-	protected void latch() throws InterruptedException {
+	protected void await() throws InterruptedException {
+        await(1, TimeUnit.MINUTES);// FIXME Does this need spring config?
+	}
+	
+	/** 
+	 * Blocks until all the tasks have complete. In order for this call to be worth
+	 * using run(position, false) should have been used to run the service.
+	 * 
+	 * If nothing has been run by the runner, there will be no executor service
+	 * created and latch() will directly return.
+	 * 
+	 * @throws InterruptedException 
+	 */
+	protected void await(long time, TimeUnit unit) throws InterruptedException {
 		if (eservice==null)          return;
 		if (eservice.isTerminated()) return;
 		eservice.shutdown();
-		eservice.awaitTermination(1, TimeUnit.MINUTES); // FIXME Does this need spring config?
+		eservice.awaitTermination(time, unit); 
 	}
 
 	/**

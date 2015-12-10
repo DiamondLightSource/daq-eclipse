@@ -10,10 +10,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
@@ -33,7 +33,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 		// In this test thread, we simply keep asking for the state.
 		// We get an instance to the device separately to test two 
 		// device connections (although MockService will not do this)
-		final Collection<State> states = new HashSet<State>();
+		final Collection<DeviceState> states = new HashSet<DeviceState>();
 		IMalcolmConnection    connection = service.createConnection(null); // TODO real URL
 		try {
 			IMalcolmDevice zebra = connection.getDevice("zebra");
@@ -46,7 +46,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 			
 			for (int i = 0; i < 10; i++) {
 				System.out.println("Device state is "+zebra.getState());
-				if (zebra.getState() == State.IDLE) {
+				if (zebra.getState() == DeviceState.IDLE) {
 					throw new Exception("The device should not be IDLE!");
 				}
 				Thread.sleep(1000);
@@ -55,7 +55,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 			connection.dispose();
 		}
 		
-		if (!states.containsAll(Arrays.asList(new State[]{State.READY, State.RUNNING}))){
+		if (!states.containsAll(Arrays.asList(new DeviceState[]{DeviceState.READY, DeviceState.RUNNING}))){
 			throw new Exception("Not all expected states encountered during run! States found were "+states);
 		}
 		
@@ -75,7 +75,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 		// In this test thread, we simply keep asking for the state.
 		// We get an instance to the device separately to test two 
 		// device connections (although MockService will not do this)
-		final Collection<State> states = new HashSet<State>();
+		final Collection<DeviceState> states = new HashSet<DeviceState>();
 		final ExecutorService   exec   = Executors.newFixedThreadPool(10);
 
 		for (int i = 0; i < 10; i++) { // Ten threads all getting state with separate devices.
@@ -96,7 +96,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 
 						for (int i = 0; i < 5; i++) {
 							System.out.println("Device state is "+zebra.getState());
-							if (zebra.getState() == State.IDLE) {
+							if (zebra.getState() == DeviceState.IDLE) {
 								exceptions.add(new Exception("The device should not be IDLE!"));
 							}
 							Thread.sleep(1000);
@@ -122,7 +122,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 		
 		
 		
-		if (!states.containsAll(Arrays.asList(new State[]{State.READY, State.RUNNING}))){
+		if (!states.containsAll(Arrays.asList(new DeviceState[]{DeviceState.READY, DeviceState.RUNNING}))){
 			throw new Exception("Not all expected states encountered during run! States found were "+states);
 		}
 		
@@ -135,7 +135,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 		
 		final List<Throwable> exceptions = new ArrayList<>(1);
 		
-		final Collection<State> states = new HashSet<State>();
+		final Collection<DeviceState> states = new HashSet<DeviceState>();
 		IMalcolmConnection    connection = service.createConnection(PAUSABLE); // TODO real URL
 		try {
 			// Add listener
@@ -155,7 +155,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 			// device connections (although MockService will not do this)
 			for (int i = 0; i < 10; i++) {
 				System.out.println("Device state is "+zebra.getState());
-				if (zebra.getState() == State.IDLE) {
+				if (zebra.getState() == DeviceState.IDLE) {
 					throw new Exception("The device should not be IDLE!");
 				}
 				Thread.sleep(1000);
@@ -164,7 +164,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 			connection.dispose();
 		}
 		
-		if (!states.containsAll(Arrays.asList(new State[]{State.READY, State.RUNNING, State.PAUSED, State.PAUSING}))){
+		if (!states.containsAll(Arrays.asList(new DeviceState[]{DeviceState.READY, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.PAUSING}))){
 			throw new Exception("Not all expected states encountered during run! States found were "+states);
 		}
 		

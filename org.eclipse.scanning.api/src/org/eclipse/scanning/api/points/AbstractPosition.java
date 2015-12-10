@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.Iterator;
 import java.util.List;
 
 public abstract class AbstractPosition implements IPosition {
@@ -57,11 +58,12 @@ public abstract class AbstractPosition implements IPosition {
 	public String toString() {
 		StringBuilder buf = new StringBuilder("[");
 		final List<String> names   = getNames();
-        for (String name : names) {
+        for (Iterator<String> it = names.iterator(); it.hasNext();) {
+			String name = it.next();
         	buf.append(name);
         	buf.append("=");
         	buf.append(get(name));
-        	buf.append(", ");
+        	if (it.hasNext()) buf.append(", ");
 		}
     	buf.append("]");
     	return buf.toString();

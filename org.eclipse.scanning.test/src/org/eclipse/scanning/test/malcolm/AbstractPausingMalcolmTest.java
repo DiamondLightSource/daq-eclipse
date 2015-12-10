@@ -7,10 +7,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.jms.Connection;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceOperationCancelledException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +38,7 @@ public abstract class AbstractPausingMalcolmTest extends AbstractMalcolmTest {
 		configure(device, 10);
 		runDeviceInThread(device, exceptions);		
 		checkPauseResume(device, -1, false);
-		device.latch(-1, TimeUnit.SECONDS, State.RUNNING);  // Wait while finishes running
+		device.latch(-1, TimeUnit.SECONDS, DeviceState.RUNNING);  // Wait while finishes running
 		
 		if (exceptions.size()>0) throw exceptions.get(0);
 		if (!device.getState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getState());
@@ -57,7 +57,7 @@ public abstract class AbstractPausingMalcolmTest extends AbstractMalcolmTest {
 		createPauseEventListener(device, beans);
 		
 		checkPauseResume(device, -1, false);
-		device.latch(-1, TimeUnit.SECONDS, State.RUNNING);  // Wait while running
+		device.latch(-1, TimeUnit.SECONDS, DeviceState.RUNNING);  // Wait while running
 		
 		if (beans.size()!=1) throw new Exception("The pause event was not encountered!");
 		if (exceptions.size()>0) throw exceptions.get(0);
@@ -74,7 +74,7 @@ public abstract class AbstractPausingMalcolmTest extends AbstractMalcolmTest {
         final List<MalcolmEventBean> beans = new ArrayList<MalcolmEventBean>(IMAGE_COUNT);
         createPauseEventListener(device, beans);	
         checkPauseResume(device, -1, false);
-        device.latch(-1, TimeUnit.SECONDS, State.RUNNING);  // Wait while running
+        device.latch(-1, TimeUnit.SECONDS, DeviceState.RUNNING);  // Wait while running
 		
 		if (beans.size()!=1) throw new Exception("The pause event was not encountered!");
 		if (exceptions.size()>0) throw exceptions.get(0);
@@ -89,7 +89,7 @@ public abstract class AbstractPausingMalcolmTest extends AbstractMalcolmTest {
 		configure(device, 10);
 		runDeviceInThread(device,exceptions);		
 		checkPauseResume(device, 5000, false);
-		device.latch(10, TimeUnit.SECONDS, State.RUNNING); // Wait while running, but not longer than 10-seconds
+		device.latch(10, TimeUnit.SECONDS, DeviceState.RUNNING); // Wait while running, but not longer than 10-seconds
 		
 		if (exceptions.size()>0) throw exceptions.get(0);
 		if (!device.getState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getState());

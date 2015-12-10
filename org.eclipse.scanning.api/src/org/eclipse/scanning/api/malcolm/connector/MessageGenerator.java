@@ -1,9 +1,7 @@
 package org.eclipse.scanning.api.malcolm.connector;
 
-import java.util.Map;
-
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 
 /**
  * Deals with details of:
@@ -23,7 +21,7 @@ public interface MessageGenerator<T> {
 	 * @param running
 	 * @throws MalcolmDeviceException
 	 */
-	T call(StackTraceElement[] stackTrace, State... states) throws MalcolmDeviceException;
+	T call(StackTraceElement[] stackTrace, DeviceState... states) throws MalcolmDeviceException;
 	
 	/**
 	 * Create a get message

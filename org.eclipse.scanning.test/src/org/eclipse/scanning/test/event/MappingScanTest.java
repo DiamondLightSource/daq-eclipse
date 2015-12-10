@@ -37,7 +37,8 @@ public class MappingScanTest {
 	@Before
 	public void createServices() throws Exception {
 
-		// Do not copy this get the service from OSGi!
+		// We wire things together without OSGi here 
+		// DO NOT COPY THIS IN NON-TEST CODE!
 		eservice = new EventServiceImpl();
 		gservice = new GeneratorServiceImpl();
 

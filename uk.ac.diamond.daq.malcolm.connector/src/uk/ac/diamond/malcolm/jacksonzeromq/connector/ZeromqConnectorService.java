@@ -8,15 +8,16 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 import org.eclipse.scanning.api.malcolm.message.Type;
+import org.eclipse.scanning.api.points.IPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;
@@ -153,8 +154,10 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 		
 		ObjectMapper mapper = new ObjectMapper();
 		SimpleModule module = new SimpleModule();
-		module.addSerializer(State.class,   new StateSerializer());
-		module.addDeserializer(State.class, new StateDeserializer());
+		module.addSerializer(IPosition.class,   new PositionSerializer());
+		module.addDeserializer(IPosition.class, new PositionDeserializer());
+		module.addSerializer(DeviceState.class,   new StateSerializer());
+		module.addDeserializer(DeviceState.class, new StateDeserializer());
 		module.addSerializer(Type.class,    new TypeSerializer());
 		module.addDeserializer(Type.class,  new TypeDeserializer());
 		mapper.registerModule(module);	

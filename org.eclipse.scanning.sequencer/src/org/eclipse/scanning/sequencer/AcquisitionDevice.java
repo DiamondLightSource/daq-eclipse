@@ -1,8 +1,13 @@
 package org.eclipse.scanning.sequencer;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IPositioner;
@@ -28,13 +33,23 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private ScanModel        model;
 	private DetectorRunner   detectors;
 	private DetectorReader   readers;
+	
+	/**
+	 * Concurrency design recommended by Keith Ralphs after investigating
+	 * how to pause and resume a collection cycle using Reentrant locks.
+	 * Design requires these three fields.
+	 */
 	private ReentrantLock    lock;
 	private Condition        paused;
 	private volatile boolean awaitPaused;
-	
+		
+	/**
+	 * Package private constructor, devices are created by the service.
+	 */
 	AcquisitionDevice() {
-		this.lock   = new ReentrantLock();
-		this.paused = lock.newCondition();
+		super();
+		this.lock      = new ReentrantLock();
+		this.paused    = lock.newCondition();
 	}
 	
 	@Override
@@ -42,6 +57,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		this.model = model;
 		detectors = new DetectorRunner(model.getDetectors());
 		readers   = new DetectorReader(model.getDetectors());
+		setState(DeviceState.READY);
 	}
 
 	@Override
@@ -52,19 +68,37 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		try {
 	        final IPositioner positioner = scanningService.createPositioner(deviceService);
 	        
+    		setState(DeviceState.RUNNING);
+    		
 	        for (IPosition pos : model.getPositionIterator()) {
-	        	if (awaitPaused) paused.await();
-
+	        	
+	        	// Check the locking using a condition
+	        	if(!lock.tryLock(1, TimeUnit.SECONDS)) {
+	        		throw new ScanningException(this, "Internal Error - Could not obtain lock to run device!");    		
+	        	}
+	        	try {
+		        	if (awaitPaused) {
+		        		setState(DeviceState.PAUSED);
+		        		paused.await();
+		        		setState(DeviceState.RUNNING);
+		        	}
+	        	} finally {
+	        		lock.unlock();
+	        	}
+	        	
+	        	// Run the position
+	        	System.out.println(pos);
 	        	positioner.setPosition(pos);   // moveTo
-	        	readers.latch();               // Wait for the previous read out to return, if any
+	        	readers.await();               // Wait for the previous read out to return, if any
 	        	detectors.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
 	        	readers.run(pos, false);       // Do not block on the readout, move to the next position immeadiately.
 		        	
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
-        	readers.latch();                   // Wait for the previous read out to return, if any
-
+        	readers.await();                   // Wait for the previous read out to return, if any
+        	setState(DeviceState.READY);
+        	
 		} catch (ScanningException s) {
 			throw s;
 		} catch (Exception ne) {
@@ -79,12 +113,17 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	@Override
 	public void pause() throws ScanningException {
+		
+		if (getState() != DeviceState.RUNNING) {
+			throw new ScanningException(this, getName()+" is not running and cannot be paused!");
+		}
 		try {
 			lock.lockInterruptibly();
 		} catch (Exception ne) {
 			throw new ScanningException(ne);
 		}
 		
+		setState(DeviceState.PAUSING);
 		try {
 			awaitPaused = true;
 			for (IRunnableDevice<?> device : model.getDetectors()) {
@@ -102,6 +141,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	@Override
 	public void resume() throws ScanningException {
+		
+		if (getState() != DeviceState.PAUSED) {
+			throw new ScanningException(this, getName()+" is not paused and cannot be resumed!");
+		}
 		try {
 			lock.lockInterruptibly();
 		} catch (Exception ne) {

@@ -8,8 +8,8 @@ import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.dawnsci.hdf5.HierarchicalDataFactory;
 import org.eclipse.dawnsci.hdf5.IHierarchicalDataFile;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 
 
@@ -80,7 +80,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 	public void configure(Map<String, Object> params) throws MalcolmDeviceException {
 		
 		validate(params);
-		setState(State.CONFIGURING);
+		setState(DeviceState.CONFIGURING);
 		this.params = params;
 		if (params.containsKey("configureSleep")) {
 			try {
@@ -90,7 +90,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 				throw new MalcolmDeviceException(this, "Cannot sleep during configure!", e);
 			}
 		}
-		setState(State.READY);
+		setState(DeviceState.READY);
 		
 		// We configure a bean with all the scan specific things
 		final MalcolmEventBean bean = new MalcolmEventBean();

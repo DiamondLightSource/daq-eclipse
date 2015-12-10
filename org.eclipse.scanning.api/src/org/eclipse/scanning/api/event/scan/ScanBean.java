@@ -1,11 +1,11 @@
 package org.eclipse.scanning.api.event.scan;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.MapPosition;
 
 
 /**
@@ -33,9 +33,9 @@ public final class ScanBean extends StatusBean {
 	private String  beamline;
 	
 	// Where are we in the scan
-	private int     point;
-	private int     size;
-	private Map<String, Object> position;
+	private int       point;
+	private int       size;
+	private IPosition position;
 	
 	// State information
 	private DeviceState   deviceState;
@@ -173,17 +173,17 @@ public final class ScanBean extends StatusBean {
 		this.size = size;
 	}
 
-	public Map<String, Object> getPosition() {
+	public IPosition getPosition() {
 		return position;
 	}
 
-	public void setPosition(Map<String, Object> value) {
+	public void setPosition(IPosition value) {
 		this.position = value;
 	}
 	
 	public void putPosition(String name, Object val) {
-		if (position == null) position = new HashMap<>(3);
-		position.put(name, val);
+		IPosition tmp = new MapPosition(name, val);
+		this.position = tmp.composite(position);
 	}
 	
 	public boolean scanStart() {

@@ -3,8 +3,8 @@ package org.eclipse.scanning.test.malcolm.device;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 
 /**
@@ -19,7 +19,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	
 	public LoopingMockedMalcolmDevice(final String name,  final LatchDelegate latcher) throws MalcolmDeviceException {
 		super(name, latcher);
-		setState(State.IDLE);
+		setState(DeviceState.IDLE);
 		this.name = name;
 	}
 
@@ -39,7 +39,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 		}
 		
 		try {
-			setState(State.RUNNING); // Will send an event
+			setState(DeviceState.RUNNING); // Will send an event
 
 	        count  = 0;
 	        amount = (int)params.get("nframes");
@@ -61,12 +61,12 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 
 			} // End fake scanning loop.
 			
-			setState(State.IDLE); // State change
+			setState(DeviceState.IDLE); // State change
 	        sendEvent(new MalcolmEventBean(getState(), false, true)); // Scan end event        
         } 
 		catch (Exception ne) {
 			ne.printStackTrace();
-    		setState(State.FAULT, ne.getMessage());
+    		setState(DeviceState.FAULT, ne.getMessage());
      	    throw new MalcolmDeviceException(this, ne.getMessage(), ne);     	    
         } 
 		finally {

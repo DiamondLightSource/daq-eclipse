@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
@@ -37,7 +37,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 		configure(zebra, 10);
 		zebra.run(); // blocks until finished
 		
-		final State state = zebra.getState();
+		final DeviceState state = zebra.getState();
 		
 		if (!state.isBeforeRun()) throw new Exception("Problem with state at end of test!");
 	}
@@ -66,7 +66,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 		
 		if (beans.size()!=2) throw new Exception("Scan start and end not encountered!");
 		
-		final State state = zebra.getState();
+		final DeviceState state = zebra.getState();
 		
 		if (!state.isBeforeRun()) throw new Exception("Problem with state at end of test!");
 	}
@@ -104,7 +104,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 			throw new Exception("Unexpected number of images written! Expected: "+IMAGE_COUNT+" got "+beans.size());
 		}
 		
-		final State state = zebra.getState();
+		final DeviceState state = zebra.getState();
 		
 		if (!state.isBeforeRun()) throw new Exception("Problem with state at end of test!");
 	}
@@ -119,7 +119,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 		} catch (Exception expected) {
 			return;
 		}
-		throw new Exception(State.IDLE+" did not throw an exception on aborting!");
+		throw new Exception(DeviceState.IDLE+" did not throw an exception on aborting!");
 	}
 	
 	@Test
@@ -132,7 +132,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 		} catch (Exception expected) {
 			return;
 		}
-		throw new Exception(State.IDLE+" did not throw an exception on aborting!");
+		throw new Exception(DeviceState.IDLE+" did not throw an exception on aborting!");
 	}
 
 }

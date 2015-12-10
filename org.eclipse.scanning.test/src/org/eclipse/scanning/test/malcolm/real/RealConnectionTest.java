@@ -7,10 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
@@ -103,7 +103,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 			} catch (Exception allowed) {
 				
 			}
-			if (device.getState()!=State.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 		} finally {
 			device.dispose();
 		}
@@ -115,14 +115,14 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 		if (device == null) throw new Exception("Cannot get device!");
 		
 		try {
-			if (device.getState()!=State.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 			
 			final Map<String, Object> params = new HashMap<String, Object>(2);
 			params.put("exposure", 0.1);
 			params.put("nframes",  10);
 			device.configure(params);
 			
-			if (device.getState()!=State.READY) throw new Exception("Unexpected non-READY state!");
+			if (device.getState()!=DeviceState.READY) throw new Exception("Unexpected non-READY state!");
 
 			
 		} finally {
@@ -136,7 +136,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 		if (device == null) throw new Exception("Cannot get device!");
 		
 		try {
-			if (device.getState()!=State.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 			
 			final Map<String, Object> params = new HashMap<String, Object>(2);
 			params.put("exposure", 0.1);
@@ -144,7 +144,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 			device.configure(params);
 			device.abort();
 			device.reset();
-			if (device.getState()!=State.IDLE) throw new Exception("Unexpected non-READY state!");
+			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-READY state!");
 			
 		} finally {
 			device.dispose();
@@ -158,7 +158,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 		if (device == null) throw new Exception("Cannot get device!");
 		
 		try {
-			if (device.getState()!=State.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 			
 			final Map<String, Object> params = new HashMap<String, Object>(2);
 			params.put("exposure", 0.1);
@@ -166,7 +166,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 			device.configure(params);
 			device.abort();
 			device.reset();
-			if (device.getState()!=State.IDLE) throw new Exception("Unexpected non-READY state!");
+			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-READY state!");
 			
 			try {
 				device.run(); // Should cause exception
@@ -188,7 +188,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 		if (device == null) throw new Exception("Cannot get device!");
 		
 		try {
-			if (device.getState()!=State.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 			
 			final Map<String, Object> params = new HashMap<String, Object>(2);
 			params.put("exposure", 0.1);
@@ -208,7 +208,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 			
 			if (beans.size()<10) throw new Exception("Unexpected number of events reported from running dummy detector! "+beans.size());
 			
-			if (device.getState()!=State.IDLE) {
+			if (device.getState()!=DeviceState.IDLE) {
 				throw new Exception("Device did not go back to idle after the run!");
 			}
 			

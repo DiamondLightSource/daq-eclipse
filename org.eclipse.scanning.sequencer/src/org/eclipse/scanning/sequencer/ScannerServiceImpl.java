@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IPositioner;
@@ -49,11 +51,11 @@ public final class ScannerServiceImpl implements IScanningService {
 	
 	@Override
 	public final <T> IRunnableDevice<T> createScanner(T model) throws ScanningException {
-        return createScanner(model, null);
+        return createScanner(model, null, null);
 	}
 
 	@Override
-	public final <T> IRunnableDevice<T> createScanner(T model, IDeviceConnectorService hservice) throws ScanningException {
+	public final <T> IRunnableDevice<T> createScanner(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException {
 		
 		if (hservice==null) hservice = ScannerServiceImpl.deviceService;
 		
@@ -63,6 +65,7 @@ public final class ScannerServiceImpl implements IScanningService {
 				AbstractRunnableDevice<T> ascanner = (AbstractRunnableDevice<T>)scanner;
 				ascanner.setScanningService(this);
                 ascanner.setDeviceService(hservice);
+                ascanner.setPublisher(publisher); // May be null
 			}
 			scanner.configure(model);
 			return scanner;

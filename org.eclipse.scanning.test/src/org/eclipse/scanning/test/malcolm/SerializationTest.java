@@ -2,7 +2,7 @@ package org.eclipse.scanning.test.malcolm;
 
 import java.util.Map;
 
-import org.eclipse.scanning.api.malcolm.State;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
@@ -59,7 +59,7 @@ public class SerializationTest {
 
 
 		Map<String,Object> message = mapper.unmarshal(json, Map.class);
-		if (MalcolmUtil.getState(message)!=State.IDLE) throw new Exception("It's not IDLE!");
+		if (MalcolmUtil.getState(message)!=DeviceState.IDLE) throw new Exception("It's not IDLE!");
 
 
 		json = 	"{\"type\": \"return\", \"id\": 0, \"value\": {\"timeStamp\": null, \"index\": 2,"+
@@ -68,7 +68,7 @@ public class SerializationTest {
 				"\"\"}}";
 
 		message = mapper.unmarshal(json, Map.class);
-		if (MalcolmUtil.getState(message)!=State.CONFIGURING) throw new Exception("It's not CONFIGURING!");
+		if (MalcolmUtil.getState(message)!=DeviceState.CONFIGURING) throw new Exception("It's not CONFIGURING!");
 
 		json = 	"{\"type\": \"return\", \"id\": 0, \"value\": {\"timeStamp\": null, \"index\": 4,"+
 				"\"choices\": [\"Fault\", \"Idle\", \"Configuring\", \"Ready\", \"Running\", "+
@@ -76,7 +76,7 @@ public class SerializationTest {
 				"\"\"}}";
 
 		message = mapper.unmarshal(json, Map.class);
-		if (MalcolmUtil.getState(message)!=State.RUNNING) throw new Exception("It's not RUNNING!");
+		if (MalcolmUtil.getState(message)!=DeviceState.RUNNING) throw new Exception("It's not RUNNING!");
 
 	}
 }

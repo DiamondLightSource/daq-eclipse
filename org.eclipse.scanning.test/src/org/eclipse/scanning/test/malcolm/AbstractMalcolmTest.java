@@ -1,7 +1,6 @@
 package org.eclipse.scanning.test.malcolm;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,35 +8,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import javax.jms.Connection;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
-import javax.jms.QueueConnectionFactory;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.jms.Topic;
-
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceOperationCancelledException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
-import org.eclipse.scanning.api.malcolm.message.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.StateDeserializer;
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.StateSerializer;
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.TypeDeserializer;
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.TypeSerializer;
 
 public abstract class AbstractMalcolmTest {
 	
@@ -165,7 +148,7 @@ public abstract class AbstractMalcolmTest {
 			@Override
 			public void eventPerformed(MalcolmEvent<MalcolmEventBean> e) {
 				MalcolmEventBean bean = e.getBean();
-	   			if (bean.getState()==State.PAUSED) {
+	   			if (bean.getState()==DeviceState.PAUSED) {
 				    beans.add(bean);
 				}
 			}
@@ -255,13 +238,13 @@ public abstract class AbstractMalcolmTest {
         if (expectExceptions && exceptions.size()>0) return device; // Pausing failed as expected
 
         // Wait for end of run for 30 seconds, otherwise we carry on (test will then likely fail)
-        if (doLatch && device.getState()!=State.IDLE) {
-        	device.latch(30, TimeUnit.SECONDS, State.RUNNING, State.PAUSED, State.PAUSING); // Wait until not running.
+        if (doLatch && device.getState()!=DeviceState.IDLE) {
+        	device.latch(30, TimeUnit.SECONDS, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.PAUSING); // Wait until not running.
         }
 
 		if (exceptions.size()>0) throw exceptions.get(0);
 		if (doLatch) { // If we waited we can check it completed, otherwise it is probably still going.
-			if (device.getState()!=State.IDLE) throw new Exception("The state at the end of the pause/resume cycle(s) must be "+State.IDLE);
+			if (device.getState()!=DeviceState.IDLE) throw new Exception("The state at the end of the pause/resume cycle(s) must be "+DeviceState.IDLE);
 			int expectedThreads = usedThreads.size() > 0 ? usedThreads.get(0) : threadcount;
 	 		// TODO Sometimes too many pause events come from the real malcolm connection.
 			if (beans.size()<expectedThreads) throw new Exception("The pause event was not encountered the correct number of times! Found "+beans.size()+" required "+expectedThreads);
@@ -274,7 +257,7 @@ public abstract class AbstractMalcolmTest {
 		
 		
 		// No fudgy sleeps allowed in test must be as dataacq would use.
-		if (ignoreReady && device.getState()==State.READY) return;
+		if (ignoreReady && device.getState()==DeviceState.READY) return;
 		System.out.println("Pausing device in state: "+device.getState()+" Its locked state is: "+device.isLocked());
 		try {
 		    device.pause();
@@ -294,8 +277,8 @@ public abstract class AbstractMalcolmTest {
 			System.out.println("We waited with device in state "+device.getState()+" for "+pauseTime);
 		}
 		
-		State state = device.getState();
-		if (state!=State.PAUSED) throw new Exception("The state is not paused!");
+		DeviceState state = device.getState();
+		if (state!=DeviceState.PAUSED) throw new Exception("The state is not paused!");
 
 		try {
 			device.resume();  // start it going again, non-blocking

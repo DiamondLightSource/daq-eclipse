@@ -7,9 +7,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 
 public class LatchDelegate {
 
@@ -20,11 +20,11 @@ public class LatchDelegate {
 		this.testLatchMap = new ConcurrentHashMap<>(3);
 	}
 
-	protected State latch(IMalcolmDevice device, State... ignored) throws Exception {
+	protected DeviceState latch(IMalcolmDevice device, DeviceState... ignored) throws Exception {
         return latch(device, -1, TimeUnit.SECONDS, ignored);
 	}
 	
-	protected State latch(IMalcolmDevice device, long time, TimeUnit unit, State... ignored) throws Exception {
+	protected DeviceState latch(IMalcolmDevice device, long time, TimeUnit unit, DeviceState... ignored) throws Exception {
 		Long id = Thread.currentThread().getId();
 		if (testLatchMap.containsKey(id)) {
 			throw new MalcolmDeviceException(device, "The thread '"+Thread.currentThread().getName()+"'is already waiting for state change! Something went wrong with the latch locking!");
@@ -39,7 +39,7 @@ public class LatchDelegate {
 		}
 
 		if (ignored!=null) {
-			List<State> states = Arrays.asList(ignored);
+			List<DeviceState> states = Arrays.asList(ignored);
 			while(states.contains(device.getState())) {
 				latch = new CountDownLatch(1);
 				testLatchMap.put(id, latch);
@@ -68,7 +68,7 @@ public class LatchDelegate {
 		}
 	}
 
-	public void setState(State state) {
+	public void setState(DeviceState state) {
 		
 		if (testLatchMap != null) {
 			// Important, copy, clear, notify or will not work

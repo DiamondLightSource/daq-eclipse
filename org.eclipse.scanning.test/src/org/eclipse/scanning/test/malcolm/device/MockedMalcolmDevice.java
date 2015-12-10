@@ -9,8 +9,8 @@ import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.dawnsci.hdf5.HierarchicalDataFactory;
 import org.eclipse.dawnsci.hdf5.IHierarchicalDataFile;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 
@@ -30,7 +30,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	// Only allows one thread to run a callableTask on the device at once
 	private ReentrantLock  taskRunLock;
 
-	private State state;
+	private DeviceState state;
 	
 
 	/**
@@ -54,21 +54,21 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		super(new ZeromqConnectorService()); // Hard coded, that's the way we role in tests.
 		this.latcher = latcher;
 		this.taskRunLock    = new ReentrantLock(true);
-		setState(State.IDLE);
+		setState(DeviceState.IDLE);
 		this.name = name;
 	}
 
-	public State getState() {
+	public DeviceState getState() {
 		return state;
 	}
 	
-	protected void setState(State state) throws MalcolmDeviceException {
+	protected void setState(DeviceState state) throws MalcolmDeviceException {
 		this.setState(state, null);
 	}
 
-	protected void setState(State state, String message) throws MalcolmDeviceException {
+	protected void setState(DeviceState state, String message) throws MalcolmDeviceException {
 
-		State old = this.state;
+		DeviceState old = this.state;
 		this.state = state;
 
 		latcher.setState(state);
@@ -89,14 +89,14 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 			throw new MalcolmDeviceException(this, "Device is in state "+getState()+" which cannot be aborted!");
 		}
 		
-		setState(State.ABORTING); // Tells any running loops that we are killing it
+		setState(DeviceState.ABORTING); // Tells any running loops that we are killing it
 		try {
 			if (taskRunLock.tryLock() || taskRunLock.tryLock(5, TimeUnit.SECONDS)) {
-				setState(State.ABORTED);
+				setState(DeviceState.ABORTED);
 				taskRunLock.unlock();
 			} else {
 				// No sure what to do here as this lock is now no longer to do with pause
-				setState(State.ABORTED);
+				setState(DeviceState.ABORTED);
 			}
 			
 		} catch (InterruptedException e) {
@@ -117,7 +117,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	public void configure(Map<String, Object> params) throws MalcolmDeviceException {
 		
 		validate(params);
-		setState(State.CONFIGURING);
+		setState(DeviceState.CONFIGURING);
 		this.params = params;
 		if (params.containsKey("configureSleep")) {
 			try {
@@ -127,7 +127,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 				throw new MalcolmDeviceException(this, "Cannot sleep during configure!", e);
 			}
 		}
-		setState(State.READY);
+		setState(DeviceState.READY);
 		
 		// We configure a bean with all the scan specific things
 		final MalcolmEventBean bean = new MalcolmEventBean();
@@ -151,7 +151,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 			write(params); // mimicks writing
 						
 		} catch (Exception e) {
-            setState(State.FAULT);
+            setState(DeviceState.FAULT);
 			throw new MalcolmDeviceException(this, "Cannot write", e);
 			
 		} finally {
@@ -173,7 +173,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	 */
 	protected void write(final Map<String, Object> params) throws Exception {
 
-		setState(State.RUNNING); // Will send an event
+		setState(DeviceState.RUNNING); // Will send an event
 
         int count  = 0;
         int amount = (int)params.get("nframes");
@@ -232,13 +232,13 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 
 			} // End fake scanning loop.
 			
-			setState(State.READY); // State change
+			setState(DeviceState.READY); // State change
 	        sendEvent(new MalcolmEventBean(getState(), false, true)); // Scan end event
 
         
         } catch (Exception ne) {
         	ne.printStackTrace();
-    		setState(State.FAULT, ne.getMessage());
+    		setState(DeviceState.FAULT, ne.getMessage());
      	    throw ne;
      	    
         } finally {
@@ -254,7 +254,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	}
 	
 	@Override
-	public State latch(long time, TimeUnit unit, State... ignoredStates) throws MalcolmDeviceException {
+	public DeviceState latch(long time, TimeUnit unit, DeviceState... ignoredStates) throws MalcolmDeviceException {
 		try {
 			return latcher.latch(this, time, unit, ignoredStates);
 		} catch (Exception e) {
@@ -341,7 +341,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		Long retObject = null;
 		try {
 			beforeExecute();
-			if (getState().equals(State.RUNNING)) {		//Only proceed with the task if we're in the right state
+			if (getState().equals(DeviceState.RUNNING)) {		//Only proceed with the task if we're in the right state
 				if (acquireRunLock()) {
 					try {
 						retObject = callableTask.call();						

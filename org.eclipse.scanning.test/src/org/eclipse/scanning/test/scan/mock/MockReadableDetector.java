@@ -2,37 +2,24 @@ package org.eclipse.scanning.test.scan.mock;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
+import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IReadableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
-public class MockReadableDetector implements IReadableDetector<MockDetectorModel> {
+public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorModel> implements IReadableDetector<MockDetectorModel> {
 	
 	private MockDetectorModel model;
-	private int               level;
-	private String            name;
 
 	public MockReadableDetector() {
-		
+		super();
 	}
 	
 	public MockReadableDetector(String name) {
 		super();
-		this.name = name;
+		setName(name);
 	}
-	
-	public int getLevel() {
-		return level;
-	}
-	public void setLevel(int level) {
-		this.level = level;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	
+		
 	@Override
 	public void run() throws ScanningException {
 		try {
@@ -55,7 +42,7 @@ public class MockReadableDetector implements IReadableDetector<MockDetectorModel
 
 	@Override
 	public String toString() {
-		return "MockDetector [level=" + level + ", name=" + name +  "]";
+		return "MockDetector [level=" + getLevel() + ", name=" + getName() +  "]";
 	}
 
 	@Override
@@ -70,11 +57,21 @@ public class MockReadableDetector implements IReadableDetector<MockDetectorModel
 
 	@Override
 	public void pause() throws ScanningException {
-		throw new ScanningException("Not implemented!");
+        try {
+	        setState(DeviceState.PAUSING);
+	        Thread.sleep(100);
+	        setState(DeviceState.PAUSED);
+		} catch (Exception e) {
+			throw new ScanningException(e);
+		}
 	}
 
 	@Override
 	public void resume() throws ScanningException {
-		throw new ScanningException("Not implemented!");
-	}
+        try {
+			setState(model!=null ? DeviceState.READY : DeviceState.IDLE);
+		} catch (Exception e) {
+			throw new ScanningException(this, e);
+		}
+  	}
 }

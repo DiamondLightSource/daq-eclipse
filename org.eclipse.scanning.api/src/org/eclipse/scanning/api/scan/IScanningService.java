@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.scan;
 
-import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 
 
 /**
@@ -85,10 +86,11 @@ public interface IScanningService {
 	 * automatically. A ScanningException is thrown if the model is invalid.
 	 * 
 	 * @param model, information to do the scan
+	 * @param To publish scan events on or null not to publish events.
 	 * @param hservice, may be null, in which case system looks for service using OSGi
 	 * @return
 	 * @throws ScanningException
 	 */
-	<T> IRunnableDevice<T> createScanner(T model, IDeviceConnectorService hservice) throws ScanningException;
+	<T> IRunnableDevice<T> createScanner(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException;
 	
 }

@@ -2,9 +2,9 @@ package uk.ac.diamond.malcolm.jacksonzeromq.connector;
 
 import java.util.Map;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
@@ -78,7 +78,7 @@ class JsonMessageGenerator implements MessageGenerator<JsonMessage> {
 	}
 	
 	@Override
-	public JsonMessage call(StackTraceElement[] stackTrace, State... latches) throws MalcolmDeviceException {
+	public JsonMessage call(StackTraceElement[] stackTrace, DeviceState... latches) throws MalcolmDeviceException {
 		final JsonMessage msg   = createCallMessage(getMethodName(stackTrace));
 		final JsonMessage reply = service.send(device, msg);
 		// TODO What about state changes? Should we block?

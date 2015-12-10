@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.State;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
@@ -44,7 +44,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
     	this.name    = name;
     	this.service = service;
 		
-    	final State currentState = getState();
+    	final DeviceState currentState = getState();
 		logger.debug("Connecting '"+getName()+"'. Current state: "+currentState);
 		alive = true;
 		
@@ -52,11 +52,11 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		
 		service.subscribe(this, subscribeStateMachine, new IMalcolmListener<JsonMessage>() {
 			
-			private State previousState = currentState;
+			private DeviceState previousState = currentState;
 			@Override
 			public void eventPerformed(MalcolmEvent<JsonMessage> e) {
 				
-				State newState=null;
+				DeviceState newState=null;
 				try {
 					JsonMessage msg = e.getBean();
 					MalcolmEventBean meb = new MalcolmEventBean();
@@ -66,8 +66,8 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 					newState = MalcolmUtil.getState(msg, false);
 					meb.setState(newState);
 					
-                    meb.setScanStart(newState!=previousState && newState==State.RUNNING);
-					meb.setScanEnd(previousState==State.RUNNING && newState.isPostRun());
+                    meb.setScanStart(newState!=previousState && newState==DeviceState.RUNNING);
+					meb.setScanEnd(previousState==DeviceState.RUNNING && newState.isPostRun());
 					
 					if (msg.getType().isError()) {
 						logger.error("Error message encountered: "+msg);
@@ -87,7 +87,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	}
 
 	@Override
-	public State getState() throws MalcolmDeviceException {
+	public DeviceState getState() throws MalcolmDeviceException {
 		try {
 			final JsonMessage message = connectionDelegate.createGetMessage(name+".stateMachine.state");
 			final JsonMessage reply   = service.send(this, message);
@@ -123,7 +123,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	@Override
 	public void run() throws MalcolmDeviceException {
 		// Run will block.
-		connectionDelegate.call(Thread.currentThread().getStackTrace(), State.RUNNING);
+		connectionDelegate.call(Thread.currentThread().getStackTrace(), DeviceState.RUNNING);
 	}
 
 	@Override
@@ -159,7 +159,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 	@Override
 	public boolean isLocked() throws MalcolmDeviceException {
-		final State state = getState();
+		final DeviceState state = getState();
 		return state.isTransient(); // Device is not locked but it is doing something.
 	}
 
@@ -172,12 +172,12 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	}
 
 	@Override
-	public State latch(long time, TimeUnit unit, State... ignoredStates) throws MalcolmDeviceException {
+	public DeviceState latch(long time, TimeUnit unit, DeviceState... ignoredStates) throws MalcolmDeviceException {
 		
 		try {
 			
 			final CountDownLatch latch = new CountDownLatch(1);
-			final List<State>     stateContainer     = new ArrayList<>(1);
+			final List<DeviceState>     stateContainer     = new ArrayList<>(1);
 			final List<Exception> exceptionContainer = new ArrayList<>(1);
 			
 			// Make a listener to check for state and then add it and latch
@@ -186,7 +186,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 				public void eventPerformed(MalcolmEvent<JsonMessage> e) {
 					JsonMessage msg = e.getBean();
 					try {
-						State state = MalcolmUtil.getState(msg);
+						DeviceState state = MalcolmUtil.getState(msg);
 						if (state != null) {
 							if (ignoredStates!=null && Arrays.asList(ignoredStates).contains(state)) {
 								return; // Found state that we don't want!

@@ -27,6 +27,8 @@ public class AnyBeanEventTest {
 	@Before
 	public void createServices() throws Exception {
 		
+		// We wire things together without OSGi here 
+		// DO NOT COPY THIS IN NON-TEST CODE!
 		eservice = new EventServiceImpl(); // Do not copy this get the service from OSGi!
 		
 		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");	

@@ -11,6 +11,8 @@ public class ScanTest extends AbstractScanTest {
 	
 	@Before
 	public void setup() throws ScanningException {
+		// We wire things together without OSGi here 
+		// DO NOT COPY THIS IN NON-TEST CODE!
 		sservice  = new ScannerServiceImpl();
 		connector = new MockScannableConnector();
 		gservice  = new GeneratorServiceImpl();

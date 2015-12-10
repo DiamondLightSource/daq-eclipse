@@ -3,7 +3,7 @@ package org.eclipse.scanning.api.malcolm.message;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.malcolm.State;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 
 public class MalcolmUtil {
@@ -14,16 +14,16 @@ public class MalcolmUtil {
 	 * @return
 	 * @throws Exception 
 	 */
-	public static State getState(JsonMessage msg) throws Exception {
+	public static DeviceState getState(JsonMessage msg) throws Exception {
 
 		return getState(msg, true);
 	}
 	
-	public static State getState(JsonMessage msg, boolean requireException) throws Exception {
+	public static DeviceState getState(JsonMessage msg, boolean requireException) throws Exception {
 
 		try {
 			if (msg.getValue() instanceof String) {
-				return State.valueOf(msg.getValue().toString().toUpperCase());
+				return DeviceState.valueOf(msg.getValue().toString().toUpperCase());
 			} else {
 				try {
 				    return getState((Map)msg.getValue());
@@ -37,18 +37,18 @@ public class MalcolmUtil {
 		}
 	}
 
-	public static State getState(Map<String, ?> value) {
+	public static DeviceState getState(Map<String, ?> value) {
 		
 		if (value.containsKey("state")) {
 			final String state = (String)value.get("state");
-			return State.valueOf(state.toUpperCase());
+			return DeviceState.valueOf(state.toUpperCase());
 		}
 
 		if (value.containsKey("value") && !value.containsKey("choices")) value = (Map<String,Object>)value.get("value");
 		List<String> choices = (List<String>)value.get("choices");
 		int          index   = (int)value.get("index");
 		final String state = choices.get(index);
-		return State.valueOf(state.toUpperCase());
+		return DeviceState.valueOf(state.toUpperCase());
 
 	}
 

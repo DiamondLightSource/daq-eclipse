@@ -38,11 +38,6 @@ public class Point extends AbstractPosition {
 		this.y = yPosition;
 	}
 
-	@Override
-	public String toString() {
-		return String.format("(%s, %s)", x, y);
-	}
-
 	public double getX() {
 		return x;
 	}
