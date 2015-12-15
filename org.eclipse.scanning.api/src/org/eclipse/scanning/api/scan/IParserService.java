@@ -46,5 +46,5 @@ public interface IParserService {
 	 * @param scan
 	 * @return
 	 */
-	<T> IParser<T> createParser(String scan);
+	<T> IParser<T> createParser(String scan) throws ParsingException;
 }

@@ -95,4 +95,5 @@ public interface IScanningService {
 	 */
 	<T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException;
 	
+
 }
