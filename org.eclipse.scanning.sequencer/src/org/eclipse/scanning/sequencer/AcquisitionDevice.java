@@ -58,37 +58,40 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	}
 
 	@Override
-	public void run() throws ScanningException {
+	public void run() throws ScanningException, InterruptedException {
 		
 		if (model.getPositionIterator()==null) throw new ScanningException("The model must contain some points to scan!");
 		
 		try {
 	        final IPositioner positioner = scanningService.createPositioner(deviceService);
 	        
+	        // TODO Should we validate the position iterator that all
+	        // the positions are valid before running the scan?
+	        // It was called limit checking in GDA.
+	        // Sometimes logic is needed to implement collision avoidance.
+	        
     		setState(DeviceState.RUNNING);
     		
 	        for (IPosition pos : model.getPositionIterator()) {
 	        	
-	        	// Check the locking using a condition
-	        	if(!lock.tryLock(1, TimeUnit.SECONDS)) {
-	        		throw new ScanningException(this, "Internal Error - Could not obtain lock to run device!");    		
-	        	}
-	        	try {
-		        	if (awaitPaused) {
-		        		setState(DeviceState.PAUSED);
-		        		paused.await();
-		        		setState(DeviceState.RUNNING);
-		        	}
-	        	} finally {
-	        		lock.unlock();
-	        	}
+	        	// Check if we are paused, blocks until we are not
+	        	checkPaused();
+	        	
+	        	// TODO Some validation on each point
+	        	// perhaps replacing atPointStart(..)
+	        	// Whether to deal with atLineStart() and atPointStart()
 	        	
 	        	// Run the position
 	        	positioner.setPosition(pos);   // moveTo
+	        	
+	        	// check that beam is up. In the past this has been done with 
+	        	// scannables at a given level that block until they are happy.
+	        	
 	        	readers.await();               // Wait for the previous read out to return, if any
 	        	detectors.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
 	        	readers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        	
+	        	// TODO Event for actual data written, for analysis to listen to.
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
@@ -97,11 +100,39 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
         	
 		} catch (ScanningException s) {
 			throw s;
+		} catch (InterruptedException i) {
+			throw i;
 		} catch (Exception ne) {
 			throw new ScanningException(ne);
 		}
 	}
 
+	private void checkPaused() throws Exception {
+		
+    	// Check the locking using a condition
+    	if(!lock.tryLock(1, TimeUnit.SECONDS)) {
+    		throw new ScanningException(this, "Internal Error - Could not obtain lock to run device!");    		
+    	}
+    	try {
+        	if (awaitPaused) {
+        		setState(DeviceState.PAUSED);
+        		paused.await();
+        		setState(DeviceState.RUNNING);
+        	}
+    	} finally {
+    		lock.unlock();
+    	}
+		
+	}
+
+	// TODO Abort can be interpreted different ways. As 'skip' for short exposure experiments
+	// it finishes the current frame, writes file and stops motors. For long exposure it might
+	// need to stop the detector exposing further.
+	
+	// TODO Abort can stop everything, including detectors motors and file writing immediately.
+	// Should the model define the behaviour of abort for a given detector? This would allow
+	// abort to be configurable for different detectors.
+	
 	@Override
 	public void abort() throws ScanningException {
 		throw new ScanningException("Not implemented!");

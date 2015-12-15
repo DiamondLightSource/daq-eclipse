@@ -214,7 +214,7 @@ public class ThreadScanTest {
 		smodel.setDetectors(detector);
 		
 		// Create a scan and run it
-		IRunnableDevice<ScanModel> scanner = sservice.createScanner(smodel, publisher, connector);
+		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, publisher, connector);
 		return scanner;
 	}
 

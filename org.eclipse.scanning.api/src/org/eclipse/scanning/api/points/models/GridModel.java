@@ -14,6 +14,9 @@ package org.eclipse.scanning.api.points.models;
  * -------------------->
  * -------------------->
  * </pre>
+ * 
+ * TODO Should it have the stage names in the model or in the Point Iterable?
+ * 
 **/
 public class GridModel implements IModelWithBoundingBox {
 	

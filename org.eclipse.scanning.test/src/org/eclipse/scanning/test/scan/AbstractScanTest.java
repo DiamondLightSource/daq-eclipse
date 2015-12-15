@@ -153,7 +153,7 @@ public class AbstractScanTest {
 		smodel.setDetectors(Arrays.asList(new IRunnableDevice<?>[]{detector}));
 		
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = sservice.createScanner(smodel, null, connector);
+		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, null, connector);
 		scanner.run();
 		
 		// Check the details of how often it was run

@@ -73,7 +73,7 @@ public interface IRunnableDevice<T> extends INameable, ILevel {
 	 * 
 	 * @throws ScanningException
 	 */
-	public void run() throws ScanningException;
+	public void run() throws ScanningException, InterruptedException;
 	
 	/**
 	 * Call to terminate the scan before it has finished.

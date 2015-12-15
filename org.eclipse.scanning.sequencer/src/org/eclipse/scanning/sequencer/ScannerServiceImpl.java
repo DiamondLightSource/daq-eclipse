@@ -50,12 +50,12 @@ public final class ScannerServiceImpl implements IScanningService {
 
 	
 	@Override
-	public final <T> IRunnableDevice<T> createScanner(T model) throws ScanningException {
-        return createScanner(model, null, null);
+	public final <T> IRunnableDevice<T> createRunnableDevice(T model) throws ScanningException {
+        return createRunnableDevice(model, null, null);
 	}
 
 	@Override
-	public final <T> IRunnableDevice<T> createScanner(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException {
+	public final <T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException {
 		
 		if (hservice==null) hservice = ScannerServiceImpl.deviceService;
 		

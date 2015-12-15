@@ -79,7 +79,7 @@ public interface IScanningService {
 	 * @return
 	 * @throws ScanningException
 	 */
-	<T> IRunnableDevice<T> createScanner(T model) throws ScanningException;
+	<T> IRunnableDevice<T> createRunnableDevice(T model) throws ScanningException;
 	
 	/**
 	 * Create an empty scanner which can run an iterable to complete a scan.
@@ -93,6 +93,6 @@ public interface IScanningService {
 	 * @return
 	 * @throws ScanningException
 	 */
-	<T> IRunnableDevice<T> createScanner(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException;
+	<T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException;
 	
 }
