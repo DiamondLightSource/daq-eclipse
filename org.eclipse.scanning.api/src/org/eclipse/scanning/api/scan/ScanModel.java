@@ -22,11 +22,12 @@ public class ScanModel {
 	
 	public ScanModel() {
 	    this(null);
-	}
-	
-	public ScanModel(Iterable<IPosition> positionIterator) {
+	}	
+	public ScanModel(Iterable<IPosition> positionIterator, IRunnableDevice<?>... detectors) {
 		this.positionIterator = positionIterator;
+		if (detectors!=null && detectors.length>0) this.detectors = Arrays.asList(detectors);
 	}
+
 
 	public Iterable<IPosition> getPositionIterator() {
 		return positionIterator;

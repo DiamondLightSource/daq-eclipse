@@ -37,7 +37,7 @@ public interface IPositioner {
 	 * @return false if the position could not be reached. Normally an exception will be thrown if this is the case.
 	 * @throws ScanningException
 	 */
-	boolean setPosition(IPosition position) throws ScanningException;
+	boolean setPosition(IPosition position) throws ScanningException, InterruptedException;
 
 	/**
 	 * This method will return null if the positioner has not been told to move to a

@@ -22,10 +22,11 @@ public interface IScannable<T> extends ILevel, INameable {
 	
 	/**
 	 * Moves to the position required, blocking until it is complete.
+	 * Similar to moveTo(...) in GDA8
 	 * 
 	 * @param position
 	 * @throws Exception
 	 */
-	public void moveTo(T position) throws Exception;
+	public void setPosition(T position) throws Exception;
 
 }

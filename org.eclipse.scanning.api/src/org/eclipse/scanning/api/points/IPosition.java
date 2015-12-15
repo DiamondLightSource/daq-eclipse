@@ -13,7 +13,6 @@ import java.util.List;
  * 
  * @author Matthew Gerring
  *
- * @param <T>
  */
 public interface IPosition {
 	

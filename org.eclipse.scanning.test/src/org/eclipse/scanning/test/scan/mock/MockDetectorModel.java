@@ -3,6 +3,15 @@ package org.eclipse.scanning.test.scan.mock;
 
 public class MockDetectorModel {
 
+	public MockDetectorModel() {
+	
+	}
+	
+	public MockDetectorModel(double collectionTime) {
+		super();
+		this.collectionTime = collectionTime;
+	}
+
 	private double collectionTime;
 	
 	private int ran=0;

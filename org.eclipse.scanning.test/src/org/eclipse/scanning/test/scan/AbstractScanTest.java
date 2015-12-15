@@ -32,7 +32,7 @@ import org.junit.Test;
 public class AbstractScanTest {
 
 	protected IScanningService              sservice;
-	protected IDeviceConnectorService     connector;
+	protected IDeviceConnectorService       connector;
 	protected IGeneratorService             gservice;
 
 	@Test

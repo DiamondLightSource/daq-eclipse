@@ -44,9 +44,6 @@ public class MockScannable implements IScannable<Number> {
 		return position;
 	}
 	public void setPosition(Number position) throws InterruptedException {
-		moveTo(position);
-	}
-	public void moveTo(Number position) throws InterruptedException {
 		if (requireSleep) {
 			Thread.sleep(Math.abs(Math.round((position.doubleValue()-this.position.doubleValue())/1)*100));
 		}

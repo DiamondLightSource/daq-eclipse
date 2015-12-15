@@ -28,7 +28,7 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 	}
 	
 	@Override
-	public boolean setPosition(IPosition position) throws ScanningException {
+	public boolean setPosition(IPosition position) throws ScanningException, InterruptedException {
 		run(position);
 		return true;
 	}
@@ -60,26 +60,27 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 		return new MoveTask(scannable, position);
 	}
 
-	private class MoveTask<V> implements Callable<V> {
+	private class MoveTask implements Callable<IPosition> {
 
-		private IScannable<V> scannable;
-		private IPosition     position;
+		@SuppressWarnings("rawtypes")
+		private IScannable scannable;
+		private IPosition  position;
 
-		public MoveTask(IScannable<V> iScannable, IPosition position) {
+		public MoveTask(IScannable<?> iScannable, IPosition position) {
 			this.scannable = iScannable;
 			this.position  = position;
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
-		public V call() throws Exception {
-			V pos = (V)position.get(scannable.getName());
+		public IPosition call() throws Exception {
 			try {
-			    scannable.moveTo(pos);
+			    scannable.setPosition(position.get(scannable.getName()));
 			} catch (Exception ne) {
 				ne.printStackTrace();  // Just for testing we make sure that the stack is visible.
 				throw ne;
 			}
-			return scannable.getPosition(); // Might not be exactly what we moved to
+			return new MapPosition(scannable.getName(), scannable.getPosition()); // Might not be exactly what we moved to
 		}
 		
 	}

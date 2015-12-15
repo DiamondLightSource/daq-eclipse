@@ -9,12 +9,15 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.IPositionListener;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -64,7 +67,7 @@ abstract class LevelRunner<L extends ILevel> {
 	 * @return
 	 * @throws ScanningException
 	 */
-	protected boolean run(IPosition position) throws ScanningException {
+	protected boolean run(IPosition position) throws ScanningException, InterruptedException {
         return run(position, true);
 	}
 	
@@ -77,7 +80,7 @@ abstract class LevelRunner<L extends ILevel> {
 	 * @return
 	 * @throws ScanningException
 	 */
-	protected boolean run(IPosition position, boolean block) throws ScanningException {
+	protected boolean run(IPosition position, boolean block) throws ScanningException, InterruptedException {
 		
 		this.position = position;
 		Map<Integer, List<L>> positionMap = getLevelOrderedObjects(getObjects());
@@ -101,20 +104,20 @@ abstract class LevelRunner<L extends ILevel> {
 					for (Callable<IPosition> callable : tasks) eservice.submit(callable);
 				} else {
 					// Normally we block until done.
-				    eservice.invokeAll(tasks); // blocks until level has run
+				    List<Future<IPosition>> pos = eservice.invokeAll(tasks); // blocks until level has run
+					fireLevelPerformed(level, lobjects, getPosition(pos));
 				}
-				fireLevelPerformed(level, lobjects, getPosition());
 			}
 			
 			firePositionPerformed(finalLevel, position);
 			
-		} catch (InterruptedException ex) {
+		} catch (ExecutionException ex) {
 			throw new ScanningException("Scanning interupted while moving to new position!", ex);
 		}
 		
 		return true;
 	}
-	
+
 	/** 
 	 * Blocks until all the tasks have complete. In order for this call to be worth
 	 * using run(position, false) should have been used to run the service.
@@ -208,6 +211,14 @@ abstract class LevelRunner<L extends ILevel> {
 
 	public IPosition getPosition()  throws ScanningException {
 		return position;
+	}
+
+	private IPosition getPosition(List<Future<IPosition>> pos) throws InterruptedException, ExecutionException {
+	    IPosition ret = new MapPosition();
+	    for (Future<IPosition> future : pos) {
+	    	ret = ret.composite(future.get());
+		}
+	    return ret;
 	}
 
 }
