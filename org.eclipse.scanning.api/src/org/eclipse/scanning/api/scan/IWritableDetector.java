@@ -5,14 +5,13 @@ import org.eclipse.scanning.api.INameable;
 
 
 /**
- * 
  * Anatomy of a CPU scan (non-malcolm)
  * 
  * Making GDA8 Detectors work with GDA9 (org.eclipse.scanning) requires usage of the
  * GDA8 IHardwareConnectionService. This service returns IReadableDetector for the class
  * gda.device.Detector and IScanner for gda.px.detector.Detector. In the later case
  * the model provides the file path and omegaStart required.
- *  
+ * <pre>
  *  ___________
  *  |         |
  * _|         |___________  collectData() Tell detector to collect
@@ -23,6 +22,7 @@ import org.eclipse.scanning.api.INameable;
  *            ________
  *            |      |
  * ___________|      |____  moveTo()  Scannables move motors to new position
+ * </pre>
  * 
  * The readable detector is designed to be read out manually by the scanning
  * system. Malcolm detectors are not read out manually by the scanning but
@@ -41,7 +41,7 @@ public interface IWritableDetector<T> extends IRunnableDevice<T>, INameable, ILe
 	 * 
 	 * For GDA8 detectors, the readout will be overridden.
 	 * 
-	 * @return usually true for a sucessfull readout
+	 * @return true for a successful readout
 	 * @throws DeviceException
 	 */
 	boolean write() throws ScanningException;
