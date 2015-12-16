@@ -27,7 +27,7 @@ import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.IReadableDetector;
+import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 
@@ -37,7 +37,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * <p>
  * Note: values will always be high if used at (x, y) positions more than 2 units away from the origin.
  */
-public class MandelbrotDetector implements IReadableDetector<MandelbrotModel> {
+public class MandelbrotDetector implements IWritableDetector<MandelbrotModel> {
 
 	public enum OutputDimensions { ONE_D, TWO_D }
 
@@ -114,7 +114,7 @@ public class MandelbrotDetector implements IReadableDetector<MandelbrotModel> {
 	}
 
 	@Override
-	public boolean read() throws ScanningException {
+	public boolean write() throws ScanningException {
 		
         // TODO Read the IDataset to an HDF5 file?
         

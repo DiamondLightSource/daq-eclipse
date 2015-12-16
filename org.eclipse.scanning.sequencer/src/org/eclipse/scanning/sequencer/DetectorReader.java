@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.IReadableDetector;
+import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -28,23 +28,23 @@ final class DetectorReader extends DetectorRunner {
 
 	@Override
 	protected Callable<IPosition> create(IRunnableDevice<?> device, IPosition position) throws ScanningException {
-		if (!(device instanceof IReadableDetector<?>)) return null;
-		return new ReadTask((IReadableDetector<?>)device, position);
+		if (!(device instanceof IWritableDetector<?>)) return null;
+		return new ReadTask((IWritableDetector<?>)device, position);
 	}
 
 	public class ReadTask implements Callable<IPosition> {
 
-		private IReadableDetector<?> detector;
+		private IWritableDetector<?> detector;
 		private IPosition            position;
 
-		public ReadTask(IReadableDetector<?> detector, IPosition position) {
+		public ReadTask(IWritableDetector<?> detector, IPosition position) {
 			this.detector = detector;
 			this.position = position;
 		}
 
 		@Override
 		public IPosition call() throws Exception {
-			detector.read();
+			detector.write();
 			return position;
 		}
 

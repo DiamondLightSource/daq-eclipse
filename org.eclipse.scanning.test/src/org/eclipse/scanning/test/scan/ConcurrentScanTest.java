@@ -28,7 +28,7 @@ import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
-import org.eclipse.scanning.api.scan.IReadableDetector;
+import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanModel;
@@ -72,9 +72,9 @@ public class ConcurrentScanTest {
 	protected IScannable<?> lev6;
 	protected IScannable<?> lev6b;
 
-	protected IReadableDetector<MockDetectorModel> detlev9a;
-	protected IReadableDetector<MockDetectorModel> detlev9b;
-	protected IReadableDetector<MockDetectorModel> detlev5;
+	protected IWritableDetector<MockDetectorModel> detlev9a;
+	protected IWritableDetector<MockDetectorModel> detlev9b;
+	protected IWritableDetector<MockDetectorModel> detlev5;
 
 	protected IScanningService              sservice;
 	protected IDeviceConnectorService       connector;
@@ -151,7 +151,7 @@ public class ConcurrentScanTest {
 //		verify(sread, times(1)).atScanLineStart();
 //		verify(sread, times(1)).atScanLineEnd();
 
-		verify(detlev9a, times(11)).read();
+		verify(detlev9a, times(11)).write();
 //		verify(detlev9a, never()).setPosition(anyObject());
 //		verify(detlev9a, never()).setPosition(anyObject());
 //		verify(detlev9a, times(11)).atPointStart();

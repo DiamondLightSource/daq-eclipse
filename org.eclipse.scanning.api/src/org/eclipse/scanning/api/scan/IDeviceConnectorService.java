@@ -46,6 +46,6 @@ public interface IDeviceConnectorService {
 	 * @return
 	 * @throws ScanningException
 	 */
-	<U> IReadableDetector<U> getDetector(String name) throws ScanningException;
+	<U> IWritableDetector<U> getDetector(String name) throws ScanningException;
 
 }
