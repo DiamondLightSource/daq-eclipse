@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.scan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,6 +13,13 @@ import java.util.List;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.event.scan.IScanListener;
+import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -29,11 +37,14 @@ import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
 import org.junit.Test;
 
+import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+
 public class AbstractScanTest {
 
 	protected IScanningService              sservice;
 	protected IDeviceConnectorService       connector;
 	protected IGeneratorService             gservice;
+	protected IEventService                 eservice;
 
 	@Test
 	public void testSetSimplePosition() throws Exception {
@@ -159,6 +170,73 @@ public class AbstractScanTest {
 		// Check the details of how often it was run
 		assertEquals(gen.size(), dmodel.getRan());
 		assertEquals(gen.size(), dmodel.getRead());
+	}
+
+	@Test
+	public void testSimpleScanWithStatus() throws Exception {
+				
+		// Configure a detector with a collection time.
+		IRunnableDevice<MockDetectorModel> detector = connector.getDetector("detector");
+		MockDetectorModel dmodel = new MockDetectorModel();
+		dmodel.setCollectionTime(0.1);
+		detector.configure(dmodel);
+		
+		// Create scan points for a grid and make a generator
+		GridModel gmodel = new GridModel();
+		gmodel.setRows(5);
+		gmodel.setColumns(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+
+		// Create the model for a scan.
+		final ScanModel  smodel = new ScanModel();
+		smodel.setPositionIterator(gen);
+		smodel.setDetectors(Arrays.asList(new IRunnableDevice<?>[]{detector}));
+		
+		final ScanBean publishResult = new ScanBean();
+		publishResult.setName("Fred");
+		publishResult.setUniqueId("fred");
+		smodel.setBean(publishResult);
+		
+		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");	
+		final IPublisher<ScanBean> publisher = eservice.createPublisher(uri, IEventService.STATUS_TOPIC, new ActivemqConnectorService());
+		
+		final ISubscriber<IScanListener> subscriber = eservice.createSubscriber(uri, IEventService.STATUS_TOPIC, new ActivemqConnectorService());
+		final List<ScanBean>    events = new ArrayList<ScanBean>(11);
+		final List<DeviceState> states = new ArrayList<DeviceState>(11);
+		subscriber.addListener(new IScanListener.Stub() {		
+			@Override
+			public void scanStateChanged(ScanEvent evt) {
+				states.add(evt.getBean().getDeviceState());
+			}
+			@Override
+			public void scanEventPerformed(ScanEvent evt) {
+				events.add(evt.getBean());
+				System.out.println("State : "+evt.getBean().getDeviceState());
+				System.out.println("Percent complete : "+evt.getBean().getPercentComplete());
+				System.out.println(evt.getBean().getPosition());
+			}
+		});
+		
+		try {
+			
+			// Create a scan and run it without publishing events
+			IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, publisher, connector);
+			scanner.run();
+			
+			// Check the details of how often it was run
+			assertEquals(gen.size(), dmodel.getRan());
+			assertEquals(gen.size(), dmodel.getRead());
+			
+			Thread.sleep(1000); // Wait for all events to make it over from ActiveMQ
+			assertEquals(gen.size()+states.size(), events.size());
+			assertEquals(Arrays.asList(DeviceState.READY, DeviceState.RUNNING, DeviceState.READY), states);
+			
+			for (ScanBean b : events) assertEquals("fred", b.getUniqueId());
+		
+		} finally {
+			publisher.disconnect();
+		}
 	}
 
 }

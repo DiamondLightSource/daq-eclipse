@@ -6,6 +6,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.points.IPosition;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
@@ -50,8 +51,8 @@ public class ActivemqConnectorService implements IEventConnectorService {
 //		module.addDeserializer(State.class, new StateDeserializer());
 //		module.addSerializer(Type.class,    new TypeSerializer());
 //		module.addDeserializer(Type.class,  new TypeDeserializer());
-//		mapper.registerModule(module);	
-//		mapper.setSerializationInclusion(Include.NON_NULL);
+		mapper.registerModule(module);	
+		mapper.setSerializationInclusion(Include.NON_NULL);
 		return mapper;
 	}
 

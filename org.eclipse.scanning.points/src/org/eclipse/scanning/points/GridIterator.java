@@ -99,4 +99,8 @@ class GridIterator implements Iterator<Point> {
 		}
 	}
 
+	public void remove() {
+        throw new UnsupportedOperationException("remove");
+    }
+
 }

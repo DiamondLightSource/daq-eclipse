@@ -95,4 +95,8 @@ public class RasterIterator implements Iterator<Point> {
 		}
 	}
 
+	public void remove() {
+        throw new UnsupportedOperationException("remove");
+    }
+
 }
