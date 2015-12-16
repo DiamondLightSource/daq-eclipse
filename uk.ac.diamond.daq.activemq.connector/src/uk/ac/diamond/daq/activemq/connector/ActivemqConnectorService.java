@@ -4,8 +4,10 @@ import java.net.URI;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.points.IPosition;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
  * This class is temporarily in this plugin and needs to be moved out of it once:
@@ -41,7 +43,9 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	private final ObjectMapper createJacksonMapper() {
 		
 		ObjectMapper mapper = new ObjectMapper();
-//		SimpleModule module = new SimpleModule();
+		SimpleModule module = new SimpleModule();
+		module.addSerializer(IPosition.class,   new PositionSerializer());
+		module.addDeserializer(IPosition.class, new PositionDeserializer());
 //		module.addSerializer(State.class,   new StateSerializer());
 //		module.addDeserializer(State.class, new StateDeserializer());
 //		module.addSerializer(Type.class,    new TypeSerializer());
