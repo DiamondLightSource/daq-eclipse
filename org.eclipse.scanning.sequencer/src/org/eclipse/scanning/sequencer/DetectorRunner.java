@@ -35,7 +35,7 @@ class DetectorRunner extends LevelRunner<IRunnableDevice<?>> {
 		return devices;
 	}
 
-	private class RunTask implements Callable<IPosition> {
+	private final class RunTask implements Callable<IPosition> {
 
 		private IRunnableDevice<?>   detector;
 		private IPosition            position;
