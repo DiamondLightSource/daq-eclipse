@@ -74,7 +74,7 @@ abstract class LevelRunner<L extends ILevel> {
 	/**
 	 * Call to set the value at the location specified
 	 * @param position
-	 * @param block - set to true to block until the parallel tasks have compeleted. Set to false to
+	 * @param block - set to true to block until the parallel tasks have completed. Set to false to
 	 * return after the last level is told to execute. In this case more work can be done on the calling 
 	 * thread. Use the latch() method to come back to the last level's ExecutorService and 
 	 * @return
@@ -86,6 +86,9 @@ abstract class LevelRunner<L extends ILevel> {
 		Map<Integer, List<L>> positionMap = getLevelOrderedObjects(getObjects());
 		
 		try {
+			// TODO Should we actually create the service size to the size
+			// of the largest level population? This would mean that you try to 
+			// start everything at the same time.
 			this.eservice = createService();
 
 			Integer finalLevel = 0;
