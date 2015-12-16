@@ -4,10 +4,10 @@ import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
-import org.eclipse.scanning.api.scan.IReadableDetector;
+import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
-public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorModel> implements IReadableDetector<MockDetectorModel> {
+public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorModel> implements IWritableDetector<MockDetectorModel> {
 	
 	private MockDetectorModel model;
 
@@ -31,7 +31,7 @@ public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorMod
 	}
 	
 	@Override
-	public boolean read() throws ScanningException {
+	public boolean write() throws ScanningException {
 		
 		IDataset next = Random.rand(new int[]{1024, 1024});
 		model.setRead(model.getRead()+1);

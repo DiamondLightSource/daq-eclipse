@@ -9,7 +9,7 @@ import java.util.Map;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
-import org.eclipse.scanning.api.scan.IReadableDetector;
+import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 public class MockScannableConnector implements IDeviceConnectorService {
@@ -43,11 +43,11 @@ public class MockScannableConnector implements IDeviceConnectorService {
 	}
 
 	@Override
-	public <M> IReadableDetector<M> getDetector(String name) throws ScanningException {
+	public <M> IWritableDetector<M> getDetector(String name) throws ScanningException {
 		if (cache==null) cache = new HashMap<String, INameable>(3);
-		if (cache.containsKey(name)) return (IReadableDetector<M>)cache.get(name);
+		if (cache.containsKey(name)) return (IWritableDetector<M>)cache.get(name);
 		register(new MockReadableDetector(name));
-		return (IReadableDetector<M>)cache.get(name);
+		return (IWritableDetector<M>)cache.get(name);
 	}
 
 	
@@ -60,8 +60,8 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		return s;
 	}
 
-	public IReadableDetector<MockDetectorModel> createMockDetector(String name) {
-		IReadableDetector d = mock(MockReadableDetector.class, name);
+	public IWritableDetector<MockDetectorModel> createMockDetector(String name) {
+		IWritableDetector d = mock(MockReadableDetector.class, name);
 		when(d.getName()).thenReturn(name);
 		register(d);
 		return d;
