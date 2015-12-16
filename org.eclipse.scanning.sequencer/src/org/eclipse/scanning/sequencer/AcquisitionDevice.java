@@ -29,7 +29,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	// Scanning stuff
 	private ScanModel        model;
 	private DetectorRunner   detectors;
-	private DetectorReader   readers;
+	private DetectorReader   writers;
 	
 	/*
 	 * Concurrency design recommended by Keith Ralphs after investigating
@@ -53,7 +53,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	public void configure(ScanModel model) throws ScanningException {
 		this.model = model;
 		detectors = new DetectorRunner(model.getDetectors());
-		readers   = new DetectorReader(model.getDetectors());
+		writers   = new DetectorReader(model.getDetectors());
 		setState(DeviceState.READY);
 	}
 
@@ -87,15 +87,15 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	// check that beam is up. In the past this has been done with 
 	        	// scannables at a given level that block until they are happy.
 	        	
-	        	readers.await();               // Wait for the previous read out to return, if any
+	        	writers.await();               // Wait for the previous read out to return, if any
 	        	detectors.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
-	        	readers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
+	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        	
 	        	// TODO Event for actual data written, for analysis to listen to.
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
-        	readers.await();                   // Wait for the previous read out to return, if any
+        	writers.await();                   // Wait for the previous read out to return, if any
         	setState(DeviceState.READY);
         	
 		} catch (ScanningException s) {
