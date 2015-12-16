@@ -89,7 +89,7 @@ abstract class LevelRunner<L extends ILevel> {
 			// TODO Should we actually create the service size to the size
 			// of the largest level population? This would mean that you try to 
 			// start everything at the same time.
-			this.eservice = createService();
+			if (eservice==null) this.eservice = createService();
 
 			Integer finalLevel = 0;
 			for (Iterator<Integer> it = positionMap.keySet().iterator(); it.hasNext();) {
@@ -150,6 +150,7 @@ abstract class LevelRunner<L extends ILevel> {
 		if (eservice.isTerminated()) return;
 		eservice.shutdown();
 		eservice.awaitTermination(time, unit); 
+		eservice = null;
 	}
 
 	/**
