@@ -60,7 +60,7 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 		return new MoveTask(scannable, position);
 	}
 
-	private class MoveTask implements Callable<IPosition> {
+	private final class MoveTask implements Callable<IPosition> {
 
 		@SuppressWarnings("rawtypes")
 		private IScannable scannable;

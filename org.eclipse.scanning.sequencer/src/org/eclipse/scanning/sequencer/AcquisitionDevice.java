@@ -29,7 +29,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	// Scanning stuff
 	private ScanModel        model;
 	private DetectorRunner   detectors;
-	private DetectorReader   writers;
+	private DetectorWriter   writers;
 	
 	/*
 	 * Concurrency design recommended by Keith Ralphs after investigating
@@ -53,7 +53,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	public void configure(ScanModel model) throws ScanningException {
 		this.model = model;
 		detectors = new DetectorRunner(model.getDetectors());
-		writers   = new DetectorReader(model.getDetectors());
+		writers   = new DetectorWriter(model.getDetectors());
 		setState(DeviceState.READY);
 	}
 

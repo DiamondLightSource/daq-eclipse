@@ -20,24 +20,24 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * @author Matthew Gerring
  *
  */
-final class DetectorReader extends DetectorRunner {
+final class DetectorWriter extends DetectorRunner {
 
-	DetectorReader(Collection<IRunnableDevice<?>> detectors) {	
+	DetectorWriter(Collection<IRunnableDevice<?>> detectors) {	
 		super(detectors);
 	}
 
 	@Override
 	protected Callable<IPosition> create(IRunnableDevice<?> device, IPosition position) throws ScanningException {
 		if (!(device instanceof IWritableDetector<?>)) return null;
-		return new ReadTask((IWritableDetector<?>)device, position);
+		return new WriteTask((IWritableDetector<?>)device, position);
 	}
 
-	public class ReadTask implements Callable<IPosition> {
+	private final class WriteTask implements Callable<IPosition> {
 
 		private IWritableDetector<?> detector;
 		private IPosition            position;
 
-		public ReadTask(IWritableDetector<?> detector, IPosition position) {
+		public WriteTask(IWritableDetector<?> detector, IPosition position) {
 			this.detector = detector;
 			this.position = position;
 		}
