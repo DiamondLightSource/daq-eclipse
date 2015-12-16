@@ -1,11 +1,14 @@
 package org.eclipse.scanning.api.scan;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.UUID;
 
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPosition;
 
 /**
@@ -21,15 +24,25 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableDevice<T> {
 	private   String                     name;
 	protected IScanningService           scanningService;
 	protected IDeviceConnectorService    deviceService;
-	private   DeviceState                state;
+	private   DeviceState                state = DeviceState.IDLE;
 	private   IPublisher<ScanBean>       publisher;
+	private   ScanBean                   bean;
 
 	protected AbstractRunnableDevice() {
-        this(null);
-	}
-	protected AbstractRunnableDevice(IPublisher<ScanBean> publisher) {
-		this.publisher = publisher;
 		this.scanId    = UUID.randomUUID().toString();
+	}
+
+	public ScanBean getBean() {
+		return bean;
+	}
+	public void setBean(ScanBean bean) throws ScanningException {
+		this.bean = bean;
+		bean.setDeviceState(state);
+		try {
+			bean.setHostName(InetAddress.getLocalHost().getHostName());
+		} catch (UnknownHostException e) {
+			throw new ScanningException("Unable to read name of host!");
+		}
 	}
 
 	public IScanningService getScanningService() {
@@ -78,25 +91,35 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableDevice<T> {
 	 * @param position
 	 * @throws ScanningException 
 	 */
-	public void setState(DeviceState nstate, IPosition position) throws ScanningException {
+	protected void setState(DeviceState nstate, IPosition position) throws ScanningException {
 		try {
-			final ScanBean sent = new ScanBean();
-			sent.setDeviceName(getName());
-			sent.setDeviceState(nstate);
-			sent.setPreviousDeviceState(state);
-			sent.setPosition(position);
-			sent.setUniqueId(getScanId());
-			sent.setHostName(InetAddress.getLocalHost().getHostName());
+			// The bean must be set in order to change state.
+			bean.setDeviceName(getName());
+			bean.setDeviceState(nstate);
+			bean.setPreviousDeviceState(state);
+			bean.setPosition(position);
 			
 			this.state = nstate;
 			
-			if (publisher!=null) publisher.broadcast(sent);
+			if (publisher!=null) publisher.broadcast(bean);
 
 		} catch (Exception ne) {
 			if (ne instanceof ScanningException) throw (ScanningException)ne;
 			throw new ScanningException(this, ne);
 		}
 		
+	}
+
+	protected void positionComplete(IPosition pos, int count, int size) throws GeneratorException, EventException {
+		
+		if (publisher==null) return;
+		final ScanBean bean = getBean();
+		bean.setPoint(count);
+		bean.setPosition(pos);
+		bean.setPreviousDeviceState(bean.getDeviceState());
+		if (size>-1) bean.setPercentComplete((double)count/size);
+		
+		publisher.broadcast(bean);
 	}
 
 	public String getScanId() {

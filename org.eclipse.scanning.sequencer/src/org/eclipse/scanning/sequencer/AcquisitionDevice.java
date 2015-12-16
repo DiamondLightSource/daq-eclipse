@@ -4,7 +4,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IPositioner;
@@ -51,7 +56,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	
 	@Override
 	public void configure(ScanModel model) throws ScanningException {
+		
 		this.model = model;
+		setBean(model.getBean()!=null?model.getBean():new ScanBean());
+		
 		detectors = new DetectorRunner(model.getDetectors());
 		writers   = new DetectorWriter(model.getDetectors());
 		setState(DeviceState.READY);
@@ -72,6 +80,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        
     		setState(DeviceState.RUNNING);
     		
+    		int size  = -1;
+    		int count =  0;
+    		if (model.getPositionIterator() instanceof IGenerator) {
+    			IGenerator<?,?> gen = (IGenerator<?,?>)model.getPositionIterator();
+    			size = gen.size();  // We calculate the size which will be iterated once -> might be large!
+    		}
+
 	        for (IPosition pos : model.getPositionIterator()) {
 	        	
 	        	// Check if we are paused, blocks until we are not
@@ -91,7 +106,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	detectors.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        	
-	        	// TODO Event for actual data written, for analysis to listen to.
+	        	// Send an event about where we are in the scan
+	        	positionComplete(pos, ++count, size);
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.

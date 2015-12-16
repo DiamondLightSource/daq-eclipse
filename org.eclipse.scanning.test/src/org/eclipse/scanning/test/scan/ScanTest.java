@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.scan;
 
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
 import org.eclipse.scanning.sequencer.ScannerServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
@@ -16,5 +17,6 @@ public class ScanTest extends AbstractScanTest {
 		sservice  = new ScannerServiceImpl();
 		connector = new MockScannableConnector();
 		gservice  = new GeneratorServiceImpl();
+		eservice  = new EventServiceImpl();
 	}
 }

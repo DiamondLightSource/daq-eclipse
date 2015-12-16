@@ -34,4 +34,8 @@ class StepIterator implements Iterator<IPosition> {
 		return new Scalar(model.getName(), value);
 	}
 
+	public void remove() {
+        throw new UnsupportedOperationException("remove");
+    }
+
 }

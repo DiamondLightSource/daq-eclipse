@@ -79,4 +79,8 @@ public class CompoundIterator implements Iterator<IPosition> {
 		return ret;
 	}
 
+	public void remove() {
+        throw new UnsupportedOperationException("remove");
+    }
+
 }

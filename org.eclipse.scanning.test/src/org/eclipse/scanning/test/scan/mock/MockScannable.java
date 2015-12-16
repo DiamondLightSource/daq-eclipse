@@ -55,7 +55,9 @@ public class MockScannable implements IScannable<Number> {
 	}
 	public void setPosition(Number position) throws InterruptedException {
 		if (requireSleep) {
-			Thread.sleep(Math.abs(Math.round((position.doubleValue()-this.position.doubleValue())/1)*100));
+			long time = Math.abs(Math.round((position.doubleValue()-this.position.doubleValue())/1)*100);
+			time = Math.max(time, 1);
+			Thread.sleep(time);
 		}
 		this.position = position;
 	}
