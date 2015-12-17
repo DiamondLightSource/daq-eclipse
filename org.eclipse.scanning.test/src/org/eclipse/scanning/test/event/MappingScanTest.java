@@ -106,9 +106,10 @@ public class MappingScanTest {
 		bean.setDeviceState(DeviceState.CONFIGURING);
 		publisher.broadcast(bean);
 		
+		int index = -1;
 		for (double temp = 273; temp < 283; temp++) {
 			bean.setPoint(ipoint);
-			bean.putPosition("temperature", temp);
+			bean.putPosition("temperature", ++index, temp);
 			testDeviceScan(bean, gen);
 			Thread.sleep(1000); // Moving to the new temp takes non-zero time so I've heard.
 			++ipoint;
@@ -132,8 +133,8 @@ public class MappingScanTest {
 		publisher.broadcast(bean);
 		int size = 0;
 		for (IPosition pnt : gen) {
-			bean.putPosition("zebra_x", pnt.get("X"));
-			bean.putPosition("zebra_y", pnt.get("Y"));
+			bean.putPosition("zebra_x", pnt.getIndex("X"), pnt.get("X"));
+			bean.putPosition("zebra_y", pnt.getIndex("Y"), pnt.get("Y"));
 			publisher.broadcast(bean);
 			++size;
 		}

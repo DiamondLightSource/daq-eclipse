@@ -16,9 +16,6 @@ import java.util.List;
  */
 public interface IPosition {
 	
-	// TODO FIXME The position must also have the indices of the data as well as the
-	// actual scannable value. This is required for NeXusw writing.
-	
 	/**
 	 * The number of named scalars in this position
 	 * @return
@@ -42,8 +39,13 @@ public interface IPosition {
 	 */
 	Object get(String name);
 	
-	// TODO 
-	// int getIndex(name); 
+	/** 
+	 * Get the index of the data for instance in a scan of temperature from 290 to 300 step 1,
+	 * the indices will be 0-10.
+	 * 
+	 * @return
+	 */
+	int getIndex(String name); 
 	
 	/**
 	 * Creates a composite position with the values of this position 

@@ -20,6 +20,8 @@ public abstract class AbstractPosition implements IPosition {
 		final MapPosition ret = new MapPosition();
 		ret.putAll(with);
 		ret.putAll(this);
+		ret.putAllIndices(with);
+		ret.putAllIndices(this);
 		return ret;
 	}
 

@@ -28,7 +28,7 @@ public class SerializationTest {
 		sent.setDeviceName("fred");
 		sent.setDeviceState(DeviceState.RUNNING);
 		sent.setPreviousDeviceState(DeviceState.READY);
-		sent.setPosition(new MapPosition("x", 1.0));
+		sent.setPosition(new MapPosition("x", 0, 1.0));
 		sent.setUniqueId(UUID.randomUUID().toString());
 		sent.setHostName(InetAddress.getLocalHost().getHostName());
 		

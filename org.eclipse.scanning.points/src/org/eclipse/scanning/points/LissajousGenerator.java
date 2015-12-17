@@ -36,7 +36,7 @@ class LissajousGenerator extends AbstractGenerator<LissajousModel,Point> {
 			double x = xCentre + A * Math.sin(model.getA() * theta + model.getDelta());
 			double y = yCentre + B * Math.cos(model.getB() * theta);
 			if (containsPoint(x, y)) {
-				pointList.add(new Point(x, y));
+				pointList.add(new Point(-1, x, -1, y));  // TODO What are data indices?
 			}
 			theta += model.getThetaStep();
 		}

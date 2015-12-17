@@ -30,12 +30,16 @@ import java.util.List;
  */
 public class Point extends AbstractPosition {
 
-	private Double x;
-	private Double y;
+	private Double  x;
+	private Double  y;
+	private Integer xIndex;
+	private Integer yIndex;
 
-	public Point(double xPosition, double yPosition) {
-		this.x = xPosition;
-		this.y = yPosition;
+	public Point(int xIndex, double xPosition, int yIndex, double yPosition) {
+		this.xIndex = xIndex;
+		this.x      = xPosition;
+		this.yIndex = yIndex;
+		this.y      = yPosition;
 	}
 
 	public double getX() {
@@ -90,4 +94,12 @@ public class Point extends AbstractPosition {
 		if ("y".equalsIgnoreCase(name)) return getY();
 		return null;
 	}
+	
+	@Override
+	public int getIndex(String name) {
+		if ("x".equalsIgnoreCase(name)) return xIndex;
+		if ("y".equalsIgnoreCase(name)) return yIndex;
+		return -1;
+	}
+
 }

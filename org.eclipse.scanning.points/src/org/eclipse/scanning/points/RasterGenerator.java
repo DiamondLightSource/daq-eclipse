@@ -30,28 +30,35 @@ class RasterGenerator extends AbstractGenerator<RasterModel,Point> {
 		List<Point> pointList = new ArrayList<>(listSizeEstimate);
 
 		// Start generating points
+		int ix=-1, iy=-1;
 		if (model.isSnake()) {
 			for (double y = minY; y <= (minY + yLength); y += model.getyStep()) {
 				// Initialise x outside for so it can be iterated over in both directions
 				double x = minX;
+				++iy;
 				for (; x <= (minX + xLength); x += model.getxStep()) {
+					++ix;
 					// Check if point is inside the roi if so add it to the list
-					if (containsPoint(x, y)) pointList.add(new Point(x, y));
+					if (containsPoint(x, y)) pointList.add(new Point(ix, x, iy, y));
 				}
 				// Move to the next line and go in the opposite direction
 				y += model.getyStep();
+				++iy;
 				for (; x >= minX; x -= model.getxStep()) {
+					++ix;
 					// Check if point is inside the roi if so add it to the list
-					if (containsPoint(x, y)) pointList.add(new Point(x, y));
+					if (containsPoint(x, y)) pointList.add(new Point(ix, x, iy, y));
 				}
 			}
 		}
 		// Uni-directional
 		else {
 			for (double y = minY; y <= (minY + yLength); y += model.getyStep()) {
+				++iy;
 				for (double x = minX; x <= (minX + xLength); x += model.getxStep()) {
 					// Check if point is inside the roi if so add it to the list
-					if (containsPoint(x, y)) pointList.add(new Point(x, y));
+					++ix;
+					if (containsPoint(x, y)) pointList.add(new Point(ix, x, iy, y));
 				}
 			}
 		}

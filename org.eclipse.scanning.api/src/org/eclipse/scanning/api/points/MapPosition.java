@@ -12,19 +12,23 @@ import java.util.Map;
  */
 public class MapPosition extends AbstractPosition {
 	
-	private Map<String, Object> values;
+	private Map<String, Object>  values;
+	private Map<String, Integer> indices;
 	
 	public MapPosition() {
-		values = new LinkedHashMap<String, Object>(7);
+		values  = new LinkedHashMap<String, Object>(7);
+		indices = new LinkedHashMap<String, Integer>(7);
 	}
 
 	public MapPosition(Map<String, Object> map) {
 		values = map;
+		indices = new LinkedHashMap<String, Integer>(7);
 	}
 	
-	public MapPosition(String name, Object value) {
+	public MapPosition(String name, Integer index, Object value) {
 		this();
 		values.put(name, value);
+		indices.put(name, index);
 	}
 
 	/**
@@ -71,6 +75,22 @@ public class MapPosition extends AbstractPosition {
 		final List<String> names = pos.getNames();
 		for (String name : names) {
 			values.put(name, pos.get(name));
+		}
+	}
+
+	@Override
+	public int getIndex(String name) {
+		return indices.get(name);
+	}
+
+	public Object putIndex(String key, Integer value) {
+		return indices.put(key, value);
+	}
+	
+	public void putAllIndices(IPosition pos) {
+		final List<String> names = pos.getNames();
+		for (String name : names) {
+			indices.put(name, pos.getIndex(name));
 		}
 	}
 

@@ -87,7 +87,7 @@ public class RasterTest {
 		assertEquals("Point list size should be correct", rows * cols, pointList.size());
 
 		// Check some points
-		assertEquals(new Point(xStart, yStart), pointList.get(0));
+		assertEquals(new Point(0, xStart, 0, yStart), pointList.get(0));
 		assertEquals(xStart + 3 * xStep, pointList.get(3).getX(), 1e-8);
 		// TODO more
 		

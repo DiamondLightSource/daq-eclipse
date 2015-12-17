@@ -28,10 +28,12 @@ class StepIterator implements Iterator<IPosition> {
 		return value+model.getStep();
 	}
 
+	int index = -1;
 	@Override
 	public IPosition next() {
 		value = increment();
-		return new Scalar(model.getName(), value);
+        ++index;
+		return new Scalar(model.getName(), index, value);
 	}
 
 	public void remove() {

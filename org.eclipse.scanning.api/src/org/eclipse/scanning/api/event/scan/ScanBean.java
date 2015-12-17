@@ -181,8 +181,8 @@ public final class ScanBean extends StatusBean {
 		this.position = value;
 	}
 	
-	public void putPosition(String name, Object val) {
-		IPosition tmp = new MapPosition(name, val);
+	public void putPosition(String name, int index, Object val) {
+		IPosition tmp = new MapPosition(name, index, val);
 		this.position = tmp.composite(position);
 	}
 	

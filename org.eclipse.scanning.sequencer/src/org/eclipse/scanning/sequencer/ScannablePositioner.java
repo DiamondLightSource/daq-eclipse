@@ -77,12 +77,13 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 			try {
 				// TODO FIXME The position needs to be sent to the scannable because
 				// it will delegate writing as well.
-			    scannable.setPosition(position.get(scannable.getName()));
+				Object value = position.get(scannable.getName());
+			    scannable.setPosition(value);
 			} catch (Exception ne) {
 				ne.printStackTrace();  // Just for testing we make sure that the stack is visible.
 				throw ne;
 			}
-			return new MapPosition(scannable.getName(), scannable.getPosition()); // Might not be exactly what we moved to
+			return new MapPosition(scannable.getName(), position.getIndex(scannable.getName()), scannable.getPosition()); // Might not be exactly what we moved to
 		}
 		
 	}
