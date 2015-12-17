@@ -27,6 +27,9 @@ import org.eclipse.scanning.api.points.models.StepModel;
 
 public class GeneratorServiceImpl implements IGeneratorService {
 	
+	// TODO FIXME All generators must also specify the indices of the location
+	// of each value as well as the abolute motor position for correct NeXus writing.
+	
 	private static final Map<Class<?>, Class<? extends IGenerator<?,?>>> generators;
 	
 	// Use a factory pattern to register the types.

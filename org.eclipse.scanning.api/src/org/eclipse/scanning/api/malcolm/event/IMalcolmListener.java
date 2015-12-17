@@ -5,10 +5,7 @@ import java.util.EventListener;
 /**
  * 
  * This is a plain old event which can be used to get the
- * events during a scan. This can be used in addition to 
- * listening to a topic but obviously only works in the 
- * same VM as that running the IMalcolmService to talk to
- * Malcolm.
+ * events during a scan. 
  * 
  * @author Matthew Gerring
  *

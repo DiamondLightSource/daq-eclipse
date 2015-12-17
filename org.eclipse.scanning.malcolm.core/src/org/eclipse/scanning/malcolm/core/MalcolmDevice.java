@@ -122,7 +122,6 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 	@Override
 	public void run() throws MalcolmDeviceException {
-		// Run will block.
 		connectionDelegate.call(Thread.currentThread().getStackTrace(), DeviceState.RUNNING);
 	}
 

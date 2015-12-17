@@ -7,6 +7,10 @@ import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IRunListener;
+import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,6 +118,26 @@ public abstract class AbstractMalcolmDevice<T> implements IMalcolmDevice<T> {
 	@Override
 	public void removeMalcolmListener(IMalcolmListener l) {
 		eventDelegate.removeMalcolmListener(l);
+	}
+	
+	@Override
+	public void addRunListener(IRunListener l) {
+		eventDelegate.addRunListener(l);
+	}
+
+	@Override
+	public void removeRunListener(IRunListener l) {
+		eventDelegate.removeRunListener(l);
+	}
+	
+	@Override
+	public void fireRunWillPerform(IPosition position) throws ScanningException{
+		eventDelegate.fireRunWillPerform(this, position);
+	}
+	
+	@Override
+	public void fireRunPerformed(IPosition position) throws ScanningException{
+		eventDelegate.fireRunPerformed(this, position);
 	}
 
 	@Override

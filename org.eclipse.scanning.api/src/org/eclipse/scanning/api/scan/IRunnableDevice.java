@@ -4,6 +4,9 @@ import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.event.IRunListener;
+import org.eclipse.scanning.api.scan.event.RunEvent;
 
 
 /**
@@ -89,4 +92,5 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T> 
 	 * IllegalMonitorState Exception will be thrown.
 	 */
 	public void resume() throws ScanningException;
+	
 }

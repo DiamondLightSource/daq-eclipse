@@ -5,6 +5,7 @@ import java.util.concurrent.Callable;
 
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
+import org.eclipse.scanning.api.scan.IRunnableEventDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
@@ -45,9 +46,16 @@ class DetectorRunner extends LevelRunner<IRunnableDevice<?>> {
 			this.position = position;
 		}
 
+		@SuppressWarnings("rawtypes")
 		@Override
 		public IPosition call() throws Exception {
+			if (detector instanceof IRunnableEventDevice) {
+				((IRunnableEventDevice)detector).fireRunWillPerform(position);
+			}
 			detector.run();
+			if (detector instanceof IRunnableEventDevice) {
+				((IRunnableEventDevice)detector).fireRunPerformed(position);
+			}
 			return position;
 		}
 

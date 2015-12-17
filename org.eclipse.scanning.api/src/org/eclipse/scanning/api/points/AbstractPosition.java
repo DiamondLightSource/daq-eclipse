@@ -5,6 +5,16 @@ import java.util.List;
 
 public abstract class AbstractPosition implements IPosition {
 	
+	private int stepIndex = -1;
+	
+	public int getStepIndex() {
+		return stepIndex;
+	}
+
+	public void setStepIndex(int stepIndex) {
+		this.stepIndex = stepIndex;
+	}
+
 	public IPosition composite(IPosition with) {
 		if (with==null) return this; // this+null = this
 		final MapPosition ret = new MapPosition();
@@ -28,7 +38,7 @@ public abstract class AbstractPosition implements IPosition {
 			}
 			result = prime * result + (int) (temp ^ (temp >>> 32));
 		}
-  	    return result;
+  	    return result+stepIndex;
 	}
 
 	@Override
@@ -41,6 +51,9 @@ public abstract class AbstractPosition implements IPosition {
 		if (getClass() != obj.getClass())
 			return false;
 		
+		if (stepIndex != ((IPosition)obj).getStepIndex())
+			return false;
+
 		final List<String> ours   = getNames();
 		final List<String> theirs = ((IPosition)obj).getNames();
 		if (!ours.equals(theirs)) return false;		
@@ -51,7 +64,7 @@ public abstract class AbstractPosition implements IPosition {
 			if (val1!=null && val2==null) return false;
 			if (!val1.equals(val2)) return false;
 		}
-		
+				
 		return true;
 	}
 	

@@ -28,6 +28,8 @@ public interface IPositionListener extends EventListener {
 	 */
 	void positionPerformed(PositionEvent evt);
 	
+	
+	
 	public class Stub implements IPositionListener {
 
 		@Override

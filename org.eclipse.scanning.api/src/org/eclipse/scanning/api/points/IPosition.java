@@ -16,6 +16,9 @@ import java.util.List;
  */
 public interface IPosition {
 	
+	// TODO FIXME The position must also have the indices of the data as well as the
+	// actual scannable value. This is required for NeXusw writing.
+	
 	/**
 	 * The number of named scalars in this position
 	 * @return
@@ -39,6 +42,9 @@ public interface IPosition {
 	 */
 	Object get(String name);
 	
+	// TODO 
+	// int getIndex(name); 
+	
 	/**
 	 * Creates a composite position with the values of this position 
 	 * and the values of the passed in position.
@@ -51,4 +57,18 @@ public interface IPosition {
 	 * @return
 	 */
 	IPosition composite(IPosition other);
+	
+	/**
+	 * The step where the position was in a scan, if it is a position being
+	 * generated from a scan. If not the value will be -1
+	 * @return
+	 */
+	int getStepIndex();
+	
+	/**
+	 * The step where the position was in a scan, if it is a position being
+	 * generated from a scan. If not the value will be -1
+	 * @param step
+	 */
+	void setStepIndex(int step);
 }

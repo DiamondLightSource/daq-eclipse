@@ -10,13 +10,19 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.IRunnableDevice;
+import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IRunListener;
+import org.eclipse.scanning.api.scan.event.RunEvent;
 
 public class MalcolmEventDelegate {
 	
 	private String          topicName;
 	
 	// listeners
-	private Collection<IMalcolmListener<MalcolmEventBean>> listeners;
+	private Collection<IMalcolmListener<MalcolmEventBean>> mlisteners;
+	private Collection<IRunListener>                       rlisteners;
 	
 	// Bean to contain all the settings for a given
 	// scan and to hold data for scan events
@@ -50,21 +56,21 @@ public class MalcolmEventDelegate {
 
 
 	public void addMalcolmListener(IMalcolmListener<MalcolmEventBean> l) {
-		if (listeners==null) listeners = Collections.synchronizedCollection(new LinkedHashSet<IMalcolmListener<MalcolmEventBean>>());
-		listeners.add(l);
+		if (mlisteners==null) mlisteners = Collections.synchronizedCollection(new LinkedHashSet<IMalcolmListener<MalcolmEventBean>>());
+		mlisteners.add(l);
 	}
 	
 	public void removeMalcolmListener(IMalcolmListener<MalcolmEventBean> l) {
-		if (listeners==null) return;
-		listeners.remove(l);
+		if (mlisteners==null) return;
+		mlisteners.remove(l);
 	}
 	
 	private void fireMalcolmListeners(MalcolmEventBean message) {
 		
-		if (listeners==null) return;
+		if (mlisteners==null) return;
 		
 		// Make array, avoid multi-threading issues.
-		final IMalcolmListener<MalcolmEventBean>[] la = listeners.toArray(new IMalcolmListener[listeners.size()]);
+		final IMalcolmListener<MalcolmEventBean>[] la = mlisteners.toArray(new IMalcolmListener[mlisteners.size()]);
 		final MalcolmEvent<MalcolmEventBean> evt = new MalcolmEvent<MalcolmEventBean>(message);
 		for (IMalcolmListener<MalcolmEventBean> l : la) l.eventPerformed(evt);
 	}
@@ -82,7 +88,39 @@ public class MalcolmEventDelegate {
 	}
 
 	public void close() {
-		if (listeners!=null) listeners.clear();
+		if (mlisteners!=null) mlisteners.clear();
+	}
+
+	public void addRunListener(IRunListener l) {
+		if (rlisteners==null) rlisteners = Collections.synchronizedCollection(new LinkedHashSet<IRunListener>());
+		rlisteners.add(l);
+	}
+	
+	public void removeRunListener(IRunListener l) {
+		if (rlisteners==null) return;
+		rlisteners.remove(l);
+	}
+	
+	protected void fireRunWillPerform(IRunnableDevice<?> device, IPosition position) throws ScanningException{
+		
+		if (rlisteners==null) return;
+		
+		final RunEvent evt = new RunEvent(device, position);
+		
+		// Make array, avoid multi-threading issues.
+		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
+		for (IRunListener l : la) l.runWillPerform(evt);
+	}
+	
+	protected void fireRunPerformed(IRunnableDevice<?> device, IPosition position) throws ScanningException{
+		
+		if (rlisteners==null) return;
+		
+		final RunEvent evt = new RunEvent(device, position);
+		
+		// Make array, avoid multi-threading issues.
+		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
+		for (IRunListener l : la) l.runPerformed(evt);
 	}
 
 }

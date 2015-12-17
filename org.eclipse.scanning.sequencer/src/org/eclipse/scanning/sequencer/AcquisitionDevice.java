@@ -89,6 +89,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	        for (IPosition pos : model.getPositionIterator()) {
 	        	
+	        	pos.setStepIndex(count);
+	        	
 	        	// Check if we are paused, blocks until we are not
 	        	checkPaused();
 	        	
@@ -107,7 +109,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        	
 	        	// Send an event about where we are in the scan
-	        	positionComplete(pos, ++count, size);
+	        	positionComplete(pos, count+1, size);
+	        	++count;
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.

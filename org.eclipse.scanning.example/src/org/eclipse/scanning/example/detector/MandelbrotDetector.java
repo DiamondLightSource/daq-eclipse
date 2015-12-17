@@ -27,6 +27,7 @@ import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -37,7 +38,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * <p>
  * Note: values will always be high if used at (x, y) positions more than 2 units away from the origin.
  */
-public class MandelbrotDetector implements IWritableDetector<MandelbrotModel> {
+public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel> {
 
 	public enum OutputDimensions { ONE_D, TWO_D }
 
@@ -45,9 +46,6 @@ public class MandelbrotDetector implements IWritableDetector<MandelbrotModel> {
 
 	// Configurable fields
 	private IPosition pos;	
-	private String    name;
-	private int       level = 1000;
-	private DeviceState state = DeviceState.IDLE;
 
 	public MandelbrotDetector() {
 		super();
@@ -69,26 +67,13 @@ public class MandelbrotDetector implements IWritableDetector<MandelbrotModel> {
 	}
 
 
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public void setName(String name) {
-		this.name = name;
-	}
-
-
 	private MandelbrotModel model;
 
 	@Override
 	public void configure(MandelbrotModel model) throws ScanningException {
 		this.model = model;
-		this.state = DeviceState.READY;
+		setState(DeviceState.READY);
 	}
-
-	private IDataset read;
 	
 	@Override
 	public void run() throws ScanningException {
@@ -110,8 +95,7 @@ public class MandelbrotDetector implements IWritableDetector<MandelbrotModel> {
 		Metadata meta = new Metadata(mp);
         ret.addMetadata(meta);
 		
-        read = ret;
-	}
+  	}
 
 	@Override
 	public boolean write() throws ScanningException {
@@ -190,16 +174,6 @@ public class MandelbrotDetector implements IWritableDetector<MandelbrotModel> {
 		return iteration;
 	}
 
-	
-	@Override
-	public void setLevel(int level) {
-		this.level = level;
-	}
-
-	@Override
-	public int getLevel() {
-		return level;
-	}
 
 	@Override
 	public void abort() throws ScanningException {
@@ -214,13 +188,5 @@ public class MandelbrotDetector implements IWritableDetector<MandelbrotModel> {
 	@Override
 	public void resume() throws ScanningException {
 		throw new ScanningException("Operation not supported!");
-	}
-
-	public DeviceState getState() {
-		return state;
-	}
-
-	public void setState(DeviceState state) {
-		this.state = state;
 	}
 }

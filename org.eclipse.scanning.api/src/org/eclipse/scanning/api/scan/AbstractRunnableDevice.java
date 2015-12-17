@@ -2,6 +2,9 @@ package org.eclipse.scanning.api.scan;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -10,6 +13,8 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.event.IRunListener;
+import org.eclipse.scanning.api.scan.event.RunEvent;
 
 /**
  * @see IRunnableDevice
@@ -17,7 +22,7 @@ import org.eclipse.scanning.api.points.IPosition;
  *
  * @param <T>
  */
-public abstract class AbstractRunnableDevice<T> implements IRunnableDevice<T> {
+public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T> {
 
 	private   String                     scanId;
 	private   int                        level = 1;
@@ -27,6 +32,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableDevice<T> {
 	private   DeviceState                state = DeviceState.IDLE;
 	private   IPublisher<ScanBean>       publisher;
 	private   ScanBean                   bean;
+	private Collection<IRunListener>     rlisteners;
 
 	protected AbstractRunnableDevice() {
 		this.scanId    = UUID.randomUUID().toString();
@@ -35,6 +41,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableDevice<T> {
 	public ScanBean getBean() {
 		return bean;
 	}
+	
 	public void setBean(ScanBean bean) throws ScanningException {
 		this.bean = bean;
 		bean.setDeviceState(state);
@@ -134,6 +141,39 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableDevice<T> {
 	}
 	public void setPublisher(IPublisher<ScanBean> publisher) {
 		this.publisher = publisher;
+	}
+
+
+	public void addRunListener(IRunListener l) {
+		if (rlisteners==null) rlisteners = Collections.synchronizedCollection(new LinkedHashSet<IRunListener>());
+		rlisteners.add(l);
+	}
+	
+	public void removeRunListener(IRunListener l) {
+		if (rlisteners==null) return;
+		rlisteners.remove(l);
+	}
+	
+	public void fireRunWillPerform(IPosition position) throws ScanningException {
+		
+		if (rlisteners==null) return;
+		
+		final RunEvent evt = new RunEvent(this, position);
+		
+		// Make array, avoid multi-threading issues.
+		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
+		for (IRunListener l : la) l.runWillPerform(evt);
+	}
+	
+	public void fireRunPerformed(IPosition position) throws ScanningException {
+		
+		if (rlisteners==null) return;
+		
+		final RunEvent evt = new RunEvent(this, position);
+		
+		// Make array, avoid multi-threading issues.
+		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
+		for (IRunListener l : la) l.runPerformed(evt);
 	}
 
 
