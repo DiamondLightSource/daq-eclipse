@@ -15,6 +15,7 @@ import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class RasterTestLarge {
@@ -28,7 +29,7 @@ public class RasterTestLarge {
 	}
 	
 	@Test
-	public void testApprox10millIteratorTimeCircle() throws Exception {
+	public void testApprox1millIteratorTimeCircle() throws Exception {
 		
 		// Create a simple bounding rectangle
 		CircularROI roi = new CircularROI(500, 500, 500);
@@ -38,7 +39,7 @@ public class RasterTestLarge {
 		model.setxStep(1);
 		model.setyStep(1);
 
-		testIteratorTime(model, roi, 785349, 10000);
+		testIteratorTime(model, roi, 785349, 10000, true);
 	}
 	
 	@Test
@@ -52,16 +53,16 @@ public class RasterTestLarge {
 		model.setxStep(1);
 		model.setyStep(1);
 
-		testIteratorTime(model, roi, 10011001, 5000); // TODO Is 10011001 correct?
+		testIteratorTime(model, roi, 10011001, 5000, false); // TODO Is 10011001 correct?
 	}
 
 	
-	private void testIteratorTime(RasterModel model, IROI roi, int size, long tenMilTime) throws Exception {
+	private void testIteratorTime(RasterModel model, IROI roi, int size, long tenMilTime, boolean testAllPoints) throws Exception {
 		
 		
 		// Get the point list
 		IGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
-		GeneratorUtil.testGeneratorPoints(gen);
+		if (testAllPoints) GeneratorUtil.testGeneratorPoints(gen);
 		
 		long start = System.currentTimeMillis();		
         Iterator<Point>       it  = gen.iterator();
@@ -94,6 +95,7 @@ public class RasterTestLarge {
 		
 	}
 
+	@Ignore
 	@Test
 	public void test10millTimeInMemory() throws Exception {
 

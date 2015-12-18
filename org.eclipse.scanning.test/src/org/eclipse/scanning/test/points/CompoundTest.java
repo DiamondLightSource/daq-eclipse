@@ -197,17 +197,17 @@ public class CompoundTest {
 		assertEquals(20 * 20, pointList.size());
 
 		// Check some random points are correct
-		assertEquals(0.075, (Double)pointList.get(0).get("X"), 1e-8);
-		assertEquals(0.075, (Double)pointList.get(0).get("Y"), 1e-8);
+		assertEquals(0.075, (Double)pointList.get(0).get("x"), 1e-8);
+		assertEquals(0.075, (Double)pointList.get(0).get("y"), 1e-8);
 
-		assertEquals(0.075 + 3 * (3.0 / 20.0), (Double)pointList.get(3).get("X"), 1e-8);
-		assertEquals(0.075 + 0.0, (Double)pointList.get(3).get("Y"), 1e-8);
+		assertEquals(0.075 + 3 * (3.0 / 20.0), (Double)pointList.get(3).get("x"), 1e-8);
+		assertEquals(0.075 + 0.0, (Double)pointList.get(3).get("y"), 1e-8);
 
-		assertEquals(0.075 + 2 * (3.0 / 20.0), (Double)pointList.get(22).get("X"), 1e-8);
-		assertEquals(0.075 + 1 * (3.0 / 20.0), (Double)pointList.get(22).get("Y"), 1e-8);
+		assertEquals(0.075 + 2 * (3.0 / 20.0), (Double)pointList.get(22).get("x"), 1e-8);
+		assertEquals(0.075 + 1 * (3.0 / 20.0), (Double)pointList.get(22).get("y"), 1e-8);
 
-		assertEquals(0.075 + 10 * (3.0 / 20.0), (Double)pointList.get(350).get("X"), 1e-8);
-		assertEquals(0.075 + 17 * (3.0 / 20.0), (Double)pointList.get(350).get("Y"), 1e-8);
+		assertEquals(0.075 + 10 * (3.0 / 20.0), (Double)pointList.get(350).get("x"), 1e-8);
+		assertEquals(0.075 + 17 * (3.0 / 20.0), (Double)pointList.get(350).get("y"), 1e-8);
 
 	}
 }
