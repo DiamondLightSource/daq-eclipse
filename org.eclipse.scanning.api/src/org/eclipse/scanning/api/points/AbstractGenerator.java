@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -43,17 +44,12 @@ public abstract class AbstractGenerator<T,P> implements IGenerator<T,P>, Iterabl
 		return index+1;
 	}
 	
-	/**
-	 * Please override this method, the default creates all points and 
-	 * returns their iterator
-	 */
 	@Override
-	public Iterator<P> iterator() {
-		try {
-			return createPoints().iterator();
-		} catch (GeneratorException e) {
-			throw new IllegalArgumentException("Cannot generate an iterator!", e);
-		}
+	public List<P> createPoints() throws GeneratorException {
+		final List<P> points = new ArrayList<P>(89);
+		Iterator<P> it = iterator();
+		while(it.hasNext()) points.add(it.next());
+		return points;
 	}
 
 	@Override

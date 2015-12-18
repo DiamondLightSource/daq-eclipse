@@ -1,6 +1,7 @@
 package org.eclipse.scanning.points;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
@@ -10,6 +11,15 @@ import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 
 class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
+
+	@Override
+	public Iterator<Point> iterator() {
+		try {
+			return createPoints().iterator();
+		} catch (GeneratorException e) {
+			throw new IllegalArgumentException("Cannot generate an iterator!", e);
+		}
+	}
 
 	@Override
 	public List<Point> createPoints() throws GeneratorException {

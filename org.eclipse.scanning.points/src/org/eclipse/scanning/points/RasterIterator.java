@@ -2,7 +2,6 @@ package org.eclipse.scanning.points;
 
 import java.util.Iterator;
 
-import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.RasterModel;
 

@@ -1,6 +1,7 @@
 package org.eclipse.scanning.points;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
@@ -13,6 +14,19 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 
 	// TODO FIXME implement iterator() and size()?
 	
+	/**
+	 * Please override this method, the default creates all points and 
+	 * returns their iterator
+	 */
+	@Override
+	public Iterator<Point> iterator() {
+		try {
+			return createPoints().iterator();
+		} catch (GeneratorException e) {
+			throw new IllegalArgumentException("Cannot generate an iterator!", e);
+		}
+	}
+
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
 		
