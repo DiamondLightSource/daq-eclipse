@@ -105,10 +105,9 @@ public class GridTest {
 
 		// Get the point list
 		IGenerator<GridModel, Point> gen = service.createGenerator(model, roi);
-		Iterator<Point> it = gen.iterator();
-		List<Point> pointList = new ArrayList<Point>(7);
-		while (it.hasNext())
-			pointList.add(it.next());
+		Iterator<Point>     it = gen.iterator();
+		List<Point>  pointList = new ArrayList<Point>(7);
+		while (it.hasNext()) pointList.add(it.next());
 
 		assertArrayEquals(pointList.toArray(), gen.createPoints().toArray());
 
@@ -129,8 +128,7 @@ public class GridTest {
 		gridScanPath.setColumns(20);
 
 		// Get the point list
-		IGenerator<GridModel, Point> gen = service.createGenerator(
-				gridScanPath, circle);
+		IGenerator<GridModel, Point> gen = service.createGenerator(gridScanPath, circle);
 		List<Point> pointList = gen.createPoints();
 
 		assertEquals(pointList.size(), gen.size());
@@ -198,6 +196,15 @@ public class GridTest {
 
 		// Check some random points are correct
 		assertEquals(0.075, pointList.get(0).getX(), 1e-8);
+		for (int i = 0; i < 20; i++) {
+			assertEquals(0, pointList.get(i).getIndex("x"));
+			assertEquals(i, pointList.get(i).getIndex("y"));
+		}
+		for (int i = 20; i < 40; i++) {
+			assertEquals(1, pointList.get(i).getIndex("x"));
+			assertEquals(i-20, pointList.get(i).getIndex("y"));
+		}
+		
 		assertEquals(0.075, pointList.get(0).getY(), 1e-8);
 
 		assertEquals(0.075 + 3 * (3.0 / 20.0), pointList.get(3).getX(), 1e-8);

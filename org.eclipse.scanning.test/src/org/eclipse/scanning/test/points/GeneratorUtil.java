@@ -3,6 +3,8 @@
  */
 package org.eclipse.scanning.test.points;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
