@@ -104,4 +104,43 @@ public class ARPESScanTest {
 		scan.run();
 	}
 
+	/**
+	 * 
+	 * 	
+	// TODO write python generators.
+	@Test
+	public void testScanWithPythonGenerator() throws Exception {
+	
+
+		final MappingModel model = new MappingModel();
+		model.setxStart(0);
+		model.setxStop(0.5);
+		model.setxStep(0.05);
+		model.setyStart(0);
+		model.setyStop(0.1);
+		model.setyStep(0.02);
+		model.setExposure(0.01);
+		model.setGenerator("tempScan1");
+		
+		// Create generator on the server
+		ds = malcolm.getDevice("DirectoryService");
+		ds.createStepGenerator("tempScan1");
+		ts1 = malcolm.getDevice("tempScan1");
+		ts1.configure(290, 300, 1);
+		device.configure(model);
+
+//		device.addRunListener(new IRunListener.Stub() {
+//			@Override
+//			public void runWillPerform(RunEvent evt) throws ScanningException {
+//				final IPosition pos = evt.getPosition();
+//				model.setHdf5File("/tmp/foobar_temp"+pos.get("temperature")+".h5");
+//				device.configure(model);
+//			}			
+//		});
+		
+		Iterable<IPosition>      points = gservice.createGenerator(new StepModel("temperature", 290, 300, 1));
+		IRunnableDevice<ScanModel> scan = sservice.createRunnableDevice(new ScanModel(points, device), null,  new MockScannableConnector());
+		scan.run();
+	}
+	 */
 }
