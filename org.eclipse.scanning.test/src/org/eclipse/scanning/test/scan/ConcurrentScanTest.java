@@ -33,7 +33,7 @@ import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
-import org.eclipse.scanning.sequencer.ScannerServiceImpl;
+import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
@@ -88,7 +88,7 @@ public class ConcurrentScanTest {
 	@Before
 	public void setUp() throws Exception {
 		
-		sservice  = new ScannerServiceImpl();
+		sservice  = new ScanningServiceImpl();
 		connector = new MockScannableConnector();
 		gservice  = new GeneratorServiceImpl();
 

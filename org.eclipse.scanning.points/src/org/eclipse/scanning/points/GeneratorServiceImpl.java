@@ -49,7 +49,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		// This step is very similar to how loaders were added to DAWN.
 		// Lots of default loaders added and then allowing loaders from
 		// extension point as well. For mapping we should add all the 
-		// point generators here so extendable generators should be done
+		// point generators here so extendible generators should be done
 		// at a later step.
 		
 		generators = Collections.unmodifiableMap(tmp);

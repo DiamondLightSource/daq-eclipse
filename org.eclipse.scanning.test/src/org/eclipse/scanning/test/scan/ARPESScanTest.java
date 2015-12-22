@@ -19,7 +19,7 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
-import org.eclipse.scanning.sequencer.ScannerServiceImpl;
+import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.After;
 import org.junit.Before;
@@ -52,7 +52,7 @@ public class ARPESScanTest {
 		// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
 		this.mservice    = new MalcolmService(); 
 		this.gservice    = new GeneratorServiceImpl();
-		this.sservice    = new ScannerServiceImpl();
+		this.sservice    = new ScanningServiceImpl();
 			
 		// Get the objects
 		this.connectorService = new ZeromqConnectorService();

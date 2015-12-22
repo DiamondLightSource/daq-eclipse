@@ -16,7 +16,7 @@ import org.eclipse.scanning.api.scan.ScanModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.osgi.service.component.ComponentContext;
 
-public final class ScannerServiceImpl implements IScanningService {
+public final class ScanningServiceImpl implements IScanningService {
 	
 	private static IDeviceConnectorService deviceService;
 
@@ -45,7 +45,7 @@ public final class ScannerServiceImpl implements IScanningService {
 
 	@Override
 	public final IPositioner createPositioner(IDeviceConnectorService hservice) throws ScanningException {
-		if (hservice==null) hservice = ScannerServiceImpl.deviceService;
+		if (hservice==null) hservice = ScanningServiceImpl.deviceService;
 		return new ScannablePositioner(hservice);
 	}
 
@@ -58,7 +58,7 @@ public final class ScannerServiceImpl implements IScanningService {
 	@Override
 	public final <T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException {
 		
-		if (hservice==null) hservice = ScannerServiceImpl.deviceService;
+		if (hservice==null) hservice = ScanningServiceImpl.deviceService;
 		
 		try {
 			final IRunnableDevice<T> scanner = (IRunnableDevice<T>)scanners.get(model.getClass()).newInstance();
@@ -83,13 +83,13 @@ public final class ScannerServiceImpl implements IScanningService {
 	}
 
 	public static void setDeviceService(IDeviceConnectorService connectorService) {
-		ScannerServiceImpl.deviceService = connectorService;
+		ScanningServiceImpl.deviceService = connectorService;
 	}
 
 	private static ComponentContext context;
 
 	public void start(ComponentContext context) {
-		ScannerServiceImpl.context = context;
+		ScanningServiceImpl.context = context;
 	}
 	
 	public void stop() {
