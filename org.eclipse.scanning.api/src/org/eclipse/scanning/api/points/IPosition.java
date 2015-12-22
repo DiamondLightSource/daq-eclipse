@@ -2,15 +2,25 @@ package org.eclipse.scanning.api.points;
 
 import java.util.List;
 
+import org.eclipse.scanning.api.scan.IScanningService;
+
 /**
+ * <pre>
+ * A position is a location of one or more values. It is
+ * used to group scannables when moving to a position
+ * by level.
  * 
- * A position is a location of one or more values.
  * For instance a group of scannables which need to be at a
- * certain location. For exmaple at the start of a scan or
+ * certain location. For example at the start of a scan or
  * for a scan datapoint.
  * 
- * The position might be X and Y or Temperature or all three.
+ * <B>NOTE:</B> An object is available using IScanningService.createPositioner()
+ * called IPositioner which can move scannables to a given
+ * position by level.
  * 
+ * @see IScanningService
+ * @see org.eclipse.scanning.api.scan.IPositioner
+ *
  * @author Matthew Gerring
  *
  */

@@ -12,8 +12,8 @@ import org.eclipse.scanning.api.scan.IPositioner;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
-import org.eclipse.scanning.api.scan.ScanModel;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.osgi.service.component.ComponentContext;
 
 public final class ScanningServiceImpl implements IScanningService {

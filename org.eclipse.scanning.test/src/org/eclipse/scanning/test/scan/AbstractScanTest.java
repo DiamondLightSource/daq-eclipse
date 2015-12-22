@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.anyObject;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ import org.eclipse.scanning.api.scan.IPositioner;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.PositionEvent;
-import org.eclipse.scanning.api.scan.ScanModel;
+import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;

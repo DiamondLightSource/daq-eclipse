@@ -8,17 +8,18 @@ import org.eclipse.scanning.api.points.IPosition;
 
 /**
  * This class deals with setting the beamline to a specific position.
- * 
+ * <pre>
 IPositioner     pos    = sservice.createPositioner();
 pos.setPosition(new MapPosition("x:1, y:2"));
 
-'sservice' is the scanning service.  setPosition moves the motors to their positions by level until they are all there and then returns. It is the same thing as used to move to a scan point during a scan. 
-The MapPosition is just a convenience for Java. 
-In Jython since the MapPosition also takes a map, a dictionary can be used:
+//'sservice' is the scanning service.  setPosition moves the motors to their positions by level until they are all there and then returns. It is the same thing as used to move to a scan point during a scan. 
+//The MapPosition is just a convenience for Java. 
+//In Jython since the MapPosition also takes a map, a dictionary can be used:
 
-pos.setPosition(new MapPosition({‘x’:1, ‘y’:2}));
+pos.setPosition(new MapPosition({'x':1, 'y':2}));
 // returns after the position is reached moving the motors based on level, lowest first.
 
+</pre>
  * @author Matthew Gerring
  *
  */
