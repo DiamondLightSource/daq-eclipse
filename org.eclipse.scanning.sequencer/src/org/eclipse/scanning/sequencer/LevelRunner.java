@@ -160,7 +160,7 @@ abstract class LevelRunner<L extends ILevel> {
 	 * @throws ScanningException 
 	 */
 	protected Map<Integer, List<L>> getLevelOrderedObjects(final Collection<L> objects) throws ScanningException {
-		
+		// TODO It is necessary to cache this map for speed?
 		final Map<Integer, List<L>> ret = new TreeMap<>();
 		for (L object : objects) {
 			final int level = object.getLevel();

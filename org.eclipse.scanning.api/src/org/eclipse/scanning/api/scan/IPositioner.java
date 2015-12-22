@@ -1,5 +1,8 @@
 package org.eclipse.scanning.api.scan;
 
+import java.util.List;
+
+import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IPosition;
 
 
@@ -51,6 +54,42 @@ public interface IPositioner {
 	 * @throws ScanningException
 	 */
 	IPosition getPosition() throws ScanningException;
+	
+	/**
+	 * Monitors are a set of scannables which will have setPosition(null, IPosition) called and
+	 * may block until happy or write an additional record during the scan. 
+	 * 
+	 * For instance the beam current or ambient temperature could be monitors which are written
+	 * to the NeXus file. Monitors are sorted into level with the scannbles of the current position.
+	 * 
+	 * @return monitors
+	 * @throws ScanningException
+	 */
+	List<IScannable<?>> getMonitors()  throws ScanningException;
+	
+	/**
+	 * Monitors are a set of scannables which will have setPosition(null, IPosition) called and
+	 * may block until happy or write an additional record during the scan. 
+	 * 
+	 * For instance the beam current or ambient temperature could be monitors which are written
+	 * to the NeXus file. Monitors are sorted into level with the scannbles of the current position.
+     *
+	 * @param monitors
+	 * @throws ScanningException
+	 */
+	void setMonitors(List<IScannable<?>> monitors) throws ScanningException;
+
+	/**
+	 * Monitors are a set of scannables which will have setPosition(null, IPosition) called and
+	 * may block until happy or write an additional record during the scan. 
+	 * 
+	 * For instance the beam current or ambient temperature could be monitors which are written
+	 * to the NeXus file. Monitors are sorted into level with the scannbles of the current position.
+     *
+	 * @param monitors
+	 * @throws ScanningException
+	 */
+	void setMonitors(IScannable<?>... monitors) throws ScanningException;
 
 	/**
 	 * Use to be notified as levels / positions are reached.

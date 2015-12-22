@@ -11,7 +11,6 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
-import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
@@ -24,15 +23,23 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
  */
 public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T> {
 
-	private   String                     scanId;
-	private   int                        level = 1;
+	// Data
+	private   T                          model;
 	private   String                     name;
+	private   int                        level = 1;
+	private   String                     scanId;
+	private   ScanBean                   bean;
+
+	// OSGi services and intraprocess events
 	protected IScanningService           scanningService;
 	protected IDeviceConnectorService    deviceService;
-	private   DeviceState                state = DeviceState.IDLE;
 	private   IPublisher<ScanBean>       publisher;
-	private   ScanBean                   bean;
-	private Collection<IRunListener>     rlisteners;
+
+	// State
+	private   DeviceState                state = DeviceState.IDLE;
+	
+	// Listeners
+	private   Collection<IRunListener>   rlisteners;
 
 	protected AbstractRunnableDevice() {
 		this.scanId    = UUID.randomUUID().toString();
@@ -117,7 +124,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		
 	}
 
-	protected void positionComplete(IPosition pos, int count, int size) throws GeneratorException, EventException {
+	protected void positionComplete(IPosition pos, int count, int size) throws EventException, ScanningException {
 		
 		if (publisher==null) return;
 		final ScanBean bean = getBean();
@@ -127,6 +134,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		if (size>-1) bean.setPercentComplete((double)count/size);
 		
 		publisher.broadcast(bean);
+	
 	}
 
 	public String getScanId() {
@@ -174,6 +182,14 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		// Make array, avoid multi-threading issues.
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
 		for (IRunListener l : la) l.runPerformed(evt);
+	}
+
+	public T getModel() {
+		return model;
+	}
+
+	public void setModel(T model) {
+		this.model = model;
 	}
 
 

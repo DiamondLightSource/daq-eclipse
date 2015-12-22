@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.scan.mock;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.ScannableModel;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 public class MockScannable implements IScannable<Number> {
@@ -54,6 +55,9 @@ public class MockScannable implements IScannable<Number> {
 		return position;
 	}
 	public void setPosition(Number position) throws InterruptedException {
+		setPosition(position, null);
+	}
+	public void setPosition(Number position, IPosition unused) throws InterruptedException {
 		if (requireSleep) {
 			long time = Math.abs(Math.round((position.doubleValue()-this.position.doubleValue())/1)*100);
 			time = Math.max(time, 1);

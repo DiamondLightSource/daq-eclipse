@@ -9,4 +9,5 @@ Export-Package: org.eclipse.scanning.sequencer
 Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0"
 Service-Component: OSGI-INF/*.xml
 Bundle-ActivationPolicy: lazy
-Import-Package: org.osgi.service.component
+Import-Package: org.osgi.service.component,
+ org.slf4j;version="1.7.6"

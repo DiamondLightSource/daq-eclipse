@@ -4,9 +4,6 @@ import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.event.IRunListener;
-import org.eclipse.scanning.api.scan.event.RunEvent;
 
 
 /**
@@ -75,22 +72,4 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T> 
 	 * @throws ScanningException
 	 */
 	public void abort() throws ScanningException;
-
-	/**
-	 * Allowed when the device is in Running state. Will block until the device is in a rest state. 
-	 * 
-	 * When paused the same thread must call resume() or abort() which has paused or an
-	 * IllegalMonitorState Exception will be thrown.
-	 */
-	public void pause() throws ScanningException;
-	
-	/**
-	 * Allowed when the device is in Paused state. Will block until the device is unpaused.
-	 * 
-	 * When paused the same thread must call resume() or abort() which has paused or an
-	 * 
-	 * IllegalMonitorState Exception will be thrown.
-	 */
-	public void resume() throws ScanningException;
-	
 }

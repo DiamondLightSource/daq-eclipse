@@ -1,6 +1,7 @@
 package org.eclipse.scanning.sequencer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -11,17 +12,22 @@ import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IPositioner;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Positions scannables by level, returning after all the blocking moveTo
+ * Positions several scannables by level, returning after all the blocking IScannable.setPosition(...)
  * methods have returned.
  * 
  * @author Matthew Gerring
  *
  */
-final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IPositioner{
+final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IPositioner {
+	
+	private static Logger logger = LoggerFactory.getLogger(ScannablePositioner.class);
 	
 	private IDeviceConnectorService     hservice;
+	private List<IScannable<?>>         monitors;
 
 	ScannablePositioner(IDeviceConnectorService service) {	
 		this.hservice = service;
@@ -39,7 +45,8 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 		MapPosition ret = new MapPosition();
 		for (String name : position.getNames()) {
 			try {
-			    ret.put(name, hservice.getScannable(name).getPosition());
+				IScannable<?> scannable = hservice.getScannable(name);
+			    ret.put(name, scannable.getPosition());
 			} catch (Exception ne) {
 				throw new ScanningException("Cannout read value of "+name, ne);
 			}
@@ -52,6 +59,7 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 	protected Collection<IScannable<?>> getObjects() throws ScanningException {
 		final List<IScannable<?>> ret = new ArrayList<>(position.getNames().size());
 		for (String name : position.getNames()) ret.add(hservice.getScannable(name));
+		if (monitors!=null) for(IScannable<?> mon : monitors) ret.add(mon);
 		return ret;
 	}
 
@@ -74,18 +82,31 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 		@SuppressWarnings("unchecked")
 		@Override
 		public IPosition call() throws Exception {
+			
+			// Get the value in this position, may be null for monitors.
+			Object value = position.get(scannable.getName());
 			try {
-				// TODO FIXME The position needs to be sent to the scannable because
-				// it will delegate writing as well.
-				Object value = position.get(scannable.getName());
-			    scannable.setPosition(value);
+			    scannable.setPosition(value, position);
+			    
 			} catch (Exception ne) {
-				ne.printStackTrace();  // Just for testing we make sure that the stack is visible.
+				logger.error("Cannot set scannable named '"+scannable.getName()+"' to value '"+value+"'", ne); // Just for testing we make sure that the stack is visible.
 				throw ne;
 			}
 			return new MapPosition(scannable.getName(), position.getIndex(scannable.getName()), scannable.getPosition()); // Might not be exactly what we moved to
 		}
 		
+	}
+
+	public List<IScannable<?>> getMonitors() {
+		return monitors;
+	}
+
+	public void setMonitors(List<IScannable<?>> monitors) {
+		this.monitors = monitors;
+	}
+	
+	public void setMonitors(IScannable<?>... monitors) {
+		this.monitors = Arrays.asList(monitors);
 	}
 
 }

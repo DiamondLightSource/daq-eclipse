@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api;
 
+import org.eclipse.scanning.api.points.IPosition;
+
 /**
  * 
  * Something that can take part in a sequenced scan which can have its position set.
@@ -24,20 +26,22 @@ public interface IScannable<T> extends ILevel, INameable, IConfigurable<Scannabl
 	 * Moves to the position required, blocking until it is complete.
 	 * Similar to moveTo(...) in GDA8
 	 * 
+	 * Same as calling setPosition(value, null);
+	 * 
 	 * @param position
 	 * @throws Exception
 	 */
-	public void setPosition(T position) throws Exception;
+	public void setPosition(T value) throws Exception;
 
 	
 	/**
 	 * Moves to the position required, blocking until it is complete.
 	 * Similar to moveTo(...) in GDA8
 	 * 
-	 * @param position
+	 * @param value that this scalar should take.
+	 * @param position if within in a scan or null if not within a scan.
 	 * @throws Exception
 	 */
-	// TODO
-	//public void setPosition(T position, IPosition scanPoint) throws Exception;
+	public void setPosition(T value, IPosition position) throws Exception;
 
 }

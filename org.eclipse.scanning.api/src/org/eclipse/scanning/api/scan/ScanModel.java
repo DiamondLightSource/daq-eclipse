@@ -1,8 +1,9 @@
 package org.eclipse.scanning.api.scan;
 
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 
+import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
 
@@ -19,13 +20,22 @@ public class ScanModel {
 	 * and (if they are IReadableDetector) read out during the 
 	 * scan.
 	 */
-	private Collection<IRunnableDevice<?>> detectors;
+	private List<IRunnableDevice<?>> detectors;
 	
 	/**
 	 * The bean which was submitted. May be null but if it is not,
 	 * all points are published using this bean.
 	 */
 	private ScanBean bean;
+	
+	/**
+	 * A set of scannables may optionally be 'readout' during
+	 * the scan without being told a value for their location.
+	 * They have setPosition(null, IPosition) called and should 
+	 * ensure that if their value is null, they do not move but
+	 * still readout position
+	 */
+	private List<IScannable<?>> monitors;
 	
 	@Override
 	public int hashCode() {
@@ -34,6 +44,8 @@ public class ScanModel {
 		result = prime * result + ((bean == null) ? 0 : bean.hashCode());
 		result = prime * result
 				+ ((detectors == null) ? 0 : detectors.hashCode());
+		result = prime * result
+				+ ((monitors == null) ? 0 : monitors.hashCode());
 		result = prime
 				* result
 				+ ((positionIterator == null) ? 0 : positionIterator.hashCode());
@@ -57,6 +69,11 @@ public class ScanModel {
 			if (other.detectors != null)
 				return false;
 		} else if (!detectors.equals(other.detectors))
+			return false;
+		if (monitors == null) {
+			if (other.monitors != null)
+				return false;
+		} else if (!monitors.equals(other.monitors))
 			return false;
 		if (positionIterator == null) {
 			if (other.positionIterator != null)
@@ -88,15 +105,27 @@ public class ScanModel {
 		this.positionIterator = positionIterator;
 	}
 
-	public Collection<IRunnableDevice<?>> getDetectors() {
+	public List<IRunnableDevice<?>> getDetectors() {
 		return detectors;
 	}
 
-	public void setDetectors(Collection<IRunnableDevice<?>> ds) {
+	public void setDetectors(List<IRunnableDevice<?>> ds) {
 		this.detectors = ds;
 	}
 
 	public void setDetectors(IRunnableDevice<?>... detectors) {
 		this.detectors = Arrays.asList(detectors);
+	}
+	
+	public List<IScannable<?>> getMonitors() {
+		return monitors;
+	}
+	
+	public void setMonitors(List<IScannable<?>> monitors) {
+		this.monitors = monitors;
+	}
+	
+	public void setMonitors(IScannable<?>... monitors) {
+		this.monitors = Arrays.asList(monitors);
 	}
 }

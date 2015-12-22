@@ -9,7 +9,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventListener;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
@@ -25,6 +24,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
+import org.eclipse.scanning.api.scan.IPauseableDevice;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanModel;
@@ -74,19 +74,19 @@ public class ThreadScanTest {
 	@Test
 	public void testPauseAndResume2Threads() throws Throwable {
 		
-		IRunnableDevice<?> device = createConfiguredDevice(5, 5);
+		IPauseableDevice<?> device = createConfiguredDevice(5, 5);
 		pause1000ResumeLoop(device, 2, 2000, false);
 	}
 	
 	@Test
 	public void testPauseAndResume10Threads() throws Throwable {
 		
-		IRunnableDevice<?> device = createConfiguredDevice(10, 10);
+		IPauseableDevice<?> device = createConfiguredDevice(10, 10);
 		pause1000ResumeLoop(device, 10, 2000, false);
 	}
 
 
-	protected IRunnableDevice<?> pause1000ResumeLoop(final IRunnableDevice<?> device, 
+	protected IRunnableDevice<?> pause1000ResumeLoop(final IPauseableDevice<?> device, 
 													 int threadcount, 
 													 long sleepTime, 
 													 boolean expectExceptions) throws Throwable {
@@ -193,7 +193,7 @@ public class ThreadScanTest {
 		});	
 	}
 
-	private IRunnableDevice<?> createConfiguredDevice(int rows, int columns) throws ScanningException, GeneratorException, URISyntaxException {
+	private IPauseableDevice<?> createConfiguredDevice(int rows, int columns) throws ScanningException, GeneratorException, URISyntaxException {
 		
 		// Configure a detector with a collection time.
 		IRunnableDevice<MockDetectorModel> detector = connector.getDetector("detector");
@@ -214,7 +214,7 @@ public class ThreadScanTest {
 		smodel.setDetectors(detector);
 		
 		// Create a scan and run it
-		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, publisher, connector);
+		IPauseableDevice<ScanModel> scanner = (IPauseableDevice<ScanModel>) sservice.createRunnableDevice(smodel, publisher, connector);
 		return scanner;
 	}
 
@@ -240,7 +240,7 @@ public class ThreadScanTest {
 		return device;
 	}
 	
-	protected synchronized void checkPauseResume(IRunnableDevice<?> device, long pauseTime, boolean ignoreReady) throws Exception {
+	protected synchronized void checkPauseResume(IPauseableDevice<?> device, long pauseTime, boolean ignoreReady) throws Exception {
 		
 		
 		// No fudgy sleeps allowed in test must be as dataacq would use.

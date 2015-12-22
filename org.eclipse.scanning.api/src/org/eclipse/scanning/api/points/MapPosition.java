@@ -33,7 +33,7 @@ public class MapPosition extends AbstractPosition {
 
 	/**
 	 * Define the values as a comma separate list of values of the form:
-	 * name1:value1, name2:value2, ... etc. namen:valuen
+	 * name1:position1:value1, name2:position2:value2, ... etc. namen:valuen
 	 * 
 	 * The value string must parse as a double or a NumberFormatException is thrown
 	 * 
@@ -43,11 +43,14 @@ public class MapPosition extends AbstractPosition {
 	 */
 	public MapPosition(String value) throws NumberFormatException {
 		
-		values = new LinkedHashMap<String, Object>(7);
+		values  = new LinkedHashMap<String, Object>(7);
+		indices = new LinkedHashMap<String, Integer>(7);
+		
 		String[] pairs = value.split(",");
 		for (String pair : pairs) {
 			String[] nv = pair.trim().split("\\:");
-		    values.put(nv[0].trim(), Double.parseDouble(nv[1].trim()));
+		    indices.put(nv[0].trim(), Integer.parseInt(nv[1].trim()));
+		    values.put(nv[0].trim(), Double.parseDouble(nv[2].trim()));
 		}
 	}
 
@@ -80,14 +83,18 @@ public class MapPosition extends AbstractPosition {
 
 	@Override
 	public int getIndex(String name) {
+		if (indices==null)              return -1;
+		if (!indices.containsKey(name)) return -1; // Autoboxing protection.
 		return indices.get(name);
 	}
 
 	public Object putIndex(String key, Integer value) {
+		if (indices==null) indices = new LinkedHashMap<String, Integer>(7);
 		return indices.put(key, value);
 	}
 	
 	public void putAllIndices(IPosition pos) {
+		if (indices==null) indices = new LinkedHashMap<String, Integer>(7);
 		final List<String> names = pos.getNames();
 		for (String name : names) {
 			indices.put(name, pos.getIndex(name));

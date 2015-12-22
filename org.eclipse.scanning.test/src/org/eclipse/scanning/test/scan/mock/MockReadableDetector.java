@@ -9,8 +9,6 @@ import org.eclipse.scanning.api.scan.ScanningException;
 
 public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorModel> implements IWritableDetector<MockDetectorModel> {
 	
-	private MockDetectorModel model;
-
 	public MockReadableDetector() {
 		super();
 	}
@@ -23,8 +21,8 @@ public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorMod
 	@Override
 	public void run() throws ScanningException {
 		try {
-			Thread.sleep((long)(model.getCollectionTime()*1000));
-			model.setRan(model.getRan()+1);
+			Thread.sleep((long)(getModel().getCollectionTime()*1000));
+			getModel().setRan(getModel().getRan()+1);
 		} catch (Exception ne) {
 			throw new ScanningException("Cannot to do readout", ne);
 		}
@@ -34,7 +32,7 @@ public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorMod
 	public boolean write() throws ScanningException {
 		
 		IDataset next = Random.rand(new int[]{1024, 1024});
-		model.setRead(model.getRead()+1);
+		getModel().setRead(getModel().getRead()+1);
 		// TODO write next somewhere?
 		
 		return true;
@@ -47,7 +45,7 @@ public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorMod
 
 	@Override
 	public void configure(MockDetectorModel model) throws ScanningException {
-		this.model = model;
+		setModel(model);
 	}
 
 	@Override
@@ -69,7 +67,7 @@ public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorMod
 	@Override
 	public void resume() throws ScanningException {
         try {
-			setState(model!=null ? DeviceState.READY : DeviceState.IDLE);
+			setState(getModel()!=null ? DeviceState.READY : DeviceState.IDLE);
 		} catch (Exception e) {
 			throw new ScanningException(this, e);
 		}

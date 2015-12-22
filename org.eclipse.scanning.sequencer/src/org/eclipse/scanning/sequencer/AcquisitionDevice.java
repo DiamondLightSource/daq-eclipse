@@ -4,14 +4,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
-import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
+import org.eclipse.scanning.api.scan.IPauseableDevice;
 import org.eclipse.scanning.api.scan.IPositioner;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanModel;
@@ -32,7 +29,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	// Scanning stuff
-	private ScanModel        model;
+	private IPositioner      positioner;
 	private DetectorRunner   detectors;
 	private DetectorWriter   writers;
 	
@@ -57,9 +54,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	@Override
 	public void configure(ScanModel model) throws ScanningException {
 		
-		this.model = model;
+		setModel(model);
 		setBean(model.getBean()!=null?model.getBean():new ScanBean());
 		
+		positioner = scanningService.createPositioner(deviceService);
 		detectors = new DetectorRunner(model.getDetectors());
 		writers   = new DetectorWriter(model.getDetectors());
 		setState(DeviceState.READY);
@@ -68,10 +66,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	@Override
 	public void run() throws ScanningException, InterruptedException {
 		
+		
+		ScanModel model = getModel();
 		if (model.getPositionIterator()==null) throw new ScanningException("The model must contain some points to scan!");
 		
 		try {
-	        final IPositioner positioner = scanningService.createPositioner(deviceService);
 	        
 	        // TODO Should we validate the position iterator that all
 	        // the positions are valid before running the scan?
@@ -79,27 +78,31 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // Sometimes logic is needed to implement collision avoidance.
 	        
     		setState(DeviceState.RUNNING);
+    	
+    		// We allow monitors which can block a position until a setpoint is
+    		// reached or add an extra record to the NeXus file.
+    		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
     		
-    		int size  = -1;
-    		int count =  0;
-    		if (model.getPositionIterator() instanceof IGenerator) {
-    			IGenerator<?,?> gen = (IGenerator<?,?>)model.getPositionIterator();
-    			size = gen.size();  // We calculate the size which will be iterated once -> might be large!
-    		}
+    		// Set the size and declare a count
+    		int size  = 0;
+    		int count = 0;
+    		for (IPosition unused : model.getPositionIterator()) size++; // Fast even for large stuff
 
+    		// The scan loop
 	        for (IPosition pos : model.getPositionIterator()) {
 	        	
 	        	pos.setStepIndex(count);
 	        	
 	        	// Check if we are paused, blocks until we are not
 	        	checkPaused();
+	        	fireRunWillPerform(pos);
 	        	
 	        	// TODO Some validation on each point
 	        	// perhaps replacing atPointStart(..)
 	        	// Whether to deal with atLineStart() and atPointStart()
 	        	
-	        	// Run the position
-	        	positioner.setPosition(pos);   // moveTo
+	        	// Run to the position
+	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
 	        	// check that beam is up. In the past this has been done with 
 	        	// scannables at a given level that block until they are happy.
@@ -107,10 +110,12 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	writers.await();               // Wait for the previous read out to return, if any
 	        	detectors.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
-		        	
+		        		        	
 	        	// Send an event about where we are in the scan
+	        	fireRunPerformed(pos);
 	        	positionComplete(pos, count+1, size);
 	        	++count;
+	        	
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
@@ -172,8 +177,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		setState(DeviceState.PAUSING);
 		try {
 			awaitPaused = true;
-			for (IRunnableDevice<?> device : model.getDetectors()) {
-				device.pause();
+			for (IRunnableDevice<?> device : getModel().getDetectors()) {
+				if (device instanceof IPauseableDevice) ((IPauseableDevice)device).pause();
 			}
 			
 		} catch (ScanningException s) {
@@ -199,8 +204,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		try {
 			awaitPaused = false;
-			for (IRunnableDevice<?> device : model.getDetectors()) {
-				device.resume();
+			for (IRunnableDevice<?> device : getModel().getDetectors()) {
+				if (device instanceof IPauseableDevice) ((IPauseableDevice)device).resume();
 			}
 			paused.signalAll();
 			

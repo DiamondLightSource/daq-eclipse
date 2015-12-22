@@ -2,6 +2,9 @@ package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.anyObject;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -24,8 +27,10 @@ import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IPositionListener;
 import org.eclipse.scanning.api.scan.IPositioner;
@@ -35,6 +40,7 @@ import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanModel;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
+import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
@@ -50,7 +56,7 @@ public class AbstractScanTest {
 	public void testSetSimplePosition() throws Exception {
 
 		IPositioner     pos    = sservice.createPositioner(connector);
-		pos.setPosition(new MapPosition("x:1, y:2"));
+		pos.setPosition(new MapPosition("x:0:1, y:0:2"));
 		
 		assertTrue(connector.getScannable("x").getPosition().equals(1d));
 		assertTrue(connector.getScannable("y").getPosition().equals(2d));
@@ -70,7 +76,7 @@ public class AbstractScanTest {
 			}
 		});
 		
-		pos.setPosition(new MapPosition("a:10, b:10, p:10, q:10, x:10, y:10"));
+		pos.setPosition(new MapPosition("a:0:10, b:0:10, p:0:10, q:0:10, x:0:10, y:0:10"));
 		
 		assertTrue(scannablesMoved.get(0).equals("a") || scannablesMoved.get(0).equals("b"));
 		assertTrue(scannablesMoved.get(1).equals("a") || scannablesMoved.get(1).equals("b"));
@@ -139,64 +145,22 @@ public class AbstractScanTest {
 	    
 		System.out.println("Positioning 100,000 test motor with 100 levels took "+(end-start)+" ms");
 	}
-
-
 	
 	@Test
 	public void testSimpleScan() throws Exception {
 				
-		// Configure a detector with a collection time.
-		IRunnableDevice<MockDetectorModel> detector = connector.getDetector("detector");
-		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setCollectionTime(0.1);
-		detector.configure(dmodel);
-		
-		// Create scan points for a grid and make a generator
-		GridModel gmodel = new GridModel();
-		gmodel.setRows(20);
-		gmodel.setColumns(20);
-		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
-		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
-
-		// Create the model for a scan.
-		final ScanModel  smodel = new ScanModel();
-		smodel.setPositionIterator(gen);
-		smodel.setDetectors(Arrays.asList(new IRunnableDevice<?>[]{detector}));
-		
-		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, null, connector);
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null);
 		scanner.run();
-		
-		// Check the details of how often it was run
-		assertEquals(gen.size(), dmodel.getRan());
-		assertEquals(gen.size(), dmodel.getRead());
+		checkRun(scanner);
 	}
 
 	@Test
 	public void testSimpleScanWithStatus() throws Exception {
-				
-		// Configure a detector with a collection time.
-		IRunnableDevice<MockDetectorModel> detector = connector.getDetector("detector");
-		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setCollectionTime(0.1);
-		detector.configure(dmodel);
+			
 		
-		// Create scan points for a grid and make a generator
-		GridModel gmodel = new GridModel();
-		gmodel.setRows(5);
-		gmodel.setColumns(5);
-		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
-		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
-
-		// Create the model for a scan.
-		final ScanModel  smodel = new ScanModel();
-		smodel.setPositionIterator(gen);
-		smodel.setDetectors(Arrays.asList(new IRunnableDevice<?>[]{detector}));
-		
-		final ScanBean publishResult = new ScanBean();
-		publishResult.setName("Fred");
-		publishResult.setUniqueId("fred");
-		smodel.setBean(publishResult);
+		final ScanBean bean = new ScanBean();
+		bean.setName("Fred");
+		bean.setUniqueId("fred");
 		
 		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");	
 		final IPublisher<ScanBean> publisher = eservice.createPublisher(uri, IEventService.STATUS_TOPIC, new ActivemqConnectorService());
@@ -221,14 +185,15 @@ public class AbstractScanTest {
 		try {
 			
 			// Create a scan and run it without publishing events
-			IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, publisher, connector);
+			IRunnableDevice<ScanModel> scanner = createTestScanner(bean, publisher, null);
 			scanner.run();
 			
-			// Check the details of how often it was run
-			assertEquals(gen.size(), dmodel.getRan());
-			assertEquals(gen.size(), dmodel.getRead());
-			
 			Thread.sleep(1000); // Wait for all events to make it over from ActiveMQ
+			
+			checkRun(scanner);
+			
+			// Bit of a hack to get the generator from the model - should this be easier?
+			IGenerator<?,IPosition> gen = (IGenerator<?,IPosition>)((ScanModel)((AbstractRunnableDevice)scanner).getModel()).getPositionIterator();
 			assertEquals(gen.size()+states.size(), events.size());
 			assertEquals(Arrays.asList(DeviceState.READY, DeviceState.RUNNING, DeviceState.READY), states);
 			
@@ -237,6 +202,75 @@ public class AbstractScanTest {
 		} finally {
 			publisher.disconnect();
 		}
+	}
+
+	@Test
+	public void testSimpleScanSetPositionCalls() throws Exception {
+			
+		IScannable<Number> x = ((MockScannableConnector)connector).createMockScannable("x");
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null);
+		
+		scanner.run();
+		
+		checkRun(scanner);
+		
+		verify(x, times(1)).setPosition(0.3, new Point(0,0.3,0,0.3));
+		verify(x, times(1)).setPosition(1.5, new Point(0,1.5,2,0.3));
+		verify(x, times(1)).setPosition(0.3, new Point(2,0.3,0,1.5));
+		verify(x, times(1)).setPosition(1.5, new Point(2,1.5,2,1.5));
+	}
+	
+	@Test
+	public void testSimpleScanWithMonitor() throws Exception {
+			
+		IScannable<Number> monitor = ((MockScannableConnector)connector).createMockScannable("monitor");
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, monitor);
+		
+		scanner.run();
+		
+		checkRun(scanner);
+		
+		verify(monitor, times(1)).setPosition(null, new Point(0,0.3,0,0.3));
+		verify(monitor, times(1)).setPosition(null, new Point(0,1.5,2,0.3));
+		verify(monitor, times(1)).setPosition(null, new Point(2,0.3,0,1.5));
+		verify(monitor, times(1)).setPosition(null, new Point(2,1.5,2,1.5));
+	}
+
+	private void checkRun(IRunnableDevice<ScanModel> scanner) throws Exception {
+		// Bit of a hack to get the generator from the model - should this be easier?
+		// Do not copy this code
+		ScanModel smodel = (ScanModel)((AbstractRunnableDevice)scanner).getModel();
+		IGenerator<?,IPosition> gen = (IGenerator<?,IPosition>)smodel.getPositionIterator();
+		MockDetectorModel dmodel = (MockDetectorModel)((AbstractRunnableDevice)smodel.getDetectors().get(0)).getModel();
+		assertEquals(gen.size(), dmodel.getRan());
+		assertEquals(gen.size(), dmodel.getRead());
+	}
+
+	private IRunnableDevice<ScanModel> createTestScanner(final ScanBean bean, final IPublisher<ScanBean> publisher, IScannable<?> monitor) throws Exception {
+		
+		// Configure a detector with a collection time.
+		IRunnableDevice<MockDetectorModel> detector = connector.getDetector("detector");
+		MockDetectorModel dmodel = new MockDetectorModel();
+		dmodel.setCollectionTime(0.1);
+		detector.configure(dmodel);
+		
+		// Create scan points for a grid and make a generator
+		GridModel gmodel = new GridModel();
+		gmodel.setRows(5);
+		gmodel.setColumns(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+
+		// Create the model for a scan.
+		final ScanModel  smodel = new ScanModel();
+		smodel.setPositionIterator(gen);
+		smodel.setDetectors(detector);
+		smodel.setBean(bean);
+		if (monitor!=null) smodel.setMonitors(monitor);
+		
+		// Create a scan and run it without publishing events
+		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, publisher, connector);
+		return scanner;
 	}
 
 }

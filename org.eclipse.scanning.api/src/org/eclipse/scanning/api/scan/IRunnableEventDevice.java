@@ -17,7 +17,7 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
  *
  * @param <T>
  */
-public interface IRunnableEventDevice<T> extends IRunnableDevice<T> {
+public interface IRunnableEventDevice<T> extends IPauseableDevice<T> {
 
 	/**
 	 * A listener which notifies when a run of the device will occur and after it
