@@ -4,6 +4,7 @@ import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.points.IPosition;
 
 
 /**
@@ -60,11 +61,11 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T> 
 
 
 	/**
-	 * Blocking call to execute the scan
+	 * Blocking call to execute the scan. The position specified may be null.
 	 * 
 	 * @throws ScanningException
 	 */
-	public void run() throws ScanningException, InterruptedException;
+	public void run(IPosition position) throws ScanningException, InterruptedException;
 	
 	/**
 	 * Call to terminate the scan before it has finished.

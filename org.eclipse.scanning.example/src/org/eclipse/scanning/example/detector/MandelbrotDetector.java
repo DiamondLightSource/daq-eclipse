@@ -44,16 +44,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 	public static final String VALUE_NAME = "mandelbrot_value";
 
-	// Configurable fields
-	private IPosition pos;	
-
 	public MandelbrotDetector() {
 		super();
 		this.model = new MandelbrotModel();
-	}
-
-	public void setPosition(IPosition pos) {
-		this.pos = pos;
 	}
 
 	public int[] getDataDimensions() throws Exception {
@@ -76,7 +69,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	}
 	
 	@Override
-	public void run() throws ScanningException {
+	public void run(IPosition pos) throws ScanningException {
 		
 		final double a = (Double)pos.get("X");
 		final double b = (Double)pos.get("Y");
@@ -98,7 +91,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
   	}
 
 	@Override
-	public boolean write(IPosition position) throws ScanningException {
+	public boolean write(IPosition pos) throws ScanningException {
 		
         // TODO Read the IDataset to an HDF5 file?
         

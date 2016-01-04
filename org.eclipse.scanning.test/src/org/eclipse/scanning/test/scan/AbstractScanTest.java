@@ -146,7 +146,7 @@ public class AbstractScanTest {
 	public void testSimpleScan() throws Exception {
 				
 		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null);
-		scanner.run();
+		scanner.run(null);
 		checkRun(scanner);
 	}
 
@@ -182,7 +182,7 @@ public class AbstractScanTest {
 			
 			// Create a scan and run it without publishing events
 			IRunnableDevice<ScanModel> scanner = createTestScanner(bean, publisher, null);
-			scanner.run();
+			scanner.run(null);
 			
 			Thread.sleep(1000); // Wait for all events to make it over from ActiveMQ
 			
@@ -206,7 +206,7 @@ public class AbstractScanTest {
 		IScannable<Number> x = connector.getScannable("x");
 		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null);
 		
-		scanner.run();
+		scanner.run(null);
 		
 		checkRun(scanner);
 		
@@ -224,7 +224,7 @@ public class AbstractScanTest {
 		IScannable<Number> monitor = connector.getScannable("monitor");
 		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, monitor);
 		
-		scanner.run();
+		scanner.run(null);
 		
 		checkRun(scanner);
 		

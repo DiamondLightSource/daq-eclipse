@@ -4,11 +4,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
-import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -20,22 +22,38 @@ public final class ScanningServiceImpl implements IScanningService {
 	
 	private static IDeviceConnectorService deviceService;
 
-	private static final Map<Class<?>, Class<? extends IRunnableDevice<?>>> scanners;
+	private static final Map<Class<?>, Class<? extends IRunnableDevice>> scanners;
 	
 	// Use a factory pattern to register the types.
 	// This pattern can always be extended by extension points
 	// to allow point generators to be dynamically registered. 
 	static {
 		System.out.println("Starting scanning service");
-		Map<Class<?>, Class<? extends IRunnableDevice<?>>> tmp = new HashMap<>(7);
+		Map<Class<?>, Class<? extends IRunnableDevice>> tmp = new HashMap<>(7);
 		tmp.put(ScanModel.class,         AcquisitionDevice.class);
 		
-		// TODO FIXME Add extension points so that the mandlebrot from the examples
-		// can be read by the service.
+		try {
+			readExtensions(tmp);
+		} catch (CoreException e) {
+			e.printStackTrace(); // Static block, intentionally do not use logging.
+		}
+
 		
 		scanners = Collections.unmodifiableMap(tmp);
 	}
 	
+
+	private static void readExtensions(Map<Class<?>, Class<? extends IRunnableDevice>> devs) throws CoreException {
+		
+		if (Platform.getExtensionRegistry()!=null) {
+			final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.detector");
+			for (IConfigurationElement e : eles) {
+				final IRunnableDevice gen = (IRunnableDevice)e.createExecutableExtension("class");
+				final Object     mod = e.createExecutableExtension("model");
+				devs.put(mod.getClass(), gen.getClass());
+			}
+		}
+	}
 	
 
 	@Override

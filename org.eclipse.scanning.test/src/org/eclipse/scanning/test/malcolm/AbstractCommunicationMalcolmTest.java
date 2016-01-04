@@ -35,7 +35,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 	private void basicRun(IMalcolmDevice zebra) throws MalcolmDeviceException, Exception {
 		
 		configure(zebra, 10);
-		zebra.run(); // blocks until finished
+		zebra.run(null); // blocks until finished
 		
 		final DeviceState state = zebra.getState();
 		
@@ -61,7 +61,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 		});
 		
 		configure(zebra, IMAGE_COUNT);
-		zebra.run(); 						// blocks until finished
+		zebra.run(null); 						// blocks until finished
 		Thread.sleep(MESSAGE_GRACE);		// allow for messaging delays
 		
 		if (beans.size()!=2) throw new Exception("Scan start and end not encountered!");
@@ -96,7 +96,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 		});
 		
 		configure(zebra, IMAGE_COUNT);
-		zebra.run(); 						// blocks until finished
+		zebra.run(null); 						// blocks until finished
 		Thread.sleep(MESSAGE_GRACE);		// allow for messaging delays
 		
 		// There is one extra event as the state is set to Running before scan start

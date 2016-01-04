@@ -108,10 +108,13 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	protected void setState(DeviceState nstate, IPosition position) throws ScanningException {
 		try {
 			// The bean must be set in order to change state.
-			bean.setDeviceName(getName());
-			bean.setDeviceState(nstate);
-			bean.setPreviousDeviceState(state);
-			bean.setPosition(position);
+			if (publisher!=null) {
+				if (bean==null) bean = new ScanBean();
+				bean.setDeviceName(getName());
+				bean.setDeviceState(nstate);
+				bean.setPreviousDeviceState(state);
+				bean.setPosition(position);
+			}
 			
 			this.state = nstate;
 			

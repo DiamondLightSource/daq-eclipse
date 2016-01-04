@@ -64,7 +64,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	}
 
 	@Override
-	public void run() throws ScanningException, InterruptedException {
+	public void run(IPosition parent) throws ScanningException, InterruptedException {
 		
 		
 		ScanModel model = getModel();

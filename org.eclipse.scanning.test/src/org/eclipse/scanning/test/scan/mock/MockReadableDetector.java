@@ -20,7 +20,7 @@ public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorMod
 	}
 		
 	@Override
-	public void run() throws ScanningException {
+	public void run(IPosition pos) throws ScanningException {
 		try {
 			Thread.sleep((long)(getModel().getCollectionTime()*1000));
 			getModel().setRan(getModel().getRan()+1);

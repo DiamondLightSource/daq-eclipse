@@ -12,6 +12,7 @@ import org.eclipse.dawnsci.hdf5.IHierarchicalDataFile;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 
 import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
@@ -140,7 +141,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	}
 
 	@Override
-	public void run() throws MalcolmDeviceException {
+	public void run(IPosition pos) throws MalcolmDeviceException {
 		
 		if (!getState().isRunnable()) throw new MalcolmDeviceException("Malcolm is in non-runnable state "+getState());
 

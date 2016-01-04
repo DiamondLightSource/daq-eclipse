@@ -224,7 +224,7 @@ public class ThreadScanTest {
 		final Thread runner = new Thread(new Runnable() {
 			public void run() {
 				try {
-					device.run();
+					device.run(null);
 				} catch (Exception e) {
 					exceptions.add(e);
 				} // blocks until finished

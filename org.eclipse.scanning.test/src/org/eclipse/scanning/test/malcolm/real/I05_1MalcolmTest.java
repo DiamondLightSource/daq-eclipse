@@ -102,7 +102,7 @@ public class I05_1MalcolmTest {
 		device.configure(model);
 		System.out.println(device.getState());
 
-		device.run();
+		device.run(null);
 		
 		System.out.println(device.getState());
 

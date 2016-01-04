@@ -6,6 +6,7 @@ import java.util.concurrent.CountDownLatch;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
+import org.eclipse.scanning.api.points.IPosition;
 
 /**
  * Example Device that executes a callable task a number of times as defined by the params
@@ -29,7 +30,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	}
 
 	@Override
-	public void run() throws MalcolmDeviceException {
+	public void run(IPosition pos) throws MalcolmDeviceException {
 		if (!getState().isRunnable()) {
 			throw new MalcolmDeviceException("Malcolm is in non-runnable state "+getState());
 		}

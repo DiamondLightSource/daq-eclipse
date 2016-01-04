@@ -169,7 +169,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-READY state!");
 			
 			try {
-				device.run(); // Should cause exception
+				device.run(null); // Should cause exception
 			} catch (MalcolmDeviceException expected) {
 				return;
 			}
@@ -204,7 +204,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 				}
 			});
 			
-			device.run(); // Blocking
+			device.run(null); // Blocking
 			
 			if (beans.size()<10) throw new Exception("Unexpected number of events reported from running dummy detector! "+beans.size());
 			

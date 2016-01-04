@@ -101,7 +101,7 @@ public class ARPESScanTest {
 		
 		Iterable<IPosition>      points = gservice.createGenerator(new StepModel("temperature", 290, 300, 1));
 		IRunnableDevice<ScanModel> scan = sservice.createRunnableDevice(new ScanModel(points, device), null,  new MockScannableConnector());
-		scan.run();
+		scan.run(null);
 	}
 
 	/**

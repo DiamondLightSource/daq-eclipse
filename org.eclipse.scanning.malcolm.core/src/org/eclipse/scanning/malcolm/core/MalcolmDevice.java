@@ -15,6 +15,7 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
+import org.eclipse.scanning.api.points.IPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,7 +122,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	}
 
 	@Override
-	public void run() throws MalcolmDeviceException {
+	public void run(IPosition pos) throws MalcolmDeviceException {
 		connectionDelegate.call(Thread.currentThread().getStackTrace(), DeviceState.RUNNING);
 	}
 
