@@ -44,7 +44,7 @@ final class DetectorWriter extends DetectorRunner {
 
 		@Override
 		public IPosition call() throws Exception {
-			detector.write();
+			detector.write(position);
 			return position;
 		}
 

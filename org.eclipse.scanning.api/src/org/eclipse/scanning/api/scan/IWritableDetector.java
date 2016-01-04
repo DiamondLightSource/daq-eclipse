@@ -2,6 +2,7 @@ package org.eclipse.scanning.api.scan;
 
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
+import org.eclipse.scanning.api.points.IPosition;
 
 
 /**
@@ -44,6 +45,6 @@ public interface IWritableDetector<T> extends IRunnableDevice<T>, INameable, ILe
 	 * @return true for a successful readout
 	 * @throws DeviceException
 	 */
-	boolean write() throws ScanningException;
+	boolean write(IPosition position) throws ScanningException;
 
 }

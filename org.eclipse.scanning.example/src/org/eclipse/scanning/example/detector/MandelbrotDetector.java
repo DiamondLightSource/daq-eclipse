@@ -98,7 +98,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
   	}
 
 	@Override
-	public boolean write() throws ScanningException {
+	public boolean write(IPosition position) throws ScanningException {
 		
         // TODO Read the IDataset to an HDF5 file?
         

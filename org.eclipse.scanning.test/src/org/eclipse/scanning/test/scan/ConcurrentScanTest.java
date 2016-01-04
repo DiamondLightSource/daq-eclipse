@@ -28,9 +28,9 @@ import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
-import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
+import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
 import org.eclipse.scanning.sequencer.ScanningServiceImpl;
@@ -151,7 +151,7 @@ public class ConcurrentScanTest {
 //		verify(sread, times(1)).atScanLineStart();
 //		verify(sread, times(1)).atScanLineEnd();
 
-		verify(detlev9a, times(11)).write();
+		verify(detlev9a, times(11)).write(null);
 //		verify(detlev9a, never()).setPosition(anyObject());
 //		verify(detlev9a, never()).setPosition(anyObject());
 //		verify(detlev9a, times(11)).atPointStart();

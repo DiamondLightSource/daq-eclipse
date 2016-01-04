@@ -22,7 +22,7 @@ public interface IPositionListener extends EventListener {
 	/**
 	 * Called just before the position reaches a given value
 	 * @param evt
-	 * @return to abort the point but not the overall scan.
+	 * @return false to abort the point but not the overall scan.
 	 */
 	boolean positionWillPerform(PositionEvent evt);
 
