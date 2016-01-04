@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * @author fcp94556
  *
  */
-public interface IScannable<T> extends ILevel, INameable {
+public interface IScannable<T> extends ILevel, INameable, IConfigurable<ScannableModel> {
 	
 	/**
 	 * Returns the current position of the Scannable. Called by ConcurentScan at the end of the point. 

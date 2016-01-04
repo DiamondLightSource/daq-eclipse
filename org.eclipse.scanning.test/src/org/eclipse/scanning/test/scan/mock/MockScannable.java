@@ -1,7 +1,9 @@
 package org.eclipse.scanning.test.scan.mock;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.ScannableModel;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 public class MockScannable implements IScannable<Number> {
 
@@ -9,6 +11,8 @@ public class MockScannable implements IScannable<Number> {
 	private String  name;
 	private Number  position = 0d;
 	private boolean requireSleep=true;
+	private ScannableModel model;
+
 	
     public MockScannable() {
     	
@@ -28,6 +32,12 @@ public class MockScannable implements IScannable<Number> {
 		this.name = name;
 		this.position = position;
 	}
+	
+	@Override
+	public void configure(ScannableModel model) throws ScanningException {
+		this.model = model;
+	}
+
 	
 	public int getLevel() {
 		return level;
