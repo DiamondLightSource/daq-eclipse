@@ -1,9 +1,10 @@
-package org.eclipse.scanning.api.scan;
+package org.eclipse.scanning.api.scan.event;
 
 import java.util.List;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 
 /**

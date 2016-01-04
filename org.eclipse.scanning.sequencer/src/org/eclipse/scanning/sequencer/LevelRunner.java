@@ -18,9 +18,9 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
-import org.eclipse.scanning.api.scan.IPositionListener;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
 
 
 /**
@@ -83,6 +83,9 @@ abstract class LevelRunner<L extends ILevel> {
 	protected boolean run(IPosition position, boolean block) throws ScanningException, InterruptedException {
 		
 		this.position = position;
+		boolean ok = firePositionWillPerform(position);
+        if (!ok) return false;
+		
 		Map<Integer, List<L>> positionMap = getLevelOrderedObjects(getObjects());
 		
 		try {
@@ -184,6 +187,17 @@ abstract class LevelRunner<L extends ILevel> {
 	}
 
 	private Collection<IPositionListener> listeners;
+
+	protected boolean firePositionWillPerform(IPosition position) {
+		if (listeners==null) return true;
+		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
+		final PositionEvent evnt = new PositionEvent(position);
+		for (IPositionListener l : ls)  {
+			boolean ok = l.positionWillPerform(evnt);
+			if (!ok) return false;
+		}
+		return true;
+	}
 
 	protected void firePositionPerformed(int finalLevel, IPosition position) {
 		if (listeners==null) return;

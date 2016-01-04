@@ -4,7 +4,6 @@ import java.util.EventObject;
 import java.util.List;
 
 import org.eclipse.scanning.api.ILevel;
-import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IPosition;
 
 /**

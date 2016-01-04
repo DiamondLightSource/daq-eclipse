@@ -38,6 +38,15 @@ public class ScanModel {
 	 */
 	private List<IScannable<?>> monitors;
 	
+	
+	public ScanModel() {
+	    this(null);
+	}	
+	public ScanModel(Iterable<IPosition> positionIterator, IRunnableDevice<?>... detectors) {
+		this.positionIterator = positionIterator;
+		if (detectors!=null && detectors.length>0) this.detectors = Arrays.asList(detectors);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -88,13 +97,6 @@ public class ScanModel {
 	}
 	public void setBean(ScanBean bean) {
 		this.bean = bean;
-	}
-	public ScanModel() {
-	    this(null);
-	}	
-	public ScanModel(Iterable<IPosition> positionIterator, IRunnableDevice<?>... detectors) {
-		this.positionIterator = positionIterator;
-		if (detectors!=null && detectors.length>0) this.detectors = Arrays.asList(detectors);
 	}
 
 

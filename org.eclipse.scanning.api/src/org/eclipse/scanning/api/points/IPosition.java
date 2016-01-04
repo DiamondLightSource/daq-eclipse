@@ -19,7 +19,7 @@ import org.eclipse.scanning.api.scan.IScanningService;
  * position by level.
  * 
  * @see IScanningService
- * @see org.eclipse.scanning.api.scan.IPositioner
+ * @see org.eclipse.scanning.api.scan.event.IPositioner
  *
  * @author Matthew Gerring
  *

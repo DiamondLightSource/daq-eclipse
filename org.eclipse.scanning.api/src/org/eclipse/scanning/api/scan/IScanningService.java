@@ -2,6 +2,7 @@ package org.eclipse.scanning.api.scan;
 
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.scan.event.IPositioner;
 
 
 /**
