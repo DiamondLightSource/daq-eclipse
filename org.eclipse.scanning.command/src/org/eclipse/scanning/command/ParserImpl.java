@@ -9,6 +9,10 @@ import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IParser;
 
 class ParserImpl implements IParser<StepModel> {
+	
+	static {
+		System.out.println("Started Parser Service");
+	}
 
 	private final String command;
 
