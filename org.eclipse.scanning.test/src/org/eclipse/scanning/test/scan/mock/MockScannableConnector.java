@@ -1,8 +1,5 @@
 package org.eclipse.scanning.test.scan.mock;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,22 +45,5 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		if (cache.containsKey(name)) return (IWritableDetector<M>)cache.get(name);
 		register(new MockReadableDetector(name));
 		return (IWritableDetector<M>)cache.get(name);
-	}
-
-	
-	public <T> IScannable<T> createMockScannable(String name) {
-		
-		IScannable s = mock(MockScannable.class, name);
-		when(s.getName()).thenReturn(name);
-
-		register(s);
-		return s;
-	}
-
-	public IWritableDetector<MockDetectorModel> createMockDetector(String name) {
-		IWritableDetector d = mock(MockReadableDetector.class, name);
-		when(d.getName()).thenReturn(name);
-		register(d);
-		return d;
 	}
 }

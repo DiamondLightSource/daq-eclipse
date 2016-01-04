@@ -2,8 +2,6 @@ package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -39,7 +37,6 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
@@ -206,33 +203,37 @@ public class AbstractScanTest {
 	@Test
 	public void testSimpleScanSetPositionCalls() throws Exception {
 			
-		IScannable<Number> x = ((MockScannableConnector)connector).createMockScannable("x");
+		IScannable<Number> x = connector.getScannable("x");
 		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null);
 		
 		scanner.run();
 		
 		checkRun(scanner);
 		
-		verify(x, times(1)).setPosition(0.3, new Point(0,0.3,0,0.3));
-		verify(x, times(1)).setPosition(1.5, new Point(0,1.5,2,0.3));
-		verify(x, times(1)).setPosition(0.3, new Point(2,0.3,0,1.5));
-		verify(x, times(1)).setPosition(1.5, new Point(2,1.5,2,1.5));
+		// NOTE Did with Mockito but caused dependency issues.
+		MockScannable ms = (MockScannable)x;
+		ms.verify(0.3, new Point(0,0.3,0,0.3));
+		ms.verify(1.5, new Point(0,1.5,2,0.3));
+		ms.verify(0.3, new Point(2,0.3,0,1.5));
+		ms.verify(1.5, new Point(2,1.5,2,1.5));
 	}
 	
 	@Test
 	public void testSimpleScanWithMonitor() throws Exception {
 			
-		IScannable<Number> monitor = ((MockScannableConnector)connector).createMockScannable("monitor");
+		IScannable<Number> monitor = connector.getScannable("monitor");
 		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, monitor);
 		
 		scanner.run();
 		
 		checkRun(scanner);
 		
-		verify(monitor, times(1)).setPosition(null, new Point(0,0.3,0,0.3));
-		verify(monitor, times(1)).setPosition(null, new Point(0,1.5,2,0.3));
-		verify(monitor, times(1)).setPosition(null, new Point(2,0.3,0,1.5));
-		verify(monitor, times(1)).setPosition(null, new Point(2,1.5,2,1.5));
+		// NOTE Did with Mockito but caused dependency issues.
+		MockScannable ms = (MockScannable)monitor;
+		ms.verify(null, new Point(0,0.3,0,0.3));
+		ms.verify(null, new Point(0,1.5,2,0.3));
+		ms.verify(null, new Point(2,0.3,0,1.5));
+		ms.verify(null, new Point(2,1.5,2,1.5));
 	}
 
 	private void checkRun(IRunnableDevice<ScanModel> scanner) throws Exception {

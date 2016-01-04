@@ -79,11 +79,13 @@ public class GeneratorServiceImpl implements IGeneratorService {
 
 	private static void readExtensions(Map<Class<?>, Class<? extends IGenerator>> gens) throws CoreException {
 		
-		final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("rg.eclipse.scanning.api.generator");
-		for (IConfigurationElement e : eles) {
-			final IGenerator gen = (IGenerator)e.createExecutableExtension("class");
-			final Object     mod = e.createExecutableExtension("model");
-			gens.put(mod.getClass(), gen.getClass());
+		if (Platform.getExtensionRegistry()!=null) {
+			final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.generator");
+			for (IConfigurationElement e : eles) {
+				final IGenerator gen = (IGenerator)e.createExecutableExtension("class");
+				final Object     mod = e.createExecutableExtension("model");
+				gens.put(mod.getClass(), gen.getClass());
+			}
 		}
 	}
 
