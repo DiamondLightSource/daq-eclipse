@@ -197,12 +197,12 @@ public class GridTest {
 		// Check some random points are correct
 		assertEquals(0.075, pointList.get(0).getX(), 1e-8);
 		for (int i = 0; i < 20; i++) {
-			assertEquals(0, pointList.get(i).getIndex("x"));
-			assertEquals(i, pointList.get(i).getIndex("y"));
+			assertEquals(i, pointList.get(i).getIndex("x"));
+			assertEquals(0, pointList.get(i).getIndex("y"));
 		}
 		for (int i = 20; i < 40; i++) {
-			assertEquals(1, pointList.get(i).getIndex("x"));
-			assertEquals(i-20, pointList.get(i).getIndex("y"));
+			assertEquals(i-20, pointList.get(i).getIndex("x"));
+			assertEquals(1, pointList.get(i).getIndex("y"));
 		}
 		
 		assertEquals(0.075, pointList.get(0).getY(), 1e-8);
