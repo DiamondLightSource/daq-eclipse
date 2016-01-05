@@ -44,8 +44,13 @@ final class DetectorWriter extends DetectorRunner {
 
 		@Override
 		public IPosition call() throws Exception {
-			detector.write(position);
-			return position;
+			try {
+				detector.write(position);
+				return position;
+			} catch (Exception ne) {
+				abort(detector, null, position, ne);
+                throw ne;
+			}
 		}
 
 	}

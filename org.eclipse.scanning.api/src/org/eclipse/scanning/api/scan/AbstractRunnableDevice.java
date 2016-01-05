@@ -98,6 +98,10 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void setState(DeviceState nstate) throws ScanningException {
 		setState(nstate, null);
 	}
+	
+	public void reset() throws ScanningException {
+		setState(DeviceState.IDLE);
+	}
 
 	/**
 	 * 

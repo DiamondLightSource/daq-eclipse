@@ -2,6 +2,13 @@ package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.io.File;
+
+import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.ILazyDataset;
+import org.eclipse.dawnsci.analysis.api.tree.DataNode;
+import org.eclipse.dawnsci.nexus.INexusFileFactory;
+import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -10,12 +17,12 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
-import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
 import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
+import org.eclipse.scanning.test.scan.mock.MockWritingDetector;
+import org.eclipse.scanning.test.scan.mock.MockWritingModel;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,8 +48,12 @@ public class MandelbrotScanPluginTest {
 	@Test
 	public void testDetector() throws Exception {
 		
-		final MandelbrotModel model = new MandelbrotModel(); // Defaults ok
-		IRunnableDevice<MandelbrotModel> det = service.createRunnableDevice(model);
+		final MockWritingModel model = new MockWritingModel(); // Defaults ok
+		File output = File.createTempFile("test_nexus", ".nxs");
+		output.deleteOnExit();
+		model.setFilePath(output.getAbsolutePath());
+		
+		IRunnableDevice<MockWritingModel> det = service.createRunnableDevice(model);
 		assertNotNull(det);
 	}
 	
@@ -50,13 +61,25 @@ public class MandelbrotScanPluginTest {
 	public void testMandelbrotScan() throws Exception {
 
 		// Configure a detector with a collection time.
-		final MandelbrotModel model = new MandelbrotModel(); // Defaults ok
-		IRunnableDevice<MandelbrotModel> det = service.createRunnableDevice(model);
+		final MockWritingModel model = new MockWritingModel(); // Defaults ok
+		File output = File.createTempFile("test_nexus", ".nxs");
+		output.deleteOnExit();
+		model.setFilePath(output.getAbsolutePath());
+
+		IRunnableDevice<MockWritingModel> det = service.createRunnableDevice(model);
 		IRunnableDevice<ScanModel> scanner = createTestScanner(det);
-		
 		scanner.run(null);
+			
+		// Check what was written.
+		INexusFileFactory factory = MockWritingDetector.getFactory();
+		NexusFile nf = factory.newNexusFile(output.getAbsolutePath());
+		nf.openToRead();
 		
-		// TODO Ensure that the model says where to write images and write them.
+		DataNode d = nf.getData("/entry1/instrument/detector/"+model.getName());
+		IDataset ds = d.getDataset().getSlice().squeeze();
+		int[] shape = ds.getShape();
+
+		System.out.println(shape);
 	}
 	
 	private IRunnableDevice<ScanModel> createTestScanner(final IRunnableDevice<?> detector) throws Exception {

@@ -52,7 +52,11 @@ class DetectorRunner extends LevelRunner<IRunnableDevice<?>> {
 			if (detector instanceof IRunnableEventDevice) {
 				((IRunnableEventDevice)detector).fireRunWillPerform(position);
 			}
-			detector.run(position);
+			try {
+			    detector.run(position);
+			} catch (Exception ne) {
+				abort(detector, null, position, ne);
+			}
 			if (detector instanceof IRunnableEventDevice) {
 				((IRunnableEventDevice)detector).fireRunPerformed(position);
 			}

@@ -43,7 +43,7 @@ public class MockScannableConnector implements IDeviceConnectorService {
 	public <M> IWritableDetector<M> getDetector(String name) throws ScanningException {
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		if (cache.containsKey(name)) return (IWritableDetector<M>)cache.get(name);
-		register(new MockReadableDetector(name));
+		register(new MockWritableDetector(name));
 		return (IWritableDetector<M>)cache.get(name);
 	}
 }

@@ -51,7 +51,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * @author Matthew Gerring
  *
  */
-public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T> {
+public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>, IResetableDevice {
 	
 	/**
 	 * 

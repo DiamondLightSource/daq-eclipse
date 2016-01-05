@@ -23,9 +23,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IPositioner {
-	
-	private static Logger logger = LoggerFactory.getLogger(ScannablePositioner.class);
-	
+		
 	private IDeviceConnectorService     hservice;
 	private List<IScannable<?>>         monitors;
 
@@ -89,7 +87,7 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 			    scannable.setPosition(value, position);
 			    
 			} catch (Exception ne) {
-				logger.error("Cannot set scannable named '"+scannable.getName()+"' to value '"+value+"'", ne); // Just for testing we make sure that the stack is visible.
+				abort(scannable, value, position, ne);
 				throw ne;
 			}
 			return new MapPosition(scannable.getName(), position.getIndex(scannable.getName()), scannable.getPosition()); // Might not be exactly what we moved to

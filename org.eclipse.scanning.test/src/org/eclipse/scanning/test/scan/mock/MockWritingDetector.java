@@ -16,7 +16,7 @@
  * with GDA. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.eclipse.scanning.example.detector;
+package org.eclipse.scanning.test.scan.mock;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -25,7 +25,9 @@ import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
+import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
 import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
@@ -33,7 +35,6 @@ import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
-import org.eclipse.dawnsci.nexus.builder.NexusBuilderFactory;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
@@ -42,26 +43,30 @@ import org.eclipse.scanning.api.scan.ScanningException;
 
 
 /**
- * A dummy detector which must be set up with references to two Scannables representing X and Y positions. When used in a step scan, this detector generates a
- * value of 0 if the point (x, y) is in the Mandelbrot set, and greater than zero otherwise.
- * <p>
- * Note: values will always be high if used at (x, y) positions more than 2 units away from the origin.
+ * A mock detector used for testing ONLY
+ * 
+ * This detector bypasses the NeXus API for writing things in the correct place
+ * and hard codes a particular file path.
+ * 
+ * DO NOT COPY!
+ * 
  */
-public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel> {
+public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel> implements IWritableDetector<MockWritingModel> {
 
 	public enum OutputDimensions { ONE_D, TWO_D }
 
 	public static final String VALUE_NAME = "mandelbrot_value";
 	
-	private static NexusBuilderFactory factory;
+	private static INexusFileFactory factory;
 
-	private MandelbrotModel       model;
+	private MockWritingModel      model;
 	private IDataset              toWrite;
 	private ILazyWriteableDataset writer;
+	private int                   imageIndex;
 	
-	public MandelbrotDetector() throws IOException {
+	public MockWritingDetector() throws IOException {
 		super();
-		this.model = new MandelbrotModel();
+		this.model = new MockWritingModel();
 	}
 
 	public int[] getDataDimensions() throws Exception {
@@ -76,12 +81,39 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 
 	@Override
-	public void configure(MandelbrotModel model) throws ScanningException {
+	public void configure(MockWritingModel model) throws ScanningException {
 		
-		this.model = model;
+		this.model      = model;
+		this.imageIndex = -1;
 		setState(DeviceState.READY);
 		
-		// TODO Use NexusBuilderFactory to set things up
+		// We make a lazy writeable dataset to write out the mandels.
+		final int[] shape = new int[]{model.getPoints(), model.getRows(), model.getColumns()};
+		final int[] mx    = new int[]{model.getPoints(), shape[1], shape[2]}; 
+		// TODO How big is the scan?
+		
+		try {
+			/**
+			 * @see org.eclipse.dawnsci.nexus.NexusFileTest.testLazyWriteStringArray()
+			 
+			  TODO FIXME Hack warning! This is not the way to write to NeXus.
+			  We are just doing this for the test!
+			  
+			  DO NOT COPY!
+			*/
+			NexusFile file = factory.newNexusFile(model.getFilePath(), true);  // DO NOT COPY!
+			file.openToWrite(true); // DO NOT COPY!
+			
+			GroupNode par = file.getGroup("/entry1/instrument/detector", true); // DO NOT COPY!
+			writer = new LazyWriteableDataset(model.getName(), Dataset.FLOAT, shape, mx, shape, null); // DO NOT COPY!
+			
+			file.createData(par, writer); // DO NOT COPY!
+			file.close(); // DO NOT COPY!
+			
+		} catch (NexusException ne) {
+			throw new ScanningException("Cannot open file for writing!", ne);
+		}
+        
 	}
 
 	@Override
@@ -91,7 +123,6 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		final double b = (Double)pos.get(model.getyName());
 
 		double value = mandelbrot(a, b);
-		// TODO FIXME store value
 		
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
 			toWrite = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
@@ -102,12 +133,27 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		mp.put("value", value);
 		Metadata meta = new Metadata(mp);
 		toWrite.addMetadata(meta);	
+		imageIndex++;
   	}
 
 	@Override
 	public boolean write(IPosition pos) throws ScanningException {
 		
-		// TODO NexusBuilderFactory
+		/**
+		  TODO FIXME Hack warning! This is not the way to write to NeXus.
+		  We are just doing this for the test!
+		  
+		  DO NOT COPY!
+		*/
+		final int[] start = new int[]{imageIndex, model.getRows(), model.getColumns()}; // DO NOT COPY!
+		final int[] stop  = new int[] {imageIndex+1, start[1], start[2]};
+		
+		SliceND slice = SliceND.createSlice(writer, start, stop); // DO NOT COPY!
+		try {
+			writer.setSlice(new IMonitor.Stub(), toWrite, slice); // DO NOT COPY!
+		} catch (Exception e) {
+			throw new ScanningException("Slice unable to write!", e); // DO NOT COPY!
+		}
         
 		return true;
 	}
@@ -197,11 +243,11 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		throw new ScanningException("Operation not supported!");
 	}
 
-	public static NexusBuilderFactory getFactory() {
+	public static INexusFileFactory getFactory() {
 		return factory;
 	}
 
-	public static void setFactory(NexusBuilderFactory factory) {
-		MandelbrotDetector.factory = factory;
+	public static void setFactory(INexusFileFactory factory) {
+		MockWritingDetector.factory = factory;
 	}
 }

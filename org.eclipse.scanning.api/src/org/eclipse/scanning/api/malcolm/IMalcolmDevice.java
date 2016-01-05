@@ -64,11 +64,6 @@ public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEven
 	public T validate(T params) throws MalcolmDeviceException;
 	
 	/**
-	 * Allowed from Fault. Will try to reset the device into Idle state. Will block until the device is in a rest state.
-	 */
-	public void reset() throws MalcolmDeviceException; 
-	
-	/**
 	 * Attempts to determine if the device is locked doing something like a configure or a run.
 	 * 
 	 * @return true if not in locked state, otherwise false.

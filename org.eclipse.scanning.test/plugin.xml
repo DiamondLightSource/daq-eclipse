@@ -8,5 +8,12 @@
             model="org.eclipse.scanning.test.points.TestGeneratorModel">
       </generator>
    </extension>
+   <extension
+         point="org.eclipse.scanning.api.detector">
+      <detector
+            class="org.eclipse.scanning.test.scan.mock.MockWritingDetector"
+            model="org.eclipse.scanning.test.scan.mock.MockWritingModel">
+      </detector>
+   </extension>
 
 </plugin>

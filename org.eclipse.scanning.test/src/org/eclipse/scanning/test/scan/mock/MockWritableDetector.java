@@ -8,13 +8,13 @@ import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
-public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorModel> implements IWritableDetector<MockDetectorModel> {
+public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorModel> implements IWritableDetector<MockDetectorModel> {
 	
-	public MockReadableDetector() {
+	public MockWritableDetector() {
 		super();
 	}
 	
-	public MockReadableDetector(String name) {
+	public MockWritableDetector(String name) {
 		super();
 		setName(name);
 	}
@@ -33,8 +33,10 @@ public class MockReadableDetector extends AbstractRunnableDevice<MockDetectorMod
 	public boolean write(IPosition position) throws ScanningException {
 		
 		IDataset next = Random.rand(new int[]{1024, 1024});
-		getModel().setRead(getModel().getRead()+1);
-		// TODO write next somewhere?
+		getModel().setWritten(getModel().getWritten()+1);
+		if (getModel().getAbortCount()>-1 && getModel().getAbortCount()<=getModel().getWritten()) {
+			throw new ScanningException("The detector had a problem writing! This exception should stop the scan running!");
+		}
 		
 		return true;
 	}

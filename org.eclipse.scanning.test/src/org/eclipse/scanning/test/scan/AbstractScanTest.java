@@ -31,7 +31,9 @@ import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
+import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -145,10 +147,67 @@ public class AbstractScanTest {
 	@Test
 	public void testSimpleScan() throws Exception {
 				
-		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null);
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null);
 		scanner.run(null);
 		checkRun(scanner);
 	}
+	
+	
+	@Test
+	public void testScanError() throws Exception {
+		
+		// 1. Set the model to make the detector throw an exception
+		IWritableDetector<MockDetectorModel> detector = connector.getDetector("detector");
+		MockDetectorModel dmodel = new MockDetectorModel();
+		dmodel.setCollectionTime(0.1);
+		dmodel.setAbortCount(3); // Aborts on the third write call by throwing an exception
+		detector.configure(dmodel);
+		
+		// 2. Check run fails and check exception is that which the detector provided
+		// Not some horrible reflection one.
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, detector);
+		boolean ok=false;
+		try {
+		    scanner.run(null);
+		} catch (ScanningException expected) {
+			if (!expected.getMessage().equals("The detector had a problem writing! This exception should stop the scan running!")) {
+				throw new Exception("Expected the precise message from the mock detector not to be lost but it was! It was '"+expected.getMessage()+"'");
+			}
+			ok=true;
+		}
+		if (!ok) throw new Exception("The exception was not thrown by the scan as expected!");
+		
+		// 3. Check that it died after 3 and it is FAULT
+		assertEquals(3, dmodel.getWritten());
+		assertTrue(scanner.getState()==DeviceState.FAULT);
+		
+		// 4. Check that running it again fails
+		ok=false;
+		try {
+			scanner.run(null);
+		} catch (ScanningException expected) {
+			ok=true;
+		}
+		if (!ok) throw new Exception("The exception was not thrown by the scan as expected!");
+		
+		// 5. Reset everything and see if can run ok
+		scanner.reset();
+		
+		// Put the model back for the test and reconfigure
+		dmodel.setRan(0);
+		dmodel.setWritten(0);
+		dmodel.setAbortCount(-1); // Solves the problem with the detector!
+		detector.configure(dmodel);
+		
+		// Reconfigure - might need better way of doing?
+		AbstractRunnableDevice<ScanModel> ascanner = (AbstractRunnableDevice<ScanModel>)scanner;
+		scanner.configure(ascanner.getModel());
+ 		
+		// Run again, should be ok.
+		scanner.run(null);
+		checkRun(scanner);
+	}
+
 
 	@Test
 	public void testSimpleScanWithStatus() throws Exception {
@@ -181,7 +240,7 @@ public class AbstractScanTest {
 		try {
 			
 			// Create a scan and run it without publishing events
-			IRunnableDevice<ScanModel> scanner = createTestScanner(bean, publisher, null);
+			IRunnableDevice<ScanModel> scanner = createTestScanner(bean, publisher, null, null);
 			scanner.run(null);
 			
 			Thread.sleep(1000); // Wait for all events to make it over from ActiveMQ
@@ -204,7 +263,7 @@ public class AbstractScanTest {
 	public void testSimpleScanSetPositionCalls() throws Exception {
 			
 		IScannable<Number> x = connector.getScannable("x");
-		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null);
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null);
 		
 		scanner.run(null);
 		
@@ -222,7 +281,7 @@ public class AbstractScanTest {
 	public void testSimpleScanWithMonitor() throws Exception {
 			
 		IScannable<Number> monitor = connector.getScannable("monitor");
-		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, monitor);
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, monitor, null);
 		
 		scanner.run(null);
 		
@@ -243,16 +302,18 @@ public class AbstractScanTest {
 		IGenerator<?,IPosition> gen = (IGenerator<?,IPosition>)smodel.getPositionIterator();
 		MockDetectorModel dmodel = (MockDetectorModel)((AbstractRunnableDevice)smodel.getDetectors().get(0)).getModel();
 		assertEquals(gen.size(), dmodel.getRan());
-		assertEquals(gen.size(), dmodel.getRead());
+		assertEquals(gen.size(), dmodel.getWritten());
 	}
 
-	private IRunnableDevice<ScanModel> createTestScanner(final ScanBean bean, final IPublisher<ScanBean> publisher, IScannable<?> monitor) throws Exception {
+	private IRunnableDevice<ScanModel> createTestScanner(final ScanBean bean, final IPublisher<ScanBean> publisher, IScannable<?> monitor, IRunnableDevice<MockDetectorModel> detector) throws Exception {
 		
 		// Configure a detector with a collection time.
-		IRunnableDevice<MockDetectorModel> detector = connector.getDetector("detector");
-		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setCollectionTime(0.1);
-		detector.configure(dmodel);
+		if (detector == null) {
+			detector = connector.getDetector("detector");
+			MockDetectorModel dmodel = new MockDetectorModel();
+			dmodel.setCollectionTime(0.1);
+			detector.configure(dmodel);
+		}
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();

@@ -16,11 +16,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.ILevel;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -36,9 +39,11 @@ import org.eclipse.scanning.api.scan.event.IPositionListener;
  */
 abstract class LevelRunner<L extends ILevel> {
 	
+	private static Logger logger = LoggerFactory.getLogger(LevelRunner.class);
 
-    protected IPosition position;
-	private ExecutorService eservice;
+    protected IPosition     position;
+    private ExecutorService eservice;
+	private Exception       abortException;
 
 	/**
 	 * Get a list of the objects which we would like to order by level.
@@ -82,6 +87,8 @@ abstract class LevelRunner<L extends ILevel> {
 	 */
 	protected boolean run(IPosition position, boolean block) throws ScanningException, InterruptedException {
 		
+		if (abortException!=null) throw new ScanningException(abortException.getMessage(), abortException);
+
 		this.position = position;
 		boolean ok = firePositionWillPerform(position);
         if (!ok) return false;
@@ -97,6 +104,8 @@ abstract class LevelRunner<L extends ILevel> {
 			Integer finalLevel = 0;
 			for (Iterator<Integer> it = positionMap.keySet().iterator(); it.hasNext();) {
 			    
+				if (abortException!=null) throw new ScanningException(abortException.getMessage(), abortException);
+				
 				int level = it.next();
 				List<L> lobjects = positionMap.get(level);
 				Collection<Callable<IPosition>> tasks = new ArrayList<>(lobjects.size());
@@ -117,8 +126,13 @@ abstract class LevelRunner<L extends ILevel> {
 			
 			firePositionPerformed(finalLevel, position);
 			
-		} catch (ExecutionException ex) {
-			throw new ScanningException("Scanning interupted while moving to new position!", ex);
+		} catch (ScanningException s) {
+			throw s;
+		} catch (InterruptedException i) {
+			throw i;
+		} catch (Exception ne) {
+			if (abortException!=null) throw new ScanningException(abortException.getMessage(), abortException);
+			throw new ScanningException("Scanning interupted while moving to new position!", ne);
 		}
 		
 		return true;
@@ -155,6 +169,26 @@ abstract class LevelRunner<L extends ILevel> {
 		eservice.awaitTermination(time, unit); 
 		eservice = null;
 	}
+	
+	/**
+	 * 
+	 * @param device
+	 * @param value
+	 * @param pos
+	 * @param ne
+	 */
+	protected void abort(INameable device, Object value, IPosition pos, Exception ne) {
+		
+		String message = "Cannot run device named '"+device.getName()+"' value is '"+value+"' (may be null) and position is '"+pos+"'";
+		logger.error(message, ne); // Just for testing we make sure that the stack is visible.
+        System.err.println(message);
+        abortException = ne;
+		eservice.shutdownNow();
+	}
+	
+	public void reset() {
+		abortException = null;
+	}
 
 	/**
 	 * Get the scannables, ordered by level, lowest first
@@ -179,13 +213,13 @@ abstract class LevelRunner<L extends ILevel> {
 		// TODO Need spring config for this.
 		int processors = Runtime.getRuntime().availableProcessors();
 		return new ThreadPoolExecutor(processors,             /* number of motors to move at the same time. */
-                processors*2,                                 /* max size current tasks. */
-                5, TimeUnit.SECONDS,                          /* timeout after - does this need spring config? */
-                new ArrayBlockingQueue<Runnable>(1000, true), /* max 1000+ncores motors to a level */
-                new ThreadPoolExecutor.AbortPolicy());
+						              processors*2,                                 /* max size current tasks. */
+						              5, TimeUnit.SECONDS,                          /* timeout after - does this need spring config? */
+						              new ArrayBlockingQueue<Runnable>(1000, true), /* max 1000+ncores motors to a level */
+						              new ThreadPoolExecutor.DiscardPolicy());
 
 	}
-
+	
 	private Collection<IPositionListener> listeners;
 
 	protected boolean firePositionWillPerform(IPosition position) {

@@ -66,6 +66,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	@Override
 	public void run(IPosition parent) throws ScanningException, InterruptedException {
 		
+		if (getState()!=DeviceState.READY) throw new ScanningException("The device '"+getName()+"' is not ready. It is in state "+getState());
 		
 		ScanModel model = getModel();
 		if (model.getPositionIterator()==null) throw new ScanningException("The model must contain some points to scan!");
@@ -75,8 +76,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // TODO Should we validate the position iterator that all
 	        // the positions are valid before running the scan?
 	        // It was called limit checking in GDA.
-	        // Sometimes logic is needed to implement collision avoidance.
-	        
+	        // Sometimes logic is needed to implement collision avoidance
     		setState(DeviceState.RUNNING);
     	
     		// We allow monitors which can block a position until a setpoint is
@@ -122,13 +122,25 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
         	writers.await();                   // Wait for the previous read out to return, if any
         	setState(DeviceState.READY);
         	
-		} catch (ScanningException s) {
-			throw s;
-		} catch (InterruptedException i) {
+		} catch (ScanningException | InterruptedException i) {
+			setState(DeviceState.FAULT);
 			throw i;
 		} catch (Exception ne) {
+			setState(DeviceState.FAULT);
 			throw new ScanningException(ne);
 		}
+	}
+
+	
+	public void reset() throws ScanningException {
+		
+		if (positioner instanceof LevelRunner) {
+			((LevelRunner)positioner).reset();
+		}
+		detectors.reset();
+		writers.reset();
+
+		super.reset();
 	}
 
 	private void checkPaused() throws Exception {

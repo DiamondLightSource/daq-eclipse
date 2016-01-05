@@ -15,7 +15,8 @@ public class MockDetectorModel {
 	private double collectionTime;
 	
 	private int ran=0;
-	private int read=0;
+	private int written=0;
+	private int abortCount=-1;
 
 	
 	public double getCollectionTime() {
@@ -34,23 +35,24 @@ public class MockDetectorModel {
 		this.ran = ran;
 	}
 
-	public int getRead() {
-		return read;
+	public int getWritten() {
+		return written;
 	}
 
-	public void setRead(int read) {
-		this.read = read;
+	public void setWritten(int read) {
+		this.written = read;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + abortCount;
 		long temp;
 		temp = Double.doubleToLongBits(collectionTime);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ran;
-		result = prime * result + read;
+		result = prime * result + written;
 		return result;
 	}
 
@@ -63,14 +65,24 @@ public class MockDetectorModel {
 		if (getClass() != obj.getClass())
 			return false;
 		MockDetectorModel other = (MockDetectorModel) obj;
+		if (abortCount != other.abortCount)
+			return false;
 		if (Double.doubleToLongBits(collectionTime) != Double
 				.doubleToLongBits(other.collectionTime))
 			return false;
 		if (ran != other.ran)
 			return false;
-		if (read != other.read)
+		if (written != other.written)
 			return false;
 		return true;
+	}
+
+	public int getAbortCount() {
+		return abortCount;
+	}
+
+	public void setAbortCount(int abortCount) {
+		this.abortCount = abortCount;
 	}
 
 }

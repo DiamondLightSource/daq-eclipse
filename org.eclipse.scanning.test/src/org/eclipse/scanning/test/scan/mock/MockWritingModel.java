@@ -1,11 +1,10 @@
-package org.eclipse.scanning.example.detector;
+package org.eclipse.scanning.test.scan.mock;
 
-import java.io.File;
 import java.io.IOException;
 
-import org.eclipse.scanning.example.detector.MandelbrotDetector.OutputDimensions;
+import org.eclipse.scanning.test.scan.mock.MockWritingDetector.OutputDimensions;
 
-public class MandelbrotModel {
+public class MockWritingModel {
 
 	private OutputDimensions outputDimensions = OutputDimensions.TWO_D;
 
@@ -21,7 +20,7 @@ public class MandelbrotModel {
 	private String yName;
 	private String filePath;
 	
-	public MandelbrotModel() throws IOException {
+	public MockWritingModel() throws IOException {
 		
 		maxIterations = 500;
 		escapeRadius  = 10.0;
@@ -110,7 +109,7 @@ public class MandelbrotModel {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MandelbrotModel other = (MandelbrotModel) obj;
+		MockWritingModel other = (MockWritingModel) obj;
 		if (columns != other.columns)
 			return false;
 		if (Double.doubleToLongBits(escapeRadius) != Double
