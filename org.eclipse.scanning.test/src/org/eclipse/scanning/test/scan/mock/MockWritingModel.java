@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.scan.mock;
 
 import java.io.IOException;
 
+import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.test.scan.mock.MockWritingDetector.OutputDimensions;
 
 public class MockWritingModel {
@@ -18,7 +19,7 @@ public class MockWritingModel {
 	private String name;
 	private String xName;
 	private String yName;
-	private String filePath;
+	private NexusFile file;
 	
 	public MockWritingModel() throws IOException {
 		
@@ -84,8 +85,7 @@ public class MockWritingModel {
 		long temp;
 		temp = Double.doubleToLongBits(escapeRadius);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result
-				+ ((filePath == null) ? 0 : filePath.hashCode());
+		result = prime * result + ((file == null) ? 0 : file.hashCode());
 		result = prime * result + maxIterations;
 		temp = Double.doubleToLongBits(maxx);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -115,10 +115,10 @@ public class MockWritingModel {
 		if (Double.doubleToLongBits(escapeRadius) != Double
 				.doubleToLongBits(other.escapeRadius))
 			return false;
-		if (filePath == null) {
-			if (other.filePath != null)
+		if (file == null) {
+			if (other.file != null)
 				return false;
-		} else if (!filePath.equals(other.filePath))
+		} else if (!file.equals(other.file))
 			return false;
 		if (maxIterations != other.maxIterations)
 			return false;
@@ -176,12 +176,12 @@ public class MockWritingModel {
 		this.yName = yName;
 	}
 
-	public String getFilePath() {
-		return filePath;
+	public NexusFile getFile() {
+		return file;
 	}
 
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
+	public void setFile(NexusFile file) {
+		this.file = file;
 	}
 
 	

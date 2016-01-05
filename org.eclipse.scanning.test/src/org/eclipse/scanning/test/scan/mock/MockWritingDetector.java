@@ -57,7 +57,6 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 
 	public static final String VALUE_NAME = "mandelbrot_value";
 	
-	private static INexusFileFactory factory;
 
 	private MockWritingModel      model;
 	private IDataset              toWrite;
@@ -101,14 +100,11 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 			  
 			  DO NOT COPY!
 			*/
-			NexusFile file = factory.newNexusFile(model.getFilePath(), true);  // DO NOT COPY!
-			file.openToWrite(true); // DO NOT COPY!
-			
+			NexusFile file = model.getFile();			
 			GroupNode par = file.getGroup("/entry1/instrument/detector", true); // DO NOT COPY!
 			writer = new LazyWriteableDataset(model.getName(), Dataset.FLOAT, shape, mx, shape, null); // DO NOT COPY!
 			
 			file.createData(par, writer); // DO NOT COPY!
-			file.close(); // DO NOT COPY!
 			
 		} catch (NexusException ne) {
 			throw new ScanningException("Cannot open file for writing!", ne);
@@ -145,8 +141,8 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 		  
 		  DO NOT COPY!
 		*/
-		final int[] start = new int[]{imageIndex, model.getRows(), model.getColumns()}; // DO NOT COPY!
-		final int[] stop  = new int[] {imageIndex+1, start[1], start[2]};
+		final int[] start = new int[]{imageIndex, 0, 0}; // DO NOT COPY!
+		final int[] stop  = new int[] {imageIndex+1, model.getRows(), model.getColumns()};
 		
 		SliceND slice = SliceND.createSlice(writer, start, stop); // DO NOT COPY!
 		try {
@@ -168,12 +164,12 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 		final double yStop = model.getMaxy();
 		final double yStep = (yStop - yStart) / (rows - 1);
 		double y;
-		IDataset juliaSet = new DoubleDataset(rows,columns);
+		IDataset juliaSet = new DoubleDataset(1, rows,columns);
 		for (int yIndex = 0; yIndex < rows; yIndex++) {
 			y = yStart + yIndex * yStep;
 			IDataset line = calculateJuliaSetLine(a, b, y, xStart, xStop, columns);
 			for (int x = 0; x < line.getSize(); x++) {
-				juliaSet.set(line.getObject(x), yIndex, x);	
+				juliaSet.set(line.getObject(x), 0, yIndex, x);	
 			}
 		}
 		return juliaSet;
@@ -241,13 +237,5 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 	@Override
 	public void resume() throws ScanningException {
 		throw new ScanningException("Operation not supported!");
-	}
-
-	public static INexusFileFactory getFactory() {
-		return factory;
-	}
-
-	public static void setFactory(INexusFileFactory factory) {
-		MockWritingDetector.factory = factory;
 	}
 }

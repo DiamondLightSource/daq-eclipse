@@ -41,9 +41,9 @@ abstract class LevelRunner<L extends ILevel> {
 	
 	private static Logger logger = LoggerFactory.getLogger(LevelRunner.class);
 
-    protected IPosition     position;
-    private ExecutorService eservice;
-	private Exception       abortException;
+    protected IPosition        position;
+    private ExecutorService    eservice;
+	private ScanningException  abortException;
 
 	/**
 	 * Get a list of the objects which we would like to order by level.
@@ -87,7 +87,7 @@ abstract class LevelRunner<L extends ILevel> {
 	 */
 	protected boolean run(IPosition position, boolean block) throws ScanningException, InterruptedException {
 		
-		if (abortException!=null) throw new ScanningException(abortException.getMessage(), abortException);
+		if (abortException!=null) throw abortException;
 
 		this.position = position;
 		boolean ok = firePositionWillPerform(position);
@@ -104,7 +104,7 @@ abstract class LevelRunner<L extends ILevel> {
 			Integer finalLevel = 0;
 			for (Iterator<Integer> it = positionMap.keySet().iterator(); it.hasNext();) {
 			    
-				if (abortException!=null) throw new ScanningException(abortException.getMessage(), abortException);
+				if (abortException!=null) throw abortException;
 				
 				int level = it.next();
 				List<L> lobjects = positionMap.get(level);
@@ -131,7 +131,7 @@ abstract class LevelRunner<L extends ILevel> {
 		} catch (InterruptedException i) {
 			throw i;
 		} catch (Exception ne) {
-			if (abortException!=null) throw new ScanningException(abortException.getMessage(), abortException);
+			if (abortException!=null) throw abortException;
 			throw new ScanningException("Scanning interupted while moving to new position!", ne);
 		}
 		
@@ -182,7 +182,9 @@ abstract class LevelRunner<L extends ILevel> {
 		String message = "Cannot run device named '"+device.getName()+"' value is '"+value+"' (may be null) and position is '"+pos+"'";
 		logger.error(message, ne); // Just for testing we make sure that the stack is visible.
         System.err.println(message);
-        abortException = ne;
+        abortException = ne instanceof ScanningException 
+        		       ? (ScanningException)ne
+        		       : new ScanningException(ne.getMessage(), ne);
 		eservice.shutdownNow();
 	}
 	
