@@ -11,8 +11,8 @@
    <extension
          point="org.eclipse.scanning.api.detector">
       <detector
-            class="org.eclipse.scanning.test.scan.mock.MockWritingDetector"
-            model="org.eclipse.scanning.test.scan.mock.MockWritingModel">
+            class="org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector"
+            model="org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel">
       </detector>
    </extension>
 

@@ -1,5 +1,4 @@
 /*-
- * Copyright © 2015 Diamond Light Source Ltd.
  *
  * This file is part of GDA.
  *
@@ -32,7 +31,6 @@ import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
-import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -51,26 +49,25 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * DO NOT COPY!
  * 
  */
-public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel> implements IWritableDetector<MockWritingModel> {
+public class MockWritingMandelbrotDetector extends AbstractRunnableDevice<MockWritingMandlebrotModel> implements IWritableDetector<MockWritingMandlebrotModel> {
 
 	public enum OutputDimensions { ONE_D, TWO_D }
 
 	public static final String VALUE_NAME = "mandelbrot_value";
 	
 
-	private MockWritingModel      model;
+	private MockWritingMandlebrotModel      model;
 	private IDataset              toWrite;
 	private ILazyWriteableDataset writer;
-	private int                   imageIndex;
 	
-	public MockWritingDetector() throws IOException {
+	public MockWritingMandelbrotDetector() throws IOException {
 		super();
-		this.model = new MockWritingModel();
+		this.model = new MockWritingMandlebrotModel();
 	}
 
 	public int[] getDataDimensions() throws Exception {
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
-			return new int[] { model.getPoints() };
+			return new int[] { model.getxSize()*model.getySize() };
 		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
 			return new int[] { model.getColumns(), model.getRows() };
 		} else {
@@ -80,16 +77,13 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 
 
 	@Override
-	public void configure(MockWritingModel model) throws ScanningException {
+	public void configure(MockWritingMandlebrotModel model) throws ScanningException {
 		
 		this.model      = model;
-		this.imageIndex = -1;
 		setState(DeviceState.READY);
 		
 		// We make a lazy writeable dataset to write out the mandels.
-		final int[] shape = new int[]{model.getPoints(), model.getRows(), model.getColumns()};
-		final int[] mx    = new int[]{model.getPoints(), shape[1], shape[2]}; 
-		// TODO How big is the scan?
+		final int[] shape = new int[]{model.getxSize(), model.getySize(), model.getRows(), model.getColumns()};
 		
 		try {
 			/**
@@ -102,7 +96,7 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 			*/
 			NexusFile file = model.getFile();			
 			GroupNode par = file.getGroup("/entry1/instrument/detector", true); // DO NOT COPY!
-			writer = new LazyWriteableDataset(model.getName(), Dataset.FLOAT, shape, mx, shape, null); // DO NOT COPY!
+			writer = new LazyWriteableDataset(model.getName(), Dataset.FLOAT, shape, shape, shape, null); // DO NOT COPY!
 			
 			file.createData(par, writer); // DO NOT COPY!
 			
@@ -121,7 +115,7 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 		double value = mandelbrot(a, b);
 		
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
-			toWrite = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
+			toWrite = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getxSize()*model.getySize());
 		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
 			toWrite = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
 		}
@@ -129,7 +123,6 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 		mp.put("value", value);
 		Metadata meta = new Metadata(mp);
 		toWrite.addMetadata(meta);	
-		imageIndex++;
   	}
 
 	@Override
@@ -141,8 +134,8 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 		  
 		  DO NOT COPY!
 		*/
-		final int[] start = new int[]{imageIndex, 0, 0}; // DO NOT COPY!
-		final int[] stop  = new int[] {imageIndex+1, model.getRows(), model.getColumns()};
+		final int[] start = new int[]{pos.getIndex("x"), pos.getIndex("y"), 0, 0}; // DO NOT COPY!
+		final int[] stop  = new int[] {pos.getIndex("x")+1, pos.getIndex("y")+1, model.getRows(), model.getColumns()};
 		
 		SliceND slice = SliceND.createSlice(writer, start, stop); // DO NOT COPY!
 		try {
@@ -164,12 +157,12 @@ public class MockWritingDetector extends AbstractRunnableDevice<MockWritingModel
 		final double yStop = model.getMaxy();
 		final double yStep = (yStop - yStart) / (rows - 1);
 		double y;
-		IDataset juliaSet = new DoubleDataset(1, rows,columns);
+		IDataset juliaSet = new DoubleDataset(1, 1, rows, columns);
 		for (int yIndex = 0; yIndex < rows; yIndex++) {
 			y = yStart + yIndex * yStep;
 			IDataset line = calculateJuliaSetLine(a, b, y, xStart, xStop, columns);
 			for (int x = 0; x < line.getSize(); x++) {
-				juliaSet.set(line.getObject(x), 0, yIndex, x);	
+				juliaSet.set(line.getObject(x), 0, 0, yIndex, x);	
 			}
 		}
 		return juliaSet;

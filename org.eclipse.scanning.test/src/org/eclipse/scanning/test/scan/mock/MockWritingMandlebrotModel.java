@@ -3,9 +3,9 @@ package org.eclipse.scanning.test.scan.mock;
 import java.io.IOException;
 
 import org.eclipse.dawnsci.nexus.NexusFile;
-import org.eclipse.scanning.test.scan.mock.MockWritingDetector.OutputDimensions;
+import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector.OutputDimensions;
 
-public class MockWritingModel {
+public class MockWritingMandlebrotModel {
 
 	private OutputDimensions outputDimensions = OutputDimensions.TWO_D;
 
@@ -13,26 +13,28 @@ public class MockWritingModel {
 	private double escapeRadius;
 	private int    columns;
 	private int    rows;
-	private int    points;
 	private double maxx;
 	private double maxy;
 	private String name;
 	private String xName;
 	private String yName;
 	private NexusFile file;
+	private int    xSize;
+	private int    ySize;
 	
-	public MockWritingModel() throws IOException {
+	public MockWritingMandlebrotModel() throws IOException {
 		
 		maxIterations = 500;
 		escapeRadius  = 10.0;
 		columns       = 301;
 		rows          = 241;
-		points        = 1000;
 		maxx          = 1.5;
 		maxy          = 1.2;
 		name          = "mandelbrot_detector";
 		xName         = "x";
 		yName         = "y";
+		xSize         = -1;
+		ySize         = -1;
 	}
 	
 	public int getMaxIterations() {
@@ -58,12 +60,6 @@ public class MockWritingModel {
 	}
 	public void setRows(int rows) {
 		this.rows = rows;
-	}
-	public int getPoints() {
-		return points;
-	}
-	public void setPoints(int points) {
-		this.points = points;
 	}
 	public double getMaxx() {
 		return maxx;
@@ -95,10 +91,11 @@ public class MockWritingModel {
 		result = prime
 				* result
 				+ ((outputDimensions == null) ? 0 : outputDimensions.hashCode());
-		result = prime * result + points;
 		result = prime * result + rows;
 		result = prime * result + ((xName == null) ? 0 : xName.hashCode());
+		result = prime * result + xSize;
 		result = prime * result + ((yName == null) ? 0 : yName.hashCode());
+		result = prime * result + ySize;
 		return result;
 	}
 	@Override
@@ -109,7 +106,7 @@ public class MockWritingModel {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MockWritingModel other = (MockWritingModel) obj;
+		MockWritingMandlebrotModel other = (MockWritingMandlebrotModel) obj;
 		if (columns != other.columns)
 			return false;
 		if (Double.doubleToLongBits(escapeRadius) != Double
@@ -135,8 +132,6 @@ public class MockWritingModel {
 			return false;
 		if (outputDimensions != other.outputDimensions)
 			return false;
-		if (points != other.points)
-			return false;
 		if (rows != other.rows)
 			return false;
 		if (xName == null) {
@@ -144,10 +139,14 @@ public class MockWritingModel {
 				return false;
 		} else if (!xName.equals(other.xName))
 			return false;
+		if (xSize != other.xSize)
+			return false;
 		if (yName == null) {
 			if (other.yName != null)
 				return false;
 		} else if (!yName.equals(other.yName))
+			return false;
+		if (ySize != other.ySize)
 			return false;
 		return true;
 	}
@@ -182,6 +181,22 @@ public class MockWritingModel {
 
 	public void setFile(NexusFile file) {
 		this.file = file;
+	}
+
+	public int getxSize() {
+		return xSize;
+	}
+
+	public void setxSize(int xSize) {
+		this.xSize = xSize;
+	}
+
+	public int getySize() {
+		return ySize;
+	}
+
+	public void setySize(int ySize) {
+		this.ySize = ySize;
 	}
 
 	
