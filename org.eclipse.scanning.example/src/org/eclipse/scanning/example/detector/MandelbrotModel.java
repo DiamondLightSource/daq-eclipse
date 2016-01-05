@@ -1,18 +1,41 @@
 package org.eclipse.scanning.example.detector;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.eclipse.scanning.example.detector.MandelbrotDetector.OutputDimensions;
 
 public class MandelbrotModel {
 
 	private OutputDimensions outputDimensions = OutputDimensions.TWO_D;
 
-	private int    maxIterations = 500;
-	private double escapeRadius  = 10.0;
-	private int    columns = 301;
-	private int    rows = 241;
-	private int    points = 1000;
-	private double maxx = 1.5;
-	private double maxy = 1.2;
+	private int    maxIterations;
+	private double escapeRadius;
+	private int    columns;
+	private int    rows;
+	private int    points;
+	private double maxx;
+	private double maxy;
+	private String name;
+	private String xName;
+	private String yName;
+	private String filePath;
+	
+	public MandelbrotModel() throws IOException {
+		
+		maxIterations = 500;
+		escapeRadius  = 10.0;
+		columns       = 301;
+		rows          = 241;
+		points        = 1000;
+		maxx          = 1.5;
+		maxy          = 1.2;
+		name          = "mandelbrot_detector";
+		xName         = "x";
+		yName         = "y";
+		filePath      = File.createTempFile("test_nexus", "nxs").getAbsolutePath();
+	}
+	
 	public int getMaxIterations() {
 		return maxIterations;
 	}
@@ -63,16 +86,21 @@ public class MandelbrotModel {
 		long temp;
 		temp = Double.doubleToLongBits(escapeRadius);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result
+				+ ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + maxIterations;
 		temp = Double.doubleToLongBits(maxx);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(maxy);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime
 				* result
 				+ ((outputDimensions == null) ? 0 : outputDimensions.hashCode());
 		result = prime * result + points;
 		result = prime * result + rows;
+		result = prime * result + ((xName == null) ? 0 : xName.hashCode());
+		result = prime * result + ((yName == null) ? 0 : yName.hashCode());
 		return result;
 	}
 	@Override
@@ -89,6 +117,11 @@ public class MandelbrotModel {
 		if (Double.doubleToLongBits(escapeRadius) != Double
 				.doubleToLongBits(other.escapeRadius))
 			return false;
+		if (filePath == null) {
+			if (other.filePath != null)
+				return false;
+		} else if (!filePath.equals(other.filePath))
+			return false;
 		if (maxIterations != other.maxIterations)
 			return false;
 		if (Double.doubleToLongBits(maxx) != Double
@@ -97,11 +130,26 @@ public class MandelbrotModel {
 		if (Double.doubleToLongBits(maxy) != Double
 				.doubleToLongBits(other.maxy))
 			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
 		if (outputDimensions != other.outputDimensions)
 			return false;
 		if (points != other.points)
 			return false;
 		if (rows != other.rows)
+			return false;
+		if (xName == null) {
+			if (other.xName != null)
+				return false;
+		} else if (!xName.equals(other.xName))
+			return false;
+		if (yName == null) {
+			if (other.yName != null)
+				return false;
+		} else if (!yName.equals(other.yName))
 			return false;
 		return true;
 	}
@@ -110,6 +158,32 @@ public class MandelbrotModel {
 	}
 	public void setOutputDimensions(OutputDimensions outputDimensions) {
 		this.outputDimensions = outputDimensions;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getxName() {
+		return xName;
+	}
+	public void setxName(String xName) {
+		this.xName = xName;
+	}
+	public String getyName() {
+		return yName;
+	}
+	public void setyName(String yName) {
+		this.yName = yName;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
 	}
 
 	

@@ -18,13 +18,21 @@
 
 package org.eclipse.scanning.example.detector;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
+import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
+import org.eclipse.dawnsci.nexus.INexusFileFactory;
+import org.eclipse.dawnsci.nexus.NexusException;
+import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
@@ -43,8 +51,14 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public enum OutputDimensions { ONE_D, TWO_D }
 
 	public static final String VALUE_NAME = "mandelbrot_value";
+	
+	private static INexusFileFactory factory;
 
-	public MandelbrotDetector() {
+	private MandelbrotModel       model;
+	private IDataset              toWrite;
+	private ILazyWriteableDataset writer;
+	
+	public MandelbrotDetector() throws IOException {
 		super();
 		this.model = new MandelbrotModel();
 	}
@@ -60,40 +74,60 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	}
 
 
-	private MandelbrotModel model;
-
 	@Override
 	public void configure(MandelbrotModel model) throws ScanningException {
+		
 		this.model = model;
 		setState(DeviceState.READY);
+		
+		// We make a lazy writeable dataset to write out the mandles.
+		final int[] shape = new int[]{1, model.getColumns(), model.getRows()};
+		final int[] mx    = new int[]{model.getPoints(), model.getColumns(), model.getRows()}; 
+		// TODO How big is the scan?
+		
+		try {
+			/**
+			 * @see org.eclipse.dawnsci.nexus.NexusFileTest.testLazyWriteStringArray()
+			 */
+			NexusFile file = factory.newNexusFile(model.getFilePath(), true);
+			file.openToWrite(true);
+			
+			GroupNode par = file.getGroup("/entry1/instrument/detector", true);
+			writer = new LazyWriteableDataset(model.getName(), Dataset.FLOAT, shape, mx, shape, null);
+			
+			file.createData(par, writer);
+			file.close();
+			
+		} catch (NexusException ne) {
+			throw new ScanningException("Cannot open file for writing!", ne);
+		}
+         
 	}
-	
+
 	@Override
 	public void run(IPosition pos) throws ScanningException {
 		
-		final double a = (Double)pos.get("X");
-		final double b = (Double)pos.get("Y");
+		final double a = (Double)pos.get(model.getxName());
+		final double b = (Double)pos.get(model.getyName());
 
 		double value = mandelbrot(a, b);
 		// TODO FIXME store value
 		
-		IDataset ret = null;
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
-			ret = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
+			toWrite = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
 		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
-			ret = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
+			toWrite = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
 		}
 		final Map<String, Serializable> mp = new HashMap<>(1);
 		mp.put("value", value);
 		Metadata meta = new Metadata(mp);
-        ret.addMetadata(meta);
-		
+		toWrite.addMetadata(meta);	
   	}
 
 	@Override
 	public boolean write(IPosition pos) throws ScanningException {
 		
-        // TODO Read the IDataset to an HDF5 file?
+		//writer.setSlice(monitor, toWrite, slice);
         
 		return true;
 	}
@@ -181,5 +215,13 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	@Override
 	public void resume() throws ScanningException {
 		throw new ScanningException("Operation not supported!");
+	}
+
+	public static INexusFileFactory getFactory() {
+		return factory;
+	}
+
+	public static void setFactory(INexusFileFactory factory) {
+		MandelbrotDetector.factory = factory;
 	}
 }

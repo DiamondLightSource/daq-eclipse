@@ -1,8 +1,7 @@
 package org.eclipse.scanning.test.scan;
 
-import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.scan.ScanBean;
+import static org.junit.Assert.assertNotNull;
+
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -16,12 +15,9 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
 import org.eclipse.scanning.sequencer.ScanningServiceImpl;
-import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 import org.junit.Test;
-
-import static  org.junit.Assert.assertNotNull;
 
 /**
  * Uses extension points so please run as plugin test.
@@ -43,7 +39,7 @@ public class MandelbrotScanPluginTest {
 	}
 	
 	@Test
-	public void testDetector() throws ScanningException {
+	public void testDetector() throws Exception {
 		
 		final MandelbrotModel model = new MandelbrotModel(); // Defaults ok
 		IRunnableDevice<MandelbrotModel> det = service.createRunnableDevice(model);
@@ -59,6 +55,8 @@ public class MandelbrotScanPluginTest {
 		IRunnableDevice<ScanModel> scanner = createTestScanner(det);
 		
 		scanner.run(null);
+		
+		// TODO Ensure that the model says where to write images and write them.
 	}
 	
 	private IRunnableDevice<ScanModel> createTestScanner(final IRunnableDevice<?> detector) throws Exception {
