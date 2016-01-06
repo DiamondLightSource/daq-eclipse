@@ -15,7 +15,7 @@ import org.junit.Test;
 /**
  * Actually tests any scalar scan
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class StepTest {

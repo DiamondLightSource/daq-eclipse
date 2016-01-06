@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.event.IEventListener;
  * for a given scan a listener must be added and then have its
  * scanId registered for that scan. 
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface IScanListener extends IEventListener<ScanBean> {
@@ -32,7 +32,7 @@ public interface IScanListener extends IEventListener<ScanBean> {
 	
 	/**
 	 * Convenience class for extending. For instance in the case where the UUID is null.
-	 * @author fcp94556
+	 * @author Matthew Gerring
 	 *
 	 */
 	public class Stub implements IScanListener{

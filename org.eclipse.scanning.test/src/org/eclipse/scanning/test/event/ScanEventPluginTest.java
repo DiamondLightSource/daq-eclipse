@@ -9,7 +9,7 @@ import org.junit.Before;
 
 /**
  * Scan Event Test but with OSGi container.
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class ScanEventPluginTest extends AbstractScanEventTest{

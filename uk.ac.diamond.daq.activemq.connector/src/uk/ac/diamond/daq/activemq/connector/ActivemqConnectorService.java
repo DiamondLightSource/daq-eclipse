@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  * 2. We create a bundle called org.eclipse.scanning.event.activemq to donate the dependency
  * 3. We start the scanning eclipse project and get ActiveMQ ip checked (rather large unless already done might be hard).
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class ActivemqConnectorService implements IEventConnectorService {

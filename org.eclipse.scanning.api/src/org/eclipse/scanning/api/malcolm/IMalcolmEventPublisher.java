@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
  * and publishes them to ActiveMQ. These events can then be picked up 
  * and the SWMR file read to get the data.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface IMalcolmEventPublisher {

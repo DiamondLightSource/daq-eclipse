@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Launches a queue monitor which the appropriate queue and topic names.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class StatusQueueLaunchView extends ViewPart {

@@ -11,7 +11,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 /**
  * Designed to be run outside OSGi
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class ScanEventTest extends AbstractScanEventTest{

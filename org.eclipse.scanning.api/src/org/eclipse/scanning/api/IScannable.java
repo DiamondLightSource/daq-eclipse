@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * Unlike a detector, a scannable does not have a model and has attributes directly 
  * on the interface
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface IScannable<T> extends ILevel, INameable, IConfigurable<ScannableModel> {

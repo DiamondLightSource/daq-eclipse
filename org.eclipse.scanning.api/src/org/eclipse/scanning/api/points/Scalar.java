@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A single value position.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class Scalar extends AbstractPosition {

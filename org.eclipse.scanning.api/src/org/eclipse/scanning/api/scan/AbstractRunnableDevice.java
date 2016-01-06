@@ -17,7 +17,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 
 /**
  * @see IRunnableDevice
- * @author fcp94556
+ * @author Matthew Gerring
  *
  * @param <T>
  */

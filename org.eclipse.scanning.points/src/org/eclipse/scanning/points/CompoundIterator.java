@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.points.MapPosition;
  * compound generators by doing this. Otherwise the createPoints(...) 
  * would do.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class CompoundIterator implements Iterator<IPosition> {

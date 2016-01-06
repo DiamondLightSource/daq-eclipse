@@ -9,7 +9,7 @@ import java.net.URI;
  * A service which provides the marshalling (the implementation uses Jackson) and
  * the JMS service provider (the implementation uses ActiveMQ)
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface IEventConnectorService {

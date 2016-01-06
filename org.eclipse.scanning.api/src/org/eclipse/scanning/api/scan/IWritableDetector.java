@@ -30,7 +30,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * because they implement IScanner, they can be configured and run during the
  * scanning.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  * @param <T> Class of model required by detector to configure it.
  */

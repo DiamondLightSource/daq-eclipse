@@ -5,7 +5,7 @@ import java.util.EventObject;
 /**
  * General event which can notify of any bean change happening.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class BeanEvent<T> extends EventObject {

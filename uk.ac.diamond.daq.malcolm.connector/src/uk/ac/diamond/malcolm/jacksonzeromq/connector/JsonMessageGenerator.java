@@ -13,7 +13,7 @@ import org.eclipse.scanning.api.malcolm.message.Type;
 /**
  * Class to encapsulate the details of sending stuff.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 class JsonMessageGenerator implements MessageGenerator<JsonMessage> {

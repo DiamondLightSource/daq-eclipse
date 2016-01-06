@@ -42,7 +42,7 @@ import org.eclipse.scanning.api.event.EventException;
 </code>
    
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface ISubscriber<T> extends ITopicConnection {

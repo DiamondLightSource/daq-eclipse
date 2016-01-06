@@ -13,7 +13,7 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
  * mechanism (for instance Zeromq) and the serialization mechanism
  * (for instance Jackson or gson).
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface IMalcolmConnectorService<T> extends IEventConnectorService {

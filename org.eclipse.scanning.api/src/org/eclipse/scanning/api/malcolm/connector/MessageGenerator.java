@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
  * 2. Sending string (for instance over zeromq)
  * 
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface MessageGenerator<T> {

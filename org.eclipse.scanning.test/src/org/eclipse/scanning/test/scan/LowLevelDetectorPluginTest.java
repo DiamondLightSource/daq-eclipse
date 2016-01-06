@@ -33,7 +33,7 @@ import org.junit.Test;
 /**
  * Uses extension points so please run as plugin test.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class LowLevelDetectorPluginTest {

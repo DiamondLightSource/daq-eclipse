@@ -5,7 +5,7 @@ import java.util.UUID;
 /**
  * Used to stop the consumer, optionally the process running the consumer may be exited.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class KillBean {

@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 
 /**
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 class GeneratorUtil {

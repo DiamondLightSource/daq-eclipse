@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Multiple values to the position, backed by a Map
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public class MapPosition extends AbstractPosition {

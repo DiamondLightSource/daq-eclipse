@@ -43,7 +43,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  *   
  *   </code>
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface IEventService {

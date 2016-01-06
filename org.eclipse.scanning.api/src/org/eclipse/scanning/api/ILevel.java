@@ -4,7 +4,7 @@ package org.eclipse.scanning.api;
  * Interface for any device with a level. Level is used for instance in scanning to 
  * define the order that devices are moved to in the scan.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface ILevel extends INameable {

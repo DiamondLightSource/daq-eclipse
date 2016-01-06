@@ -3,7 +3,7 @@ package org.eclipse.scanning.api;
 /**
  * A nameable is any device with a name.
  * 
- * @author fcp94556
+ * @author Matthew Gerring
  *
  */
 public interface INameable {
