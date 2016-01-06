@@ -1,8 +1,7 @@
 package org.eclipse.scanning.api.points.models;
 
-public class LissajousModel implements IModelWithBoundingBox {
+public class LissajousModel extends AbstractBoundingBoxModel {
 
-	private BoundingBox boundingBox;
 	private double a = 1;
 	private double b = 0.25;
 	private double delta = 0;
@@ -32,14 +31,7 @@ public class LissajousModel implements IModelWithBoundingBox {
 	public void setThetaStep(double thetaStep) {
 		this.thetaStep = thetaStep;
 	}
-	@Override
-	public BoundingBox getBoundingBox() {
-		return boundingBox;
-	}
-	@Override
-	public void setBoundingBox(BoundingBox boundingBox) {
-		this.boundingBox = boundingBox;
-	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -49,8 +41,6 @@ public class LissajousModel implements IModelWithBoundingBox {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(b);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result
-				+ ((boundingBox == null) ? 0 : boundingBox.hashCode());
 		temp = Double.doubleToLongBits(delta);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(thetaStep);
@@ -69,11 +59,6 @@ public class LissajousModel implements IModelWithBoundingBox {
 		if (Double.doubleToLongBits(a) != Double.doubleToLongBits(other.a))
 			return false;
 		if (Double.doubleToLongBits(b) != Double.doubleToLongBits(other.b))
-			return false;
-		if (boundingBox == null) {
-			if (other.boundingBox != null)
-				return false;
-		} else if (!boundingBox.equals(other.boundingBox))
 			return false;
 		if (Double.doubleToLongBits(delta) != Double
 				.doubleToLongBits(other.delta))

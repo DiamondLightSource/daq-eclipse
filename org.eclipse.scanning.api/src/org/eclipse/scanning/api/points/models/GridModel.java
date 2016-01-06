@@ -18,9 +18,8 @@ package org.eclipse.scanning.api.points.models;
  * TODO Should it have the stage names in the model or in the Point Iterable?
  * 
 **/
-public class GridModel implements IModelWithBoundingBox {
+public class GridModel extends AbstractBoundingBoxModel {
 	
-	private BoundingBox boundingBox;
 	private int columns = 1;
 	private int rows = 1;
 	
@@ -76,19 +75,9 @@ public class GridModel implements IModelWithBoundingBox {
 		this.yStep = yStep;
 	}
 	@Override
-	public BoundingBox getBoundingBox() {
-		return boundingBox;
-	}
-	@Override
-	public void setBoundingBox(BoundingBox boundingBox) {
-		this.boundingBox = boundingBox;
-	}
-	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((boundingBox == null) ? 0 : boundingBox.hashCode());
 		result = prime * result + columns;
 		result = prime * result + rows;
 		result = prime * result + (snake ? 1231 : 1237);
@@ -103,11 +92,6 @@ public class GridModel implements IModelWithBoundingBox {
 		if (getClass() != obj.getClass())
 			return false;
 		GridModel other = (GridModel) obj;
-		if (boundingBox == null) {
-			if (other.boundingBox != null)
-				return false;
-		} else if (!boundingBox.equals(other.boundingBox))
-			return false;
 		if (columns != other.columns)
 			return false;
 		if (rows != other.rows)

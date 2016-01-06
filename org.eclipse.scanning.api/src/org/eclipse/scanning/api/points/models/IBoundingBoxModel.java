@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public interface IModelWithBoundingBox {
+public interface IBoundingBoxModel {
 
 	public BoundingBox getBoundingBox();
 

@@ -11,6 +11,15 @@ package org.eclipse.scanning.api;
 public class ScannableModel {
 
 	private int rank;
+	
+	public ScannableModel() {
+		this(-1);
+	}
+
+	public ScannableModel(int rank) {
+		super();
+		this.rank = rank;
+	}
 
 	public void setRank(int rank) {
 		this.rank = rank;

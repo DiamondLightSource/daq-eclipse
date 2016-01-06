@@ -34,10 +34,18 @@ public class Point extends AbstractPosition {
 	private Double  y;
 	private Integer xIndex;
 	private Integer yIndex;
+	private String  xName = "x";
+	private String  yName = "y";
 
 	public Point(int xIndex, double xPosition, int yIndex, double yPosition) {
+		this("x", xIndex, xPosition, "y", yIndex, yPosition);
+	}
+
+	public Point(String xName, int xIndex, double xPosition, String yName, int yIndex, double yPosition) {
+		this.xName  = xName;
 		this.xIndex = xIndex;
 		this.x      = xPosition;
+		this.yName  = yName;
 		this.yIndex = yIndex;
 		this.y      = yPosition;
 	}
@@ -53,12 +61,13 @@ public class Point extends AbstractPosition {
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		long temp;
-		temp = Double.doubleToLongBits(x);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(y);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
+		int result = super.hashCode();
+		result = prime * result + ((x == null) ? 0 : x.hashCode());
+		result = prime * result + ((xIndex == null) ? 0 : xIndex.hashCode());
+		result = prime * result + ((xName == null) ? 0 : xName.hashCode());
+		result = prime * result + ((y == null) ? 0 : y.hashCode());
+		result = prime * result + ((yIndex == null) ? 0 : yIndex.hashCode());
+		result = prime * result + ((yName == null) ? 0 : yName.hashCode());
 		return result;
 	}
 
@@ -66,14 +75,40 @@ public class Point extends AbstractPosition {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		Point other = (Point) obj;
-		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
+		if (x == null) {
+			if (other.x != null)
+				return false;
+		} else if (!x.equals(other.x))
 			return false;
-		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
+		if (xIndex == null) {
+			if (other.xIndex != null)
+				return false;
+		} else if (!xIndex.equals(other.xIndex))
+			return false;
+		if (xName == null) {
+			if (other.xName != null)
+				return false;
+		} else if (!xName.equals(other.xName))
+			return false;
+		if (y == null) {
+			if (other.y != null)
+				return false;
+		} else if (!y.equals(other.y))
+			return false;
+		if (yIndex == null) {
+			if (other.yIndex != null)
+				return false;
+		} else if (!yIndex.equals(other.yIndex))
+			return false;
+		if (yName == null) {
+			if (other.yName != null)
+				return false;
+		} else if (!yName.equals(other.yName))
 			return false;
 		return true;
 	}
@@ -85,21 +120,37 @@ public class Point extends AbstractPosition {
 
 	@Override
 	public List<String> getNames() {
-		return Arrays.asList("x", "y");
+		return Arrays.asList(xName, yName);
 	}
 
 	@Override
 	public Double get(String name) {
-		if ("x".equalsIgnoreCase(name)) return getX();
-		if ("y".equalsIgnoreCase(name)) return getY();
+		if (xName.equalsIgnoreCase(name)) return getX();
+		if (yName.equalsIgnoreCase(name)) return getY();
 		return null;
 	}
 	
 	@Override
 	public int getIndex(String name) {
-		if ("x".equalsIgnoreCase(name)) return xIndex;
-		if ("y".equalsIgnoreCase(name)) return yIndex;
+		if (xName.equalsIgnoreCase(name)) return xIndex;
+		if (yName.equalsIgnoreCase(name)) return yIndex;
 		return -1;
+	}
+
+	public Integer getyIndex() {
+		return yIndex;
+	}
+
+	public void setyIndex(Integer yIndex) {
+		this.yIndex = yIndex;
+	}
+
+	public String getyName() {
+		return yName;
+	}
+
+	public void setyName(String yName) {
+		this.yName = yName;
 	}
 
 }

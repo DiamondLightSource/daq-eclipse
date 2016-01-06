@@ -20,8 +20,8 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.api.points.models.IModelWithBoundingLine;
-import org.eclipse.scanning.api.points.models.IModelWithBoundingBox;
+import org.eclipse.scanning.api.points.models.IBoundingLineModel;
+import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
@@ -115,7 +115,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	
 	private <T> void synchModel(T model, IROI roi) throws GeneratorException {
 
-		if (model instanceof IModelWithBoundingBox) {
+		if (model instanceof IBoundingBoxModel) {
 
 			BoundingBox box = new BoundingBox();
 			IRectangularROI rect = roi.getBounds();
@@ -123,17 +123,17 @@ public class GeneratorServiceImpl implements IGeneratorService {
 			box.setyStart(rect.getPoint()[1]);
 			box.setWidth(rect.getLength(0));
 			box.setHeight(rect.getLength(1));
-			((IModelWithBoundingBox) model).setBoundingBox(box);
+			((IBoundingBoxModel) model).setBoundingBox(box);
 //			return;
 
-		} else if (model instanceof IModelWithBoundingLine) {
+		} else if (model instanceof IBoundingLineModel) {
 
 			BoundingLine line = new BoundingLine();
 			LinearROI lroi = (LinearROI) roi;
 			line.setxStart(lroi.getPoint()[0]);
 			line.setyStart(lroi.getPoint()[1]);
 			line.setAngle(lroi.getAngle());
-			((IModelWithBoundingLine) model).setBoundingLine(line);
+			((IBoundingLineModel) model).setBoundingLine(line);
 //			return;
 		}
 

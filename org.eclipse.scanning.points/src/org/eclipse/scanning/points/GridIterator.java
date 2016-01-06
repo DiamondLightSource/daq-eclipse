@@ -93,7 +93,7 @@ class GridIterator implements Iterator<Point> {
 		double x = minX + j * model.getxStep();
 		double y = minY + i * model.getyStep();
 		if (gen.containsPoint(x, y)) {
-			return new Point(j, x, i, y);
+			return new Point(model.getxName(), j, x, model.getyName(), i, y);
 		} else {
 			return next();
 		}

@@ -98,7 +98,7 @@ public class RasterIterator implements Iterator<Point> {
 		if (x < model.getBoundingBox().getxStart() || x > (minX + model.getBoundingBox().getWidth())) throw new NullPointerException("Unexpected index. The x value was "+x);
 
 		if (gen.containsPoint(x, y)) {
-			return new Point(ix, x, iy, y);
+			return new Point(model.getxName(), ix, x, model.getyName(), iy, y);
 		} else {
 			return next();
 		}

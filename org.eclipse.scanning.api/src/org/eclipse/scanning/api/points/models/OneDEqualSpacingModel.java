@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class OneDEqualSpacingModel implements IModelWithBoundingLine {
+public class OneDEqualSpacingModel implements IBoundingLineModel {
 
 	private BoundingLine boundingLine;
 	private int points;

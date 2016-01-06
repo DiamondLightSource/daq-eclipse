@@ -64,7 +64,7 @@ class LissajousIterator implements Iterator<Point> {
 		this.theta = theta;
 
 		if (gen.containsPoint(x, y)) {
-			return new Point(-1, x, -1, y);  // TODO What are data indices?
+			return new Point(model.getxName(), -1, x, model.getyName(), -1, y);
 		} else {
 			return next();
 		}

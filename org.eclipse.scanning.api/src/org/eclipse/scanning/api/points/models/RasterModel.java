@@ -15,9 +15,8 @@ package org.eclipse.scanning.api.points.models;
  * -------------------->
  * </pre>
 **/
-public class RasterModel implements IModelWithBoundingBox {
+public class RasterModel extends AbstractBoundingBoxModel {
 
-	private BoundingBox boundingBox;
 	private double xStep = 1;
 	private double yStep = 1;
 	private boolean snake = false;
@@ -40,19 +39,9 @@ public class RasterModel implements IModelWithBoundingBox {
 		this.snake = biDirectional;
 	}
 	@Override
-	public BoundingBox getBoundingBox() {
-		return boundingBox;
-	}
-	@Override
-	public void setBoundingBox(BoundingBox boundingBox) {
-		this.boundingBox = boundingBox;
-	}
-	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((boundingBox == null) ? 0 : boundingBox.hashCode());
+		int result = super.hashCode();
 		result = prime * result + (snake ? 1231 : 1237);
 		long temp;
 		temp = Double.doubleToLongBits(xStep);
@@ -65,16 +54,11 @@ public class RasterModel implements IModelWithBoundingBox {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		RasterModel other = (RasterModel) obj;
-		if (boundingBox == null) {
-			if (other.boundingBox != null)
-				return false;
-		} else if (!boundingBox.equals(other.boundingBox))
-			return false;
 		if (snake != other.snake)
 			return false;
 		if (Double.doubleToLongBits(xStep) != Double

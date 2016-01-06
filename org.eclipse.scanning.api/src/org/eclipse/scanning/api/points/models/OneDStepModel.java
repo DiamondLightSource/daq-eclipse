@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-public class OneDStepModel implements IModelWithBoundingLine {
+public class OneDStepModel implements IBoundingLineModel {
 
 	private BoundingLine boundingLine;
 	private double step = 1;
