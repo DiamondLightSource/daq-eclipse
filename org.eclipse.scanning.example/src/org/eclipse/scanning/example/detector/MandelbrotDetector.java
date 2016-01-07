@@ -24,7 +24,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
+import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
 import org.eclipse.dawnsci.nexus.INexusDevice;
@@ -33,6 +35,7 @@ import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.impl.NXdetectorImpl;
+import org.eclipse.dawnsci.nexus.impl.NXpositionerImpl;
 import org.eclipse.dawnsci.nexus.impl.NexusNodeFactory;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
@@ -47,27 +50,27 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * <p>
  * Note: values will always be high if used at (x, y) positions more than 2 units away from the origin.
  */
-class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel>, INexusDevice {
+public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel>, INexusDevice {
 
 	public enum OutputDimensions { ONE_D, TWO_D }
 
 	public static final String VALUE_NAME = "mandelbrot_value";
 
 	private MandelbrotModel       model;
-	private IDataset              toWrite;
-	private NexusObjectProvider<NXdetector> prov;
+	private IDataset              data;
 	
 	public MandelbrotDetector() throws IOException {
 		super();
 		this.model = new MandelbrotModel();
 		
-		// Object used for writing to nexus.
-		this.prov = new DelegateNexusProvider<NXdetector>(NexusBaseClass.NX_DETECTOR, this);
-
 	}
+	
+	private DelegateNexusProvider<NXdetector> prov;
 	
 	@SuppressWarnings("unchecked")
 	public NexusObjectProvider<NXdetector> getNexusProvider() {
+		// Object used for writing to nexus.
+		if (prov == null) this.prov = new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, this);
 		return prov;
 	}
 
@@ -95,6 +98,7 @@ class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> impleme
 	@Override
 	public void configure(MandelbrotModel model) throws ScanningException {	
 		this.model = model;
+		setName(model.getName());
 		setState(DeviceState.READY);	
 	}
 
@@ -105,22 +109,31 @@ class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> impleme
 		final double b = (Double)pos.get(model.getyName());
 
 		double value = mandelbrot(a, b);
-		// TODO FIXME store value
 		
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
-			toWrite = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
+			data = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
 		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
-			toWrite = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
+			data = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
 		}
 		final Map<String, Serializable> mp = new HashMap<>(1);
 		mp.put("value", value);
 		Metadata meta = new Metadata(mp);
-		toWrite.addMetadata(meta);	
+		data.addMetadata(meta);	
   	}
 	
 	@Override
     public boolean write(IPosition pos) throws ScanningException {
 		
+		final int[] start = new int[]{pos.getIndex(model.getxName()), pos.getIndex(model.getyName()), 0, 0}; 
+		final int[] stop  = new int[] {pos.getIndex(model.getxName())+1, pos.getIndex(model.getyName())+1, model.getRows(), model.getColumns()};
+		
+		try {
+			prov.getDefaultDataset().setSlice(null, data, start, stop, null);
+
+		} catch (Exception e) {
+			throw new ScanningException(e.getMessage(), e); 
+		}
+
 		return true;
 	}
 

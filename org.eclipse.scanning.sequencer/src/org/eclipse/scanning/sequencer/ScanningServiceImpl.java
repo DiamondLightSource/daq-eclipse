@@ -79,7 +79,8 @@ public final class ScanningServiceImpl implements IScanningService {
 		if (hservice==null) hservice = ScanningServiceImpl.deviceService;
 		
 		try {
-			final IRunnableDevice<T> scanner = (IRunnableDevice<T>)scanners.get(model.getClass()).newInstance();
+			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)scanners.get(model.getClass());
+			final IRunnableDevice<T> scanner = clazz.newInstance();
 			if (scanner instanceof AbstractRunnableDevice) {
 				AbstractRunnableDevice<T> ascanner = (AbstractRunnableDevice<T>)scanner;
 				ascanner.setScanningService(this);

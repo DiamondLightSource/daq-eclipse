@@ -28,7 +28,6 @@ public class NexusMockScannable extends MockScannable implements INexusDevice {
 
 	public NexusMockScannable() {
 		super();
-		prov = new DelegateNexusProvider<NXpositioner>("positioner", NexusBaseClass.NX_POSITIONER, NXpositionerImpl.NX_VALUE, this);
 	}
 	
 	public NexusMockScannable(String name, double d, int i) {
@@ -37,7 +36,15 @@ public class NexusMockScannable extends MockScannable implements INexusDevice {
 
 	@SuppressWarnings("unchecked")
 	public NexusObjectProvider<NXpositioner> getNexusProvider() throws Exception {
+		
+		if (prov==null) prov = new DelegateNexusProvider<NXpositioner>(getName(), NexusBaseClass.NX_POSITIONER, NXpositionerImpl.NX_VALUE, this);
 		return prov;
+	}
+
+	@Override
+	public void setName(String name) {
+		super.setName(name);
+		prov.setName(name);
 	}
 
 	@Override

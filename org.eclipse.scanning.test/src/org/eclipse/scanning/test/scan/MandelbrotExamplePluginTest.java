@@ -1,12 +1,14 @@
 package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
+import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NexusFile;
@@ -64,19 +66,20 @@ public class MandelbrotExamplePluginTest {
 		
 		// Create a builder
 		File output = File.createTempFile("test_mandel_nexus", ".nxs");
-//		output.deleteOnExit();
+		output.deleteOnExit();
 		
 		final NexusFileBuilder  fbuilder = factory.newNexusFileBuilder(output.getAbsolutePath());
 		final NexusEntryBuilder builder  = fbuilder.newEntry();
 		builder.addDefaultGroups();
 			
 		MandelbrotModel model = new MandelbrotModel();
+		model.setName("mandelbrot");
 		model.setxName("xNex");
 		model.setyName("yNex");
 		
 		IRunnableDevice<MandelbrotModel> det = service.createRunnableDevice(model);
 		assertNotNull(det);
-		//builder.add((INexusDevice)det).getNexusProvider());
+		builder.add(((INexusDevice)det).getNexusProvider());
 		
 		IScannable<Number> x = connector.getScannable("xNex");
 		x.configure(new ScannableModel(1));
@@ -97,10 +100,25 @@ public class MandelbrotExamplePluginTest {
 		NexusFile nf = fileFactory.newNexusFile(output.getAbsolutePath());
 		nf.openToRead();
 
-		// Check axes
-		DataNode d     = nf.getData("/entry/instrument/"+x.getName()+"/value");
-		IDataset ds    = d.getDataset().getSlice().squeeze();
+		DataNode d = nf.getData("/entry/instrument/"+model.getName()+"/data");
+		IDataset ds = d.getDataset().getSlice().squeeze();
 		int[] shape = ds.getShape();
+
+		assertEquals(8, shape[0]);
+		assertEquals(5, shape[1]);
+		
+		// Make sure none of the numbers are NaNs. The detector
+		// is expected to fill this scan with non-nulls.
+        final PositionIterator it = new PositionIterator(shape);
+        while(it.hasNext()) {
+        	int[] next = it.getPos();
+        	assertFalse(Double.isNaN(ds.getDouble(next)));
+        }
+
+		// Check axes
+		d     = nf.getData("/entry/instrument/"+x.getName()+"/value");
+		ds    = d.getDataset().getSlice().squeeze();
+		shape = ds.getShape();
 		assertEquals(8, shape[0]);
 
 		
@@ -132,31 +150,6 @@ public class MandelbrotExamplePluginTest {
 		return scanner;
 	}
 
-	
-	/**
-	 * 
-	 * 	private void createNexusFile(List<NexusObjectProvider<NXpositioner>> scannables) throws Exception {
-		final DefaultNexusBuilderFactory builderFactory = new DefaultNexusBuilderFactory();
-		final NexusFileBuilder nexusFileBuilder = builderFactory.newNexusFileBuilder(nexusFilePath);
-		final NexusEntryBuilder nexusEntryBuilder = nexusFileBuilder.newEntry();
-		nexusEntryBuilder.addDefaultGroups();
-		for (final NexusObjectProvider<NXpositioner> scannable : scannables) {
-			nexusEntryBuilder.add(scannable);
-		}
-
-		// also build the NXdata? we need the detector for that
-		//final NexusDataBuilder nexusDataBuilder = nexusEntryBuilder.createDefaultData();
-//		nexusDataBuilder.setDataDevice(nexusObjectProvider);
-//		int positionerDimensionIndex = 0;
-//		for (final NexusObjectProvider<NXpositioner> scannable : scannables) {
-//			final int[] dimensionMappings = new int[] { positionerDimensionIndex++ };
-//			nexusDataBuilder.addAxisDevice(detector, dimensionMappings);
-//		}
-
-		nexusFileBuilder.saveFile();
-	}
-
-*/
 
 	public static NexusBuilderFactory getFactory() {
 		return factory;
