@@ -2,8 +2,6 @@ package org.eclipse.scanning.example.detector;
 
 import java.io.IOException;
 
-import org.eclipse.scanning.example.detector.MandelbrotDetector.OutputDimensions;
-
 public class MandelbrotModel {
 
 	private OutputDimensions outputDimensions = OutputDimensions.TWO_D;

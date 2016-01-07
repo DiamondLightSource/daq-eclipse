@@ -52,8 +52,6 @@ import org.eclipse.scanning.api.scan.ScanningException;
  */
 public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel>, INexusDevice {
 
-	public enum OutputDimensions { ONE_D, TWO_D }
-
 	public static final String VALUE_NAME = "mandelbrot_value";
 
 	private MandelbrotModel       model;
