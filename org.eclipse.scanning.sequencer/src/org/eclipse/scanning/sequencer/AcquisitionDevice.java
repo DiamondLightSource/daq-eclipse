@@ -1,9 +1,15 @@
 package org.eclipse.scanning.sequencer;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.dawnsci.nexus.INexusDevice;
+import org.eclipse.dawnsci.nexus.NexusException;
+import org.eclipse.dawnsci.nexus.builder.NexusEntryBuilder;
+import org.eclipse.dawnsci.nexus.builder.NexusFileBuilder;
+import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
@@ -60,7 +66,47 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		positioner = scanningService.createPositioner(deviceService);
 		detectors = new DetectorRunner(model.getDetectors());
 		writers   = new DetectorWriter(model.getDetectors());
+		
+		try {
+			wireNexus(model);
+		} catch (NexusException e) {
+			throw new ScanningException(e);
+		}
+		
 		setState(DeviceState.READY);
+	}
+
+	private void wireNexus(ScanModel model) throws NexusException, ScanningException {
+		
+		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return; 
+			
+		// We use the new nexus framework to join everything up into the scan
+		// Create a builder
+		final NexusFileBuilder  fbuilder = ServiceHolder.getFactory().newNexusFileBuilder(model.getFilePath());
+		final NexusEntryBuilder builder  = fbuilder.newEntry();
+		builder.addDefaultGroups();
+		
+		// Add any devices we can get from the scan.
+		final List<String> names = model.getPositionIterator().iterator().next().getNames();
+		if (names!=null) for (String name : names) {
+			IScannable<?> scannable = getDeviceService().getScannable(name);
+			if (scannable instanceof INexusDevice) {
+				builder.add(((INexusDevice)scannable).getNexusProvider());
+			}
+		}
+
+		if (model.getDetectors()!=null) for (IRunnableDevice<?> detector : model.getDetectors()) {
+			if (detector instanceof INexusDevice) {
+				builder.add(((INexusDevice)detector).getNexusProvider());
+			}
+		}
+		if (model.getMonitors()!=null) for (IScannable<?> scannable : model.getMonitors()) {
+			if (scannable instanceof INexusDevice) {
+				builder.add(((INexusDevice)scannable).getNexusProvider());
+			}
+		}
+		
+		fbuilder.saveFile();
 	}
 
 	@Override

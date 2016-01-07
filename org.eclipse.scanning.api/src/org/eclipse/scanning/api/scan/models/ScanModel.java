@@ -11,6 +11,14 @@ import org.eclipse.scanning.api.scan.IRunnableDevice;
 public class ScanModel {
 	
 	/**
+	 * If you want the scan to attempt to write to a given
+	 * path, set this field. If it is set the scan will 
+	 * attempt to use the NexusBuilderFactory and register all the
+	 * devices with it.
+	 */
+	private String filePath;
+	
+	/**
 	 * Normally this is a generator for the scan points
 	 * of the scan. IGenerator implements Iterable
 	 */
@@ -55,6 +63,8 @@ public class ScanModel {
 		result = prime * result
 				+ ((detectors == null) ? 0 : detectors.hashCode());
 		result = prime * result
+				+ ((filePath == null) ? 0 : filePath.hashCode());
+		result = prime * result
 				+ ((monitors == null) ? 0 : monitors.hashCode());
 		result = prime
 				* result
@@ -79,6 +89,11 @@ public class ScanModel {
 			if (other.detectors != null)
 				return false;
 		} else if (!detectors.equals(other.detectors))
+			return false;
+		if (filePath == null) {
+			if (other.filePath != null)
+				return false;
+		} else if (!filePath.equals(other.filePath))
 			return false;
 		if (monitors == null) {
 			if (other.monitors != null)
@@ -130,5 +145,11 @@ public class ScanModel {
 	
 	public void setMonitors(IScannable<?>... monitors) {
 		this.monitors = Arrays.asList(monitors);
+	}
+	public String getFilePath() {
+		return filePath;
+	}
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
 	}
 }

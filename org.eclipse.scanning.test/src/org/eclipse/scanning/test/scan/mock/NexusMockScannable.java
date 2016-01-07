@@ -3,7 +3,6 @@ package org.eclipse.scanning.test.scan.mock;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.INexusDevice;
-import org.eclipse.dawnsci.nexus.NXobject;
 import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
@@ -35,16 +34,9 @@ public class NexusMockScannable extends MockScannable implements INexusDevice {
 	}
 
 	@SuppressWarnings("unchecked")
-	public NexusObjectProvider<NXpositioner> getNexusProvider() throws Exception {
-		
+	public NexusObjectProvider<NXpositioner> getNexusProvider() {
 		if (prov==null) prov = new DelegateNexusProvider<NXpositioner>(getName(), NexusBaseClass.NX_POSITIONER, NXpositionerImpl.NX_VALUE, this);
 		return prov;
-	}
-
-	@Override
-	public void setName(String name) {
-		super.setName(name);
-		prov.setName(name);
 	}
 
 	@Override
@@ -53,19 +45,18 @@ public class NexusMockScannable extends MockScannable implements INexusDevice {
 		final NXpositionerImpl positioner = nodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
-		final int scanRank = model.getRank();
+		final int scanRank = 1;
 		positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE,   scanRank, Dataset.FLOAT64);
 		positioner.initializeLazyDataset(NXpositionerImpl.NX_VALUE, scanRank, Dataset.FLOAT64);
 
 		return positioner;
 	}	
-
 	
 	public void setPosition(Number value, IPosition position) throws Exception {
 		super.setPosition(value, position);	
 		if (position!=null) write(value, getPosition(), position);
 	}
-	
+
 	private void write(Number demand, Number actual, IPosition location) throws Exception {
 		
 		int index = location.getIndex(getName());
@@ -80,4 +71,12 @@ public class NexusMockScannable extends MockScannable implements INexusDevice {
 		final Dataset newDemandPositionData = DatasetFactory.createFromObject(demand);
 		prov.getWriteableDataset(FIELD_NAME_DEMAND_VALUE).setSlice(null, newDemandPositionData, startPos, stopPos, null);
 	}
+
+
+	@Override
+	public void setName(String name) {
+		super.setName(name);
+		prov.setName(name);
+	}
+
 }
