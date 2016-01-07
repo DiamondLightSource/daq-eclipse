@@ -24,16 +24,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
-import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
-import org.eclipse.dawnsci.nexus.INexusFileFactory;
-import org.eclipse.dawnsci.nexus.NexusException;
-import org.eclipse.dawnsci.nexus.NexusFile;
-import org.eclipse.dawnsci.nexus.builder.NexusBuilderFactory;
+import org.eclipse.dawnsci.nexus.INexusDevice;
+import org.eclipse.dawnsci.nexus.NXdetector;
+import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.dawnsci.nexus.impl.NXdetectorImpl;
+import org.eclipse.dawnsci.nexus.impl.NexusNodeFactory;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
@@ -47,22 +47,39 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * <p>
  * Note: values will always be high if used at (x, y) positions more than 2 units away from the origin.
  */
-public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel> {
+class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel>, INexusDevice {
 
 	public enum OutputDimensions { ONE_D, TWO_D }
 
 	public static final String VALUE_NAME = "mandelbrot_value";
-	
-	private static NexusBuilderFactory factory;
 
 	private MandelbrotModel       model;
 	private IDataset              toWrite;
-	private ILazyWriteableDataset writer;
+	private NexusObjectProvider<NXdetector> prov;
 	
 	public MandelbrotDetector() throws IOException {
 		super();
 		this.model = new MandelbrotModel();
+		
+		// Object used for writing to nexus.
+		this.prov = new DelegateNexusProvider<NXdetector>(NexusBaseClass.NX_DETECTOR, this);
+
 	}
+	
+	@SuppressWarnings("unchecked")
+	public NexusObjectProvider<NXdetector> getNexusProvider() {
+		return prov;
+	}
+
+	@Override
+	public NXdetector createNexusObject(NexusNodeFactory nodeFactory) {
+		final NXdetectorImpl detector = nodeFactory.createNXdetector();
+
+		final int rank = 4; // TODO get rank
+		detector.initializeLazyDataset(NXdetectorImpl.NX_DATA, rank, Dataset.FLOAT64);
+		return detector;
+	}
+
 
 	public int[] getDataDimensions() throws Exception {
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
@@ -76,12 +93,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 
 	@Override
-	public void configure(MandelbrotModel model) throws ScanningException {
-		
+	public void configure(MandelbrotModel model) throws ScanningException {	
 		this.model = model;
-		setState(DeviceState.READY);
-		
-		// TODO Use NexusBuilderFactory to set things up
+		setState(DeviceState.READY);	
 	}
 
 	@Override
@@ -103,12 +117,10 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		Metadata meta = new Metadata(mp);
 		toWrite.addMetadata(meta);	
   	}
-
+	
 	@Override
-	public boolean write(IPosition pos) throws ScanningException {
+    public boolean write(IPosition pos) throws ScanningException {
 		
-		// TODO NexusBuilderFactory
-        
 		return true;
 	}
 
@@ -196,12 +208,5 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public void resume() throws ScanningException {
 		throw new ScanningException("Operation not supported!");
 	}
-
-	public static NexusBuilderFactory getFactory() {
-		return factory;
-	}
-
-	public static void setFactory(NexusBuilderFactory factory) {
-		MandelbrotDetector.factory = factory;
-	}
+	
 }

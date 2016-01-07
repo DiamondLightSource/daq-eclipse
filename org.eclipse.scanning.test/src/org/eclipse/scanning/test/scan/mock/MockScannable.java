@@ -27,7 +27,7 @@ public class MockScannable implements IScannable<Number> {
 	private List<Number>     values;
 	private List<IPosition>  positions;
 	
-	private ScannableModel       model;
+	protected ScannableModel     model;
 	private LazyWriteableDataset writer;
 	
     public MockScannable() {
@@ -103,11 +103,11 @@ public class MockScannable implements IScannable<Number> {
 	public Number getPosition() {
 		return position;
 	}
-	public void setPosition(Number position) throws InterruptedException, ScanningException {
+	public void setPosition(Number position) throws Exception {
 		setPosition(position, null);
 	}
 	
-	public void setPosition(Number position, IPosition loc) throws InterruptedException, ScanningException {
+	public void setPosition(Number position, IPosition loc) throws Exception {
 		if (requireSleep && position!=null) {
 			long time = Math.abs(Math.round((position.doubleValue()-this.position.doubleValue())/1)*100);
 			time = Math.max(time, 1);

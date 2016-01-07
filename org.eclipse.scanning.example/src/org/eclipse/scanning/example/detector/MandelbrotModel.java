@@ -1,6 +1,5 @@
 package org.eclipse.scanning.example.detector;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.scanning.example.detector.MandelbrotDetector.OutputDimensions;
@@ -19,7 +18,6 @@ public class MandelbrotModel {
 	private String name;
 	private String xName;
 	private String yName;
-	private String filePath;
 	
 	public MandelbrotModel() throws IOException {
 		
@@ -85,8 +83,6 @@ public class MandelbrotModel {
 		long temp;
 		temp = Double.doubleToLongBits(escapeRadius);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result
-				+ ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + maxIterations;
 		temp = Double.doubleToLongBits(maxx);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -115,11 +111,6 @@ public class MandelbrotModel {
 			return false;
 		if (Double.doubleToLongBits(escapeRadius) != Double
 				.doubleToLongBits(other.escapeRadius))
-			return false;
-		if (filePath == null) {
-			if (other.filePath != null)
-				return false;
-		} else if (!filePath.equals(other.filePath))
 			return false;
 		if (maxIterations != other.maxIterations)
 			return false;
@@ -176,14 +167,5 @@ public class MandelbrotModel {
 	public void setyName(String yName) {
 		this.yName = yName;
 	}
-
-	public String getFilePath() {
-		return filePath;
-	}
-
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
-	}
-
 	
 }
