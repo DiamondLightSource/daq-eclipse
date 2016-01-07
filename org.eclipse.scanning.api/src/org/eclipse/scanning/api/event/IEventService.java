@@ -13,7 +13,8 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * The scanning event service allows one to subscribe to 
  * and broadcast events. It may be backed by the EventBus or
  * plain JMS queues and topics depending on the service implementor.
- * 
+ *
+ * <pre>
  * <code>
  *   IEventService service = ... // OSGi
  *   final IEventSubscriber subscriber = service.createSubscriber(...);
@@ -27,9 +28,9 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  *   
  *   subscriber.addScanListener(listener);
  *   // Subscribe to anything
- *   </code>
- *   
- *   <code>
+ *
+ *
+ *
  *   IEventService service = ... // OSGi
  *   
  *   final IPublisher publisher = service.createPublisher(...);
@@ -40,8 +41,8 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  *   // An event comes internally that the scan has changed state, so we notify like this:
  *   scan.setPercentComplete(3.14);
  *   publisher.broadcast(scan);
- *   
  *   </code>
+ *   </pre>
  * 
  * @author Matthew Gerring
  *
