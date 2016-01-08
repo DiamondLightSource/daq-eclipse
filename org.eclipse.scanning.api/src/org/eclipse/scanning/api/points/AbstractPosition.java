@@ -43,8 +43,7 @@ public abstract class AbstractPosition implements IPosition {
   	    return result+stepIndex;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(Object obj, boolean checkStep) {
 		
 		if (this == obj)
 			return true;
@@ -53,8 +52,10 @@ public abstract class AbstractPosition implements IPosition {
 		if (getClass() != obj.getClass())
 			return false;
 		
-		if (stepIndex != ((IPosition)obj).getStepIndex())
-			return false;
+		if (checkStep) {
+			if (stepIndex != ((IPosition)obj).getStepIndex())
+				return false;
+		}
 
 		final List<String> ours   = getNames();
 		final List<String> theirs = ((IPosition)obj).getNames();
@@ -66,8 +67,13 @@ public abstract class AbstractPosition implements IPosition {
 			if (val1!=null && val2==null) return false;
 			if (!val1.equals(val2)) return false;
 		}
-				
+		
 		return true;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return equals(obj, true);
 	}
 	
 	public String toString() {

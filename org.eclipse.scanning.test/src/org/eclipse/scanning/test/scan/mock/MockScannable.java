@@ -14,6 +14,7 @@ import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.ScannableModel;
+import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -24,8 +25,8 @@ public class MockScannable implements IScannable<Number> {
 	private Number  position = 0d;
 	private boolean requireSleep=true;
 
-	private List<Number>     values;
-	private List<IPosition>  positions;
+	private List<Number>            values;
+	private List<AbstractPosition>  positions;
 	
 	protected ScannableModel     model;
 	private LazyWriteableDataset writer;
@@ -116,7 +117,7 @@ public class MockScannable implements IScannable<Number> {
 		this.position = position;
 		
 		values.add(position);
-		positions.add(loc);
+		positions.add((AbstractPosition)loc);
 		
 		
 		if (writer!=null && loc!=null) {
@@ -154,7 +155,7 @@ public class MockScannable implements IScannable<Number> {
 		
 		for (int i = 0; i < positions.size(); i++) {
 			
-			if (positions.get(i).equals(point)  && ( 
+			if (positions.get(i).equals(point, false)  && ( 
 				values.get(i) == value || values.get(i).equals(value))) {
 				return;
 			}

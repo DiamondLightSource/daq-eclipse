@@ -59,61 +59,6 @@ public class Point extends AbstractPosition {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((x == null) ? 0 : x.hashCode());
-		result = prime * result + ((xIndex == null) ? 0 : xIndex.hashCode());
-		result = prime * result + ((xName == null) ? 0 : xName.hashCode());
-		result = prime * result + ((y == null) ? 0 : y.hashCode());
-		result = prime * result + ((yIndex == null) ? 0 : yIndex.hashCode());
-		result = prime * result + ((yName == null) ? 0 : yName.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Point other = (Point) obj;
-		if (x == null) {
-			if (other.x != null)
-				return false;
-		} else if (!x.equals(other.x))
-			return false;
-		if (xIndex == null) {
-			if (other.xIndex != null)
-				return false;
-		} else if (!xIndex.equals(other.xIndex))
-			return false;
-		if (xName == null) {
-			if (other.xName != null)
-				return false;
-		} else if (!xName.equals(other.xName))
-			return false;
-		if (y == null) {
-			if (other.y != null)
-				return false;
-		} else if (!y.equals(other.y))
-			return false;
-		if (yIndex == null) {
-			if (other.yIndex != null)
-				return false;
-		} else if (!yIndex.equals(other.yIndex))
-			return false;
-		if (yName == null) {
-			if (other.yName != null)
-				return false;
-		} else if (!yName.equals(other.yName))
-			return false;
-		return true;
-	}
-
-	@Override
 	public int size() {
 		return 2;
 	}
