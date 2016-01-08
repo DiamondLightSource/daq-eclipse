@@ -76,9 +76,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		setState(DeviceState.READY);
 	}
 
-	private void wireNexus(ScanModel model) throws NexusException, ScanningException {
+	private boolean wireNexus(ScanModel model) throws NexusException, ScanningException {
 		
-		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return; 
+		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return false; // nothing wired 
 			
 		// We use the new nexus framework to join everything up into the scan
 		// Create a builder
@@ -107,6 +107,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		}
 		
 		fbuilder.saveFile();
+		
+		// Something got created
+		return true;
 	}
 
 	@Override
