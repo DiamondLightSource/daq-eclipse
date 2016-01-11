@@ -31,6 +31,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -180,8 +181,7 @@ public class GridTest {
 		model.setBoundingBox(box);
 
 		// Get the point list
-		IGenerator<GridModel, Point> gen = service.createGenerator(model,
-				diamond);
+		IGenerator<GridModel, Point> gen = service.createGenerator(model, diamond);
 		List<Point> pointList = gen.createPoints();
 
 		assertEquals(pointList.size(), gen.size());
@@ -191,6 +191,7 @@ public class GridTest {
 	}
 
 	private void checkPoints(List<Point> pointList) {
+		
 		// Check correct number of points
 		assertEquals(20 * 20, pointList.size());
 

@@ -78,6 +78,9 @@ public abstract class AbstractPosition implements IPosition {
 	
 	public String toString() {
 		StringBuilder buf = new StringBuilder("[");
+		buf.append("stepIndex=");
+		buf.append(stepIndex);
+		buf.append(", ");
 		final List<String> names   = getNames();
         for (Iterator<String> it = names.iterator(); it.hasNext();) {
 			String name = it.next();

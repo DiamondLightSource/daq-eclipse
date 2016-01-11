@@ -1,6 +1,7 @@
 package org.eclipse.scanning.sequencer;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -89,7 +90,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		builder.addDefaultGroups();
 		
 		// Add and configures any devices we can get from the scan.
-		final IPosition          pos     = model.getPositionIterator().iterator().next(); // The first position should have the same names as all positions.
+		final IPosition          pos     = model.getPositionIterable().iterator().next(); // The first position should have the same names as all positions.
 		final List<String>       names   = pos.getNames();
 		final List<INexusDevice> devices = new ArrayList<>(31);
 		if (names!=null) for (String name : names) {
@@ -123,7 +124,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		if (getState()!=DeviceState.READY) throw new ScanningException("The device '"+getName()+"' is not ready. It is in state "+getState());
 		
 		ScanModel model = getModel();
-		if (model.getPositionIterator()==null) throw new ScanningException("The model must contain some points to scan!");
+		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
 		
 		try {
 	        
@@ -140,16 +141,20 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		// Set the size and declare a count
     		int size  = 0;
     		int count = 0;
-    		for (IPosition unused : model.getPositionIterator()) size++; // Fast even for large stuff
+    		for (IPosition unused : model.getPositionIterable()) size++; // Fast even for large stuff
 
-    		// The scan loop
-	        for (IPosition pos : model.getPositionIterator()) {
-	        	
+    		// Notify that we will do a run and provide the first position.
+        	fireRunWillPerform(model.getPositionIterable().iterator().next());
+
+        	// The scan loop
+        	IPosition pos = null; // We want the last point when we are done so don't use foreach
+	        for (Iterator<IPosition> it = model.getPositionIterable().iterator(); it.hasNext();) {
+				
+	        	pos = it.next();
 	        	pos.setStepIndex(count);
 	        	
 	        	// Check if we are paused, blocks until we are not
 	        	checkPaused();
-	        	fireRunWillPerform(pos);
 	        	
 	        	// TODO Some validation on each point
 	        	// perhaps replacing atPointStart(..)
@@ -166,7 +171,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
 	        	// Send an event about where we are in the scan
-	        	fireRunPerformed(pos);
 	        	positionComplete(pos, count+1, size);
 	        	++count;
 	        	
@@ -174,7 +178,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        
 	        // On the last iteration we must wait for the final readout.
         	writers.await();                   // Wait for the previous read out to return, if any
-        	setState(DeviceState.READY);
+        	fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
+       	    setState(DeviceState.READY);
         	
 		} catch (ScanningException | InterruptedException i) {
 			setState(DeviceState.FAULT);

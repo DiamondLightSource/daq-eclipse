@@ -248,7 +248,7 @@ public class AbstractScanTest {
 			checkRun(scanner);
 			
 			// Bit of a hack to get the generator from the model - should this be easier?
-			IGenerator<?,IPosition> gen = (IGenerator<?,IPosition>)((ScanModel)((AbstractRunnableDevice)scanner).getModel()).getPositionIterator();
+			IGenerator<?,IPosition> gen = (IGenerator<?,IPosition>)((ScanModel)((AbstractRunnableDevice)scanner).getModel()).getPositionIterable();
 			assertEquals(gen.size()+states.size(), events.size());
 			assertEquals(Arrays.asList(DeviceState.READY, DeviceState.RUNNING, DeviceState.READY), states);
 			
@@ -299,7 +299,7 @@ public class AbstractScanTest {
 		// Bit of a hack to get the generator from the model - should this be easier?
 		// Do not copy this code
 		ScanModel smodel = (ScanModel)((AbstractRunnableDevice)scanner).getModel();
-		IGenerator<?,IPosition> gen = (IGenerator<?,IPosition>)smodel.getPositionIterator();
+		IGenerator<?,IPosition> gen = (IGenerator<?,IPosition>)smodel.getPositionIterable();
 		MockDetectorModel dmodel = (MockDetectorModel)((AbstractRunnableDevice)smodel.getDetectors().get(0)).getModel();
 		assertEquals(gen.size(), dmodel.getRan());
 		assertEquals(gen.size(), dmodel.getWritten());
@@ -324,7 +324,7 @@ public class AbstractScanTest {
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
-		smodel.setPositionIterator(gen);
+		smodel.setPositionIterable(gen);
 		smodel.setDetectors(detector);
 		smodel.setBean(bean);
 		if (monitor!=null) smodel.setMonitors(monitor);

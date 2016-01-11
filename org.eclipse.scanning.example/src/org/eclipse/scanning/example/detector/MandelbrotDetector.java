@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
@@ -53,28 +54,36 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public static final String VALUE_NAME = "mandelbrot_value";
 
 	private MandelbrotModel       model;
-	private IDataset              data;
+	private IDataset              image;
+	private ILazyWriteableDataset data;
 	
 	public MandelbrotDetector() throws IOException {
 		super();
 		this.model = new MandelbrotModel();
 	}
 	
-	private DelegateNexusProvider<NXdetector> prov;
-	
 	@SuppressWarnings("unchecked")
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		// Object used for writing to nexus.
-		if (prov == null) this.prov = new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
-		return prov;
+		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
 	}
 
 	@Override
 	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
+		
 		final NXdetectorImpl detector = nodeFactory.createNXdetector();
 		// We add 2 to the scan rank to include the image
-		int rank = info.getRank()+2;
-		detector.initializeLazyDataset(NXdetectorImpl.NX_DATA, rank, Dataset.FLOAT64); 
+		int rank = info.getRank()+2; // scan rank plus two dimensions for the image.
+		data = detector.initializeLazyDataset(NXdetectorImpl.NX_DATA, rank, Dataset.FLOAT64);
+		
+		// Setting chunking is a very good idea if speed is required.
+		final int[] chunk = new int[rank];
+		for (int i = 0; i < chunk.length-2; i++) {
+			chunk[i] = 1;
+		}
+		chunk[chunk.length-2] = model.getRows();
+		chunk[chunk.length-1] = model.getColumns();
+		data.setChunking(chunk);
+		
 		return detector;
 	}
 
@@ -106,14 +115,14 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		double value = mandelbrot(a, b);
 		
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
-			data = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
+			image = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
 		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
-			data = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
+			image = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
 		}
 		final Map<String, Serializable> mp = new HashMap<>(1);
 		mp.put("value", value);
 		Metadata meta = new Metadata(mp);
-		data.addMetadata(meta);	
+		image.addMetadata(meta);	
   	}
 	
 	@Override
@@ -132,7 +141,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		stop[stop.length-1]=model.getColumns();
 		stop[stop.length-2]=model.getRows();
 		try {
-			prov.getDefaultDataset().setSlice(null, data, start, stop, null);
+			data.setSlice(null, image, start, stop, null);
 
 		} catch (Exception e) {
 			throw new ScanningException(e.getMessage(), e); 

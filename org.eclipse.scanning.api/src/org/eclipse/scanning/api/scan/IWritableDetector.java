@@ -34,7 +34,7 @@ import org.eclipse.scanning.api.points.IPosition;
  *
  * @param <T> Class of model required by detector to configure it.
  */
-public interface IWritableDetector<T> extends IRunnableDevice<T>, INameable, ILevel {
+public interface IWritableDetector<T> extends IRunnableEventDevice<T>, INameable, ILevel {
 	
 	/**
 	 * For GDA9 detectors, returns a boolean for the readout completed, true for complete, false for error.

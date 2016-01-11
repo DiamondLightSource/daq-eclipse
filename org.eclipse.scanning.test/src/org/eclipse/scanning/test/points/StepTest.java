@@ -85,6 +85,15 @@ public class StepTest {
 	}
 	
 	@Test
+	public void testTooLargeStep() throws Exception {
+
+		IGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("fred", 0, 3, 5));
+		assertEquals(1, gen.size());
+		assertEquals(0d, gen.iterator().next().get("fred"));
+		// TODO Should this throw an exception or do this? Possible to do a size 1 step makes some tests easier to write.
+	}
+	
+	@Test
 	public void testSequence() throws Exception {
 		
 

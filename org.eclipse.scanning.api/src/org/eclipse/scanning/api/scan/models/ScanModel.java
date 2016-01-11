@@ -22,7 +22,7 @@ public class ScanModel {
 	 * Normally this is a generator for the scan points
 	 * of the scan. IGenerator implements Iterable
 	 */
-	private Iterable<IPosition> positionIterator;
+	private Iterable<IPosition> positionIterable;
 	
 	/**
 	 * This is the set of detectors which should be collected
@@ -51,7 +51,7 @@ public class ScanModel {
 	    this(null);
 	}	
 	public ScanModel(Iterable<IPosition> positionIterator, IRunnableDevice<?>... detectors) {
-		this.positionIterator = positionIterator;
+		this.positionIterable = positionIterator;
 		if (detectors!=null && detectors.length>0) this.detectors = Arrays.asList(detectors);
 	}
 
@@ -68,7 +68,7 @@ public class ScanModel {
 				+ ((monitors == null) ? 0 : monitors.hashCode());
 		result = prime
 				* result
-				+ ((positionIterator == null) ? 0 : positionIterator.hashCode());
+				+ ((positionIterable == null) ? 0 : positionIterable.hashCode());
 		return result;
 	}
 	@Override
@@ -100,10 +100,10 @@ public class ScanModel {
 				return false;
 		} else if (!monitors.equals(other.monitors))
 			return false;
-		if (positionIterator == null) {
-			if (other.positionIterator != null)
+		if (positionIterable == null) {
+			if (other.positionIterable != null)
 				return false;
-		} else if (!positionIterator.equals(other.positionIterator))
+		} else if (!positionIterable.equals(other.positionIterable))
 			return false;
 		return true;
 	}
@@ -115,12 +115,12 @@ public class ScanModel {
 	}
 
 
-	public Iterable<IPosition> getPositionIterator() {
-		return positionIterator;
+	public Iterable<IPosition> getPositionIterable() {
+		return positionIterable;
 	}
 
-	public void setPositionIterator(Iterable<IPosition> positionIterator) {
-		this.positionIterator = positionIterator;
+	public void setPositionIterable(Iterable<IPosition> positionIterator) {
+		this.positionIterable = positionIterator;
 	}
 
 	public List<IRunnableDevice<?>> getDetectors() {

@@ -163,7 +163,7 @@ public class LowLevelDetectorPluginTest {
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
-		smodel.setPositionIterator(gen);
+		smodel.setPositionIterable(gen);
 		smodel.setDetectors(detector);
 		
 		// Create a scan and run it without publishing events

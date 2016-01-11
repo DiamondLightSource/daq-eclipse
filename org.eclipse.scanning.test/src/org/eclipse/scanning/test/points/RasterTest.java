@@ -2,13 +2,17 @@ package org.eclipse.scanning.test.points;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.points.GeneratorServiceImpl;
 import org.junit.Before;
@@ -134,6 +138,35 @@ public class RasterTest {
 		assertEquals(1, pointList.get(4).getY(), 1e-8);
 		
         GeneratorUtil.testGeneratorPoints(gen);
+	}
+
+	
+	@Test
+	public void testNestedNeXus() throws Exception {
+		
+		int[] size = {8,5};
+		
+		// Create scan points for a grid and make a generator
+		RasterModel rmodel = new RasterModel();
+		rmodel.setxName("xNex");
+		rmodel.setxStep(3d/size[1]);
+		rmodel.setyName("yNex");
+		rmodel.setyStep(3d/size[0]);
+		rmodel.setBoundingBox(new BoundingBox(0,0,3,3));
+		
+		IGenerator<?,IPosition> gen = service.createGenerator(rmodel);
+    
+		IPosition first = gen.iterator().next();
+		assertEquals(0d, first.get("xNex"));
+		assertEquals(0d, first.get("yNex"));
+		
+		IPosition last = null;
+		Iterator<IPosition> it = gen.iterator();
+		while(it.hasNext()) last = it.next();
+		
+		assertEquals(3d, last.get("xNex"));
+		assertEquals(3d, last.get("yNex"));
+		
 	}
 
 }

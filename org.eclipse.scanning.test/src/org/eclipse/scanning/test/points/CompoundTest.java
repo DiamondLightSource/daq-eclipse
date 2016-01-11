@@ -210,4 +210,33 @@ public class CompoundTest {
 		assertEquals(0.075 + 17 * (3.0 / 20.0), (Double)pointList.get(350).get("y"), 1e-8);
 
 	}
+	
+	@Test
+	public void testNestedNeXus() throws Exception {
+		
+		int[] size = {10,8,5};
+		
+		// Create scan points for a grid and make a generator
+		GridModel gmodel = new GridModel();
+		gmodel.setxName("xNex");
+		gmodel.setColumns(size[size.length-2]);
+		gmodel.setyName("yNex");
+		gmodel.setRows(size[size.length-1]);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
+		
+		IGenerator<?,IPosition> gen = service.createGenerator(gmodel);
+		
+		// We add the outer scans, if any
+		if (size.length > 2) { 
+			for (int dim = size.length-3; dim>-1; dim--) {
+				final StepModel model = new StepModel("neXusScannable"+dim, 10,20,11/size[dim]);
+				final IGenerator<?,IPosition> step = service.createGenerator(model);
+				gen = service.createCompoundGenerator(step, gen);
+			}
+		}
+
+		final IPosition pos = gen.iterator().next();
+		assertEquals(size.length, pos.size());
+		
+	}
 }

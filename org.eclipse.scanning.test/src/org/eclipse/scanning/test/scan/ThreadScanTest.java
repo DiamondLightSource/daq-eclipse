@@ -210,7 +210,7 @@ public class ThreadScanTest {
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
-		smodel.setPositionIterator(gen);
+		smodel.setPositionIterable(gen);
 		smodel.setDetectors(detector);
 		
 		// Create a scan and run it

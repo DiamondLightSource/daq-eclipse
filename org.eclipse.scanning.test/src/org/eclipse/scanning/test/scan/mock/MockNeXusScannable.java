@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.scan.mock;
 
+import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.INexusDevice;
@@ -20,24 +21,24 @@ import org.eclipse.scanning.api.points.IPosition;
  * @author Matthew Gerring
  *
  */
-public class NexusMockScannable extends MockScannable implements INexusDevice {
+public class MockNeXusScannable extends MockScannable implements INexusDevice {
 	
 	public static final String FIELD_NAME_DEMAND_VALUE = NXpositionerImpl.NX_VALUE + "_demand";
+	
+	private ILazyWriteableDataset lzDemand;
+	private ILazyWriteableDataset lzValue;
 
-	private DelegateNexusProvider<NXpositioner> prov;
-
-	public NexusMockScannable() {
+	public MockNeXusScannable() {
 		super();
 	}
 	
-	public NexusMockScannable(String name, double d, int i) {
+	public MockNeXusScannable(String name, double d, int i) {
 		super(name, d, i);
 	}
 
 	@SuppressWarnings("unchecked")
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) {
-		if (prov==null) prov = new DelegateNexusProvider<NXpositioner>(getName(), NexusBaseClass.NX_POSITIONER, NXpositionerImpl.NX_VALUE, info, this);
-		return prov;
+		return new DelegateNexusProvider<NXpositioner>(getName(), NexusBaseClass.NX_POSITIONER, NXpositionerImpl.NX_VALUE, info, this);
 	}
 
 	@Override
@@ -47,8 +48,10 @@ public class NexusMockScannable extends MockScannable implements INexusDevice {
 		positioner.setNameScalar(getName());
 
 		final int scanRank = 1;
-		positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE,   scanRank, Dataset.FLOAT64);
-		positioner.initializeLazyDataset(NXpositionerImpl.NX_VALUE, scanRank, Dataset.FLOAT64);
+		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE,   scanRank, Dataset.FLOAT64);
+		lzDemand.setChunking(new int[]{1});
+		this.lzValue  = positioner.initializeLazyDataset(NXpositionerImpl.NX_VALUE, scanRank, Dataset.FLOAT64);
+		lzValue.setChunking(new int[]{1});
 
 		return positioner;
 	}	
@@ -66,18 +69,11 @@ public class NexusMockScannable extends MockScannable implements INexusDevice {
 
 		// write actual position
 		final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
-		prov.getDefaultDataset().setSlice(null, newActualPositionData, startPos, stopPos, null);
+		lzValue.setSlice(null, newActualPositionData, startPos, stopPos, null);
 
 		// write demand position
 		final Dataset newDemandPositionData = DatasetFactory.createFromObject(demand);
-		prov.getWriteableDataset(FIELD_NAME_DEMAND_VALUE).setSlice(null, newDemandPositionData, startPos, stopPos, null);
-	}
-
-
-	@Override
-	public void setName(String name) {
-		super.setName(name);
-		prov.setName(name);
+		lzDemand.setSlice(null, newDemandPositionData, startPos, stopPos, null);
 	}
 
 }
