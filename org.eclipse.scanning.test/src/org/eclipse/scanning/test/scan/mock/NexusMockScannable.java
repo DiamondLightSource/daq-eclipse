@@ -5,6 +5,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.impl.NXpositionerImpl;
@@ -34,13 +35,13 @@ public class NexusMockScannable extends MockScannable implements INexusDevice {
 	}
 
 	@SuppressWarnings("unchecked")
-	public NexusObjectProvider<NXpositioner> getNexusProvider() {
-		if (prov==null) prov = new DelegateNexusProvider<NXpositioner>(getName(), NexusBaseClass.NX_POSITIONER, NXpositionerImpl.NX_VALUE, this);
+	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) {
+		if (prov==null) prov = new DelegateNexusProvider<NXpositioner>(getName(), NexusBaseClass.NX_POSITIONER, NXpositionerImpl.NX_VALUE, info, this);
 		return prov;
 	}
 
 	@Override
-	public NXpositioner createNexusObject(NexusNodeFactory nodeFactory) {
+	public NXpositioner createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		
 		final NXpositionerImpl positioner = nodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());

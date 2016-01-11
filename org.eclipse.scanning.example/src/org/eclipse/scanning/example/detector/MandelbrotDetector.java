@@ -30,6 +30,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.impl.NXdetectorImpl;
@@ -57,24 +58,23 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public MandelbrotDetector() throws IOException {
 		super();
 		this.model = new MandelbrotModel();
-		
 	}
 	
 	private DelegateNexusProvider<NXdetector> prov;
 	
 	@SuppressWarnings("unchecked")
-	public NexusObjectProvider<NXdetector> getNexusProvider() {
+	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
 		// Object used for writing to nexus.
-		if (prov == null) this.prov = new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, this);
+		if (prov == null) this.prov = new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
 		return prov;
 	}
 
 	@Override
-	public NXdetector createNexusObject(NexusNodeFactory nodeFactory) {
+	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		final NXdetectorImpl detector = nodeFactory.createNXdetector();
-
-		final int rank = 4; // TODO get rank
-		detector.initializeLazyDataset(NXdetectorImpl.NX_DATA, rank, Dataset.FLOAT64);
+		// We add 2 to the scan rank to include the image
+		int rank = info.getRank()+2;
+		detector.initializeLazyDataset(NXdetectorImpl.NX_DATA, rank, Dataset.FLOAT64); 
 		return detector;
 	}
 
@@ -119,9 +119,18 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	@Override
     public boolean write(IPosition pos) throws ScanningException {
 		
-		final int[] start = new int[]{pos.getIndex(model.getxName()), pos.getIndex(model.getyName()), 0, 0}; 
-		final int[] stop  = new int[] {pos.getIndex(model.getxName())+1, pos.getIndex(model.getyName())+1, model.getRows(), model.getColumns()};
+		final int scanRank = pos.getNames().size();
+		final int[] start = new int[scanRank+2];
+		final int[] stop  = new int[scanRank+2];
+		for (int i = 0; i < scanRank; i++) {
+			start[i] = pos.getIndex(pos.getNames().get(i));
+			stop[i]  = pos.getIndex(pos.getNames().get(i))+1;
+		}
 		
+		start[start.length-1]=0;
+		start[start.length-2]=0;
+		stop[stop.length-1]=model.getColumns();
+		stop[stop.length-2]=model.getRows();
 		try {
 			prov.getDefaultDataset().setSlice(null, data, start, stop, null);
 

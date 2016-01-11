@@ -1,5 +1,6 @@
 package org.eclipse.scanning.sequencer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -7,6 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NexusException;
+import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusEntryBuilder;
 import org.eclipse.dawnsci.nexus.builder.NexusFileBuilder;
 import org.eclipse.scanning.api.IScannable;
@@ -68,7 +70,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		writers   = new DetectorWriter(model.getDetectors());
 		
 		try {
-			wireNexus(model);
+			connectNeXus(model);
 		} catch (NexusException e) {
 			throw new ScanningException(e);
 		}
@@ -76,7 +78,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		setState(DeviceState.READY);
 	}
 
-	private boolean wireNexus(ScanModel model) throws NexusException, ScanningException {
+	private boolean connectNeXus(ScanModel model) throws NexusException, ScanningException {
 		
 		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return false; // nothing wired 
 			
@@ -86,30 +88,33 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		final NexusEntryBuilder builder  = fbuilder.newEntry();
 		builder.addDefaultGroups();
 		
-		// Add any devices we can get from the scan.
-		final List<String> names = model.getPositionIterator().iterator().next().getNames();
+		// Add and configures any devices we can get from the scan.
+		final IPosition          pos     = model.getPositionIterator().iterator().next(); // The first position should have the same names as all positions.
+		final List<String>       names   = pos.getNames();
+		final List<INexusDevice> devices = new ArrayList<>(31);
 		if (names!=null) for (String name : names) {
 			IScannable<?> scannable = getDeviceService().getScannable(name);
-			if (scannable instanceof INexusDevice) {
-				builder.add(((INexusDevice)scannable).getNexusProvider());
-			}
+			if (scannable instanceof INexusDevice) devices.add((INexusDevice)scannable);
 		}
-
 		if (model.getDetectors()!=null) for (IRunnableDevice<?> detector : model.getDetectors()) {
-			if (detector instanceof INexusDevice) {
-				builder.add(((INexusDevice)detector).getNexusProvider());
-			}
+			if (detector instanceof INexusDevice) devices.add((INexusDevice)detector);
 		}
 		if (model.getMonitors()!=null) for (IScannable<?> scannable : model.getMonitors()) {
-			if (scannable instanceof INexusDevice) {
-				builder.add(((INexusDevice)scannable).getNexusProvider());
-			}
+			if (scannable instanceof INexusDevice) devices.add((INexusDevice)scannable);
+		}
+		
+		for (INexusDevice device : devices) {
+			builder.add(device.getNexusProvider(createNexusAxisInfo(pos)));
 		}
 		
 		fbuilder.saveFile();
 		
 		// Something got created
 		return true;
+	}
+
+	private NexusScanInfo createNexusAxisInfo(IPosition pos) {
+		return new NexusScanInfo(pos.getNames()); // TODO Names should be in scan order, check this in tests.
 	}
 
 	@Override

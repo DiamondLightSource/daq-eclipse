@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
+import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
@@ -12,14 +13,13 @@ import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
-import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.ScannableModel;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
@@ -57,7 +57,7 @@ public class MandelbrotExamplePluginTest {
 	}
 	
 	@Test
-	public void testNexusScan() throws Exception {	
+	public void test2DNexusScan() throws Exception {	
 			
 		MandelbrotModel model = new MandelbrotModel();
 		model.setName("mandelbrot");
@@ -67,14 +67,16 @@ public class MandelbrotExamplePluginTest {
 		IRunnableDevice<MandelbrotModel> det = service.createRunnableDevice(model);
 		assertNotNull(det);
 				
-		IRunnableDevice<ScanModel> scanner = createTestScanner(det, 5, 8);
+		IRunnableDevice<ScanModel> scanner = createGridScan(det, 8, 5);
 		scanner.run(null);
 	
 		// Check we reached ready (it will normally throw an exception on error)
-        checkFile(model, scanner);
+        check2DFile(scanner, 8, 5);
 	}
 
-	private void checkFile(MandelbrotModel model, IRunnableDevice<ScanModel> scanner) throws NexusException, ScanningException {
+	private void check2DFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
+		
+		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();
 		
 		assertEquals(DeviceState.READY, scanner.getState());
 
@@ -83,12 +85,11 @@ public class MandelbrotExamplePluginTest {
 		NexusFile nf = fileFactory.newNexusFile(filePath);
 		nf.openToRead();
 
-		DataNode d = nf.getData("/entry/instrument/"+model.getName()+"/data");
+		DataNode d = nf.getData("/entry/instrument/"+mod.getDetectors().get(0).getName()+"/data");
 		IDataset ds = d.getDataset().getSlice().squeeze();
 		int[] shape = ds.getShape();
 
-		assertEquals(8, shape[0]);
-		assertEquals(5, shape[1]);
+		for (int i = 0; i < sizes.length; i++) assertEquals(sizes[i], shape[i]);
 		
 		// Make sure none of the numbers are NaNs. The detector
 		// is expected to fill this scan with non-nulls.
@@ -99,29 +100,38 @@ public class MandelbrotExamplePluginTest {
         }
 
 		// Check axes
-		d     = nf.getData("/entry/instrument/"+model.getxName()+"/value");
-		ds    = d.getDataset().getSlice().squeeze();
-		shape = ds.getShape();
-		assertEquals(8, shape[0]);
-
-		
-		d     = nf.getData("/entry/instrument/"+model.getyName()+"/value");
-		ds    = d.getDataset().getSlice().squeeze();
-		shape = ds.getShape();
-		assertEquals(5, shape[0]);
+        final IPosition      pos = mod.getPositionIterator().iterator().next();
+        final List<String> names = pos.getNames();
+        
+        for (int i = 0; i < names.size(); i++) {
+    		d     = nf.getData("/entry/instrument/"+names.get(i)+"/value");
+    		ds    = d.getDataset().getSlice().squeeze();
+    		shape = ds.getShape();
+    		assertEquals(sizes[i], shape[0]);
+		}
 	}
 
-	private IRunnableDevice<ScanModel> createTestScanner(final IRunnableDevice<?> detector, int... size) throws Exception {
+	private IRunnableDevice<ScanModel> createGridScan(final IRunnableDevice<?> detector, int... size) throws Exception {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
-		gmodel.setRows(size[0]);
-		gmodel.setColumns(size[1]);
-		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		gmodel.setxName("xNex");
+		gmodel.setColumns(size[size.length-2]);
 		gmodel.setyName("yNex");
+		gmodel.setRows(size[size.length-1]);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
+		
 		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 		
+		// We add the outer scans, if any
+		if (size.length > 2) { 
+			for (int dim = size.length-3; dim>-1; dim--) {
+				final StepModel model = new StepModel("neXusScannable"+dim, 10,20,11/size[dim]);
+				final IGenerator<?,IPosition> step = gservice.createGenerator(gmodel);
+				gen = gservice.createCompoundGenerator(step, gen);
+			}
+		}
+	
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterator(gen);
