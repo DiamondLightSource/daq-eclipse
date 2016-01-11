@@ -126,6 +126,14 @@ public class MandelbrotExamplePluginTest {
 	public void test3DNexusScan() throws Exception {	
 		testScan(3,2,5);
 	}
+	@Test
+	public void test3DNexusScanLarge() throws Exception {	
+		long before = System.currentTimeMillis();
+		testScan(300,2,5);
+		long after = System.currentTimeMillis();
+		long diff  = after-before;
+		assertTrue(diff<20000);
+	}
 
 	@Test
 	public void test4DNexusScan() throws Exception {			
