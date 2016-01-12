@@ -105,7 +105,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		}
 		
 		for (INexusDevice device : devices) {
-			builder.add(device.getNexusProvider(createNexusAxisInfo(pos)));
+			NexusScanInfo info = createNexusScanInfo(pos);
+			builder.add(device.getNexusProvider(info));
 		}
 		
 		fbuilder.saveFile();
@@ -114,7 +115,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		return true;
 	}
 
-	private NexusScanInfo createNexusAxisInfo(IPosition pos) {
+	private NexusScanInfo createNexusScanInfo(IPosition pos) {
 		return new NexusScanInfo(pos.getNames()); // TODO Names should be in scan order, check this in tests.
 	}
 

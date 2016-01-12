@@ -76,13 +76,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		data = detector.initializeLazyDataset(NXdetectorImpl.NX_DATA, rank, Dataset.FLOAT64);
 		
 		// Setting chunking is a very good idea if speed is required.
-		final int[] chunk = new int[rank];
-		for (int i = 0; i < chunk.length-2; i++) {
-			chunk[i] = 1;
-		}
-		chunk[chunk.length-2] = model.getRows();
-		chunk[chunk.length-1] = model.getColumns();
-		data.setChunking(chunk);
+		data.setChunking(info.createChunk(model.getRows(), model.getColumns()));
 		
 		return detector;
 	}
