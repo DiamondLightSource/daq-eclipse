@@ -16,6 +16,7 @@ public class PositionDeserializer extends JsonDeserializer<IPosition> {
 
 	@Override
 	public IPosition deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
+		@SuppressWarnings("unchecked")
 		Map<String, Object> map = (Map<String, Object>)parser.readValueAs(LinkedHashMap.class);
 		return new MapPosition(map);
 	}
