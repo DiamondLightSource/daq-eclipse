@@ -9,11 +9,10 @@ import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXobject;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
-import org.eclipse.dawnsci.nexus.impl.NXdetectorImpl;
-import org.eclipse.dawnsci.nexus.impl.NexusNodeFactory;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
@@ -44,11 +43,11 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 	@Override
 	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		
-		final NXdetectorImpl detector = nodeFactory.createNXdetector();
+		final NXdetector detector = nodeFactory.createNXdetector();
 		// We add 2 to the scan rank to include the image
 		int rank = info.getRank()+3; // scan rank plus three dimensions for the CV scan.
 		
-		context = detector.initializeLazyDataset(NXdetectorImpl.NX_DATA, rank, Dataset.FLOAT64);
+		context = detector.initializeLazyDataset(NXdetector.NX_DATA, rank, Dataset.FLOAT64);
 		
 		// Setting chunking is a very good idea if speed is required.
 		int[] chunk = info.createChunk(model.getLineSize(), model.getChannelCount(), model.getSpectraSize());
