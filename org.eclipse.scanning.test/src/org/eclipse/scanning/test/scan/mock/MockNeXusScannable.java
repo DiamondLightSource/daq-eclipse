@@ -6,11 +6,10 @@ import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
-import org.eclipse.dawnsci.nexus.impl.NXpositionerImpl;
-import org.eclipse.dawnsci.nexus.impl.NexusNodeFactory;
 import org.eclipse.scanning.api.points.IPosition;
 
 /**
@@ -23,7 +22,7 @@ import org.eclipse.scanning.api.points.IPosition;
  */
 public class MockNeXusScannable extends MockScannable implements INexusDevice {
 	
-	public static final String FIELD_NAME_DEMAND_VALUE = NXpositionerImpl.NX_VALUE + "_demand";
+	public static final String FIELD_NAME_DEMAND_VALUE = NXpositioner.NX_VALUE + "_demand";
 	
 	private ILazyWriteableDataset lzDemand;
 	private ILazyWriteableDataset lzValue;
@@ -38,19 +37,19 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice {
 
 	@SuppressWarnings("unchecked")
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXpositioner>(getName(), NexusBaseClass.NX_POSITIONER, NXpositionerImpl.NX_VALUE, info, this);
+		return new DelegateNexusProvider<NXpositioner>(getName(), NexusBaseClass.NX_POSITIONER, NXpositioner.NX_VALUE, info, this);
 	}
 
 	@Override
 	public NXpositioner createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		
-		final NXpositionerImpl positioner = nodeFactory.createNXpositioner();
+		final NXpositioner positioner = nodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
 		final int scanRank = 1;
 		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE,   scanRank, Dataset.FLOAT64);
 		lzDemand.setChunking(new int[]{1});
-		this.lzValue  = positioner.initializeLazyDataset(NXpositionerImpl.NX_VALUE, scanRank, Dataset.FLOAT64);
+		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, scanRank, Dataset.FLOAT64);
 		lzValue.setChunking(new int[]{1});
 
 		return positioner;
