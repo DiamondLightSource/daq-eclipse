@@ -2,10 +2,14 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="org.eclipse.scanning.api.detector">
+         point="org.eclipse.scanning.api.device">
       <detector
             class="org.eclipse.scanning.example.detector.MandelbrotDetector"
             model="org.eclipse.scanning.example.detector.MandelbrotModel">
+      </detector>
+      <detector
+            class="org.eclipse.scanning.example.detector.ConstantVelocityDevice"
+            model="org.eclipse.scanning.example.detector.ConstantVelocityModel">
       </detector>
    </extension>
 

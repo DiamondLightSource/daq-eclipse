@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.points;
 
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.scanning.api.scan.IScanningService;
 
@@ -83,4 +84,10 @@ public interface IPosition {
 	 * @param step
 	 */
 	void setStepIndex(int step);
+
+	/**
+	 * 
+	 * @return the data indices mapped name:index
+	 */
+	Map<String, Integer> getIndices();
 }

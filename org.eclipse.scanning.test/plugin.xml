@@ -9,7 +9,7 @@
       </generator>
    </extension>
    <extension
-         point="org.eclipse.scanning.api.detector">
+         point="org.eclipse.scanning.api.device">
       <detector
             class="org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector"
             model="org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel">

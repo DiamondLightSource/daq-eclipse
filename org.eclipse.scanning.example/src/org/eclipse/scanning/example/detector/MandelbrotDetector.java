@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
@@ -101,7 +102,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	}
 
 	@Override
-	public void run(IPosition pos) throws ScanningException {
+	public void run(IPosition pos) throws ScanningException, InterruptedException {
 		
 		final double a = (Double)pos.get(model.getxName());
 		final double b = (Double)pos.get(model.getyName());
@@ -122,20 +123,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	@Override
     public boolean write(IPosition pos) throws ScanningException {
 		
-		final int scanRank = pos.getNames().size();
-		final int[] start = new int[scanRank+2];
-		final int[] stop  = new int[scanRank+2];
-		for (int i = 0; i < scanRank; i++) {
-			start[i] = pos.getIndex(pos.getNames().get(i));
-			stop[i]  = pos.getIndex(pos.getNames().get(i))+1;
-		}
-		
-		start[start.length-1]=0;
-		start[start.length-2]=0;
-		stop[stop.length-1]=model.getColumns();
-		stop[stop.length-2]=model.getRows();
 		try {
-			data.setSlice(null, image, start, stop, null);
+			SliceND sliceND = NexusScanInfo.createLocation(data, pos.getNames(), pos.getIndices(), model.getRows(), model.getColumns());
+			data.setSlice(null, image, sliceND);
 
 		} catch (Exception e) {
 			throw new ScanningException(e.getMessage(), e); 

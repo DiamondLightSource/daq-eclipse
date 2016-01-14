@@ -24,7 +24,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T> {
 
 	// Data
-	private   T                          model;
+	protected T                          model;
 	private   String                     name;
 	private   int                        level = 1;
 	private   String                     scanId;
@@ -198,6 +198,28 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void setModel(T model) {
 		this.model = model;
 	}
+	
+	@Override
+	public void configure(T model) throws ScanningException {
+		this.model = model;
+		setState(DeviceState.READY);
+	}
 
+
+	@Override
+	public void abort() throws ScanningException {
+		throw new ScanningException("Abort is not yet implemented!");
+	}
+
+
+	@Override
+	public void pause() throws ScanningException {
+		throw new ScanningException("Pause is not yet implemented!");
+	}
+
+	@Override
+	public void resume() throws ScanningException {
+		throw new ScanningException("Resume is not yet implemented!");
+	}
 
 }

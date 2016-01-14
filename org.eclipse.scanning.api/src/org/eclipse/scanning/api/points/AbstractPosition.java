@@ -1,7 +1,10 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractPosition implements IPosition {
 	
@@ -95,4 +98,16 @@ public abstract class AbstractPosition implements IPosition {
     	buf.append("]");
     	return buf.toString();
 	}
+	
+
+	/**
+	 * This method always creates a new map of indices 
+	 * @return the data indices mapped name:index
+	 */
+	public Map<String, Integer> getIndices() {
+		final Map<String,Integer> indices = new LinkedHashMap<>(size());
+		for (String name : getNames()) indices.put(name, getIndex(name));
+		return indices;
+	}
+
 }

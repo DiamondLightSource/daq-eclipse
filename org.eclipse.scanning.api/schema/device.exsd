@@ -3,10 +3,10 @@
 <schema targetNamespace="org.eclipse.scanning.api" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.eclipse.scanning.api" id="detector" name="Runnable Device"/>
+         <meta.schema plugin="org.eclipse.scanning.api" id="device" name="Runnable Device"/>
       </appinfo>
       <documentation>
-         This extension allows detectors to be added (or any runnable device) to the IScanningService dynamically.
+         This extension allows detectors or devices representing Malcolm and other scans to be added (any runnable device) to the IScanningService dynamically.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="detector" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="device" minOccurs="1" maxOccurs="unbounded"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,7 +47,7 @@
       </complexType>
    </element>
 
-   <element name="detector">
+   <element name="device">
       <annotation>
          <documentation>
             A detector or other runnable device that can be run from a scan

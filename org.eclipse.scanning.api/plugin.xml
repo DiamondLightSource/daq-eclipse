@@ -2,6 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension-point id="generator" name="Scan Point Generator" schema="schema/generator.exsd"/>
-   <extension-point id="detector" name="Runnable Device" schema="schema/detector.exsd"/>
+   <extension-point id="device" name="Runnable Device" schema="schema/device.exsd"/>
 
 </plugin>

@@ -100,5 +100,9 @@ public class MapPosition extends AbstractPosition {
 			indices.put(name, pos.getIndex(name));
 		}
 	}
+	@Override
+	public Map<String, Integer> getIndices() {
+		return indices;
+	}
 
 }

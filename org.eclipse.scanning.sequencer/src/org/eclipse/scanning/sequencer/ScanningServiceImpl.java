@@ -46,7 +46,7 @@ public final class ScanningServiceImpl implements IScanningService {
 	private static void readExtensions(Map<Class<?>, Class<? extends IRunnableDevice>> devs) throws CoreException {
 		
 		if (Platform.getExtensionRegistry()!=null) {
-			final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.detector");
+			final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.device");
 			for (IConfigurationElement e : eles) {
 				final IRunnableDevice gen = (IRunnableDevice)e.createExecutableExtension("class");
 				final Object     mod = e.createExecutableExtension("model");
