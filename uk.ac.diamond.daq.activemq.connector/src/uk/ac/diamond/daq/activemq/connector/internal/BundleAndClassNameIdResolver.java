@@ -123,6 +123,8 @@ public class BundleAndClassNameIdResolver extends TypeIdResolverBase {
 			return ClassUtil.findClass(info.className);
 		}
 
+		// TODO FIXME cache bundles for performance when looking up the same class repeatedly
+		// not sure whether to cache bundle itself or bundle id
 		Bundle[] bundles = bundleProvider.getBundles();
 		Bundle bundleToUse = null;
 		for (Bundle bundle : bundles) {

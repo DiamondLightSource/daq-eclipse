@@ -182,7 +182,6 @@ public class StatusQueueView extends ViewPart {
 		// Use job because connection might timeout.
 		final Job topicJob = new Job("Create topic listener") {
 
-
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				try {
@@ -197,14 +196,8 @@ public class StatusQueueView extends ViewPart {
 								logger.error("Cannot merge changed bean!");
 							}
 						}
-
-						@Override
-						public Class<StatusBean> getBeanClass() {
-							return StatusQueueView.this.getBeanClass();
-						}
 					});
 
-			        
 					adminMonitor = service.createSubscriber(uri, IEventService.ADMIN_MESSAGE_TOPIC);
 					adminMonitor.addListener(new IBeanListener<AdministratorMessage>() {
 						@Override
@@ -219,11 +212,6 @@ public class StatusQueueView extends ViewPart {
 	                                   viewer.refresh();
 	        					}
 	        				});
-						}
-
-						@Override
-						public Class<AdministratorMessage> getBeanClass() {
-							return AdministratorMessage.class;
 						}
 					});
 					
@@ -407,7 +395,6 @@ public class StatusQueueView extends ViewPart {
 		boolean ok = MessageDialog.openQuestion(getSite().getShell(), "Confirm Clear Queues", "Are you sure you would like to remove all items from the queue "+getQueueName()+" and "+getSubmissionQueueName()+"?\n\nThis could abort or disconnect runs of other users.");
 		if (!ok) return;
 
-		queueReader.setBeanClass(getBeanClass());
         queueReader.clearQueue(getQueueName());
         queueReader.clearQueue(getSubmissionQueueName());
 		
@@ -536,7 +523,6 @@ public class StatusQueueView extends ViewPart {
 	 * @return
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
 	protected synchronized void updateQueue(final URI uri) {
 		
 
@@ -547,8 +533,7 @@ public class StatusQueueView extends ViewPart {
 				try {
 					monitor.beginTask("Connect to command server", 10);
 					monitor.worked(1);
-					
-					queueReader.setBeanClass(getBeanClass());
+
 					Collection<StatusBean> runningList = queueReader.getQueue(getQueueName(), "submissionTime");
 					monitor.worked(1);
 			        
@@ -596,23 +581,6 @@ public class StatusQueueView extends ViewPart {
 		queueJob.setPriority(Job.INTERACTIVE);
 		queueJob.setUser(true);
 		queueJob.schedule();
-
-
-	}
-
-
-	private Class<StatusBean> getBeanClass() {
-	    String beanBundleName = getSecondaryIdAttribute("beanBundleName");
-	    String beanClassName  = getSecondaryIdAttribute("beanClassName");
-		try {
-		    
-		    @SuppressWarnings("rawtypes")
-		    Bundle bundle = Platform.getBundle(beanBundleName);
-			return (Class<StatusBean>)bundle.loadClass(beanClassName);
-		} catch (Exception ne) {
-			logger.error("Cannot get class "+beanClassName+". Defaulting to StatusBean. This will probably not work though.", ne);
-			return StatusBean.class;
-		}
 	}
 
 	protected void createColumns() {

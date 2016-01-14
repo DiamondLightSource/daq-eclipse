@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.event.scan;
 
-import org.eclipse.scanning.api.event.IEventListener;
+import java.util.EventListener;
 
 
 /**
@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.event.IEventListener;
  * @author Matthew Gerring
  *
  */
-public interface IScanListener extends IEventListener<ScanBean> {
+public interface IScanListener extends EventListener {
 		
 	/**
 	 * Called by all broadcast events
@@ -35,7 +35,7 @@ public interface IScanListener extends IEventListener<ScanBean> {
 	 * @author Matthew Gerring
 	 *
 	 */
-	public class Stub implements IScanListener{
+	public class Stub implements IScanListener {
 
 		@Override
 		public void scanEventPerformed(ScanEvent evt) {
@@ -46,11 +46,5 @@ public interface IScanListener extends IEventListener<ScanBean> {
 		public void scanStateChanged(ScanEvent evt) {
 			
 		}
-
-		@Override
-		public Class<ScanBean> getBeanClass() {
-			return ScanBean.class;
-		}
-		
 	}
 }

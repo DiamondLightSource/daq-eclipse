@@ -21,7 +21,6 @@ import javax.jms.Topic;
 import org.apache.commons.lang.ClassUtils;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
-import org.eclipse.scanning.api.event.IEventListener;
 import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
@@ -29,15 +28,15 @@ import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
-import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
-class SubscriberImpl<T extends IEventListener> extends AbstractConnection implements ISubscriber<T> {
+class SubscriberImpl<T extends EventListener> extends AbstractConnection implements ISubscriber<T> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(SubscriberImpl.class);
 	
@@ -67,7 +66,7 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 		registerListener(scanID, listener, slisteners);
 		if (scanConsumer == null) {
 			try {
-				scanConsumer = createConsumer(getTopicName(), listener.getBeanClass(), slisteners);
+				scanConsumer = createConsumer(getTopicName(), slisteners);
 			} catch (JMSException e) {
 				throw new EventException("Cannot subscribe to topic "+getTopicName()+" with URI "+uri, e);
 			}
@@ -75,7 +74,6 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 	}
 
 	private MessageConsumer createConsumer(final String    topicName, 
-			                               final Class<?>  staticClass, 
 			                               final Map<String, Collection<T>> listeners) throws JMSException {
 		
 		Topic topic = super.createTopic(topicName);
@@ -88,19 +86,15 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
     			try {
 	    			TextMessage txt   = (TextMessage)message;
 	    			String      json  = txt.getText(); 
-	    			Class<?>    clazz = staticClass !=null
-			                          ? staticClass
-			                          : EventServiceImpl.getClassFromJson(json);
 	    			
-	    			Object bean = service.unmarshal(json, clazz);
+	    			Object bean = service.unmarshal(json, null);
 	    			diseminate(bean, listeners); // We simply use the event thread from JMS for this.
 	    			
     			} catch (Exception ne) {
     				
     				if (ne.getClass().getName().contains("com.fasterxml.jackson")) {
-        				logger.error("JSON Serilization Error! Have you set the bean class on the "+getClass().getSimpleName(), ne);     
-        				System.out.println("Bean class is "+staticClass);
-	   				} else {    				
+        				logger.error("JSON Serialization Error!", ne);
+	   				} else {
 	    				logger.error("Internal error! - Unable to process an event!", ne);
 	   				}
     				ne.printStackTrace(); // Unit tests without log4j config show this one.
@@ -139,7 +133,6 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	private Map<Class, DiseminateHandler> createDiseminateHandlers() {
 		
 		Map<Class, DiseminateHandler> ret = Collections.synchronizedMap(new HashMap<Class, DiseminateHandler>(3));
@@ -170,6 +163,7 @@ class SubscriberImpl<T extends IEventListener> extends AbstractConnection implem
 		ret.put(IBeanListener.class, new DiseminateHandler() {
 			public void diseminate(Object bean, EventListener e) {
 				// Used casting because generics got silly
+				@SuppressWarnings("unchecked")
 				IBeanListener<Object> l = (IBeanListener<Object>)e;
 				l.beanChangePerformed(new BeanEvent<Object>(bean));
 			}

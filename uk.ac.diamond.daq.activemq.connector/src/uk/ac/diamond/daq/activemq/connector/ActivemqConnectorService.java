@@ -13,14 +13,20 @@ import uk.ac.diamond.daq.activemq.connector.internal.OSGiBundleProvider;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
@@ -61,7 +67,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	public String marshal(Object anyObject) throws Exception {
 		if (mapper==null) mapper = createJacksonMapper();
 		String json = mapper.writeValueAsString(anyObject);
-		System.out.println(json);
+//		System.out.println(json);
 		return json;
 	}
 
@@ -71,7 +77,12 @@ public class ActivemqConnectorService implements IEventConnectorService {
 //		ClassLoader tccl = Thread.currentThread().getContextClassLoader();
 //		try {
 //			Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-		return (U)mapper.readValue(string, beanClass);
+		if (beanClass != null) {
+			return mapper.readValue(string, beanClass);
+		}
+		@SuppressWarnings("unchecked")
+		U result = (U) mapper.readValue(string, Object.class);
+		return result;
 //		} finally {
 //			Thread.currentThread().setContextClassLoader(tccl);
 //		}
@@ -97,11 +108,11 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 
 		// TODO can we remove this and just use the OSGi resolver all the time?
-		if (inOSGiFramework()) {
+//		if (inOSGiFramework()) {
 			mapper.setDefaultTyping(createOSGiTypeIdResolver(mapper));
-		} else {
-			mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
-		}
+//		} else {
+//			mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+//		}
 		return mapper;
 	}
 
@@ -131,13 +142,28 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		// Override StdTypeResolverBuilder#idResolver() to return our custom BundleAndClassNameIdResolver
 		// (We need this override, rather than just providing a custom resolver in StdTypeResolverBuilder#init(), because
 		//  the default implementation does not pass the base type to the custom resolver, but the base type is needed.)
-		TypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL) {
-			private static final long serialVersionUID = 1L;
+		// TODO extract this to a named class. Also either rewrite or comment about code copying from Jackson
+		TypeResolverBuilder<?> typer = new StdTypeResolverBuilder() {/*DefaultTypeResolverBuilder(DefaultTyping.NON_FINAL) {
+			private static final long serialVersionUID = 1L;*/
 			@Override
 			protected TypeIdResolver idResolver(MapperConfig<?> config,
 					JavaType baseType, Collection<NamedType> subtypes,
 					boolean forSer, boolean forDeser) {
 				return new BundleAndClassNameIdResolver(baseType, config.getTypeFactory(), bundleProvider);
+			}
+			@Override
+			public TypeSerializer buildTypeSerializer(SerializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
+				return useForType(baseType) ? super.buildTypeSerializer(config, baseType, subtypes) : null;
+			}
+			@Override
+			public TypeDeserializer buildTypeDeserializer(DeserializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
+				return useForType(baseType) ? super.buildTypeDeserializer(config, baseType, subtypes) : null;
+			}
+			public boolean useForType(JavaType t) {
+				while (t.isArrayType()) {
+					t = t.getContentType();
+				}
+				return !t.isPrimitive();
 			}
 		};
 		typer = typer.init(JsonTypeInfo.Id.CUSTOM, null);

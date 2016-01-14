@@ -82,7 +82,6 @@ public class AbstractConsumerTest {
 	public void testSimpleConsumer() throws Exception {
     	
 		consumer.setRunner(new DryRunCreator<StatusBean>());
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
 		StatusBean bean = doSubmit();
@@ -187,7 +186,6 @@ public class AbstractConsumerTest {
     private void testStop(IProcessCreator<StatusBean> dryRunCreator) throws Exception {
     	
 		consumer.setRunner(dryRunCreator);
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -206,7 +204,6 @@ public class AbstractConsumerTest {
     public void testKillingAConsumer() throws Exception {
     	
 		consumer.setRunner(new DryRunCreator<StatusBean>());
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -230,7 +227,6 @@ public class AbstractConsumerTest {
 	public void testAbortingAJobRemotely() throws Exception {
 
 		consumer.setRunner(new DryRunCreator<StatusBean>());
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -286,7 +282,6 @@ public class AbstractConsumerTest {
     public void testHeartbeat() throws Exception {
     	
 		consumer.setRunner(new DryRunCreator<StatusBean>());
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
 		ISubscriber<IHeartbeatListener> subscriber = eservice.createSubscriber(consumer.getUri(), IEventService.HEARTBEAT_TOPIC, new ActivemqConnectorService());
@@ -344,7 +339,6 @@ public class AbstractConsumerTest {
     public void testMultipleSubmissions() throws Exception {
     	
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
 		List<StatusBean> submissions = new ArrayList<StatusBean>(10);
@@ -390,7 +384,6 @@ public class AbstractConsumerTest {
     public void testMultipleSubmissionsUsingThreads() throws Exception {
 		
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
 		final List<StatusBean> submissions = new ArrayList<StatusBean>(10);

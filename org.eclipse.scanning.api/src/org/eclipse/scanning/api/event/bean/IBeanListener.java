@@ -1,8 +1,8 @@
 package org.eclipse.scanning.api.event.bean;
 
-import org.eclipse.scanning.api.event.IEventListener;
+import java.util.EventListener;
 
-public interface IBeanListener<T> extends IEventListener<T> {
+public interface IBeanListener<T> extends EventListener {
 
 	/**
 	 * Called when any bean is changed and published	

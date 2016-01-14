@@ -21,7 +21,6 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.StatusBean;
-import org.osgi.framework.FrameworkUtil;
 
 class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> implements ISubmitter<T> {
 
@@ -74,16 +73,6 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 
 			String json = null;
 			try {
-				if (bean.getBundle()==null) {
-					try {
-						// In OSGi mode, this sets the bundle.
-						// In non-OSGi mode this takes a while to fail.
-					    bean.setBundle(FrameworkUtil.getBundle(bean.getClass()).getSymbolicName());
-					} catch (Exception ne) {
-						bean.setBundle(null);
-					}
-				}
-				if (bean.getBeanClass()==null) bean.setBeanClass(bean.getClass().getName());
 				json = service.marshal(bean);
 			} catch (Exception e) {
 				throw new EventException("Unable to marshall bean "+bean, e);
@@ -139,8 +128,8 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 				if (m==null) continue;
 				if (m instanceof TextMessage) {
 					TextMessage t = (TextMessage)m;
-	
-					final T qbean = service.unmarshal(t.getText(), (Class<T>)bean.getClass());
+
+					final T qbean = service.unmarshal(t.getText(), null);
 					if (qbean==null) continue;
 					if (isSame(qbean, bean)) {
 						jMSMessageID = t.getJMSMessageID();

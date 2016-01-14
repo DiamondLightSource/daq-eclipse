@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.event;
 
 import java.net.URI;
+import java.util.EventListener;
 
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -97,8 +98,7 @@ public interface IEventService {
 	 * @param uri - the location of the JMS broker
 	 * @return IEventManager
 	 */
-	@SuppressWarnings("rawtypes")
-	public <T extends IEventListener> ISubscriber<T> createSubscriber(URI uri, String topicName);
+	public <T extends EventListener> ISubscriber<T> createSubscriber(URI uri, String topicName);
 	
 	/**
 	 * Creates an IEventManager with the default scan event topic and heartbeat topic.
@@ -107,8 +107,7 @@ public interface IEventService {
 	 *        which case the default OSGi service will be used or an exception thrown.
 	 * @return
 	 */
-	@SuppressWarnings("rawtypes")
-	public <T extends IEventListener> ISubscriber<T> createSubscriber(URI uri, String topicName, IEventConnectorService service);
+	public <T extends EventListener> ISubscriber<T> createSubscriber(URI uri, String topicName, IEventConnectorService service);
 
 	/**
 	 * Creates an IEventPublisher with the default scan event topic and no heartbeat events.

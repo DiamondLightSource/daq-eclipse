@@ -41,6 +41,10 @@ public abstract class JSONMarshallerTestBase {
 	protected String jsonForAnimalList;
 	protected String jsonForAnimalSet;
 	protected String jsonForAnimalMap;
+	protected String testString = "Hello world!";
+	protected String jsonForTestString = "\"Hello world!\"";
+	protected int testInt = 56;
+	protected String jsonForTestInt = "-56";
 
 	protected ActivemqConnectorService marshaller;
 
@@ -76,7 +80,7 @@ public abstract class JSONMarshallerTestBase {
 	public void tearDown() throws Exception {
 		if (json != null) {
 			// So we can see what's going on
-//			System.out.println("JSON: " + json);
+			System.out.println("JSON: " + json);
 
 			// To make it easy to replace expected JSON values in the code when we're sure they're correct
 			@SuppressWarnings("unused")
@@ -117,6 +121,11 @@ public abstract class JSONMarshallerTestBase {
 		Cat deserializedFelix = (Cat) deserializedJohn.getPet();
 		assertEquals("Felix", deserializedFelix.getName());
 		assertEquals("Luxuriant", deserializedFelix.getWhiskers());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testDeserialisationOfJohnAsAnimal() throws Exception {
+		marshaller.unmarshal(jsonForJohn, Animal.class);
 	}
 
 	@Test
@@ -212,5 +221,29 @@ public abstract class JSONMarshallerTestBase {
 		assertThat(map.get(john.getName()), is(equalTo(john)));
 		assertThat(map.get(felix.getName()), is(equalTo(felix)));
 		assertThat(map.get(polly.getName()), is(equalTo(polly)));
+	}
+
+	@Test
+	public void testIntSerialization() throws Exception {
+		json = marshaller.marshal(-testInt);
+		assertEquals(jsonForTestInt, json);
+	}
+
+	@Test
+	public void testIntDeserialization() throws Exception {
+		Object result = marshaller.unmarshal(jsonForTestInt, Object.class);
+		assertThat(result, is(equalTo(-56)));
+	}
+
+	@Test
+	public void testStringSerialization() throws Exception {
+		json = marshaller.marshal(testString);
+		assertEquals(jsonForTestString, json);
+	}
+
+	@Test
+	public void testStringDeserialization() throws Exception {
+		Object result = marshaller.unmarshal(jsonForTestString, Object.class);
+		assertEquals(testString, result);
 	}
 }

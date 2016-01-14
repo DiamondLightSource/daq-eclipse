@@ -213,6 +213,10 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			if (m instanceof TextMessage) {
 				TextMessage t = (TextMessage)m;
 
+				// TODO this currently fails when doing a dry run
+				// ScanBeans are received as TextMessages but this attempts to deserialize them as MappingExperimentStatusBeans
+				// Need to check queues and topics are set up correctly
+				@SuppressWarnings("unchecked")
 				final T qbean = service.unmarshal(t.getText(), (Class<T>)bean.getClass());
 				if (qbean==null) continue;
 				if (isSame(qbean, bean)) {
