@@ -30,7 +30,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * @author Matthew Gerring
  *
  */
-public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVelocityModel> implements IWritableDetector<ConstantVelocityModel>, INexusDevice {
+public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVelocityModel> implements IWritableDetector<ConstantVelocityModel>, INexusDevice<NXdetector> {
 
 	private ILazyWriteableDataset context;
 	private IDataset              data;
