@@ -13,18 +13,15 @@ import uk.ac.diamond.daq.activemq.connector.internal.OSGiBundleProvider;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
@@ -152,9 +149,16 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	/**
 	 * A TypeResolverBuilder for use in an OSGi environment.
 	 */
-	private class OSGiTypeResolverBuilder extends StdTypeResolverBuilder {
+	private class OSGiTypeResolverBuilder extends DefaultTypeResolverBuilder {
+		private static final long serialVersionUID = 1L;
 
-		// NOTE: Most of this code is copied from ObjectMapper.DefaultTypeResolverBuilder
+		public OSGiTypeResolverBuilder() {
+			this(null);
+		}
+
+		public OSGiTypeResolverBuilder(DefaultTyping typing) {
+			super(typing);
+		}
 
 		// Override StdTypeResolverBuilder#idResolver() to return our custom BundleAndClassNameIdResolver
 		// (We need this override, rather than just providing a custom resolver in StdTypeResolverBuilder#init(), because
@@ -166,21 +170,13 @@ public class ActivemqConnectorService implements IEventConnectorService {
 			return new BundleAndClassNameIdResolver(baseType, config.getTypeFactory(), bundleProvider);
 		}
 
+		// Override DefaultTypeResolverBuilder#useForType() to add type information to all except primitive types
 		@Override
-		public TypeSerializer buildTypeSerializer(SerializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
-			return useForType(baseType) ? super.buildTypeSerializer(config, baseType, subtypes) : null;
-		}
-
-		@Override
-		public TypeDeserializer buildTypeDeserializer(DeserializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
-			return useForType(baseType) ? super.buildTypeDeserializer(config, baseType, subtypes) : null;
-		}
-
-		public boolean useForType(JavaType t) {
-			while (t.isArrayType()) {
-				t = t.getContentType();
+		public boolean useForType(JavaType type) {
+			while (type.isArrayType()) {
+				type = type.getContentType();
 			}
-			return !t.isPrimitive();
+			return !type.isPrimitive();
 		}
 	}
 }
