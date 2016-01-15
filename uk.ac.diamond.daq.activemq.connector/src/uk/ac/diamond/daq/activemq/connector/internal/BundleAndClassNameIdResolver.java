@@ -102,20 +102,19 @@ public class BundleAndClassNameIdResolver extends TypeIdResolverBase {
 
 	@Override
 	public JavaType typeFromId(String id) {
-		BundleAndClassInfo info = BundleAndClassInfo.from(id);
-		Class<?> clazz;
 		try {
-			clazz = getClass(info);
+			Class<?> clazz = getClass(id);
+			// TODO this probably doesn't handle generics, except for arrays and collections
+			// see ClassNameIdResolver#typeFromId() for more on this
+			JavaType type = _typeFactory.constructSpecializedType(_baseType, clazz);
+			return type;
 		} catch (ClassNotFoundException e) {
 			throw new IllegalArgumentException("Class " + id + " not found", e);
 		}
-		// TODO this probably doesn't handle generics, except for arrays and collections
-		// see ClassNameIdResolver#typeFromId() for more on this
-		JavaType type = _typeFactory.constructSpecializedType(_baseType, clazz);
-		return type;
 	}
 
-	private Class<?> getClass(BundleAndClassInfo info) throws ClassNotFoundException {
+	private Class<?> getClass(String id) throws ClassNotFoundException {
+		BundleAndClassInfo info = BundleAndClassInfo.from(id);
 
 		// If there is no bundle name, try loading the class using the standard Jackson utility method
 		// TODO see ClassNameIdResolver for complexity regarding generics here - not supported for now
@@ -124,7 +123,7 @@ public class BundleAndClassNameIdResolver extends TypeIdResolverBase {
 		}
 
 		// TODO FIXME cache bundles for performance when looking up the same class repeatedly
-		// not sure whether to cache bundle itself or bundle id
+		// (not sure whether to cache bundle itself or bundle id)
 		Bundle[] bundles = bundleProvider.getBundles();
 		Bundle bundleToUse = null;
 		for (Bundle bundle : bundles) {

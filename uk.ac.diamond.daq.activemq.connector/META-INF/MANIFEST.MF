@@ -5,7 +5,7 @@ Bundle-SymbolicName: uk.ac.diamond.daq.activemq.connector
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Diamond Light Source
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Bundle-Activator: uk.ac.diamond.daq.activemq.connector.Activator
+Bundle-Activator: uk.ac.diamond.daq.activemq.connector.internal.Activator
 Service-Component: OSGI-INF/*.xml
 Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  com.fasterxml.jackson.core.jackson-annotations;bundle-version="2.2.0",

@@ -10,6 +10,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
 
+import uk.ac.diamond.daq.activemq.connector.internal.Activator;
 import uk.ac.diamond.daq.activemq.connector.internal.MockClassLoaderAnswer;
 import uk.ac.diamond.daq.activemq.connector.internal.TestBundleProvider;
 import uk.ac.diamond.daq.activemq.connector.testobject.Animal;

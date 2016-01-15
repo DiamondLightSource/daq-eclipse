@@ -43,8 +43,10 @@ public abstract class JSONMarshallerTestBase {
 	protected String jsonForAnimalMap;
 	protected String testString = "Hello world!";
 	protected String jsonForTestString = "\"Hello world!\"";
-	protected int testInt = 56;
+	protected int testInt = -56;
 	protected String jsonForTestInt = "-56";
+	protected long testLong = 1234567890L;
+	protected String jsonForTestLong = "1234567890";
 
 	protected ActivemqConnectorService marshaller;
 
@@ -225,14 +227,26 @@ public abstract class JSONMarshallerTestBase {
 
 	@Test
 	public void testIntSerialization() throws Exception {
-		json = marshaller.marshal(-testInt);
+		json = marshaller.marshal(testInt);
 		assertEquals(jsonForTestInt, json);
 	}
 
 	@Test
 	public void testIntDeserialization() throws Exception {
 		Object result = marshaller.unmarshal(jsonForTestInt, Object.class);
-		assertThat(result, is(equalTo(-56)));
+		assertThat(result, is(equalTo(testInt)));
+	}
+
+	@Test
+	public void testLongSerialization() throws Exception {
+		json = marshaller.marshal(testLong);
+		assertEquals(jsonForTestLong, json);
+	}
+
+	@Test
+	public void testLongDeserialization() throws Exception {
+		Object result = marshaller.unmarshal(jsonForTestLong, Object.class);
+		assertThat(result, is(equalTo(testLong)));
 	}
 
 	@Test

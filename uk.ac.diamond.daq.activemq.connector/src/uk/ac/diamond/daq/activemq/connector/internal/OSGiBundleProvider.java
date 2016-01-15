@@ -3,8 +3,6 @@ package uk.ac.diamond.daq.activemq.connector.internal;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
-import uk.ac.diamond.daq.activemq.connector.Activator;
-
 /**
  * The default implementation of BundleProvider for use in an OSGi environment.
  * <p>

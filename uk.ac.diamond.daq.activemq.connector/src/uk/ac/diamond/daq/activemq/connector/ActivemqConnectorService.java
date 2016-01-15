@@ -17,8 +17,6 @@ import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationConfig;
-import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
@@ -40,6 +38,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  */
 public class ActivemqConnectorService implements IEventConnectorService {
 
+	private BundleProvider bundleProvider;
+	private ObjectMapper mapper;
+
 	static {
 		System.out.println("Started "+IEventConnectorService.class.getSimpleName());
 	}
@@ -60,9 +61,18 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		this.bundleProvider = bundleProvider;
 	}
 
-	private BundleProvider bundleProvider;
-	private ObjectMapper mapper;
+	@Override
+	public Object createConnectionFactory(URI uri) {
+		return new ActiveMQConnectionFactory(uri);
+	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.scanning.api.event.IEventConnectorService#marshal(java.lang.Object)
+	 * <p>
+	 * Objects to be marshalled with this implementation should have no-arg constructors, and getters and setters for
+	 * their fields. Primitive and collection types (arrays, Collections and Maps) should work correctly. More
+	 * complicated types (generics other than collections, inner classes etc) might or might not work properly.
+	 */
 	@Override
 	public String marshal(Object anyObject) throws Exception {
 		if (mapper==null) mapper = createJacksonMapper();
@@ -71,28 +81,40 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		return json;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.scanning.api.event.IEventConnectorService#unmarshal(java.lang.String, java.lang.Class)
+	 * <p>
+	 * This method will try to find the correct classes for deserialization if possible. If you still have problems
+	 * with ClassNotFoundExceptions, one option which might help is to try setting the thread context classloader
+	 * before calling the unmarshal method:
+	 * <p>
+	 * <pre>
+	 * ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+	 * try {
+	 *     Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+	 *     // call the unmarshaller
+	 * } finally {
+	 *     Thread.currentThread().setContextClassLoader(tccl);
+	 * }
+	 * </pre>
+	 */
 	@Override
 	public <U> U unmarshal(String string, Class<U> beanClass) throws Exception {
 		if (mapper==null) mapper = createJacksonMapper();
-//		ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-//		try {
-//			Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		if (beanClass != null) {
 			return mapper.readValue(string, beanClass);
 		}
+		// If bean class is not supplied, try using Object
 		@SuppressWarnings("unchecked")
 		U result = (U) mapper.readValue(string, Object.class);
 		return result;
-//		} finally {
-//			Thread.currentThread().setContextClassLoader(tccl);
-//		}
 	}
 
 	private final ObjectMapper createJacksonMapper() {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		// TODO can probably remove this if type serialization works properly
+		// TODO can probably remove this after testing Position objects with the new type serialization mechanism
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(IPosition.class,   new PositionSerializer());
 		module.addDeserializer(IPosition.class, new PositionDeserializer());
@@ -106,74 +128,59 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		// check the exact contents of the serialized JSON string
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-
-		// TODO can we remove this and just use the OSGi resolver all the time?
-//		if (inOSGiFramework()) {
-			mapper.setDefaultTyping(createOSGiTypeIdResolver(mapper));
-//		} else {
-//			mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
-//		}
+		mapper.setDefaultTyping(createOSGiTypeIdResolver(mapper));
 		return mapper;
 	}
 
-	
 	/**
-	 * Are we running in an OSGi environment?
+	 * Create a TypeResolverBuilder which will add bundle and class name information to JSON-serialized objects to
+	 * allow the correct classes to be loaded during deserialization.
 	 * <p>
-	 * Deliberately <code>private</code>. For testing, rather than overriding this method, pass a mock BundleContext to the Activator.
-	 *
-	 * @return <code>true</code> if a BundleContext is available
-	 */
-	private boolean inOSGiFramework() {
-		return (Activator.getContext() != null);
-	}
-
-	/**
-	 * Create a TypeResolverBuilder which will add bundle and class name information to JSON-serialized objects, and use this information
-	 * to load the correct classes for deserialization. The TypeIdResolver relies on the OSGi BundleContext (obtained from the Activator)
-	 * to link classes to the correct bundles, so will only work in an OSGi environment.
-	 * <p>
-	 * NOTE: this strongly relies on the exact implementation of the Jackson library - it was written to work with version 2.2.0 and has
-	 * not been tested with any other version.
+	 * NOTE: this strongly relies on the exact implementation of the Jackson library - it was written to work with
+	 * version 2.2.0 and has not been tested with any other version.
 	 *
 	 * @return the customised TypeResolverBuilder for use in an OSGi environment
 	 */
 	private TypeResolverBuilder<?> createOSGiTypeIdResolver(ObjectMapper mapper) {
-		// Override StdTypeResolverBuilder#idResolver() to return our custom BundleAndClassNameIdResolver
-		// (We need this override, rather than just providing a custom resolver in StdTypeResolverBuilder#init(), because
-		//  the default implementation does not pass the base type to the custom resolver, but the base type is needed.)
-		// TODO extract this to a named class. Also either rewrite or comment about code copying from Jackson
-		TypeResolverBuilder<?> typer = new StdTypeResolverBuilder() {/*DefaultTypeResolverBuilder(DefaultTyping.NON_FINAL) {
-			private static final long serialVersionUID = 1L;*/
-			@Override
-			protected TypeIdResolver idResolver(MapperConfig<?> config,
-					JavaType baseType, Collection<NamedType> subtypes,
-					boolean forSer, boolean forDeser) {
-				return new BundleAndClassNameIdResolver(baseType, config.getTypeFactory(), bundleProvider);
-			}
-			@Override
-			public TypeSerializer buildTypeSerializer(SerializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
-				return useForType(baseType) ? super.buildTypeSerializer(config, baseType, subtypes) : null;
-			}
-			@Override
-			public TypeDeserializer buildTypeDeserializer(DeserializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
-				return useForType(baseType) ? super.buildTypeDeserializer(config, baseType, subtypes) : null;
-			}
-			public boolean useForType(JavaType t) {
-				while (t.isArrayType()) {
-					t = t.getContentType();
-				}
-				return !t.isPrimitive();
-			}
-		};
+		TypeResolverBuilder<?> typer = new OSGiTypeResolverBuilder();
 		typer = typer.init(JsonTypeInfo.Id.CUSTOM, null);
 		typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
 		typer = typer.typeProperty("@bundle_and_class");
 		return typer;
 	}
 
-	@Override
-	public Object createConnectionFactory(URI uri) {
-		return new ActiveMQConnectionFactory(uri);
+	/**
+	 * A TypeResolverBuilder for use in an OSGi environment.
+	 */
+	private class OSGiTypeResolverBuilder extends StdTypeResolverBuilder {
+
+		// NOTE: Most of this code is copied from ObjectMapper.DefaultTypeResolverBuilder
+
+		// Override StdTypeResolverBuilder#idResolver() to return our custom BundleAndClassNameIdResolver
+		// (We need this override, rather than just providing a custom resolver in StdTypeResolverBuilder#init(), because
+		//  the default implementation does not normally pass the base type to the custom resolver but we need it.)
+		@Override
+		protected TypeIdResolver idResolver(MapperConfig<?> config,
+				JavaType baseType, Collection<NamedType> subtypes,
+				boolean forSer, boolean forDeser) {
+			return new BundleAndClassNameIdResolver(baseType, config.getTypeFactory(), bundleProvider);
+		}
+
+		@Override
+		public TypeSerializer buildTypeSerializer(SerializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
+			return useForType(baseType) ? super.buildTypeSerializer(config, baseType, subtypes) : null;
+		}
+
+		@Override
+		public TypeDeserializer buildTypeDeserializer(DeserializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
+			return useForType(baseType) ? super.buildTypeDeserializer(config, baseType, subtypes) : null;
+		}
+
+		public boolean useForType(JavaType t) {
+			while (t.isArrayType()) {
+				t = t.getContentType();
+			}
+			return !t.isPrimitive();
+		}
 	}
 }
