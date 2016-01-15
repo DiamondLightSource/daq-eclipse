@@ -74,7 +74,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	public String marshal(Object anyObject) throws Exception {
 		if (mapper==null) mapper = createJacksonMapper();
 		String json = mapper.writeValueAsString(anyObject);
-//		System.out.println(json);
+		System.out.println(json);
 		return json;
 	}
 
@@ -111,14 +111,13 @@ public class ActivemqConnectorService implements IEventConnectorService {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		// TODO can probably remove this after testing Position objects with the new type serialization mechanism
+		// Use custom serialization for IPosition objects
+		// (Otherwise all IPosition subclasses will need to become simple beans, i.e. no-arg constructors with getters
+		// and setters for all fields. MapPosition.getNames() caused problems because it just returns keys from the map
+		// and has no corresponding setter.)
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(IPosition.class,   new PositionSerializer());
 		module.addDeserializer(IPosition.class, new PositionDeserializer());
-//		module.addSerializer(State.class,   new StateSerializer());
-//		module.addDeserializer(State.class, new StateDeserializer());
-//		module.addSerializer(Type.class,    new TypeSerializer());
-//		module.addDeserializer(Type.class,  new TypeDeserializer());
 		mapper.registerModule(module);
 
 		// Be careful adjusting these settings - changing them will probably cause various unit tests to fail which
