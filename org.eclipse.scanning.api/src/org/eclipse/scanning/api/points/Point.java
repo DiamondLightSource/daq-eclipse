@@ -81,21 +81,4 @@ public class Point extends AbstractPosition {
 		if (yName.equalsIgnoreCase(name)) return yIndex;
 		return -1;
 	}
-
-	public Integer getyIndex() {
-		return yIndex;
-	}
-
-	public void setyIndex(Integer yIndex) {
-		this.yIndex = yIndex;
-	}
-
-	public String getyName() {
-		return yName;
-	}
-
-	public void setyName(String yName) {
-		this.yName = yName;
-	}
-
 }
