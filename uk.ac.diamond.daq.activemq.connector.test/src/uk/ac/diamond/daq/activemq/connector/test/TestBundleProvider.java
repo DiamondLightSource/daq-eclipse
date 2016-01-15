@@ -21,6 +21,7 @@ public class TestBundleProvider implements BundleProvider {
 	private static final Bundle[] EMPTY_BUNDLE_ARRAY = new Bundle[0];
 
 	private Map<Class<?>, Bundle> classBundleMap = new HashMap<>();
+	private boolean getBundlesWasCalled = false;
 
 	public void registerBundleForClass(Class<?> clazz, Bundle bundle) {
 		classBundleMap.put(clazz, bundle);
@@ -33,6 +34,13 @@ public class TestBundleProvider implements BundleProvider {
 
 	@Override
 	public Bundle[] getBundles() {
+		getBundlesWasCalled = true;
 		return classBundleMap.values().toArray(EMPTY_BUNDLE_ARRAY);
+	}
+
+	boolean wasGetBundlesCalled() {
+		boolean result = getBundlesWasCalled;
+		getBundlesWasCalled = false;
+		return result;
 	}
 }

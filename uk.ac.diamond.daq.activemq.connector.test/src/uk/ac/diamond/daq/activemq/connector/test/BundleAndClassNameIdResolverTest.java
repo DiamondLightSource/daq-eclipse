@@ -16,7 +16,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
 
 import uk.ac.diamond.daq.activemq.connector.internal.BundleAndClassNameIdResolver;
-import uk.ac.diamond.daq.activemq.connector.internal.BundleProvider;
 import uk.ac.diamond.daq.activemq.connector.test.testobject.Animal;
 import uk.ac.diamond.daq.activemq.connector.test.testobject.Bird;
 import uk.ac.diamond.daq.activemq.connector.test.testobject.Cat;
@@ -40,12 +39,13 @@ public class BundleAndClassNameIdResolverTest {
 	private static final String PERSON_ID = "bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.daq.activemq.connector.test.testobject.Person";
 	private static final String PERSON_ARRAY_ID = "bundle=&version=&class=[Luk.ac.diamond.daq.activemq.connector.test.testobject.Person;";
 	private static final String BIRD_ID = "bundle=uk.ac.diamond.daq.test.example&version=2.0.0&class=uk.ac.diamond.daq.activemq.connector.test.testobject.Bird";
+	private static final String CAT_ID = "bundle=uk.ac.diamond.daq.test.other_example&version=0.0.0&class=uk.ac.diamond.daq.activemq.connector.test.testobject.Cat";
 	private static final String NONEXISTENT_BIRD_ID = "bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.daq.activemq.connector.test.testobject.Bird";
 	private static final String NONEXISTENT_CORE_CLASS_ID = "bundle=&version=&class=uk.ac.diamond.daq.activemq.connector.internal.ClassNotFound";
 	private static final String NONEXISTENT_BUNDLE_ID = "bundle=uk.ac.diamond.daq.nonexistent&version=1.0.0&class=uk.ac.diamond.daq.activemq.connector.internal.ClassNotFound";
 
 	private BundleAndClassNameIdResolver resolver;
-	private BundleProvider bundleProvider;
+	private TestBundleProvider bundleProvider;
 
 	@Mock private Bundle exampleBundleV1;
 	@Mock private Bundle exampleBundleV2;
@@ -82,6 +82,8 @@ public class BundleAndClassNameIdResolverTest {
 	@After
 	public void tearDown() throws Exception {
 		resolver = null;
+		bundleProvider = null;
+		BundleAndClassNameIdResolver.clearCache();
 	}
 
 	@Test
@@ -126,6 +128,12 @@ public class BundleAndClassNameIdResolverTest {
 		// Possibly the resolver should actually throw an exception if it does?
 		String id = resolver.idFromValueAndType(new Person(), Bird.class);
 		assertThat(id, is(equalTo(BIRD_ID)));
+	}
+
+	@Test
+	public void testIdFromCatValue() {
+		String id = resolver.idFromValue(new Cat());
+		assertThat(id, is(equalTo(CAT_ID)));
 	}
 
 	@Test
@@ -188,5 +196,28 @@ public class BundleAndClassNameIdResolverTest {
 		// because it is in the wrong bundle. But the Bird class is available to the standard classloader (unlike in
 		// the OSGi case) so this actually works. This test is kept simply to document behaviour.
 		resolver.typeFromId(NONEXISTENT_BIRD_ID);
+	}
+
+	@Test
+	public void testCachePreventsMultipleCallsToBundleProvider() {
+		SimpleType personType = SimpleType.construct(Person.class);
+		BundleAndClassNameIdResolver personResolver = new BundleAndClassNameIdResolver(personType, TypeFactory.defaultInstance(), bundleProvider);
+		personResolver.typeFromId(PERSON_ID);
+		assertThat(bundleProvider.wasGetBundlesCalled(), is(true));
+		personResolver.typeFromId(PERSON_ID);
+		assertThat(bundleProvider.wasGetBundlesCalled(), is(false));
+		SimpleType animalType = SimpleType.construct(Animal.class);
+		BundleAndClassNameIdResolver animalResolver = new BundleAndClassNameIdResolver(animalType, TypeFactory.defaultInstance(), bundleProvider);
+		animalResolver.typeFromId(BIRD_ID);
+		assertThat(bundleProvider.wasGetBundlesCalled(), is(true));
+		animalResolver.typeFromId(BIRD_ID);
+		animalResolver.typeFromId(BIRD_ID);
+		assertThat(bundleProvider.wasGetBundlesCalled(), is(false));
+		animalResolver.typeFromId(CAT_ID);
+		assertThat(bundleProvider.wasGetBundlesCalled(), is(true));
+		animalResolver.typeFromId(CAT_ID);
+		animalResolver.typeFromId(BIRD_ID);
+		animalResolver.typeFromId(CAT_ID);
+		assertThat(bundleProvider.wasGetBundlesCalled(), is(false));
 	}
 }

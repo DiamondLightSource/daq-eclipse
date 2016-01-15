@@ -1,5 +1,8 @@
 package uk.ac.diamond.daq.activemq.connector.internal;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.osgi.framework.Bundle;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
@@ -24,53 +27,13 @@ import com.fasterxml.jackson.databind.util.ClassUtil;
  */
 public class BundleAndClassNameIdResolver extends TypeIdResolverBase {
 
+	private static final Map<BundleAndClassInfo, Bundle> cachedBundles = new ConcurrentHashMap<BundleAndClassInfo, Bundle>();
+
 	/**
-	 * Simple class to hold necessary information about a bundle and class, and convert it to and from string form.
+	 * Clear the bundle cache. Intended only for use in testing.
 	 */
-	private static class BundleAndClassInfo {
-
-		private static final String FIELD_DELIMITER = "&"; // cannot be any of ;,.-_ due to collisions with parts of allowed names
-		private static final String EQUALS = "=";
-		private static final String BUNDLE_FIELD_NAME = "bundle";
-		private static final String VERSION_FIELD_NAME = "version";
-		private static final String CLASS_FIELD_NAME = "class";
-
-		private String bundleSymbolicName = "";
-		private String bundleVersion = "";
-		private String className = "";
-
-		private BundleAndClassInfo() {}
-
-		@Override
-		public String toString() {
-			return BUNDLE_FIELD_NAME + EQUALS + bundleSymbolicName + FIELD_DELIMITER
-					+ VERSION_FIELD_NAME + EQUALS + bundleVersion + FIELD_DELIMITER
-					+ CLASS_FIELD_NAME + EQUALS + className;
-		}
-
-		public static BundleAndClassInfo from(Bundle bundle, String className) {
-			BundleAndClassInfo result = new BundleAndClassInfo();
-			if (bundle != null) {
-				result.bundleSymbolicName = bundle.getSymbolicName();
-				result.bundleVersion = bundle.getVersion().toString();
-			}
-			result.className = className;
-			return result;
-		}
-
-		public static BundleAndClassInfo from(String id) {
-			BundleAndClassInfo result = new BundleAndClassInfo();
-			for (String idPart : id.split(FIELD_DELIMITER)) {
-				if (idPart.startsWith(BUNDLE_FIELD_NAME)) {
-					result.bundleSymbolicName = idPart.substring(idPart.indexOf(EQUALS) + 1);
-				} else if (idPart.startsWith(VERSION_FIELD_NAME)) {
-					result.bundleVersion = idPart.substring(idPart.indexOf(EQUALS) + 1);
-				} else if (idPart.startsWith(CLASS_FIELD_NAME)) {
-					result.className = idPart.substring(idPart.indexOf(EQUALS) + 1);
-				}
-			}
-			return result;
-		}
+	public static void clearCache() {
+		cachedBundles.clear();
 	}
 
 	private final BundleProvider bundleProvider;
@@ -104,7 +67,7 @@ public class BundleAndClassNameIdResolver extends TypeIdResolverBase {
 	public JavaType typeFromId(String id) {
 		try {
 			Class<?> clazz = getClass(id);
-			// TODO this probably doesn't handle generics, except for arrays and collections
+			// This probably doesn't handle generics, except for arrays and collections
 			// see ClassNameIdResolver#typeFromId() for more on this
 			JavaType type = _typeFactory.constructSpecializedType(_baseType, clazz);
 			return type;
@@ -117,31 +80,45 @@ public class BundleAndClassNameIdResolver extends TypeIdResolverBase {
 		BundleAndClassInfo info = BundleAndClassInfo.from(id);
 
 		// If there is no bundle name, try loading the class using the standard Jackson utility method
-		// TODO see ClassNameIdResolver for complexity regarding generics here - not supported for now
-		if (info.bundleSymbolicName.length() == 0) {
-			return ClassUtil.findClass(info.className);
+		// See ClassNameIdResolver for complexity regarding generics here - not supported for now
+		if (info.getBundleSymbolicName().length() == 0) {
+			return ClassUtil.findClass(info.getClassName());
 		}
 
-		// TODO FIXME cache bundles for performance when looking up the same class repeatedly
-		// (not sure whether to cache bundle itself or bundle id)
+		Bundle bundleToUse = getBundle(info);
+		if (bundleToUse != null) {
+			try {
+				return bundleToUse.loadClass(info.getClassName());
+			} catch (ClassNotFoundException | IllegalStateException ignored) {
+				// the bundle cannot find the required class, so we ignore the exception and fall back to just finding the class by name
+			}
+		}
+		// If the bundle is not found, or cannot load the required class, fall back and try to load the class with ClassUtil
+		return ClassUtil.findClass(info.getClassName());
+	}
+
+	private Bundle getBundle(BundleAndClassInfo info) {
+		Bundle cachedBundle = cachedBundles.get(info);
+		if (cachedBundle != null) {
+			if (cachedBundle.getState() != Bundle.UNINSTALLED) {
+				return cachedBundle;
+			} else {
+				cachedBundles.remove(info);
+			}
+		}
 		Bundle[] bundles = bundleProvider.getBundles();
 		Bundle bundleToUse = null;
 		for (Bundle bundle : bundles) {
-			if (info.bundleSymbolicName.equals(bundle.getSymbolicName())
-					&& bundle.getVersion().toString().equals(info.bundleVersion)) {
+			if (info.getBundleSymbolicName().equals(bundle.getSymbolicName())
+					&& bundle.getVersion().toString().equals(info.getBundleVersion())) {
 				bundleToUse = bundle;
 				break;
 				// TODO cache bundles with incorrect version and try them if correct version is not found?
 			}
 		}
 		if (bundleToUse != null) {
-			try {
-				return bundleToUse.loadClass(info.className);
-			} catch (ClassNotFoundException | IllegalStateException ignored) {
-				// the bundle cannot find the required class, so we ignore the exception and fall back to just finding the class by name
-			}
+			cachedBundles.put(info, bundleToUse);
 		}
-		// If the bundle is not found, or cannot load the required class, fall back and try to load the class with ClassUtil
-		return ClassUtil.findClass(info.className);
+		return bundleToUse;
 	}
 }
