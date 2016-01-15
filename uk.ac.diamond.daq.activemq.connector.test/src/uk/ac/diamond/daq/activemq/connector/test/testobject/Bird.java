@@ -1,4 +1,4 @@
-package uk.ac.diamond.daq.activemq.connector.testobject;
+package uk.ac.diamond.daq.activemq.connector.test.testobject;
 
 public class Bird extends Animal {
 

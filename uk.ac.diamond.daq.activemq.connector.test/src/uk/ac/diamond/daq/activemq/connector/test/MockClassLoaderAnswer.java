@@ -1,4 +1,4 @@
-package uk.ac.diamond.daq.activemq.connector.internal;
+package uk.ac.diamond.daq.activemq.connector.test;
 
 import java.util.Arrays;
 import java.util.HashSet;

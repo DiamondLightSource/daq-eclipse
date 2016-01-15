@@ -1,9 +1,11 @@
-package uk.ac.diamond.daq.activemq.connector.internal;
+package uk.ac.diamond.daq.activemq.connector.test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.framework.Bundle;
+
+import uk.ac.diamond.daq.activemq.connector.internal.BundleProvider;
 
 /**
  * A BundleProvider implementation for use in unit tests.

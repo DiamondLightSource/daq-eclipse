@@ -1,4 +1,4 @@
-package uk.ac.diamond.daq.activemq.connector.internal;
+package uk.ac.diamond.daq.activemq.connector.test;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -15,10 +15,12 @@ import org.mockito.MockitoAnnotations;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
 
-import uk.ac.diamond.daq.activemq.connector.testobject.Animal;
-import uk.ac.diamond.daq.activemq.connector.testobject.Bird;
-import uk.ac.diamond.daq.activemq.connector.testobject.Cat;
-import uk.ac.diamond.daq.activemq.connector.testobject.Person;
+import uk.ac.diamond.daq.activemq.connector.internal.BundleAndClassNameIdResolver;
+import uk.ac.diamond.daq.activemq.connector.internal.BundleProvider;
+import uk.ac.diamond.daq.activemq.connector.test.testobject.Animal;
+import uk.ac.diamond.daq.activemq.connector.test.testobject.Bird;
+import uk.ac.diamond.daq.activemq.connector.test.testobject.Cat;
+import uk.ac.diamond.daq.activemq.connector.test.testobject.Person;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.SimpleType;
@@ -35,10 +37,10 @@ public class BundleAndClassNameIdResolverTest {
 	private static final String OBJECT_ID = "bundle=&version=&class=java.lang.Object";
 	private static final String STRING_ID = "bundle=&version=&class=java.lang.String";
 	private static final String ARRAY_LIST_ID = "bundle=&version=&class=java.util.ArrayList";
-	private static final String PERSON_ID = "bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.daq.activemq.connector.testobject.Person";
-	private static final String PERSON_ARRAY_ID = "bundle=&version=&class=[Luk.ac.diamond.daq.activemq.connector.testobject.Person;";
-	private static final String BIRD_ID = "bundle=uk.ac.diamond.daq.test.example&version=2.0.0&class=uk.ac.diamond.daq.activemq.connector.testobject.Bird";
-	private static final String NONEXISTENT_BIRD_ID = "bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.daq.activemq.connector.testobject.Bird";
+	private static final String PERSON_ID = "bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.daq.activemq.connector.test.testobject.Person";
+	private static final String PERSON_ARRAY_ID = "bundle=&version=&class=[Luk.ac.diamond.daq.activemq.connector.test.testobject.Person;";
+	private static final String BIRD_ID = "bundle=uk.ac.diamond.daq.test.example&version=2.0.0&class=uk.ac.diamond.daq.activemq.connector.test.testobject.Bird";
+	private static final String NONEXISTENT_BIRD_ID = "bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.daq.activemq.connector.test.testobject.Bird";
 	private static final String NONEXISTENT_CORE_CLASS_ID = "bundle=&version=&class=uk.ac.diamond.daq.activemq.connector.internal.ClassNotFound";
 	private static final String NONEXISTENT_BUNDLE_ID = "bundle=uk.ac.diamond.daq.nonexistent&version=1.0.0&class=uk.ac.diamond.daq.activemq.connector.internal.ClassNotFound";
 
