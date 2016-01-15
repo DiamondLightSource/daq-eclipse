@@ -56,6 +56,10 @@ class DryRunProcess<T extends StatusBean> implements IConsumerProcess<T> {
 	
 	private void run()  throws EventException {
 		
+		bean.setStatus(Status.RUNNING);
+		bean.setPercentComplete(0d);
+		publisher.broadcast(bean);
+
 		terminated = false;
 		for (int i = 0; i < 100; i++) {
 			

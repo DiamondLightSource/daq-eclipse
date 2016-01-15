@@ -229,7 +229,8 @@ public class StatusBean extends IdBean {
 				+ ", percentComplete=" + percentComplete + ", userName="
 				+ userName + ", hostName=" + hostName + ", runDirectory="
 				+ runDirectory + ", submissionTime=" + submissionTime
-				+ ", properties=" + properties + "]";
+				+ ", properties=" + properties
+		        + ", id=" + getUniqueId() + "]";
 	}
 	
 
