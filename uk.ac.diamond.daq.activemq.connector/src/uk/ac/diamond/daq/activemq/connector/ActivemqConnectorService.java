@@ -10,6 +10,8 @@ import org.eclipse.scanning.api.points.IPosition;
 import uk.ac.diamond.daq.activemq.connector.internal.BundleAndClassNameIdResolver;
 import uk.ac.diamond.daq.activemq.connector.internal.BundleProvider;
 import uk.ac.diamond.daq.activemq.connector.internal.OSGiBundleProvider;
+import uk.ac.diamond.daq.activemq.connector.internal.PositionDeserializer;
+import uk.ac.diamond.daq.activemq.connector.internal.PositionSerializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

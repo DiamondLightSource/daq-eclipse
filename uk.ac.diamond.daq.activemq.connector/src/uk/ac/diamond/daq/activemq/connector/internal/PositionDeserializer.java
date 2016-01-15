@@ -1,4 +1,4 @@
-package uk.ac.diamond.daq.activemq.connector;
+package uk.ac.diamond.daq.activemq.connector.internal;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
