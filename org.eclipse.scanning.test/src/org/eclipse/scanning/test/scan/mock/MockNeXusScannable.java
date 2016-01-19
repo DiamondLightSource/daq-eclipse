@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.scan.mock;
 
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.INexusDevice;
@@ -20,7 +21,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * @author Matthew Gerring
  *
  */
-public class MockNeXusScannable extends MockScannable implements INexusDevice {
+public class MockNeXusScannable extends MockScannable implements INexusDevice<NXpositioner> {
 	
 	public static final String FIELD_NAME_DEMAND_VALUE = NXpositioner.NX_VALUE + "_demand";
 	
@@ -46,33 +47,42 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice {
 		final NXpositioner positioner = nodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
-		final int scanRank = 1;
-		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE,   scanRank, Dataset.FLOAT64);
+		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE,   1, Dataset.FLOAT64);
 		lzDemand.setChunking(new int[]{1});
-		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, scanRank, Dataset.FLOAT64);
-		lzValue.setChunking(new int[]{1});
+		
+		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank()+1, Dataset.FLOAT64);
+		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 
 		return positioner;
 	}	
 	
 	public void setPosition(Number value, IPosition position) throws Exception {
-		super.setPosition(value, position);	
+		if (value!=null) super.setPosition(value, position);	
 		if (position!=null) write(value, getPosition(), position);
 	}
 
-	private void write(Number demand, Number actual, IPosition location) throws Exception {
+	private void write(Number demand, Number actual, IPosition loc) throws Exception {
 		
-		int index = location.getIndex(getName());
-		final int[] startPos = new int[] { index };
-		final int[] stopPos = new int[] { index + 1 };
 
-		// write actual position
-		final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
-		lzValue.setSlice(null, newActualPositionData, startPos, stopPos, null);
+		if (actual!=null) {
+			// write actual position
+			final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
+			SliceND sliceND = NexusScanInfo.createLocation(lzValue, loc.getNames(), loc.getIndices(), 1);
+			lzValue.setSlice(null, newActualPositionData, sliceND);
+		}
 
-		// write demand position
-		final Dataset newDemandPositionData = DatasetFactory.createFromObject(demand);
-		lzDemand.setSlice(null, newDemandPositionData, startPos, stopPos, null);
+		if (demand!=null) {
+			int index = loc.getIndex(getName());
+			if (index<0) {
+				throw new Exception("Incorrect data index for scan for value of '"+getName()+"'. The index is "+index);
+			}
+			final int[] startPos = new int[] { index };
+			final int[] stopPos = new int[] { index + 1 };
+
+			// write demand position
+			final Dataset newDemandPositionData = DatasetFactory.createFromObject(demand);
+			lzDemand.setSlice(null, newDemandPositionData, startPos, stopPos, null);
+		}
 	}
 
 }

@@ -213,8 +213,15 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			if (m instanceof TextMessage) {
 				TextMessage t = (TextMessage)m;
 
-				final T qbean = service.unmarshal(t.getText(), (Class<T>)bean.getClass());
-				if (qbean==null) continue;
+				final T qbean;
+				try {
+					qbean = service.unmarshal(t.getText(), (Class<T>)bean.getClass());
+					if (qbean==null) continue;
+				} catch (Exception ne) {
+					// If we cannot deserialize to the type passed in, it certainly is
+					// not going to be the bean which we are looking for.
+					continue;
+				}
 				if (isSame(qbean, bean)) {
 					jMSMessageID = t.getJMSMessageID();
 					break;

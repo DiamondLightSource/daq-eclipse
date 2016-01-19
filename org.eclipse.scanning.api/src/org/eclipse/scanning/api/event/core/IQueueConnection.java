@@ -1,7 +1,6 @@
 package org.eclipse.scanning.api.event.core;
 
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.scanning.api.event.EventException;
 
@@ -59,34 +58,4 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 * It removes very old runs or those which are in a final failed state.
 	 */
 	public void cleanQueue(String queueName) throws EventException;
-
-	/**
-	 * Class of bean usually extending StatusBean. An alternative
-	 * where the class of the bean is variable for a given queue is
-	 * to set the string fields 'bundle' and 'beanClass' in the bean.
-	 * The system will then look to see if these strings are set in the
-	 * json and attempt to deserialize using these.
-	 * 
-	 * @return class or null
-	 */
-	public Class<T> getBeanClass();
-
-	/**
-	 * Class of bean usually extending StatusBean. An alternative
-	 * where the class of the bean is variable for a given queue is
-	 * to set the string fields 'bundle' and 'beanClass' in the bean.
-	 * The system will then look to see if these strings are set in the
-	 * serialized string and attempt to deserialize using these.
-	 * 
-	 * It is not compulsory to set the bean class. If the bean being sent
-	 * is being transmitted using an ISubmitter, it will set the fields for
-	 * bundle and bean class in the json string. This allows queue with 
-	 * different sorts of beans to exist. When setting the bean class an extra
-	 * loop is avoided as the class that the consumer can deal with is 
-	 * know and not searched for, therefore this consumer is faster.
-	 * 
-	 * @return
-	 */
-	public void setBeanClass(Class<T> beanClass) throws EventException;
-
 }

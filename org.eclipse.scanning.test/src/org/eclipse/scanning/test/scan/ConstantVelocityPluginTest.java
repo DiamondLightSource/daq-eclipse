@@ -3,8 +3,10 @@ package org.eclipse.scanning.test.scan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
@@ -131,7 +133,7 @@ public class ConstantVelocityPluginTest {
         final List<String> names = pos.getNames();
         
         for (int i = 0; i < names.size(); i++) {
-    		d     = nf.getData("/entry/instrument/"+names.get(i)+"/value");
+    		d     = nf.getData("/entry/instrument/"+names.get(i)+"/value_demand");
     		ds    = d.getDataset().getSlice().squeeze();
     		shape = ds.getShape();
     		if (sizes[i]>1) {
@@ -140,6 +142,16 @@ public class ConstantVelocityPluginTest {
     			assertEquals(0, shape.length);
     		}
 		}
+        
+        
+        // Actual values should be scanD
+        for (int i = 0; i < names.size(); i++) {
+    		d     = nf.getData("/entry/instrument/"+names.get(i)+"/value");
+    		ds    = d.getDataset().getSlice();
+    		shape = ds.getShape();
+    		for (int j = 0; j < sizes.length; j++)  assertEquals(sizes[j], shape[j]);
+		}
+
 	}
 
 	private IRunnableDevice<ScanModel> createNestedStepScan(final IRunnableDevice<?> detector, int... size) throws Exception {

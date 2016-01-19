@@ -10,7 +10,6 @@ import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
-import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -72,10 +71,6 @@ public class AnyBeanEventTest {
 			@Override
 			public void beanChangePerformed(BeanEvent<AnyBean> evt) {
 				gotBack.add(evt.getBean());
-			}
-			@Override
-			public Class<AnyBean> getBeanClass() {
-				return AnyBean.class;
 			}
 		});
 		

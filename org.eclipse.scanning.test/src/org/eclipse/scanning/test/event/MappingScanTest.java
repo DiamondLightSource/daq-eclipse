@@ -100,7 +100,7 @@ public class MappingScanTest {
 		model.setColumns(5);
 		model.setBoundingBox(box);
 
-		IGenerator<GridModel, Point> gen = gservice.createGenerator(model, null);
+		IGenerator<GridModel, Point> gen = gservice.createGenerator(model);
 
 		// Outer loop temperature, will be scan command driven when sequencer exists.
 		bean.setDeviceState(DeviceState.CONFIGURING);

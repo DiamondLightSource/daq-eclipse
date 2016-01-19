@@ -24,8 +24,7 @@ public class AbstractMConsumerTest {
     @Test
     public void testTwoConsumersOneSubmit() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator(false));
-		consumer.setBeanClass(StatusBean.class);
+		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
 		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
@@ -33,8 +32,7 @@ public class AbstractMConsumerTest {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
 			consumer2.clearQueue(IEventService.STATUS_SET);
-			consumer2.setRunner(new DryRunCreator(false));
-			consumer2.setBeanClass(StatusBean.class);
+			consumer2.setRunner(new DryRunCreator<StatusBean>(false));
 			consumer2.start();
 			
 			checkSubmission();
@@ -50,8 +48,7 @@ public class AbstractMConsumerTest {
     @Test
     public void testTwoConsumersTenSubmits() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator(false));
-		consumer.setBeanClass(StatusBean.class);
+		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
 		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
@@ -59,8 +56,7 @@ public class AbstractMConsumerTest {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
 			consumer2.clearQueue(IEventService.STATUS_SET);
-			consumer2.setRunner(new DryRunCreator(false));
-			consumer2.setBeanClass(StatusBean.class);
+			consumer2.setRunner(new DryRunCreator<StatusBean>(false));
 			consumer2.start();
 			
 			List<StatusBean> submissions = new ArrayList<StatusBean>(10);
@@ -84,8 +80,7 @@ public class AbstractMConsumerTest {
     @Test
     public void testTwoConsumersTenSubmitsThreads() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator(false));
-		consumer.setBeanClass(StatusBean.class);
+		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
 		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
@@ -93,8 +88,7 @@ public class AbstractMConsumerTest {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
 			consumer2.clearQueue(IEventService.STATUS_SET);
-			consumer2.setRunner(new DryRunCreator(false));
-			consumer2.setBeanClass(StatusBean.class);
+			consumer2.setRunner(new DryRunCreator<StatusBean>(false));
 			consumer2.start();
 			
 			final List<StatusBean> submissions = new ArrayList<StatusBean>(10);
@@ -133,8 +127,7 @@ public class AbstractMConsumerTest {
     @Test
     public void testTenConsumersTenSubmits() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator(false));
-		consumer.setBeanClass(StatusBean.class);
+		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
 		List<IConsumer<StatusBean>> consumers   = new ArrayList<>(9);
@@ -144,8 +137,7 @@ public class AbstractMConsumerTest {
 				c.setName("Test Consumer "+i);
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
 				c.clearQueue(IEventService.STATUS_SET);
-				c.setRunner(new DryRunCreator(false));
-				c.setBeanClass(StatusBean.class);
+				c.setRunner(new DryRunCreator<StatusBean>(false));
 				c.start();
 				consumers.add(c);
 			}
@@ -175,8 +167,7 @@ public class AbstractMConsumerTest {
     @Test
     public void testTenConsumersTenSubmitsThreads() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator(false));
-		consumer.setBeanClass(StatusBean.class);
+		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
 		List<IConsumer<StatusBean>> consumers   = new ArrayList<>(9);
@@ -186,8 +177,7 @@ public class AbstractMConsumerTest {
 				c.setName("Test Consumer "+i);
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
 				c.clearQueue(IEventService.STATUS_SET);
-				c.setRunner(new DryRunCreator(false));
-				c.setBeanClass(StatusBean.class);
+				c.setRunner(new DryRunCreator<StatusBean>(false));
 				c.start();
 				consumers.add(c);
 			}

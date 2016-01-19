@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
@@ -191,8 +192,9 @@ public class MandelbrotExamplePluginTest {
         final IPosition      pos = mod.getPositionIterable().iterator().next();
         final List<String> names = pos.getNames();
         
+        // Demand values should be 1D
         for (int i = 0; i < names.size(); i++) {
-    		d     = nf.getData("/entry/instrument/"+names.get(i)+"/value");
+    		d     = nf.getData("/entry/instrument/"+names.get(i)+"/value_demand");
     		ds    = d.getDataset().getSlice().squeeze();
     		shape = ds.getShape();
     		if (sizes[i]>1) {
@@ -200,6 +202,14 @@ public class MandelbrotExamplePluginTest {
     		} else {
     			assertEquals(0, shape.length);
     		}
+		}
+        
+        // Actual values should be scanD
+        for (int i = 0; i < names.size(); i++) {
+    		d     = nf.getData("/entry/instrument/"+names.get(i)+"/value");
+    		ds    = d.getDataset().getSlice();
+    		shape = ds.getShape();
+    		assertTrue(Arrays.equals(sizes, shape));
 		}
 	}
 

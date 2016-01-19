@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EventListener;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +22,8 @@ import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
 import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.alive.KillBean;
+import org.eclipse.scanning.api.event.bean.BeanEvent;
+import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -82,7 +85,6 @@ public class AbstractConsumerTest {
 	public void testSimpleConsumer() throws Exception {
     	
 		consumer.setRunner(new DryRunCreator<StatusBean>());
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
 		StatusBean bean = doSubmit();
@@ -134,7 +136,7 @@ public class AbstractConsumerTest {
 		IConsumer<StatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
 		try {
 			fconsumer.setRunner(new DryRunCreator<StatusBean>());
-			fconsumer.start(); // No bean!
+			fconsumer.start();// It's going now, we can submit
 			
 	     	FredStatusBean fred = new FredStatusBean();
 			fred.setName("Frederick");       	
@@ -152,16 +154,28 @@ public class AbstractConsumerTest {
 
     }
     
-    private void dynamicBean(StatusBean bean, IConsumer<StatusBean> fconsumer, int statusSize) throws Exception {
+    private void dynamicBean(final StatusBean bean, IConsumer<StatusBean> fconsumer, int statusSize) throws Exception {
     	
+    	// Hard code the service for the test
+		ISubscriber<EventListener> sub = eservice.createSubscriber(fconsumer.getUri(), fconsumer.getStatusTopicName(), new ActivemqConnectorService()); // DO NOT COPY!
+		sub.addListener(new IBeanListener<StatusBean>() {
+			@Override
+			public void beanChangePerformed(BeanEvent<StatusBean> evt) {
+				if (!evt.getBean().getName().equals(bean.getName())) {
+					System.out.println("This is not our bean! "+bean);
+					Thread.dumpStack();
+				}
+			}
+		});
+
 		doSubmit(bean);
-		
+				
 		Thread.sleep(14000); // 10000 to do the loop, 4000 for luck
 		
 		List<StatusBean> stati = fconsumer.getStatusSet();
 		if (stati.size()!=statusSize) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
 		
-		StatusBean complete = stati.get(0);
+		StatusBean complete = stati.get(0); // The queue is date sorted.
 		
        	if (complete.equals(bean)) {
        		throw new Exception("The bean from the status queue was the same as that submitted! It should have a different status. q="+complete+" submit="+bean);
@@ -173,6 +187,8 @@ public class AbstractConsumerTest {
        	if (complete.getPercentComplete()<100) {
        		throw new Exception("The percent complete is less than 100!"+complete);
        	}
+       	
+       	sub.disconnect();
 	}
 
     @Test
@@ -187,7 +203,6 @@ public class AbstractConsumerTest {
     private void testStop(IProcessCreator<StatusBean> dryRunCreator) throws Exception {
     	
 		consumer.setRunner(dryRunCreator);
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -206,7 +221,6 @@ public class AbstractConsumerTest {
     public void testKillingAConsumer() throws Exception {
     	
 		consumer.setRunner(new DryRunCreator<StatusBean>());
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -230,7 +244,6 @@ public class AbstractConsumerTest {
 	public void testAbortingAJobRemotely() throws Exception {
 
 		consumer.setRunner(new DryRunCreator<StatusBean>());
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -286,7 +299,6 @@ public class AbstractConsumerTest {
     public void testHeartbeat() throws Exception {
     	
 		consumer.setRunner(new DryRunCreator<StatusBean>());
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
 		ISubscriber<IHeartbeatListener> subscriber = eservice.createSubscriber(consumer.getUri(), IEventService.HEARTBEAT_TOPIC, new ActivemqConnectorService());
@@ -344,7 +356,6 @@ public class AbstractConsumerTest {
     public void testMultipleSubmissions() throws Exception {
     	
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
 		List<StatusBean> submissions = new ArrayList<StatusBean>(10);
@@ -390,7 +401,6 @@ public class AbstractConsumerTest {
     public void testMultipleSubmissionsUsingThreads() throws Exception {
 		
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
-		consumer.setBeanClass(StatusBean.class);
 		consumer.start();
 		
 		final List<StatusBean> submissions = new ArrayList<StatusBean>(10);

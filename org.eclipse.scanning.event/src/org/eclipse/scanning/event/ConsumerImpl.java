@@ -58,7 +58,6 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	private IEventService                 eservice;
 	private Map<String, U>                overrideMap;
 
-	@SuppressWarnings("unchecked")
 	ConsumerImpl(URI uri, String submitQName, 
 			              String statusQName,
 			              String statusTName, 
@@ -88,11 +87,6 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		if (killTName!=null) {
 			killer = eservice.createSubscriber(uri, killTName, service);
 			killer.addListener(new IBeanListener<KillBean>() {
-				@Override
-				public Class<KillBean> getBeanClass() {
-					return KillBean.class;
-				}
-	
 				@Override
 				public void beanChangePerformed(BeanEvent<KillBean> evt) {
 					KillBean kbean = evt.getBean();
@@ -132,7 +126,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 				Message msg = (Message)e.nextElement();
 				TextMessage t = (TextMessage)msg;
 				String json   = t.getText();
-				final U b = service.unmarshal(json, getBeanClass(json));
+				final StatusBean b = service.unmarshal(json, StatusBean.class);
 				
 				MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+msg.getJMSMessageID()+"'");
 				Message rem = consumer.receive(500);	
@@ -236,11 +230,6 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		terminator = eservice.createSubscriber(uri, getStatusTopicName(), service);
 		terminator.addListener(new IBeanListener<U>() {
 			@Override
-			public Class<U> getBeanClass() {
-				return ConsumerImpl.this.getBeanClass();
-			}
-
-			@Override
 			public void beanChangePerformed(BeanEvent<U> evt) {
 				U bean = evt.getBean();
 				if (bean.getStatus()!=Status.REQUEST_TERMINATE) return;
@@ -267,14 +256,14 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	public void stop() throws EventException {
         alive.setAlive(false); // Broadcasts that we are being killed
         setActive(false);
-        final WeakReference<IConsumerProcess<U>>[] wra = processes.values().toArray(new WeakReference[processes.size()]);
+        @SuppressWarnings("unchecked")
+		final WeakReference<IConsumerProcess<U>>[] wra = processes.values().toArray(new WeakReference[processes.size()]);
         for (WeakReference<IConsumerProcess<U>> wr : wra) {
 			if (wr.get()!=null) wr.get().terminate();
 		}
         processes.clear();
 	}
-	
-	@SuppressWarnings("rawtypes")
+
 	@Override
 	public void run() throws EventException {
 		
@@ -301,8 +290,10 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	            	
 	            	TextMessage t = (TextMessage)m;
 	            	
-	            	final String json  = t.getText();	                               
-                    final U bean   = service.unmarshal(json, getBeanClass(json));
+	            	final String json  = t.getText();
+	            	
+					@SuppressWarnings("unchecked")
+					final U bean   = (U) service.unmarshal(json, StatusBean.class);
                     
 	            	executeBean(bean);
 	            	

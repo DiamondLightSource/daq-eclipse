@@ -1,16 +1,10 @@
 package org.eclipse.scanning.api.event.alive;
 
-import org.eclipse.scanning.api.event.IEventListener;
+import java.util.EventListener;
 
-public interface IHeartbeatListener extends IEventListener<HeartbeatBean> {
+public interface IHeartbeatListener extends EventListener {
 
-	
 	public class Stub implements IHeartbeatListener {
-
-		@Override
-		public Class<HeartbeatBean> getBeanClass() {
-			return HeartbeatBean.class;
-		}
 
 		@Override
 		public void heartbeatPerformed(HeartbeatEvent evt) {

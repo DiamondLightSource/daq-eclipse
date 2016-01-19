@@ -2,7 +2,6 @@ package org.eclipse.scanning.event;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -10,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeSet;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -32,9 +30,6 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 
 public abstract class AbstractQueueConnection<U extends StatusBean> extends AbstractConnection implements IQueueConnection<U>{
 
-	
-	
-	private Class<U>                      beanClass;
 
 	AbstractQueueConnection(URI uri, String topic, IEventConnectorService service) {
 		super(uri, topic, service);
@@ -43,25 +38,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 	AbstractQueueConnection(URI uri, String submitQName, String statusQName, String statusTName, String terminateTName, IEventConnectorService service) {
         super(uri, submitQName, statusQName, statusTName, terminateTName, service);
 	}
-	
 
-	@Override
-	public Class<U> getBeanClass() {
-		return (Class<U>)beanClass;
-	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Class<U> getBeanClass(String json) throws ClassNotFoundException {
-		return getBeanClass() !=null
-		       ? getBeanClass()
-			   : (Class)EventServiceImpl.getClassFromJson(json);
-	}
-	
-
-	@Override
-	public void setBeanClass(Class<U> beanClass)  throws EventException{
-		this.beanClass = beanClass;
-	}
 
 
 	@Override
@@ -74,9 +51,9 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 
 		QueueReader<U> reader = new QueueReader<U>(service, c);
 		try {
-			return reader.getBeans(uri, qName, getBeanClass());
+			return reader.getBeans(uri, qName);
 		} catch (Exception e) {
-			throw new EventException("Cannot get the beans for queue "+qName+" of type "+getBeanClass(), e);
+			throw new EventException("Cannot get the beans for queue " + qName, e);
 		}
 	}
 	
@@ -177,7 +154,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 	
 						try {
 							final String     json  = t.getText();
-							final StatusBean qbean = service.unmarshal(json, getBeanClass(json));
+							final StatusBean qbean = service.unmarshal(json, StatusBean.class);
 							if (qbean==null)               continue;
 							if (qbean.getStatus()==null)   continue;
 							if (!qbean.getStatus().isStarted()) {

@@ -66,7 +66,7 @@ class QueueReader<T> {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<T> getBeans(final URI uri, final String queueName, final Class<T> clazz) throws Exception {
+	public List<T> getBeans(final URI uri, final String queueName) throws Exception {
 		
 		QueueConnection qCon = null;
 		try {	        
@@ -93,10 +93,9 @@ class QueueReader<T> {
 				if (m==null) continue;
 				if (m instanceof TextMessage) {
 					TextMessage t = (TextMessage)m;
-					@SuppressWarnings("unchecked")
 					String json   = t.getText();
-					final Class<T> bclazz = clazz!=null ? clazz : (Class<T>)EventServiceImpl.getClassFromJson(json);
-					final T bean = (T)service.unmarshal(json, bclazz);
+					@SuppressWarnings("unchecked")
+					final T bean = (T)service.unmarshal(json, null);
 					list.add(bean);
 				}
 			}
@@ -136,7 +135,6 @@ class QueueReader<T> {
 					try {
 						if (message instanceof TextMessage) {
 							TextMessage t = (TextMessage) message;
-							@SuppressWarnings("unchecked")
 							final T bean = (T)service.unmarshal(t.getText(), clazz);
 							Method nameMethod = bean.getClass().getMethod("getName");
 							ret.put((String)nameMethod.invoke(bean), bean);

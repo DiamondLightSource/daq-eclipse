@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.event.core;
 
-import java.util.UUID;
-
 import org.eclipse.scanning.api.event.EventException;
 
 /**
