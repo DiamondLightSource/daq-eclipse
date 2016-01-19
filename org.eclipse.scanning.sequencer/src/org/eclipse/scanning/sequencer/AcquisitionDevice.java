@@ -92,19 +92,19 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		// Add and configures any devices we can get from the scan.
 		final IPosition          pos     = model.getPositionIterable().iterator().next(); // The first position should have the same names as all positions.
 		final List<String>       names   = pos.getNames();
-		final List<INexusDevice> devices = new ArrayList<>(31);
+		final List<INexusDevice<?>> devices = new ArrayList<>(31);
 		if (names!=null) for (String name : names) {
 			IScannable<?> scannable = getDeviceService().getScannable(name);
-			if (scannable instanceof INexusDevice) devices.add((INexusDevice)scannable);
+			if (scannable instanceof INexusDevice) devices.add((INexusDevice<?>)scannable);
 		}
 		if (model.getDetectors()!=null) for (IRunnableDevice<?> detector : model.getDetectors()) {
-			if (detector instanceof INexusDevice) devices.add((INexusDevice)detector);
+			if (detector instanceof INexusDevice) devices.add((INexusDevice<?>)detector);
 		}
 		if (model.getMonitors()!=null) for (IScannable<?> scannable : model.getMonitors()) {
-			if (scannable instanceof INexusDevice) devices.add((INexusDevice)scannable);
+			if (scannable instanceof INexusDevice) devices.add((INexusDevice<?>)scannable);
 		}
 		
-		for (INexusDevice device : devices) {
+		for (INexusDevice<?> device : devices) {
 			NexusScanInfo info = createNexusScanInfo(pos);
 			builder.add(device.getNexusProvider(info));
 		}
