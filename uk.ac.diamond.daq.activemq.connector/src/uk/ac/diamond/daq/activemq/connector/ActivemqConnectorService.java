@@ -76,7 +76,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	public String marshal(Object anyObject) throws Exception {
 		if (mapper==null) mapper = createJacksonMapper();
 		String json = mapper.writeValueAsString(anyObject);
-		System.out.println(json);
+//		System.out.println(json);
 		return json;
 	}
 
