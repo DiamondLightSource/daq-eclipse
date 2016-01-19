@@ -10,21 +10,20 @@ import org.eclipse.scanning.api.points.IPosition;
 import uk.ac.diamond.daq.activemq.connector.internal.BundleAndClassNameIdResolver;
 import uk.ac.diamond.daq.activemq.connector.internal.BundleProvider;
 import uk.ac.diamond.daq.activemq.connector.internal.OSGiBundleProvider;
+import uk.ac.diamond.daq.activemq.connector.internal.PositionDeserializer;
+import uk.ac.diamond.daq.activemq.connector.internal.PositionSerializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
@@ -77,7 +76,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	public String marshal(Object anyObject) throws Exception {
 		if (mapper==null) mapper = createJacksonMapper();
 		String json = mapper.writeValueAsString(anyObject);
-//		System.out.println(json);
+		System.out.println(json);
 		return json;
 	}
 
@@ -114,14 +113,13 @@ public class ActivemqConnectorService implements IEventConnectorService {
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		// TODO can probably remove this after testing Position objects with the new type serialization mechanism
+		// Use custom serialization for IPosition objects
+		// (Otherwise all IPosition subclasses will need to become simple beans, i.e. no-arg constructors with getters
+		// and setters for all fields. MapPosition.getNames() caused problems because it just returns keys from the map
+		// and has no corresponding setter.)
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(IPosition.class,   new PositionSerializer());
 		module.addDeserializer(IPosition.class, new PositionDeserializer());
-//		module.addSerializer(State.class,   new StateSerializer());
-//		module.addDeserializer(State.class, new StateDeserializer());
-//		module.addSerializer(Type.class,    new TypeSerializer());
-//		module.addDeserializer(Type.class,  new TypeDeserializer());
 		mapper.registerModule(module);
 
 		// Be careful adjusting these settings - changing them will probably cause various unit tests to fail which
@@ -152,9 +150,16 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	/**
 	 * A TypeResolverBuilder for use in an OSGi environment.
 	 */
-	private class OSGiTypeResolverBuilder extends StdTypeResolverBuilder {
+	private class OSGiTypeResolverBuilder extends DefaultTypeResolverBuilder {
+		private static final long serialVersionUID = 1L;
 
-		// NOTE: Most of this code is copied from ObjectMapper.DefaultTypeResolverBuilder
+		public OSGiTypeResolverBuilder() {
+			this(null);
+		}
+
+		public OSGiTypeResolverBuilder(DefaultTyping typing) {
+			super(typing);
+		}
 
 		// Override StdTypeResolverBuilder#idResolver() to return our custom BundleAndClassNameIdResolver
 		// (We need this override, rather than just providing a custom resolver in StdTypeResolverBuilder#init(), because
@@ -166,21 +171,13 @@ public class ActivemqConnectorService implements IEventConnectorService {
 			return new BundleAndClassNameIdResolver(baseType, config.getTypeFactory(), bundleProvider);
 		}
 
+		// Override DefaultTypeResolverBuilder#useForType() to add type information to all except primitive types
 		@Override
-		public TypeSerializer buildTypeSerializer(SerializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
-			return useForType(baseType) ? super.buildTypeSerializer(config, baseType, subtypes) : null;
-		}
-
-		@Override
-		public TypeDeserializer buildTypeDeserializer(DeserializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
-			return useForType(baseType) ? super.buildTypeDeserializer(config, baseType, subtypes) : null;
-		}
-
-		public boolean useForType(JavaType t) {
-			while (t.isArrayType()) {
-				t = t.getContentType();
+		public boolean useForType(JavaType type) {
+			while (type.isArrayType()) {
+				type = type.getContentType();
 			}
-			return !t.isPrimitive();
+			return !type.isPrimitive();
 		}
 	}
 }

@@ -9,16 +9,16 @@ import org.eclipse.scanning.api.points.MapPosition;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
+import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class SerializationTest {
 
-	private ZeromqConnectorService connectorService;
+	private ActivemqConnectorService connectorService;
 
 	@Before
 	public void create() throws Exception {
 		// Non-OSGi for test - do not copy!
-		this.connectorService = new ZeromqConnectorService(); // Just for ActiveMQ connection!
+		this.connectorService = new ActivemqConnectorService(); // Just for ActiveMQ connection!
 	}
 	
 	@Test
