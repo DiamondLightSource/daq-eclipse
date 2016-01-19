@@ -92,20 +92,20 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		// Add and configures any devices we can get from the scan.
 		final IPosition          pos     = model.getPositionIterable().iterator().next(); // The first position should have the same names as all positions.
 		final List<String>       names   = pos.getNames();
-		final List<INexusDevice> devices = new ArrayList<>(31);
+		final List<INexusDevice<?>> devices = new ArrayList<>(31);
 		if (names!=null) for (String name : names) {
 			IScannable<?> scannable = getDeviceService().getScannable(name);
-			if (scannable instanceof INexusDevice) devices.add((INexusDevice)scannable);
+			if (scannable instanceof INexusDevice) devices.add((INexusDevice<?>)scannable);
 		}
 		if (model.getDetectors()!=null) for (IRunnableDevice<?> detector : model.getDetectors()) {
-			if (detector instanceof INexusDevice) devices.add((INexusDevice)detector);
+			if (detector instanceof INexusDevice) devices.add((INexusDevice<?>)detector);
 		}
 		if (model.getMonitors()!=null) for (IScannable<?> scannable : model.getMonitors()) {
-			if (scannable instanceof INexusDevice) devices.add((INexusDevice)scannable);
+			if (scannable instanceof INexusDevice) devices.add((INexusDevice<?>)scannable);
 		}
 		
-		for (INexusDevice device : devices) {
-			NexusScanInfo info = createNexusScanInfo(pos);
+		for (INexusDevice<?> device : devices) {
+			NexusScanInfo info = createNexusScanInfo(pos, model);
 			builder.add(device.getNexusProvider(info));
 		}
 		
@@ -115,8 +115,16 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		return true;
 	}
 
-	private NexusScanInfo createNexusScanInfo(IPosition pos) {
-		return new NexusScanInfo(pos.getNames()); // TODO Names should be in scan order, check this in tests.
+	private NexusScanInfo createNexusScanInfo(IPosition pos, ScanModel model) {
+		
+   		int size  = 0;
+		for (IPosition unused : model.getPositionIterable()) size++; // Fast even for large stuff
+
+		NexusScanInfo info = new NexusScanInfo(pos.getNames()); // TODO Names should be in scan order, check this in tests.
+//		info.setNames(model);
+		
+		
+		return info;
 	}
 
 	@Override

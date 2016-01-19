@@ -29,3 +29,4 @@ Import-Package: javax.jms,
  org.junit.runners;version="4.10.0",
  org.slf4j;version="1.7.6"
 Bundle-ActivationPolicy: lazy
+Export-Package: org.eclipse.scanning.test.scan.real
