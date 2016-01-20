@@ -61,6 +61,14 @@ public class AbstractScanTest {
 	}
 	
 	@Test
+	public void testNames() throws ScanningException {
+		List<String> names = connector.getScannableNames();
+		assertTrue(names.contains("x"));
+		assertTrue(names.contains("xNex"));
+		assertTrue(names.contains("yNex"));
+	}
+	
+	@Test
 	public void testLevels() throws Exception {
 
 		IPositioner     pos    = sservice.createPositioner(connector);

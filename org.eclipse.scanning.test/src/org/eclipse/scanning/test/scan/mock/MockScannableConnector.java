@@ -1,7 +1,9 @@
 package org.eclipse.scanning.test.scan.mock;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
@@ -55,5 +57,15 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		if (cache.containsKey(name)) return (IWritableDetector<M>)cache.get(name);
 		register(new MockWritableDetector(name));
 		return (IWritableDetector<M>)cache.get(name);
+	}
+
+	@Override
+	public List<String> getScannableNames() throws ScanningException {
+		return cache.keySet().stream().filter(key -> cache.get(key) instanceof IScannable).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<String> getDetectorNames() throws ScanningException {
+		return cache.keySet().stream().filter(key -> cache.get(key) instanceof IWritableDetector).collect(Collectors.toList());
 	}
 }

@@ -12,6 +12,7 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IGenerator;
 import org.eclipse.scanning.api.points.IGeneratorService;
@@ -30,6 +31,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
+import org.junit.Test;
 
 /**
  * This class is an object which can be started by sprig on the GDA server.
@@ -45,6 +47,7 @@ public class ScanExecutionTest {
 	private static IGeneratorService generatorService;
 	private static IScanningService  scanService;
 	private static IDeviceConnectorService connector;
+	private static IMalcolmService   malcService;
 	
 
 	public static IDeviceConnectorService getConnector() {
@@ -176,5 +179,26 @@ public class ScanExecutionTest {
 
 	public static void setScanService(IScanningService scanService) {
 		ScanExecutionTest.scanService = scanService;
+	}
+
+	public static IMalcolmService getMalcService() {
+		return malcService;
+	}
+
+	public static void setMalcService(IMalcolmService malcService) {
+		ScanExecutionTest.malcService = malcService;
+	}
+	
+	/**
+	 * This class is designed to be run as a spring object.
+	 * It can also be run as a junit plugin test to check OSGi services are injected.
+	 */
+	@Test
+	public void checkServices() throws Exception {
+		assertNotNull(eventService);
+		assertNotNull(generatorService);
+		assertNotNull(scanService);
+		assertNotNull(connector);
+		assertNotNull(malcService);
 	}
 }

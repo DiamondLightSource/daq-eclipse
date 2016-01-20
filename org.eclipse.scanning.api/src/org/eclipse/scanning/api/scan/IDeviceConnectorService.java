@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.scan;
 
+import java.util.List;
+
 import org.eclipse.scanning.api.IScannable;
 
 /**
@@ -28,14 +30,28 @@ import org.eclipse.scanning.api.IScannable;
  *
  */
 public interface IDeviceConnectorService {
+	
+	/**
+	 * Get the names of all scannables known to the connector.
+	 * @return
+	 * @throws ScanningException
+	 */
+	List<String> getScannableNames() throws ScanningException;
 
 	/**
-	 * 
+	 * Get a scannable by name
 	 * @param name
 	 * @return
 	 * @throws ScanningException
 	 */
 	<T> IScannable<T> getScannable(String name) throws ScanningException;
+
+	/**
+	 * Get the names of all scannables known to the connector.
+	 * @return
+	 * @throws ScanningException
+	 */
+	List<String> getDetectorNames() throws ScanningException;
 
 	/**
 	 * 
