@@ -61,8 +61,10 @@ public class ThreadScanTest {
 		
 		
 		eservice   = new EventServiceImpl();
-		subscriber = eservice.createSubscriber(new URI("tcp://sci-serv5.diamond.ac.uk:61616"), IEventService.SCAN_TOPIC, new ActivemqConnectorService()); // Create an in memory consumer of messages.
-		publisher  = eservice.createPublisher(new URI("tcp://sci-serv5.diamond.ac.uk:61616"), IEventService.SCAN_TOPIC, new ActivemqConnectorService());
+		// Use in memory broker removes requirement on network and external ActiveMQ process
+		// http://activemq.apache.org/how-to-unit-test-jms-code.html
+		subscriber = eservice.createSubscriber(new URI("vm://localhost?broker.persistent=false"), IEventService.SCAN_TOPIC, new ActivemqConnectorService()); // Create an in memory consumer of messages.
+		publisher  = eservice.createPublisher(new URI("vm://localhost?broker.persistent=false"), IEventService.SCAN_TOPIC, new ActivemqConnectorService());
 	}
 	
 	@After
@@ -166,7 +168,9 @@ public class ThreadScanTest {
 	private void latch(long time, TimeUnit unit, final DeviceState... invalids) throws Exception {
 		
 		final CountDownLatch latch = new CountDownLatch(1);
-		ISubscriber<IScanListener> subscriber = eservice.createSubscriber(new URI("tcp://sci-serv5.diamond.ac.uk:61616"), IEventService.SCAN_TOPIC, new ActivemqConnectorService()); // Create an in memory consumer of messages.
+		// Use in memory broker removes requirement on network and external ActiveMQ process
+		// http://activemq.apache.org/how-to-unit-test-jms-code.html
+		ISubscriber<IScanListener> subscriber = eservice.createSubscriber(new URI("vm://localhost?broker.persistent=false"), IEventService.SCAN_TOPIC, new ActivemqConnectorService()); // Create an in memory consumer of messages.
 		subscriber.addListener(new IScanListener.Stub() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
