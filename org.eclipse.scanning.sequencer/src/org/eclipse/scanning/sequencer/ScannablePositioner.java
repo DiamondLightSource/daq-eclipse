@@ -12,8 +12,6 @@ import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Positions several scannables by level, returning after all the blocking IScannable.setPosition(...)

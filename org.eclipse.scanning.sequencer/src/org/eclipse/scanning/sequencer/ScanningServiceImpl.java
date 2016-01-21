@@ -18,6 +18,7 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.osgi.service.component.ComponentContext;
 
+@SuppressWarnings("rawtypes")
 public final class ScanningServiceImpl implements IScanningService {
 	
 	private static IDeviceConnectorService deviceService;
