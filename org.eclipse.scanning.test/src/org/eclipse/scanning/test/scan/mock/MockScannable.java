@@ -12,7 +12,6 @@ import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
-import org.eclipse.scanning.api.AxisModel;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.ScannableModel;
 import org.eclipse.scanning.api.points.AbstractPosition;
@@ -109,6 +108,7 @@ public class MockScannable implements IScannable<Number> {
 	}
 	
 	public void setPosition(Number position, IPosition loc) throws Exception {
+		
 		if (requireSleep && position!=null) {
 			long time = Math.abs(Math.round((position.doubleValue()-this.position.doubleValue())/1)*100);
 			time = Math.max(time, 1);

@@ -18,6 +18,9 @@ public class MockScannableConnector implements IDeviceConnectorService {
 	// Create a few random scannables with different levels.
 	static {
 		if (cache==null) cache = new HashMap<String, INameable>(3);
+		register(new MockTopupMonitor("topup", 10d,  -1));
+		register(new MockBeanOnMonitor("beamon", 10d, 1));
+		register(new MockScannable("bpos",  0.001,  -1));
 		register(new MockScannable("a", 10d, 1));
 		register(new MockScannable("b", 10d, 1));
 		register(new MockScannable("c", 10d, 1));

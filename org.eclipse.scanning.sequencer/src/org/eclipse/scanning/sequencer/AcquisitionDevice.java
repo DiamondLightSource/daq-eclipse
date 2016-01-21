@@ -60,6 +60,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		this.paused    = lock.newCondition();
 	}
 	
+	/**
+	 * Method to configure the device. It also will check if the
+	 * declared devices in the scan are INexusDevice. If they are,
+	 * it will hook them up to the file writing if the ScanModel 
+	 * file is set. If there is no file set in the model, the scan
+	 * will proceed but not write to a nexus file.
+	 */
 	@Override
 	public void configure(ScanModel model) throws ScanningException {
 		
@@ -71,7 +78,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		writers   = new DetectorWriter(model.getDetectors());
 		
 		try {
-			connectNeXus(model);
+			linkNeXus(model);
 		} catch (NexusException e) {
 			throw new ScanningException(e);
 		}
@@ -79,7 +86,16 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		setState(DeviceState.READY);
 	}
 
-	private boolean connectNeXus(ScanModel model) throws NexusException, ScanningException {
+	/**
+	 * Connects devices involved in the scan with the NeXus file writing
+	 * if we are writing NeXus.
+	 * 
+	 * @param model
+	 * @return
+	 * @throws NexusException
+	 * @throws ScanningException
+	 */
+	private boolean linkNeXus(ScanModel model) throws NexusException, ScanningException {
 		
 		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return false; // nothing wired 
 			
@@ -171,9 +187,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	
 	        	// Run to the position
 	        	positioner.setPosition(pos);   // moveTo in GDA8
-	        	
-	        	// check that beam is up. In the past this has been done with 
-	        	// scannables at a given level that block until they are happy.
 	        	
 	        	writers.await();               // Wait for the previous read out to return, if any
 	        	detectors.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
