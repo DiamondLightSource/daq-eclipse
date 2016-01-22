@@ -1,15 +1,34 @@
 package org.eclipse.scanning.api.points.models;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 public class OneDEqualSpacingModel implements IBoundingLineModel {
+
+	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.addPropertyChangeListener(listener);
+	}
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.removePropertyChangeListener(listener);
+	}
 
 	private BoundingLine boundingLine;
 	private int points;
 
+	@Override
+	public String getName() {
+		return "Equal Spacing";
+	}
 	public int getPoints() {
 		return points;
 	}
 	public void setPoints(int points) {
+		int oldValue = this.points;
 		this.points = points;
+		this.pcs.firePropertyChange("points", oldValue, points);
 	}
 	@Override
 	public BoundingLine getBoundingLine() {
@@ -17,7 +36,9 @@ public class OneDEqualSpacingModel implements IBoundingLineModel {
 	}
 	@Override
 	public void setBoundingLine(BoundingLine boundingLine) {
+		BoundingLine oldValue = this.boundingLine;
 		this.boundingLine = boundingLine;
+		this.pcs.firePropertyChange("boundingLine", oldValue, boundingLine);
 	}
 	@Override
 	public int hashCode() {

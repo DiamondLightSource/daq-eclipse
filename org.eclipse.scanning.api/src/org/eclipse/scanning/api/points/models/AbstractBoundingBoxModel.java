@@ -1,6 +1,19 @@
 package org.eclipse.scanning.api.points.models;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 public abstract class AbstractBoundingBoxModel implements IBoundingBoxModel {
+
+	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.addPropertyChangeListener(listener);
+	}
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.removePropertyChangeListener(listener);
+	}
 
 	private BoundingBox boundingBox;
 	private String      xName = "x";
@@ -11,20 +24,26 @@ public abstract class AbstractBoundingBoxModel implements IBoundingBoxModel {
 		return boundingBox;
 	}
 	@Override
-	public void setBoundingBox(BoundingBox boundingBox) {
-		this.boundingBox = boundingBox;
+	public void setBoundingBox(BoundingBox newValue) {
+		BoundingBox oldValue = this.boundingBox;
+		this.boundingBox = newValue;
+		this.pcs.firePropertyChange("boundingBox", oldValue, newValue);
 	}
 	public String getxName() {
 		return xName;
 	}
-	public void setxName(String xName) {
-		this.xName = xName;
+	public void setxName(String newValue) {
+		String oldValue = this.xName;
+		this.xName = newValue;
+		this.pcs.firePropertyChange("xName", oldValue, newValue);
 	}
 	public String getyName() {
 		return yName;
 	}
-	public void setyName(String yName) {
-		this.yName = yName;
+	public void setyName(String newValue) {
+		String oldValue = this.yName;
+		this.yName = newValue;
+		this.pcs.firePropertyChange("yName", oldValue, newValue);
 	}
 	@Override
 	public int hashCode() {

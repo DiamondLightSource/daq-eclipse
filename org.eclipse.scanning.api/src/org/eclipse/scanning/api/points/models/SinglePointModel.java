@@ -1,17 +1,36 @@
 package org.eclipse.scanning.api.points.models;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 public class SinglePointModel implements IPointModel {
-	
+
+	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.addPropertyChangeListener(listener);
+	}
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.removePropertyChangeListener(listener);
+	}
+
 	private double x;
 	private double y;
 
+	@Override
+	public String getName() {
+		return "Single Point";
+	}
 	@Override
 	public double getX() {
 		return x;
 	}
 	@Override
 	public void setX(double x) {
+		double oldValue = this.x;
 		this.x = x;
+		this.pcs.firePropertyChange("x", oldValue, x);
 	}
 	@Override
 	public double getY() {
@@ -19,7 +38,9 @@ public class SinglePointModel implements IPointModel {
 	}
 	@Override
 	public void setY(double y) {
+		double oldValue = this.y;
 		this.y = y;
+		this.pcs.firePropertyChange("y", oldValue, y);
 	}
 	@Override
 	public int hashCode() {

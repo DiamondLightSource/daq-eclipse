@@ -7,31 +7,42 @@ public class LissajousModel extends AbstractBoundingBoxModel {
 	private double delta = 0;
 	private double thetaStep = 0.05;
 
+	@Override
+	public String getName() {
+		return "Lissajous Curve";
+	}
 	public double getA() {
 		return a;
 	}
 	public void setA(double a) {
+		double oldValue = this.a;
 		this.a = a;
+		this.pcs.firePropertyChange("a", oldValue, a);
 	}
 	public double getB() {
 		return b;
 	}
 	public void setB(double b) {
+		double oldValue = this.b;
 		this.b = b;
+		this.pcs.firePropertyChange("b", oldValue, b);
 	}
 	public double getDelta() {
 		return delta;
 	}
 	public void setDelta(double delta) {
+		double oldValue = this.delta;
 		this.delta = delta;
+		this.pcs.firePropertyChange("delta", oldValue, delta);
 	}
 	public double getThetaStep() {
 		return thetaStep;
 	}
 	public void setThetaStep(double thetaStep) {
+		double oldValue = this.thetaStep;
 		this.thetaStep = thetaStep;
+		this.pcs.firePropertyChange("thetaStep", oldValue, thetaStep);
 	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;

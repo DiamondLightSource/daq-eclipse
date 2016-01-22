@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.points.models;
 
-public interface IPointModel {
+
+public interface IPointModel extends IScanPathModel {
 
 	public double getX();
 
@@ -9,9 +10,4 @@ public interface IPointModel {
 	public double getY();
 
 	public void setY(double y);
-
-	public int hashCode();
-
-	public boolean equals(Object obj);
-
 }

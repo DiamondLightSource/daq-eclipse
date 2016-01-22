@@ -4,11 +4,17 @@ public class SpiralModel extends AbstractBoundingBoxModel {
 
 	private double scale = 1;
 
+	@Override
+	public String getName() {
+		return "Fermat Spiral";
+	}
 	public double getScale() {
 		return scale;
 	}
 	public void setScale(double scale) {
+		double oldValue = this.scale;
 		this.scale = scale;
+		this.pcs.firePropertyChange("scale", oldValue, scale);
 	}
 	@Override
 	public int hashCode() {
