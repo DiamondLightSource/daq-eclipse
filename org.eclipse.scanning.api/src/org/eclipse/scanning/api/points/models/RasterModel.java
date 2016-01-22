@@ -20,23 +20,30 @@ public class RasterModel extends AbstractBoundingBoxModel {
 	private double xStep = 1;
 	private double yStep = 1;
 	private boolean snake = false;
+
 	public double getxStep() {
 		return xStep;
 	}
 	public void setxStep(double xStep) {
+		double oldValue = this.xStep;
 		this.xStep = xStep;
+		this.pcs.firePropertyChange("xStep", oldValue, xStep);
 	}
 	public double getyStep() {
 		return yStep;
 	}
 	public void setyStep(double yStep) {
+		double oldValue = this.yStep;
 		this.yStep = yStep;
+		this.pcs.firePropertyChange("yStep", oldValue, yStep);
 	}
 	public boolean isSnake() {
 		return snake;
 	}
-	public void setSnake(boolean biDirectional) {
-		this.snake = biDirectional;
+	public void setSnake(boolean snake) {
+		boolean oldValue = this.snake;
+		this.snake = snake;
+		this.pcs.firePropertyChange("snake", oldValue, snake);
 	}
 	@Override
 	public int hashCode() {

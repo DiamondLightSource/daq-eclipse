@@ -1,6 +1,19 @@
 package org.eclipse.scanning.api.points.models;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
 public class OneDStepModel implements IBoundingLineModel {
+
+	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.addPropertyChangeListener(listener);
+	}
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.removePropertyChangeListener(listener);
+	}
 
 	private BoundingLine boundingLine;
 	private double step = 1;
@@ -9,7 +22,9 @@ public class OneDStepModel implements IBoundingLineModel {
 		return step;
 	}
 	public void setStep(double step) {
+		double oldValue = this.step;
 		this.step = step;
+		this.pcs.firePropertyChange("step", oldValue, step);
 	}
 	@Override
 	public BoundingLine getBoundingLine() {
@@ -17,7 +32,9 @@ public class OneDStepModel implements IBoundingLineModel {
 	}
 	@Override
 	public void setBoundingLine(BoundingLine boundingLine) {
+		BoundingLine oldValue = this.boundingLine;
 		this.boundingLine = boundingLine;
+		this.pcs.firePropertyChange("boundingLine", oldValue, boundingLine);
 	}
 	@Override
 	public int hashCode() {

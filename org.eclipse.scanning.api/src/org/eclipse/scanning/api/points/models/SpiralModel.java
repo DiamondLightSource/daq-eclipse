@@ -8,7 +8,9 @@ public class SpiralModel extends AbstractBoundingBoxModel {
 		return scale;
 	}
 	public void setScale(double scale) {
+		double oldValue = this.scale;
 		this.scale = scale;
+		this.pcs.firePropertyChange("scale", oldValue, scale);
 	}
 	@Override
 	public int hashCode() {
