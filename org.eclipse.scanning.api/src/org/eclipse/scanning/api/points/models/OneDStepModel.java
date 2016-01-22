@@ -18,6 +18,10 @@ public class OneDStepModel implements IBoundingLineModel {
 	private BoundingLine boundingLine;
 	private double step = 1;
 
+	@Override
+	public String getName() {
+		return "Step";
+	}
 	public double getStep() {
 		return step;
 	}

@@ -23,6 +23,10 @@ public class GridModel extends AbstractBoundingBoxModel {
 	private double yStep = 0.0;
 	private boolean snake = false;
 
+	@Override
+	public String getName() {
+		return "Grid";
+	}
 	public int getColumns() {
 		return columns;
 	}

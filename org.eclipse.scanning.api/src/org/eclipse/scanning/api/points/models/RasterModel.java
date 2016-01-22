@@ -21,6 +21,10 @@ public class RasterModel extends AbstractBoundingBoxModel {
 	private double yStep = 1;
 	private boolean snake = false;
 
+	@Override
+	public String getName() {
+		return "Raster";
+	}
 	public double getxStep() {
 		return xStep;
 	}

@@ -19,6 +19,10 @@ public class SinglePointModel implements IPointModel {
 	private double y;
 
 	@Override
+	public String getName() {
+		return "Single Point";
+	}
+	@Override
 	public double getX() {
 		return x;
 	}

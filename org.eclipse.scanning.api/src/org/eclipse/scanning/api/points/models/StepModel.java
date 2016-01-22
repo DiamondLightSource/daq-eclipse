@@ -8,7 +8,6 @@ public class StepModel {
 	private double step;
 	
 	public StepModel() {
-		
 	}
 	public StepModel(String name, double start, double stop, double step) {
 		super();
@@ -16,6 +15,12 @@ public class StepModel {
 		this.start = start;
 		this.stop = stop;
 		this.step = step;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 	public double getStart() {
 		return start;
@@ -73,11 +78,5 @@ public class StepModel {
 				.doubleToLongBits(other.stop))
 			return false;
 		return true;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
 	}
 }

@@ -6,12 +6,10 @@ import java.beans.PropertyChangeSupport;
 public class OneDEqualSpacingModel implements IBoundingLineModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
 	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		this.pcs.addPropertyChangeListener(listener);
 	}
-
 	@Override
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		this.pcs.removePropertyChangeListener(listener);
@@ -20,6 +18,10 @@ public class OneDEqualSpacingModel implements IBoundingLineModel {
 	private BoundingLine boundingLine;
 	private int points;
 
+	@Override
+	public String getName() {
+		return "Equal Spacing";
+	}
 	public int getPoints() {
 		return points;
 	}

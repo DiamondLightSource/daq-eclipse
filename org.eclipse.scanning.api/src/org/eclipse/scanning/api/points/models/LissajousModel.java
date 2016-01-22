@@ -7,6 +7,10 @@ public class LissajousModel extends AbstractBoundingBoxModel {
 	private double delta = 0;
 	private double thetaStep = 0.05;
 
+	@Override
+	public String getName() {
+		return "Lissajous Curve";
+	}
 	public double getA() {
 		return a;
 	}

@@ -6,12 +6,10 @@ import java.beans.PropertyChangeSupport;
 public abstract class AbstractBoundingBoxModel implements IBoundingBoxModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
 	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		this.pcs.addPropertyChangeListener(listener);
 	}
-
 	@Override
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		this.pcs.removePropertyChangeListener(listener);
