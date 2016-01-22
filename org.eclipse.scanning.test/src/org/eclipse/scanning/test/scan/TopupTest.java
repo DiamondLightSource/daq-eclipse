@@ -14,7 +14,10 @@ import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.IWritableDetector;
+import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListenable;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -66,20 +69,47 @@ public class TopupTest {
 	@Test
 	public void testTopup() throws Exception {
 		
+		final List<String> moved   = new ArrayList<>();
 		final IScannable<Number>   topup   = connector.getScannable("topup");
+		((IPositionListenable)topup).addPositionListener(new IPositionListener.Stub() {
+			@Override
+			public void positionPerformed(PositionEvent evt) {
+				moved.add(topup.getName());
+			}
+		});
+		final IScannable<Number>   x       = connector.getScannable("x");
+		((IPositionListenable)x).addPositionListener(new IPositionListener.Stub() {
+			@Override
+			public void positionPerformed(PositionEvent evt) {
+				moved.add(x.getName());
+			}
+		});
 		topup.setLevel(1);
 		
 		// x and y are level 3
-		final IScannable<Number>   x       = connector.getScannable("x");
 		IRunnableDevice<ScanModel> scanner = createTestScanner(topup);
 		scanner.run(null);
 		
 		assertEquals(25, positions.size());
-
+		assertEquals(50, moved.size());
+		assertTrue(moved.get(0).equals("topup"));
+		assertTrue(moved.get(1).equals("x"));
+		
+		moved.clear();
+		positions.clear();
+		topup.setLevel(5); // Above x
+		scanner.run(null);
+		
+		assertEquals(25, positions.size());
+		assertEquals(50, moved.size());
+		assertTrue(moved.get(0).equals("x"));
+		assertTrue(moved.get(1).equals("topup"));
+	
+		
 	}
 	
 	@Test(expected=Exception.class)
-	public void testBeanon() throws Exception {
+	public void testBeamOn() throws Exception {
 		
 		final IScannable<Number>   beamon   = connector.getScannable("beamon");
 		beamon.setLevel(1);

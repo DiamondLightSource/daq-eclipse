@@ -24,7 +24,7 @@ pos.setPosition(new MapPosition({'x':1, 'y':2}));
  * @author Matthew Gerring
  *
  */
-public interface IPositioner {
+public interface IPositioner extends IPositionListenable {
 
 	/**
 	 * This method moves to the position passed in and returns when the move
@@ -92,21 +92,4 @@ public interface IPositioner {
 	 * @throws ScanningException
 	 */
 	void setMonitors(IScannable<?>... monitors) throws ScanningException;
-
-	/**
-	 * Use to be notified as levels / positions are reached.
-	 * Not usually necessary as setPosition is blocking until
-	 * the position is reached but useful for other objects 
-	 * which need to change when new positions are reached.
-	 * 
-	 * @param listener
-	 */
-	void addPositionListener(IPositionListener listener);
-	
-	/**
-	 * Use to be notified as levels / positions are reached.
-	 * @param listener
-	 */
-	void removePositionListener(IPositionListener listener);
-
 }

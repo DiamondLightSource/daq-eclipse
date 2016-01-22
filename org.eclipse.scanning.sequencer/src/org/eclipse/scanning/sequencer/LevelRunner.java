@@ -2,7 +2,6 @@ package org.eclipse.scanning.sequencer;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +18,9 @@ import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
-import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.eclipse.scanning.api.scan.event.PositionDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +43,11 @@ abstract class LevelRunner<L extends ILevel> {
     protected IPosition        position;
     private ExecutorService    eservice;
 	private ScanningException  abortException;
+	private PositionDelegate   pDelegate;
+	
+	protected LevelRunner() {
+		pDelegate = new PositionDelegate();
+	}
 
 	/**
 	 * Get a list of the objects which we would like to order by level.
@@ -90,7 +94,7 @@ abstract class LevelRunner<L extends ILevel> {
 		if (abortException!=null) throw abortException;
 
 		this.position = position;
-		boolean ok = firePositionWillPerform(position);
+		boolean ok = pDelegate.firePositionWillPerform(position);
         if (!ok) return false;
 		
 		Map<Integer, List<L>> positionMap = getLevelOrderedObjects(getObjects());
@@ -120,11 +124,11 @@ abstract class LevelRunner<L extends ILevel> {
 				} else {
 					// Normally we block until done.
 				    List<Future<IPosition>> pos = eservice.invokeAll(tasks); // blocks until level has run
-					fireLevelPerformed(level, lobjects, getPosition(pos));
+					pDelegate.fireLevelPerformed(level, lobjects, getPosition(pos));
 				}
 			}
 			
-			firePositionPerformed(finalLevel, position);
+			pDelegate.firePositionPerformed(finalLevel, position);
 			
 		} catch (ScanningException s) {
 			throw s;
@@ -221,46 +225,13 @@ abstract class LevelRunner<L extends ILevel> {
 						              new ThreadPoolExecutor.DiscardPolicy());
 
 	}
-	
-	private Collection<IPositionListener> listeners;
-
-	protected boolean firePositionWillPerform(IPosition position) {
-		if (listeners==null) return true;
-		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
-		final PositionEvent evnt = new PositionEvent(position);
-		for (IPositionListener l : ls)  {
-			boolean ok = l.positionWillPerform(evnt);
-			if (!ok) return false;
-		}
-		return true;
-	}
-
-	protected void firePositionPerformed(int finalLevel, IPosition position) {
-		if (listeners==null) return;
-		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
-		final PositionEvent evnt = new PositionEvent(position);
-		evnt.setLevel(finalLevel);
-		for (IPositionListener l : ls)  l.positionPerformed(evnt);
-	}
-
-	protected void fireLevelPerformed(int level, List<L> levels, IPosition position) {
-		if (listeners==null) return;
-		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
-		final PositionEvent evnt = new PositionEvent(position);
-		evnt.setLevel(level);
-	    evnt.setLevelObjects(levels);
-		
-		for (IPositionListener l : ls)  l.levelPerformed(evnt);
-	}
 
 	public void addPositionListener(IPositionListener listener) {
-		if (listeners==null) listeners = new HashSet<IPositionListener>(3);
-		listeners.add(listener);
+		pDelegate.addPositionListener(listener);
 	}
 
 	public void removePositionListener(IPositionListener listener) {
-		if (listeners==null) return;
-		listeners.remove(listener);
+		pDelegate.removePositionListener(listener);
 	}
 
 	public IPosition getPosition()  throws ScanningException {

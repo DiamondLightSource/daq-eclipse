@@ -16,9 +16,13 @@ import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.ScannableModel;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListenable;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.eclipse.scanning.api.scan.event.PositionDelegate;
 
-public class MockScannable implements IScannable<Number> {
+public class MockScannable implements IScannable<Number>, IPositionListenable {
 
 	private int     level;
 	private String  name;
@@ -30,10 +34,12 @@ public class MockScannable implements IScannable<Number> {
 	
 	protected ScannableModel     model;
 	private LazyWriteableDataset writer;
+	private PositionDelegate     delegate;
 	
     public MockScannable() {
        	values    = new ArrayList<>();
        	positions = new ArrayList<>();
+       	delegate  = new PositionDelegate();
     }
     public MockScannable(double position) {
     	this();
@@ -109,6 +115,10 @@ public class MockScannable implements IScannable<Number> {
 	
 	public void setPosition(Number position, IPosition loc) throws Exception {
 		
+		double value = position!=null ? position.doubleValue() : Double.NaN;
+		boolean ok = delegate.firePositionWillPerform(new Scalar(getName(), loc.getIndex(getName()), value));
+		if (!ok) return;
+		
 		if (requireSleep && position!=null) {
 			long time = Math.abs(Math.round((position.doubleValue()-this.position.doubleValue())/1)*100);
 			time = Math.max(time, 1);
@@ -136,6 +146,8 @@ public class MockScannable implements IScannable<Number> {
 			}
 	 
 		}
+		
+		delegate.firePositionPerformed(-1, new Scalar(getName(), loc.getIndex(getName()), value));
 
 	}
 	
@@ -162,6 +174,15 @@ public class MockScannable implements IScannable<Number> {
 		}
 		
 		throw new Exception("Not call to setPosition had value="+value+" and position="+point);
+	}
+	
+	@Override
+	public void addPositionListener(IPositionListener listener) {
+		delegate.addPositionListener(listener);
+	}
+	@Override
+	public void removePositionListener(IPositionListener listener) {
+		delegate.removePositionListener(listener);
 	}
 
 
