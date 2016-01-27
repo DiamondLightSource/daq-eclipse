@@ -36,9 +36,11 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		super(name, d, i);
 	}
 
-	@SuppressWarnings("unchecked")
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXpositioner>(getName(), NexusBaseClass.NX_POSITIONER, NXpositioner.NX_VALUE, info, this);
+		DelegateNexusProvider<NXpositioner> nexusDelegate = new DelegateNexusProvider<>(
+				getName(), NexusBaseClass.NX_POSITIONER, NXpositioner.NX_VALUE, info, this);
+		nexusDelegate.setDemandFieldName(FIELD_NAME_DEMAND_VALUE);
+		return nexusDelegate;
 	}
 
 	@Override
@@ -47,10 +49,10 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		final NXpositioner positioner = nodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
-		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE,   1, Dataset.FLOAT64);
+		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Dataset.FLOAT64);
 		lzDemand.setChunking(new int[]{1});
 		
-		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank()+1, Dataset.FLOAT64);
+		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dataset.FLOAT64);
 		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 
 		return positioner;
@@ -67,7 +69,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		if (actual!=null) {
 			// write actual position
 			final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
-			SliceND sliceND = NexusScanInfo.createLocation(lzValue, loc.getNames(), loc.getIndices(), 1);
+			SliceND sliceND = NexusScanInfo.createLocation(lzValue, loc.getNames(), loc.getIndices()); // no varargs for scalar value
 			lzValue.setSlice(null, newActualPositionData, sliceND);
 		}
 
