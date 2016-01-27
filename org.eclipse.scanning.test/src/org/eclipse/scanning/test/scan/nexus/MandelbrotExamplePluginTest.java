@@ -1,20 +1,33 @@
 package org.eclipse.scanning.test.scan.nexus;
 
+import static org.dawnsci.nexus.NexusAssert.assertAxes;
+import static org.dawnsci.nexus.NexusAssert.assertIndices;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
+import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
 import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
+import org.eclipse.dawnsci.nexus.NXdata;
+import org.eclipse.dawnsci.nexus.NXdetector;
+import org.eclipse.dawnsci.nexus.NXentry;
+import org.eclipse.dawnsci.nexus.NXinstrument;
+import org.eclipse.dawnsci.nexus.NXpositioner;
+import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
+import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -90,11 +103,11 @@ public class MandelbrotExamplePluginTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testWriteTime2Dvs3D() throws Exception {	
+	public void testWriteTime2Dvs3D() throws Exception {
 
 		// Tell configure detector to write 1 image into a 2D scan
 		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 8, 5);
-		ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();      
+		ScanModel mod = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		IPosition first = mod.getPositionIterable().iterator().next();
 		detector.run(first);
 		
@@ -105,7 +118,7 @@ public class MandelbrotExamplePluginTest {
 		System.out.println("Writing 1 image in 3D stack took: "+diff2+" ms");
 		
 		scanner = createGridScan(detector, 10, 8, 5);
-		mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();      
+		mod = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		first = mod.getPositionIterable().iterator().next();
 		detector.run(first);
 		
@@ -117,20 +130,20 @@ public class MandelbrotExamplePluginTest {
 
 		assertTrue(diff3<Math.max(20, diff2*1.5));
 	}
-		
+
 	@Test
-	public void test2DNexusScan() throws Exception {		
+	public void test2DNexusScan() throws Exception {
 		testScan(8,5);
 	}
 	
 	@Test
-	public void test3DNexusScan() throws Exception {	
+	public void test3DNexusScan() throws Exception {
 		testScan(3,2,5);
 	}
 	
 	// TODO Why does this not pass?
 	//@Test
-	public void test3DNexusScanLarge() throws Exception {	
+	public void test3DNexusScanLarge() throws Exception {
 		long before = System.currentTimeMillis();
 		testScan(300,2,5);
 		long after = System.currentTimeMillis();
@@ -139,17 +152,17 @@ public class MandelbrotExamplePluginTest {
 	}
 
 	@Test
-	public void test4DNexusScan() throws Exception {			
+	public void test4DNexusScan() throws Exception {
 		testScan(3,3,2,2);
 	}
 	
 	@Test
-	public void test5DNexusScan() throws Exception {	
+	public void test5DNexusScan() throws Exception {
 		testScan(1,1,1,2,2);
 	}
 	
 	@Test
-	public void test8DNexusScan() throws Exception {	
+	public void test8DNexusScan() throws Exception {
 		testScan(1,1,1,1,1,1,2,2);
 	}
 	
@@ -159,57 +172,79 @@ public class MandelbrotExamplePluginTest {
 		scanner.run(null);
 	
 		// Check we reached ready (it will normally throw an exception on error)
-        checkFile(scanner, shape); // Step model is +1 on the size
+		checkFile(scanner, shape); // Step model is +1 on the size
 	}
 
 
 	private void checkFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
 		
-		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();                      
-		                                                                                                    
-		assertEquals(DeviceState.READY, scanner.getState());                                                
-                                                                                                            
-		String filePath = ((AbstractRunnableDevice<ScanModel>)scanner).getModel().getFilePath();            
-                                                                                                            
-		NexusFile nf = fileFactory.newNexusFile(filePath);                                                  
-		nf.openToRead();                                                                                    
-                                                                                                            
-		DataNode d = nf.getData("/entry/instrument/"+mod.getDetectors().get(0).getName()+"/data");          
-		IDataset ds = d.getDataset().getSlice();                                                            
-		int[] shape = ds.getShape();                                                                        
-                                                                                                            
-		for (int i = 0; i < sizes.length; i++) assertEquals(sizes[i], shape[i]);                            
-		                                                                                                    
-		// Make sure none of the numbers are NaNs. The detector                                             
-		// is expected to fill this scan with non-nulls.                                                    
-        final PositionIterator it = new PositionIterator(shape);                                            
-        while(it.hasNext()) {
-        	int[] next = it.getPos();
-        	assertFalse(Double.isNaN(ds.getDouble(next)));
-        }
+		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();
+		assertEquals(DeviceState.READY, scanner.getState());
+		
+		String filePath = ((AbstractRunnableDevice<ScanModel>)scanner).getModel().getFilePath();
+		NexusFile nf = fileFactory.newNexusFile(filePath);
+		nf.openToRead();
+		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
+		NXroot rootNode = (NXroot) nexusTree.getGroupNode();
+		NXentry entry = rootNode.getEntry();
+		NXinstrument instrument = entry.getInstrument();
+		
+		String detectorName = mod.getDetectors().get(0).getName();
+		NXdetector detector = instrument.getDetector(detectorName);
+		DataNode dataNode = detector.getDataNode(NXdetector.NX_DATA);
+		IDataset dataset = dataNode.getDataset().getSlice();
+		
+		// validate the NXdata generated by the NexusDataBuilder
+		NXdata nxData = entry.getData(detectorName);
+		assertEquals(detectorName, nxData.getAttribute("signal").getFirstElement());
+		// check the nxData's signal field is a link to the data node of the detector
+		assertSame(dataNode, nxData.getDataNode(detectorName));
+		
+		int[] shape = dataset.getShape();
+
+		for (int i = 0; i < sizes.length; i++) assertEquals(sizes[i], shape[i]);
+
+		// Make sure none of the numbers are NaNs. The detector
+		// is expected to fill this scan with non-nulls.
+		final PositionIterator it = new PositionIterator(shape);
+		while (it.hasNext()) {
+			int[] next = it.getPos();
+			assertFalse(Double.isNaN(dataset.getDouble(next)));
+		}
 
 		// Check axes
-        final IPosition      pos = mod.getPositionIterable().iterator().next();
-        final List<String> names = pos.getNames();
-        
-        // Demand values should be 1D
-        for (int i = 0; i < names.size(); i++) {
-    		d     = nf.getData("/entry/instrument/"+names.get(i)+"/value_demand");
-    		ds    = d.getDataset().getSlice().squeeze();
-    		shape = ds.getShape();
-    		if (sizes[i]>1) {
-    		    assertEquals(sizes[i], shape[0]);
-    		} else {
-    			assertEquals(0, shape.length);
-    		}
-		}
-        
-        // Actual values should be scanD
-        for (int i = 0; i < names.size(); i++) {
-    		d     = nf.getData("/entry/instrument/"+names.get(i)+"/value");
-    		ds    = d.getDataset().getSlice();
-    		shape = ds.getShape();
-    		assertTrue(Arrays.equals(sizes, shape));
+		final IPosition pos = mod.getPositionIterable().iterator().next();
+		final List<String> names = pos.getNames();
+
+		String[] axesNames = Stream.concat(names.stream().map(x -> x + "_value_demand"),
+				Stream.of(".", ".")).toArray(String[]::new);
+		assertAxes(nxData, axesNames);
+		int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
+		for (int i = 0; i < names.size(); i++) {
+			// Demand values should be 1D
+			String positionerName = names.get(i);
+			NXpositioner positioner = instrument.getPositioner(positionerName);
+			assertNotNull(positioner);
+			dataNode = positioner.getDataNode("value_demand");
+			
+			dataset = dataNode.getDataset().getSlice();
+			shape = dataset.getShape();
+			assertEquals(1, shape.length);
+			assertEquals(sizes[i], shape[0]);
+
+			String nxDataFieldName = positionerName + "_value_demand";
+			assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
+			assertIndices(nxData, nxDataFieldName, i);
+			
+			// Actual values should be scanD
+			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
+			dataset = dataNode.getDataset().getSlice();
+			shape = dataset.getShape();
+			assertArrayEquals(sizes, shape);
+			
+			nxDataFieldName = positionerName + "_" + NXpositioner.NX_VALUE;
+			assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
+			assertIndices(nxData, nxDataFieldName, defaultDimensionMappings);
 		}
 	}
 
@@ -230,7 +265,7 @@ public class MandelbrotExamplePluginTest {
 			for (int dim = size.length-3; dim>-1; dim--) {
 				final StepModel model;
 				if (size[dim]-1>0) {
-				    model = new StepModel("neXusScannable"+(dim+1), 10,20,11d/(size[dim]-1));
+				    model = new StepModel("neXusScannable"+(dim+1), 10,20,9.99d/(size[dim]-1));
 				} else {
 					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 				}
@@ -256,9 +291,10 @@ public class MandelbrotExamplePluginTest {
 		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
 			@Override
-			public void runWillPerform(RunEvent evt) throws ScanningException{
-                try {
-					System.out.println("Running acquisition scan of size "+fgen.size());
+					public void runWillPerform(RunEvent evt)
+							throws ScanningException {
+						try {
+							System.out.println("Running acquisition scan of size "+fgen.size());
 				} catch (GeneratorException e) {
 					throw new ScanningException(e);
 				}
