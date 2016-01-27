@@ -13,8 +13,8 @@ import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
@@ -28,19 +28,19 @@ import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 
-public class GeneratorServiceImpl implements IGeneratorService {
+public class PointGeneratorFactory implements IPointGeneratorService {
 	
 	// TODO FIXME All generators must also specify the indices of the location
 	// of each value as well as the abolute motor position for correct NeXus writing.
 	
-	private static final Map<Class<?>, Class<? extends IGenerator>> generators;
+	private static final Map<Class<?>, Class<? extends IPointGenerator>> generators;
 	
 	// Use a factory pattern to register the types.
 	// This pattern can always be replaced by extension points
 	// to allow point generators to be dynamically registered. 
 	static {
 		System.out.println("Starting generator service");
-		Map<Class<?>, Class<? extends IGenerator>> tmp = new HashMap<>(7);
+		Map<Class<?>, Class<? extends IPointGenerator>> tmp = new HashMap<>(7);
 		tmp.put(StepModel.class,             StepGenerator.class);
 		tmp.put(GridModel.class,             GridGenerator.class);
 		tmp.put(LissajousModel.class,        LissajousGenerator.class);
@@ -58,9 +58,9 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	}
 
 	@Override
-	public <T,R,P> IGenerator<T,P> createGenerator(T model, R... regions) throws GeneratorException {
+	public <T,R,P> IPointGenerator<T,P> createGenerator(T model, R... regions) throws GeneratorException {
 		try {
-			IGenerator<T,P> gen = (IGenerator<T,P>)generators.get(model.getClass()).newInstance();
+			IPointGenerator<T,P> gen = (IPointGenerator<T,P>)generators.get(model.getClass()).newInstance();
 			
 			// FIXME need to generate a bounding box covering all regions, not just the first
 			if (regions != null && regions.length > 0) {
@@ -77,12 +77,12 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		}
 	}
 
-	private static void readExtensions(Map<Class<?>, Class<? extends IGenerator>> gens) throws CoreException {
+	private static void readExtensions(Map<Class<?>, Class<? extends IPointGenerator>> gens) throws CoreException {
 		
 		if (Platform.getExtensionRegistry()!=null) {
 			final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.generator");
 			for (IConfigurationElement e : eles) {
-				final IGenerator gen = (IGenerator)e.createExecutableExtension("class");
+				final IPointGenerator gen = (IPointGenerator)e.createExecutableExtension("class");
 				final Object     mod = e.createExecutableExtension("model");
 				gens.put(mod.getClass(), gen.getClass());
 			}
@@ -141,7 +141,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	}
 
 	@Override
-	public IGenerator<?, IPosition> createCompoundGenerator(IGenerator<?,? extends IPosition>... generators) throws GeneratorException {
+	public IPointGenerator<?, IPosition> createCompoundGenerator(IPointGenerator<?,? extends IPosition>... generators) throws GeneratorException {
 		return new CompoundGenerator(generators);
 	}
 }

@@ -17,8 +17,8 @@ import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
@@ -32,7 +32,7 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.ConstantVelocityModel;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.BeforeClass;
@@ -44,7 +44,7 @@ public class ConstantVelocityPluginTest {
 	private static INexusFileFactory   fileFactory;
 	
 	private static IScanningService        service;
-	private static IGeneratorService       gservice;
+	private static IPointGeneratorService       gservice;
 	private static IDeviceConnectorService connector;
 	
 	private static IWritableDetector<ConstantVelocityModel> detector;
@@ -53,7 +53,7 @@ public class ConstantVelocityPluginTest {
 	public static void before() throws Exception {
 		
 		service   = new ScanningServiceImpl(); // Not testing OSGi so using hard coded service.
-		gservice  = new GeneratorServiceImpl();
+		gservice  = new PointGeneratorFactory();
 		connector = new MockScannableConnector();
 		
 		ConstantVelocityModel model = new ConstantVelocityModel("cv scan", 100, 200, 25);
@@ -165,7 +165,7 @@ public class ConstantVelocityPluginTest {
 			smodel = new StepModel("yNex", 10,20,30); // Will generate one value at 10
 		}
 		
-		IGenerator<?,IPosition> gen = gservice.createGenerator(smodel);
+		IPointGenerator<?,IPosition> gen = gservice.createGenerator(smodel);
 		assertEquals(ySize, gen.size());
 		
 		// We add the outer scans, if any
@@ -177,7 +177,7 @@ public class ConstantVelocityPluginTest {
 				} else {
 					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 				}
-				final IGenerator<?,IPosition> step = gservice.createGenerator(model);
+				final IPointGenerator<?,IPosition> step = gservice.createGenerator(model);
 				gen = gservice.createCompoundGenerator(step, gen);
 			}
 		}
@@ -196,7 +196,7 @@ public class ConstantVelocityPluginTest {
 		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(scanModel, null, connector);
 		
-		final IGenerator<?,IPosition> fgen = gen;
+		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{

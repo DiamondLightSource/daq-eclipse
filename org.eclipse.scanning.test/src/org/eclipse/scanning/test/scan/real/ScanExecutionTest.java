@@ -14,8 +14,8 @@ import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -44,7 +44,7 @@ import org.junit.Test;
 public class ScanExecutionTest {
 	
 	private static IEventService     eventService;
-	private static IGeneratorService generatorService;
+	private static IPointGeneratorService generatorService;
 	private static IScanningService  scanService;
 	private static IDeviceConnectorService connector;
 	private static IMalcolmService   malcService;
@@ -112,7 +112,7 @@ public class ScanExecutionTest {
 		gmodel.setRows(size[size.length-1]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,2,2));
 		
-		IGenerator<?,IPosition> gen = generatorService.createGenerator(gmodel);
+		IPointGenerator<?,IPosition> gen = generatorService.createGenerator(gmodel);
 		
 		// We add the outer scans, if any
 		if (size.length > 2) { 
@@ -123,7 +123,7 @@ public class ScanExecutionTest {
 				} else {
 					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 				}
-				final IGenerator<?,IPosition> step = generatorService.createGenerator(model);
+				final IPointGenerator<?,IPosition> step = generatorService.createGenerator(model);
 				gen = generatorService.createCompoundGenerator(step, gen);
 			}
 		}
@@ -142,7 +142,7 @@ public class ScanExecutionTest {
 		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = scanService.createRunnableDevice(smodel, null, connector);
 		
-		final IGenerator<?,IPosition> fgen = gen;
+		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{
@@ -165,11 +165,11 @@ public class ScanExecutionTest {
 		ScanExecutionTest.eventService = eventService;
 	}
 
-	public static IGeneratorService getGeneratorService() {
+	public static IPointGeneratorService getGeneratorService() {
 		return generatorService;
 	}
 
-	public static void setGeneratorService(IGeneratorService generatorService) {
+	public static void setGeneratorService(IPointGeneratorService generatorService) {
 		ScanExecutionTest.generatorService = generatorService;
 	}
 

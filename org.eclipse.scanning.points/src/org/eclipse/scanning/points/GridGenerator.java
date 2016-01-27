@@ -8,19 +8,8 @@ import org.eclipse.scanning.api.points.models.GridModel;
 
 class GridGenerator extends AbstractGenerator<GridModel,Point> {
 
-
-	private void createSteps() {
-		double xLength = model.getBoundingBox().getWidth();
-		double yLength = model.getBoundingBox().getHeight();
-
-		// Calculate the required step size
-		model.setxStep(xLength / model.getColumns());
-		model.setyStep(yLength / model.getRows());
-	}
-
 	@Override
 	public Iterator<Point> iterator() {
-		createSteps();
 		return new GridIterator(this);
 	}
 

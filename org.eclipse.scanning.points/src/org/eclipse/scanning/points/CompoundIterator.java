@@ -3,7 +3,7 @@ package org.eclipse.scanning.points;
 import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IGenerator;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 
@@ -71,7 +71,7 @@ public class CompoundIterator implements Iterator<IPosition> {
 
 
 	private Iterator<? extends IPosition>[] initIterators() {
-		final IGenerator<?,? extends IPosition>[] gs = gen.getGenerators();
+		final IPointGenerator<?,? extends IPosition>[] gs = gen.getGenerators();
 		Iterator<? extends IPosition>[] ret = new Iterator[gs.length];
 		for (int i = 0; i < gs.length; i++) {
 			ret[i] = gs[i].iterator();

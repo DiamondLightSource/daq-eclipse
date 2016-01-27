@@ -7,25 +7,25 @@ import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
 public class RasterTest {
 
 	
-	private IGeneratorService service;
+	private IPointGeneratorService service;
 	
 	@Before
 	public void before() throws Exception {
-		service = new GeneratorServiceImpl();
+		service = new PointGeneratorFactory();
 	}
 
 	@Test
@@ -39,7 +39,7 @@ public class RasterTest {
 		model.setyStep(1);
 
 		// Get the point list
-		IGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);
+		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);
 		List<Point> pointList = gen.createPoints();
 
 		// Check correct number of points
@@ -82,7 +82,7 @@ public class RasterTest {
 		model.setyStep(yStep);
 
 		// Get the point list
-		IGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 
 		int rows = (int) (Math.floor((xStop - xStart) / xStep) + 1);
@@ -114,7 +114,7 @@ public class RasterTest {
 		model.setyStep(1);
 
 		// Get the point list
-		IGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 
 		// Check the length of the lists are equal
@@ -154,7 +154,7 @@ public class RasterTest {
 		rmodel.setyStep(3d/size[0]);
 		rmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
-		IGenerator<?,IPosition> gen = service.createGenerator(rmodel);
+		IPointGenerator<?,IPosition> gen = service.createGenerator(rmodel);
     
 		IPosition first = gen.iterator().next();
 		assertEquals(0d, first.get("xNex"));

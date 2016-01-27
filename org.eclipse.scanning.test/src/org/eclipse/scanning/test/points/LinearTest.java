@@ -7,12 +7,12 @@ import java.util.List;
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,11 +20,11 @@ public class LinearTest {
 
 	// TODO FIXME Test Linear Numerically
 	
-	private IGeneratorService service;
+	private IPointGeneratorService service;
 	
 	@Before
 	public void before() throws Exception {
-		service = new GeneratorServiceImpl();
+		service = new PointGeneratorFactory();
 	}
 	
 	@Test
@@ -36,7 +36,7 @@ public class LinearTest {
         model.setPoints(10);
 		
 		// Get the point list
-		IGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -51,7 +51,7 @@ public class LinearTest {
         model.setPoints(10);
 		
 		// Get the point list
-		IGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, null);
+		IPointGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, null);
 		gen.createPoints();
 	}
 
@@ -64,7 +64,7 @@ public class LinearTest {
         model.setPoints(0);
 		
 		// Get the point list
-		IGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
         GeneratorUtil.testGeneratorPoints(gen);
 	}
@@ -79,7 +79,7 @@ public class LinearTest {
         model.setStep(0.3);
 		
 		// Get the point list
-		IGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
 		
 		assertEquals(pointList.size(), gen.size());
@@ -96,7 +96,7 @@ public class LinearTest {
         model.setStep(0);
 		
 		// Get the point list
-		IGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
         GeneratorUtil.testGeneratorPoints(gen);
 		
@@ -111,7 +111,7 @@ public class LinearTest {
         model.setStep(0);
 		
 		// Get the point list
-		IGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
 		List<Point> pointList = gen.createPoints();
         GeneratorUtil.testGeneratorPoints(gen);
 		

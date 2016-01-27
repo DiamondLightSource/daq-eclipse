@@ -1,7 +1,7 @@
 package org.eclipse.scanning.test.scan;
 
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
@@ -10,7 +10,7 @@ import org.junit.Before;
 public class ScanPluginTest extends AbstractScanTest {
 	
 	private static IScanningService  scanningService;
-	private static IGeneratorService generatorService;
+	private static IPointGeneratorService generatorService;
 	private static IEventService     eventService;
 
 	public static IEventService getEventService() {
@@ -37,11 +37,11 @@ public class ScanPluginTest extends AbstractScanTest {
 		ScanPluginTest.scanningService = scanningService;
 	}
 
-	public static IGeneratorService getGeneratorService() {
+	public static IPointGeneratorService getGeneratorService() {
 		return generatorService;
 	}
 
-	public static void setGeneratorService(IGeneratorService generatorService) {
+	public static void setGeneratorService(IPointGeneratorService generatorService) {
 		ScanPluginTest.generatorService = generatorService;
 	}
 	

@@ -4,11 +4,11 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Iterator;
 
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,17 +20,17 @@ import org.junit.Test;
  */
 public class StepTest {
 	
-	private IGeneratorService service;
+	private IPointGeneratorService service;
 	
 	@Before
 	public void before() throws Exception {
-		service = new GeneratorServiceImpl();
+		service = new PointGeneratorFactory();
 	}
 	
 	@Test
 	public void testSizes() throws Exception {
 		
-		IGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel());
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel());
 
 		StepModel model = new StepModel("Temperature", 290,300,1);	
 		gen.setModel(model);
@@ -87,7 +87,7 @@ public class StepTest {
 	@Test
 	public void testTooLargeStep() throws Exception {
 
-		IGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("fred", 0, 3, 5));
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("fred", 0, 3, 5));
 		assertEquals(1, gen.size());
 		assertEquals(0d, gen.iterator().next().get("fred"));
 		// TODO Should this throw an exception or do this? Possible to do a size 1 step makes some tests easier to write.
@@ -97,7 +97,7 @@ public class StepTest {
 	public void testSequence() throws Exception {
 		
 
-		IGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel());
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel());
 
 		StepModel model = new StepModel("Temperature", 290,300,1);	
 		gen.setModel(model);
@@ -125,7 +125,7 @@ public class StepTest {
 		GeneratorUtil.testGeneratorPoints(gen);
 	}
 
-	private void checkSequence(IGenerator<StepModel, IPosition> gen, double... positions) throws Exception {
+	private void checkSequence(IPointGenerator<StepModel, IPosition> gen, double... positions) throws Exception {
 		
 		Iterator<IPosition> it = gen.iterator();
         for (int i = 0; i < positions.length; i++) {

@@ -9,21 +9,21 @@ import java.util.List;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
 public class GridTestLarge {
 
-	private IGeneratorService service;
+	private IPointGeneratorService service;
 	
 	@Before
 	public void before() throws Exception {
-		service = new GeneratorServiceImpl();
+		service = new PointGeneratorFactory();
 	}
 	
 	@Test
@@ -60,7 +60,7 @@ public class GridTestLarge {
 		long start = System.currentTimeMillis();
 		
 		// Get the point list
-		IGenerator<GridModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<GridModel,Point> gen = service.createGenerator(model, roi);
         Iterator<Point>       it  = gen.iterator();
 
 		long after1 = System.currentTimeMillis();
@@ -105,7 +105,7 @@ public class GridTestLarge {
 		gridScanPath.setColumns(10000);
 
 		// Get the point list
-		IGenerator<GridModel,Point> gen = service.createGenerator(gridScanPath, boundingRectangle);
+		IPointGenerator<GridModel,Point> gen = service.createGenerator(gridScanPath, boundingRectangle);
 		List<Point> points = gen.createPoints();
 		
 		assertEquals(10000000, points.size());

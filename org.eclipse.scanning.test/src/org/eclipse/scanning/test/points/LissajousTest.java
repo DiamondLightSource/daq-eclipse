@@ -5,12 +5,12 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.LissajousModel;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,11 +18,11 @@ public class LissajousTest {
 
 	// TODO FIXME Test Lissajous Numerically
 
-	private IGeneratorService service;
+	private IPointGeneratorService service;
 
 	@Before
 	public void before() throws Exception {
-		service = new GeneratorServiceImpl();
+		service = new PointGeneratorFactory();
 	}
 
 	@Test
@@ -38,7 +38,7 @@ public class LissajousTest {
 		model.setBoundingBox(box);
 
 		// Get the point list
-		IGenerator<LissajousModel, Point> gen = service.createGenerator(model);
+		IPointGenerator<LissajousModel, Point> gen = service.createGenerator(model);
 		List<Point> pointList = gen.createPoints();
 
 		assertEquals(pointList.size(), gen.size());
@@ -52,7 +52,7 @@ public class LissajousTest {
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
 		// Get the point list
-		IGenerator<LissajousModel, Point> gen = service.createGenerator(new LissajousModel(), roi);
+		IPointGenerator<LissajousModel, Point> gen = service.createGenerator(new LissajousModel(), roi);
 		List<Point> pointList = gen.createPoints();
 
 		assertEquals(pointList.size(), gen.size());

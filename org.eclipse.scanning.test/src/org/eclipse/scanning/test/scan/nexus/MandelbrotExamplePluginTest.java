@@ -17,8 +17,8 @@ import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -34,7 +34,7 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.BeforeClass;
@@ -46,7 +46,7 @@ public class MandelbrotExamplePluginTest {
 	private static INexusFileFactory   fileFactory;
 	
 	private static IScanningService        service;
-	private static IGeneratorService       gservice;
+	private static IPointGeneratorService       gservice;
 	private static IDeviceConnectorService connector;
 	
 	private static IWritableDetector<MandelbrotModel> detector;
@@ -55,7 +55,7 @@ public class MandelbrotExamplePluginTest {
 	public static void before() throws Exception {
 		
 		service   = new ScanningServiceImpl(); // Not testing OSGi so using hard coded service.
-		gservice  = new GeneratorServiceImpl();
+		gservice  = new PointGeneratorFactory();
 		connector = new MockScannableConnector();
 		
 		MandelbrotModel model = new MandelbrotModel();
@@ -223,7 +223,7 @@ public class MandelbrotExamplePluginTest {
 		gmodel.setRows(size[size.length-1]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
-		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 		
 		// We add the outer scans, if any
 		if (size.length > 2) { 
@@ -234,7 +234,7 @@ public class MandelbrotExamplePluginTest {
 				} else {
 					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 				}
-				final IGenerator<?,IPosition> step = gservice.createGenerator(model);
+				final IPointGenerator<?,IPosition> step = gservice.createGenerator(model);
 				gen = gservice.createCompoundGenerator(step, gen);
 			}
 		}
@@ -253,7 +253,7 @@ public class MandelbrotExamplePluginTest {
 		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null, connector);
 		
-		final IGenerator<?,IPosition> fgen = gen;
+		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{
