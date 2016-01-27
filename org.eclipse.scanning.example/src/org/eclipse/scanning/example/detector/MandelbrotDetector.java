@@ -36,7 +36,6 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
-import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IWritableDetector;
@@ -53,7 +52,6 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 	public static final String VALUE_NAME = "mandelbrot_value";
 
-	private MandelbrotModel       model;
 	private IDataset              image;
 	private ILazyWriteableDataset data;
 	
@@ -95,9 +93,8 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 	@Override
 	public void configure(MandelbrotModel model) throws ScanningException {	
-		this.model = model;
+		super.configure(model);
 		setName(model.getName());
-		setState(DeviceState.READY);	
 	}
 
 	@Override

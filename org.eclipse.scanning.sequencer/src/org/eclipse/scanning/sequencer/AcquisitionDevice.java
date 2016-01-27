@@ -137,8 +137,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		for (IPosition unused : model.getPositionIterable()) size++; // Fast even for large stuff
 
 		NexusScanInfo info = new NexusScanInfo(pos.getNames()); // TODO Names should be in scan order, check this in tests.
-//		info.setNames(model);
-		
+        // TODO Should we provide more information about the scan?
+		// GDA8 has an object called ScanInformation which does exactly this job.
 		
 		return info;
 	}

@@ -190,6 +190,29 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
 		for (IRunListener l : la) l.runPerformed(evt);
 	}
+	
+	public void fireWriteWillPerform(IPosition position) throws ScanningException {
+		
+		if (rlisteners==null) return;
+		
+		final RunEvent evt = new RunEvent(this, position);
+		
+		// Make array, avoid multi-threading issues.
+		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
+		for (IRunListener l : la) l.writeWillPerform(evt);
+	}
+	
+	public void fireWritePerformed(IPosition position) throws ScanningException {
+		
+		if (rlisteners==null) return;
+		
+		final RunEvent evt = new RunEvent(this, position);
+		
+		// Make array, avoid multi-threading issues.
+		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
+		for (IRunListener l : la) l.writePerformed(evt);
+	}
+
 
 	public T getModel() {
 		return model;

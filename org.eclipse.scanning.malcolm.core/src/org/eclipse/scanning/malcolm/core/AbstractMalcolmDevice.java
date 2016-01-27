@@ -139,6 +139,17 @@ public abstract class AbstractMalcolmDevice<T> implements IMalcolmDevice<T> {
 	public void fireRunPerformed(IPosition position) throws ScanningException{
 		eventDelegate.fireRunPerformed(this, position);
 	}
+	
+	@Override
+	public void fireWriteWillPerform(IPosition position) throws ScanningException{
+		eventDelegate.fireWriteWillPerform(this, position);
+	}
+	
+	@Override
+	public void fireWritePerformed(IPosition position) throws ScanningException{
+		eventDelegate.fireWriteWillPerform(this, position);
+	}
+
 
 	@Override
 	public void configure(T params) throws MalcolmDeviceException {

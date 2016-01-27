@@ -11,6 +11,10 @@
             class="org.eclipse.scanning.example.detector.ConstantVelocityDevice"
             model="org.eclipse.scanning.example.detector.ConstantVelocityModel">
       </detector>
+      <device
+            class="org.eclipse.scanning.example.detector.DarkImageDetector"
+            model="org.eclipse.scanning.example.detector.DarkImageModel">
+      </device>
    </extension>
 
 </plugin>

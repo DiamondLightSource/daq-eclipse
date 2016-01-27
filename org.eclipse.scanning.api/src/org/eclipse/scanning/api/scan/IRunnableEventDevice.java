@@ -55,4 +55,38 @@ public interface IRunnableEventDevice<T> extends IPauseableDevice<T> {
 	 */
 	public void fireRunPerformed(IPosition position)throws ScanningException;
 
+	
+	/**
+	 * Called during the scanning to notify the device that the write method will be
+	 * called at a given position, if the device implements one. 
+	 * 
+	 * This method is called on the same thread that the
+	 * write() method is called on, e.g. parallel execution by level in the case of
+	 * AcquisitionDevice.
+	 * 
+	 * <b>NOTE:</b> If the write method returns false, fireWritePerformed is not called. However
+	 * fireWriteWillPerform will still be called. This is because until the device attempts
+	 * to write we do not know if is has written.
+	 * 
+	 * @param position
+	 */
+	public void fireWriteWillPerform(IPosition position)throws ScanningException;
+	
+	/**
+	 * 
+	 * Called during the scanning to notify the device that the write method has been
+	 * called at a given position, if the device implements one. 
+	 * 
+	 * This method is called on the same thread that the
+	 * write() method is called on, e.g. parallel execution by level in the case of
+	 * AcquisitionDevice.
+	 * 
+	 * <b>NOTE:</b> If the write method returns false, fireWritePerformed is not called. However
+	 * fireWriteWillPerform will still be called. This is because until the device attempts
+	 * to write we do not know if is has written.
+	 * 
+	 * @param position
+	 */
+	public void fireWritePerformed(IPosition position)throws ScanningException;
+
 }

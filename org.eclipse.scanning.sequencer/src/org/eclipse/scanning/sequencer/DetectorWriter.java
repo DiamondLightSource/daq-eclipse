@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
+import org.eclipse.scanning.api.scan.IRunnableEventDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
@@ -44,9 +45,18 @@ final class DetectorWriter extends DetectorRunner {
 
 		@Override
 		public IPosition call() throws Exception {
+			if (detector instanceof IRunnableEventDevice) {
+				((IRunnableEventDevice)detector).fireWriteWillPerform(position);
+			}
 			try {
-				detector.write(position);
+				boolean wrote = detector.write(position);
+				if (wrote) {
+					if (detector instanceof IRunnableEventDevice) {
+						((IRunnableEventDevice)detector).fireWritePerformed(position);
+					}
+				}
 				return position;
+				
 			} catch (Exception ne) {
 				abort(detector, null, position, ne);
                 throw ne;
