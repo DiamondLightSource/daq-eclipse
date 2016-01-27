@@ -19,8 +19,6 @@ public class GridModel extends AbstractBoundingBoxModel {
 
 	private int columns = 1;
 	private int rows = 1;
-	private double xStep = 0.0;
-	private double yStep = 0.0;
 	private boolean snake = false;
 
 	@Override
@@ -42,22 +40,6 @@ public class GridModel extends AbstractBoundingBoxModel {
 		int oldValue = this.rows;
 		this.rows = rows;
 		this.pcs.firePropertyChange("rows", oldValue, rows);
-	}
-	public double getxStep() {
-		return xStep;
-	}
-	public void setxStep(double xStep) {
-		double oldValue = this.xStep;
-		this.xStep = xStep;
-		this.pcs.firePropertyChange("xStep", oldValue, xStep);
-	}
-	public double getyStep() {
-		return yStep;
-	}
-	public void setyStep(double yStep) {
-		double oldValue = this.yStep;
-		this.yStep = yStep;
-		this.pcs.firePropertyChange("yStep", oldValue, yStep);
 	}
 	/**
 	 * <pre>
@@ -89,11 +71,6 @@ public class GridModel extends AbstractBoundingBoxModel {
 		result = prime * result + columns;
 		result = prime * result + rows;
 		result = prime * result + (snake ? 1231 : 1237);
-		long temp;
-		temp = Double.doubleToLongBits(xStep);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(yStep);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
 	@Override
@@ -110,12 +87,6 @@ public class GridModel extends AbstractBoundingBoxModel {
 		if (rows != other.rows)
 			return false;
 		if (snake != other.snake)
-			return false;
-		if (Double.doubleToLongBits(xStep) != Double
-				.doubleToLongBits(other.xStep))
-			return false;
-		if (Double.doubleToLongBits(yStep) != Double
-				.doubleToLongBits(other.yStep))
 			return false;
 		return true;
 	}

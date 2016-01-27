@@ -7,22 +7,26 @@ import org.eclipse.scanning.api.points.models.GridModel;
 
 class GridIterator implements Iterator<Point> {
 
-	private GridModel model;
-	private double    minX;
-	private double    minY;
-	
+	private final GridModel model;
+	private final GridGenerator gen;
+	private final double minX;
+	private final double minY;
+	private final double xStep;
+	private final double yStep;
+
 	private int i,j;
-	private GridGenerator gen;
 
 	public GridIterator(GridGenerator gen) {
 		this.model = gen.getModel();	
 		this.gen   = gen;
-        this.minX = model.getBoundingBox().getxStart() + model.getxStep() / 2;
-		this.minY = model.getBoundingBox().getyStart() + model.getyStep() / 2;
-        i=0;
-        j=-1;
+		this.xStep = model.getBoundingBox().getWidth() / model.getColumns();
+		this.yStep = model.getBoundingBox().getHeight() / model.getRows();
+		this.minX = model.getBoundingBox().getxStart() + xStep / 2;
+		this.minY = model.getBoundingBox().getyStart() + yStep / 2;
+		i = 0;
+		j = -1;
 	}
-	
+
 	private boolean forewards=true;
 
 	@Override
@@ -37,8 +41,8 @@ class GridIterator implements Iterator<Point> {
 		}
 		if (j>(model.getColumns()-1) || j<0) return false;
 		
-		double x = minX + j * model.getxStep();
-		double y = minY + i * model.getyStep();
+		double x = minX + j * xStep;
+		double y = minY + i * yStep;
 		if (!gen.containsPoint(x, y)) {
 			this.i = i;
 			this.j = j;
@@ -90,8 +94,8 @@ class GridIterator implements Iterator<Point> {
 		if (i>(model.getRows()-1) || i<0)    return null;  // Normal termination
 		if (j>(model.getColumns()-1) || j<0) throw new NullPointerException("Unexpected index. The j index was "+j);
 
-		double x = minX + j * model.getxStep();
-		double y = minY + i * model.getyStep();
+		double x = minX + j * xStep;
+		double y = minY + i * yStep;
 		if (gen.containsPoint(x, y)) {
 			return new Point(model.getxName(), j, x, model.getyName(), i, y);
 		} else {
@@ -100,7 +104,7 @@ class GridIterator implements Iterator<Point> {
 	}
 
 	public void remove() {
-        throw new UnsupportedOperationException("remove");
-    }
+		throw new UnsupportedOperationException("remove");
+	}
 
 }
