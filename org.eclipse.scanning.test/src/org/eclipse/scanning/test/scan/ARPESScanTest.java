@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 import org.eclipse.scanning.api.malcolm.models.MappingModel;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
@@ -18,7 +18,7 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.After;
@@ -33,7 +33,7 @@ public class ARPESScanTest {
 	protected IMalcolmConnection                    connection;
 	protected IMalcolmDevice<MappingModel>          device;
 	protected IMalcolmConnectorService<JsonMessage> connectorService;
-	protected IGeneratorService                     gservice;
+	protected IPointGeneratorService                     gservice;
 	protected IScanningService                      sservice;
 
 	
@@ -51,7 +51,7 @@ public class ARPESScanTest {
 		// The real service, get it from OSGi outside this test!
 		// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
 		this.mservice    = new MalcolmService(); 
-		this.gservice    = new GeneratorServiceImpl();
+		this.gservice    = new PointGeneratorFactory();
 		this.sservice    = new ScanningServiceImpl();
 			
 		// Get the objects

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.scanning.api.points.IGenerator;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 
@@ -24,7 +24,7 @@ class GeneratorUtil {
 	 * @param gen
 	 * @throws Exception 
 	 */
-	public static void testGeneratorPoints(IGenerator<?,?> gen) throws Exception {
+	public static void testGeneratorPoints(IPointGenerator<?,?> gen) throws Exception {
 		
 		final List ponts = gen.createPoints();
 		final List its   = new ArrayList<>(gen.size());

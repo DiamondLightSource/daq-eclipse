@@ -20,7 +20,7 @@ public class ScanModel {
 	
 	/**
 	 * Normally this is a generator for the scan points
-	 * of the scan. IGenerator implements Iterable
+	 * of the scan. IPointGenerator implements Iterable
 	 */
 	private Iterable<IPosition> positionIterable;
 	

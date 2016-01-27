@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @param <T>
  */
-public interface IGenerator<T, P> extends Iterable<P> {
+public interface IPointGenerator<T, P> extends Iterable<P> {
 	
 	/**
 	 * The model for the generator.

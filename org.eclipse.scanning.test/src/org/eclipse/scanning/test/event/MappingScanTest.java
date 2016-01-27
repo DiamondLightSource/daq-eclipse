@@ -14,14 +14,14 @@ import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.event.EventServiceImpl;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,7 +32,7 @@ public class MappingScanTest {
 	protected IEventService eservice;
 	protected IPublisher<ScanBean> publisher;
 	protected ISubscriber<IScanListener> subscriber;
-	protected IGeneratorService gservice;
+	protected IPointGeneratorService gservice;
 
 	@Before
 	public void createServices() throws Exception {
@@ -40,7 +40,7 @@ public class MappingScanTest {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		eservice = new EventServiceImpl();
-		gservice = new GeneratorServiceImpl();
+		gservice = new PointGeneratorFactory();
 
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
@@ -102,7 +102,7 @@ public class MappingScanTest {
 		model.setColumns(5);
 		model.setBoundingBox(box);
 
-		IGenerator<GridModel, Point> gen = gservice.createGenerator(model);
+		IPointGenerator<GridModel, Point> gen = gservice.createGenerator(model);
 
 		// Outer loop temperature, will be scan command driven when sequencer exists.
 		bean.setDeviceState(DeviceState.CONFIGURING);
@@ -128,7 +128,7 @@ public class MappingScanTest {
 		assertTrue(gotBack.get(gotBack.size() - 1).scanEnd());
 	}
 
-	private void testDeviceScan(ScanBean bean, IGenerator<GridModel, Point> gen) throws Exception {
+	private void testDeviceScan(ScanBean bean, IPointGenerator<GridModel, Point> gen) throws Exception {
 
 
 		bean.setDeviceState(DeviceState.RUNNING);

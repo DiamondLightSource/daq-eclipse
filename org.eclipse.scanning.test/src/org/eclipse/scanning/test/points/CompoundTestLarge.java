@@ -7,36 +7,36 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
 public class CompoundTestLarge {
 	
-	private IGeneratorService service;
+	private IPointGeneratorService service;
 	
 	@Before
 	public void before() throws Exception {
-		service = new GeneratorServiceImpl();
+		service = new PointGeneratorFactory();
 	}
 
 	
 	@Test
 	public void test2Pow24() throws Exception {
 		
-		List<IGenerator> gens = new ArrayList<IGenerator>(20);
+		List<IPointGenerator> gens = new ArrayList<IPointGenerator>(20);
 		for (int i = 0; i < 24; i++) {
-			IGenerator<StepModel, IPosition> two = service.createGenerator(new StepModel("Temperature"+i, 290,291,1));
+			IPointGenerator<StepModel, IPosition> two = service.createGenerator(new StepModel("Temperature"+i, 290,291,1));
 			assertEquals(2, two.size());
 			gens.add(two);
 		}
 
 		long start = System.currentTimeMillis();
-		IGenerator<?,IPosition> scan = service.createCompoundGenerator(gens.toArray(new IGenerator[gens.size()]));
+		IPointGenerator<?,IPosition> scan = service.createCompoundGenerator(gens.toArray(new IPointGenerator[gens.size()]));
 		int size = scan.size();
 		assertTrue(Math.pow(2, 24)==size);
 		

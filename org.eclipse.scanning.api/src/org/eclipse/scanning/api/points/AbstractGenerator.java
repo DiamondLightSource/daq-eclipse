@@ -11,7 +11,7 @@ import java.util.List;
  * @param <T>
  * @param <P>
  */
-public abstract class AbstractGenerator<T,P> implements IGenerator<T,P>, Iterable<P> {
+public abstract class AbstractGenerator<T,P> implements IPointGenerator<T,P>, Iterable<P> {
 
 	protected T model;
 	protected List<IPointContainer<?>> containers;

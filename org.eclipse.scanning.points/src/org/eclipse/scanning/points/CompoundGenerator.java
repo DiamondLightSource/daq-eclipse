@@ -6,14 +6,14 @@ import java.util.List;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IGenerator;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 
 class CompoundGenerator extends AbstractGenerator<Object, IPosition> {
 	
-	private IGenerator<?, ? extends IPosition>[] generators;
+	private IPointGenerator<?, ? extends IPosition>[] generators;
 
-	public CompoundGenerator(IGenerator<?,? extends IPosition>[] generators) throws GeneratorException {
+	public CompoundGenerator(IPointGenerator<?,? extends IPosition>[] generators) throws GeneratorException {
         if (generators == null || generators.length<1) throw new GeneratorException("Cannot make a compound generator from a list of less than one generators!");
 	    this.generators = generators;
 	}
@@ -51,7 +51,7 @@ class CompoundGenerator extends AbstractGenerator<Object, IPosition> {
 	 */
 	private void createPoints(int igen, List<IPosition> points, IPosition parent) {
 		
-		IGenerator<?,? extends IPosition> gen = generators[igen];
+		IPointGenerator<?,? extends IPosition> gen = generators[igen];
 		Iterator<? extends IPosition>     it  = gen.iterator();
 		while(it.hasNext()) {
 			IPosition pos = it.next().composite(parent);
@@ -65,7 +65,7 @@ class CompoundGenerator extends AbstractGenerator<Object, IPosition> {
 	
 	}
 
-	public IGenerator<?, ? extends IPosition>[] getGenerators() {
+	public IPointGenerator<?, ? extends IPosition>[] getGenerators() {
 		return generators;
 	}
 

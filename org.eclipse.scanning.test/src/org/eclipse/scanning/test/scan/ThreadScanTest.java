@@ -18,8 +18,8 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceOperationCancelledException;
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -30,7 +30,7 @@ import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
@@ -44,7 +44,7 @@ public class ThreadScanTest {
 	
 	private IScanningService           sservice;
 	private IDeviceConnectorService    connector;
-	private IGeneratorService          gservice;
+	private IPointGeneratorService          gservice;
 	private IEventService              eservice;
 	private ISubscriber<IScanListener> subscriber;
 	private IPublisher<ScanBean>       publisher;
@@ -57,7 +57,7 @@ public class ThreadScanTest {
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		sservice  = new ScanningServiceImpl();
 		connector = new MockScannableConnector();
-		gservice  = new GeneratorServiceImpl();
+		gservice  = new PointGeneratorFactory();
 		
 		
 		eservice   = new EventServiceImpl();
@@ -210,7 +210,7 @@ public class ThreadScanTest {
 		gmodel.setRows(rows);
 		gmodel.setColumns(columns);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
-		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();

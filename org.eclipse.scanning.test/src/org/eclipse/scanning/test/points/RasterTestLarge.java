@@ -9,11 +9,11 @@ import java.util.List;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.RasterModel;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -21,11 +21,11 @@ import org.junit.Test;
 public class RasterTestLarge {
 
 	
-	private IGeneratorService service;
+	private IPointGeneratorService service;
 	
 	@Before
 	public void before() throws Exception {
-		service = new GeneratorServiceImpl();
+		service = new PointGeneratorFactory();
 	}
 	
 	@Test
@@ -61,7 +61,7 @@ public class RasterTestLarge {
 		
 		
 		// Get the point list
-		IGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
 		if (testAllPoints) GeneratorUtil.testGeneratorPoints(gen);
 		
 		long start = System.currentTimeMillis();		
@@ -110,7 +110,7 @@ public class RasterTestLarge {
 		model.setyStep(1);
 
 		// Get the point list
-		IGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);
+		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);
 		List<Point> points = gen.createPoints();
 		
 		assertEquals(10011001, points.size()); // TODO Is 10011001 correct?

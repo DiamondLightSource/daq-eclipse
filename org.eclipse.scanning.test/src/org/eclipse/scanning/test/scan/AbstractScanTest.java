@@ -20,8 +20,8 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
@@ -47,7 +47,7 @@ public class AbstractScanTest {
 
 	protected IScanningService              sservice;
 	protected IDeviceConnectorService       connector;
-	protected IGeneratorService             gservice;
+	protected IPointGeneratorService             gservice;
 	protected IEventService                 eservice;
 
 	@Test
@@ -256,7 +256,7 @@ public class AbstractScanTest {
 			checkRun(scanner);
 			
 			// Bit of a hack to get the generator from the model - should this be easier?
-			IGenerator<?,IPosition> gen = (IGenerator<?,IPosition>)((ScanModel)((AbstractRunnableDevice)scanner).getModel()).getPositionIterable();
+			IPointGenerator<?,IPosition> gen = (IPointGenerator<?,IPosition>)((ScanModel)((AbstractRunnableDevice)scanner).getModel()).getPositionIterable();
 			assertEquals(gen.size()+states.size(), events.size());
 			assertEquals(Arrays.asList(DeviceState.READY, DeviceState.RUNNING, DeviceState.READY), states);
 			
@@ -307,7 +307,7 @@ public class AbstractScanTest {
 		// Bit of a hack to get the generator from the model - should this be easier?
 		// Do not copy this code
 		ScanModel smodel = (ScanModel)((AbstractRunnableDevice)scanner).getModel();
-		IGenerator<?,IPosition> gen = (IGenerator<?,IPosition>)smodel.getPositionIterable();
+		IPointGenerator<?,IPosition> gen = (IPointGenerator<?,IPosition>)smodel.getPositionIterable();
 		MockDetectorModel dmodel = (MockDetectorModel)((AbstractRunnableDevice)smodel.getDetectors().get(0)).getModel();
 		assertEquals(gen.size(), dmodel.getRan());
 		assertEquals(gen.size(), dmodel.getWritten());
@@ -328,7 +328,7 @@ public class AbstractScanTest {
 		gmodel.setRows(5);
 		gmodel.setColumns(5);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
-		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();

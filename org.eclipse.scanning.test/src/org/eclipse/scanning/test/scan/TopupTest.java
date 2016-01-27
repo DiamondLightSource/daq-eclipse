@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.points.IGenerator;
-import org.eclipse.scanning.api.points.IGeneratorService;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -22,7 +22,7 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
-import org.eclipse.scanning.points.GeneratorServiceImpl;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
@@ -35,7 +35,7 @@ public class TopupTest {
 
 	protected IScanningService              sservice;
 	protected IDeviceConnectorService       connector;
-	protected IGeneratorService             gservice;
+	protected IPointGeneratorService             gservice;
 	protected IEventService                 eservice;
 	private IWritableDetector<Object>       detector;
 	
@@ -47,7 +47,7 @@ public class TopupTest {
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		sservice  = new ScanningServiceImpl();
 		connector = new MockScannableConnector();
-		gservice  = new GeneratorServiceImpl();
+		gservice  = new PointGeneratorFactory();
 		eservice  = new EventServiceImpl();
 		
 		detector = connector.getDetector("detector");
@@ -129,7 +129,7 @@ public class TopupTest {
 		gmodel.setRows(5);
 		gmodel.setColumns(5);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
-		IGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();

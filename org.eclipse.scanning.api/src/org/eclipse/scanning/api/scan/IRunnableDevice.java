@@ -34,7 +34,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * // e.g. "scan x 0 5 0.1 analyser"<br>
  * <br>
  * // Now use the parser to create a generator<br>
- * IGeneratorService gservice = ...// OSGi<br>
+ * IPointGeneratorService gservice = ...// OSGi<br>
  * StepModel model = parser.getModel("x");<br>
  * Iterable<IPosition> gen = gservice.createGenerator(model)<br>
  * <br>
