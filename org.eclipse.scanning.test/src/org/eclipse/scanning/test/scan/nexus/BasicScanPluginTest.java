@@ -41,89 +41,49 @@ import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class DarkPluginTest {
+public class BasicScanPluginTest {
 
 	
 	private static INexusFileFactory   fileFactory;
 	
 	private static IScanningService        service;
-	private static IPointGeneratorService       gservice;
+	private static IPointGeneratorService  gservice;
 	private static IDeviceConnectorService connector;
 	
-	private static IWritableDetector<MandelbrotModel> detector;
-	private static IWritableDetector<DarkImageModel>  dark;
-
 	@BeforeClass
 	public static void before() throws Exception {
 		
 		service   = new ScanningServiceImpl(); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
 		connector = new MockScannableConnector();
-		
-		MandelbrotModel model = new MandelbrotModel();
-		model.setName("mandelbrot");
-		model.setxName("xNex");
-		model.setyName("yNex");
-		
-		detector = (IWritableDetector<MandelbrotModel>)service.createRunnableDevice(model);
-		assertNotNull(detector);
-		detector.addRunListener(new IRunListener.Stub() {
-			@Override
-			public void runPerformed(RunEvent evt) throws ScanningException{
-                System.out.println("Ran mandelbrot detector @ "+evt.getPosition());
-			}
-		});
-
-		DarkImageModel dmodel = new DarkImageModel();
-		dark =  (IWritableDetector<DarkImageModel>)service.createRunnableDevice(dmodel);
-		assertNotNull(dark);
-		dark.addRunListener(new IRunListener.Stub() {
-			@Override
-			public void writePerformed(RunEvent evt) throws ScanningException{
-                System.out.println("Wrote dark image @ "+evt.getPosition());
-			}
-		});
+			
 	}
 	
-	/**
-	 * This test fails if the chunking is not done by the detector.
-	 *  
-	 * @throws Exception
-	 */
 	@Test
-	public void testDarkImage() throws Exception {	
+	public void testBasicScan1D() throws Exception {	
+		test(5);
+	}
+	
+	@Test
+	public void testBasicScan2D() throws Exception {	
+		test(8, 5);
+	}
+	
+	@Test
+	public void testBasicScan3D() throws Exception {	
+		test(5, 8, 5);
+	}
+
+	private void test(int... shape) throws Exception {
 
 		// Tell configure detector to write 1 image into a 2D scan
-		IRunnableDevice<ScanModel> scanner = createGridScan(8, 5);
+		IRunnableDevice<ScanModel> scanner = createStepScan(shape);
 		scanner.run(null);
 
-		checkDark(scanner, 8, 5);
-		checkImages(scanner, 8, 5);
+		checkBasicScan(scanner, shape);
 	}
-		
-	private void checkDark(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
-		
-		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();                      
-        
-		assertEquals(DeviceState.READY, scanner.getState());                                                
 
-		String filePath = ((AbstractRunnableDevice<ScanModel>)scanner).getModel().getFilePath();            
-        
-		NexusFile nf = fileFactory.newNexusFile(filePath);                                                  
-		nf.openToRead();                                                                                    
-                                                                                                            
-		DataNode d = nf.getData("/entry/instrument/"+mod.getDetectors().get(1).getName()+"/data");          
-		IDataset ds = d.getDataset().getSlice();                                                            
-		int[] shape = ds.getShape();                                                                        
-
-		double size = 1; 
-		for (double i : sizes)size*=i;
-		size = size/(((AbstractRunnableDevice<DarkImageModel>)dark).getModel().getFrequency());
-		
-		assertEquals(shape[0], (int)size);
-	}
-	
-	private void checkImages(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
+	private void checkBasicScan(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
 		
 		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();                      
 		                                                                                                    
@@ -134,20 +94,10 @@ public class DarkPluginTest {
 		NexusFile nf = fileFactory.newNexusFile(filePath);                                                  
 		nf.openToRead();                                                                                    
                                                                                                             
-		DataNode d = nf.getData("/entry/instrument/"+mod.getDetectors().get(0).getName()+"/data");          
-		IDataset ds = d.getDataset().getSlice();                                                            
-		int[] shape = ds.getShape();                                                                        
-                                                                                                            
-		for (int i = 0; i < sizes.length; i++) assertEquals(sizes[i], shape[i]);                            
-		                                                                                                    
-		// Make sure none of the numbers are NaNs. The detector                                             
-		// is expected to fill this scan with non-nulls.                                                    
-        final PositionIterator it = new PositionIterator(shape);                                            
-        while(it.hasNext()) {
-        	int[] next = it.getPos();
-        	assertFalse(Double.isNaN(ds.getDouble(next)));
-        }
-
+		DataNode d  = null;        
+		IDataset ds = null;                                                            
+		int[] shape = null;                                                                        
+ 
 		// Check axes
         final IPosition      pos = mod.getPositionIterable().iterator().next();
         final List<String> names = pos.getNames();
@@ -173,39 +123,32 @@ public class DarkPluginTest {
 		}
 	}
 
-	private IRunnableDevice<ScanModel> createGridScan(int... size) throws Exception {
+	private IRunnableDevice<ScanModel> createStepScan(int... size) throws Exception {
 		
-		// Create scan points for a grid and make a generator
-		GridModel gmodel = new GridModel();
-		gmodel.setxName("xNex");
-		gmodel.setColumns(size[size.length-2]);
-		gmodel.setyName("yNex");
-		gmodel.setRows(size[size.length-1]);
-		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
-		
-		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+		IPointGenerator<?,IPosition> gen = null;
 		
 		// We add the outer scans, if any
-		if (size.length > 2) { 
-			for (int dim = size.length-3; dim>-1; dim--) {
-				final StepModel model;
-				if (size[dim]-1>0) {
-				    model = new StepModel("neXusScannable"+(dim+1), 10,20,9.9d/(size[dim]-1));
-				} else {
-					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
-				}
-				final IPointGenerator<?,IPosition> step = gservice.createGenerator(model);
+		for (int dim = size.length-1; dim>-1; dim--) {
+			final StepModel model;
+			if (size[dim]-1>0) {
+				model = new StepModel("neXusScannable"+(dim+1), 10,20,9.9d/(size[dim]-1));
+			} else {
+				model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
+			}
+			final IPointGenerator<?,IPosition> step = gservice.createGenerator(model);
+			if (gen!=null) {
 				gen = gservice.createCompoundGenerator(step, gen);
+			} else {
+				gen = step;
 			}
 		}
 	
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
-		smodel.setDetectors(detector, dark);
 		
 		// Create a file to scan into.
-		File output = File.createTempFile("test_dark_nexus", ".nxs");
+		File output = File.createTempFile("test_simple_nexus", ".nxs");
 		output.deleteOnExit();
 		smodel.setFilePath(output.getAbsolutePath());
 		System.out.println("File writing to "+smodel.getFilePath());
@@ -233,7 +176,7 @@ public class DarkPluginTest {
 	}
 
 	public static void setFileFactory(INexusFileFactory fileFactory) {
-		DarkPluginTest.fileFactory = fileFactory;
+		BasicScanPluginTest.fileFactory = fileFactory;
 	}
 
 }

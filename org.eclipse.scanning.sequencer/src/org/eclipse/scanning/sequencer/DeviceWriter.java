@@ -21,9 +21,9 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * @author Matthew Gerring
  *
  */
-final class DetectorWriter extends DetectorRunner {
+final class DeviceWriter extends DeviceRunner {
 
-	DetectorWriter(Collection<IRunnableDevice<?>> detectors) {	
+	DeviceWriter(Collection<IRunnableDevice<?>> detectors) {	
 		super(detectors);
 	}
 

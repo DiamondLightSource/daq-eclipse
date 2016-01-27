@@ -246,4 +246,29 @@ abstract class LevelRunner<L extends ILevel> {
 	    return ret;
 	}
 
+	public static <T extends ILevel> LevelRunner<T> createEmptyRunner() {
+		return new LevelRunner<T>() {
+			
+			@Override
+			protected boolean run(IPosition position, boolean block) {
+				return true;
+			}
+			@Override
+			protected void await(long time, TimeUnit unit) throws InterruptedException {
+				return;
+			}
+
+			@Override
+			protected Collection<T> getObjects() throws ScanningException {
+				return null;
+			}
+
+			@Override
+			protected Callable<IPosition> create(T levelObject, IPosition position) throws ScanningException {
+				return null;
+			}
+			
+		};
+	}
+
 }

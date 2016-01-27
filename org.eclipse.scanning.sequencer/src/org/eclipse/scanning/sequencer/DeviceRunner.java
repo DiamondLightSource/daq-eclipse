@@ -18,11 +18,11 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * @author Matthew Gerring
  *
  */
-class DetectorRunner extends LevelRunner<IRunnableDevice<?>> {
+class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 
 	private Collection<IRunnableDevice<?>>  devices;
 
-	DetectorRunner(Collection<IRunnableDevice<?>> devices) {	
+	DeviceRunner(Collection<IRunnableDevice<?>> devices) {	
 		this.devices = devices;
 	}
 

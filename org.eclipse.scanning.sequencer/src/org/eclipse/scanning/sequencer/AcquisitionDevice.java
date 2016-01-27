@@ -38,9 +38,9 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
 final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	// Scanning stuff
-	private IPositioner      positioner;
-	private DetectorRunner   detectors;
-	private DetectorWriter   writers;
+	private IPositioner                          positioner;
+	private LevelRunner<IRunnableDevice<?>>      runners;
+	private LevelRunner<IRunnableDevice<?>>      writers;
 	
 	/*
 	 * Concurrency design recommended by Keith Ralphs after investigating
@@ -74,8 +74,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		setBean(model.getBean()!=null?model.getBean():new ScanBean());
 		
 		positioner = scanningService.createPositioner(deviceService);
-		detectors = new DetectorRunner(model.getDetectors());
-		writers   = new DetectorWriter(model.getDetectors());
+		if (getModel().getDetectors()!=null) {
+			runners = new DeviceRunner(model.getDetectors());
+			writers = new DeviceWriter(model.getDetectors());
+		} else {
+			runners = LevelRunner.createEmptyRunner();
+			writers = LevelRunner.createEmptyRunner();
+		}
 		
 		try {
 			linkNeXus(model);
@@ -189,7 +194,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
 	        	writers.await();               // Wait for the previous read out to return, if any
-	        	detectors.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
+	        	runners.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
 	        	// Send an event about where we are in the scan
@@ -218,7 +223,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		if (positioner instanceof LevelRunner) {
 			((LevelRunner)positioner).reset();
 		}
-		detectors.reset();
+		runners.reset();
 		writers.reset();
 
 		super.reset();
@@ -270,7 +275,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		setState(DeviceState.PAUSING);
 		try {
 			awaitPaused = true;
-			for (IRunnableDevice<?> device : getModel().getDetectors()) {
+			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 				if (device instanceof IPauseableDevice) ((IPauseableDevice)device).pause();
 			}
 			
@@ -297,7 +302,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		try {
 			awaitPaused = false;
-			for (IRunnableDevice<?> device : getModel().getDetectors()) {
+			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 				if (device instanceof IPauseableDevice) ((IPauseableDevice)device).resume();
 			}
 			paused.signalAll();
