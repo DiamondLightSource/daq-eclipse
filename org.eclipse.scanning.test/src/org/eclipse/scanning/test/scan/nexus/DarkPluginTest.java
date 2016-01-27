@@ -76,7 +76,7 @@ public class DarkPluginTest {
 
 		DarkImageModel dmodel = new DarkImageModel();
 		dark =  (IWritableDetector<DarkImageModel>)service.createRunnableDevice(dmodel);
-		assertNotNull(detector);
+		assertNotNull(dark);
 		dark.addRunListener(new IRunListener.Stub() {
 			@Override
 			public void writePerformed(RunEvent evt) throws ScanningException{
