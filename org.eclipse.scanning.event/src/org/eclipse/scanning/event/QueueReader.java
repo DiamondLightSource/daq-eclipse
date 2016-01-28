@@ -26,6 +26,7 @@ import javax.jms.TextMessage;
 import javax.jms.Topic;
 
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T>
  */
-class QueueReader<T> {
+class QueueReader<T extends StatusBean> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueueReader.class);
 	
@@ -95,7 +96,7 @@ class QueueReader<T> {
 					TextMessage t = (TextMessage)m;
 					String json   = t.getText();
 					@SuppressWarnings("unchecked")
-					final T bean = (T)service.unmarshal(json, null);
+					final T bean = (T)service.unmarshal(json, StatusBean.class);
 					list.add(bean);
 				}
 			}
