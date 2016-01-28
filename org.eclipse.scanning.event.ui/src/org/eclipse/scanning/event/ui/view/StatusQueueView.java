@@ -533,7 +533,8 @@ public class StatusQueueView extends ViewPart {
 				try {
 					monitor.beginTask("Connect to command server", 10);
 					monitor.worked(1);
-
+					
+					queueReader.setBeanClass(getBeanClass());
 					Collection<StatusBean> runningList = queueReader.getQueue(getQueueName(), "submissionTime");
 					monitor.worked(1);
 			        
@@ -581,6 +582,23 @@ public class StatusQueueView extends ViewPart {
 		queueJob.setPriority(Job.INTERACTIVE);
 		queueJob.setUser(true);
 		queueJob.schedule();
+
+
+	}
+
+
+	private Class<StatusBean> getBeanClass() {
+	    String beanBundleName = getSecondaryIdAttribute("beanBundleName");
+	    String beanClassName  = getSecondaryIdAttribute("beanClassName");
+		try {
+		    
+		    @SuppressWarnings("rawtypes")
+		    Bundle bundle = Platform.getBundle(beanBundleName);
+			return (Class<StatusBean>)bundle.loadClass(beanClassName);
+		} catch (Exception ne) {
+			logger.error("Cannot get class "+beanClassName+". Defaulting to StatusBean. This will probably not work though.", ne);
+			return StatusBean.class;
+		}
 	}
 
 	protected void createColumns() {

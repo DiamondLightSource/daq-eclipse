@@ -67,7 +67,7 @@ class QueueReader<T extends StatusBean> {
 	 * @return
 	 * @throws Exception
 	 */
-	public List<T> getBeans(final URI uri, final String queueName) throws Exception {
+	public List<T> getBeans(final URI uri, final String queueName, final Class<T> beanClass) throws Exception {
 		
 		QueueConnection qCon = null;
 		try {	        
@@ -96,7 +96,7 @@ class QueueReader<T extends StatusBean> {
 					TextMessage t = (TextMessage)m;
 					String json   = t.getText();
 					@SuppressWarnings("unchecked")
-					final T bean = (T)service.unmarshal(json, StatusBean.class);
+					final T bean = (T)service.unmarshal(json, beanClass != null ? beanClass : StatusBean.class);
 					list.add(bean);
 				}
 			}

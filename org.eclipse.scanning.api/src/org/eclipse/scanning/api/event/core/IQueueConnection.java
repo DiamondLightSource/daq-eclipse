@@ -58,4 +58,18 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 * It removes very old runs or those which are in a final failed state.
 	 */
 	public void cleanQueue(String queueName) throws EventException;
+
+	/**
+	 * Class of bean usually extending StatusBean
+	 * 
+	 * @return class or null
+	 */
+	public Class<T> getBeanClass();
+
+	/**
+	 * Class of bean usually extending StatusBean
+	 * 
+	 * It is not compulsory to set the bean class unless trying to deserialize messages sent by older versions of the connector service.
+	 */
+	public void setBeanClass(Class<T> beanClass);
 }

@@ -16,6 +16,7 @@ import uk.ac.diamond.daq.activemq.connector.internal.PositionSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
@@ -38,7 +39,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 public class ActivemqConnectorService implements IEventConnectorService {
 
 	private BundleProvider bundleProvider;
-	private ObjectMapper mapper;
+	private ObjectMapper osgiMapper;
+	private ObjectMapper nonOsgiMapper;
 
 	static {
 		System.out.println("Started "+IEventConnectorService.class.getSimpleName());
@@ -74,8 +76,8 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	 */
 	@Override
 	public String marshal(Object anyObject) throws Exception {
-		if (mapper==null) mapper = createJacksonMapper();
-		String json = mapper.writeValueAsString(anyObject);
+		if (osgiMapper==null) osgiMapper = createJacksonMapper();
+		String json = osgiMapper.writeValueAsString(anyObject);
 //		System.out.println(json);
 		return json;
 	}
@@ -99,14 +101,20 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	 */
 	@Override
 	public <U> U unmarshal(String string, Class<U> beanClass) throws Exception {
-		if (mapper==null) mapper = createJacksonMapper();
-		if (beanClass != null) {
-			return mapper.readValue(string, beanClass);
+		try {
+			if (osgiMapper == null) osgiMapper = createJacksonMapper();
+			if (beanClass != null) {
+				return osgiMapper.readValue(string, beanClass);
+			}
+			// If bean class is not supplied, try using Object
+			@SuppressWarnings("unchecked")
+			U result = (U) osgiMapper.readValue(string, Object.class);
+			return result;
+		} catch (JsonMappingException jme) {
+			// Possibly no bundle and class information in the JSON - fall back to old mapper
+			if (nonOsgiMapper == null) nonOsgiMapper = createNonOsgiMapper();
+			return (U) nonOsgiMapper.readValue(string, beanClass);
 		}
-		// If bean class is not supplied, try using Object
-		@SuppressWarnings("unchecked")
-		U result = (U) mapper.readValue(string, Object.class);
-		return result;
 	}
 
 	private final ObjectMapper createJacksonMapper() {
@@ -179,5 +187,25 @@ public class ActivemqConnectorService implements IEventConnectorService {
 			}
 			return !type.isPrimitive();
 		}
+	}
+
+	private final ObjectMapper createNonOsgiMapper() {
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		// Use custom serialization for IPosition objects
+		// (Otherwise all IPosition subclasses will need to become simple beans, i.e. no-arg constructors with getters
+		// and setters for all fields. MapPosition.getNames() caused problems because it just returns keys from the map
+		// and has no corresponding setter.)
+		SimpleModule module = new SimpleModule();
+		module.addSerializer(IPosition.class,   new PositionSerializer());
+		module.addDeserializer(IPosition.class, new PositionDeserializer());
+		mapper.registerModule(module);
+
+		// Be careful adjusting these settings - changing them will probably cause various unit tests to fail which
+		// check the exact contents of the serialized JSON string
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+		return mapper;
 	}
 }

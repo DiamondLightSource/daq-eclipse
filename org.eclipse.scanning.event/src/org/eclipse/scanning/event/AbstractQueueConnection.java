@@ -39,7 +39,17 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
         super(uri, submitQName, statusQName, statusTName, terminateTName, service);
 	}
 
+	private Class<U> beanClass;
 
+	@Override
+	public Class<U> getBeanClass() {
+		return beanClass;
+	}
+
+	@Override
+	public void setBeanClass(Class<U> beanClass) {
+		this.beanClass = beanClass;
+	}
 
 	@Override
 	public List<U> getQueue(String qName, String fieldName) throws EventException {
@@ -51,7 +61,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 
 		QueueReader<U> reader = new QueueReader<U>(service, c);
 		try {
-			return reader.getBeans(uri, qName);
+			return reader.getBeans(uri, qName, beanClass);
 		} catch (Exception e) {
 			throw new EventException("Cannot get the beans for queue " + qName, e);
 		}
@@ -154,7 +164,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 	
 						try {
 							final String     json  = t.getText();
-							final StatusBean qbean = service.unmarshal(json, StatusBean.class);
+							final StatusBean qbean = service.unmarshal(json, beanClass != null ? beanClass : StatusBean.class);
 							if (qbean==null)               continue;
 							if (qbean.getStatus()==null)   continue;
 							if (!qbean.getStatus().isStarted()) {
