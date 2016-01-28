@@ -1,14 +1,18 @@
 package org.eclipse.scanning.test.points;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.Iterator;
 
+import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.StepGenerator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -91,6 +95,21 @@ public class StepTest {
 		assertEquals(1, gen.size());
 		assertEquals(0d, gen.iterator().next().get("fred"));
 		// TODO Should this throw an exception or do this? Possible to do a size 1 step makes some tests easier to write.
+	}
+	
+	@Test
+	public void testTolerance() throws Exception {
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel());
+
+		// within the 1% of step size tolerance
+		StepModel model = new StepModel("Temperature", 0.0, 2.0, 0.667);	
+		gen.setModel(model);
+		assertEquals(4, gen.size());
+		
+		// outside the 1% of step size tolerance
+		model = new StepModel("Temperature", 0.0, 2.0, 0.67);
+		gen.setModel(model);
+		assertEquals(3, gen.size());
 	}
 	
 	@Test
