@@ -65,8 +65,8 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		return new ActiveMQConnectionFactory(uri);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.scanning.api.event.IEventConnectorService#marshal(java.lang.Object)
+	/**
+	 * Serialize the given object to a JSON string
 	 * <p>
 	 * Objects to be marshalled with this implementation should have no-arg constructors, and getters and setters for
 	 * their fields. Primitive and collection types (arrays, Collections and Maps) should work correctly. More
@@ -80,8 +80,8 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		return json;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.scanning.api.event.IEventConnectorService#unmarshal(java.lang.String, java.lang.Class)
+	/**
+	 * Deserialize the given JSON string as an instance of the given class
 	 * <p>
 	 * This method will try to find the correct classes for deserialization if possible. If you still have problems
 	 * with ClassNotFoundExceptions, one option which might help is to try setting the thread context classloader
