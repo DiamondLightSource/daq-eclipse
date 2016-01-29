@@ -1,5 +1,8 @@
 package org.eclipse.scanning.malcolm.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
@@ -8,6 +11,7 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
@@ -65,6 +69,28 @@ public abstract class AbstractMalcolmDevice<T> implements IMalcolmDevice<T> {
 		eventDelegate.setTemplateBean(bean);
 	}
 	
+	public void start(final IPosition pos) throws ScanningException, InterruptedException {
+		
+		final List<Throwable> exceptions = new ArrayList<>(1);
+		final Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					AbstractMalcolmDevice.this.run(pos);
+				} catch (ScanningException|InterruptedException e) {
+					e.printStackTrace();
+					exceptions.add(e);
+				}
+			}
+		}, "Device Runner Thread "+getName());
+		thread.start();
+		
+		// We delay by 500ms just so that we can 
+		// immediately throw any connection exceptions
+		Thread.sleep(500);
+		
+		if (!exceptions.isEmpty()) throw new ScanningException(exceptions.get(0));
+	}
+
 	/**
 	 * Not supported in non-pausable device
 	 */

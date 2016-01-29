@@ -2,9 +2,11 @@ package org.eclipse.scanning.api.scan;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -101,6 +103,28 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	public void reset() throws ScanningException {
 		setState(DeviceState.IDLE);
+	}
+	
+	public void start(final IPosition pos) throws ScanningException, InterruptedException {
+		
+		final List<Throwable> exceptions = new ArrayList<>(1);
+		final Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					AbstractRunnableDevice.this.run(pos);
+				} catch (ScanningException|InterruptedException e) {
+					e.printStackTrace();
+					exceptions.add(e);
+				}
+			}
+		}, "Scan Runner Thread "+getName());
+		thread.start();
+		
+		// We delay by 500ms just so that we can 
+		// immediately throw any connection exceptions
+		Thread.sleep(500);
+		
+		if (!exceptions.isEmpty()) throw new ScanningException(exceptions.get(0));
 	}
 
 	/**

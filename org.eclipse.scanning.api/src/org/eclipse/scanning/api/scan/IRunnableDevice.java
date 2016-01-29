@@ -66,7 +66,7 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	 * @throws ScanningException
 	 */
 	public void run(IPosition position) throws ScanningException, InterruptedException;
-	
+
 	/**
 	 * Call to terminate the scan before it has finished.
 	 * 

@@ -106,14 +106,4 @@ public final class ScanningServiceImpl implements IScanningService {
 		ScanningServiceImpl.deviceService = connectorService;
 	}
 
-	private static ComponentContext context;
-
-	public void start(ComponentContext context) {
-		ScanningServiceImpl.context = context;
-	}
-	
-	public void stop() {
-		context = null;
-	}
-
 }
