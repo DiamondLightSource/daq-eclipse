@@ -63,10 +63,9 @@ class NexusFileScanBuilder {
 		entryBuilder.addAll(monitors);
 		
 		// configure the NXdata group - only add a group for the first detector
-		if (detectors.isEmpty()) {
-			throw new IllegalArgumentException("The scan must have at least one detector");
+		if (!detectors.isEmpty()) {
+			createNXData(entryBuilder);
 		}
-		createNXData(entryBuilder);
 	}
 	
 	

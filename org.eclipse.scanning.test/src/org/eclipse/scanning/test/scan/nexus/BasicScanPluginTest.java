@@ -1,8 +1,6 @@
 package org.eclipse.scanning.test.scan.nexus;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -11,33 +9,29 @@ import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
-import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
+import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.models.BoundingBox;
-import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IRunnableEventDevice;
 import org.eclipse.scanning.api.scan.IScanningService;
-import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.eclipse.scanning.example.detector.DarkImageModel;
-import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -52,32 +46,53 @@ public class BasicScanPluginTest {
 	
 	@BeforeClass
 	public static void before() throws Exception {
-		
 		service   = new ScanningServiceImpl(); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
-		connector = new MockScannableConnector();
-			
+		connector = new MockScannableConnector();	
+	}
+	
+    private IScannable<?>                  monitor;
+
+    @Before
+	public void beforeTest() throws Exception {
+		monitor = connector.getScannable("monitor1");
 	}
 	
 	@Test
 	public void testBasicScan1D() throws Exception {	
-		test(5);
+		test(null, 5);
 	}
 	
 	@Test
 	public void testBasicScan2D() throws Exception {	
-		test(8, 5);
+		test(null, 8, 5);
 	}
 	
 	@Test
 	public void testBasicScan3D() throws Exception {	
-		test(5, 8, 5);
+		test(null, 5, 8, 5);
+	}
+	
+	@Test
+	public void testBasicScan1DWithMonitor() throws Exception {	
+		test(monitor, 5);
+	}
+	
+	@Test
+	public void testBasicScan2DWithMonitor() throws Exception {	
+		test(monitor, 8, 5);
+	}
+	
+	@Test
+	public void testBasicScan3DWithMonitor() throws Exception {	
+		test(monitor, 5, 8, 5);
 	}
 
-	private void test(int... shape) throws Exception {
+
+	private void test(IScannable<?> monitor, 	int... shape) throws Exception {
 
 		// Tell configure detector to write 1 image into a 2D scan
-		IRunnableDevice<ScanModel> scanner = createStepScan(shape);
+		IRunnableDevice<ScanModel> scanner = createStepScan(monitor, shape);
 		scanner.run(null);
 
 		checkBasicScan(scanner, shape);
@@ -123,7 +138,7 @@ public class BasicScanPluginTest {
 		}
 	}
 
-	private IRunnableDevice<ScanModel> createStepScan(int... size) throws Exception {
+	private IRunnableDevice<ScanModel> createStepScan(IScannable<?> monitor, int... size) throws Exception {
 		
 		IPointGenerator<?,IPosition> gen = null;
 		
@@ -146,6 +161,7 @@ public class BasicScanPluginTest {
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
+		if (monitor!=null) smodel.setMonitors(monitor);
 		
 		// Create a file to scan into.
 		File output = File.createTempFile("test_simple_nexus", ".nxs");
