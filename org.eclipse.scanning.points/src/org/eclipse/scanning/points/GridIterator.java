@@ -15,6 +15,7 @@ class GridIterator implements Iterator<Point> {
 	private final double yStep;
 
 	private int i,j;
+	private boolean forwards=true;
 
 	public GridIterator(GridGenerator gen) {
 		this.model = gen.getModel();	
@@ -27,12 +28,10 @@ class GridIterator implements Iterator<Point> {
 		j = -1;
 	}
 
-	private boolean forewards=true;
-
 	@Override
 	public boolean hasNext() {
 		
-		int[] next = increment(model, i, j, forewards); 
+		int[] next = increment(model, i, j, forwards); 
 		int i = next[0];
 		int j = next[1];
 			
@@ -46,7 +45,7 @@ class GridIterator implements Iterator<Point> {
 		if (!gen.containsPoint(x, y)) {
 			this.i = i;
 			this.j = j;
-			this.forewards = next[2]==1;
+			this.forwards = next[2]==1;
 			return hasNext();
 		}
 
@@ -54,21 +53,21 @@ class GridIterator implements Iterator<Point> {
 	}
 
 
-	private static final int[] increment(GridModel model, int i, int j, boolean forewards) {
+	private static final int[] increment(GridModel model, int i, int j, boolean forwards) {
 		
 		if (model.isSnake()) {
-			if (forewards) {
+			if (forwards) {
 				j = j+1;
 				if (j>(model.getColumns()-1)) {
 					i++;
-					forewards = !forewards;
+					forwards = !forwards;
 				}
 			} else {
 				j = j-1;
 				if (j<0) {
 					j=0;
 					i++;
-					forewards = !forewards;
+					forwards = !forwards;
 				}
 			}
 
@@ -79,17 +78,17 @@ class GridIterator implements Iterator<Point> {
 				i++;
 			}
 		}
-		return new int[]{i,j, forewards?1:0}; // Bit slow because makes array object to return int values
+		return new int[]{i,j, forwards?1:0}; // Bit slow because makes array object to return int values
 	}
 
 	
 	@Override
 	public Point next() {
 		
-		int[] next = increment(model, i, j, forewards);
+		int[] next = increment(model, i, j, forwards);
 		this.i = next[0];
 		this.j = next[1];
-		this.forewards = next[2]==1;
+		this.forwards = next[2]==1;
 		
 		if (i>(model.getRows()-1) || i<0)    return null;  // Normal termination
 		if (j>(model.getColumns()-1) || j<0) throw new NullPointerException("Unexpected index. The j index was "+j);
