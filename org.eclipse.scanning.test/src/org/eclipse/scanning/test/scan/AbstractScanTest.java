@@ -41,8 +41,6 @@ import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
 import org.junit.Test;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-
 public class AbstractScanTest {
 
 	protected IScanningService              sservice;
@@ -226,9 +224,9 @@ public class AbstractScanTest {
 		bean.setUniqueId("fred");
 		
 		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");	
-		final IPublisher<ScanBean> publisher = eservice.createPublisher(uri, IEventService.STATUS_TOPIC, new ActivemqConnectorService());
+		final IPublisher<ScanBean> publisher = eservice.createPublisher(uri, IEventService.STATUS_TOPIC);
 		
-		final ISubscriber<IScanListener> subscriber = eservice.createSubscriber(uri, IEventService.STATUS_TOPIC, new ActivemqConnectorService());
+		final ISubscriber<IScanListener> subscriber = eservice.createSubscriber(uri, IEventService.STATUS_TOPIC);
 		final List<ScanBean>    events = new ArrayList<ScanBean>(11);
 		final List<DeviceState> states = new ArrayList<DeviceState>(11);
 		subscriber.addListener(new IScanListener.Stub() {		

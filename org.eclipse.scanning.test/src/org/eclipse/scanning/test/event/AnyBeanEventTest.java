@@ -28,7 +28,7 @@ public class AnyBeanEventTest {
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		eservice = new EventServiceImpl(); // Do not copy this get the service from OSGi!
+		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
@@ -36,8 +36,8 @@ public class AnyBeanEventTest {
 		
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
-		publisher  = eservice.createPublisher(uri,  "my.custom.topic", new ActivemqConnectorService());		
-		subscriber = eservice.createSubscriber(uri, "my.custom.topic", new ActivemqConnectorService());
+		publisher  = eservice.createPublisher(uri,  "my.custom.topic");		
+		subscriber = eservice.createSubscriber(uri, "my.custom.topic");
 	}
 
 	

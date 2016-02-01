@@ -74,18 +74,18 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		name       = "Consumer "+consumerId; // This will hopefully be changed to something meaningful...
 		this.processes       = new Hashtable<>(7); // Synch!
 		
-		mover  = eservice.createSubmitter(uri, statusQName, service);
-		status = eservice.createPublisher(uri, statusTName, service);
+		mover  = eservice.createSubmitter(uri, statusQName);
+		status = eservice.createPublisher(uri, statusTName);
 		status.setQueueName(statusQName); // We also update values in a queue.
 		
 		if (heartbeatTName!=null) { 
-			alive  = eservice.createPublisher(uri, heartbeatTName,  service);
+			alive  = eservice.createPublisher(uri, heartbeatTName);
 			alive.setConsumerId(consumerId);
 			alive.setConsumerName(getName());
 		}
 				
 		if (killTName!=null) {
-			killer = eservice.createSubscriber(uri, killTName, service);
+			killer = eservice.createSubscriber(uri, killTName);
 			killer.addListener(new IBeanListener<KillBean>() {
 				@Override
 				public void beanChangePerformed(BeanEvent<KillBean> evt) {
@@ -227,7 +227,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	private void startTerminator() throws EventException {
 		
 		if (terminator!=null) terminator.disconnect();
-		terminator = eservice.createSubscriber(uri, getStatusTopicName(), service);
+		terminator = eservice.createSubscriber(uri, getStatusTopicName());
 		terminator.addListener(new IBeanListener<U>() {
 			@Override
 			public void beanChangePerformed(BeanEvent<U> evt) {

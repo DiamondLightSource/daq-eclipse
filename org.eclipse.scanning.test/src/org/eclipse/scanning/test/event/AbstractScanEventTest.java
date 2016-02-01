@@ -8,14 +8,12 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
-import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.junit.After;
 import org.junit.Test;
-
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class AbstractScanEventTest {
 
@@ -33,7 +31,7 @@ public class AbstractScanEventTest {
 	public void badURITest() throws Exception {
 		try {
 			final URI uri = new URI("tcp://rubbish:5600");	
-			publisher = eservice.createPublisher(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService());
+			publisher = eservice.createPublisher(uri, IEventService.SCAN_TOPIC);
 			final ScanBean bean = new ScanBean();
 			publisher.broadcast(bean);
 

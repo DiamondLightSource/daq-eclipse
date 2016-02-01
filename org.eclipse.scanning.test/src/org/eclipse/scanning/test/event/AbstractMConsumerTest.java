@@ -27,7 +27,7 @@ public class AbstractMConsumerTest {
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
-		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
 		try {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
@@ -51,7 +51,7 @@ public class AbstractMConsumerTest {
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
-		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
 		try {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
@@ -83,7 +83,7 @@ public class AbstractMConsumerTest {
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
-		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
 		try {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
@@ -133,7 +133,7 @@ public class AbstractMConsumerTest {
 		List<IConsumer<StatusBean>> consumers   = new ArrayList<>(9);
 		try {
 			for (int i = 2; i < 11; i++) {
-				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
 				c.setName("Test Consumer "+i);
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
 				c.clearQueue(IEventService.STATUS_SET);
@@ -173,7 +173,7 @@ public class AbstractMConsumerTest {
 		List<IConsumer<StatusBean>> consumers   = new ArrayList<>(9);
 		try {
 			for (int i = 2; i < 11; i++) {
-				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
 				c.setName("Test Consumer "+i);
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
 				c.clearQueue(IEventService.STATUS_SET);

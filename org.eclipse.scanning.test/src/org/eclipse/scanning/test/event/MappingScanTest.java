@@ -39,7 +39,7 @@ public class MappingScanTest {
 
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		eservice = new EventServiceImpl();
+		eservice = new EventServiceImpl(new ActivemqConnectorService());
 		gservice = new PointGeneratorFactory();
 
 		// Use in memory broker removes requirement on network and external ActiveMQ process
@@ -48,8 +48,8 @@ public class MappingScanTest {
 
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally
-		publisher = eservice.createPublisher(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService()); // Do not copy this leave as null!
-		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService()); // Do not copy this leave as null!
+		publisher = eservice.createPublisher(uri, IEventService.SCAN_TOPIC); // Do not copy this leave as null!
+		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC); // Do not copy this leave as null!
 	}
 
 	/**

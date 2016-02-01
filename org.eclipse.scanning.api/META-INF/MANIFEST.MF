@@ -22,5 +22,4 @@ Export-Package: org.eclipse.scanning.api,
  org.eclipse.scanning.api.scan,
  org.eclipse.scanning.api.scan.event,
  org.eclipse.scanning.api.scan.models
-Bundle-ActivationPolicy: lazy
-Service-Component: OSGI-INF/*.xml
+

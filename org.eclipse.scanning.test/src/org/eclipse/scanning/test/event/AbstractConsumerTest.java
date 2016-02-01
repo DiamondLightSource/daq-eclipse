@@ -112,7 +112,7 @@ public class AbstractConsumerTest {
     @Test
     public void testBeanClass() throws Exception {
     	
-		IConsumer<StatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		IConsumer<StatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
 		try {
 			fconsumer.setRunner(new DryRunCreator<StatusBean>());
 			fconsumer.start(); // No bean!
@@ -133,7 +133,7 @@ public class AbstractConsumerTest {
 	@Test
     public void testBeanClass2Beans() throws Exception {
     	
-		IConsumer<StatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		IConsumer<StatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
 		try {
 			fconsumer.setRunner(new DryRunCreator<StatusBean>());
 			fconsumer.start();// It's going now, we can submit
@@ -157,7 +157,7 @@ public class AbstractConsumerTest {
     private void dynamicBean(final StatusBean bean, IConsumer<StatusBean> fconsumer, int statusSize) throws Exception {
     	
     	// Hard code the service for the test
-		ISubscriber<EventListener> sub = eservice.createSubscriber(fconsumer.getUri(), fconsumer.getStatusTopicName(), new ActivemqConnectorService()); // DO NOT COPY!
+		ISubscriber<EventListener> sub = eservice.createSubscriber(fconsumer.getUri(), fconsumer.getStatusTopicName());
 		sub.addListener(new IBeanListener<StatusBean>() {
 			@Override
 			public void beanChangePerformed(BeanEvent<StatusBean> evt) {
@@ -227,7 +227,7 @@ public class AbstractConsumerTest {
 
 		Thread.sleep(2000);
 
-		IPublisher<KillBean> killer = eservice.createPublisher(submitter.getUri(), IEventService.KILL_TOPIC, new ActivemqConnectorService());
+		IPublisher<KillBean> killer = eservice.createPublisher(submitter.getUri(), IEventService.KILL_TOPIC);
 		KillBean kbean = new KillBean();
 		kbean.setConsumerId(consumer.getConsumerId());
 		kbean.setExitProcess(false); // Or tests would exit!
@@ -250,7 +250,7 @@ public class AbstractConsumerTest {
 
 		Thread.sleep(2000);
 		
-		IPublisher<StatusBean> terminator = eservice.createPublisher(submitter.getUri(), IEventService.STATUS_TOPIC, new ActivemqConnectorService());
+		IPublisher<StatusBean> terminator = eservice.createPublisher(submitter.getUri(), IEventService.STATUS_TOPIC);
         bean.setStatus(Status.REQUEST_TERMINATE);
         terminator.broadcast(bean);
         
@@ -268,7 +268,7 @@ public class AbstractConsumerTest {
 
 		Thread.sleep(2000);
 		
-		IPublisher<StatusBean> terminator = eservice.createPublisher(submitter.getUri(), IEventService.STATUS_TOPIC, new ActivemqConnectorService());
+		IPublisher<StatusBean> terminator = eservice.createPublisher(submitter.getUri(), IEventService.STATUS_TOPIC);
         bean.setStatus(Status.REQUEST_TERMINATE);
         terminator.broadcast(bean);
         
@@ -301,7 +301,7 @@ public class AbstractConsumerTest {
 		consumer.setRunner(new DryRunCreator<StatusBean>());
 		consumer.start();
 		
-		ISubscriber<IHeartbeatListener> subscriber = eservice.createSubscriber(consumer.getUri(), IEventService.HEARTBEAT_TOPIC, new ActivemqConnectorService());
+		ISubscriber<IHeartbeatListener> subscriber = eservice.createSubscriber(consumer.getUri(), IEventService.HEARTBEAT_TOPIC);
 		final List<HeartbeatBean> gotBack = new ArrayList<>(3);
 		subscriber.addListener(new IHeartbeatListener.Stub() {
 			@Override

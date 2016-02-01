@@ -28,6 +28,9 @@ import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 import org.junit.Test;
+
+import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
@@ -48,7 +51,7 @@ public class TopupTest {
 		sservice  = new ScanningServiceImpl();
 		connector = new MockScannableConnector();
 		gservice  = new PointGeneratorFactory();
-		eservice  = new EventServiceImpl();
+		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
 		detector = connector.getDetector("detector");
 		MockDetectorModel dmodel = new MockDetectorModel();

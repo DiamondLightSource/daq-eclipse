@@ -30,7 +30,7 @@ public class ConsumerTest extends AbstractConsumerTest{
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		eservice = new EventServiceImpl(); // Do not copy this get the service from OSGi!
+		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
@@ -38,8 +38,8 @@ public class ConsumerTest extends AbstractConsumerTest{
 		
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
-		submitter  = eservice.createSubmitter(uri, IEventService.SUBMISSION_QUEUE, new ActivemqConnectorService());
-		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, new ActivemqConnectorService());
+		submitter  = eservice.createSubmitter(uri, IEventService.SUBMISSION_QUEUE);
+		consumer   = eservice.createConsumer(uri, IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC);
 		consumer.setName("Test Consumer");
 		consumer.clearQueue(IEventService.SUBMISSION_QUEUE);
 		consumer.clearQueue(IEventService.STATUS_SET);

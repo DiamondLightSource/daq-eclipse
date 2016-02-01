@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.event;
 import java.net.URI;
 import java.util.EventListener;
 
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
@@ -100,14 +101,6 @@ public interface IEventService {
 	 */
 	public <T extends EventListener> ISubscriber<T> createSubscriber(URI uri, String topicName);
 	
-	/**
-	 * Creates an IEventManager with the default scan event topic and heartbeat topic.
-     *
-	 * @param service - override default IEventConnectorService which is provided by OSGi. May be null, in 
-	 *        which case the default OSGi service will be used or an exception thrown.
-	 * @return
-	 */
-	public <T extends EventListener> ISubscriber<T> createSubscriber(URI uri, String topicName, IEventConnectorService service);
 
 	/**
 	 * Creates an IEventPublisher with the default scan event topic and no heartbeat events.
@@ -117,16 +110,6 @@ public interface IEventService {
 	 */
 	public <U> IPublisher<U> createPublisher(URI uri, String topicName);
 
-	
-	/**
-	 * Creates an IPublisher which may publish any true bean (serializable to JSON reliably)
-	 * 
-	 * @param uri - the location of the JMS broker
-	 * @param service - override default IEventConnectorService which is provided by OSGi. May be null, in 
-	 *        which case the default OSGi service will be used or an exception thrown.
-	 * @return IEventManager
-	 */
-	public <U> IPublisher<U> createPublisher(URI uri, String topicName, IEventConnectorService service);
 
 	/**
 	 * Create a submitter for adding a bean of type U onto the queue.
@@ -136,15 +119,6 @@ public interface IEventService {
 	 */
 	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName);
 	
-	
-	/**
-	 * Create a submitter for adding a bean of type U onto the queue.
-	 * @param uri
-	 * @param queueName
-	 * @param service, may be null
-	 * @return
-	 */
-	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName, IEventConnectorService service);
 
 	/**
 	 * Create a consumer with the default, status topic, submission queue, status queue and termination topic.
@@ -167,8 +141,7 @@ public interface IEventService {
 	 */
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, String submissionQName, 
 						                                        String statusQName,
-						                                        String statusTName,
-						                                        IEventConnectorService service) throws EventException;
+						                                        String statusTName) throws EventException;
 
 	/**
 	 * Create a consumer with the submission queue, status queue, status topic and termination topic passed in.
@@ -185,7 +158,30 @@ public interface IEventService {
 						                                        String statusQName,
 						                                        String statusTName,
 						                                        String heartbeatTName, 
-						                                        String killTName, 
-						                                        IEventConnectorService service) throws EventException;
+						                                        String killTName) throws EventException;
+
+	
+	/**
+	 * Checks the heartbeat can be found and if it cannot in the given time, throws an exception.
+	 * @param uri - URI
+	 * @param patientName - Name of entity we are checking the hearbeat of
+	 * @param listenTime - Time to listener before giving up
+	 * @return
+	 * @throws EventException
+	 */
+	public void checkHeartbeat(URI uri, String patientName, long listenTime) throws EventException, InterruptedException;
+	
+	/**
+	 * Checks the topic has things published on it intermittently 
+	 * If it does not, in the given time, throws an exception.
+	 * @param uri - URI
+	 * @param patientName - Name of entity we are checking the hearbeat of
+	 * @param listenTime - Time to listener before giving up
+	 * @param topicName - The topic, or null to use default heartbeat topic
+	 * @param beanClass - The bean class that will be broadcast or null to not specify
+	 * @return
+	 * @throws EventException
+	 */
+	public <T extends INameable> void checkTopic(URI uri, String patientName, long listenTime, String topicName, Class<T> beanClass) throws EventException, InterruptedException;
 
 }

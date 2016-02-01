@@ -7,6 +7,8 @@ import org.eclipse.scanning.sequencer.ScanningServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 
+import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+
 public class ScanTest extends AbstractScanTest {
 	
 	
@@ -17,6 +19,6 @@ public class ScanTest extends AbstractScanTest {
 		sservice  = new ScanningServiceImpl();
 		connector = new MockScannableConnector();
 		gservice  = new PointGeneratorFactory();
-		eservice  = new EventServiceImpl();
+		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 	}
 }

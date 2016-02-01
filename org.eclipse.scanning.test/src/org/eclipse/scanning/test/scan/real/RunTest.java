@@ -20,10 +20,10 @@ public class RunTest {
 	
 	@Before
 	public void before() throws URISyntaxException {
-		eservice = new EventServiceImpl();
+		eservice = new EventServiceImpl(new ActivemqConnectorService());
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		publisher = eservice.createPublisher(new URI("vm://localhost?broker.persistent=false"), "org.eclipse.scanning.test.scan.real.test", new ActivemqConnectorService());
+		publisher = eservice.createPublisher(new URI("vm://localhost?broker.persistent=false"), "org.eclipse.scanning.test.scan.real.test");
 		
 	}
 	

@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="Topic Checker Service Non-critical">
-   <implementation class="org.eclipse.scanning.api.event.alive.TopicChecker"/>
-   <reference bind="setEventService" cardinality="1..1" interface="org.eclipse.scanning.api.event.IEventService" name="IEventService" policy="static"/>
-</scr:component>

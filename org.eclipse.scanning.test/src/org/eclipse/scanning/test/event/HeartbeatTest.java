@@ -31,7 +31,7 @@ public class HeartbeatTest {
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		eservice = new EventServiceImpl(); // Do not copy this get the service from OSGi!
+		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
@@ -39,8 +39,8 @@ public class HeartbeatTest {
 		
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
-		publisher  = eservice.createPublisher(uri, IEventService.HEARTBEAT_TOPIC, new ActivemqConnectorService());		
-		subscriber = eservice.createSubscriber(uri, IEventService.HEARTBEAT_TOPIC, new ActivemqConnectorService());
+		publisher  = eservice.createPublisher(uri, IEventService.HEARTBEAT_TOPIC);		
+		subscriber = eservice.createSubscriber(uri, IEventService.HEARTBEAT_TOPIC);
 	}
 	
 	@After
@@ -102,7 +102,7 @@ public class HeartbeatTest {
 		System.setProperty("org.eclipse.scanning.event.heartbeat.timeout", String.valueOf(5000));
 		try {
 			final URI uri = new URI("tcp://rubbish:5600");	
-			publisher = eservice.createPublisher(uri, IEventService.HEARTBEAT_TOPIC, new ActivemqConnectorService());
+			publisher = eservice.createPublisher(uri, IEventService.HEARTBEAT_TOPIC);
 			publisher.setAlive(true);
 
 		} catch (EventException required) {

@@ -1,8 +1,12 @@
-package org.eclipse.scanning.api.event.alive;
+package org.eclipse.scanning.event;
 
 import java.net.URI;
 
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.HeartbeatBean;
+import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
+import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 
 /**
@@ -11,25 +15,22 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
  * @author Matthew Gerring
  *
  */
-public class HeartbeatChecker {
-	
-	private static IEventService eventService;
-	public HeartbeatChecker() {
-		// Just for OSGi
-	}
-	
+class HeartbeatChecker {
+		
 	private URI    uri;
 	private String consumerName;
 	private long   listenTime;
 	private volatile boolean ok = false;
+	private IEventService eventService;
 	
-	public HeartbeatChecker(URI uri, String consumerName, long listenTime) {
+	public HeartbeatChecker(IEventService eventService, URI uri, String consumerName, long listenTime) {
+		this.eventService          = eventService;
 		this.uri          = uri;
 		this.consumerName = consumerName;
 		this.listenTime   = listenTime;
 	}
 	
-	public void checkPulse() throws Exception {
+	public void checkPulse() throws EventException, InterruptedException {
 		
 		ISubscriber<IHeartbeatListener>	subscriber = eventService.createSubscriber(uri, IEventService.HEARTBEAT_TOPIC);
         ok = false;
@@ -48,20 +49,12 @@ public class HeartbeatChecker {
 
             Thread.sleep(listenTime);
             
-            if (!ok) throw new Exception(consumerName+" Consumer heartbeat absent.\nIt is either stopped or unresponsive.\nPlease contact your support representative.");
+            if (!ok) throw new EventException(consumerName+" Consumer heartbeat absent.\nIt is either stopped or unresponsive.\nPlease contact your support representative.");
         	
 
         } finally {
         	subscriber.disconnect();
         }
-	}
-
-	public static IEventService getEventService() {
-		return eventService;
-	}
-
-	public static void setEventService(IEventService eventService) {
-		HeartbeatChecker.eventService = eventService;
 	}
 
 }

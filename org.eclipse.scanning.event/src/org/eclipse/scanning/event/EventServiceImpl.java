@@ -3,6 +3,7 @@ package org.eclipse.scanning.event;
 import java.net.URI;
 import java.util.EventListener;
 
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
@@ -23,6 +24,15 @@ public class EventServiceImpl implements IEventService {
 	public static IEventConnectorService getEventConnectorService() {
 		return eventConnectorService;
 	}
+	
+	public EventServiceImpl() {
+		
+	}
+	
+	// For tests
+	public EventServiceImpl(IEventConnectorService serviceToUse) {
+		eventConnectorService = serviceToUse;
+	}
 
 	public static void setEventConnectorService(IEventConnectorService eventService) {
 		EventServiceImpl.eventConnectorService = eventService;
@@ -30,50 +40,31 @@ public class EventServiceImpl implements IEventService {
 
 	@Override
 	public <T extends EventListener> ISubscriber<T> createSubscriber(URI uri, String topicName) {
-		return createSubscriber(uri, topicName, eventConnectorService);
-	}
-
-	@Override
-	public <T extends EventListener> ISubscriber<T> createSubscriber(URI uri, String topic, IEventConnectorService service) {
-		if (service == null) service = eventConnectorService;
-		return new SubscriberImpl<T>(uri, topic, service);
+		return new SubscriberImpl<T>(uri, topicName, eventConnectorService);
 	}
 	
 	
 	@Override
 	public <U> IPublisher<U> createPublisher(URI uri, String topicName) {
-		return createPublisher(uri, topicName, eventConnectorService);
-	}
-	
-	@Override
-	public <U> IPublisher<U> createPublisher(URI uri, String topic, IEventConnectorService service) {
-		if (service == null) service = eventConnectorService;
-		return new PublisherImpl<U>(uri, topic, service);
+		return new PublisherImpl<U>(uri, topicName, eventConnectorService);
 	}
 
 	@Override
 	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName) {
-		return createSubmitter(uri, queueName, null);
-	}
-
-	@Override
-	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName, IEventConnectorService service) {
-		if (service == null) service = eventConnectorService;
-		return new SubmitterImpl<U>(uri, queueName, service);
+		return new SubmitterImpl<U>(uri, queueName, eventConnectorService);
 	}
 
 	@Override
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri) throws EventException {
-		return createConsumer(uri, SUBMISSION_QUEUE, STATUS_SET, STATUS_TOPIC, HEARTBEAT_TOPIC, KILL_TOPIC, null);
+		return createConsumer(uri, SUBMISSION_QUEUE, STATUS_SET, STATUS_TOPIC, HEARTBEAT_TOPIC, KILL_TOPIC);
 	}
 	
 	@Override
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, 
 			                               String submissionQName,
 			                               String statusQName, 
-			                               String statusTName, 
-			                               IEventConnectorService service) throws EventException {
-		return createConsumer(uri, submissionQName, statusQName, statusTName, HEARTBEAT_TOPIC, KILL_TOPIC, service);
+			                               String statusTName) throws EventException {
+		return createConsumer(uri, submissionQName, statusQName, statusTName, HEARTBEAT_TOPIC, KILL_TOPIC);
 	}
 	
 
@@ -83,12 +74,22 @@ public class EventServiceImpl implements IEventService {
 			                               String statusQName, 
 			                               String statusTName, 
 			                               String heartbeatTName,
-			                               String killTName,
-			                               IEventConnectorService service) throws EventException {
-		
-		if (service == null) service = eventConnectorService;
-		
-		return new ConsumerImpl<U>(uri, submissionQName, statusQName, statusTName, heartbeatTName, killTName, service, this);
+			                               String killTName) throws EventException {
+				
+		return new ConsumerImpl<U>(uri, submissionQName, statusQName, statusTName, heartbeatTName, killTName, eventConnectorService, this);
 
+	}
+
+	@Override
+	public void checkHeartbeat(URI uri, String patientName, long listenTime) throws EventException, InterruptedException {
+		HeartbeatChecker checker = new HeartbeatChecker(this, uri, patientName, listenTime);
+		checker.checkPulse();
+	}
+
+	@Override
+	public <T extends INameable> void checkTopic(URI uri, String patientName, long listenTime, String topicName,
+			Class<T> beanClass) throws EventException, InterruptedException {
+		TopicChecker<T> checker = new TopicChecker<T>(this, uri, patientName, listenTime, topicName, beanClass);
+		checker.checkPulse();
 	}
 }

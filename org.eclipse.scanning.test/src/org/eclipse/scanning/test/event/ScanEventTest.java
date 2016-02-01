@@ -22,7 +22,7 @@ public class ScanEventTest extends AbstractScanEventTest{
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		eservice = new EventServiceImpl(); // Do not copy this get the service from OSGi!
+		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
@@ -30,8 +30,8 @@ public class ScanEventTest extends AbstractScanEventTest{
 		
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
-		publisher  = eservice.createPublisher(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService());		
-		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC, new ActivemqConnectorService());
+		publisher  = eservice.createPublisher(uri, IEventService.SCAN_TOPIC);		
+		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC);
 	}
 
 }
