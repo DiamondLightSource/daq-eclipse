@@ -218,12 +218,37 @@ public class GridTest {
 	}
 
 	@Test
+	public void testFillingRectangleAwayFromOrigin() throws Exception {
+
+		// Create a simple bounding rectangle
+		RectangularROI roi = new RectangularROI(-10.0, 5.0, 3.0, 3.0, 0.0);
+
+		// Create a grid scan path
+		GridModel model = new GridModel();
+		model.setRows(3);
+		model.setColumns(3);
+
+		// Get the point list
+		IPointGenerator<GridModel, Point> gen = service.createGenerator(model, roi);
+		List<Point> pointList = gen.createPoints();
+
+		assertThat(pointList.size(), is(equalTo(9)));
+
+		// Check some points
+		assertThat(pointList.get(0), is(equalTo(new Point(0, -9.5, 0, 5.5))));
+		assertThat(pointList.get(1), is(equalTo(new Point(1, -8.5, 0, 5.5))));
+		assertThat(pointList.get(3), is(equalTo(new Point(0, -9.5, 1, 6.5))));
+		assertThat(pointList.get(5), is(equalTo(new Point(2, -7.5, 1, 6.5))));
+		assertThat(pointList.get(7), is(equalTo(new Point(1, -8.5, 2, 7.5))));
+	}
+
+	@Test
 	public void testFillingRectangleWithSnake() throws Exception {
 
 		// Create a simple bounding rectangle
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
-		// Create a raster scan path
+		// Create a grid scan path
 		GridModel model = new GridModel();
 		model.setRows(3);
 		model.setColumns(3);

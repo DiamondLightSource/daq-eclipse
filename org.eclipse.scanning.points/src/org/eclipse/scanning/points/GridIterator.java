@@ -7,21 +7,30 @@ import org.eclipse.scanning.api.points.models.GridModel;
 
 class GridIterator implements Iterator<Point> {
 
-	private final GridModel model;
 	private final GridGenerator gen;
+	private final int columns;
+	private final int rows;
+	private final boolean snake;
+	private final String xName;
+	private final String yName;
 	private final double minX;
 	private final double minY;
 	private final double xStep;
 	private final double yStep;
 
-	private int yIndex,xIndex;
-	private boolean forwards=true;
+	private int yIndex, xIndex;
+	private boolean forwards = true;
 
 	public GridIterator(GridGenerator gen) {
-		this.model = gen.getModel();	
-		this.gen   = gen;
-		this.xStep = model.getBoundingBox().getWidth() / model.getColumns();
-		this.yStep = model.getBoundingBox().getHeight() / model.getRows();
+		this.gen = gen;
+		GridModel model = gen.getModel();
+		this.columns = model.getColumns();
+		this.rows = model.getRows();
+		this.snake = model.isSnake();
+		this.xName = model.getxName();
+		this.yName = model.getyName();
+		this.xStep = model.getBoundingBox().getWidth() / columns;
+		this.yStep = model.getBoundingBox().getHeight() / rows;
 		this.minX = model.getBoundingBox().getxStart() + xStep / 2;
 		this.minY = model.getBoundingBox().getyStart() + yStep / 2;
 		yIndex = 0;
@@ -31,14 +40,14 @@ class GridIterator implements Iterator<Point> {
 	@Override
 	public boolean hasNext() {
 		
-		int[] next = increment(model, yIndex, xIndex, forwards); 
+		int[] next = increment(snake, columns, yIndex, xIndex, forwards); 
 		int yIndex = next[0];
 		int xIndex = next[1];
 			
-		if (yIndex>(model.getRows()-1) || yIndex<0)    {
+		if (yIndex > (rows - 1) || yIndex < 0)    {
 			return false;  // Normal termination
 		}
-		if (xIndex>(model.getColumns()-1) || xIndex<0) return false;
+		if (xIndex > (columns - 1) || xIndex < 0) return false;
 		
 		double x = minX + xIndex * xStep;
 		double y = minY + yIndex * yStep;
@@ -53,13 +62,13 @@ class GridIterator implements Iterator<Point> {
 	}
 
 
-	private static final int[] increment(GridModel model, int yIndex, int xIndex, boolean forwards) {
+	private static final int[] increment(boolean snake, int columns, int yIndex, int xIndex, boolean forwards) {
 		
-		if (model.isSnake()) {
+		if (snake) {
 			if (forwards) {
 				xIndex++;
-				if (xIndex > (model.getColumns() - 1)) {
-					xIndex = model.getColumns() - 1;
+				if (xIndex > (columns - 1)) {
+					xIndex = columns - 1;
 					yIndex++;
 					forwards = !forwards;
 				}
@@ -74,7 +83,7 @@ class GridIterator implements Iterator<Point> {
 
 		} else {
 			xIndex++;
-			if (xIndex>(model.getColumns()-1)) {
+			if (xIndex>(columns-1)) {
 				xIndex=0;
 				yIndex++;
 			}
@@ -86,18 +95,18 @@ class GridIterator implements Iterator<Point> {
 	@Override
 	public Point next() {
 		
-		int[] next = increment(model, yIndex, xIndex, forwards);
+		int[] next = increment(snake, columns, yIndex, xIndex, forwards);
 		this.yIndex = next[0];
 		this.xIndex = next[1];
 		this.forwards = next[2]==1;
 		
-		if (yIndex>(model.getRows()-1) || yIndex<0)    return null;  // Normal termination
-		if (xIndex>(model.getColumns()-1) || xIndex<0) throw new NullPointerException("Unexpected index. The j index was "+xIndex);
+		if (yIndex > (rows - 1) || yIndex < 0)    return null;  // Normal termination
+		if (xIndex > (columns - 1) || xIndex < 0) throw new NullPointerException("Unexpected index. The j index was "+xIndex);
 
 		double x = minX + xIndex * xStep;
 		double y = minY + yIndex * yStep;
 		if (gen.containsPoint(x, y)) {
-			return new Point(model.getxName(), xIndex, x, model.getyName(), yIndex, y);
+			return new Point(xName, xIndex, x, yName, yIndex, y);
 		} else {
 			return next();
 		}
