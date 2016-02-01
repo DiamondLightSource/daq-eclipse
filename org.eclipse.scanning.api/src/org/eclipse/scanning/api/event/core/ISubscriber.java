@@ -3,45 +3,52 @@ package org.eclipse.scanning.api.event.core;
 import org.eclipse.scanning.api.event.EventException;
 
 /**
- * This interface is designed to make it easy to listen to all events and
- * easy to listen to a specific scan.
+ * <p>
+ * This interface is designed to make it easy to listen to all events and easy
+ * to listen to a specific scan.
+ * </p>
+ * <b>Listen to all events:</b>
  * 
- <code>
- 
-    // Listen to all events
-    IEventService service = ...
-    IScanSubscriber sub = service.createSubscriber(...)
-    IScanListener listener = new IScanListener.Stub() {
-		@Override
-		public void scanEventPerformed(ScanEvent evt) {
-			// ... Everything that happens
-		}
-    };
-    sub.addScanListener(listener);
-    
-    // Listen to specific events for a given scan
-     IScanListener listener2 = new IScanListener.Stub() {
-		@Override
-		public void scanEventPerformed(ScanEvent evt) {
-			// ... Everything that happens
-		}
-    };
-    sub.addScanListener(scanId, listener2);
-    
-//    NOTE If a listener is registered it will then be associated with
-//    the scan it is registered with only. It should be unregistered and
-//    readded. So for instance:
-    sub.addScanListener(scanId, listener); // registers for scanId but removes it as general listener.
-    
-    // Removes the Object listener from the general listeners and defines it 
-    // as a listener of the scanId. This listener would have to be readded 
-    // using addScanListener(listener) to use it again as a general listener.
- 
-</code>
-   
+ * <pre>
+ * {@code
+ * IEventService service = ...
+ * IScanSubscriber sub = service.createSubscriber(...)
+ * IScanListener listener = new IScanListener.Stub() {
+ * 		{@literal @}Override
+ * 		public void scanEventPerformed(ScanEvent evt) {
+ * 		// Everything that happens ...
+ * 		}
+ * 	};
+ * sub.addScanListener(listener);
+ * }
+ * </pre>
+ * 
+ * <b>Listen to specific events for a given scan:</b>
+ * 
+ * <pre>
+ * {@code
+ * IScanListener listener2 = new IScanListener.Stub() {
+ * 		{@literal @}Override
+ * 		public void scanEventPerformed(ScanEvent evt) {
+ * 		// Everything that happens ...
+ *  		}
+ * sub.addScanListener(<b>scanId</b>, listener2);
+ * }
+ * </pre>
+ * 
+ * NOTE: If a listener is registered it will then be associated with the scan it
+ * is registered with only. It should be unregistered and readded. So for
+ * instance:
+ * 
+ * <pre>
+ * {@code sub.addScanListener(scanId, listener); // registers for scanId but removes it as general listener.}
+ * </pre>
+ * 
+ * Removes the Object listener from the general listeners and defines it as a
+ * listener of the scanId. This listener would have to be readded using
+ * {@code addScanListener(listener)} to use it again as a general listener.
  * 
  * @author Matthew Gerring
- *
  */
 public interface ISubscriber<T> extends ITopicConnection {
 
