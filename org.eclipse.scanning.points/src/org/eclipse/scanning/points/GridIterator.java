@@ -14,7 +14,7 @@ class GridIterator implements Iterator<Point> {
 	private final double xStep;
 	private final double yStep;
 
-	private int i,j;
+	private int yIndex,xIndex;
 	private boolean forwards=true;
 
 	public GridIterator(GridGenerator gen) {
@@ -24,27 +24,27 @@ class GridIterator implements Iterator<Point> {
 		this.yStep = model.getBoundingBox().getHeight() / model.getRows();
 		this.minX = model.getBoundingBox().getxStart() + xStep / 2;
 		this.minY = model.getBoundingBox().getyStart() + yStep / 2;
-		i = 0;
-		j = -1;
+		yIndex = 0;
+		xIndex = -1;
 	}
 
 	@Override
 	public boolean hasNext() {
 		
-		int[] next = increment(model, i, j, forwards); 
-		int i = next[0];
-		int j = next[1];
+		int[] next = increment(model, yIndex, xIndex, forwards); 
+		int yIndex = next[0];
+		int xIndex = next[1];
 			
-		if (i>(model.getRows()-1) || i<0)    {
+		if (yIndex>(model.getRows()-1) || yIndex<0)    {
 			return false;  // Normal termination
 		}
-		if (j>(model.getColumns()-1) || j<0) return false;
+		if (xIndex>(model.getColumns()-1) || xIndex<0) return false;
 		
-		double x = minX + j * xStep;
-		double y = minY + i * yStep;
+		double x = minX + xIndex * xStep;
+		double y = minY + yIndex * yStep;
 		if (!gen.containsPoint(x, y)) {
-			this.i = i;
-			this.j = j;
+			this.yIndex = yIndex;
+			this.xIndex = xIndex;
 			this.forwards = next[2]==1;
 			return hasNext();
 		}
@@ -53,50 +53,50 @@ class GridIterator implements Iterator<Point> {
 	}
 
 
-	private static final int[] increment(GridModel model, int i, int j, boolean forwards) {
+	private static final int[] increment(GridModel model, int yIndex, int xIndex, boolean forwards) {
 		
 		if (model.isSnake()) {
 			if (forwards) {
-				j = j+1;
-				if (j>(model.getColumns()-1)) {
-					i++;
+				xIndex = xIndex+1;
+				if (xIndex>(model.getColumns()-1)) {
+					yIndex++;
 					forwards = !forwards;
 				}
 			} else {
-				j = j-1;
-				if (j<0) {
-					j=0;
-					i++;
+				xIndex = xIndex-1;
+				if (xIndex<0) {
+					xIndex=0;
+					yIndex++;
 					forwards = !forwards;
 				}
 			}
 
 		} else {
-			j++;
-			if (j>(model.getColumns()-1)) {
-				j=0;
-				i++;
+			xIndex++;
+			if (xIndex>(model.getColumns()-1)) {
+				xIndex=0;
+				yIndex++;
 			}
 		}
-		return new int[]{i,j, forwards?1:0}; // Bit slow because makes array object to return int values
+		return new int[]{yIndex,xIndex, forwards?1:0}; // Bit slow because makes array object to return int values
 	}
 
 	
 	@Override
 	public Point next() {
 		
-		int[] next = increment(model, i, j, forwards);
-		this.i = next[0];
-		this.j = next[1];
+		int[] next = increment(model, yIndex, xIndex, forwards);
+		this.yIndex = next[0];
+		this.xIndex = next[1];
 		this.forwards = next[2]==1;
 		
-		if (i>(model.getRows()-1) || i<0)    return null;  // Normal termination
-		if (j>(model.getColumns()-1) || j<0) throw new NullPointerException("Unexpected index. The j index was "+j);
+		if (yIndex>(model.getRows()-1) || yIndex<0)    return null;  // Normal termination
+		if (xIndex>(model.getColumns()-1) || xIndex<0) throw new NullPointerException("Unexpected index. The j index was "+xIndex);
 
-		double x = minX + j * xStep;
-		double y = minY + i * yStep;
+		double x = minX + xIndex * xStep;
+		double y = minY + yIndex * yStep;
 		if (gen.containsPoint(x, y)) {
-			return new Point(model.getxName(), j, x, model.getyName(), i, y);
+			return new Point(model.getxName(), xIndex, x, model.getyName(), yIndex, y);
 		} else {
 			return next();
 		}
