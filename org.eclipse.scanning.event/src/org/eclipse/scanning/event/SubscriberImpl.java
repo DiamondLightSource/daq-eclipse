@@ -63,10 +63,12 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 
 	@Override
 	public void addListener(String scanID, T listener) throws EventException{
+		
 		registerListener(scanID, listener, slisteners);
 		if (scanConsumer == null) {
 			try {
-				scanConsumer = createConsumer(getTopicName(), slisteners);
+				Class<?> beanClass = listener instanceof IBeanListener ? ((IBeanListener)listener).getBeanClass() : null;
+				scanConsumer = createConsumer(getTopicName(), beanClass, slisteners);
 			} catch (JMSException e) {
 				throw new EventException("Cannot subscribe to topic "+getTopicName()+" with URI "+uri, e);
 			}
@@ -74,6 +76,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 	}
 
 	private MessageConsumer createConsumer(final String    topicName, 
+			                               final Class<?>  beanClass, // Maybe null
 			                               final Map<String, Collection<T>> listeners) throws JMSException {
 		
 		Topic topic = super.createTopic(topicName);
@@ -87,7 +90,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 	    			TextMessage txt   = (TextMessage)message;
 	    			String      json  = txt.getText(); 
 	    			
-	    			Object bean = service.unmarshal(json, null);
+	    			Object bean = service.unmarshal(json, beanClass);
 	    			diseminate(bean, listeners); // We simply use the event thread from JMS for this.
 	    			
     			} catch (Exception ne) {

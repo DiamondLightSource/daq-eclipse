@@ -36,11 +36,14 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.ConsumerBean;
 import org.eclipse.scanning.api.event.alive.ConsumerStatus;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
 import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.alive.KillBean;
+import org.eclipse.scanning.api.event.bean.BeanEvent;
+import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.AdministratorMessage;
@@ -73,7 +76,8 @@ public class ConsumerView extends ViewPart {
 	// Data
 	private Map<String, HeartbeatBean>        consumers;
 
-	private ISubscriber<IHeartbeatListener>   heartMonitor;
+	private ISubscriber<IHeartbeatListener>          heartMonitor;
+	private ISubscriber<IBeanListener<ConsumerBean>> oldBeat;
 
 	private IEventService service;
 	
@@ -114,6 +118,7 @@ public class ConsumerView extends ViewPart {
 		// Use job because connection might timeout.
 		final Job topicJob = new Job("Create topic listener") {
 
+			@SuppressWarnings("deprecation")
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				try {					
@@ -124,17 +129,28 @@ public class ConsumerView extends ViewPart {
 							
 							HeartbeatBean bean = evt.getBean();
 	        				bean.setLastAlive(System.currentTimeMillis());
-	        				HeartbeatBean old = consumers.put(bean.getUniqueId(), bean);
-	        				
-	        				if (!bean.equalsIgnoreLastAlive(old)) {
-	    						viewer.getControl().getDisplay().syncExec(new Runnable() {
-	    							public void run () {
-	    								viewer.refresh();
-	    							}
-	    						});
-	        				}
+	        				sync(bean);
 						}
+
 					});
+					
+					// This subscriber should be removed around DAWN 2.2 please. There will not be
+					// any more old consumers doing this then.
+					oldBeat = service.createSubscriber(uri, "scisoft.commandserver.core.ALIVE_TOPIC");
+					oldBeat.addListener(new IBeanListener<ConsumerBean>() {
+						// Old heartbeat
+						public void beanChangePerformed(BeanEvent<ConsumerBean> evt) {
+							
+							ConsumerBean cbean = evt.getBean();
+							HeartbeatBean bean  = cbean.toHeartbeat();
+	        				bean.setLastAlive(System.currentTimeMillis());
+	        				sync(bean);
+						}
+                        public Class<ConsumerBean> getBeanClass() {
+                        	return ConsumerBean.class;
+                        }
+					});
+					
 					return Status.OK_STATUS;
 			        
 				} catch (Exception ne) {
@@ -152,12 +168,30 @@ public class ConsumerView extends ViewPart {
 		topicJob.schedule();
 	}
 	
+	private void sync(HeartbeatBean bean) {
+		
+		HeartbeatBean old = consumers.put(bean.getUniqueId(), bean);
+		if (!bean.equalsIgnoreLastAlive(old)) {
+			viewer.getControl().getDisplay().syncExec(new Runnable() {
+				public void run () {
+					viewer.refresh();
+				}
+			});
+		}					
+	}
+
+	
 	public void dispose() {
 		super.dispose();
 		try {
 			if (heartMonitor!=null) heartMonitor.disconnect();
 		} catch (Exception ne) {
-			logger.warn("Problem stopping topic listening for "+IEventService.HEARTBEAT_TOPIC, ne);
+			logger.warn("Problem stopping topic listening for "+heartMonitor.getTopicName(), ne);
+		}
+		try {
+			if (oldBeat!=null) oldBeat.disconnect();
+		} catch (Exception ne) {
+			logger.warn("Problem stopping topic listening for "+oldBeat.getTopicName(), ne);
 		}
 	}
 

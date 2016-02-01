@@ -143,7 +143,7 @@ public class MandelbrotRemotePluginTest {
 		IRemoteDataset remote = dataService.createRemoteDataset("localhost", server.getPort());
 		remote.setPath(filePath);
 		remote.setDataset("/entry/instrument/"+mod.getDetectors().get(0).getName()+"/data");
-
+		remote.setWritingExpected(true); // We know that we are writing to this file, so we declare it.
 		remote.connect();
 		try {
 			
