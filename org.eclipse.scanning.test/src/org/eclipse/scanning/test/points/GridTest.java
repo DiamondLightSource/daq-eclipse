@@ -18,9 +18,8 @@
 
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,7 +30,6 @@ import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -219,4 +217,28 @@ public class GridTest {
 
 	}
 
+	@Test
+	public void testFillingRectangleWithSnake() throws Exception {
+
+		// Create a simple bounding rectangle
+		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
+
+		// Create a raster scan path
+		GridModel model = new GridModel();
+		model.setRows(3);
+		model.setColumns(3);
+		model.setSnake(true);
+
+		// Get the point list
+		IPointGenerator<GridModel, Point> gen = service.createGenerator(model, roi);
+		List<Point> pointList = gen.createPoints();
+
+		assertThat(pointList.size(), is(equalTo(9)));
+
+		// Check some points
+		assertThat(pointList.get(0), is(equalTo(new Point(0, 0.5, 0, 0.5))));
+		assertThat(pointList.get(1), is(equalTo(new Point(1, 1.5, 0, 0.5))));
+		assertThat(pointList.get(3), is(equalTo(new Point(2, 2.5, 1, 1.5))));
+		assertThat(pointList.get(7), is(equalTo(new Point(1, 1.5, 2, 2.5))));
+	}
 }

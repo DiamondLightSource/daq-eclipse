@@ -57,13 +57,14 @@ class GridIterator implements Iterator<Point> {
 		
 		if (model.isSnake()) {
 			if (forwards) {
-				xIndex = xIndex+1;
-				if (xIndex>(model.getColumns()-1)) {
+				xIndex++;
+				if (xIndex > (model.getColumns() - 1)) {
+					xIndex = model.getColumns() - 1;
 					yIndex++;
 					forwards = !forwards;
 				}
 			} else {
-				xIndex = xIndex-1;
+				xIndex--;
 				if (xIndex<0) {
 					xIndex=0;
 					yIndex++;
