@@ -10,7 +10,7 @@ class RasterGenerator extends AbstractGenerator<RasterModel,Point> {
 	
 
 	public Iterator<Point> iterator() {
-		return new RasterIterator(this);
+		return new GridIterator(this);
 	}
 
 // Original implementation of createPoints() TODO delete this

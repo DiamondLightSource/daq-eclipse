@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 import java.util.Iterator;
 import java.util.List;
@@ -12,7 +13,6 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
-import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
@@ -167,6 +167,55 @@ public class RasterTest {
 		assertEquals(3d, last.get("xNex"));
 		assertEquals(3d, last.get("yNex"));
 		
+	}
+
+	@Test
+	public void testFillingRectangleAwayFromOrigin() throws Exception {
+
+		// Create a simple bounding rectangle
+		RectangularROI roi = new RectangularROI(-10, 5, 2.5, 3.0, 0.0);
+
+		// Create a raster scan path
+		RasterModel model = new RasterModel();
+		model.setxStep(1);
+		model.setyStep(1);
+
+		// Get the point list
+		IPointGenerator<RasterModel, Point> gen = service.createGenerator(model, roi);
+		List<Point> pointList = gen.createPoints();
+
+		assertThat(pointList.size(), is(equalTo(12)));
+
+		// Check some points
+		assertThat(pointList.get(0), is(equalTo(new Point(0, -10.0, 0, 5.0))));
+		assertThat(pointList.get(1), is(equalTo(new Point(1, -9.0, 0, 5.0))));
+		assertThat(pointList.get(3), is(equalTo(new Point(0, -10.0, 1, 6.0))));
+		assertThat(pointList.get(7), is(equalTo(new Point(1, -9.0, 2, 7.0))));
+	}
+
+	@Test
+	public void testFillingRectangleWithSnake() throws Exception {
+
+		// Create a simple bounding rectangle
+		RectangularROI roi = new RectangularROI(1, 1, 2, 2, 0);
+
+		// Create a raster scan path
+		RasterModel model = new RasterModel();
+		model.setxStep(1);
+		model.setyStep(1);
+		model.setSnake(true);
+
+		// Get the point list
+		IPointGenerator<RasterModel, Point> gen = service.createGenerator(model, roi);
+		List<Point> pointList = gen.createPoints();
+
+		assertThat(pointList.size(), is(equalTo(9)));
+
+		// Check some points
+		assertThat(pointList.get(0), is(equalTo(new Point(0, 1.0, 0, 1.0))));
+		assertThat(pointList.get(1), is(equalTo(new Point(1, 2.0, 0, 1.0))));
+		assertThat(pointList.get(3), is(equalTo(new Point(2, 3.0, 1, 2.0))));
+		assertThat(pointList.get(7), is(equalTo(new Point(1, 2.0, 2, 3.0))));
 	}
 
 }

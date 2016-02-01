@@ -2,12 +2,15 @@ package org.eclipse.scanning.points;
 
 import java.util.Iterator;
 
+import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.RasterModel;
 
 class GridIterator implements Iterator<Point> {
 
-	private final GridGenerator gen;
+	private final AbstractGenerator<? extends AbstractBoundingBoxModel, Point> gen;
 	private final int columns;
 	private final int rows;
 	private final boolean snake;
@@ -33,6 +36,22 @@ class GridIterator implements Iterator<Point> {
 		this.yStep = model.getBoundingBox().getHeight() / rows;
 		this.minX = model.getBoundingBox().getxStart() + xStep / 2;
 		this.minY = model.getBoundingBox().getyStart() + yStep / 2;
+		yIndex = 0;
+		xIndex = -1;
+	}
+
+	public GridIterator(RasterGenerator gen) {
+		this.gen = gen;
+		RasterModel model = gen.getModel();
+		this.xStep = model.getxStep();
+		this.yStep = model.getyStep();
+		this.snake = model.isSnake();
+		this.xName = model.getxName();
+		this.yName = model.getyName();
+		this.minX = model.getBoundingBox().getxStart();
+		this.minY = model.getBoundingBox().getyStart();
+		this.columns = (int) Math.floor(model.getBoundingBox().getWidth() / xStep + 1);
+		this.rows = (int) Math.floor(model.getBoundingBox().getHeight() / yStep + 1);
 		yIndex = 0;
 		xIndex = -1;
 	}
