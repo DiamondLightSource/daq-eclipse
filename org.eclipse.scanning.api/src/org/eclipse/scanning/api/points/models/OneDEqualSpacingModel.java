@@ -16,7 +16,7 @@ public class OneDEqualSpacingModel implements IBoundingLineModel {
 	}
 
 	private BoundingLine boundingLine;
-	private int points;
+	private int points = 1;
 
 	@Override
 	public String getName() {

@@ -130,6 +130,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 			LinearROI lroi = (LinearROI) roi;
 			line.setxStart(lroi.getPoint()[0]);
 			line.setyStart(lroi.getPoint()[1]);
+			line.setLength(lroi.getLength());
 			line.setAngle(lroi.getAngle());
 			((IBoundingLineModel) model).setBoundingLine(line);
 //			return;
