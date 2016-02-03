@@ -30,6 +30,6 @@ public class ScanServletPluginTest {
 		
 		final ScanBean bean = new ScanBean();
 		bean.setName("Hello Scanning World");
-		
+		// TODO 
 	}
 }
