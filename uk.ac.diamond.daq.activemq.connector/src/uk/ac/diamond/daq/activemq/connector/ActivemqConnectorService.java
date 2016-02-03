@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
@@ -138,8 +139,9 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		// Be careful adjusting these settings - changing them will probably cause various unit tests to fail which
 		// check the exact contents of the serialized JSON string
 		mapper.setSerializationInclusion(Include.NON_NULL);
-		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 		mapper.setDefaultTyping(createOSGiTypeIdResolver(mapper));
+		mapper.enable(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS);
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		return mapper;
 	}
 
