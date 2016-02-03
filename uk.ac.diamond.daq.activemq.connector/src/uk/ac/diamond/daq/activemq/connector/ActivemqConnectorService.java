@@ -38,6 +38,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  */
 public class ActivemqConnectorService implements IEventConnectorService {
 
+	private static final String TYPE_INFO_FIELD_NAME = "@bundle_and_class";
+
 	private BundleProvider bundleProvider;
 	private ObjectMapper osgiMapper;
 	private ObjectMapper nonOsgiMapper;
@@ -111,7 +113,10 @@ public class ActivemqConnectorService implements IEventConnectorService {
 			U result = (U) osgiMapper.readValue(string, Object.class);
 			return result;
 		} catch (JsonMappingException jme) {
-			// Possibly no bundle and class information in the JSON - fall back to old mapper
+			if (!jme.getMessage().contains(TYPE_INFO_FIELD_NAME)) {
+				throw jme;
+			}
+			// No bundle and class information in the JSON - fall back to old mapper in case JSON has come from an older version
 			if (nonOsgiMapper == null) nonOsgiMapper = createNonOsgiMapper();
 			return (U) nonOsgiMapper.readValue(string, beanClass);
 		}
@@ -151,7 +156,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		TypeResolverBuilder<?> typer = new OSGiTypeResolverBuilder();
 		typer = typer.init(JsonTypeInfo.Id.CUSTOM, null);
 		typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
-		typer = typer.typeProperty("@bundle_and_class");
+		typer = typer.typeProperty(TYPE_INFO_FIELD_NAME);
 		return typer;
 	}
 
