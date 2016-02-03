@@ -55,8 +55,8 @@ public class ThreadScanTest {
 	public void setup() throws Exception {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		sservice  = new ScanningServiceImpl();
 		connector = new MockScannableConnector();
+		sservice  = new ScanningServiceImpl(connector);
 		gservice  = new PointGeneratorFactory();
 		
 		
@@ -218,7 +218,7 @@ public class ThreadScanTest {
 		smodel.setDetectors(detector);
 		
 		// Create a scan and run it
-		IPauseableDevice<ScanModel> scanner = (IPauseableDevice<ScanModel>) sservice.createRunnableDevice(smodel, publisher, connector);
+		IPauseableDevice<ScanModel> scanner = (IPauseableDevice<ScanModel>) sservice.createRunnableDevice(smodel, publisher);
 		return scanner;
 	}
 

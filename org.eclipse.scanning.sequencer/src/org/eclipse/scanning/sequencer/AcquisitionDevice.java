@@ -66,7 +66,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		setModel(model);
 		setBean(model.getBean()!=null?model.getBean():new ScanBean());
 		
-		positioner = scanningService.createPositioner(deviceService);
+		positioner = scanningService.createPositioner();
 		if (getModel().getDetectors()!=null) {
 			runners = new DeviceRunner(model.getDetectors());
 			writers = new DeviceWriter(model.getDetectors());

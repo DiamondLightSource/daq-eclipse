@@ -67,9 +67,9 @@ public class MandelbrotExamplePluginTest {
 	@BeforeClass
 	public static void before() throws Exception {
 		
-		service   = new ScanningServiceImpl(); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();
 		connector = new MockScannableConnector();
+		service   = new ScanningServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		gservice  = new PointGeneratorFactory();
 		
 		MandelbrotModel model = new MandelbrotModel();
 		model.setName("mandelbrot");
@@ -286,7 +286,7 @@ public class MandelbrotExamplePluginTest {
 		System.out.println("File writing to "+smodel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null, connector);
+		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {

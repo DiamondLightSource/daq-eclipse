@@ -16,8 +16,8 @@ public class ScanTest extends AbstractScanTest {
 	public void setup() throws ScanningException {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		sservice  = new ScanningServiceImpl();
 		connector = new MockScannableConnector();
+		sservice  = new ScanningServiceImpl(connector);
 		gservice  = new PointGeneratorFactory();
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 	}

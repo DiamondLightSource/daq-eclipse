@@ -54,9 +54,9 @@ public class MonitorPluginTest {
 	@BeforeClass
 	public static void before() throws Exception {
 		
-		service   = new ScanningServiceImpl(); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();
 		connector = new MockScannableConnector();
+		service   = new ScanningServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		gservice  = new PointGeneratorFactory();
 		
 		ConstantVelocityModel model = new ConstantVelocityModel("cv scan", 100, 200, 25);
 		model.setName("cv device");
@@ -198,7 +198,7 @@ public class MonitorPluginTest {
 		System.out.println("File writing to "+scanModel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(scanModel, null, connector);
+		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(scanModel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {

@@ -140,7 +140,7 @@ public class ScanExecutionTest {
 		System.out.println("File writing to "+smodel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = scanService.createRunnableDevice(smodel, null, connector);
+		IRunnableDevice<ScanModel> scanner = scanService.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {

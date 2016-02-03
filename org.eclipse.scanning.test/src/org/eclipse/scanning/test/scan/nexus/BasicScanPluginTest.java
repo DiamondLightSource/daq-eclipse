@@ -46,9 +46,9 @@ public class BasicScanPluginTest {
 	
 	@BeforeClass
 	public static void before() throws Exception {
-		service   = new ScanningServiceImpl(); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();
 		connector = new MockScannableConnector();	
+		service   = new ScanningServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		gservice  = new PointGeneratorFactory();
 	}
 	
     private IScannable<?>                  monitor;
@@ -170,7 +170,7 @@ public class BasicScanPluginTest {
 		System.out.println("File writing to "+smodel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null, connector);
+		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {

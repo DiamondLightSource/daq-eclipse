@@ -58,16 +58,7 @@ public interface IScanningService {
 	 */
 	IPositioner createPositioner() throws ScanningException;
 
-	/**
-	 * This method sets the value of the scannables named to this position.
-	 * It takes into account the levels of the scannbles. 
-	 * It is blocking until all the scannables have reached the desired location.
-	 * 
-	 * @return
-	 * @throws ScanningException
-	 */
-	IPositioner createPositioner(IDeviceConnectorService hservice) throws ScanningException;
-
+	
 	/**
 	 * Create an empty scanner which can run an iterable to complete a scan.
 	 * The scanner returned will be an IScanner for running the whole scan rather than
@@ -94,7 +85,7 @@ public interface IScanningService {
 	 * @return
 	 * @throws ScanningException
 	 */
-	<T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException;
+	<T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher) throws ScanningException;
 	
 
 }

@@ -27,6 +27,9 @@ import org.eclipse.scanning.api.points.MapPosition;
  *
  */
 public final class ScanBean extends StatusBean { 
+	
+	// Field required to start a scan, may be null.
+	private ScanRequest scanRequest;
 		
 	// General Information
 	private String  deviceName;
@@ -81,14 +84,6 @@ public final class ScanBean extends StatusBean {
 	}
 	public void setDatasetPath(String datasetPath) {
 		this.datasetPath = datasetPath;
-	}
-
-	public String getDeviceName() {
-		return deviceName;
-	}
-
-	public void setDeviceName(String deviceName) {
-		this.deviceName = deviceName;
 	}
 
 	public String getBeamline() {
@@ -198,26 +193,18 @@ public final class ScanBean extends StatusBean {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((beamline == null) ? 0 : beamline.hashCode());
-		result = prime * result
-				+ ((datasetPath == null) ? 0 : datasetPath.hashCode());
-		result = prime * result
-				+ ((deviceName == null) ? 0 : deviceName.hashCode());
-		result = prime * result
-				+ ((deviceState == null) ? 0 : deviceState.hashCode());
-		result = prime * result
-				+ ((filePath == null) ? 0 : filePath.hashCode());
+		result = prime * result + ((beamline == null) ? 0 : beamline.hashCode());
+		result = prime * result + ((datasetPath == null) ? 0 : datasetPath.hashCode());
+		result = prime * result + ((deviceName == null) ? 0 : deviceName.hashCode());
+		result = prime * result + ((deviceState == null) ? 0 : deviceState.hashCode());
+		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + Arrays.hashCode(newShape);
 		result = prime * result + Arrays.hashCode(oldShape);
 		result = prime * result + point;
-		result = prime * result
-				+ ((position == null) ? 0 : position.hashCode());
-		result = prime
-				* result
-				+ ((previousDeviceState == null) ? 0 : previousDeviceState
-						.hashCode());
+		result = prime * result + ((position == null) ? 0 : position.hashCode());
+		result = prime * result + ((previousDeviceState == null) ? 0 : previousDeviceState.hashCode());
 		result = prime * result + scanNumber;
+		result = prime * result + ((scanRequest == null) ? 0 : scanRequest.hashCode());
 		result = prime * result + size;
 		return result;
 	}
@@ -268,9 +255,30 @@ public final class ScanBean extends StatusBean {
 			return false;
 		if (scanNumber != other.scanNumber)
 			return false;
+		if (scanRequest == null) {
+			if (other.scanRequest != null)
+				return false;
+		} else if (!scanRequest.equals(other.scanRequest))
+			return false;
 		if (size != other.size)
 			return false;
 		return true;
+	}
+
+	public ScanRequest getScanRequest() {
+		return scanRequest;
+	}
+
+	public void setScanRequest(ScanRequest scanRequest) {
+		this.scanRequest = scanRequest;
+	}
+
+	public String getDeviceName() {
+		return deviceName;
+	}
+
+	public void setDeviceName(String deviceName) {
+		this.deviceName = deviceName;
 	}
 
 }

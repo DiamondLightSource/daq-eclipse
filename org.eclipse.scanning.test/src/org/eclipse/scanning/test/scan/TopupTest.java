@@ -48,8 +48,8 @@ public class TopupTest {
 	public void setup() throws ScanningException {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		sservice  = new ScanningServiceImpl();
 		connector = new MockScannableConnector();
+		sservice  = new ScanningServiceImpl(connector);
 		gservice  = new PointGeneratorFactory();
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
@@ -141,7 +141,7 @@ public class TopupTest {
 		if (monitor!=null) smodel.setMonitors(monitor);
 		
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, null, connector);
+		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, null);
 		return scanner;
 	}
 

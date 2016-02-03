@@ -55,9 +55,9 @@ public class LowLevelDetectorPluginTest {
 	
 	@Before
 	public void before() {
-		service   = new ScanningServiceImpl(); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();
 		connector = new MockScannableConnector();
+		service   = new ScanningServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		gservice  = new PointGeneratorFactory();
 	}
 	
 	@Test
@@ -167,7 +167,7 @@ public class LowLevelDetectorPluginTest {
 		smodel.setDetectors(detector);
 		
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null, connector);
+		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
 		return scanner;
 	}
 

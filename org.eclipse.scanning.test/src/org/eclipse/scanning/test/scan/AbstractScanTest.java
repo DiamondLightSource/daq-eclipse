@@ -45,13 +45,13 @@ public class AbstractScanTest {
 
 	protected IScanningService              sservice;
 	protected IDeviceConnectorService       connector;
-	protected IPointGeneratorService             gservice;
+	protected IPointGeneratorService        gservice;
 	protected IEventService                 eservice;
 
 	@Test
 	public void testSetSimplePosition() throws Exception {
 
-		IPositioner     pos    = sservice.createPositioner(connector);
+		IPositioner     pos    = sservice.createPositioner();
 		pos.setPosition(new MapPosition("x:0:1, y:0:2"));
 		
 		assertTrue(connector.getScannable("x").getPosition().equals(1d));
@@ -69,7 +69,7 @@ public class AbstractScanTest {
 	@Test
 	public void testLevels() throws Exception {
 
-		IPositioner     pos    = sservice.createPositioner(connector);
+		IPositioner     pos    = sservice.createPositioner();
 		
 		final List<String> scannablesMoved = new ArrayList<>(6);
 		pos.addPositionListener(new IPositionListener.Stub() {
@@ -113,7 +113,7 @@ public class AbstractScanTest {
  			}
 		} 
 		
-		IPositioner positioner   = sservice.createPositioner(connector);
+		IPositioner positioner   = sservice.createPositioner();
 
 		final List<String> levelsMoved = new ArrayList<>(6);
 		positioner.addPositionListener(new IPositionListener.Stub() {
@@ -336,7 +336,7 @@ public class AbstractScanTest {
 		if (monitor!=null) smodel.setMonitors(monitor);
 		
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, publisher, connector);
+		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, publisher);
 		return scanner;
 	}
 

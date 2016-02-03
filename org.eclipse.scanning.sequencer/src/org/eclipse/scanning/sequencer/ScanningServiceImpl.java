@@ -16,12 +16,27 @@ import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.osgi.service.component.ComponentContext;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 @SuppressWarnings("rawtypes")
 public final class ScanningServiceImpl implements IScanningService {
 	
 	private static IDeviceConnectorService deviceService;
+	private BundleContext context;
+	
+	
+	/**
+	 * Main constuctor used in the running server by OSGi (only)
+	 */
+	public ScanningServiceImpl() {
+		
+	}
+	
+	// Test
+	public ScanningServiceImpl(IDeviceConnectorService dservice) {
+		deviceService = dservice;	
+	}
 
 	private static final Map<Class<?>, Class<? extends IRunnableDevice>> scanners;
 	
@@ -59,33 +74,28 @@ public final class ScanningServiceImpl implements IScanningService {
 
 	@Override
 	public final IPositioner createPositioner() throws ScanningException {
-		return createPositioner(null);
-	}
-
-	@Override
-	public final IPositioner createPositioner(IDeviceConnectorService hservice) throws ScanningException {
-		if (hservice==null) hservice = ScanningServiceImpl.deviceService;
-		return new ScannablePositioner(hservice);
+		// Try to set a deviceService if it is null
+		if (deviceService==null) deviceService = getDeviceConnector();
+		return new ScannablePositioner(deviceService);
 	}
 
 	
 	@Override
 	public final <T> IRunnableDevice<T> createRunnableDevice(T model) throws ScanningException {
-        return createRunnableDevice(model, null, null);
+        return createRunnableDevice(model, null);
 	}
 
 	@Override
-	public final <T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, IDeviceConnectorService hservice) throws ScanningException {
-		
-		if (hservice==null) hservice = ScanningServiceImpl.deviceService;
-		
+	public final <T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher) throws ScanningException {
+				
 		try {
+			if (deviceService==null) deviceService = getDeviceConnector();
 			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)scanners.get(model.getClass());
 			final IRunnableDevice<T> scanner = clazz.newInstance();
 			if (scanner instanceof AbstractRunnableDevice) {
 				AbstractRunnableDevice<T> ascanner = (AbstractRunnableDevice<T>)scanner;
 				ascanner.setScanningService(this);
-                ascanner.setDeviceService(hservice);
+                ascanner.setDeviceService(deviceService);
                 ascanner.setPublisher(publisher); // May be null
 			}
 			scanner.configure(model);
@@ -104,6 +114,23 @@ public final class ScanningServiceImpl implements IScanningService {
 
 	public static void setDeviceService(IDeviceConnectorService connectorService) {
 		ScanningServiceImpl.deviceService = connectorService;
+	}
+
+	public void start(BundleContext context) {
+		this.context = context;
+	}
+	
+	public void stop() {
+		this.context = null;
+	}
+	
+    /**
+     * Try to get the connector service or throw an exception
+     * @return
+     */
+	private IDeviceConnectorService getDeviceConnector() throws ScanningException {
+		ServiceReference<IDeviceConnectorService> ref = context.getServiceReference(IDeviceConnectorService.class);
+		return context.getService(ref);
 	}
 
 }

@@ -52,7 +52,7 @@ public class ARPESScanTest {
 		// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
 		this.mservice    = new MalcolmService(); 
 		this.gservice    = new PointGeneratorFactory();
-		this.sservice    = new ScanningServiceImpl();
+		this.sservice    = new ScanningServiceImpl(new MockScannableConnector());
 			
 		// Get the objects
 		this.connectorService = new ZeromqConnectorService();
@@ -100,7 +100,7 @@ public class ARPESScanTest {
 		});
 		
 		Iterable<IPosition>      points = gservice.createGenerator(new StepModel("temperature", 290, 300, 1));
-		IRunnableDevice<ScanModel> scan = sservice.createRunnableDevice(new ScanModel(points, device), null,  new MockScannableConnector());
+		IRunnableDevice<ScanModel> scan = sservice.createRunnableDevice(new ScanModel(points, device), null);
 		scan.run(null);
 	}
 

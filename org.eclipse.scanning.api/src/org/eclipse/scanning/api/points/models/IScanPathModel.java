@@ -13,8 +13,6 @@ public interface IScanPathModel {
 
 	public int hashCode();
 
-	public boolean equals(Object obj);
-
 	public void addPropertyChangeListener(PropertyChangeListener listener);
 
 	public void removePropertyChangeListener(PropertyChangeListener listener);
