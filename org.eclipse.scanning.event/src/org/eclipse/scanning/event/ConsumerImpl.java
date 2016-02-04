@@ -313,6 +313,11 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
             		continue;
         		}
         		
+        		if (ne.getClass().getSimpleName().endsWith("ClassCastException")) {
+            		ne.printStackTrace();
+        		}
+
+        		
         		if (!isDurable()) break;
         		        		
        			try {

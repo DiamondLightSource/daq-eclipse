@@ -55,21 +55,10 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		return (IScannable<T>)cache.get(name);
 	}
 
-	@Override
-	public <M> IWritableDetector<M> getDetector(String name) throws ScanningException {
-		if (cache==null) cache = new HashMap<String, INameable>(3);
-		if (cache.containsKey(name)) return (IWritableDetector<M>)cache.get(name);
-		register(new MockWritableDetector(name));
-		return (IWritableDetector<M>)cache.get(name);
-	}
 
 	@Override
 	public List<String> getScannableNames() throws ScanningException {
 		return cache.keySet().stream().filter(key -> cache.get(key) instanceof IScannable).collect(Collectors.toList());
 	}
 
-	@Override
-	public List<String> getDetectorNames() throws ScanningException {
-		return cache.keySet().stream().filter(key -> cache.get(key) instanceof IWritableDetector).collect(Collectors.toList());
-	}
 }

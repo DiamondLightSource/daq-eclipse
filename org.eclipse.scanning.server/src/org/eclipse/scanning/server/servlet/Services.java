@@ -4,13 +4,13 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
-import org.eclipse.scanning.api.scan.IScanningService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 
 public class Services {
 
 	private static IEventService           eventService;
 	private static IPointGeneratorService  generatorService;
-	private static IScanningService        scanService;
+	private static IDeviceService        scanService;
 	private static IDeviceConnectorService connector;
 	private static IMalcolmService         malcService;
 
@@ -34,12 +34,12 @@ public class Services {
 	}
 
 
-	public static IScanningService getScanService() {
+	public static IDeviceService getScanService() {
 		return scanService;
 	}
 
 
-	public static void setScanService(IScanningService scanService) {
+	public static void setScanService(IDeviceService scanService) {
 		Services.scanService = scanService;
 	}
 

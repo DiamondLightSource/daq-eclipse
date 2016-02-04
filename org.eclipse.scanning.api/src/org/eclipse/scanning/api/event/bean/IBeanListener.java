@@ -2,6 +2,8 @@ package org.eclipse.scanning.api.event.bean;
 
 import java.util.EventListener;
 
+import org.eclipse.scanning.api.event.scan.ScanBean;
+
 public interface IBeanListener<T> extends EventListener {
 
 	/**

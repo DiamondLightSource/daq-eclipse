@@ -3,7 +3,7 @@ package org.eclipse.scanning.api.points;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.scan.IScanningService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 
 /**
  * <pre>
@@ -15,11 +15,11 @@ import org.eclipse.scanning.api.scan.IScanningService;
  * certain location. For example at the start of a scan or
  * for a scan datapoint.
  * 
- * <B>NOTE:</B> An object is available using IScanningService.createPositioner()
+ * <B>NOTE:</B> An object is available using IDeviceService.createPositioner()
  * called IPositioner which can move scannables to a given
  * position by level.
  * 
- * @see IScanningService
+ * @see IDeviceService
  * @see org.eclipse.scanning.api.scan.event.IPositioner
  *
  * @author Matthew Gerring

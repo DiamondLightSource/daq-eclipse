@@ -12,15 +12,19 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
-import org.eclipse.scanning.api.scan.IScanningService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.ScanningServiceImpl;
+import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
+import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
+import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
+import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +38,7 @@ public class ARPESScanTest {
 	protected IMalcolmDevice<MappingModel>          device;
 	protected IMalcolmConnectorService<JsonMessage> connectorService;
 	protected IPointGeneratorService                     gservice;
-	protected IScanningService                      sservice;
+	protected IDeviceService                      sservice;
 
 	
 	/**
@@ -52,7 +56,10 @@ public class ARPESScanTest {
 		// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
 		this.mservice    = new MalcolmService(); 
 		this.gservice    = new PointGeneratorFactory();
-		this.sservice    = new ScanningServiceImpl(new MockScannableConnector());
+		this.sservice    = new DeviceServiceImpl(new MockScannableConnector());
+		DeviceServiceImpl impl = (DeviceServiceImpl)sservice;
+		impl._register(MockDetectorModel.class, MockWritableDetector.class);
+		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
 			
 		// Get the objects
 		this.connectorService = new ZeromqConnectorService();

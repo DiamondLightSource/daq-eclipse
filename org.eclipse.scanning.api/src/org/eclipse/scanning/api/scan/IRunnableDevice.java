@@ -39,8 +39,8 @@ import org.eclipse.scanning.api.points.IPosition;
  * Iterable<IPosition> gen = gservice.createGenerator(model)<br>
  * <br>
  * // Now scan the point iterator<br>
- * IScanningService sservice = ...// OSGi<br>
- * IDetector<ScanModel> scanner = sservice.createScanner(...);<br>
+ * IDeviceService sservice = ...// OSGi<br>
+ * IRunnableDevice<ScanModel> scanner = sservice.createScanner(...);<br>
  * scanner.configure(model);<br>
  * scanner.run();<br>
  * 

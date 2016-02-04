@@ -33,8 +33,8 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
  * Iterable<IPosition>    gen = gservice.createGenerator(model)<br>
  * <br>
  * // Now scan the point iterator<br>
- * IScanningService sservice = ...// OSGi<br>
- * IScanner<ScanModel> scanner = sservice.createScanner(...);
+ * IDeviceService sservice = ...// OSGi<br>
+ * IRunnableDevice<ScanModel> scanner = sservice.createScanner(...);
  * scanner.configure(model);
  * scanner.run();
  * 
@@ -46,7 +46,7 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
  *
  *
  */
-public interface IScanningService {
+public interface IDeviceService {
 	
 	/**
 	 * This method sets the value of the scannables named to this position.

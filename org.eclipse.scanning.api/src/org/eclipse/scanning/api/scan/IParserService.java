@@ -20,8 +20,8 @@ package org.eclipse.scanning.api.scan;
  * IPointGenerator<?>     gen = gservice.createGenerator(model)<br>
  * <br>
  * // Now scan the point iterator<br>
- * IScanningService sservice = ...// OSGi<br>
- * IScanner scanner = sservice.createScanner();<br>
+ * IDeviceService sservice = ...// OSGi<br>
+ * IRunnableDevice scanner = sservice.createScanner();<br>
  * scanner.configure(...);<br>
  * scanner.run();<br>
  * 

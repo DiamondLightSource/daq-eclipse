@@ -1,6 +1,6 @@
 package org.eclipse.scanning.sequencer;
 
-import java.util.Collections;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,8 +11,8 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
-import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -20,21 +20,23 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 @SuppressWarnings("rawtypes")
-public final class ScanningServiceImpl implements IScanningService {
+public final class DeviceServiceImpl implements IDeviceService {
 	
-	private static IDeviceConnectorService deviceService;
-	private BundleContext context;
-	
+	/**
+	 * This service can not be present for some tests which run in OSGi
+	 * but mock the test laster.
+	 */
+	private static IDeviceConnectorService deviceService;	
 	
 	/**
 	 * Main constuctor used in the running server by OSGi (only)
 	 */
-	public ScanningServiceImpl() {
+	public DeviceServiceImpl() {
 		
 	}
 	
 	// Test
-	public ScanningServiceImpl(IDeviceConnectorService dservice) {
+	public DeviceServiceImpl(IDeviceConnectorService dservice) {
 		deviceService = dservice;	
 	}
 
@@ -44,7 +46,7 @@ public final class ScanningServiceImpl implements IScanningService {
 	// This pattern can always be extended by extension points
 	// to allow point generators to be dynamically registered. 
 	static {
-		System.out.println("Starting scanning service");
+		System.out.println("Starting device service");
 		Map<Class<?>, Class<? extends IRunnableDevice>> tmp = new HashMap<>(7);
 		tmp.put(ScanModel.class,         AcquisitionDevice.class);
 		
@@ -55,9 +57,17 @@ public final class ScanningServiceImpl implements IScanningService {
 		}
 
 		
-		scanners = Collections.unmodifiableMap(tmp);
+		scanners = tmp;
 	}
 	
+	/**
+	 * Used for testing only
+	 * @param model
+	 * @param device
+	 */
+	public void _register(Class<?> model, Class<? extends IRunnableDevice> device) {
+		scanners.put(model, device);
+	}
 
 	private static void readExtensions(Map<Class<?>, Class<? extends IRunnableDevice>> devs) throws CoreException {
 		
@@ -91,12 +101,25 @@ public final class ScanningServiceImpl implements IScanningService {
 		try {
 			if (deviceService==null) deviceService = getDeviceConnector();
 			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)scanners.get(model.getClass());
+			if (clazz == null) throw new ScanningException("The model '"+model.getClass()+"' does not have a device registered for it!");
+			
 			final IRunnableDevice<T> scanner = clazz.newInstance();
 			if (scanner instanceof AbstractRunnableDevice) {
 				AbstractRunnableDevice<T> ascanner = (AbstractRunnableDevice<T>)scanner;
 				ascanner.setScanningService(this);
                 ascanner.setDeviceService(deviceService);
                 ascanner.setPublisher(publisher); // May be null
+                
+                
+                // If the model has a name for the device, we use
+                // it automatically.
+                try {
+                    final Method getName = model.getClass().getMethod("getName");
+                    String name = (String)getName.invoke(model);
+                    ascanner.setName(name);
+                } catch (NoSuchMethodException ignored) {
+                	// no getName() is compulsory in the model
+                }
 			}
 			scanner.configure(model);
 			return scanner;
@@ -113,8 +136,10 @@ public final class ScanningServiceImpl implements IScanningService {
 	}
 
 	public static void setDeviceService(IDeviceConnectorService connectorService) {
-		ScanningServiceImpl.deviceService = connectorService;
+		DeviceServiceImpl.deviceService = connectorService;
 	}
+	
+	private BundleContext context;
 
 	public void start(BundleContext context) {
 		this.context = context;
@@ -132,5 +157,6 @@ public final class ScanningServiceImpl implements IScanningService {
 		ServiceReference<IDeviceConnectorService> ref = context.getServiceReference(IDeviceConnectorService.class);
 		return context.getService(ref);
 	}
+
 
 }

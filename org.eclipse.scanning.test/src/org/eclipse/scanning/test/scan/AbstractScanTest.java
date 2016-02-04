@@ -30,7 +30,7 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
-import org.eclipse.scanning.api.scan.IScanningService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -43,7 +43,7 @@ import org.junit.Test;
 
 public class AbstractScanTest {
 
-	protected IScanningService              sservice;
+	protected IDeviceService              sservice;
 	protected IDeviceConnectorService       connector;
 	protected IPointGeneratorService        gservice;
 	protected IEventService                 eservice;
@@ -163,11 +163,10 @@ public class AbstractScanTest {
 	public void testScanError() throws Exception {
 		
 		// 1. Set the model to make the detector throw an exception
-		IWritableDetector<MockDetectorModel> detector = connector.getDetector("detector");
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setCollectionTime(0.1);
 		dmodel.setAbortCount(3); // Aborts on the third write call by throwing an exception
-		detector.configure(dmodel);
+		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>)sservice.createRunnableDevice(dmodel);
 		
 		// 2. Check run fails and check exception is that which the detector provided
 		// Not some horrible reflection one.
@@ -315,10 +314,10 @@ public class AbstractScanTest {
 		
 		// Configure a detector with a collection time.
 		if (detector == null) {
-			detector = connector.getDetector("detector");
 			MockDetectorModel dmodel = new MockDetectorModel();
 			dmodel.setCollectionTime(0.1);
-			detector.configure(dmodel);
+			dmodel.setName("detector");
+			detector = sservice.createRunnableDevice(dmodel);
 		}
 		
 		// Create scan points for a grid and make a generator

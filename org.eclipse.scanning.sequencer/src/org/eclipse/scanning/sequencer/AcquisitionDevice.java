@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IPauseableDevice;
@@ -108,21 +109,23 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
 		
 		try {
-	        
 	        // TODO Should we validate the position iterator that all
 	        // the positions are valid before running the scan?
 	        // It was called limit checking in GDA.
 	        // Sometimes logic is needed to implement collision avoidance
-    		setState(DeviceState.RUNNING);
-    	
-    		// We allow monitors which can block a position until a setpoint is
-    		// reached or add an extra record to the NeXus file.
-    		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
-    		
+
+			
     		// Set the size and declare a count
     		int size  = 0;
     		int count = 0;
     		for (IPosition unused : model.getPositionIterable()) size++; // Fast even for large stuff
+    		
+    		fireStart(size);
+ 	
+    		// We allow monitors which can block a position until a setpoint is
+    		// reached or add an extra record to the NeXus file.
+    		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
+    		
 
     		// Notify that we will do a run and provide the first position.
         	fireRunWillPerform(model.getPositionIterable().iterator().next());
@@ -169,6 +172,20 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	}
 
 	
+	private void fireStart(int size) throws ScanningException {
+		
+		// Setup the bean to sent
+		getBean().setSize(size);	        
+		getBean().setPreviousStatus(getBean().getStatus());
+		getBean().setStatus(Status.RUNNING);
+		
+		// Will send the state of the scan off.
+		setState(DeviceState.RUNNING);
+		
+		// Leave previous state as running now that we have notified of the start.
+		getBean().setPreviousStatus(Status.RUNNING);
+	}
+
 	public void reset() throws ScanningException {
 		
 		if (positioner instanceof LevelRunner) {

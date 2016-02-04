@@ -33,7 +33,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   ScanBean                   bean;
 
 	// OSGi services and intraprocess events
-	protected IScanningService           scanningService;
+	protected IDeviceService           scanningService;
 	protected IDeviceConnectorService    deviceService;
 	private   IPublisher<ScanBean>       publisher;
 
@@ -48,6 +48,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	}
 
 	public ScanBean getBean() {
+		if (bean==null) bean = new ScanBean();
 		return bean;
 	}
 	
@@ -61,11 +62,11 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		}
 	}
 
-	public IScanningService getScanningService() {
+	public IDeviceService getScanningService() {
 		return scanningService;
 	}
 
-	public void setScanningService(IScanningService scanningService) {
+	public void setScanningService(IDeviceService scanningService) {
 		this.scanningService = scanningService;
 	}
 

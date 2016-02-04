@@ -17,6 +17,7 @@ public class MockDetectorModel {
 	private int ran=0;
 	private int written=0;
 	private int abortCount=-1;
+	private String name;
 
 	
 	public double getCollectionTime() {
@@ -83,6 +84,14 @@ public class MockDetectorModel {
 
 	public void setAbortCount(int abortCount) {
 		this.abortCount = abortCount;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }

@@ -24,16 +24,19 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IPauseableDevice;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
-import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.ScanningServiceImpl;
+import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
+import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
+import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
+import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +45,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class ThreadScanTest {
 	
-	private IScanningService           sservice;
+	private IDeviceService           sservice;
 	private IDeviceConnectorService    connector;
 	private IPointGeneratorService          gservice;
 	private IEventService              eservice;
@@ -56,7 +59,11 @@ public class ThreadScanTest {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		connector = new MockScannableConnector();
-		sservice  = new ScanningServiceImpl(connector);
+		sservice  = new DeviceServiceImpl(connector);
+		DeviceServiceImpl impl = (DeviceServiceImpl)sservice;
+		impl._register(MockDetectorModel.class, MockWritableDetector.class);
+		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
+		
 		gservice  = new PointGeneratorFactory();
 		
 		
@@ -200,10 +207,10 @@ public class ThreadScanTest {
 	private IPauseableDevice<?> createConfiguredDevice(int rows, int columns) throws ScanningException, GeneratorException, URISyntaxException {
 		
 		// Configure a detector with a collection time.
-		IRunnableDevice<MockDetectorModel> detector = connector.getDetector("detector");
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setCollectionTime(0.1);
-		detector.configure(dmodel);
+		dmodel.setName("detector");
+		IRunnableDevice<MockDetectorModel> detector = sservice.createRunnableDevice(dmodel);
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();

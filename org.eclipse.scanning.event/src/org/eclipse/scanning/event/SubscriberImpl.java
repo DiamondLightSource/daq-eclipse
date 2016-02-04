@@ -32,6 +32,7 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
+import org.eclipse.scanning.api.event.status.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,6 +151,12 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 				DeviceState was = sbean.getPreviousDeviceState();
 				if (now!=null && now!=was) {
 					l.scanStateChanged(new ScanEvent(sbean));
+				} else {
+					Status snow = sbean.getStatus();
+					Status swas = sbean.getPreviousStatus();
+					if (snow!=null && snow!=swas) {
+						l.scanStateChanged(new ScanEvent(sbean));
+					}
 				}
 				
 				l.scanEventPerformed(new ScanEvent(sbean));

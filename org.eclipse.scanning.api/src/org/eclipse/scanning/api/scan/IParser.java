@@ -23,8 +23,8 @@ import java.util.Map;
  * IPointGenerator<?>     gen = gservice.createGenerator(model)<br>
  * <br>
  * // Now scan the point iterator<br>
- * IScanningService sservice = ...// OSGi<br>
- * IScanner<ScanModel> scanner = sservice.createScanner(...);<br>
+ * IDeviceService sservice = ...// OSGi<br>
+ * IRunnableDevice<ScanModel> scanner = sservice.createScanner(...);<br>
  * scanner.configure(model);<br>
  * scanner.run();<br>
  * 

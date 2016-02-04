@@ -1,5 +1,8 @@
 package org.eclipse.scanning.test.scan;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +14,8 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
-import org.eclipse.scanning.api.scan.IScanningService;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -23,20 +26,20 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.ScanningServiceImpl;
+import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
+import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
+import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
+import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-
 public class TopupTest {
 
-	protected IScanningService              sservice;
+	protected IDeviceService              sservice;
 	protected IDeviceConnectorService       connector;
 	protected IPointGeneratorService             gservice;
 	protected IEventService                 eservice;
@@ -49,14 +52,18 @@ public class TopupTest {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		connector = new MockScannableConnector();
-		sservice  = new ScanningServiceImpl(connector);
+		sservice  = new DeviceServiceImpl(connector);
+		DeviceServiceImpl impl = (DeviceServiceImpl)sservice;
+		impl._register(MockDetectorModel.class, MockWritableDetector.class);
+		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
+
 		gservice  = new PointGeneratorFactory();
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
-		detector = connector.getDetector("detector");
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setCollectionTime(0.1);
-		detector.configure(dmodel);
+		dmodel.setName("detector");
+		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>) sservice.createRunnableDevice(dmodel);
 		
 		positions = new ArrayList<>(20);
 		detector.addRunListener(new IRunListener.Stub() {

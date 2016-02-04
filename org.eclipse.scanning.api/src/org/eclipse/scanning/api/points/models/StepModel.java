@@ -1,6 +1,19 @@
 package org.eclipse.scanning.api.points.models;
 
-public class StepModel {
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
+public class StepModel implements IScanPathModel {
+
+	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.addPropertyChangeListener(listener);
+	}
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		this.pcs.removePropertyChangeListener(listener);
+	}
 
 	private String name;
 	private double start;

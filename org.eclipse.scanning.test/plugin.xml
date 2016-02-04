@@ -15,5 +15,16 @@
             model="org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel">
       </detector>
    </extension>
+   <extension
+         point="org.eclipse.scanning.api.device">
+      <device
+            class="org.eclipse.scanning.test.scan.mock.MockWritableDetector"
+            model="org.eclipse.scanning.test.scan.mock.MockDetectorModel">
+      </device>
+      <device
+            class="org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector"
+            model="org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel">
+      </device>
+   </extension>
 
 </plugin>

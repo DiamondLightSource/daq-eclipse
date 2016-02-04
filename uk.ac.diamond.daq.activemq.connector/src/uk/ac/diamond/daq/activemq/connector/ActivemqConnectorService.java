@@ -111,6 +111,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 			U result = (U) osgiMapper.readValue(string, Object.class);
 			return result;
 		} catch (JsonMappingException jme) {
+			jme.printStackTrace();
 			// Possibly no bundle and class information in the JSON - fall back to old mapper
 			if (nonOsgiMapper == null) nonOsgiMapper = createNonOsgiMapper();
 			return (U) nonOsgiMapper.readValue(string, beanClass);

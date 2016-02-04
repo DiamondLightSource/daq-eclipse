@@ -53,7 +53,7 @@ import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IRunnableEventDevice;
-import org.eclipse.scanning.api.scan.IScanningService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
@@ -61,7 +61,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.ScanningServiceImpl;
+import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -73,7 +73,7 @@ public class MandelbrotRemotePluginTest {
 	
 	private static INexusFileFactory   fileFactory;
 	
-	private static IScanningService        service;
+	private static IDeviceService        service;
 	private static IPointGeneratorService  gservice;
 	private static IDeviceConnectorService connector;
 	private static IRemoteDatasetService   dataService;
@@ -97,7 +97,7 @@ public class MandelbrotRemotePluginTest {
 
 		
 		connector = new MockScannableConnector();
-		service   = new ScanningServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		service   = new DeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
 		
 		MandelbrotModel model = new MandelbrotModel();

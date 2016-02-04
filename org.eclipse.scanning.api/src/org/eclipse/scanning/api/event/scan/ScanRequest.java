@@ -1,7 +1,10 @@
 package org.eclipse.scanning.api.event.scan;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 /**
@@ -22,22 +25,11 @@ public class ScanRequest {
 	 */
 	private IScanPathModel model;
 	
-	public ScanRequest() {
-		
-	}
-	
-	public ScanRequest(IScanPathModel model, String[] detectorNames, String[] monitorNames, String filePath) {
-		super();
-		this.model = model;
-		this.detectorNames = detectorNames;
-		this.monitorNames = monitorNames;
-		this.filePath = filePath;
-	}
 
 	/** 
 	 * The names of the detectors to use in the scan, may be null.
 	 */
-	private String[] detectorNames;
+	private Map<String, Object> detectors;
 	
 	/**
 	 * The names of monitors in the scan, may be null.
@@ -48,6 +40,27 @@ public class ScanRequest {
 	 * Part or all of the file path to be used for this scan.
 	 */
 	private String filePath;
+	
+	/**
+	 * The start position or null if there is no start position to move to.
+	 */
+	private IPosition start;
+	
+	/**
+	 * The end position or null if there is no start position to move to.
+	 */
+	private IPosition end;
+
+	public ScanRequest() {
+		
+	}
+	
+	public ScanRequest(IScanPathModel model, String filePath, String... monitorNames) {
+		super();
+		this.model = model;
+		this.monitorNames = monitorNames;
+		this.filePath = filePath;
+	}
 
 	public IScanPathModel getModel() {
 		return model;
@@ -57,19 +70,12 @@ public class ScanRequest {
 		this.model = model;
 	}
 
-	public String[] getDetectorNames() {
-		return detectorNames;
-	}
-
-	public void setDetectorNames(String... detectorNames) {
-		this.detectorNames = detectorNames;
-	}
 
 	public String[] getMonitorNames() {
 		return monitorNames;
 	}
 
-	public void setMonitorNames(String[] monitorNames) {
+	public void setMonitorNames(String... monitorNames) {
 		this.monitorNames = monitorNames;
 	}
 
@@ -85,10 +91,12 @@ public class ScanRequest {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Arrays.hashCode(detectorNames);
+		result = prime * result + ((detectors == null) ? 0 : detectors.hashCode());
+		result = prime * result + ((end == null) ? 0 : end.hashCode());
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + Arrays.hashCode(monitorNames);
+		result = prime * result + ((start == null) ? 0 : start.hashCode());
 		return result;
 	}
 
@@ -101,7 +109,15 @@ public class ScanRequest {
 		if (getClass() != obj.getClass())
 			return false;
 		ScanRequest other = (ScanRequest) obj;
-		if (!Arrays.equals(detectorNames, other.detectorNames))
+		if (detectors == null) {
+			if (other.detectors != null)
+				return false;
+		} else if (!detectors.equals(other.detectors))
+			return false;
+		if (end == null) {
+			if (other.end != null)
+				return false;
+		} else if (!end.equals(other.end))
 			return false;
 		if (filePath == null) {
 			if (other.filePath != null)
@@ -115,13 +131,47 @@ public class ScanRequest {
 			return false;
 		if (!Arrays.equals(monitorNames, other.monitorNames))
 			return false;
+		if (start == null) {
+			if (other.start != null)
+				return false;
+		} else if (!start.equals(other.start))
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "ScanRequest [pointsModelClass=" + model.getClass() + ", detectorNames=" + Arrays.toString(detectorNames) + ", monitorNames="
-				+ Arrays.toString(monitorNames) + ", filePath=" + filePath + "]";
+		return "ScanRequest [model=" + model + ", detectors=" + detectors + ", monitorNames="
+				+ Arrays.toString(monitorNames) + ", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
+	}
+
+	public Map<String, Object> getDetectors() {
+		return detectors;
+	}
+
+	public void setDetectors(Map<String, Object> detectors) {
+		this.detectors = detectors;
+	}
+
+	public void putDetector(String name, Object dmodel) {
+		if (detectors==null) detectors = new HashMap<>(3);
+		detectors.put(name, dmodel);
+	}
+
+	public IPosition getStart() {
+		return start;
+	}
+
+	public void setStart(IPosition start) {
+		this.start = start;
+	}
+
+	public IPosition getEnd() {
+		return end;
+	}
+
+	public void setEnd(IPosition end) {
+		this.end = end;
 	}
 	
 }

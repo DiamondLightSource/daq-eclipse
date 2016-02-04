@@ -23,13 +23,14 @@ import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IRunnableEventDevice;
-import org.eclipse.scanning.api.scan.IScanningService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
+import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Test;
 
@@ -45,7 +46,7 @@ public class ScanExecutionTest {
 	
 	private static IEventService     eventService;
 	private static IPointGeneratorService generatorService;
-	private static IScanningService  scanService;
+	private static IDeviceService  scanService;
 	private static IDeviceConnectorService connector;
 	private static IMalcolmService   malcService;
 	
@@ -86,9 +87,11 @@ public class ScanExecutionTest {
 
 	protected void executeTestScan(TestScanBean bean) throws Exception {
 				
-		IWritableDetector<?> detector = connector.getDetector("swmr");
+		MockDetectorModel dmodel = new MockDetectorModel();
+		dmodel.setCollectionTime(0.1);
+		dmodel.setName("swmr");
+		IWritableDetector<?> detector = (IWritableDetector<?>) scanService.createRunnableDevice(dmodel);
 		assertNotNull(detector);
-		detector.configure(null);
 		
 		detector.addRunListener(new IRunListener.Stub() {
 			@Override
@@ -173,11 +176,11 @@ public class ScanExecutionTest {
 		ScanExecutionTest.generatorService = generatorService;
 	}
 
-	public static IScanningService getScanService() {
+	public static IDeviceService getScanService() {
 		return scanService;
 	}
 
-	public static void setScanService(IScanningService scanService) {
+	public static void setScanService(IDeviceService scanService) {
 		ScanExecutionTest.scanService = scanService;
 	}
 

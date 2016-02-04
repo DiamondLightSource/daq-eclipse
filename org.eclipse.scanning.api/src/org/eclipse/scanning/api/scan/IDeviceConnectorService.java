@@ -46,19 +46,4 @@ public interface IDeviceConnectorService {
 	 */
 	<T> IScannable<T> getScannable(String name) throws ScanningException;
 
-	/**
-	 * Get the names of all scannables known to the connector.
-	 * @return
-	 * @throws ScanningException
-	 */
-	List<String> getDetectorNames() throws ScanningException;
-
-	/**
-	 * 
-	 * @param name
-	 * @return
-	 * @throws ScanningException
-	 */
-	<U> IWritableDetector<U> getDetector(String name) throws ScanningException;
-
 }
