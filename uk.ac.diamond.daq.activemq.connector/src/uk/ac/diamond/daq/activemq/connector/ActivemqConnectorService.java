@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
@@ -37,6 +38,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  *
  */
 public class ActivemqConnectorService implements IEventConnectorService {
+
+	private static final String TYPE_INFO_FIELD_NAME = "@bundle_and_class";
 
 	private BundleProvider bundleProvider;
 	private ObjectMapper osgiMapper;
@@ -111,8 +114,10 @@ public class ActivemqConnectorService implements IEventConnectorService {
 			U result = (U) osgiMapper.readValue(string, Object.class);
 			return result;
 		} catch (JsonMappingException jme) {
-			jme.printStackTrace();
-			// Possibly no bundle and class information in the JSON - fall back to old mapper
+			if (!jme.getMessage().contains(TYPE_INFO_FIELD_NAME)) {
+				throw jme;
+			}
+			// No bundle and class information in the JSON - fall back to old mapper in case JSON has come from an older version
 			if (nonOsgiMapper == null) nonOsgiMapper = createNonOsgiMapper();
 			return (U) nonOsgiMapper.readValue(string, beanClass);
 		}
@@ -134,8 +139,9 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		// Be careful adjusting these settings - changing them will probably cause various unit tests to fail which
 		// check the exact contents of the serialized JSON string
 		mapper.setSerializationInclusion(Include.NON_NULL);
-		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 		mapper.setDefaultTyping(createOSGiTypeIdResolver(mapper));
+		mapper.enable(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS);
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		return mapper;
 	}
 
@@ -152,7 +158,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		TypeResolverBuilder<?> typer = new OSGiTypeResolverBuilder();
 		typer = typer.init(JsonTypeInfo.Id.CUSTOM, null);
 		typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
-		typer = typer.typeProperty("@bundle_and_class");
+		typer = typer.typeProperty(TYPE_INFO_FIELD_NAME);
 		return typer;
 	}
 
