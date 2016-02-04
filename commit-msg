@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Hope that this works on travis ci
 # set this to your active development branch
 develop_branch="master"
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
