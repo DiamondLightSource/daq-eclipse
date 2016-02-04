@@ -199,12 +199,15 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	private void checkPaused() throws Exception {
 		
-    	// Check the locking using a condition
+		if (!getState().isRunning()) throw new Exception("The scan state is "+getState());
+
+		// Check the locking using a condition
     	if(!lock.tryLock(1, TimeUnit.SECONDS)) {
     		throw new ScanningException(this, "Internal Error - Could not obtain lock to run device!");    		
     	}
     	try {
-        	if (awaitPaused) {
+    		if (!getState().isRunning()) throw new Exception("The scan state is "+getState());
+       	    if (awaitPaused) {
         		setState(DeviceState.PAUSED);
         		paused.await();
         		setState(DeviceState.RUNNING);
@@ -225,7 +228,32 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	
 	@Override
 	public void abort() throws ScanningException {
-		throw new ScanningException("Not implemented!");
+		
+		try {
+			lock.lockInterruptibly();
+		} catch (Exception ne) {
+			throw new ScanningException(ne);
+		}
+		
+		setState(DeviceState.ABORTING);
+		try {
+			awaitPaused = true;
+			
+			positioner.abort();
+			writers.abort();
+			runners.abort();
+			
+			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
+				device.abort();
+			}
+			
+		} catch (ScanningException s) {
+			throw s;
+		} catch (Exception ne) {
+			throw new ScanningException(ne);
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	@Override

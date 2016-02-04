@@ -174,6 +174,11 @@ abstract class LevelRunner<L extends ILevel> {
 		eservice = null;
 	}
 	
+	public void abort() {
+		if (eservice==null) return; // We are already finished
+		eservice.shutdownNow();
+	}
+	
 	/**
 	 * 
 	 * @param device

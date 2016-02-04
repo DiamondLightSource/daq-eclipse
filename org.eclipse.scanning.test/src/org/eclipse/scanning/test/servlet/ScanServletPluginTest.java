@@ -23,6 +23,7 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.event.ConsumerImpl;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.ScanServlet;
@@ -72,8 +73,9 @@ public class ScanServletPluginTest {
 		
 	}
 
+	@SuppressWarnings("rawtypes")
 	@AfterClass
-	public static void disconnect() throws EventException {
+	public static void disconnect() throws EventException, InterruptedException {
 		servlet.disconnect();
 	}
 	
@@ -103,7 +105,6 @@ public class ScanServletPluginTest {
 	public void testStepScan() throws Exception {
 		
 		ScanBean bean = createStepScan();
-
 		runAndCheck(bean);
 	}
 	
@@ -218,7 +219,7 @@ public class ScanServletPluginTest {
 			// Ok done that, now we sent it off...
 			submitter.submit(bean);
 			
-			boolean ok = latch.await(5, TimeUnit.SECONDS);
+			boolean ok = latch.await(10, TimeUnit.SECONDS);
 			if (!ok) throw new Exception("The latch broke before the scan finished!");
 			
 			assertEquals(startEvents.get(0).getSize(), beans.size());

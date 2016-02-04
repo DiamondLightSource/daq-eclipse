@@ -1,5 +1,6 @@
 package org.eclipse.scanning.server.servlet;
 
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -85,6 +86,10 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
     public void disconnect() throws EventException {
     	consumer.disconnect();
     }
+
+	public IConsumer<B> getConsumer() {
+		return consumer;
+	}
 
 	public String getBroker() {
 		return broker;

@@ -120,6 +120,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 
 	@Override
 	public void terminate() throws EventException {
+		if (bean.getStatus()==Status.COMPLETE) return; // Nothing to terminate.
 		try {
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.TERMINATED);

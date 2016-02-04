@@ -92,4 +92,13 @@ public interface IPositioner extends IPositionListenable {
 	 * @throws ScanningException
 	 */
 	void setMonitors(IScannable<?>... monitors) throws ScanningException;
+
+	/**
+	 * Calling this method instructs the ExecutorService running the levels to shutdownNow().
+	 * 
+	 * from ExecutorService.shutdownNow() : "Attempts to stop all actively executing tasks, halts the
+     * processing of waiting tasks, and returns a list of the tasks
+     * that were awaiting execution."
+	 */
+	void abort();
 }
