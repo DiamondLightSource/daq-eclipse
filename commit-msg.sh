@@ -4,7 +4,7 @@
 commit_regex='(jira\.diamond\.ac\.uk|merge)'
 error_msg="Aborting commit. Your commit message must reference a jira ticket or be 'Merge'"
 
-if ! grep -iqE "$commit_regex" "$1"; then
+if ! grep -iqE "$commit_regex" "./git/COMMIT_EDITMSG"; then
     echo "$error_msg" >&2
     exit 1
 fi
