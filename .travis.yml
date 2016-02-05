@@ -14,4 +14,4 @@ before_install:
  
 install: ant deps
 
-ant -buildfile ./org.eclipse.scanning.releng/build/build.xml
+script: ant -buildfile ./org.eclipse.scanning.releng/build/build.xml
