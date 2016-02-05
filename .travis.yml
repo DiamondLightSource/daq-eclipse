@@ -9,9 +9,9 @@ jdk:
  - oraclejdk8
 
 before_install:
- - chmod +x ./commit-msg.sh
- - bash ./commit-msg.sh
+ - chmod +x ./org.eclipse.scanning.releng/build/commit-msg.sh
+ - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
  
 install: ant deps
 
-
+ant -buildfile ./org.eclipse.scanning.releng/build/build.xml
