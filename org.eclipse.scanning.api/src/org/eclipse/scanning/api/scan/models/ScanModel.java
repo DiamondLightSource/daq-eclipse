@@ -1,9 +1,7 @@
 package org.eclipse.scanning.api.scan.models;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -48,20 +46,13 @@ public class ScanModel {
 	 */
 	private List<IScannable<?>> monitors;
 	
-	/**
-	 * The dimension models of the devices, indexed by name.
-	 * Each {@link ScanDeviceDimensionModel} describes the
-	 * dimension mappings between the
-	 */
-	private Map<String, ScanDeviceDimensionModel> deviceDimensionMappings;
-	
 	public ScanModel() {
-	    this(null);
-	}	
+		this(null);
+	}
+	
 	public ScanModel(Iterable<IPosition> positionIterator, IRunnableDevice<?>... detectors) {
 		this.positionIterable = positionIterator;
 		if (detectors!=null && detectors.length>0) this.detectors = Arrays.asList(detectors);
-		deviceDimensionMappings = new HashMap<>();
 	}
 
 	@Override
@@ -162,19 +153,6 @@ public class ScanModel {
 	
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
-	}
-	
-	public void setScanDeviceDimensionModel(String deviceName, 
-			ScanDeviceDimensionModel scanDeviceDimensionModel) {
-		deviceDimensionMappings.put(deviceName, scanDeviceDimensionModel);
-	}
-	
-	public ScanDeviceDimensionModel addDeviceDimensionMapping(String deviceName, int... dimensionMappings) {
-		return deviceDimensionMappings.put(deviceName, new ScanDeviceDimensionModel(dimensionMappings));
-	}
-	
-	public ScanDeviceDimensionModel getScanDeviceDimensionModel(String deviceName) {
-		return deviceDimensionMappings.get(deviceName);
 	}
 	
 }
