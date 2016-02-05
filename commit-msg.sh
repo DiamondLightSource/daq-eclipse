@@ -11,5 +11,6 @@ if [[ "$last_msg" =~ "$commit_regex" ]]; then
     exit 0
 fi
 
+# Couldn't find ticket or merge, fail build
 echo "$error_msg" >&2
 exit 1
