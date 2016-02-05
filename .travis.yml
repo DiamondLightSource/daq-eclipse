@@ -12,6 +12,4 @@ before_install:
  - chmod +x ./org.eclipse.scanning.releng/build/commit-msg.sh
  - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
  
-install: ant deps
-
 script: ant -buildfile ./org.eclipse.scanning.releng/build/build.xml
