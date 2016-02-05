@@ -77,7 +77,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		}
 		
 		try {
-			linkNeXus(model);
+			createNexusFile(model);
 		} catch (NexusException e) {
 			throw new ScanningException(e);
 		}
@@ -86,15 +86,14 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	}
 
 	/**
-	 * Connects devices involved in the scan with the NeXus file writing
-	 * if we are writing NeXus.
+	 * Creates the NeXus file for the scan.
 	 * 
-	 * @param model
-	 * @return
+	 * @param model scan model
+	 * @return <code>true</code> if a nexus file was successfully created, <code>false</code> otherwise
 	 * @throws NexusException
 	 * @throws ScanningException
 	 */
-	private boolean linkNeXus(ScanModel model) throws NexusException, ScanningException {
+	private boolean createNexusFile(ScanModel model) throws NexusException, ScanningException {
 		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return false; // nothing wired 
 		NexusFileScanBuilder nexusFileCreator = new NexusFileScanBuilder(getDeviceService());
 		return nexusFileCreator.createNexusFile(model);

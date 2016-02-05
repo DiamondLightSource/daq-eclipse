@@ -39,7 +39,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) {
 		DelegateNexusProvider<NXpositioner> nexusDelegate = new DelegateNexusProvider<>(
 				getName(), NexusBaseClass.NX_POSITIONER, NXpositioner.NX_VALUE, info, this);
-		nexusDelegate.setDemandFieldName(FIELD_NAME_DEMAND_VALUE);
+		nexusDelegate.setDemandDataFieldName(FIELD_NAME_DEMAND_VALUE);
 		return nexusDelegate;
 	}
 
