@@ -1,6 +1,4 @@
-jdk:
-  - oraclejdk8
-
-script: ./commit-msg
+before_install:
+ - ./commit-msg
 
 
