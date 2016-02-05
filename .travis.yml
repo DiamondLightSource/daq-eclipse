@@ -1,8 +1,8 @@
 language: java
 
 before_install:
- - chmod +x ./commit-msg
- - ./commit-msg
+ - chmod +x ./commit-msg.sh
+ - bash ./commit-msg.sh
  
 install: ant deps
 
