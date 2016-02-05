@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# regex to validate in commit msg
-commit_regex="(jira\.diamond\.ac\.uk|merge)"
-
 
 last_msg="$(git log -1 --pretty=%B)"
 echo "The last commit was: $last_msg"
