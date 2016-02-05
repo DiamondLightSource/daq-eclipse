@@ -1,4 +1,5 @@
 before_install:
+ - chmod +x ./commit-msg
  - ./commit-msg
 
 
