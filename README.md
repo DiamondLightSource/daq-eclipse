@@ -1,5 +1,5 @@
 # daq-eclipse        
-[![Build Status] https://travis-ci.org/DiamondLightSource/daq-eclipse]
+[![Build Status](build)](https://travis-ci.org/DiamondLightSource/daq-eclipse)
 
 The purpose of this repository is to hold open source code before it is submitted into an Eclipse Project.
 
