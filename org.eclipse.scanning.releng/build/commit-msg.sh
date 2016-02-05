@@ -9,13 +9,13 @@ echo "The last commit was: $last_msg"
 
 
 # We check the last commit message has a ticket
-if [[ $last_msg =~ .*(jira\.diamond\.ac\.uk|merge).* ]]; then
+if [[ $last_msg =~ .*(jira\.diamond\.ac\.uk).* ]]; then
     echo "Jira ticket or merge found, build may proceed"
     exit 0
 fi
 
 # Couldn't find ticket or merge, fail build
-error_msg="Aborting build. Your commit message must reference a jira ticket or be 'Merge'"
+error_msg="Aborting build. Your commit message must reference a jira ticket"
 echo "$error_msg" >&2
 
 # Get the last user
