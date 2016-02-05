@@ -5,6 +5,9 @@
 develop_branch="master"
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
 
+echo "Checking ${develop_branch}"
+echo "Echo checked out branch ${current_branch}"
+
 # only check commit messages on main development branch
 [ "$current_branch" != "$develop_branch" ] && exit 0
 
