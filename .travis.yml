@@ -1,5 +1,10 @@
 language: java
 
+# whitelist
+branches:
+ only:
+  - master
+ 
 jdk:
  - oraclejdk8
 
