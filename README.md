@@ -1,4 +1,5 @@
-# daq-eclipse(http://diamondlightsource.github.io/daq-eclipse)      
+# daq-eclipse
+[web](http://diamondlightsource.github.io/daq-eclipse)      
 [![Build Status](https://api.travis-ci.org/DiamondLightSource/daq-eclipse.png)](https://travis-ci.org/DiamondLightSource/daq-eclipse)
 
 
