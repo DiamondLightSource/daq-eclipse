@@ -20,6 +20,13 @@ public class GridModel extends AbstractBoundingBoxModel {
 	private int columns = 1;
 	private int rows = 1;
 	private boolean snake = false;
+	
+	public GridModel() {
+		
+	}
+	public GridModel(String xName, String yName) {
+		super(xName, yName);
+	}
 
 	@Override
 	public String getName() {

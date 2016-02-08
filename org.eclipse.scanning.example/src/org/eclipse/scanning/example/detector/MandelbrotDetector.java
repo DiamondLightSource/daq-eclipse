@@ -54,6 +54,8 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 	private IDataset              image;
 	private ILazyWriteableDataset data;
+	private ILazyWriteableDataset mvalue;
+	private double                value;
 	
 	public MandelbrotDetector() throws IOException {
 		super();
@@ -72,6 +74,8 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		// We add 2 to the scan rank to include the image
 		int rank = info.getRank()+2; // scan rank plus two dimensions for the image.
 		data = detector.initializeLazyDataset(NXdetector.NX_DATA, rank, Dataset.FLOAT64);
+		
+		mvalue = detector.initializeLazyDataset("total", 2, Dataset.FLOAT64);
 		
 		// Setting chunking is a very good idea if speed is required.
 		data.setChunking(info.createChunk(model.getRows(), model.getColumns()));
@@ -103,7 +107,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		final double a = (Double)pos.get(model.getxName());
 		final double b = (Double)pos.get(model.getyName());
 
-		double value = mandelbrot(a, b);
+		value = mandelbrot(a, b);
 		
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
 			image = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
@@ -114,6 +118,8 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		mp.put("value", value);
 		Metadata meta = new Metadata(mp);
 		image.addMetadata(meta);	
+		
+		if (model.getExposure()>0) Thread.sleep(Math.round(1000*model.getExposure()));
   	}
 	
 	@Override
@@ -123,6 +129,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 			SliceND sliceND = NexusScanInfo.createLocation(data, pos.getNames(), pos.getIndices(), model.getRows(), model.getColumns());
 			data.setSlice(null, image, sliceND);
 
+			sliceND = NexusScanInfo.createLocation(mvalue, pos.getNames(), pos.getIndices());
+			mvalue.setSlice(null, DoubleDataset.createFromObject(value), sliceND);
+			
 		} catch (Exception e) {
 			throw new ScanningException(e.getMessage(), e); 
 		}

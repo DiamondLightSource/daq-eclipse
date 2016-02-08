@@ -15,6 +15,10 @@ public class ScanModel {
 	 * path, set this field. If it is set the scan will 
 	 * attempt to use the NexusBuilderFactory and register all the
 	 * devices with it.
+	 * 
+	 * TODO Should we never allow this to be set? Would it allow
+	 * users to write data anywhere?
+	 * 
 	 */
 	private String filePath;
 	

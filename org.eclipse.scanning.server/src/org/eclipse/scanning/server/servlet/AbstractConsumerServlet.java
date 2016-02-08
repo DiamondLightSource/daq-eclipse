@@ -1,6 +1,5 @@
 package org.eclipse.scanning.server.servlet;
 
-import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -24,11 +23,12 @@ import org.eclipse.scanning.api.event.status.StatusBean;
     Spring config started servlets, for instance:
     <pre>
     
-    {@literal <bean id="scanPerformer" class="org.eclipse.scanning.server.servlet.ScanServlet">}
+    {@literal <bean id="scanPerformer" class="org.eclipse.scanning.server.servlet.ScanServlet" init-method="connect">}
     {@literal    <property name="broker"      value="tcp://p45-control:61616" />}
     {@literal    <property name="submitQueue" value="uk.ac.diamond.p45.submitQueue" />}
     {@literal    <property name="statusSet"   value="uk.ac.diamond.p45.statusSet"   />}
     {@literal    <property name="statusTopic" value="uk.ac.diamond.p45.statusTopic" />}
+    {@literal    <property name="durable"     value="true" />}
     {@literal </bean>}
     
     </pre>
@@ -44,6 +44,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 	
 	// Property to specify if one scan at a time or more are completed.
 	private boolean         blocking = true;
+	private boolean         durable = false;
 	
 	// Recommended to configure these as
 	protected String        submitQueue = IEventService.SUBMISSION_QUEUE;
@@ -71,6 +72,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
     public void connect() throws EventException, URISyntaxException {	
     	
     	consumer = eventService.createConsumer(new URI(getBroker()), getSubmitQueue(), getStatusSet(), getStatusTopic(), getHeartbeatTopic(), getKillTopic());
+    	consumer.setDurable(isDurable());
     	consumer.setRunner(new DoObjectCreator<B>());
      	consumer.start();
     }
@@ -145,6 +147,14 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 
 	public void setBlocking(boolean blocking) {
 		this.blocking = blocking;
+	}
+
+	public boolean isDurable() {
+		return durable;
+	}
+
+	public void setDurable(boolean durable) {
+		this.durable = durable;
 	}
 
 }

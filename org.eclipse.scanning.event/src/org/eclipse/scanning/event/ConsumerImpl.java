@@ -300,11 +300,12 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	            }
 	            
         	} catch (EventException ne) {
-        		throw ne;
+        		if (isDurable()) continue;
+        		break;
          		
         	} catch (Throwable ne) {
         		
-        		if (ne.getClass().getSimpleName().endsWith("JsonMappingException")) {
+        		if (ne.getClass().getSimpleName().contains("Json")) {
             		logger.error("Fatal except deserializing object!", ne);
             		continue;
         		}

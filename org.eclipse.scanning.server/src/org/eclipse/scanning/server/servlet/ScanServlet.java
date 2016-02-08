@@ -11,11 +11,12 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
      Spring config started, for instance:
     <pre>
     
-    {@literal <bean id="scanServlet" class="org.eclipse.scanning.server.servlet.ScanServlet">}
+    {@literal <bean id="scanServlet" class="org.eclipse.scanning.server.servlet.ScanServlet" init-method="connect">}
     {@literal    <property name="broker"      value="tcp://p45-control:61616" />}
     {@literal    <property name="submitQueue" value="uk.ac.diamond.p45.submitQueue" />}
     {@literal    <property name="statusSet"   value="uk.ac.diamond.p45.statusSet"   />}
     {@literal    <property name="statusTopic" value="uk.ac.diamond.p45.statusTopic" />}
+    {@literal    <property name="durable"     value="true" />}
     {@literal </bean>}
      
     </pre>

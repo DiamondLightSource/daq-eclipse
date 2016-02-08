@@ -19,6 +19,15 @@ public abstract class AbstractBoundingBoxModel implements IBoundingBoxModel {
 	private String      xName = "x";
 	private String      yName = "y";
 	
+	protected AbstractBoundingBoxModel() {
+		// TODO Auto-generated constructor stub
+	}
+	protected AbstractBoundingBoxModel(String xName, String yName) {
+		setxName(xName);
+		setyName(yName);
+	}
+
+	
 	@Override
 	public BoundingBox getBoundingBox() {
 		return boundingBox;

@@ -565,6 +565,7 @@ public class StatusQueueView extends ViewPart {
 			        
 				} catch (final Exception e) {
 					
+					e.printStackTrace();
 			        monitor.done();
 			        logger.error("Updating changed bean from topic", e);
 			        getSite().getShell().getDisplay().syncExec(new Runnable() {
@@ -860,10 +861,23 @@ public class StatusQueueView extends ViewPart {
 		buf.append(createSecondaryId(beanBundleName, beanClassName, queueName, topicName, submissionQueueName));
 		return buf.toString();
 	}
-	
-	public static String createSecondaryId(final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
+	public static String createId(final String uri, final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
 		
 		final StringBuilder buf = new StringBuilder();
+		buf.append(ID);
+		buf.append(":");
+		buf.append(createSecondaryId(uri, beanBundleName, beanClassName, queueName, topicName, submissionQueueName));
+		return buf.toString();
+	}
+
+	public static String createSecondaryId(final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
+        return createSecondaryId(null, beanBundleName, beanClassName, queueName, topicName, submissionQueueName);
+	}
+	
+	public static String createSecondaryId(final String uri, final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
+		
+		final StringBuilder buf = new StringBuilder();
+		if (uri!=null) append(buf, "uri",      uri);
 		append(buf, "beanBundleName",      beanBundleName);
 		append(buf, "beanClassName",       beanClassName);
 		append(buf, "queueName",           queueName);

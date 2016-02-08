@@ -13,6 +13,7 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
+import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -86,6 +87,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.COMPLETE);
+			bean.setPercentComplete(100);
 			response.broadcast(bean);
 
 		} catch (ScanningException | InterruptedException ne) {
@@ -97,10 +99,10 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		}
 	}
 
-	private IRunnableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws EventException {
+	private IRunnableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws ScanningException, EventException {
 
 		ScanRequest req = bean.getScanRequest();
-		if (req==null) throw new EventException("There must be a scan request to run a new scan!");
+		if (req==null) throw new ScanningException("There must be a scan request to run a new scan!");
 		
 		try {
 			final ScanModel smodel = new ScanModel();
@@ -108,12 +110,26 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			smodel.setDetectors(getDetectors(req.getDetectors()));
 			smodel.setMonitors(getMonitors(req.getMonitorNames()));
 			smodel.setBean(bean);
-			smodel.setFilePath(req.getFilePath()); // FIXME The file path should come from a service
-			                                       // that gives a proper location for the next collection.
+			
+			// the name of the scan should be set here.
+			if (req.getFilePath()==null) {
+				IFilePathService fservice = Services.getFilePathService();
+				if (fservice!=null) {
+					try {
+						smodel.setFilePath(fservice.nextPath());
+					} catch (Exception e) {
+						throw new EventException(e);
+					}
+				} else {
+					throw new ScanningException("Unable get file path service!");
+				}
+			} else {
+			    smodel.setFilePath(req.getFilePath());
+			}
 			
 			return Services.getScanService().createRunnableDevice(smodel, response);
 			
-		} catch (GeneratorException | ScanningException e) {
+		} catch (GeneratorException e) {
 			throw new EventException(e);
 		}
 	}

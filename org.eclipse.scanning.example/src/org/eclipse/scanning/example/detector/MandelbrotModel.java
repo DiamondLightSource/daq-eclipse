@@ -16,8 +16,9 @@ public class MandelbrotModel {
 	private String name;
 	private String xName;
 	private String yName;
-	
-	public MandelbrotModel() throws IOException {
+	private double exposure; // Seconds
+
+	public MandelbrotModel() {
 		
 		maxIterations = 500;
 		escapeRadius  = 10.0;
@@ -81,6 +82,8 @@ public class MandelbrotModel {
 		long temp;
 		temp = Double.doubleToLongBits(escapeRadius);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(exposure);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + maxIterations;
 		temp = Double.doubleToLongBits(maxx);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -109,6 +112,9 @@ public class MandelbrotModel {
 			return false;
 		if (Double.doubleToLongBits(escapeRadius) != Double
 				.doubleToLongBits(other.escapeRadius))
+			return false;
+		if (Double.doubleToLongBits(exposure) != Double
+				.doubleToLongBits(other.exposure))
 			return false;
 		if (maxIterations != other.maxIterations)
 			return false;
@@ -166,4 +172,12 @@ public class MandelbrotModel {
 		this.yName = yName;
 	}
 	
+	public double getExposure() {
+		return exposure;
+	}
+
+	public void setExposure(double exposure) {
+		this.exposure = exposure;
+	}
+
 }
