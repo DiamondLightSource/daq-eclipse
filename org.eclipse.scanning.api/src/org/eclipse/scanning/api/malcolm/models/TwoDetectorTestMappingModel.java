@@ -1,12 +1,21 @@
 package org.eclipse.scanning.api.malcolm.models;
 
-public class MappingModel {
+/**
+ * 
+ * We have not generated the correct models for malcolm as yet
+ * 
+ * @author Matthew Gerring
+ *
+ */
+public class TwoDetectorTestMappingModel {
 
 	
 	private double xStart,xStop,xStep;
 	private double yStart,yStop,yStep;
-	private double exposure;
-	private String hdf5File;
+	private double det1Exposure;
+	private String hdf5File1;
+	private double det2Exposure;
+	private String hdf5File2;
 	public double getxStart() {
 		return xStart;
 	}
@@ -43,27 +52,31 @@ public class MappingModel {
 	public void setyStep(double yStep) {
 		this.yStep = yStep;
 	}
-	public double getExposure() {
-		return exposure;
+	public double getDet1Exposure() {
+		return det1Exposure;
 	}
-	public void setExposure(double exposure) {
-		this.exposure = exposure;
+	public void setDet1Exposure(double exposure) {
+		this.det1Exposure = exposure;
 	}
-	public String getHdf5File() {
-		return hdf5File;
+	public String getHdf5File1() {
+		return hdf5File1;
 	}
-	public void setHdf5File(String hdf5File) {
-		this.hdf5File = hdf5File;
+	public void setHdf5File1(String hdf5File) {
+		this.hdf5File1 = hdf5File;
 	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		long temp;
-		temp = Double.doubleToLongBits(exposure);
+		temp = Double.doubleToLongBits(det1Exposure);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(det2Exposure);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result
-				+ ((hdf5File == null) ? 0 : hdf5File.hashCode());
+				+ ((hdf5File1 == null) ? 0 : hdf5File1.hashCode());
+		result = prime * result
+				+ ((hdf5File2 == null) ? 0 : hdf5File2.hashCode());
 		temp = Double.doubleToLongBits(xStart);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(xStep);
@@ -86,14 +99,22 @@ public class MappingModel {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MappingModel other = (MappingModel) obj;
-		if (Double.doubleToLongBits(exposure) != Double
-				.doubleToLongBits(other.exposure))
+		TwoDetectorTestMappingModel other = (TwoDetectorTestMappingModel) obj;
+		if (Double.doubleToLongBits(det1Exposure) != Double
+				.doubleToLongBits(other.det1Exposure))
 			return false;
-		if (hdf5File == null) {
-			if (other.hdf5File != null)
+		if (Double.doubleToLongBits(det2Exposure) != Double
+				.doubleToLongBits(other.det2Exposure))
+			return false;
+		if (hdf5File1 == null) {
+			if (other.hdf5File1 != null)
 				return false;
-		} else if (!hdf5File.equals(other.hdf5File))
+		} else if (!hdf5File1.equals(other.hdf5File1))
+			return false;
+		if (hdf5File2 == null) {
+			if (other.hdf5File2 != null)
+				return false;
+		} else if (!hdf5File2.equals(other.hdf5File2))
 			return false;
 		if (Double.doubleToLongBits(xStart) != Double
 				.doubleToLongBits(other.xStart))
@@ -114,6 +135,18 @@ public class MappingModel {
 				.doubleToLongBits(other.yStop))
 			return false;
 		return true;
+	}
+	public double getDet2Exposure() {
+		return det2Exposure;
+	}
+	public void setDet2Exposure(double det2Exposure) {
+		this.det2Exposure = det2Exposure;
+	}
+	public String getHdf5File2() {
+		return hdf5File2;
+	}
+	public void setHdf5File2(String hdf5File2) {
+		this.hdf5File2 = hdf5File2;
 	}
 	
 	

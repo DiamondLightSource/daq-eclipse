@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
-import org.eclipse.scanning.api.malcolm.models.MappingModel;
+import org.eclipse.scanning.api.malcolm.models.OneDetectorTestMappingModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.junit.After;
@@ -23,7 +23,7 @@ public class I05_1MalcolmTest {
 
 	protected IMalcolmService    service;
 	protected IMalcolmConnection connection;
-	protected IMalcolmDevice<MappingModel>  device;
+	protected IMalcolmDevice<OneDetectorTestMappingModel>  device;
 	protected IMalcolmConnectorService<JsonMessage> connectorService;
 
 	@Before
@@ -71,7 +71,7 @@ public class I05_1MalcolmTest {
 	@Test
 	public void testConfigure() throws ScanningException {
 
-		MappingModel model = new MappingModel();
+		OneDetectorTestMappingModel model = new OneDetectorTestMappingModel();
 		model.setxStart(0);
 		model.setxStop(0.5);
 		model.setxStep(0.05);
@@ -89,7 +89,7 @@ public class I05_1MalcolmTest {
 	@Test
 	public void testRun() throws ScanningException, InterruptedException {
 
-		MappingModel model = new MappingModel();
+		OneDetectorTestMappingModel model = new OneDetectorTestMappingModel();
 		model.setxStart(0);
 		model.setxStop(0.5);
 		model.setxStep(0.05);
