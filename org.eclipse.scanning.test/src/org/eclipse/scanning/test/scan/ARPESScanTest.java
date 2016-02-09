@@ -7,7 +7,7 @@ import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
-import org.eclipse.scanning.api.malcolm.models.MappingModel;
+import org.eclipse.scanning.api.malcolm.models.OneDetectorTestMappingModel;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
@@ -35,7 +35,7 @@ public class ARPESScanTest {
 
 	protected IMalcolmService                       mservice;
 	protected IMalcolmConnection                    connection;
-	protected IMalcolmDevice<MappingModel>          device;
+	protected IMalcolmDevice<OneDetectorTestMappingModel>          device;
 	protected IMalcolmConnectorService<JsonMessage> connectorService;
 	protected IPointGeneratorService                     gservice;
 	protected IDeviceService                      sservice;
@@ -88,7 +88,7 @@ public class ARPESScanTest {
 	public void testSimpleScan() throws Exception {
 	
 
-		final MappingModel model = new MappingModel();
+		final OneDetectorTestMappingModel model = new OneDetectorTestMappingModel();
 		model.setxStart(0);
 		model.setxStop(0.5);
 		model.setxStep(0.05);
