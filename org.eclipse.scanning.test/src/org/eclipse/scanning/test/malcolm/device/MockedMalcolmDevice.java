@@ -13,6 +13,7 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 
 import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
@@ -40,7 +41,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	protected Callable<Long> callableTask;
 
 		
-	MockedMalcolmDevice(String name) throws MalcolmDeviceException {
+	MockedMalcolmDevice(String name) throws ScanningException {
 		this(name, new LatchDelegate());
 		callableTask = new Callable<Long>() {
 			@Override
@@ -50,21 +51,17 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		};
 	}
 	
-	MockedMalcolmDevice(String name, final LatchDelegate latcher) throws MalcolmDeviceException {
+	MockedMalcolmDevice(String name, final LatchDelegate latcher) throws ScanningException {
 		
 		super(new ZeromqConnectorService()); // Hard coded, that's the way we role in tests.
 		this.latcher = latcher;
 		this.taskRunLock    = new ReentrantLock(true);
-		setState(DeviceState.IDLE);
-		this.name = name;
+		setDeviceState(DeviceState.IDLE);
+		setName(name);
 	}
 
 	public DeviceState getState() {
 		return state;
-	}
-	
-	protected void setState(DeviceState state) throws MalcolmDeviceException {
-		this.setState(state, null);
 	}
 
 	protected void setState(DeviceState state, String message) throws MalcolmDeviceException {
@@ -84,20 +81,20 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	}
 
 	@Override
-	public void abort() throws MalcolmDeviceException {
+	public void abort() throws ScanningException {
 		
 		if (!getState().isAbortable()) {
 			throw new MalcolmDeviceException(this, "Device is in state "+getState()+" which cannot be aborted!");
 		}
 		
-		setState(DeviceState.ABORTING); // Tells any running loops that we are killing it
+		setDeviceState(DeviceState.ABORTING); // Tells any running loops that we are killing it
 		try {
 			if (taskRunLock.tryLock() || taskRunLock.tryLock(5, TimeUnit.SECONDS)) {
-				setState(DeviceState.ABORTED);
+				setDeviceState(DeviceState.ABORTED);
 				taskRunLock.unlock();
 			} else {
 				// No sure what to do here as this lock is now no longer to do with pause
-				setState(DeviceState.ABORTED);
+				setDeviceState(DeviceState.ABORTED);
 			}
 			
 		} catch (InterruptedException e) {
@@ -115,10 +112,10 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	}
 
 	@Override
-	public void configure(Map<String, Object> params) throws MalcolmDeviceException {
+	public void configure(Map<String, Object> params) throws ScanningException {
 		
 		validate(params);
-		setState(DeviceState.CONFIGURING);
+		setDeviceState(DeviceState.CONFIGURING);
 		this.params = params;
 		if (params.containsKey("configureSleep")) {
 			try {
@@ -128,7 +125,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 				throw new MalcolmDeviceException(this, "Cannot sleep during configure!", e);
 			}
 		}
-		setState(DeviceState.READY);
+		setDeviceState(DeviceState.READY);
 		
 		// We configure a bean with all the scan specific things
 		final MalcolmEventBean bean = new MalcolmEventBean();
@@ -141,7 +138,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	}
 
 	@Override
-	public void run(IPosition pos) throws MalcolmDeviceException {
+	public void run(IPosition pos) throws ScanningException {
 		
 		if (!getState().isRunnable()) throw new MalcolmDeviceException("Malcolm is in non-runnable state "+getState());
 
@@ -152,7 +149,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 			write(params); // mimicks writing
 						
 		} catch (Exception e) {
-            setState(DeviceState.FAULT);
+            setDeviceState(DeviceState.FAULT);
 			throw new MalcolmDeviceException(this, "Cannot write", e);
 			
 		} finally {
@@ -174,13 +171,13 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	 */
 	protected void write(final Map<String, Object> params) throws Exception {
 
-		setState(DeviceState.RUNNING); // Will send an event
+		setDeviceState(DeviceState.RUNNING); // Will send an event
 
         int count  = 0;
         int amount = (int)params.get("nframes");
         
         // Send scan start
-		sendEvent(new MalcolmEventBean(getState(), true));
+		sendEvent(new MalcolmEventBean(getState()));
      
         try {
            
@@ -233,8 +230,8 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 
 			} // End fake scanning loop.
 			
-			setState(DeviceState.READY); // State change
-	        sendEvent(new MalcolmEventBean(getState(), false, true)); // Scan end event
+			setDeviceState(DeviceState.READY); // State change
+	        sendEvent(new MalcolmEventBean(getState())); // Scan end event
 
         
         } catch (Exception ne) {

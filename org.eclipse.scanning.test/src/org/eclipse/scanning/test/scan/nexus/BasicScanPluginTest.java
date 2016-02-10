@@ -102,7 +102,7 @@ public class BasicScanPluginTest {
 		
 		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();                      
 		                                                                                                    
-		assertEquals(DeviceState.READY, scanner.getState());                                                
+		assertEquals(DeviceState.READY, scanner.getDeviceState());                                                
                                                                                                             
 		String filePath = ((AbstractRunnableDevice<ScanModel>)scanner).getModel().getFilePath();            
                                                                                                             

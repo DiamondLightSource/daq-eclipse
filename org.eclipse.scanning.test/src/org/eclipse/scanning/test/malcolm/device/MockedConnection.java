@@ -4,8 +4,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
@@ -29,7 +30,11 @@ public class MockedConnection implements IMalcolmConnection {
 	}
 
 	@Override
-	public IMalcolmDevice getDevice(String name) throws MalcolmDeviceException {
+	public <T> IMalcolmDevice<T> getDevice(String name) throws MalcolmDeviceException {
+		return getDevice(name, null);
+	}
+	@Override
+	public <T> IMalcolmDevice<T> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
 		try {
 			if (devices==null || devices.isEmpty()) {
 				devices = new HashMap<String, IMalcolmDevice>(1);

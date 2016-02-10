@@ -32,9 +32,8 @@ public final class MalcolmEventBean {
 	private String  message;
 	
 	// State information
-	private DeviceState   state;
+	private DeviceState   deviceState;
 	private DeviceState   previousState;
-	private boolean scanStart, scanEnd;
 	
 	// Dataset information
 	private String  filePath;
@@ -46,23 +45,13 @@ public final class MalcolmEventBean {
 
 	}
 	
-	public MalcolmEventBean(DeviceState state, String message) {
-		this(state, false);
-		this.message = message;
+	public MalcolmEventBean(DeviceState state) {
+		this.deviceState     = state;
 	}
 
-	public MalcolmEventBean(DeviceState state) {
-		this(state, false);
-	}
-	
-	public MalcolmEventBean(DeviceState state, boolean scanStart) {
-		this(state, scanStart, false);
-	}
-	
-	public MalcolmEventBean(DeviceState state, boolean scanStart, boolean scanEnd) {
-		this.state     = state;
-		this.scanStart = scanStart;
-		this.scanEnd   = scanEnd;
+	public MalcolmEventBean(DeviceState state, String message) {
+		this(state);
+		this.message = message;
 	}
 	
 	public String getFilePath() {
@@ -82,25 +71,18 @@ public final class MalcolmEventBean {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((beamline == null) ? 0 : beamline.hashCode());
-		result = prime * result
-				+ ((datasetPath == null) ? 0 : datasetPath.hashCode());
-		result = prime * result
-				+ ((deviceName == null) ? 0 : deviceName.hashCode());
-		result = prime * result
-				+ ((filePath == null) ? 0 : filePath.hashCode());
+		result = prime * result + ((beamline == null) ? 0 : beamline.hashCode());
+		result = prime * result + ((datasetPath == null) ? 0 : datasetPath.hashCode());
+		result = prime * result + ((deviceName == null) ? 0 : deviceName.hashCode());
+		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		result = prime * result + Arrays.hashCode(newShape);
 		result = prime * result + Arrays.hashCode(oldShape);
 		long temp;
 		temp = Double.doubleToLongBits(percentComplete);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result
-				+ ((previousState == null) ? 0 : previousState.hashCode());
-		result = prime * result + (scanEnd ? 1231 : 1237);
-		result = prime * result + (scanStart ? 1231 : 1237);
-		result = prime * result + ((state == null) ? 0 : state.hashCode());
+		result = prime * result + ((previousState == null) ? 0 : previousState.hashCode());
+		result = prime * result + ((deviceState == null) ? 0 : deviceState.hashCode());
 		return result;
 	}
 	@Override
@@ -141,16 +123,11 @@ public final class MalcolmEventBean {
 			return false;
 		if (!Arrays.equals(oldShape, other.oldShape))
 			return false;
-		if (Double.doubleToLongBits(percentComplete) != Double
-				.doubleToLongBits(other.percentComplete))
+		if (Double.doubleToLongBits(percentComplete) != Double.doubleToLongBits(other.percentComplete))
 			return false;
 		if (previousState != other.previousState)
 			return false;
-		if (scanEnd != other.scanEnd)
-			return false;
-		if (scanStart != other.scanStart)
-			return false;
-		if (state != other.state)
+		if (deviceState != other.deviceState)
 			return false;
 		return true;
 	}
@@ -179,12 +156,12 @@ public final class MalcolmEventBean {
 		this.percentComplete = percentComplete;
 	}
 
-	public DeviceState getState() {
-		return state;
+	public DeviceState getDeviceState() {
+		return deviceState;
 	}
 
-	public void setState(DeviceState state) {
-		this.state = state;
+	public void setDeviceState(DeviceState state) {
+		this.deviceState = state;
 	}
 
 	public int[] getOldShape() {
@@ -211,28 +188,11 @@ public final class MalcolmEventBean {
 		this.message = message;
 	}
 
-	public boolean isScanStart() {
-		return scanStart;
-	}
-
-	public void setScanStart(boolean scanStart) {
-		this.scanStart = scanStart;
-	}
-
-	public boolean isScanEnd() {
-		return scanEnd;
-	}
-
-	public void setScanEnd(boolean scanEnd) {
-		this.scanEnd = scanEnd;
-	}
-
 	@Override
 	public String toString() {
 		return "MalcolmEventBean [filePath=" + filePath + ", deviceName="
 				+ deviceName + ", beanline=" + beamline + ", percentComplete="
-				+ percentComplete + ", message=" + message + ", state=" + state
-				+ ", scanStart=" + scanStart + ", scanEnd=" + scanEnd
+				+ percentComplete + ", message=" + message + ", state=" + deviceState
 				+ ", datasetPath=" + datasetPath + ", oldShape="
 				+ Arrays.toString(oldShape) + ", newShape="
 				+ Arrays.toString(newShape) + "]";
@@ -244,5 +204,13 @@ public final class MalcolmEventBean {
 
 	public void setPreviousState(DeviceState previousState) {
 		this.previousState = previousState;
+	}
+
+	public boolean isScanStart() {
+		return getDeviceState()==DeviceState.RUNNING && getDeviceState()!=getPreviousState();
+	}
+	
+	public boolean isScanEnd() {
+		return getDeviceState()!=getPreviousState() && getPreviousState()== DeviceState.RUNNING;
 	}
 }

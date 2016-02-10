@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceOperationCancelledException;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public abstract class PausableMockedMalcolmDevice extends MockedMalcolmDevice {
 	 * 
 	 * @throws MalcolmDeviceException	// if connection to the event system cannot be made
 	 */
-	public PausableMockedMalcolmDevice(String name, final LatchDelegate latcher) throws MalcolmDeviceException {
+	public PausableMockedMalcolmDevice(String name, final LatchDelegate latcher) throws ScanningException {
 		super(name, latcher);
 		taskPauseLock = new ReentrantLock(true);
 		taskPauseCompleted = taskPauseLock.newCondition();
@@ -52,12 +53,12 @@ public abstract class PausableMockedMalcolmDevice extends MockedMalcolmDevice {
 	/**
 	 * Sets the device state as required taking account of any trailing {@link #runningStateChangeCompleted} awaits
 	 */
-	protected void setState(final DeviceState state) throws MalcolmDeviceException {
+	public void setState(final DeviceState state) throws ScanningException {
 		
         if (!state.isRunning()) {				// Clear up any trailing awaits from previous Run/Pause sequences
         	clearRunningStateChangeActive();	// when entering a non-running state e.g when extra threads have
         }										// tried to pause completed tasks
-        super.setState(state);
+        super.setDeviceState(state);
 	}
 
 	/**
@@ -132,7 +133,7 @@ public abstract class PausableMockedMalcolmDevice extends MockedMalcolmDevice {
 	/**
 	 * Requests that the task thread be paused at the start of its next run
 	 */
-	public void pause() throws MalcolmDeviceException {
+	public void pause() throws ScanningException {
 		if (getState() != DeviceState.RUNNING) {
 			throw new MalcolmDeviceException(this, "Device is in state "+getState()+" which cannot be paused!");
 		}
@@ -185,7 +186,7 @@ public abstract class PausableMockedMalcolmDevice extends MockedMalcolmDevice {
 	}
 	
 	@Override
-	public void abort() throws MalcolmDeviceException {
+	public void abort() throws ScanningException {
 		
 		if (!getState().isAbortable()) {
 			throw new MalcolmDeviceException(this, "Device is in state "+getState()+" which cannot be aborted!");

@@ -36,9 +36,6 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	protected IDeviceService           scanningService;
 	protected IDeviceConnectorService    deviceService;
 	private   IPublisher<ScanBean>       publisher;
-
-	// State
-	private   DeviceState                state = DeviceState.IDLE;
 	
 	// Listeners
 	private   Collection<IRunListener>   rlisteners;
@@ -54,7 +51,6 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	public void setBean(ScanBean bean) throws ScanningException {
 		this.bean = bean;
-		bean.setDeviceState(state);
 		try {
 			bean.setHostName(InetAddress.getLocalHost().getHostName());
 		} catch (UnknownHostException e) {
@@ -94,16 +90,13 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		this.name = name;
 	}
 
-	public DeviceState getState() {
-		return state;
-	}
-
-	public void setState(DeviceState nstate) throws ScanningException {
-		setState(nstate, null);
+	
+	public void setDeviceState(DeviceState nstate) throws ScanningException {
+		setDeviceState(nstate, null);
 	}
 	
 	public void reset() throws ScanningException {
-		setState(DeviceState.IDLE);
+		setDeviceState(DeviceState.IDLE);
 	}
 	
 	public void start(final IPosition pos) throws ScanningException, InterruptedException {
@@ -134,18 +127,14 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * @param position
 	 * @throws ScanningException 
 	 */
-	protected void setState(DeviceState nstate, IPosition position) throws ScanningException {
+	protected void setDeviceState(DeviceState nstate, IPosition position) throws ScanningException {
 		try {
 			// The bean must be set in order to change state.
-			if (publisher!=null) {
-				if (bean==null) bean = new ScanBean();
-				bean.setDeviceName(getName());
-				bean.setDeviceState(nstate);
-				bean.setPreviousDeviceState(state);
-				bean.setPosition(position);
-			}
-			
-			this.state = nstate;
+			if (bean==null) bean = new ScanBean();
+			bean.setDeviceName(getName());
+			bean.setPreviousDeviceState(bean.getDeviceState());
+			bean.setDeviceState(nstate);
+			bean.setPosition(position);
 			
 			if (publisher!=null) publisher.broadcast(bean);
 
@@ -154,6 +143,11 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 			throw new ScanningException(this, ne);
 		}
 		
+	}
+	
+	public DeviceState getDeviceState() throws ScanningException {
+		if (bean==null) return null;
+		return bean.getDeviceState();
 	}
 
 	protected void positionComplete(IPosition pos, int count, int size) throws EventException, ScanningException {
@@ -250,7 +244,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	@Override
 	public void configure(T model) throws ScanningException {
 		this.model = model;
-		setState(DeviceState.READY);
+		setDeviceState(DeviceState.READY);
 	}
 
 

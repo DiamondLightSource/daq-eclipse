@@ -132,7 +132,7 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
         		// TODO Do not use the 0MQ socket thread to despatch events?
         		Collection<IMalcolmListener<JsonMessage>> ls = listeners.get(msg.getId());
         		IMalcolmListener<JsonMessage>[] snapshot = ls.toArray(new IMalcolmListener[ls.size()]);
-        		for (IMalcolmListener<JsonMessage> l : snapshot) l.eventPerformed(new MalcolmEvent<JsonMessage>(msg));
+        		for (IMalcolmListener<JsonMessage> l : snapshot) l.eventPerformed(new MalcolmEvent<JsonMessage>(received, msg));
         		
         	} else if (idMap.containsKey(msg.getId())) {
         		

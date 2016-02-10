@@ -66,9 +66,18 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		setModel(model);
 		setBean(model.getBean()!=null?model.getBean():new ScanBean());
+		getBean().setPreviousStatus(getBean().getStatus());
+		getBean().setStatus(Status.QUEUED);
 		
 		positioner = scanningService.createPositioner();
-		if (getModel().getDetectors()!=null) {
+		if (model.getDetectors()!=null) {
+			
+			// Make sure all devices report the same scan id
+			for (IRunnableDevice<?> device : model.getDetectors()) {
+				if (device instanceof AbstractRunnableDevice<?>) {
+					((AbstractRunnableDevice<?>)device).setBean(getBean());
+				}
+			}
 			runners = new DeviceRunner(model.getDetectors());
 			writers = new DeviceWriter(model.getDetectors());
 		} else {
@@ -82,7 +91,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			throw new ScanningException(e);
 		}
 		
-		setState(DeviceState.READY);
+		setDeviceState(DeviceState.READY); // Notify 
 	}
 
 	/**
@@ -102,7 +111,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	@Override
 	public void run(IPosition parent) throws ScanningException, InterruptedException {
 		
-		if (getState()!=DeviceState.READY) throw new ScanningException("The device '"+getName()+"' is not ready. It is in state "+getState());
+		if (getDeviceState()!=DeviceState.READY) throw new ScanningException("The device '"+getName()+"' is not ready. It is in state "+getDeviceState());
 		
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
@@ -147,7 +156,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
 	        	writers.await();               // Wait for the previous read out to return, if any
-	        	runners.run(pos);            // GDA8: collectData() / GDA9: run() for Malcolm
+	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
 	        	// Send an event about where we are in the scan
@@ -159,18 +168,33 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // On the last iteration we must wait for the final readout.
         	writers.await();                   // Wait for the previous read out to return, if any
         	fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
-       	    setState(DeviceState.READY);
+    		fireEnd();
         	
 		} catch (ScanningException | InterruptedException i) {
-			setState(DeviceState.FAULT);
+			if (!getBean().getStatus().isFinal()) getBean().setStatus(Status.FAILED);
+			getBean().setMessage(i.getMessage());
+			setDeviceState(DeviceState.FAULT);
 			throw i;
 		} catch (Exception ne) {
-			setState(DeviceState.FAULT);
+			if (!getBean().getStatus().isFinal()) getBean().setStatus(Status.FAILED);
+			getBean().setMessage(ne.getMessage());
+			setDeviceState(DeviceState.FAULT);
 			throw new ScanningException(ne);
 		}
 	}
 
 	
+	private void fireEnd() throws ScanningException {
+		
+		// Setup the bean to sent
+		getBean().setPreviousStatus(getBean().getStatus());
+		getBean().setStatus(Status.COMPLETE);
+		
+		// Will send the state of the scan off.
+   	    setDeviceState(DeviceState.READY); // Fires!
+				
+	}
+
 	private void fireStart(int size) throws ScanningException {
 		
 		// Setup the bean to sent
@@ -179,7 +203,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		getBean().setStatus(Status.RUNNING);
 		
 		// Will send the state of the scan off.
-		setState(DeviceState.RUNNING);
+		setDeviceState(DeviceState.RUNNING); // Fires!
 		
 		// Leave previous state as running now that we have notified of the start.
 		getBean().setPreviousStatus(Status.RUNNING);
@@ -198,18 +222,18 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	private void checkPaused() throws Exception {
 		
-		if (!getState().isRunning()) throw new Exception("The scan state is "+getState());
+		if (!getDeviceState().isRunning()) throw new Exception("The scan state is "+getDeviceState());
 
 		// Check the locking using a condition
     	if(!lock.tryLock(1, TimeUnit.SECONDS)) {
     		throw new ScanningException(this, "Internal Error - Could not obtain lock to run device!");    		
     	}
     	try {
-    		if (!getState().isRunning()) throw new Exception("The scan state is "+getState());
+    		if (!getDeviceState().isRunning()) throw new Exception("The scan state is "+getDeviceState());
        	    if (awaitPaused) {
-        		setState(DeviceState.PAUSED);
+        		setDeviceState(DeviceState.PAUSED);
         		paused.await();
-        		setState(DeviceState.RUNNING);
+        		setDeviceState(DeviceState.RUNNING);
         	}
     	} finally {
     		lock.unlock();
@@ -234,7 +258,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			throw new ScanningException(ne);
 		}
 		
-		setState(DeviceState.ABORTING);
+		setDeviceState(DeviceState.ABORTING);
 		try {
 			awaitPaused = true;
 			
@@ -258,7 +282,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	@Override
 	public void pause() throws ScanningException {
 		
-		if (getState() != DeviceState.RUNNING) {
+		if (getDeviceState() != DeviceState.RUNNING) {
 			throw new ScanningException(this, getName()+" is not running and cannot be paused!");
 		}
 		try {
@@ -267,7 +291,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			throw new ScanningException(ne);
 		}
 		
-		setState(DeviceState.PAUSING);
+		setDeviceState(DeviceState.PAUSING);
 		try {
 			awaitPaused = true;
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
@@ -286,7 +310,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	@Override
 	public void resume() throws ScanningException {
 		
-		if (getState() != DeviceState.PAUSED) {
+		if (getDeviceState() != DeviceState.PAUSED) {
 			throw new ScanningException(this, getName()+" is not paused and cannot be resumed!");
 		}
 		try {

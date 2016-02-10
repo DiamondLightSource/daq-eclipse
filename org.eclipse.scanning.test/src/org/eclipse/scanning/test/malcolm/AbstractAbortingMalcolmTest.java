@@ -66,9 +66,9 @@ public abstract class AbstractAbortingMalcolmTest extends AbstractMalcolmTest {
 		final Thread thread = new Thread(new Runnable() {
 			public void run() {
 				try {
-					System.out.println("Requesting pause, device is "+device.getState());
+					System.out.println("Requesting pause, device is "+device.getDeviceState());
 					device.pause();
-					System.out.println("Device is "+device.getState());
+					System.out.println("Device is "+device.getDeviceState());
 				} catch (Exception e) {
 					exceptions.add(e);
 				}
@@ -78,14 +78,14 @@ public abstract class AbstractAbortingMalcolmTest extends AbstractMalcolmTest {
 		thread.start();
 		
 		// Wait for pause
-		if (device.getState()!=DeviceState.PAUSED) {
+		if (device.getDeviceState()!=DeviceState.PAUSED) {
 		    device.latch(10, TimeUnit.SECONDS, DeviceState.PAUSING, DeviceState.RUNNING);
 		}
 		
-		System.out.println("Aborting paused run, current state is "+device.getState());
+		System.out.println("Aborting paused run, current state is "+device.getDeviceState());
 		device.abort();
         
-        if (device.getState()!=DeviceState.ABORTED) {
+        if (device.getDeviceState()!=DeviceState.ABORTED) {
         	throw new Exception("State was not aborted after abort!");
         }
 		
@@ -97,10 +97,10 @@ public abstract class AbstractAbortingMalcolmTest extends AbstractMalcolmTest {
         
 		pause1000ResumeLoop(device, 10, 3, 2000, false, false, false);
 		
-		System.out.println("Aborting paused run, current state is "+device.getState());
+		System.out.println("Aborting paused run, current state is "+device.getDeviceState());
 		device.abort();
         
-        if (device.getState()!=DeviceState.ABORTED) {
+        if (device.getDeviceState()!=DeviceState.ABORTED) {
         	throw new Exception("State was not aborted after abort!");
         }
 		
@@ -112,7 +112,7 @@ public abstract class AbstractAbortingMalcolmTest extends AbstractMalcolmTest {
         
         zebra.abort();
         
-        if (zebra.getState()!=DeviceState.ABORTED) {
+        if (zebra.getDeviceState()!=DeviceState.ABORTED) {
         	throw new Exception("State was not aborted after abort!");
         }
 	}

@@ -184,7 +184,7 @@ public class AbstractScanTest {
 		
 		// 3. Check that it died after 3 and it is FAULT
 		assertEquals(3, dmodel.getWritten());
-		assertTrue(scanner.getState()==DeviceState.FAULT);
+		assertTrue(scanner.getDeviceState()==DeviceState.FAULT);
 		
 		// 4. Check that running it again fails
 		ok=false;
@@ -254,7 +254,7 @@ public class AbstractScanTest {
 			
 			// Bit of a hack to get the generator from the model - should this be easier?
 			IPointGenerator<?,IPosition> gen = (IPointGenerator<?,IPosition>)((ScanModel)((AbstractRunnableDevice)scanner).getModel()).getPositionIterable();
-			assertEquals(gen.size()+states.size(), events.size());
+			assertEquals(gen.size(), events.size());
 			assertEquals(Arrays.asList(DeviceState.READY, DeviceState.RUNNING, DeviceState.READY), states);
 			
 			for (ScanBean b : events) assertEquals("fred", b.getUniqueId());

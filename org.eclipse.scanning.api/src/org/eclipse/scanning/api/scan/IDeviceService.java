@@ -2,6 +2,8 @@ package org.eclipse.scanning.api.scan;
 
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
+import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 
 
@@ -44,7 +46,7 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
  *
  * @author Matthew Gerring
  *
- *
+ * @see {@link IMalcolmService}, {@link IMalcolmConnection}
  */
 public interface IDeviceService {
 	

@@ -40,7 +40,7 @@ public class LatchDelegate {
 
 		if (ignored!=null) {
 			List<DeviceState> states = Arrays.asList(ignored);
-			while(states.contains(device.getState())) {
+			while(states.contains(device.getDeviceState())) {
 				latch = new CountDownLatch(1);
 				testLatchMap.put(id, latch);
 				await(device, latch, time, unit); // We cannot latch forever or risk deadlock
@@ -50,7 +50,7 @@ public class LatchDelegate {
 			}
 		} 
 		
-		return device.getState();
+		return device.getDeviceState();
 	}
 	
 	private final void await(IMalcolmDevice device, CountDownLatch latch, long timeout, TimeUnit unit) throws Exception {
@@ -60,7 +60,7 @@ public class LatchDelegate {
 			} else {
 				boolean ok = latch.await(timeout, unit);
 				if (!ok) {
-					throw new MalcolmDeviceException(device, "Latch took longer than "+timeout+" "+unit+". Device state is " + device.getState());
+					throw new MalcolmDeviceException(device, "Latch took longer than "+timeout+" "+unit+". Device state is " + device.getDeviceState());
 				}
 			}
 		} catch (InterruptedException e) {

@@ -40,13 +40,13 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 			zebra.addMalcolmListener(new IMalcolmListener<MalcolmEventBean>() {				
 				@Override
 				public void eventPerformed(MalcolmEvent<MalcolmEventBean> e) {
-					states.add(e.getBean().getState());
+					states.add(e.getBean().getDeviceState());
 				}
 			});
 			
 			for (int i = 0; i < 10; i++) {
-				System.out.println("Device state is "+zebra.getState());
-				if (zebra.getState() == DeviceState.IDLE) {
+				System.out.println("Device state is "+zebra.getDeviceState());
+				if (zebra.getDeviceState() == DeviceState.IDLE) {
 					throw new Exception("The device should not be IDLE!");
 				}
 				Thread.sleep(1000);
@@ -90,13 +90,13 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 						zebra.addMalcolmListener(new IMalcolmListener<MalcolmEventBean>() {				
 							@Override
 							public void eventPerformed(MalcolmEvent<MalcolmEventBean> e) {
-								states.add(e.getBean().getState());
+								states.add(e.getBean().getDeviceState());
 							}
 						});
 
 						for (int i = 0; i < 5; i++) {
-							System.out.println("Device state is "+zebra.getState());
-							if (zebra.getState() == DeviceState.IDLE) {
+							System.out.println("Device state is "+zebra.getDeviceState());
+							if (zebra.getDeviceState() == DeviceState.IDLE) {
 								exceptions.add(new Exception("The device should not be IDLE!"));
 							}
 							Thread.sleep(1000);
@@ -143,7 +143,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 			zebra.addMalcolmListener(new IMalcolmListener<MalcolmEventBean>() {				
 				@Override
 				public void eventPerformed(MalcolmEvent<MalcolmEventBean> e) {
-					states.add(e.getBean().getState());
+					states.add(e.getBean().getDeviceState());
 				}
 			});
 		
@@ -154,8 +154,8 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 			// We get an instance to the device separately to test two 
 			// device connections (although MockService will not do this)
 			for (int i = 0; i < 10; i++) {
-				System.out.println("Device state is "+zebra.getState());
-				if (zebra.getState() == DeviceState.IDLE) {
+				System.out.println("Device state is "+zebra.getDeviceState());
+				if (zebra.getDeviceState() == DeviceState.IDLE) {
 					throw new Exception("The device should not be IDLE!");
 				}
 				Thread.sleep(1000);

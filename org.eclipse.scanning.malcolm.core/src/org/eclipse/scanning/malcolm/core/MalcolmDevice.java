@@ -3,10 +3,13 @@ package org.eclipse.scanning.malcolm.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
@@ -36,61 +39,106 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		
 	private IMalcolmConnectorService<JsonMessage>   service;
 	private boolean                          alive;
-    private JsonMessage                      subscribeStateMachine;
+    private JsonMessage                      stateSubscriber;
+    private JsonMessage                      scanSubscriber;
+
+	private IPublisher<ScanBean>             publisher;
 
 
-	public MalcolmDevice(String name, IMalcolmConnectorService<JsonMessage> service) throws MalcolmDeviceException {
+	public MalcolmDevice(String name, IMalcolmConnectorService<JsonMessage> service, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
 		
 		super(service);
-    	this.name    = name;
-    	this.service = service;
+    	setName(name);
+       	this.service   = service;
+       	this.publisher = publisher;
 		
-    	final DeviceState currentState = getState();
+    	final DeviceState currentState = getDeviceState();
 		logger.debug("Connecting '"+getName()+"'. Current state: "+currentState);
 		alive = true;
 		
-		subscribeStateMachine = connectionDelegate.createSubscribeMessage("stateMachine");
-		
-		service.subscribe(this, subscribeStateMachine, new IMalcolmListener<JsonMessage>() {
+		stateSubscriber = connectionDelegate.createSubscribeMessage("stateMachine.state");
+		service.subscribe(this, stateSubscriber, new IMalcolmListener<JsonMessage>() {
 			
-			private DeviceState previousState = currentState;
 			@Override
-			public void eventPerformed(MalcolmEvent<JsonMessage> e) {
-				
-				DeviceState newState=null;
+			public void eventPerformed(MalcolmEvent<JsonMessage> e) {				
 				try {
-					JsonMessage msg = e.getBean();
-					MalcolmEventBean meb = new MalcolmEventBean();
-					meb.setDeviceName(getName());
-					meb.setMessage(msg.getMessage());
-					
-					newState = MalcolmUtil.getState(msg, false);
-					meb.setState(newState);
-					
-                    meb.setScanStart(newState!=previousState && newState==DeviceState.RUNNING);
-					meb.setScanEnd(previousState==DeviceState.RUNNING && newState.isPostRun());
-					
-					if (msg.getType().isError()) {
-						logger.error("Error message encountered: "+msg);
-						Thread.dumpStack();
-					}
-	
-					// TODO No enough information is being broadcast about scan..
-					eventDelegate.sendEvent(meb);
-					
+					sendScanStateChange(e);										
 				} catch (Exception ne) {
 					logger.error("Problem dispatching message!", ne);
-				} finally {
-					if (newState!=null) previousState = newState;
 				}
 			}
-		});			
+		});		
+		
+		scanSubscriber  = connectionDelegate.createSubscribeMessage("attributes.currentStep");
+		service.subscribe(this, scanSubscriber, new IMalcolmListener<JsonMessage>() {
+			
+			@Override
+			public void eventPerformed(MalcolmEvent<JsonMessage> e) {				
+				try {
+					sendScanEvent(e);										
+				} catch (Exception ne) {
+					logger.error("Problem dispatching message!", ne);
+				}
+			}
+		});		
+		
+	}
+
+	protected void sendScanEvent(MalcolmEvent<JsonMessage> e) throws Exception {
+		
+		JsonMessage msg      = e.getBean();
+		DeviceState newState = MalcolmUtil.getState(msg, false);
+
+		ScanBean bean = getBean();
+		bean.setDeviceName(getName());
+		bean.setPreviousDeviceState(bean.getDeviceState());
+		if (newState!=null) {
+			bean.setDeviceState(newState);
+		}
+		
+		// FIXME need to send proper position.
+		Object value = msg.getValue();
+		if (value instanceof Map) {
+			final Integer point = (Integer)((Map)value).get("value");
+			bean.setPoint(point);
+		}
+		if (publisher!=null) publisher.broadcast(bean);
+	}
+
+	private MalcolmEventBean meb;
+	protected void sendScanStateChange(MalcolmEvent<JsonMessage> e) throws Exception {
+		
+		JsonMessage msg = e.getBean();
+		
+		DeviceState newState = MalcolmUtil.getState(msg, false);
+		
+		// Send scan state changed
+		ScanBean bean = getBean();
+		bean.setDeviceName(getName());
+		bean.setPreviousDeviceState(bean.getDeviceState());
+		bean.setDeviceState(newState);
+		if (publisher!=null) publisher.broadcast(bean);
+		
+		// We also send a malcolm event
+		if (meb==null) meb = new MalcolmEventBean();
+		meb.setDeviceName(getName());
+		meb.setMessage(msg.getMessage());
+		
+		meb.setPreviousState(meb.getDeviceState());
+		meb.setDeviceState(newState);
+		
+		if (msg.getType().isError()) { // Currently used for debugging the device.
+			logger.error("Error message encountered: "+msg);
+			Thread.dumpStack();
+		}
+
+		eventDelegate.sendEvent(meb);
 	}
 
 	@Override
-	public DeviceState getState() throws MalcolmDeviceException {
+	public DeviceState getDeviceState() throws MalcolmDeviceException {
 		try {
-			final JsonMessage message = connectionDelegate.createGetMessage(name+".stateMachine.state");
+			final JsonMessage message = connectionDelegate.createGetMessage(getName()+".stateMachine.state");
 			final JsonMessage reply   = service.send(this, message);
 			if (reply.getType()==Type.ERROR) {
 				throw new MalcolmDeviceException(reply.getMessage());
@@ -102,7 +150,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 			throw mne;
 			
 		} catch (Exception ne) {
-			throw new MalcolmDeviceException(this, "Cannot connect to device "+name, ne);
+			throw new MalcolmDeviceException(this, "Cannot connect to device "+getName(), ne);
 		}
 	}
 
@@ -116,9 +164,10 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	}
 	
 	@Override
-	public void configure(T params) throws MalcolmDeviceException {
-		final JsonMessage msg   = connectionDelegate.createCallMessage("configure", params);
+	public void configure(T model) throws MalcolmDeviceException {
+		final JsonMessage msg   = connectionDelegate.createCallMessage("configure", model);
 		service.send(this, msg);
+		setModel(model);
 	}
 
 	@Override
@@ -148,18 +197,24 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 	@Override
 	public void dispose() throws MalcolmDeviceException {
-		if (subscribeStateMachine!=null) {
+		unsubscribe(stateSubscriber);
+		unsubscribe(scanSubscriber);
+
+		setAlive(false);
+	}
+
+	private final void unsubscribe(JsonMessage subscriber) throws MalcolmDeviceException {
+		if (subscriber!=null) {
 			final JsonMessage unsubscribeStatus = connectionDelegate.createUnsubscribeMessage();
-			unsubscribeStatus.setId(subscribeStateMachine.getId());
-			service.unsubscribe(this, unsubscribeStatus);
+			unsubscribeStatus.setId(subscriber.getId());
+			service.unsubscribe(this, subscriber);
 			logger.debug("Unsubscription "+getName()+" made "+unsubscribeStatus);
 		}
-		setAlive(false);
 	}
 
 	@Override
 	public boolean isLocked() throws MalcolmDeviceException {
-		final DeviceState state = getState();
+		final DeviceState state = getDeviceState();
 		return state.isTransient(); // Device is not locked but it is doing something.
 	}
 
@@ -202,7 +257,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 				}
 			};
 				
-			service.subscribe(this, subscribeStateMachine, stateChanger);
+			service.subscribe(this, stateSubscriber, stateChanger);
 			
 			boolean countedDown = false;
 			if (time>0) {
@@ -211,7 +266,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 				latch.await();
 			}
 	
-			service.unsubscribe(this, subscribeStateMachine, stateChanger);
+			service.unsubscribe(this, stateSubscriber, stateChanger);
 			
 			if (exceptionContainer.size()>0) throw exceptionContainer.get(0);
 			

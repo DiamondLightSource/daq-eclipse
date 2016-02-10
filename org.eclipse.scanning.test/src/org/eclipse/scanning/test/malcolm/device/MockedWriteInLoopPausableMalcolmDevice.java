@@ -2,7 +2,6 @@ package org.eclipse.scanning.test.malcolm.device;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
@@ -11,6 +10,7 @@ import org.eclipse.dawnsci.hdf5.IHierarchicalDataFile;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 
 /**
@@ -20,7 +20,7 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
  */
 public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolmDevice {
 
-	public MockedWriteInLoopPausableMalcolmDevice(final String name, final LatchDelegate latcher) throws MalcolmDeviceException {		
+	public MockedWriteInLoopPausableMalcolmDevice(final String name, final LatchDelegate latcher) throws ScanningException {		
 		super(name, latcher);
 		/**
 		 * The task to be executed repeatably
@@ -77,7 +77,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 	}
 
 	@Override
-	public void configure(Map<String, Object> params) throws MalcolmDeviceException {
+	public void configure(Map<String, Object> params) throws ScanningException {
 		
 		validate(params);
 		setState(DeviceState.CONFIGURING);

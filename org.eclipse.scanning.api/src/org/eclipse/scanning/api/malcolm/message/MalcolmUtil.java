@@ -59,11 +59,11 @@ public class MalcolmUtil {
      * @return
      */
 	public static boolean isScanning(MalcolmEventBean bean) {
-		return !bean.isScanEnd() && !bean.isScanStart() && bean.getState().isRunning();
+		return !bean.isScanEnd() && !bean.isScanStart() && bean.getDeviceState().isRunning();
 	}
 
 	public static boolean isStateChange(MalcolmEventBean bean) {
-		return bean.getPreviousState()!=null && bean.getState()!=bean.getPreviousState();
+		return bean.getPreviousState()!=null && bean.getDeviceState()!=bean.getPreviousState();
 	}
 
 }

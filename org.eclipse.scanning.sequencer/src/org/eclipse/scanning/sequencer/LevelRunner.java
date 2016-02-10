@@ -2,6 +2,7 @@ package org.eclipse.scanning.sequencer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -208,6 +209,9 @@ abstract class LevelRunner<L extends ILevel> {
 	 * @throws ScanningException 
 	 */
 	protected Map<Integer, List<L>> getLevelOrderedObjects(final Collection<L> objects) throws ScanningException {
+		
+		if (objects==null) return Collections.emptyMap();
+		
 		// TODO It is necessary to cache this map for speed?
 		final Map<Integer, List<L>> ret = new TreeMap<>();
 		for (L object : objects) {
@@ -243,10 +247,11 @@ abstract class LevelRunner<L extends ILevel> {
 		return position;
 	}
 
-	private IPosition getPosition(List<Future<IPosition>> pos) throws InterruptedException, ExecutionException {
+	private IPosition getPosition(List<Future<IPosition>> futures) throws InterruptedException, ExecutionException {
 	    IPosition ret = new MapPosition();
-	    for (Future<IPosition> future : pos) {
-	    	ret = ret.composite(future.get());
+	    for (Future<IPosition> future : futures) {
+	    	IPosition pos = future.get();
+	    	ret = ret.composite(pos);
 		}
 	    return ret;
 	}

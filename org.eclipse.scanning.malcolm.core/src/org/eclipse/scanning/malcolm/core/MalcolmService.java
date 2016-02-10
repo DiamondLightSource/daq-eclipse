@@ -19,12 +19,12 @@ public class MalcolmService implements IMalcolmService {
 
 	@Override
 	public IMalcolmConnection createConnection(URI malcolmUri) throws URISyntaxException, MalcolmDeviceException {
-		return new MalcolmConnection(this, malcolmUri);
+		return new MalcolmConnection(malcolmUri);
 	}
 
 
 	@Override
 	public IMalcolmConnection createConnection(URI malcolmUri, IMalcolmConnectorService<JsonMessage> connectorService) throws URISyntaxException, MalcolmDeviceException {
-		return new MalcolmConnection(this, malcolmUri, connectorService);
+		return new MalcolmConnection(malcolmUri, connectorService);
 	}
 }

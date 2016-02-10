@@ -103,7 +103,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 			} catch (Exception allowed) {
 				
 			}
-			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getDeviceState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 		} finally {
 			device.dispose();
 		}
@@ -115,14 +115,14 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 		if (device == null) throw new Exception("Cannot get device!");
 		
 		try {
-			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getDeviceState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 			
 			final Map<String, Object> params = new HashMap<String, Object>(2);
 			params.put("exposure", 0.1);
 			params.put("nframes",  10);
 			device.configure(params);
 			
-			if (device.getState()!=DeviceState.READY) throw new Exception("Unexpected non-READY state!");
+			if (device.getDeviceState()!=DeviceState.READY) throw new Exception("Unexpected non-READY state!");
 
 			
 		} finally {
@@ -136,7 +136,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 		if (device == null) throw new Exception("Cannot get device!");
 		
 		try {
-			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getDeviceState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 			
 			final Map<String, Object> params = new HashMap<String, Object>(2);
 			params.put("exposure", 0.1);
@@ -144,7 +144,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 			device.configure(params);
 			device.abort();
 			device.reset();
-			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-READY state!");
+			if (device.getDeviceState()!=DeviceState.IDLE) throw new Exception("Unexpected non-READY state!");
 			
 		} finally {
 			device.dispose();
@@ -158,7 +158,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 		if (device == null) throw new Exception("Cannot get device!");
 		
 		try {
-			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getDeviceState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 			
 			final Map<String, Object> params = new HashMap<String, Object>(2);
 			params.put("exposure", 0.1);
@@ -166,7 +166,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 			device.configure(params);
 			device.abort();
 			device.reset();
-			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-READY state!");
+			if (device.getDeviceState()!=DeviceState.IDLE) throw new Exception("Unexpected non-READY state!");
 			
 			try {
 				device.run(null); // Should cause exception
@@ -188,7 +188,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 		if (device == null) throw new Exception("Cannot get device!");
 		
 		try {
-			if (device.getState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
+			if (device.getDeviceState()!=DeviceState.IDLE) throw new Exception("Unexpected non-IDLE state!");
 			
 			final Map<String, Object> params = new HashMap<String, Object>(2);
 			params.put("exposure", 0.1);
@@ -208,7 +208,7 @@ public class RealConnectionTest extends AbstractMalcolmTest {
 			
 			if (beans.size()<10) throw new Exception("Unexpected number of events reported from running dummy detector! "+beans.size());
 			
-			if (device.getState()!=DeviceState.IDLE) {
+			if (device.getDeviceState()!=DeviceState.IDLE) {
 				throw new Exception("Device did not go back to idle after the run!");
 			}
 			

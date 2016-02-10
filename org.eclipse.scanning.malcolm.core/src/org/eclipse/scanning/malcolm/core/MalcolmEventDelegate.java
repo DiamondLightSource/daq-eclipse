@@ -22,7 +22,6 @@ public class MalcolmEventDelegate {
 	
 	// listeners
 	private Collection<IMalcolmListener<MalcolmEventBean>> mlisteners;
-	private Collection<IRunListener>                       rlisteners;
 	
 	// Bean to contain all the settings for a given
 	// scan and to hold data for scan events
@@ -78,7 +77,7 @@ public class MalcolmEventDelegate {
 	public void sendStateChanged(DeviceState state, DeviceState old, String message) throws Exception {
 		final MalcolmEventBean evt = new MalcolmEventBean();
 		evt.setPreviousState(old);
-		evt.setState(state);
+		evt.setDeviceState(state);
 		evt.setMessage(message);
 		sendEvent(evt);
 	}
@@ -90,60 +89,5 @@ public class MalcolmEventDelegate {
 	public void close() {
 		if (mlisteners!=null) mlisteners.clear();
 	}
-
-	public void addRunListener(IRunListener l) {
-		if (rlisteners==null) rlisteners = Collections.synchronizedCollection(new LinkedHashSet<IRunListener>());
-		rlisteners.add(l);
-	}
-	
-	public void removeRunListener(IRunListener l) {
-		if (rlisteners==null) return;
-		rlisteners.remove(l);
-	}
-	
-	protected void fireRunWillPerform(IRunnableDevice<?> device, IPosition position) throws ScanningException{
-		
-		if (rlisteners==null) return;
-		
-		final RunEvent evt = new RunEvent(device, position);
-		
-		// Make array, avoid multi-threading issues.
-		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
-		for (IRunListener l : la) l.runWillPerform(evt);
-	}
-	
-	protected void fireRunPerformed(IRunnableDevice<?> device, IPosition position) throws ScanningException{
-		
-		if (rlisteners==null) return;
-		
-		final RunEvent evt = new RunEvent(device, position);
-		
-		// Make array, avoid multi-threading issues.
-		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
-		for (IRunListener l : la) l.runPerformed(evt);
-	}
-	
-	protected void fireWriteWillPerform(IRunnableDevice<?> device, IPosition position) throws ScanningException{
-		
-		if (rlisteners==null) return;
-		
-		final RunEvent evt = new RunEvent(device, position);
-		
-		// Make array, avoid multi-threading issues.
-		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
-		for (IRunListener l : la) l.writeWillPerform(evt);
-	}
-	
-	protected void fireWritePerformed(IRunnableDevice<?> device, IPosition position) throws ScanningException{
-		
-		if (rlisteners==null) return;
-		
-		final RunEvent evt = new RunEvent(device, position);
-		
-		// Make array, avoid multi-threading issues.
-		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
-		for (IRunListener l : la) l.writePerformed(evt);
-	}
-
 
 }

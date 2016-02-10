@@ -76,6 +76,7 @@ public class MapPosition extends AbstractPosition {
 	
 	public void putAll(IPosition pos) {
 		final List<String> names = pos.getNames();
+		if (names==null) return; // EmptyPosition allowed.
 		for (String name : names) {
 			values.put(name, pos.get(name));
 		}
@@ -96,6 +97,7 @@ public class MapPosition extends AbstractPosition {
 	public void putAllIndices(IPosition pos) {
 		if (indices==null) indices = new LinkedHashMap<String, Integer>(7);
 		final List<String> names = pos.getNames();
+		if (names==null) return;
 		for (String name : names) {
 			indices.put(name, pos.getIndex(name));
 		}

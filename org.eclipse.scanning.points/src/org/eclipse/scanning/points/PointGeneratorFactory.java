@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
+import org.eclipse.scanning.api.points.models.EmptyModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IBoundingLineModel;
@@ -45,6 +46,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		tmp.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
 		tmp.put(OneDStepModel.class,         OneDStepGenerator.class);
 		tmp.put(RasterModel.class,           RasterGenerator.class);
+		tmp.put(EmptyModel.class,            EmptyGenerator.class);
 		
 		try {
 			readExtensions(tmp);

@@ -37,7 +37,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 		configure(zebra, 10);
 		zebra.run(null); // blocks until finished
 		
-		final DeviceState state = zebra.getState();
+		final DeviceState state = zebra.getDeviceState();
 		
 		if (!state.isBeforeRun()) throw new Exception("Problem with state at end of test!");
 	}
@@ -66,7 +66,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 		
 		if (beans.size()!=2) throw new Exception("Scan start and end not encountered!");
 		
-		final DeviceState state = zebra.getState();
+		final DeviceState state = zebra.getDeviceState();
 		
 		if (!state.isBeforeRun()) throw new Exception("Problem with state at end of test!");
 	}
@@ -104,7 +104,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 			throw new Exception("Unexpected number of images written! Expected: "+IMAGE_COUNT+" got "+beans.size());
 		}
 		
-		final DeviceState state = zebra.getState();
+		final DeviceState state = zebra.getDeviceState();
 		
 		if (!state.isBeforeRun()) throw new Exception("Problem with state at end of test!");
 	}

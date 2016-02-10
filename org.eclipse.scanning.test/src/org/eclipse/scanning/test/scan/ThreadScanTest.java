@@ -157,13 +157,13 @@ public class ThreadScanTest {
 		}
 
 		// Wait for end of run for 30 seconds, otherwise we carry on (test will then likely fail)
-		if (device.getState()!=DeviceState.READY) {
+		if (device.getDeviceState()!=DeviceState.READY) {
 			latch(30, TimeUnit.SECONDS, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.PAUSING); // Wait until not running.
 		}
 
 		if (exceptions.size()>0) throw exceptions.get(0);
 		
-		if (device.getState()!=DeviceState.READY) throw new Exception("The state at the end of the pause/resume cycle(s) must be "+DeviceState.READY+" not "+device.getState());
+		if (device.getDeviceState()!=DeviceState.READY) throw new Exception("The state at the end of the pause/resume cycle(s) must be "+DeviceState.READY+" not "+device.getDeviceState());
 		int expectedThreads = usedThreads.size() > 0 ? usedThreads.get(0) : threadcount;
 		// TODO Sometimes too many pause events come from the real malcolm connection.
 		if (beans.size()<expectedThreads) throw new Exception("The pause event was not encountered the correct number of times! Found "+beans.size()+" required "+expectedThreads);
@@ -255,24 +255,24 @@ public class ThreadScanTest {
 		
 		
 		// No fudgy sleeps allowed in test must be as dataacq would use.
-		if (ignoreReady && device.getState()==DeviceState.READY) return;
-		System.out.println("Pausing device in state: "+device.getState());
+		if (ignoreReady && device.getDeviceState()==DeviceState.READY) return;
+		System.out.println("Pausing device in state: "+device.getDeviceState());
 		
 		device.pause();
-		System.out.println("Device is "+device.getState());
+		System.out.println("Device is "+device.getDeviceState());
 		
 		if (pauseTime>0) {
 			Thread.sleep(pauseTime);
-			System.out.println("We waited with for "+pauseTime+" device is now in state "+device.getState());
+			System.out.println("We waited with for "+pauseTime+" device is now in state "+device.getDeviceState());
 		}
 		
-		DeviceState state = device.getState();
+		DeviceState state = device.getDeviceState();
 		if (state!=DeviceState.PAUSED) throw new Exception("The state is not paused!");
 
 		device.resume();  // start it going again, non-blocking
 
 		Thread.sleep(100);
-		System.out.println("Device is resumed state is "+device.getState());
+		System.out.println("Device is resumed state is "+device.getDeviceState());
 	}
 
 }

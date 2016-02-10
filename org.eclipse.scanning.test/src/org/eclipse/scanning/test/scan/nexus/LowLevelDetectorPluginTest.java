@@ -106,7 +106,7 @@ public class LowLevelDetectorPluginTest {
 		scanner.run(null);
 		
 		// Check we reached ready (it will normally throw an exception on error)
-		assertEquals(DeviceState.READY, scanner.getState());
+		assertEquals(DeviceState.READY, scanner.getDeviceState());
 		
 
 		// Check what was written. Quite a bit to do here, it is not written in the 

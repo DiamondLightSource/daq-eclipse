@@ -1,12 +1,12 @@
 package org.eclipse.scanning.test.malcolm.device;
 
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
  * Example Device that executes a callable task a number of times as defined by the params
@@ -18,10 +18,10 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	protected int count;
 	protected int amount;
 	
-	public LoopingMockedMalcolmDevice(final String name,  final LatchDelegate latcher) throws MalcolmDeviceException {
+	public LoopingMockedMalcolmDevice(final String name,  final LatchDelegate latcher) throws ScanningException {
 		super(name, latcher);
 		setState(DeviceState.IDLE);
-		this.name = name;
+		setName(name);
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	        amount = (int)params.get("nframes");
 	        
 	        // Send scan start
-			sendEvent(new MalcolmEventBean(getState(), true));
+			sendEvent(new MalcolmEventBean(getState()));
 	           
 			while(getState().isRunning()) {
 				
@@ -63,7 +63,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 			} // End fake scanning loop.
 			
 			setState(DeviceState.IDLE); // State change
-	        sendEvent(new MalcolmEventBean(getState(), false, true)); // Scan end event        
+	        sendEvent(new MalcolmEventBean(getState())); // Scan end event        
         } 
 		catch (Exception ne) {
 			ne.printStackTrace();

@@ -53,7 +53,9 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 
 	@Override
 	protected Collection<IScannable<?>> getObjects() throws ScanningException {
-		final List<IScannable<?>> ret = new ArrayList<>(position.getNames().size());
+		List<String> names = position.getNames();
+		if (names==null) return null;
+		final List<IScannable<?>> ret = new ArrayList<>(names.size());
 		for (String name : position.getNames()) ret.add(hservice.getScannable(name));
 		if (monitors!=null) for(IScannable<?> mon : monitors) ret.add(mon);
 		return ret;

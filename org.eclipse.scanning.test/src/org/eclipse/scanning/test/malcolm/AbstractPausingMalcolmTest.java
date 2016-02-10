@@ -41,7 +41,7 @@ public abstract class AbstractPausingMalcolmTest extends AbstractMalcolmTest {
 		device.latch(-1, TimeUnit.SECONDS, DeviceState.RUNNING);  // Wait while finishes running
 		
 		if (exceptions.size()>0) throw exceptions.get(0);
-		if (!device.getState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getState());
+		if (!device.getDeviceState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getDeviceState());
 	}
 	
 	@Test
@@ -61,7 +61,7 @@ public abstract class AbstractPausingMalcolmTest extends AbstractMalcolmTest {
 		
 		if (beans.size()!=1) throw new Exception("The pause event was not encountered!");
 		if (exceptions.size()>0) throw exceptions.get(0);
-		if (!device.getState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getState());
+		if (!device.getDeviceState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getDeviceState());
 	}
 
 	@Test
@@ -78,7 +78,7 @@ public abstract class AbstractPausingMalcolmTest extends AbstractMalcolmTest {
 		
 		if (beans.size()!=1) throw new Exception("The pause event was not encountered!");
 		if (exceptions.size()>0) throw exceptions.get(0);
-		if (!device.getState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getState());
+		if (!device.getDeviceState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getDeviceState());
 	}
 
 
@@ -92,7 +92,7 @@ public abstract class AbstractPausingMalcolmTest extends AbstractMalcolmTest {
 		device.latch(10, TimeUnit.SECONDS, DeviceState.RUNNING); // Wait while running, but not longer than 10-seconds
 		
 		if (exceptions.size()>0) throw exceptions.get(0);
-		if (!device.getState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getState());
+		if (!device.getDeviceState().isBeforeRun()) throw new Exception("Problem with state at end of test! "+device.getDeviceState());
 	}
 	
 	

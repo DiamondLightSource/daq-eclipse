@@ -136,7 +136,7 @@ public abstract class AbstractMalcolmTest {
 		Thread.sleep(1000); // Let it get going.
 		// The idea is that using Malcolm will NOT require sleeps like we used to have.
 				
-		logger.debug("Device is "+device.getState());
+		logger.debug("Device is "+device.getDeviceState());
 		return device;
 	}
 	
@@ -148,7 +148,7 @@ public abstract class AbstractMalcolmTest {
 			@Override
 			public void eventPerformed(MalcolmEvent<MalcolmEventBean> e) {
 				MalcolmEventBean bean = e.getBean();
-	   			if (bean.getState()==DeviceState.PAUSED) {
+	   			if (bean.getDeviceState()==DeviceState.PAUSED) {
 				    beans.add(bean);
 				}
 			}
@@ -238,13 +238,13 @@ public abstract class AbstractMalcolmTest {
         if (expectExceptions && exceptions.size()>0) return device; // Pausing failed as expected
 
         // Wait for end of run for 30 seconds, otherwise we carry on (test will then likely fail)
-        if (doLatch && device.getState()!=DeviceState.IDLE) {
+        if (doLatch && device.getDeviceState()!=DeviceState.IDLE) {
         	device.latch(30, TimeUnit.SECONDS, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.PAUSING); // Wait until not running.
         }
 
 		if (exceptions.size()>0) throw exceptions.get(0);
 		if (doLatch) { // If we waited we can check it completed, otherwise it is probably still going.
-			if (device.getState()!=DeviceState.IDLE) throw new Exception("The state at the end of the pause/resume cycle(s) must be "+DeviceState.IDLE);
+			if (device.getDeviceState()!=DeviceState.IDLE) throw new Exception("The state at the end of the pause/resume cycle(s) must be "+DeviceState.IDLE);
 			int expectedThreads = usedThreads.size() > 0 ? usedThreads.get(0) : threadcount;
 	 		// TODO Sometimes too many pause events come from the real malcolm connection.
 			if (beans.size()<expectedThreads) throw new Exception("The pause event was not encountered the correct number of times! Found "+beans.size()+" required "+expectedThreads);
@@ -257,8 +257,8 @@ public abstract class AbstractMalcolmTest {
 		
 		
 		// No fudgy sleeps allowed in test must be as dataacq would use.
-		if (ignoreReady && device.getState()==DeviceState.READY) return;
-		System.out.println("Pausing device in state: "+device.getState()+" Its locked state is: "+device.isLocked());
+		if (ignoreReady && device.getDeviceState()==DeviceState.READY) return;
+		System.out.println("Pausing device in state: "+device.getDeviceState()+" Its locked state is: "+device.isLocked());
 		try {
 		    device.pause();
 		}
@@ -270,14 +270,14 @@ public abstract class AbstractMalcolmTest {
 			System.out.println(mde.getMessage()); // Done so that the previous print line makes sense.
 			throw mde;
 		}
-		System.out.println("Device is "+device.getState());
+		System.out.println("Device is "+device.getDeviceState());
 		
 		if (pauseTime>0) {
 			Thread.sleep(pauseTime);
-			System.out.println("We waited with device in state "+device.getState()+" for "+pauseTime);
+			System.out.println("We waited with device in state "+device.getDeviceState()+" for "+pauseTime);
 		}
 		
-		DeviceState state = device.getState();
+		DeviceState state = device.getDeviceState();
 		if (state!=DeviceState.PAUSED) throw new Exception("The state is not paused!");
 
 		try {
@@ -286,6 +286,6 @@ public abstract class AbstractMalcolmTest {
 			System.out.println("Resume operation cancelled for thread " + Thread.currentThread().getId());
 			throw mdoce;			
 		} 
-		System.out.println("Device is resumed state is "+device.getState());
+		System.out.println("Device is resumed state is "+device.getDeviceState());
 	}
 }

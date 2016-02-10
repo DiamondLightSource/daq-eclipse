@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
@@ -15,12 +17,10 @@ import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 public class MalcolmConnection implements IMalcolmConnection {
 
 	private IMalcolmConnectorService<JsonMessage> connector;	
-	private Map<String, IMalcolmDevice>    devices;
-	private MalcolmService                 service;
-	private URI                            malcolmUri;
+	private Map<String, IMalcolmDevice<?>>        devices;
 
-	MalcolmConnection(MalcolmService service, URI malcolmUri) throws MalcolmDeviceException {
-		this(service, malcolmUri, createConnectorService());
+	MalcolmConnection(URI malcolmUri) throws MalcolmDeviceException {
+		this(malcolmUri, createConnectorService());
 	}
 
 	/**
@@ -29,12 +29,10 @@ public class MalcolmConnection implements IMalcolmConnection {
 	 * @param malcolmUri - 
 	 * @throws MalcolmDeviceException
 	 */
-	MalcolmConnection(MalcolmService service, URI malcolmUri, IMalcolmConnectorService<JsonMessage> connector) throws MalcolmDeviceException {
+	MalcolmConnection(URI malcolmUri, IMalcolmConnectorService<JsonMessage> connector) throws MalcolmDeviceException {
 		
-		this.service   = service;
-		this.malcolmUri= malcolmUri;
 		this.connector = connector; // Usually null unless we are in testing mode.
-		this.devices   = new ConcurrentHashMap<String, IMalcolmDevice>(4);
+		this.devices   = new ConcurrentHashMap<String, IMalcolmDevice<?>>(4);
 		
 		// At this point we get OSGi to get the connector service for us.
 		try {
@@ -67,13 +65,19 @@ public class MalcolmConnection implements IMalcolmConnection {
 		final Collection<String> names = (Collection<String>)reply.getValue();
 		return names;
 	}
-
+	
 	@Override
-	public IMalcolmDevice getDevice(String name) throws MalcolmDeviceException {
+	public <T> IMalcolmDevice<T> getDevice(String name) throws MalcolmDeviceException {
+        return getDevice(name, null);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> IMalcolmDevice<T> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
 		
-		if (devices.containsKey(name)) return devices.get(name);
+		if (devices.containsKey(name)) return (IMalcolmDevice<T>)devices.get(name);
 		
-		IMalcolmDevice device = new MalcolmDevice(name, connector); // Might throw exception
+		IMalcolmDevice<T> device = new MalcolmDevice<T>(name, connector, publisher); // Might throw exception
 		devices.put(name, device);
 		return device;
 	}

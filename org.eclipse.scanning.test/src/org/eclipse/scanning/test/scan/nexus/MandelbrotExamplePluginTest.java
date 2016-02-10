@@ -178,7 +178,7 @@ public class MandelbrotExamplePluginTest {
 
 	private void checkFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
 		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();
-		assertEquals(DeviceState.READY, scanner.getState());
+		assertEquals(DeviceState.READY, scanner.getDeviceState());
 		
 		String filePath = ((AbstractRunnableDevice<ScanModel>)scanner).getModel().getFilePath();
 		NexusFile nf = fileFactory.newNexusFile(filePath);

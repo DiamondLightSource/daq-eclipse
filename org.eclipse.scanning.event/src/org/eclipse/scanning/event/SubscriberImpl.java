@@ -151,11 +151,13 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 				DeviceState was = sbean.getPreviousDeviceState();
 				if (now!=null && now!=was) {
 					l.scanStateChanged(new ScanEvent(sbean));
+					return;
 				} else {
 					Status snow = sbean.getStatus();
 					Status swas = sbean.getPreviousStatus();
-					if (snow!=null && snow!=swas) {
+					if (snow!=null && snow!=swas && swas!=null) {
 						l.scanStateChanged(new ScanEvent(sbean));
+						return;
 					}
 				}
 				

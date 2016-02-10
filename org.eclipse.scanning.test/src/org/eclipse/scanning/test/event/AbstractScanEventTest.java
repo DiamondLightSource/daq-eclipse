@@ -61,6 +61,10 @@ public class AbstractScanEventTest {
 			public void scanEventPerformed(ScanEvent evt) {
 				gotBack.add(evt.getBean());
 			}
+			@Override
+			public void scanStateChanged(ScanEvent evt) {
+				gotBack.add(evt.getBean());
+			}
 		});
 		
 		publisher.broadcast(bean);

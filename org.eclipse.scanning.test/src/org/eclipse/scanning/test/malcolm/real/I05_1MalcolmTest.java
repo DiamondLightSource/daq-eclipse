@@ -61,7 +61,7 @@ public class I05_1MalcolmTest {
 	@Test
 	public void testGetStatus() throws ScanningException {
 		
-		DeviceState status = device.getState();
+		DeviceState status = device.getDeviceState();
 		System.out.println(status);
 	}
 	
@@ -83,7 +83,7 @@ public class I05_1MalcolmTest {
 		
 		device.configure(model);
 		
-		System.out.println(device.getState());
+		System.out.println(device.getDeviceState());
 	}
 
 	@Test
@@ -100,11 +100,11 @@ public class I05_1MalcolmTest {
 		model.setHdf5File("/tmp/foobar.h5");
 		
 		device.configure(model);
-		System.out.println(device.getState());
+		System.out.println(device.getDeviceState());
 
 		device.run(null);
 		
-		System.out.println(device.getState());
+		System.out.println(device.getDeviceState());
 
 	}
 
