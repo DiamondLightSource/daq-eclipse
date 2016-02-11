@@ -20,6 +20,7 @@ package org.eclipse.scanning.example.detector;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -129,7 +130,8 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 			SliceND sliceND = NexusScanInfo.createLocation(data, pos.getNames(), pos.getIndices(), model.getRows(), model.getColumns());
 			data.setSlice(null, image, sliceND);
 
-			sliceND = NexusScanInfo.createLocation(mvalue, pos.getNames(), pos.getIndices());
+			// This fixes total for nD
+			sliceND = NexusScanInfo.createLocation(mvalue, Arrays.asList(model.getxName(), model.getyName()), pos.getIndices());
 			mvalue.setSlice(null, DoubleDataset.createFromObject(value), sliceND);
 			
 		} catch (Exception e) {
