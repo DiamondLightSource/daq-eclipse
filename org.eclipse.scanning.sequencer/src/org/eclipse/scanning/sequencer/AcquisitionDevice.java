@@ -44,6 +44,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private ReentrantLock    lock;
 	private Condition        paused;
 	private volatile boolean awaitPaused;
+	private NexusFileScanBuilder nexusBuilder;
 		
 	/**
 	 * Package private constructor, devices are created by the service.
@@ -104,8 +105,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	 */
 	private boolean createNexusFile(ScanModel model) throws NexusException, ScanningException {
 		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return false; // nothing wired 
-		NexusFileScanBuilder nexusFileCreator = new NexusFileScanBuilder(getDeviceService());
-		return nexusFileCreator.createNexusFile(model);
+		nexusBuilder = new NexusFileScanBuilder(getDeviceService());
+		return nexusBuilder.createNexusFile(model);
 	}
 
 	@Override
@@ -175,11 +176,14 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			getBean().setMessage(i.getMessage());
 			setDeviceState(DeviceState.FAULT);
 			throw i;
+			
 		} catch (Exception ne) {
 			if (!getBean().getStatus().isFinal()) getBean().setStatus(Status.FAILED);
 			getBean().setMessage(ne.getMessage());
 			setDeviceState(DeviceState.FAULT);
 			throw new ScanningException(ne);
+		} finally {
+			if (nexusBuilder!=null) nexusBuilder.close();
 		}
 	}
 

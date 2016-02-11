@@ -3,7 +3,7 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-public class OneDStepModel implements IBoundingLineModel {
+public class OneDStepModel extends AbstractPointsModel implements IBoundingLineModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	@Override

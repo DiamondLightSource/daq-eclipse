@@ -56,6 +56,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 	protected String        killTopic      = IEventService.KILL_TOPIC;
 
 	protected IConsumer<B> consumer;
+	private boolean        isConnected;
 	
 	protected AbstractConsumerServlet() {
 		this.eventService = Services.getEventService();
@@ -75,6 +76,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
     	consumer.setDurable(isDurable());
     	consumer.setRunner(new DoObjectCreator<B>());
      	consumer.start();
+     	isConnected = true;
     }
     
 	class DoObjectCreator<T> implements IProcessCreator<B> {
@@ -86,6 +88,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
    
 	@PreDestroy
     public void disconnect() throws EventException {
+		if (!isConnected) return; // Nothing to disconnect
     	consumer.disconnect();
     }
 

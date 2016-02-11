@@ -3,7 +3,7 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-public class SinglePointModel implements IPointModel {
+public class SinglePointModel extends AbstractPointsModel implements IPointModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	@Override

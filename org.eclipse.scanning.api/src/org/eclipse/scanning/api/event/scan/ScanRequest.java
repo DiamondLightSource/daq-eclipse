@@ -15,16 +15,24 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * The class automatically assigns a unique id for the run.
  * 
  * @author Matthew Gerring
+ * @param T must be type of region that the regions correspond to. For instance IROI for any region type or IRectangularROI is all known to be rectangular.
  *
  */
-public class ScanRequest {
+public class ScanRequest<T> {
 
 	/**
-	 * The model for generating the points for a scan 
+	 * The models for generating the points for a scan 
+	 * The models must be in the same nested order that the
+	 * compound scan will be generated as.
+	 * 
 	 * e.g. a StepModel
 	 */
-	private IScanPathModel model;
+	private IScanPathModel[] models;
 	
+	/**
+	 * A map of the unique id of a model to the set of regions (if any) required by that model.
+	 */
+	private Map<String, T[]> regions;
 
 	/** 
 	 * The names of the detectors to use in the scan, may be null.
@@ -52,24 +60,31 @@ public class ScanRequest {
 	private IPosition end;
 
 	public ScanRequest() {
-		
+
 	}
 	
 	public ScanRequest(IScanPathModel model, String filePath, String... monitorNames) {
 		super();
-		this.model = model;
+		models = new IScanPathModel[]{model};
+		this.monitorNames = monitorNames;
+		this.filePath = filePath;
+	}
+	
+	public ScanRequest(IScanPathModel model, T region, String filePath, String... monitorNames) {
+		super();
+		models = new IScanPathModel[]{model};
+		putRegion(model.getUniqueKey(), region);
 		this.monitorNames = monitorNames;
 		this.filePath = filePath;
 	}
 
-	public IScanPathModel getModel() {
-		return model;
+	public IScanPathModel[] getModels() {
+		return models;
 	}
-
-	public void setModel(IScanPathModel model) {
-		this.model = model;
+	
+	public void setModels(IScanPathModel... models) {
+		this.models = models;
 	}
-
 
 	public String[] getMonitorNames() {
 		return monitorNames;
@@ -94,7 +109,7 @@ public class ScanRequest {
 		result = prime * result + ((detectors == null) ? 0 : detectors.hashCode());
 		result = prime * result + ((end == null) ? 0 : end.hashCode());
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
+		result = prime * result + Arrays.hashCode(models);
 		result = prime * result + Arrays.hashCode(monitorNames);
 		result = prime * result + ((start == null) ? 0 : start.hashCode());
 		return result;
@@ -124,10 +139,7 @@ public class ScanRequest {
 				return false;
 		} else if (!filePath.equals(other.filePath))
 			return false;
-		if (model == null) {
-			if (other.model != null)
-				return false;
-		} else if (!model.equals(other.model))
+		if (!Arrays.equals(models, other.models))
 			return false;
 		if (!Arrays.equals(monitorNames, other.monitorNames))
 			return false;
@@ -141,7 +153,7 @@ public class ScanRequest {
 
 	@Override
 	public String toString() {
-		return "ScanRequest [model=" + model + ", detectors=" + detectors + ", monitorNames="
+		return "ScanRequest [models=" + Arrays.toString(models) + ", detectors=" + detectors + ", monitorNames="
 				+ Arrays.toString(monitorNames) + ", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
 	}
 
@@ -173,5 +185,19 @@ public class ScanRequest {
 	public void setEnd(IPosition end) {
 		this.end = end;
 	}
+
+	public Map<String, T[]> getRegions() {
+		return regions;
+	}
+
+	public void setRegions(Map<String, T[]> regions) {
+		this.regions = regions;
+	}
 	
+	@SafeVarargs
+	public final void putRegion(String unqiueId, T... areas) {
+		if (this.regions==null) this.regions = new HashMap<>(3);
+		this.regions.put(unqiueId, areas);
+	}
+
 }

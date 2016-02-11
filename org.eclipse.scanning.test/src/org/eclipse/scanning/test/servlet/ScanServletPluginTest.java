@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
@@ -20,10 +22,11 @@ import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
+import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.event.ConsumerImpl;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.ScanServlet;
@@ -79,17 +82,18 @@ public class ScanServletPluginTest {
 		servlet.disconnect();
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
-	public void testStepSerialize() throws Exception {
-		ScanBean bean = createStepScan();
-        String   json = marshaller.marshal(bean);
-        ScanBean naeb = marshaller.unmarshal(json, null);
-        assertEquals(bean, naeb);
-	}
-	
-	@Test
-	public void testGridSerialize() throws Exception {
+	public void testGridSerializeWithRegion() throws Exception {
+		
+		// Made a scan which has a region
 		ScanBean bean = createGridScan();
+		ScanRequest<IROI> req = bean.getScanRequest();
+		
+		// Create a simple bounding rectangle
+		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
+		bean.getScanRequest().putRegion(req.getModels()[0].getUniqueKey(), roi);
+		
         String   json = marshaller.marshal(bean);
         ScanBean naeb = marshaller.unmarshal(json, null);
         assertEquals(bean, naeb);
@@ -109,18 +113,14 @@ public class ScanServletPluginTest {
 	}
 	
 	private ScanBean createStepScan() throws IOException {
-		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
-		tmp.deleteOnExit();
-		
 		// We write some pojos together to define the scan
 		final ScanBean bean = new ScanBean();
 		bean.setName("Hello Scanning World");
 		
-		final ScanRequest req = new ScanRequest();
-		req.setModel(new StepModel("fred", 0, 9, 1));
+		final ScanRequest<?> req = new ScanRequest<IROI>();
+		req.setModels(new StepModel("fred", 0, 9, 1));
 		req.setMonitorNames("monitor");
-		req.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
-		
+
 		final MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setName("detector");
 		dmodel.setCollectionTime(0.1);
@@ -141,14 +141,12 @@ public class ScanServletPluginTest {
 	
 	private ScanBean createGridScan() throws IOException {
 		
-		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
-		tmp.deleteOnExit();
 		
 		// We write some pojos together to define the scan
 		final ScanBean bean = new ScanBean();
 		bean.setName("Hello Scanning World");
 		
-		final ScanRequest req = new ScanRequest();
+		final ScanRequest<?> req = new ScanRequest<IROI>();
 		// Create a grid scan model
 		BoundingBox box = new BoundingBox();
 		box.setxStart(0);
@@ -163,8 +161,11 @@ public class ScanServletPluginTest {
 		gmodel.setxName("xNex");
 		gmodel.setyName("yNex");
 
-		req.setModel(gmodel);
+		req.setModels(gmodel);
 		req.setMonitorNames("monitor");
+		
+		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
+		tmp.deleteOnExit();
 		req.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
 		
 		final MandelbrotModel mandyModel = new MandelbrotModel();
@@ -210,6 +211,12 @@ public class ScanServletPluginTest {
 					}
 	                if (evt.getBean().scanEnd()) {
 	                	endEvents.add(evt.getBean());
+	                	try {
+							Thread.sleep(100); // TODO Why does scanEnd() sometimes come over slightly before the device is done?
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 	                	latch.countDown();
 	                }
 				}
@@ -219,7 +226,7 @@ public class ScanServletPluginTest {
 			// Ok done that, now we sent it off...
 			submitter.submit(bean);
 			
-			boolean ok = latch.await(10, TimeUnit.SECONDS);
+			boolean ok = latch.await(20, TimeUnit.SECONDS);
 			if (!ok) throw new Exception("The latch broke before the scan finished!");
 			
 			assertEquals(startEvents.get(0).getSize(), beans.size());

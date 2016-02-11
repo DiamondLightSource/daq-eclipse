@@ -4,14 +4,11 @@ import java.net.URI;
 import java.util.Collection;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.eclipse.dawnsci.analysis.api.fitting.functions.IFunction;
+import org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller;
+import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.points.IPosition;
-
-import uk.ac.diamond.daq.activemq.connector.internal.BundleAndClassNameIdResolver;
-import uk.ac.diamond.daq.activemq.connector.internal.BundleProvider;
-import uk.ac.diamond.daq.activemq.connector.internal.OSGiBundleProvider;
-import uk.ac.diamond.daq.activemq.connector.internal.PositionDeserializer;
-import uk.ac.diamond.daq.activemq.connector.internal.PositionSerializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -27,6 +24,16 @@ import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import uk.ac.diamond.daq.activemq.connector.internal.BundleAndClassNameIdResolver;
+import uk.ac.diamond.daq.activemq.connector.internal.BundleProvider;
+import uk.ac.diamond.daq.activemq.connector.internal.FunctionDeserializer;
+import uk.ac.diamond.daq.activemq.connector.internal.FunctionSerializer;
+import uk.ac.diamond.daq.activemq.connector.internal.OSGiBundleProvider;
+import uk.ac.diamond.daq.activemq.connector.internal.PositionDeserializer;
+import uk.ac.diamond.daq.activemq.connector.internal.PositionSerializer;
+import uk.ac.diamond.daq.activemq.connector.internal.RegionDeserializer;
+import uk.ac.diamond.daq.activemq.connector.internal.RegionSerializer;
 
 /**
  * This class is temporarily in this plugin and needs to be moved out of it once:
@@ -44,6 +51,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	private BundleProvider bundleProvider;
 	private ObjectMapper osgiMapper;
 	private ObjectMapper nonOsgiMapper;
+	private static IJSonMarshaller marshaller;
 
 	static {
 		System.out.println("Started "+IEventConnectorService.class.getSimpleName());
@@ -134,6 +142,12 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(IPosition.class,   new PositionSerializer());
 		module.addDeserializer(IPosition.class, new PositionDeserializer());
+		if (marshaller!=null) {
+			module.addSerializer(IROI.class,        new RegionSerializer(marshaller));
+			module.addDeserializer(IROI.class,      new RegionDeserializer(marshaller));
+			module.addSerializer(IFunction.class,   new FunctionSerializer(marshaller));
+			module.addDeserializer(IFunction.class, new FunctionDeserializer(marshaller));
+		}
 		mapper.registerModule(module);
 
 		// Be careful adjusting these settings - changing them will probably cause various unit tests to fail which
@@ -214,5 +228,13 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 		return mapper;
+	}
+
+	public static IJSonMarshaller getMarshaller() {
+		return marshaller;
+	}
+
+	public static void setMarshaller(IJSonMarshaller marshaller) {
+		ActivemqConnectorService.marshaller = marshaller;
 	}
 }

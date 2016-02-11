@@ -3,7 +3,7 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-public class OneDEqualSpacingModel implements IBoundingLineModel {
+public class OneDEqualSpacingModel extends AbstractPointsModel implements IBoundingLineModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	@Override

@@ -10,7 +10,8 @@ Service-Component: OSGI-INF/*.xml
 Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  com.fasterxml.jackson.core.jackson-annotations;bundle-version="2.2.0",
  com.fasterxml.jackson.core.jackson-core;bundle-version="2.2.0",
- com.fasterxml.jackson.core.jackson-databind;bundle-version="[2.2.0,2.2.1)"
+ com.fasterxml.jackson.core.jackson-databind;bundle-version="[2.2.0,2.2.1)",
+ org.eclipse.dawnsci.analysis.api;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: uk.ac.diamond.daq.activemq.connector
 Import-Package: javax.jms,

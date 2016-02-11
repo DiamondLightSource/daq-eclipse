@@ -3,7 +3,7 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
-public class StepModel implements IScanPathModel {
+public class StepModel extends AbstractPointsModel implements IScanPathModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	@Override

@@ -2,27 +2,20 @@ package org.eclipse.scanning.api.points.models;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.UUID;
 
-public abstract class AbstractBoundingBoxModel implements IBoundingBoxModel {
+public abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
 
-	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-	@Override
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		this.pcs.addPropertyChangeListener(listener);
-	}
-	@Override
-	public void removePropertyChangeListener(PropertyChangeListener listener) {
-		this.pcs.removePropertyChangeListener(listener);
-	}
 
 	private BoundingBox boundingBox;
 	private String      xName = "x";
 	private String      yName = "y";
 	
 	protected AbstractBoundingBoxModel() {
-		// TODO Auto-generated constructor stub
+		super();
 	}
 	protected AbstractBoundingBoxModel(String xName, String yName) {
+		this();
 		setxName(xName);
 		setyName(yName);
 	}
@@ -57,9 +50,8 @@ public abstract class AbstractBoundingBoxModel implements IBoundingBoxModel {
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((boundingBox == null) ? 0 : boundingBox.hashCode());
+		int result = super.hashCode();
+		result = prime * result + ((boundingBox == null) ? 0 : boundingBox.hashCode());
 		result = prime * result + ((xName == null) ? 0 : xName.hashCode());
 		result = prime * result + ((yName == null) ? 0 : yName.hashCode());
 		return result;
@@ -68,7 +60,7 @@ public abstract class AbstractBoundingBoxModel implements IBoundingBoxModel {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;

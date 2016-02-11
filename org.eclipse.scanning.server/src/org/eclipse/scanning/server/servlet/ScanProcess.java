@@ -12,6 +12,7 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
@@ -91,6 +92,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			response.broadcast(bean);
 
 		} catch (ScanningException | InterruptedException ne) {
+			ne.printStackTrace();
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.FAILED);
 			bean.setMessage(ne.getMessage());
@@ -106,7 +108,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		
 		try {
 			final ScanModel smodel = new ScanModel();
-			smodel.setPositionIterable(Services.getGeneratorService().createGenerator(req.getModel()));
+			smodel.setPositionIterable(getPositionIterable(req));
 			smodel.setDetectors(getDetectors(req.getDetectors()));
 			smodel.setMonitors(getMonitors(req.getMonitorNames()));
 			smodel.setBean(bean);
@@ -121,7 +123,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 						throw new EventException(e);
 					}
 				} else {
-					throw new ScanningException("Unable get file path service!");
+					smodel.setFilePath(null); // It is allowable to run a scan without a nexus file.
 				}
 			} else {
 			    smodel.setFilePath(req.getFilePath());
@@ -132,6 +134,11 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		} catch (GeneratorException e) {
 			throw new EventException(e);
 		}
+	}
+
+	private Iterable<IPosition> getPositionIterable(ScanRequest req) throws GeneratorException {
+		// TODO FIXME allow any scan to be generated.
+		return Services.getGeneratorService().createGenerator(req.getModels()[0]);
 	}
 
 	@Override

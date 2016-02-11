@@ -37,6 +37,7 @@ class NexusFileScanBuilder {
 	private List<NexusObjectProvider<?>> monitors;
 	
 	private Map<NexusObjectProvider<?>, DataDevice<?>> dataDevices = new HashMap<>();
+	private NexusFileBuilder fileBuilder;
 	
 	NexusFileScanBuilder(IDeviceConnectorService deviceService) {
 		this.deviceService = deviceService; 
@@ -62,7 +63,7 @@ class NexusFileScanBuilder {
 		
 		// We use the new nexus framework to join everything up into the scan
 		// Create a builder
-		final NexusFileBuilder fileBuilder = ServiceHolder.getFactory().newNexusFileBuilder(model.getFilePath());
+		fileBuilder = ServiceHolder.getFactory().newNexusFileBuilder(model.getFilePath());
 		createEntry(fileBuilder);
 		fileBuilder.saveFile();
 		
@@ -112,8 +113,7 @@ class NexusFileScanBuilder {
 	 * @param entryBuilder
 	 * @throws NexusException
 	 */
-	private void createNexusDataGroups(final NexusEntryBuilder entryBuilder)
-			throws NexusException {
+	private void createNexusDataGroups(final NexusEntryBuilder entryBuilder) throws NexusException {
 		if (detectors.isEmpty() && monitors.isEmpty()) {
 			throw new NexusException("At least one detector or monitor is required to create an NXdata group.");
 		}
@@ -241,6 +241,10 @@ class NexusFileScanBuilder {
 			}
 		}
 		
+	}
+
+	public void close() {
+		// TODO Need a close
 	}
 	
 }
