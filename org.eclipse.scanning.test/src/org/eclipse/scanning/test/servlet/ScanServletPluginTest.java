@@ -26,6 +26,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
@@ -82,23 +83,6 @@ public class ScanServletPluginTest {
 		servlet.disconnect();
 	}
 	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testGridSerializeWithRegion() throws Exception {
-		
-		// Made a scan which has a region
-		ScanBean bean = createGridScan();
-		ScanRequest<IROI> req = bean.getScanRequest();
-		
-		// Create a simple bounding rectangle
-		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
-		bean.getScanRequest().putRegion(req.getModels()[0].getUniqueKey(), roi);
-		
-        String   json = marshaller.marshal(bean);
-        ScanBean naeb = marshaller.unmarshal(json, null);
-        assertEquals(bean, naeb);
-	}
-	
 	/**
 	 * This test mimiks a client submitting a scan. The client may submit any status bean
 	 * to the consumer of course and then  
@@ -109,7 +93,7 @@ public class ScanServletPluginTest {
 	public void testStepScan() throws Exception {
 		
 		ScanBean bean = createStepScan();
-		runAndCheck(bean);
+		runAndCheck(bean, 20);
 	}
 	
 	private ScanBean createStepScan() throws IOException {
@@ -134,8 +118,73 @@ public class ScanServletPluginTest {
 	public void testGridScan() throws Exception {
 		
 		ScanBean bean = createGridScan();
-		runAndCheck(bean);
+		runAndCheck(bean, 20);
 
+	}
+
+	@Test
+	public void testStepGridScanNested1() throws Exception {
+		
+		ScanBean bean = createStepGridScan(1);
+		runAndCheck(bean, 100);
+	}
+	
+	@Test
+	public void testStepGridScanNested5() throws Exception {
+		
+		ScanBean bean = createStepGridScan(5);
+		runAndCheck(bean, 500);
+	}
+
+	private ScanBean createStepGridScan(int outerScanNum) throws IOException {
+		
+		// We write some pojos together to define the scan
+		final ScanBean bean = new ScanBean();
+		bean.setName("Hello Scanning World");
+		
+		final ScanRequest<?> req = new ScanRequest<IROI>();
+		// Create a grid scan model
+		BoundingBox box = new BoundingBox();
+		box.setxStart(0);
+		box.setyStart(0);
+		box.setWidth(3);
+		box.setHeight(3);
+
+		GridModel gmodel = new GridModel();
+		gmodel.setRows(5);
+		gmodel.setColumns(5);
+		gmodel.setBoundingBox(box);
+		gmodel.setxName("xNex");
+		gmodel.setyName("yNex");
+
+		// 2 models
+		List<IScanPathModel> models = new ArrayList<>(outerScanNum+1);
+		for (int i = 0; i < outerScanNum; i++) {
+			models.add(new StepModel("neXusScannable"+i, 1, 2, 1));
+		}
+		models.add(gmodel);
+		req.setModels(models.toArray(new IScanPathModel[models.size()]));
+		req.setMonitorNames("monitor");
+		
+		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
+		tmp.deleteOnExit();
+		req.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
+		
+		// 2 detectors
+		final MandelbrotModel mandyModel = new MandelbrotModel();
+		mandyModel.setName("mandelbrot");
+		mandyModel.setxName("xNex");
+		mandyModel.setyName("yNex");
+		mandyModel.setExposure(0.01);
+		req.putDetector("mandelbrot", mandyModel);
+		
+		final MockDetectorModel dmodel = new MockDetectorModel();
+		dmodel.setName("detector");
+		dmodel.setCollectionTime(0.01);
+		req.putDetector("detector", dmodel);
+
+		bean.setScanRequest(req);
+		return bean;
 	}
 
 	
@@ -178,7 +227,7 @@ public class ScanServletPluginTest {
 		return bean;
 	}
 
-	private void runAndCheck(ScanBean bean) throws Exception {
+	private void runAndCheck(ScanBean bean, long maxScanTimeS) throws Exception {
 		
 		final IEventService eservice = Services.getEventService();
 
@@ -226,7 +275,7 @@ public class ScanServletPluginTest {
 			// Ok done that, now we sent it off...
 			submitter.submit(bean);
 			
-			boolean ok = latch.await(20, TimeUnit.SECONDS);
+			boolean ok = latch.await(maxScanTimeS, TimeUnit.SECONDS);
 			if (!ok) throw new Exception("The latch broke before the scan finished!");
 			
 			assertEquals(startEvents.get(0).getSize(), beans.size());

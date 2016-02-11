@@ -12,7 +12,10 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
@@ -36,6 +39,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 	private boolean                    blocking;
 
 	public ScanProcess(ScanBean scanBean, IPublisher<ScanBean> response, boolean blocking) throws EventException {
+		
 		this.bean     = scanBean;
 		this.response = response;
 		this.blocking = blocking;
@@ -136,9 +140,17 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		}
 	}
 
-	private Iterable<IPosition> getPositionIterable(ScanRequest req) throws GeneratorException {
-		// TODO FIXME allow any scan to be generated.
-		return Services.getGeneratorService().createGenerator(req.getModels()[0]);
+	@SuppressWarnings("unchecked")
+	private Iterable<IPosition> getPositionIterable(ScanRequest<?> req) throws GeneratorException {
+		IPointGeneratorService service = Services.getGeneratorService();
+		
+		IPointGenerator<?,? extends IPosition> ret = null;
+		for (IScanPathModel model : req.getModels()) {
+			IPointGenerator<?,? extends IPosition> gen = service.createGenerator(model, req.getRegions(model.getUniqueKey()));
+			if (ret != null) ret = service.createCompoundGenerator(ret, gen);
+			if (ret==null) ret = gen;
+		}
+		return (Iterable<IPosition>)ret;
 	}
 
 	@Override

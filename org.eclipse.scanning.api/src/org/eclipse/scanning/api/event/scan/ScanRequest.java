@@ -189,6 +189,10 @@ public class ScanRequest<T> {
 	public Map<String, T[]> getRegions() {
 		return regions;
 	}
+	public T[] getRegions(String uniqueKey) {
+		if (regions==null) return null;
+		return regions.get(uniqueKey);
+	}
 
 	public void setRegions(Map<String, T[]> regions) {
 		this.regions = regions;
@@ -199,5 +203,6 @@ public class ScanRequest<T> {
 		if (this.regions==null) this.regions = new HashMap<>(3);
 		this.regions.put(unqiueId, areas);
 	}
+
 
 }
