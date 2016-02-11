@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.Collection;
 
 /**
  * This service generates points for a given scan type.
@@ -48,4 +49,17 @@ public interface IPointGeneratorService {
 	 * @throws GeneratorException
 	 */
 	IPointGenerator<?,IPosition> createCompoundGenerator(IPointGenerator<?,? extends IPosition>... generators) throws GeneratorException;
+
+	/**
+	 * Each IPointGenerator must have a unique id which is used to refer to it in the user interface.
+	 * @return
+	 */
+	Collection<String> getRegisteredGenerators();
+	
+	/**
+	 * Creates a generator by id which has no model associated with it.
+	 * @param id
+	 * @return
+	 */
+	<T,P> IPointGenerator<T,P> createGenerator(String id) throws GeneratorException;
 }

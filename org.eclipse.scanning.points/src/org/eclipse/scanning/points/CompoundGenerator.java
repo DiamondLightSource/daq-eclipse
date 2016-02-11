@@ -14,10 +14,22 @@ class CompoundGenerator extends AbstractGenerator<Object, IPosition> {
 	private IPointGenerator<?, ? extends IPosition>[] generators;
 
 	public CompoundGenerator(IPointGenerator<?,? extends IPosition>[] generators) throws GeneratorException {
+		super(createId(generators));
         if (generators == null || generators.length<1) throw new GeneratorException("Cannot make a compound generator from a list of less than one generators!");
 	    this.generators = generators;
+		setLabel("Compound");
+		setDescription("Compound generator used when wrapping scans.");
+		setVisible(false);
 	}
 	
+	private static String createId(IPointGenerator<?, ? extends IPosition>[] gens) throws GeneratorException {
+        if (gens == null || gens.length<1) throw new GeneratorException("Cannot make a compound generator from a list of less than one generators!");
+	
+        final StringBuilder buf = new StringBuilder();
+        for (IPointGenerator<?, ? extends IPosition> gen : gens) buf.append("+"+gen);
+        return buf.toString();
+	}
+
 	@Override
 	public int size() throws GeneratorException {
 		int size = 1;

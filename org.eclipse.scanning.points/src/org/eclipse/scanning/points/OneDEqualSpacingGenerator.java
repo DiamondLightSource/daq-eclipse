@@ -12,7 +12,12 @@ import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 
 public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacingModel,Point> {
 
-	// TODO FIXME implement iterator() and size()?
+	OneDEqualSpacingGenerator() {
+		setLabel("Line Equal Spacing");
+		setDescription("Creates a line scan along a line defined in two dimensions.");
+		setIconPath("icons/scanner--line.png"); // This icon exists in the rendering bundle 
+	}
+
 	
 	/**
 	 * Please override this method, the default creates all points and 

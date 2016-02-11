@@ -9,6 +9,11 @@ import org.eclipse.scanning.api.points.models.StepModel;
 
 public class StepGenerator extends AbstractGenerator<StepModel, IPosition> {
 	
+	StepGenerator() {
+		setLabel("Step Scan");
+		setDescription("Creates a step scan.\nIf the last requested point is within 1%\nof the end it will still be included in the scan");
+	}
+
 	@Override
 	public int size() throws GeneratorException {
 		if (containers!=null) throw new GeneratorException("Cannot deal with regions in a step scan!");
@@ -21,19 +26,5 @@ public class StepGenerator extends AbstractGenerator<StepModel, IPosition> {
 	public Iterator<IPosition> iterator() {
 		return new StepIterator(this);
 	}
-
-// Original implementation of createPoints() TODO delete this
-
-//	@Override
-//	public List<IPosition> createPoints() throws GeneratorException {
-//		if (containers!=null) throw new GeneratorException("Cannot deal with regions in a step scan!");
-//		final List<IPosition> ret = new ArrayList<IPosition>(size());
-//		int index = 0;
-//		for (double val = model.getStart(); val <= model.getStop(); val+=model.getStep()) {
-//			ret.add(new Scalar(model.getName(), index, val));
-//			++index;
-//		}
-//		return ret;
-//	}
 
 }

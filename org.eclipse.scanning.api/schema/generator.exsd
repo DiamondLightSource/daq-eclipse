@@ -6,7 +6,7 @@
          <meta.schema plugin="org.eclipse.scanning.api" id="generator" name="Scan Point Generator"/>
       </appinfo>
       <documentation>
-         Define a scan point generator and model class to go with it. This allows generators to be defined for specific use cases where the core generators are not good enough. For instance where custom point generation is required based on current hardware state which is variable, a generator may be created which tests hardware before returning the next point. 
+         Define a scan point generator and model class to go with it. This allows generators to be defined for specific use cases where the core generators are not good enough. For instance where custom point generation is required based on current hardware state which is variable, a generator may be created which tests hardware before returning the next point.
       </documentation>
    </annotation>
 
@@ -73,6 +73,26 @@ The generator must have a no-argument constructor.
                </documentation>
                <appinfo>
                   <meta.attribute kind="java" basedOn=":org.eclipse.scanning.api.points.IPointGenerator"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The unique id of the generator.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="identifier"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="icon" type="string">
+            <annotation>
+               <documentation>
+                  The icon to show when the user is choosing this scan generator.
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="resource"/>
                </appinfo>
             </annotation>
          </attribute>

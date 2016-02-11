@@ -3,4 +3,5 @@
    <implementation class="org.eclipse.scanning.event.ui.ServiceHolder"/>
    <reference bind="setEventConnectorService" cardinality="1..1" interface="org.eclipse.scanning.api.event.IEventConnectorService" name="IEventConnectorService" policy="static"/>
    <reference bind="setEventService" cardinality="1..1" interface="org.eclipse.scanning.api.event.IEventService" name="IEventService" policy="static"/>
+   <reference bind="setGeneratorService" cardinality="1..1" interface="org.eclipse.scanning.api.points.IPointGeneratorService" name="IPointGeneratorService" policy="static"/>
 </scr:component>

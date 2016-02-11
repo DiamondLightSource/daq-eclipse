@@ -7,6 +7,10 @@ import java.util.List;
 /**
  * Generator for a give type, T (for instance LissajousModel).
  * 
+ * The generator is an iterator used in the scan and a controller object 
+ * for the user interface which provides naming information about the
+ * type of scan.
+ * 
  * @author Matthew Gerring
  *
  * @param <T>
@@ -50,4 +54,47 @@ public interface IPointGenerator<T, P> extends Iterable<P> {
 	 * @return
 	 */
 	List<P> createPoints() throws GeneratorException;
+	
+	/**
+	 * The id for this generator. Generators defined by extension must set an it.
+	 * Those defined by 
+	 * 
+	 * @return
+	 */
+	public String getId();
+	
+	/**
+	 * The short label shown to the user for this generator.
+	 * @return
+	 */
+	public String getLabel();
+	
+	/**
+	 * The long description shown to the user for this generator.
+	 */
+	public String getDescription();
+	
+	/**
+	 * 
+	 * @return true if the user should be able to use this generator in the user interface.
+	 */
+	public boolean isVisible();
+	
+	/**
+	 * 
+	 * @return false if the user has disabled this generator from the compound scan but does not want to delete it.
+	 */
+	public boolean isEnabled();
+	public void setEnabled(boolean enabled);
+	
+	/**
+	 * The relative icon path to provide a custom icon for the generator.
+	 * 
+	 * If using extension points, no need to set the icon path, the extension point
+	 * will read the icon for the generator.
+	 * 
+	 * @return
+	 */
+	public String getIconPath();
+	public void setIconPath(String path);
 }

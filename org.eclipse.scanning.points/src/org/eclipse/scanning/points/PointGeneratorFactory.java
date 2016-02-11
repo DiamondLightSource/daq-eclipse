@@ -1,10 +1,12 @@
 package org.eclipse.scanning.points;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -34,27 +36,31 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	// of each value as well as the abolute motor position for correct NeXus writing.
 	
 	private static final Map<Class<?>, Class<? extends IPointGenerator>> generators;
+	private static final Map<String,   Class<? extends IPointGenerator>> ids;
 	
 	// Use a factory pattern to register the types.
 	// This pattern can always be replaced by extension points
 	// to allow point generators to be dynamically registered. 
 	static {
 		System.out.println("Starting generator service");
-		Map<Class<?>, Class<? extends IPointGenerator>> tmp = new HashMap<>(7);
-		tmp.put(StepModel.class,             StepGenerator.class);
-		tmp.put(GridModel.class,             GridGenerator.class);
-		tmp.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
-		tmp.put(OneDStepModel.class,         OneDStepGenerator.class);
-		tmp.put(RasterModel.class,           RasterGenerator.class);
-		tmp.put(EmptyModel.class,            EmptyGenerator.class);
+		Map<Class<?>, Class<? extends IPointGenerator>> gens = new HashMap<>(7);
+		gens.put(StepModel.class,             StepGenerator.class);
+		gens.put(GridModel.class,             GridGenerator.class);
+		gens.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
+		gens.put(OneDStepModel.class,         OneDStepGenerator.class);
+		gens.put(RasterModel.class,           RasterGenerator.class);
+		gens.put(EmptyModel.class,            EmptyGenerator.class);
 		
-		try {
-			readExtensions(tmp);
+		Map<String,   Class<? extends IPointGenerator>> tids = createIds(gens);
+
+		try { // Extensions must provide an id, it is a compulsory field.
+			readExtensions(gens, tids);
 		} catch (CoreException e) {
 			e.printStackTrace(); // Static block, intentionally do not use logging.
 		}
 		
-		generators = Collections.unmodifiableMap(tmp);
+		generators = Collections.unmodifiableMap(gens);
+		ids        = Collections.unmodifiableMap(tids);
 	}
 
 	@Override
@@ -77,7 +83,21 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		}
 	}
 
-	private static void readExtensions(Map<Class<?>, Class<? extends IPointGenerator>> gens) throws CoreException {
+	private static Map<String, Class<? extends IPointGenerator>> createIds(Map<Class<?>, Class<? extends IPointGenerator>> gens) {
+		TreeMap<String, Class<? extends IPointGenerator>> ids = new TreeMap<>();
+		for (Class<? extends IPointGenerator> clazz : gens.values()) {
+			try {
+				ids.put(clazz.newInstance().getId(), clazz);
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
+			} 
+		}
+		return ids;
+	}
+
+	private static void readExtensions(Map<Class<?>, Class<? extends IPointGenerator>> gens,
+			                           Map<String,   Class<? extends IPointGenerator>> tids) throws CoreException {
 		
 		if (Platform.getExtensionRegistry()!=null) {
 			final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.generator");
@@ -85,6 +105,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 				final IPointGenerator gen = (IPointGenerator)e.createExecutableExtension("class");
 				final Object     mod = e.createExecutableExtension("model");
 				gens.put(mod.getClass(), gen.getClass());
+				tids.put(e.getAttribute("id"), gen.getClass());
 			}
 		}
 	}
@@ -144,5 +165,19 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	@Override
 	public IPointGenerator<?, IPosition> createCompoundGenerator(IPointGenerator<?,? extends IPosition>... generators) throws GeneratorException {
 		return new CompoundGenerator(generators);
+	}
+
+	@Override
+	public Collection<String> getRegisteredGenerators() {
+		return ids.keySet();
+	}
+
+	@Override
+	public <T, P> IPointGenerator<T, P> createGenerator(String id) throws GeneratorException {
+		try {
+		    return ids.get(id).newInstance();
+		} catch (IllegalAccessException | InstantiationException ne) {
+			throw new GeneratorException(ne);
+		}
 	}
 }

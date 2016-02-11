@@ -34,6 +34,18 @@
             name="Queue Launcher"
             restorable="true">
       </view>
+      <category
+            id="org.eclipse.scanning.scanning.ui"
+            name="Scanning">
+      </category>
+      <view
+            category="org.eclipse.scanning.scanning.ui"
+            class="org.eclipse.scanning.scanning.ui.points.GeneratorView"
+            icon="icons/scanner--pencil.png"
+            id="org.eclipse.scanning.scanning.ui.generatorEditor"
+            name="Scan Editor"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">
@@ -49,6 +61,15 @@
             id="org.dawnsci.commandserver.ui.activemqPage"
             name="Command Server Configuration">
       </page>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            class="org.eclipse.scanning.scanning.ui.ScanningPerspective"
+            icon="icons/scanner.png"
+            id="org.eclipse.scanning.event.ui.perspective.ScanningPerspective"
+            name="Scanning">
+      </perspective>
    </extension>
 
 </plugin>

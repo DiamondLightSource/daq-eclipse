@@ -12,6 +12,11 @@ import org.eclipse.scanning.api.points.models.OneDStepModel;
 
 class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 
+	OneDStepGenerator() {
+		setLabel("Point");
+		setDescription("Creates a point to scan.");
+	}
+
 	@Override
 	public Iterator<Point> iterator() {
 		try {

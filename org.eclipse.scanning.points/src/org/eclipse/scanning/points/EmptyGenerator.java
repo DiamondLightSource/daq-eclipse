@@ -9,6 +9,12 @@ import org.eclipse.scanning.api.points.models.EmptyModel;
 
 public class EmptyGenerator extends AbstractGenerator<EmptyModel,EmptyPosition> {
 
+	EmptyGenerator() {
+		setLabel("Empty");
+		setDescription("Empty generator used when wrapping malcolm scans with no CPU steps.");
+		setVisible(false);
+	}
+
 	@Override
 	public Iterator<EmptyPosition> iterator() {
 		return Arrays.asList(new EmptyPosition()).iterator();

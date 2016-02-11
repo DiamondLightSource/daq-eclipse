@@ -5,6 +5,7 @@
          point="org.eclipse.scanning.api.generator">
       <generator
             class="org.eclipse.scanning.test.points.TestGenerator"
+            id="org.eclipse.scanning.test.points.testGenerator"
             model="org.eclipse.scanning.test.points.TestGeneratorModel">
       </generator>
    </extension>
