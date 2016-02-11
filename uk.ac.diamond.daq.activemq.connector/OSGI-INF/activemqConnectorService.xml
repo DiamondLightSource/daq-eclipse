@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="false" name="Activemq Connector Service">
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="start" immediate="false" name="Activemq Connector Service">
    <implementation class="uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService"/>
     <service>
       <provide interface="org.eclipse.scanning.api.event.IEventConnectorService"/>
    </service>
-    <reference bind="setMarshaller" cardinality="1..1" interface="org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller" name="IJSonMarshaller" policy="static"/>
+    <reference bind="setMarshaller" cardinality="0..1" interface="org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller" name="IJSonMarshaller" policy="static"/>
 </scr:component>

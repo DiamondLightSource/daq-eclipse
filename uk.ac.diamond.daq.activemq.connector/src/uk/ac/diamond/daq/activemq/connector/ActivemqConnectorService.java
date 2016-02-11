@@ -9,6 +9,8 @@ import org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.points.IPosition;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -53,6 +55,8 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	private ObjectMapper nonOsgiMapper;
 	private static IJSonMarshaller marshaller;
 
+	private static BundleContext context;
+
 	static {
 		System.out.println("Started "+IEventConnectorService.class.getSimpleName());
 	}
@@ -62,6 +66,13 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	 */
 	public ActivemqConnectorService() {
 		this(new OSGiBundleProvider());
+	}
+	
+	public void start(BundleContext context) {
+		ActivemqConnectorService.context = context;
+	}
+	public void stop() {
+		ActivemqConnectorService.context = null;
 	}
 
 	/**
@@ -142,7 +153,9 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(IPosition.class,   new PositionSerializer());
 		module.addDeserializer(IPosition.class, new PositionDeserializer());
-		if (marshaller!=null) {
+		
+		if (marshaller==null) marshaller = createMarshaller();
+		if (marshaller!=null) { // It can still be null
 			module.addSerializer(IROI.class,        new RegionSerializer(marshaller));
 			module.addDeserializer(IROI.class,      new RegionDeserializer(marshaller));
 			module.addSerializer(IFunction.class,   new FunctionSerializer(marshaller));
@@ -157,6 +170,22 @@ public class ActivemqConnectorService implements IEventConnectorService {
 		mapper.enable(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS);
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		return mapper;
+	}
+
+	/**
+	 * 
+	 * @return marshaller service if one can be found or null
+	 * if it cannot.
+	 */
+	private IJSonMarshaller createMarshaller() {
+		if (context==null) return null;
+		try {
+			ServiceReference<IJSonMarshaller> ref = context.getServiceReference(IJSonMarshaller.class);
+			return context.getService(ref);
+		} catch (Exception ignored) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 
 	/**
