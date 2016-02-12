@@ -14,6 +14,7 @@ public class ScanningPerspective implements IPerspectiveFactory {
 		addViewShortcuts(layout);
 		addPerspectiveShortcuts(layout);
 		layout.addView("org.eclipse.scanning.scanning.ui.generatorEditor", IPageLayout.RIGHT, 0.5f, IPageLayout.ID_EDITOR_AREA);
+		layout.addView("org.eclipse.scanning.scanning.ui.modelEditor", IPageLayout.BOTTOM, 0.5f, "org.eclipse.scanning.scanning.ui.generatorEditor");
 	}
 
 	/**

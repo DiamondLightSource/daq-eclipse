@@ -46,6 +46,14 @@
             name="Scan Editor"
             restorable="true">
       </view>
+      <view
+            category="org.eclipse.scanning.scanning.ui"
+            class="org.eclipse.scanning.scanning.ui.model.GeneratorModelView"
+            icon="icons/scanner--arrow.png"
+            id="org.eclipse.scanning.scanning.ui.modelEditor"
+            name="Model"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">
