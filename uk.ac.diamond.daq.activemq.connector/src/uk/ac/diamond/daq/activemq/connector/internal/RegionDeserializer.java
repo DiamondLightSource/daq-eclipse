@@ -9,9 +9,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 
 public class RegionDeserializer extends JsonDeserializer<IROI> {
-
 
 	private IJSonMarshaller marshaller;
 
@@ -29,4 +29,9 @@ public class RegionDeserializer extends JsonDeserializer<IROI> {
 		}
 	}
 
+	@Override
+	public Object deserializeWithType(JsonParser parser, DeserializationContext context, TypeDeserializer typeDeserializer)
+			throws IOException, JsonProcessingException {
+		return deserialize(parser, context);
+	}
 }
