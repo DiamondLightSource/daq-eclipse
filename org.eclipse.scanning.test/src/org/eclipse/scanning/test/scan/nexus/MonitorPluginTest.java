@@ -25,9 +25,9 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IRunnableEventDevice;
-import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
@@ -73,7 +73,6 @@ public class MonitorPluginTest {
 
 	}
 	
-
 	@Test
 	public void test1DOuter() throws Exception {		
 		testScan(8);
@@ -102,11 +101,11 @@ public class MonitorPluginTest {
 		scanner.run(null);
 	
 		// Check we reached ready (it will normally throw an exception on error)
-        checkFile(scanner, monitors, shape); // Step model is +1 on the size
+        checkNexusFile(scanner, monitors, shape); // Step model is +1 on the size
 	}
 
 
-	private void checkFile(IRunnableDevice<ScanModel> scanner, List<String> monitorNames, int... sizes) throws NexusException, ScanningException {
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, List<String> monitorNames, int... sizes) throws NexusException, ScanningException {
 		
 		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();                      
 		                                                                                                    
@@ -115,8 +114,8 @@ public class MonitorPluginTest {
 		String filePath = ((AbstractRunnableDevice<ScanModel>)scanner).getModel().getFilePath();            
                                                                                                             
 		NexusFile nf = fileFactory.newNexusFile(filePath);                                                  
-		nf.openToRead();                                                                                    
-                                                                                                            
+		nf.openToRead();                                      
+		
 		DataNode d = nf.getData("/entry/instrument/"+mod.getDetectors().get(0).getName()+"/data");          
 		IDataset ds = d.getDataset().getSlice();                                                            
 		int[] shape = ds.getShape();                                                                        

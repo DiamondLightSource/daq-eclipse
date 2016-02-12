@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdata;
+import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DataDevice;
@@ -46,7 +47,8 @@ class NexusFileScanBuilder {
 	/**
 	 * Creates a nexus file for the given {@link ScanModel}. 
 	 * @param model
-	 * @return
+	 * @return <code>true</code> if the nexus file was created successfully,
+	 *     <code>false</code> otherwise
 	 * @throws NexusException
 	 * @throws ScanningException
 	 */
@@ -70,6 +72,11 @@ class NexusFileScanBuilder {
 		return true; // successfully created file
 	}
 	
+	/**
+	 * Creates and populates the {@link NXentry} for the NeXus file.
+	 * @param fileBuilder a {@link NexusFileBuilder}
+	 * @throws NexusException
+	 */
 	private void createEntry(NexusFileBuilder fileBuilder) throws NexusException {
 		final NexusEntryBuilder entryBuilder  = fileBuilder.newEntry();
 		entryBuilder.addDefaultGroups();
@@ -114,8 +121,8 @@ class NexusFileScanBuilder {
 	 * @throws NexusException
 	 */
 	private void createNexusDataGroups(final NexusEntryBuilder entryBuilder) throws NexusException {
-		if (detectors.isEmpty() && monitors.isEmpty()) {
-			throw new NexusException("At least one detector or monitor is required to create an NXdata group.");
+		if (detectors.isEmpty() && monitors.isEmpty() && scannables.isEmpty()) {
+			throw new NexusException("The scan must include at least one device in order to write a NeXus file.");
 		}
 		
 		if (detectors.isEmpty()) {
@@ -139,11 +146,20 @@ class NexusFileScanBuilder {
 		NexusObjectProvider<?> primaryDevice;
 		Iterator<NexusObjectProvider<?>> monitorsIter = monitors.iterator();
 
-		// the detector is the primary device if present, otherwise it's the first monitor
-		if (detector == null) {
-			primaryDevice = monitorsIter.next();
-		} else {
+		// the detector is the primary device if present
+		if (detector != null) {
 			primaryDevice = detector;
+		} else if (monitorsIter.hasNext()) {
+			// otherwise it's the first monitor
+			primaryDevice = monitorsIter.next(); 
+		} else if (!scannables.isEmpty()) {
+			// unless there's no monitors either (an rare edge case)
+			// where we have to use the first scannable
+			// TODO FIXME - we've tried to do something sensible in this case
+			primaryDevice = scannables.get(0);
+		} else {
+			// sanity check, this should already have been checked for by this point
+			throw new IllegalStateException();
 		}
 		
 		// create the data builder and add the primary device
@@ -157,17 +173,41 @@ class NexusFileScanBuilder {
 		
 		// add the scannables
 		int scannableIndex = 0;
-		for (NexusObjectProvider<?> scannable : scannables) {
-			dataBuilder.addDataDevice(getDataDevice(scannable, scannableIndex++, false));
+		Iterator<NexusObjectProvider<?>> scannablesIter = scannables.iterator();
+		while (scannablesIter.hasNext()) {
+			dataBuilder.addDataDevice(getDataDevice(scannablesIter.next(), scannableIndex++, false));
 		}
 	}
 	
+	/**
+	 * Gets the data device for the given {@link NexusObjectProvider},
+	 * creating it if it doesn't exist.
+	 * 
+	 * @param nexusObjectProvider nexus object provider
+	 * @param scannableIndex index in scan for {@link IScannable}s
+	 * @param isPrimaryDevice <code>true</code> if this is the primary device for
+	 *    the scan, <code>false</code> otherwise
+	 * @return the data device
+	 */
 	private DataDevice<?> getDataDevice(NexusObjectProvider<?> nexusObjectProvider,
 			Integer scannableIndex, boolean isPrimaryDevice) {
-		DataDevice<?> dataDevice = dataDevices.get(nexusObjectProvider);
+		DataDevice<?> dataDevice = null;
+		if (!isPrimaryDevice) {
+			dataDevice = dataDevices.get(nexusObjectProvider);
+		}
+		
 		if (dataDevice == null) {
 			dataDevice = createDataDevice(nexusObjectProvider, scannableIndex, isPrimaryDevice);
-			dataDevices.put(nexusObjectProvider, dataDevice);
+			if (isPrimaryDevice) {
+				if (detectors.isEmpty() && monitors.isEmpty()) {
+					// using scannable as primary device as well as a scannable
+					// only use main data field (e.g. value for an NXpositioner)
+					dataDevice.setSourceFields(nexusObjectProvider.getDefaultWritableDataFieldName());
+				}
+			} else {
+				// cache the non-primary devices for the next NXdata section - there's one for each detector
+				dataDevices.put(nexusObjectProvider, dataDevice);
+			}
 		}
 		
 		return dataDevice;
