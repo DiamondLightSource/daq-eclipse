@@ -135,7 +135,11 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			
 			return Services.getScanService().createRunnableDevice(smodel, response);
 			
-		} catch (GeneratorException e) {
+		} catch (Exception e) {
+			bean.setStatus(Status.FAILED);
+			bean.setMessage(e.getMessage());
+			response.broadcast(bean);
+			if (e instanceof EventException) throw (EventException)e;
 			throw new EventException(e);
 		}
 	}
