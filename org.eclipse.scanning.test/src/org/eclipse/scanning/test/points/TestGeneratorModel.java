@@ -1,5 +1,12 @@
 package org.eclipse.scanning.test.points;
 
-public class TestGeneratorModel {
+import org.eclipse.scanning.api.points.models.AbstractPointsModel;
+
+public class TestGeneratorModel extends AbstractPointsModel {
+
+	@Override
+	public String getName() {
+		return "Test";
+	}
 
 }

@@ -61,7 +61,7 @@
 The model must have a no-argument constructor.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn="java.lang.Object:"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.scanning.api.points.models.IScanPathModel"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -90,10 +90,26 @@ The generator must have a no-argument constructor.
             <annotation>
                <documentation>
                   The icon to show when the user is choosing this scan generator.
+
+NOTE You cannot get icon from the IPointGenerator because it is a non-ui object. Instead the ui reads the icon value and looks for this icon in its icon path. The ui will be in a different bundle.
                </documentation>
                <appinfo>
                   <meta.attribute kind="resource"/>
                </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="label" type="string">
+            <annotation>
+               <documentation>
+                  Label shown to the user
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="description" type="string">
+            <annotation>
+               <documentation>
+                  Description shown to user
+               </documentation>
             </annotation>
          </attribute>
       </complexType>

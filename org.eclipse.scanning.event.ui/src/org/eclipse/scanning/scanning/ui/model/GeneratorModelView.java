@@ -1,6 +1,5 @@
 package org.eclipse.scanning.scanning.ui.model;
 
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
@@ -13,7 +12,6 @@ import org.eclipse.ui.part.ViewPart;
 public class GeneratorModelView extends ViewPart implements ISelectionListener {
 
 	private GeneratorModelViewer modelEditor;
-	private IAction configure;
 	
 	@Override
 	public void createPartControl(Composite parent) {
@@ -44,9 +42,8 @@ public class GeneratorModelView extends ViewPart implements ISelectionListener {
 		if (selection instanceof IStructuredSelection) {
 			Object ob = ((IStructuredSelection)selection).getFirstElement();
 			if (ob instanceof ISeriesItemDescriptor) {
-				configure.setEnabled(false);
 				ISeriesItemDescriptor des = (ISeriesItemDescriptor)ob;
-				final String       name = des.getName();
+				final String       name = des.getLabel();
 				setPartName("Model '"+name+"'");
 			}
 		}		

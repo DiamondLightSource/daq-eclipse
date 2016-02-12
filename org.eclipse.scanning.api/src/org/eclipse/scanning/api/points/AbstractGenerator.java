@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.scanning.api.points.models.IScanPathModel;
+
 /**
  * 
  * @author Matthew Gerring
@@ -11,7 +13,7 @@ import java.util.List;
  * @param <T>
  * @param <P>
  */
-public abstract class AbstractGenerator<T,P> implements IPointGenerator<T,P>, Iterable<P> {
+public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPosition> implements IPointGenerator<T, P>, Iterable<P> {
 
 	protected T model;
 	protected List<IPointContainer<?>> containers;
@@ -96,7 +98,7 @@ public abstract class AbstractGenerator<T,P> implements IPointGenerator<T,P>, It
 		return id;
 	}
 
-	protected void setId(String id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 

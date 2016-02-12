@@ -1,7 +1,7 @@
 package org.eclipse.scanning.scanning.ui.model;
 
-import org.eclipse.dawnsci.analysis.api.processing.model.ModelField;
-import org.eclipse.dawnsci.analysis.api.processing.model.OperationModelField;
+import org.eclipse.scanning.api.points.annot.FieldDescriptor;
+import org.eclipse.scanning.api.points.annot.FieldValue;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.scanning.scanning.ui.util.StringUtils;
 import org.eclipse.swt.graphics.Image;
@@ -20,7 +20,7 @@ class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 		
 		if (ofield == null) return null;
 		
-		ModelField field  = (ModelField)ofield;
+		FieldValue field  = (FieldValue)ofield;
 		Object   element  = field.get();
 		if (element instanceof Boolean) {
 			if (ticked==null)   ticked   = Activator.getImageDescriptor("icons/ticked.png").createImage();
@@ -40,7 +40,7 @@ class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 		
 		if (ofield == null)            return "";
 		
-		ModelField field  = (ModelField)ofield;
+		FieldValue field  = (FieldValue)ofield;
 		Object   element  = field.get();
 		if (element == null)            return "";
 		if (element instanceof Boolean) return "";
@@ -52,7 +52,7 @@ class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 		    buf.append(element.toString());//$NON-NLS-1$
 		}
 		
-		OperationModelField anot = field.getAnnotation();
+		FieldDescriptor anot = field.getAnnotation();
 		if (anot!=null) buf.append(" "+anot.unit());
 		return buf.toString();
 	}

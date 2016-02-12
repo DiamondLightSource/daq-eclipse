@@ -2,11 +2,6 @@ package org.eclipse.scanning.scanning.ui.model;
 
 import java.util.Collection;
 
-import org.eclipse.dawnsci.analysis.api.processing.IOperation;
-import org.eclipse.dawnsci.analysis.api.processing.OperationData;
-import org.eclipse.dawnsci.analysis.api.processing.model.IOperationModel;
-import org.eclipse.dawnsci.analysis.api.processing.model.ModelField;
-import org.eclipse.dawnsci.analysis.api.processing.model.ModelUtils;
 import org.eclipse.jface.bindings.keys.IKeyLookup;
 import org.eclipse.jface.bindings.keys.KeyLookupFactory;
 import org.eclipse.jface.viewers.CellEditor;
@@ -29,6 +24,10 @@ import org.eclipse.jface.viewers.TableViewerEditor;
 import org.eclipse.jface.viewers.TableViewerFocusCellManager;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.annot.FieldValue;
+import org.eclipse.scanning.api.points.annot.FieldUtils;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.scanning.ui.util.PageUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -67,7 +66,7 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 
 	
 	private TableViewer           viewer;
-	private IOperationModel       model;
+	private IScanPathModel        model;
 	
 	public GeneratorModelViewer() {
 		this(true);
@@ -127,7 +126,7 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 				if (e.character == SWT.DEL) {
 					try {
 						Object ob = ((IStructuredSelection)viewer.getSelection()).getFirstElement();
-						((ModelField)ob).set(null);
+						((FieldValue)ob).set(null);
 						viewer.refresh(ob);
 					} catch (Exception ignored) {
 						// Ok delete did not work...
@@ -186,7 +185,7 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 				
 				TableItem item = (TableItem)event.item;
 				
-				ModelField field = (ModelField)item.getData();				
+				FieldValue field = (FieldValue)item.getData();				
 				if (field!=null) {
 					if (field.isFileProperty()) {
 						try {
@@ -208,7 +207,7 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 		var.getColumn().setWidth(200);
 		var.setLabelProvider(new EnableIfColumnLabelProvider() {
 			public String getText(Object element) {
-				return ((ModelField)element).getDisplayName();
+				return ((FieldValue)element).getDisplayName();
 			}
 		});
 		
@@ -238,9 +237,9 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 			Object ob = ((IStructuredSelection)selection).getFirstElement();
 			if (ob instanceof ISeriesItemDescriptor) {
 				try {
-					setOperation((IOperation)((ISeriesItemDescriptor)ob).getSeriesObject());
+					setGenerator((IPointGenerator)((ISeriesItemDescriptor)ob).getSeriesObject());
 				} catch (Exception e) {
-					setOperation(null);
+					setGenerator(null);
 				}
 			}
 		}
@@ -250,20 +249,19 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 	 * Specifically set the operation we would like to edit
 	 * @param des
 	 */
-	public void setOperation(IOperation<? extends IOperationModel, ? extends OperationData> des) {
+	public void setGenerator(IPointGenerator<?, ?> gen) {
 		if (viewer.getTable().isDisposed()) return;
-		viewer.setInput(des);
-		if (des == null) return;
-		this.model = des.getModel();
-		
+		viewer.setInput(gen);
+		if (gen == null) return;
+		this.model = gen.getModel();	
 	}
 
-	public void setModel(IOperationModel model) {
+	public void setModel(IScanPathModel model) {
 		this.model = model;
 		viewer.setInput(model);
 	}
 	
-	public IOperationModel getModel() {
+	public IScanPathModel getModel() {
 		return model;
 	}
 	
@@ -281,18 +279,18 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 			@Override
 			public Object[] getElements(Object inputElement) {
 				
-				IOperationModel model = null;
-				if (inputElement instanceof IOperation) {
-					IOperation<IOperationModel, OperationData> op = (IOperation<IOperationModel, OperationData>)inputElement;
+				IScanPathModel model = null;
+				if (inputElement instanceof IPointGenerator) {
+					IPointGenerator<IScanPathModel,?> op = (IPointGenerator<IScanPathModel,?>)inputElement;
 					model = op.getModel();
-				} else if (inputElement instanceof IOperationModel) {
-					model = (IOperationModel)inputElement;
+				} else if (inputElement instanceof IScanPathModel) {
+					model = (IScanPathModel)inputElement;
 				}
 				try {
-					final Collection<ModelField>  col = ModelUtils.getModelFields(model);
-					return col.toArray(new ModelField[col.size()]);
+					final Collection<FieldValue>  col = FieldUtils.getModelFields(model);
+					return col.toArray(new FieldValue[col.size()]);
 				} catch (Exception ne) {
-					return new ModelField[]{};
+					return new FieldValue[]{};
 				}
 			}
 		};
@@ -307,7 +305,7 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 
 		@Override
 		protected CellEditor getCellEditor(Object element) {
-			return ModelFieldEditors.createEditor((ModelField)element, viewer.getTable());
+			return ModelFieldEditors.createEditor((FieldValue)element, viewer.getTable());
 		}
 
 		@Override
@@ -317,13 +315,13 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 
 		@Override
 		protected Object getValue(Object element) {
-			return ((ModelField)element).get();
+			return ((FieldValue)element).get();
 		}
 
 		@Override
 		protected void setValue(Object element, Object value) {
 			try {
-				ModelField field = (ModelField)element;
+				FieldValue field = (FieldValue)element;
 				field.set(value); // Changes model value, getModel() will now return a model with the value changed.
 				viewer.refresh();
 			} catch (Exception e) {
@@ -338,7 +336,7 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 	public void selectionChanged(SelectionChangedEvent event) {
 		if (event.getSelection() instanceof IStructuredSelection) {
 			IStructuredSelection ss = (IStructuredSelection)event.getSelection();
-			final ModelField     mf = (ModelField)ss.getFirstElement();
+			final FieldValue     mf = (FieldValue)ss.getFirstElement();
 			// TODO 
 		}
 	}

@@ -13,11 +13,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionEngine;
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionService;
-import org.eclipse.dawnsci.analysis.api.processing.model.FileType;
-import org.eclipse.dawnsci.analysis.api.processing.model.IOperationModel;
-import org.eclipse.dawnsci.analysis.api.processing.model.ModelField;
-import org.eclipse.dawnsci.analysis.api.processing.model.ModelUtils;
-import org.eclipse.dawnsci.analysis.api.processing.model.OperationModelField;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.jface.fieldassist.ContentProposal;
 import org.eclipse.jface.fieldassist.ContentProposalAdapter;
@@ -35,6 +30,11 @@ import org.eclipse.richbeans.widgets.cell.CComboWithEntryCellEditorData;
 import org.eclipse.richbeans.widgets.cell.NumberCellEditor;
 import org.eclipse.richbeans.widgets.file.FileDialogCellEditor;
 import org.eclipse.richbeans.widgets.table.TextCellEditorWithContentProposal;
+import org.eclipse.scanning.api.points.annot.FileType;
+import org.eclipse.scanning.api.points.annot.FieldValue;
+import org.eclipse.scanning.api.points.annot.FieldUtils;
+import org.eclipse.scanning.api.points.annot.FieldDescriptor;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 import org.eclipse.scanning.scanning.ui.util.PageUtil;
 import org.eclipse.swt.SWT;
@@ -58,7 +58,7 @@ public class ModelFieldEditors {
 	 * @param field
 	 * @return
 	 */
-	public static CellEditor createEditor(ModelField field, Composite parent) {
+	public static CellEditor createEditor(FieldValue field, Composite parent) {
         
 		Object value;
 		try {
@@ -83,7 +83,7 @@ public class ModelFieldEditors {
         
   
 		CellEditor ed = null;
-    	final OperationModelField anot = field.getAnnotation();
+    	final FieldDescriptor anot = field.getAnnotation();
     	if (!isEnabled(field.getModel(), anot)) return null;
    	
         if (clazz == Boolean.class) {
@@ -132,13 +132,13 @@ public class ModelFieldEditors {
 
 	}
 
-	public static boolean isEnabled(ModelField field) {
-    	final OperationModelField anot  = field.getAnnotation();
-    	final IOperationModel     model = field.getModel();
+	public static boolean isEnabled(FieldValue field) {
+    	final FieldDescriptor anot  = field.getAnnotation();
+    	final IScanPathModel      model = field.getModel();
     	return isEnabled(model, anot);
 	}
 
-	private static boolean isEnabled(IOperationModel model, OperationModelField anot) {
+	private static boolean isEnabled(IScanPathModel model, FieldDescriptor anot) {
 
 		if (anot == null) return true;
 		if (!anot.editable()) return false;
@@ -152,8 +152,8 @@ public class ModelFieldEditors {
 		   		engine.createExpression(enableIf);
 		   		
 		   		final Map<String, Object>    values = new HashMap<>();
-		   		final Collection<ModelField> fields = ModelUtils.getModelFields(model);
-		   		for (ModelField field : fields) {
+		   		final Collection<FieldValue> fields = FieldUtils.getModelFields(model);
+		   		for (FieldValue field : fields) {
 		   			Object value = field.get();
 		   			if (value instanceof Enum) value = ((Enum)value).name();
 		   			values.put(field.getName(), value);
@@ -241,9 +241,9 @@ public class ModelFieldEditors {
 		return cellEd;
 	}
 	
-	private static CellEditor getNumberEditor(ModelField field, final Class<? extends Object> clazz, Composite parent) {
+	private static CellEditor getNumberEditor(FieldValue field, final Class<? extends Object> clazz, Composite parent) {
     	
-		OperationModelField anot = field.getAnnotation();
+		FieldDescriptor anot = field.getAnnotation();
 		CellEditor textEd = null;
 	    if (anot!=null) {
 	    	textEd = new NumberCellEditor(parent, clazz, anot.min(), anot.max(), anot.unit(), SWT.NONE);
@@ -261,7 +261,7 @@ public class ModelFieldEditors {
     	return textEd;
 	}
 	
-	private static TextCellEditor getDatasetEditor(final ModelField field, Composite parent) {
+	private static TextCellEditor getDatasetEditor(final FieldValue field, Composite parent) {
 		
 		final TextCellEditorWithContentProposal ed = new TextCellEditorWithContentProposal(parent, null, null);
 		
@@ -272,7 +272,7 @@ public class ModelFieldEditors {
 				String fileField = field.getAnnotation().dataset();
 				Object object;
 				try {
-					object = field.getModel().get(fileField);
+					object = FieldValue.get(field.getModel(), fileField);
 				} catch (Exception e) {
 					return Status.CANCEL_STATUS;
 				}

@@ -3,6 +3,8 @@ package org.eclipse.scanning.api.points;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.scanning.api.points.models.IScanPathModel;
+
 
 /**
  * Generator for a give type, T (for instance LissajousModel).
@@ -15,7 +17,7 @@ import java.util.List;
  *
  * @param <T>
  */
-public interface IPointGenerator<T, P> extends Iterable<P> {
+public interface IPointGenerator<T extends IScanPathModel, P extends IPosition> extends Iterable<P> {
 	
 	/**
 	 * The model for the generator.
@@ -62,23 +64,27 @@ public interface IPointGenerator<T, P> extends Iterable<P> {
 	 * @return
 	 */
 	public String getId();
+	public void setId(String id);
 	
 	/**
 	 * The short label shown to the user for this generator.
 	 * @return
 	 */
 	public String getLabel();
+	public void setLabel(String label);
 	
 	/**
 	 * The long description shown to the user for this generator.
 	 */
 	public String getDescription();
+	public void setDescription(String description);
 	
 	/**
 	 * 
 	 * @return true if the user should be able to use this generator in the user interface.
 	 */
 	public boolean isVisible();
+	public void setVisible(boolean vis);
 	
 	/**
 	 * 

@@ -2,6 +2,8 @@ package org.eclipse.scanning.api.points;
 
 import java.util.Collection;
 
+import org.eclipse.scanning.api.points.models.IScanPathModel;
+
 /**
  * This service generates points for a given scan type.
  * 
@@ -38,7 +40,7 @@ public interface IPointGeneratorService {
 	 * @param region, a reference to an IROI for instance, maybe <b>null</b> if no IROI exists for this scan.
 	 * @return
 	 */
-	<T,R,P> IPointGenerator<T,P> createGenerator(T model, R... roi) throws GeneratorException;
+	<T extends IScanPathModel,R,P extends IPosition> IPointGenerator<T,P> createGenerator(T model, R... roi) throws GeneratorException;
 
 	/**
 	 * Create a nested or compound generator.
@@ -57,9 +59,12 @@ public interface IPointGeneratorService {
 	Collection<String> getRegisteredGenerators();
 	
 	/**
-	 * Creates a generator by id which has no model associated with it.
+	 * Creates a generator by id which has an model associated with it.
+	 * The model may either be retrieved and have fields set or the generator
+	 * may have a new model set in it.
+	 * 
 	 * @param id
 	 * @return
 	 */
-	<T,P> IPointGenerator<T,P> createGenerator(String id) throws GeneratorException;
+	<T extends IScanPathModel, P extends IPosition> IPointGenerator<T,P> createGenerator(String id) throws GeneratorException;
 }

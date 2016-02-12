@@ -8,8 +8,9 @@ import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 
-class CompoundGenerator extends AbstractGenerator<Object, IPosition> {
+class CompoundGenerator extends AbstractGenerator<IScanPathModel, IPosition> {
 	
 	private IPointGenerator<?, ? extends IPosition>[] generators;
 

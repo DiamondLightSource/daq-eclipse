@@ -10,6 +10,11 @@ package org.eclipse.scanning.api.points.models;
  * @author Matthew Gerring
  *
  */
-public class EmptyModel {
+public class EmptyModel extends AbstractPointsModel {
+
+	@Override
+	public String getName() {
+		return "Empty";
+	}
 
 }
