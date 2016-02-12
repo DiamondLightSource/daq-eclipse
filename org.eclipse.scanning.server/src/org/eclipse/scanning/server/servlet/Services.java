@@ -9,6 +9,14 @@ import org.eclipse.scanning.api.scan.IFilePathService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
+
+/**
+ * This class has been created to accept the services if they
+ * are there but to look for them if they are not.
+ * 
+ * @author Matthew Gerring
+ *
+ */
 public class Services {
 
 	private static IEventService           eventService;
@@ -20,10 +28,7 @@ public class Services {
 	private static BundleContext           context;
 
 	public static IFilePathService getFilePathService() {
-		if (filePathService == null && context!=null) {
-			ServiceReference<IFilePathService> ref = context.getServiceReference(IFilePathService.class);
-			if (ref!=null) filePathService = context.getService(ref);
-		}
+		if (filePathService == null) filePathService = getService(IFilePathService.class);
 		return filePathService;
 	}
 
@@ -34,6 +39,7 @@ public class Services {
 
 
 	public static IEventService getEventService() {
+		if (eventService == null) eventService = getService(IEventService.class);
 		return eventService;
 	}
 
@@ -44,6 +50,7 @@ public class Services {
 
 
 	public static IPointGeneratorService getGeneratorService() {
+		if (generatorService == null) generatorService = getService(IPointGeneratorService.class);
 		return generatorService;
 	}
 
@@ -54,6 +61,7 @@ public class Services {
 
 
 	public static IDeviceService getScanService() {
+		if (scanService == null) scanService = getService(IDeviceService.class);
 		return scanService;
 	}
 
@@ -64,10 +72,7 @@ public class Services {
 
 
 	public static IDeviceConnectorService getConnector() {
-		if (connector == null && context!=null) {
-			ServiceReference<IDeviceConnectorService> ref = context.getServiceReference(IDeviceConnectorService.class);
-			if (ref!=null) connector = context.getService(ref);
-		}
+		if (connector == null) connector = getService(IDeviceConnectorService.class);
 		return connector;
 	}
 
@@ -78,6 +83,7 @@ public class Services {
 
 
 	public static IMalcolmService getMalcService() {
+		if (malcService == null) malcService = getService(IMalcolmService.class);
 		return malcService;
 	}
 
@@ -88,5 +94,11 @@ public class Services {
 
 	public void start(BundleContext context) {
 		Services.context = context;
+	}
+	
+	private static <T> T getService(Class<T> clazz) {
+		if (context == null) return null;
+		ServiceReference<T> ref = context.getServiceReference(clazz);
+        return context.getService(ref);
 	}
 }
