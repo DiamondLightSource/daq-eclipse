@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 
 public class FunctionDeserializer extends JsonDeserializer<IFunction> {
 
@@ -29,4 +30,9 @@ public class FunctionDeserializer extends JsonDeserializer<IFunction> {
 		}
 	}
 
+	@Override
+	public Object deserializeWithType(JsonParser parser, DeserializationContext context, TypeDeserializer typeDeserializer)
+			throws IOException, JsonProcessingException {
+		return deserialize(parser, context);
+	}
 }
