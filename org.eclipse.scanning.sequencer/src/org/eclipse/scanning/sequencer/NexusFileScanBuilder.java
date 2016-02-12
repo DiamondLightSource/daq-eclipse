@@ -242,9 +242,5 @@ class NexusFileScanBuilder {
 		}
 		
 	}
-
-	public void close() {
-		// TODO Need a close
-	}
 	
 }

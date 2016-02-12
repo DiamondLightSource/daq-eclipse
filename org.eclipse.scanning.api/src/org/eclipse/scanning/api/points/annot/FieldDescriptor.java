@@ -109,4 +109,15 @@ public @interface FieldDescriptor {
 	 * The position of the field in the list, providing a way to override the default alphabetic sorting of fields
 	 */
 	public int fieldPosition() default Integer.MAX_VALUE;
+	
+	/**
+	 * Used to specify if a field is linked to a scannable and if so which field contains the
+	 * scannable name. If it is the units of the
+	 * scannable are read using the device connector and presented in the user interface.
+	 * 
+	 * @return name of the field that references a scannable to use for user interface presentation.
+	 */
+	public String scannable() default "";
+	
+
 }

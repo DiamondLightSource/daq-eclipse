@@ -4,9 +4,12 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.UUID;
 
+import org.eclipse.scanning.api.points.annot.FieldDescriptor;
+
 public abstract class AbstractPointsModel implements IScanPathModel {
 	
 
+	@FieldDescriptor(visible=false)
 	private String      uniqueKey;
 
 	public AbstractPointsModel() {

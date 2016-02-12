@@ -1,9 +1,5 @@
 package org.eclipse.scanning.api.points.models;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.util.UUID;
-
 public abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
 
 

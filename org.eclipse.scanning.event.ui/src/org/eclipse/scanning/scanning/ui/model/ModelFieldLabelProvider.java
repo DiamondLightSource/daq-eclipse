@@ -1,8 +1,11 @@
 package org.eclipse.scanning.scanning.ui.model;
 
+import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.annot.FieldDescriptor;
+import org.eclipse.scanning.api.points.annot.FieldUtils;
 import org.eclipse.scanning.api.points.annot.FieldValue;
 import org.eclipse.scanning.event.ui.Activator;
+import org.eclipse.scanning.event.ui.ServiceHolder;
 import org.eclipse.scanning.scanning.ui.util.StringUtils;
 import org.eclipse.swt.graphics.Image;
 
@@ -52,11 +55,36 @@ class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 		    buf.append(element.toString());//$NON-NLS-1$
 		}
 		
-		FieldDescriptor anot = field.getAnnotation();
-		if (anot!=null) buf.append(" "+anot.unit());
+		buf.append(getUnit(field));
 		return buf.toString();
 	}
 	
+	private String getUnit(FieldValue field) {
+		
+		FieldDescriptor anot = field.getAnnotation();
+		if (anot!=null) {
+			if (anot.scannable().length()>0 && ServiceHolder.getDeviceConnectorService()!=null) {
+				try {
+				    String scannableName = (String)FieldValue.get(field.getModel(), anot.scannable());
+				    
+				    if (scannableName!=null && scannableName.length()>0) {
+					    IScannable<?> scannable = ServiceHolder.getDeviceConnectorService().getScannable(scannableName);
+					    
+					    if (scannable.getUnit()!=null && scannable.getUnit().length()>0) {
+					        return " "+scannable.getUnit();
+					    }
+				    }
+				    
+				} catch (Exception ne) {
+					ne.printStackTrace();
+				}
+			}
+			
+			if (anot.unit().length()>0) return " "+anot.unit();
+		}
+		return "";
+	}
+
 	public void dispose() {
 		if (ticked!=null)   ticked.dispose();
 		if (unticked!=null) unticked.dispose();

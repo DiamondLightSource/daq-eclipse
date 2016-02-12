@@ -44,4 +44,10 @@ public interface IScannable<T> extends ILevel, INameable, IConfigurable<Scannabl
 	 */
 	public void setPosition(T value, IPosition position) throws Exception;
 
+	/**
+	 * The unit is the unit in which the setPosition and getPosition values are in.
+	 * @return String representation of unit which setPosition and getPosition are using.
+	 */
+	public String getUnit();
+
 }
