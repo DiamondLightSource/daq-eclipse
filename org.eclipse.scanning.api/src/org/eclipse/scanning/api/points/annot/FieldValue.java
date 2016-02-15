@@ -195,7 +195,7 @@ public class FieldValue {
 		}
 
 		FieldDescriptor omf = field.getAnnotation(FieldDescriptor.class);
-
+		if (omf!=null && !omf.visible()) return false;
 		
 		final String getter = getGetterName(name).toLowerCase();
 		Method[] methods = model.getClass().getMethods();

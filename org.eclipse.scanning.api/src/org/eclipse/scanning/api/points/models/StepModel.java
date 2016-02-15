@@ -3,6 +3,8 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+import org.eclipse.scanning.api.points.annot.FieldDescriptor;
+
 public class StepModel extends AbstractPointsModel implements IScanPathModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -15,9 +17,16 @@ public class StepModel extends AbstractPointsModel implements IScanPathModel {
 		this.pcs.removePropertyChangeListener(listener);
 	}
 
+	@FieldDescriptor(label="Device")
 	private String name;
+	
+	@FieldDescriptor(label="Start", scannable="name")
 	private double start;
+	
+	@FieldDescriptor(label="Stop", scannable="name")
 	private double stop;
+	
+	@FieldDescriptor(label="Step", scannable="name")
 	private double step;
 	
 	public StepModel() {

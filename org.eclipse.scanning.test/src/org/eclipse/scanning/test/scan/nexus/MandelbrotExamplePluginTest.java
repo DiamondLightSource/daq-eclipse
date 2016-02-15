@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.dawnsci.nexus.NexusAssert.assertAxes;
 import static org.dawnsci.nexus.NexusAssert.assertIndices;
+import static org.dawnsci.nexus.NexusAssert.assertTarget;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,9 +39,9 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IRunnableEventDevice;
-import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
@@ -172,11 +173,11 @@ public class MandelbrotExamplePluginTest {
 		scanner.run(null);
 	
 		// Check we reached ready (it will normally throw an exception on error)
-		checkFile(scanner, shape); // Step model is +1 on the size
+		checkNexusFile(scanner, shape); // Step model is +1 on the size
 	}
 
 
-	private void checkFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
 		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 		
@@ -212,17 +213,18 @@ public class MandelbrotExamplePluginTest {
 
 		// Check axes
 		final IPosition pos = mod.getPositionIterable().iterator().next();
-		final List<String> names = pos.getNames();
+		final List<String> scannableNames = pos.getNames();
 
 		// Append _value_demand to each name in list, and append items ".", "." to list
-		String[] axesNames = Stream.concat(names.stream().map(x -> x + "_value_demand"),
+		String[] expectedAxesNames = Stream.concat(scannableNames.stream().map(x -> x + "_value_demand"),
 				Stream.of(".", ".")).toArray(String[]::new);
-		assertAxes(nxData, axesNames);
+		assertAxes(nxData, expectedAxesNames);
+		
 		int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
-		for (int i = 0; i < names.size(); i++) {
+		for (int i = 0; i < scannableNames.size(); i++) {
 			// Demand values should be 1D
-			String positionerName = names.get(i);
-			NXpositioner positioner = instrument.getPositioner(positionerName);
+			String scannableName = scannableNames.get(i);
+			NXpositioner positioner = instrument.getPositioner(scannableName);
 			assertNotNull(positioner);
 			dataNode = positioner.getDataNode("value_demand");
 			
@@ -231,9 +233,11 @@ public class MandelbrotExamplePluginTest {
 			assertEquals(1, shape.length);
 			assertEquals(sizes[i], shape[0]);
 
-			String nxDataFieldName = positionerName + "_value_demand";
+			String nxDataFieldName = scannableName + "_value_demand";
 			assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
 			assertIndices(nxData, nxDataFieldName, i);
+			assertTarget(nxData, nxDataFieldName, rootNode,
+					"/entry/instrument/" + scannableName + "/value_demand");
 			
 			// Actual values should be scanD
 			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
@@ -241,9 +245,11 @@ public class MandelbrotExamplePluginTest {
 			shape = dataset.getShape();
 			assertArrayEquals(sizes, shape);
 			
-			nxDataFieldName = positionerName + "_" + NXpositioner.NX_VALUE;
+			nxDataFieldName = scannableName + "_" + NXpositioner.NX_VALUE;
 			assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
 			assertIndices(nxData, nxDataFieldName, defaultDimensionMappings);
+			assertTarget(nxData, nxDataFieldName, rootNode,
+					"/entry/instrument/" + scannableName + "/" + NXpositioner.NX_VALUE);
 		}
 	}
 

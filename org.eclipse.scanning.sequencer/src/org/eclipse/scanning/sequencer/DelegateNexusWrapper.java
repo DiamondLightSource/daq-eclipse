@@ -122,4 +122,9 @@ class DelegateNexusWrapper implements IScannable<Object>, INexusDevice<NXpositio
 		}
 	}
 
+	@Override
+	public String getUnit() {
+		return scannable.getUnit();
+	}
+
 }

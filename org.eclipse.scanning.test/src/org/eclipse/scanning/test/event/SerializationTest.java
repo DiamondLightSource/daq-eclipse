@@ -77,7 +77,7 @@ public class SerializationTest {
 		// Create a simple bounding rectangle
 		IPosition roi = new MapPosition("Fred:1:0");
 		String   json = connectorService.marshal(roi);
-		IPosition ior  = connectorService.unmarshal(json, IPosition.class);
+		IPosition ior = connectorService.unmarshal(json, IPosition.class);
 		assertEquals(roi, ior);
 	}
 

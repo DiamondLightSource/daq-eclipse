@@ -57,6 +57,13 @@ public class MockScannable implements IScannable<Number>, IPositionListenable {
 		this.name = name;
 		this.position = position;
 	}
+	public MockScannable(String name, Double position, int level, String unit) {
+    	this();
+		this.level = level;
+		this.name = name;
+		this.position = position;
+		this.unit = unit;
+	}
 	
 	@Override
 	public void configure(ScannableModel model) throws ScanningException {
@@ -184,6 +191,14 @@ public class MockScannable implements IScannable<Number>, IPositionListenable {
 	public void removePositionListener(IPositionListener listener) {
 		delegate.removePositionListener(listener);
 	}
+	
+	private String unit = "mm";
+	@Override
+	public String getUnit() {
+		return unit;
+	}
 
-
+    public void setUnit(String unit) {
+    	this.unit = unit;
+    }
 }

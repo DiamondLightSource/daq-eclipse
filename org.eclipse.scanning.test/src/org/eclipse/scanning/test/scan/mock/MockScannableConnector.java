@@ -25,9 +25,9 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		register(new MockScannable("a", 10d, 1));
 		register(new MockScannable("b", 10d, 1));
 		register(new MockScannable("c", 10d, 1));
-		register(new MockScannable("p", 10d, 2));
-		register(new MockScannable("q", 10d, 2));
-		register(new MockScannable("r", 10d, 2));
+		register(new MockScannable("p", 10d, 2, "µm"));
+		register(new MockScannable("q", 10d, 2, "µm"));
+		register(new MockScannable("r", 10d, 2, "µm"));
 		register(new MockScannable("x", 0d,  3));
 		register(new MockScannable("y", 0d,  3));
 		register(new MockScannable("x", 0d,  3));
