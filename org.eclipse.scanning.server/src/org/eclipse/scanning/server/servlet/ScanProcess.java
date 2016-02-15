@@ -17,6 +17,7 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
+import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.IWritableDetector;
@@ -182,10 +183,12 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		if (detectors==null) return null;
 		try {
 			final List<IRunnableDevice<?>> ret = new ArrayList<>(3);
+			
+			final IDeviceService service = Services.getScanService();
 			for (String name : detectors.keySet()) {
 				@SuppressWarnings("rawtypes")
 				Object dmodel = detectors.get(name);
-				IRunnableDevice<?> detector = (IWritableDetector<?>)Services.getScanService().createRunnableDevice(dmodel);
+				IRunnableDevice<?> detector = (IWritableDetector<?>)service.createRunnableDevice(dmodel);
 				ret.add(detector);
 			}
 			return ret;

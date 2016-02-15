@@ -3,15 +3,18 @@
 <plugin>
    <extension
          point="org.eclipse.scanning.api.device">
-      <detector
+      <device
+            id="org.eclipse.scanning.example.detector.mandelbrotDetector"
             class="org.eclipse.scanning.example.detector.MandelbrotDetector"
             model="org.eclipse.scanning.example.detector.MandelbrotModel">
-      </detector>
-      <detector
+      </device>
+      <device
+            id="org.eclipse.scanning.example.detector.constantVelocityDevice"
             class="org.eclipse.scanning.example.detector.ConstantVelocityDevice"
             model="org.eclipse.scanning.example.detector.ConstantVelocityModel">
-      </detector>
+      </device>
       <device
+            id="org.eclipse.scanning.example.detector.darkImageDetector"
             class="org.eclipse.scanning.example.detector.DarkImageDetector"
             model="org.eclipse.scanning.example.detector.DarkImageModel">
       </device>

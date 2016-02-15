@@ -89,9 +89,7 @@ The generator must have a no-argument constructor.
          <attribute name="icon" type="string">
             <annotation>
                <documentation>
-                  The icon to show when the user is choosing this scan generator.
-
-NOTE You cannot get icon from the IPointGenerator because it is a non-ui object. Instead the ui reads the icon value and looks for this icon in its icon path. The ui will be in a different bundle.
+                  The icon to show when the user is choosing this scan generator. If unset a default will be used.
                </documentation>
                <appinfo>
                   <meta.attribute kind="resource"/>
