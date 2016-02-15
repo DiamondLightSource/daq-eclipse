@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.Bundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.databind.JavaType;
@@ -27,6 +29,7 @@ import com.fasterxml.jackson.databind.util.ClassUtil;
  */
 public class BundleAndClassNameIdResolver extends TypeIdResolverBase {
 
+	private static final Logger logger = LoggerFactory.getLogger(BundleAndClassNameIdResolver.class);
 	private static final Map<BundleAndClassInfo, Bundle> cachedBundles = new ConcurrentHashMap<BundleAndClassInfo, Bundle>();
 
 	/**
@@ -89,9 +92,12 @@ public class BundleAndClassNameIdResolver extends TypeIdResolverBase {
 		if (bundleToUse != null) {
 			try {
 				return bundleToUse.loadClass(info.getClassName());
-			} catch (ClassNotFoundException | IllegalStateException ignored) {
-				// the bundle cannot find the required class, so we ignore the exception and fall back to just finding the class by name
+			} catch (ClassNotFoundException | IllegalStateException ex) {
+				// the bundle cannot find the required class, so we log the exception and fall back to just finding the class by name
+				logger.warn("Class {} could not be loaded by bundle {}", info.getClassName(), info.getBundleSymbolicName(), ex);
 			}
+		} else {
+			logger.warn("Bundle {} (version {}) not found when trying to load class {}", info.getBundleSymbolicName(), info.getBundleVersion(), info.getClassName());
 		}
 		// If the bundle is not found, or cannot load the required class, fall back and try to load the class with ClassUtil
 		return ClassUtil.findClass(info.getClassName());

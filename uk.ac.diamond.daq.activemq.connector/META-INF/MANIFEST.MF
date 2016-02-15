@@ -16,5 +16,6 @@ Bundle-ActivationPolicy: lazy
 Export-Package: uk.ac.diamond.daq.activemq.connector
 Import-Package: javax.jms,
  org.apache.activemq,
- org.osgi.framework;version="1.7.0"
+ org.osgi.framework;version="1.7.0",
+ org.slf4j;version="1.7.6"
 
