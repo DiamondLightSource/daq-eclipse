@@ -9,9 +9,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 public class FunctionSerializer extends JsonSerializer<IFunction> {
-
 
 	private IJSonMarshaller marshaller;
 
@@ -30,4 +30,9 @@ public class FunctionSerializer extends JsonSerializer<IFunction> {
 		}
 	}
 
+	@Override
+	public void serializeWithType(IFunction func, JsonGenerator gen, SerializerProvider prov, TypeSerializer typeSer)
+			throws IOException, JsonProcessingException {
+		serialize(func, gen, prov);
+	}
 }

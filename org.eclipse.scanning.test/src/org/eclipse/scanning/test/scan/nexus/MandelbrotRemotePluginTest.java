@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.dawnsci.nexus.NexusAssert.assertAxes;
 import static org.dawnsci.nexus.NexusAssert.assertIndices;
+import static org.dawnsci.nexus.NexusAssert.assertTarget;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -64,7 +65,6 @@ import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -177,14 +177,11 @@ public class MandelbrotRemotePluginTest {
 			remote.disconnect();
 		}
 		
-		
 		// Check we reached ready (it will normally throw an exception on error)
-		checkFile(scanner, shape); // Step model is +1 on the size
-
+		checkNexusFile(scanner, shape); // Step model is +1 on the size
 	}
 
-
-	private void checkFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
 		
 		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
@@ -246,6 +243,8 @@ public class MandelbrotRemotePluginTest {
 			String nxDataFieldName = positionerName + "_value_demand";
 			assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
 			assertIndices(nxData, nxDataFieldName, i);
+			assertTarget(nxData, nxDataFieldName, rootNode,
+					"/entry/instrument/" + positionerName + "/value_demand");
 			
 			// Actual values should be scanD
 			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
@@ -256,6 +255,8 @@ public class MandelbrotRemotePluginTest {
 			nxDataFieldName = positionerName + "_" + NXpositioner.NX_VALUE;
 			assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
 			assertIndices(nxData, nxDataFieldName, defaultDimensionMappings);
+			assertTarget(nxData, nxDataFieldName, rootNode,
+					"/entry/instrument/" + positionerName + "/" + NXpositioner.NX_VALUE);
 		}
 	}
 
