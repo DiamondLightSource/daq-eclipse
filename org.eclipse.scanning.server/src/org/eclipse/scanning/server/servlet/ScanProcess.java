@@ -133,6 +133,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			} else {
 			    smodel.setFilePath(req.getFilePath());
 			}
+			bean.setFilePath(smodel.getFilePath());
 			
 			return Services.getScanService().createRunnableDevice(smodel, response);
 			
