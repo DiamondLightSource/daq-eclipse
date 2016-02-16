@@ -2,8 +2,8 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertAxes;
 import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertIndices;
-import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertSignal;
 import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertTarget;
+import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertSignal;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
