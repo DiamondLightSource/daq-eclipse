@@ -25,8 +25,10 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
@@ -153,9 +155,47 @@ public class AbstractScanTest {
 	@Test
 	public void testSimpleScan() throws Exception {
 				
-		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null);
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
 		scanner.run(null);
 		checkRun(scanner);
+	}
+	
+	@Test
+	public void testStepScan() throws Exception {
+		
+		StepModel model = new StepModel();
+		model.setStart(0);
+		model.setStop(10);
+		model.setStep(1);
+		model.setName("myStepModel");  // ScanningException thrown without this. TODO: Add test.
+		
+		IRunnableDevice<ScanModel> scanner = createTestScanner(model, null, null, null, null);
+		scanner.run(null);
+		checkRun(scanner);
+	}
+	
+	@Test
+	public void testInvalidStepScan() throws Exception {
+
+		StepModel model = new StepModel();
+		model.setStart(0);
+		model.setStop(10);
+		model.setStep(-1);
+		model.setName("myStepModel");
+		
+		try {
+			IRunnableDevice<ScanModel> scanner = createTestScanner(model, null, null, null, null);
+			
+			// Cast to AbstractRunnableDevice gives us non-blocking .start() method.
+			((AbstractRunnableDevice<ScanModel>) scanner).start(null);
+			
+			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
+			
+		} catch (Exception expected) {
+			return;  // TODO: Check for correct exception type, error message.
+		}
+		
+		throw new Exception("Scanner failed to throw Exception on invalid step model input.");
 	}
 	
 	
@@ -170,7 +210,7 @@ public class AbstractScanTest {
 		
 		// 2. Check run fails and check exception is that which the detector provided
 		// Not some horrible reflection one.
-		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, detector);
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, detector);
 		boolean ok=false;
 		try {
 		    scanner.run(null);
@@ -245,7 +285,7 @@ public class AbstractScanTest {
 		try {
 			
 			// Create a scan and run it without publishing events
-			IRunnableDevice<ScanModel> scanner = createTestScanner(bean, publisher, null, null);
+			IRunnableDevice<ScanModel> scanner = createTestScanner(null, bean, publisher, null, null);
 			scanner.run(null);
 			
 			Thread.sleep(1000); // Wait for all events to make it over from ActiveMQ
@@ -268,7 +308,7 @@ public class AbstractScanTest {
 	public void testSimpleScanSetPositionCalls() throws Exception {
 			
 		IScannable<Number> x = connector.getScannable("x");
-		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null);
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
 		
 		scanner.run(null);
 		
@@ -286,7 +326,7 @@ public class AbstractScanTest {
 	public void testSimpleScanWithMonitor() throws Exception {
 			
 		IScannable<Number> monitor = connector.getScannable("monitor");
-		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, monitor, null);
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, monitor, null);
 		
 		scanner.run(null);
 		
@@ -310,7 +350,13 @@ public class AbstractScanTest {
 		assertEquals(gen.size(), dmodel.getWritten());
 	}
 
-	private IRunnableDevice<ScanModel> createTestScanner(final ScanBean bean, final IPublisher<ScanBean> publisher, IScannable<?> monitor, IRunnableDevice<MockDetectorModel> detector) throws Exception {
+	private IRunnableDevice<ScanModel> createTestScanner(
+			AbstractPointsModel pmodel,
+			final ScanBean bean,
+			final IPublisher<ScanBean> publisher,
+			IScannable<?> monitor,
+			IRunnableDevice<MockDetectorModel> detector
+		) throws Exception {
 		
 		// Configure a detector with a collection time.
 		if (detector == null) {
@@ -320,12 +366,15 @@ public class AbstractScanTest {
 			detector = sservice.createRunnableDevice(dmodel);
 		}
 		
-		// Create scan points for a grid and make a generator
-		GridModel gmodel = new GridModel();
-		gmodel.setRows(5);
-		gmodel.setColumns(5);
-		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
-		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+		// If none passed, create scan points for a grid.
+		if (pmodel == null) {
+			pmodel = new GridModel();
+			((GridModel) pmodel).setRows(5);
+			((GridModel) pmodel).setColumns(5);
+			((GridModel) pmodel).setBoundingBox(new BoundingBox(0,0,3,3));
+		}
+		
+		IPointGenerator<?,IPosition> gen = gservice.createGenerator(pmodel);
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
