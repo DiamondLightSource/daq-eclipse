@@ -62,8 +62,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		super();
 		this.model = new MandelbrotModel();
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
 		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
 	}
@@ -111,7 +110,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		value = mandelbrot(a, b);
 		
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
-			image = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxx(), model.getPoints());
+			image = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxX(), model.getPoints());
 		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
 			image = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
 		}
@@ -145,10 +144,10 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	 * Fill a Julia set around the origin for the value C = a + bi
 	 */
 	private IDataset calculateJuliaSet(final double a, final double b, int columns, int rows) {
-		final double xStart = -model.getMaxx();
-		final double xStop = model.getMaxx();
-		final double yStart = -model.getMaxy();
-		final double yStop = model.getMaxy();
+		final double xStart = -model.getMaxX();
+		final double xStop = model.getMaxX();
+		final double yStart = -model.getMaxY();
+		final double yStop = model.getMaxY();
 		final double yStep = (yStop - yStart) / (rows - 1);
 		double y;
 		IDataset juliaSet = new DoubleDataset(rows,columns);

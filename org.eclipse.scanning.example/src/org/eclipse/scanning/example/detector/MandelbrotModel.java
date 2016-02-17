@@ -1,6 +1,5 @@
 package org.eclipse.scanning.example.detector;
 
-import java.io.IOException;
 
 public class MandelbrotModel {
 
@@ -11,8 +10,8 @@ public class MandelbrotModel {
 	private int    columns;
 	private int    rows;
 	private int    points;
-	private double maxx;
-	private double maxy;
+	private double maxX;
+	private double maxY;
 	private String name;
 	private String xName;
 	private String yName;
@@ -25,8 +24,8 @@ public class MandelbrotModel {
 		columns       = 301;
 		rows          = 241;
 		points        = 1000;
-		maxx          = 1.5;
-		maxy          = 1.2;
+		maxX          = 1.5;
+		maxY          = 1.2;
 		name          = "mandelbrot_detector";
 		xName         = "x";
 		yName         = "y";
@@ -62,17 +61,17 @@ public class MandelbrotModel {
 	public void setPoints(int points) {
 		this.points = points;
 	}
-	public double getMaxx() {
-		return maxx;
+	public double getMaxX() {
+		return maxX;
 	}
-	public void setMaxx(double maxx) {
-		this.maxx = maxx;
+	public void setMaxX(double maxX) {
+		this.maxX = maxX;
 	}
-	public double getMaxy() {
-		return maxy;
+	public double getMaxY() {
+		return maxY;
 	}
-	public void setMaxy(double maxy) {
-		this.maxy = maxy;
+	public void setMaxY(double maxY) {
+		this.maxY = maxY;
 	}
 	@Override
 	public int hashCode() {
@@ -85,9 +84,9 @@ public class MandelbrotModel {
 		temp = Double.doubleToLongBits(exposure);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + maxIterations;
-		temp = Double.doubleToLongBits(maxx);
+		temp = Double.doubleToLongBits(maxX);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(maxy);
+		temp = Double.doubleToLongBits(maxY);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime
@@ -118,11 +117,11 @@ public class MandelbrotModel {
 			return false;
 		if (maxIterations != other.maxIterations)
 			return false;
-		if (Double.doubleToLongBits(maxx) != Double
-				.doubleToLongBits(other.maxx))
+		if (Double.doubleToLongBits(maxX) != Double
+				.doubleToLongBits(other.maxX))
 			return false;
-		if (Double.doubleToLongBits(maxy) != Double
-				.doubleToLongBits(other.maxy))
+		if (Double.doubleToLongBits(maxY) != Double
+				.doubleToLongBits(other.maxY))
 			return false;
 		if (name == null) {
 			if (other.name != null)
