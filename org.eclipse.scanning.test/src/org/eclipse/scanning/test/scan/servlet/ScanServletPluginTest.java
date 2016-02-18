@@ -104,18 +104,21 @@ public class ScanServletPluginTest {
 	@Test
 	public void testStepScanProcessing() throws Exception {
 		
-		ScanBean bean = createStepScan();
-		System.getProperty("org.eclipse.scanning.api.preprocessor.name", "example");
-		List<ScanBean> beans = runAndCheck(bean, 20);
-		System.getProperty("org.eclipse.scanning.api.preprocessor.name", null);
-		
-		// We now check that they all had xfred set.
-		for (ScanBean scanBean : beans) {
-			ScanRequest<?> req = scanBean.getScanRequest();
-			
-			StepModel step = (StepModel)req.getModels()[0];
-			assertTrue(step.getName().equals("xfred"));
+		System.setProperty("org.eclipse.scanning.api.preprocessor.name", "example");
+		try {
+			ScanBean bean = createStepScan();
+			List<ScanBean> beans = runAndCheck(bean, 20);
+			// We now check that they all had xfred set.
+			for (ScanBean scanBean : beans) {
+				ScanRequest<?> req = scanBean.getScanRequest();
+				
+				StepModel step = (StepModel)req.getModels()[0];
+				assertTrue(step.getName().equals("xfred"));
+			}
+		} finally {
+		    System.setProperty("org.eclipse.scanning.api.preprocessor.name", "");
 		}
+		
 	}
 
 

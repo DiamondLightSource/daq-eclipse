@@ -31,9 +31,7 @@ import org.eclipse.scanning.api.scan.process.ProcessingException;
  */
 public class ScanServlet extends AbstractConsumerServlet<ScanBean> {
 	
-	
-	private static IPreprocessingService service;
-	
+
 	@Override
 	public ScanProcess createProcess(ScanBean scanBean, IPublisher<ScanBean> response) throws EventException {
 		
@@ -44,8 +42,10 @@ public class ScanServlet extends AbstractConsumerServlet<ScanBean> {
 
 	private void preprocess(ScanBean scanBean) throws ProcessingException {
 		
+		IPreprocessingService service = Services.getPreprocessingService();
 		if (service==null) return;
 
+		// General name available to all
 		String preprocessorName = System.getProperty("org.eclipse.scanning.api.preprocessor.name");
 		
 		// DLS specific name, not recommended to use for new products.
