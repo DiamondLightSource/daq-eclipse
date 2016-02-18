@@ -58,7 +58,6 @@ public class ScanServlet extends AbstractConsumerServlet<ScanBean> {
 		IPreprocessor processor = service.getPreprocessor(preprocessorName);
 		if (processor == null) return;
 		
-		@SuppressWarnings("unchecked")
 		ScanRequest<?> req = processor.preprocess(scanBean.getScanRequest());
 		scanBean.setScanRequest(req);
 	}
