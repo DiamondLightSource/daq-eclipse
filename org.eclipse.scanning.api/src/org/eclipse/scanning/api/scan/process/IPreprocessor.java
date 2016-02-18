@@ -41,7 +41,7 @@ public interface IPreprocessor {
 	 * ScanRequest
 	 * 
 	 * @param req The request sent by the user interface
-	 * @return The processed request.
+	 * @return The processed request. The processor might modify the ScanRequest in place and return it or return an entirely new request.
 	 */
 	<T> ScanRequest<T> preprocess(ScanRequest<T> req) throws ProcessingException;
 }

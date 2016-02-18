@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.scan.servlet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +94,30 @@ public class ScanServletPluginTest {
 		ScanBean bean = createStepScan();
 		runAndCheck(bean, 20);
 	}
+	
+	/**
+	 * This test mimiks a client submitting a scan. The client may submit any status bean
+	 * to the consumer of course and then  
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testStepScanProcessing() throws Exception {
+		
+		ScanBean bean = createStepScan();
+		System.getProperty("org.eclipse.scanning.api.preprocessor.name", "example");
+		List<ScanBean> beans = runAndCheck(bean, 20);
+		System.getProperty("org.eclipse.scanning.api.preprocessor.name", null);
+		
+		// We now check that they all had xfred set.
+		for (ScanBean scanBean : beans) {
+			ScanRequest<?> req = scanBean.getScanRequest();
+			
+			StepModel step = (StepModel)req.getModels()[0];
+			assertTrue(step.getName().equals("xfred"));
+		}
+	}
+
 
 	@Test
 	public void testGridScan() throws Exception {
@@ -280,7 +305,7 @@ public class ScanServletPluginTest {
 
 	}
 
-	private void runAndCheck(ScanBean bean, long maxScanTimeS) throws Exception {
+	private List<ScanBean> runAndCheck(ScanBean bean, long maxScanTimeS) throws Exception {
 		
 		final IEventService eservice = Services.getEventService();
 
@@ -334,6 +359,8 @@ public class ScanServletPluginTest {
 			assertEquals(startEvents.get(0).getSize(), beans.size());
 			assertEquals(1, startEvents.size());
 			assertEquals(1, endEvents.size());
+			
+			return beans;
 			
 		} finally {
 			subscriber.disconnect();
