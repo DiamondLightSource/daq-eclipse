@@ -23,5 +23,6 @@ Export-Package: org.eclipse.scanning.api,
  org.eclipse.scanning.api.points.models,
  org.eclipse.scanning.api.scan,
  org.eclipse.scanning.api.scan.event,
- org.eclipse.scanning.api.scan.models
+ org.eclipse.scanning.api.scan.models,
+ org.eclipse.scanning.api.scan.process
 

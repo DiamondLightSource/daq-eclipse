@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.servlet;
+package org.eclipse.scanning.test.scan.servlet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
