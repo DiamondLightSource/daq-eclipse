@@ -55,7 +55,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		
 		bean.setPreviousStatus(Status.SUBMITTED);
 		bean.setStatus(Status.QUEUED);
-		response.broadcast(bean);
+		broadcast(bean);
 	}
 
 	@Override
@@ -94,21 +94,23 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.COMPLETE);
 			bean.setPercentComplete(100);
-			response.broadcast(bean);
+			broadcast(bean);
+			
 
 		} catch (ScanningException | InterruptedException ne) {
 			ne.printStackTrace();
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.FAILED);
 			bean.setMessage(ne.getMessage());
-			response.broadcast(bean);
+			broadcast(bean);
+			
 			throw new EventException(ne);
 		}
 	}
 
 	private IRunnableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws ScanningException, EventException {
 
-		ScanRequest req = bean.getScanRequest();
+		ScanRequest<?> req = bean.getScanRequest();
 		if (req==null) throw new ScanningException("There must be a scan request to run a new scan!");
 		
 		try {
@@ -140,7 +142,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		} catch (Exception e) {
 			bean.setStatus(Status.FAILED);
 			bean.setMessage(e.getMessage());
-			response.broadcast(bean);
+			broadcast(bean);
 			if (e instanceof EventException) throw (EventException)e;
 			throw new EventException(e);
 		}
@@ -165,19 +167,17 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		try {
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.TERMINATED);
-			response.broadcast(bean);
+			broadcast(bean);
 			device.abort();
 			
 		} catch (ScanningException e) {
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.FAILED);
-			response.broadcast(bean);
+			broadcast(bean);
 
 			throw new EventException(e);
 		}
 	}
-	
-	
 	
 	@SuppressWarnings("unchecked")
 	private List<IRunnableDevice<?>> getDetectors(Map<String, ?> detectors) throws EventException {
@@ -189,7 +189,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			for (String name : detectors.keySet()) {
 				@SuppressWarnings("rawtypes")
 				Object dmodel = detectors.get(name);
-				IRunnableDevice<?> detector = (IWritableDetector<?>)service.createRunnableDevice(dmodel);
+				IRunnableDevice<?> detector = (IRunnableDevice<?>)service.createRunnableDevice(dmodel);
 				ret.add(detector);
 			}
 			return ret;
@@ -207,6 +207,12 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		} catch (ScanningException ne) {
 			throw new EventException(ne);
 		}
+	}
+
+	private void broadcast(ScanBean bean) throws EventException {
+		if (response!=null && response.isAlive()) {
+			response.broadcast(bean);
+		}		
 	}
 
 }

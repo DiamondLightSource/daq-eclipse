@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.malcolm.device;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,16 @@ public class MockedConnection implements IMalcolmConnection {
 		}
 	}
 
+	
+	@Override
+	public boolean isConnected() {
+		try {
+			Collection<String> names = getDeviceNames();
+			return names.size()>0;
+		} catch (Exception ne) {
+			return false;
+		}
+	}
 	@Override
 	public void dispose() throws MalcolmDeviceException {
 		if (devices==null) return;

@@ -35,6 +35,12 @@ public interface IMalcolmConnection {
 	public <T> IMalcolmDevice<T> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException;
 
 	/**
+	 * 
+	 * @return true if connection is still responding with device names, false otherwise.
+	 */
+	public boolean isConnected();
+	
+	/**
 	 * Disposes the connections to all devices made by this connection.
 	 */
 	public void dispose() throws MalcolmDeviceException;

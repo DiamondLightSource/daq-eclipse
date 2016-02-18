@@ -6,9 +6,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
+import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
+import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
-import org.eclipse.dawnsci.hdf5.HierarchicalDataFactory;
-import org.eclipse.dawnsci.hdf5.IHierarchicalDataFile;
+import org.eclipse.dawnsci.nexus.INexusFileFactory;
+import org.eclipse.dawnsci.nexus.NXdetector;
+import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusFile;
+import org.eclipse.dawnsci.nexus.NexusNodeFactory;
+import org.eclipse.dawnsci.nexus.NexusScanInfo;
+import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
@@ -20,6 +31,8 @@ import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
 class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	
+	private   static INexusFileFactory   factory;
+
 	protected Map<String,Object> params;
 	
 	// Latch used such that one thread may wait the state changing at a time.
@@ -146,7 +159,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		if (getState().isRunning()) throw new MalcolmDeviceException(this, "Device '"+getName()+"' is already running or paused!");
 		
 		try {
-			write(params); // mimicks writing
+			run(params); // mimicks running malcolm hdf5
 						
 		} catch (Exception e) {
             setDeviceState(DeviceState.FAULT);
@@ -160,6 +173,22 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 			}
 		}
 	}
+
+
+	@Override
+	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
+		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+	}
+
+	@Override
+	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
+		
+		final NXdetector detector = nodeFactory.createNXdetector();
+		// TODO FIXME Create links to HDF5 file here.
+		return null;
+	}
+
+
 	/**
 	 * Writes an HDF5 file with an image stack in.
 	 * Does not need SWMR bindings because we are mocking the test in the same process.
@@ -169,66 +198,65 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	 * 
 	 * @param params
 	 */
-	protected void write(final Map<String, Object> params) throws Exception {
+	protected void run(final Map<String, Object> params) throws Exception {
 
 		setDeviceState(DeviceState.RUNNING); // Will send an event
 
-        int count  = 0;
         int amount = (int)params.get("nframes");
         
         // Send scan start
 		sendEvent(new MalcolmEventBean(getState()));
      
         try {
-           
-			while(getState().isRunning()) {
-	
-				IHierarchicalDataFile file=null;
-				try {
-					// We don't use sleep for ms because this 
-					// makes the system inherently slow, lock/unlock is immeditate.
-					acquireRunLock(); // Blocks if paused.
-						
-					file = HierarchicalDataFactory.getWriter(params.get("file").toString());
-	
-					int[] shape = (int[])params.get("shape");
-					if (shape==null) shape = new int[]{1024,1024};
-					IDataset       rimage   = Random.rand(shape);
-					rimage.setName("image");
-	
-					file.group("/entry");
-					file.group("/entry/data");
-					String path = file.appendDataset(rimage.getName(), rimage, "/entry/data");
-					count++;
-	
-					// We mimic and event coming in from Malcolm
-					// In reality these will come in from ZeroMQ but
-					// will call sendEvent(...) in the same way.
-					final MalcolmEventBean bean = new MalcolmEventBean(getState());
-					bean.setPercentComplete((count/amount)*100d);				
-					
-					// Hardcoded shape change of dataset, in reality it will not be so simple.
-					bean.setOldShape(new int[]{count-1, shape[0], shape[1]});
-					bean.setNewShape(new int[]{count, shape[0], shape[1]});
-					sendEvent(bean);
-	
-					System.out.println("Image "+count+" HDF5 written image to dataset "+path);
-					
-				} finally {
-					releaseRunLock();
-					if (file!=null) file.close();
-				}
-				
-				// Break if done
-				if (count>=amount) {
-					break;
-				}
-				
-				// Sleep (no need to lock while sleeping)
-				long exposure = Math.round(((double)params.get("exposure"))*1000d);
-				Thread.sleep(exposure);
+    		NexusFile file=null;
+    		try {
+    			file = factory.newNexusFile(params.get("file").toString(), false);  // DO NOT COPY!
+    			file.openToWrite(true); // DO NOT COPY!
 
-			} // End fake scanning loop.
+    			GroupNode par = file.getGroup("/entry/data", true); // DO NOT COPY!
+    			
+				int[] ishape = (int[])params.get("shape");
+				if (ishape==null) ishape = new int[]{1024,1024};
+
+				final int[] shape = new int[]{1,  ishape[0], ishape[1]};
+    			final int[] max   = new int[]{-1, ishape[0], ishape[1]};
+    			ILazyWriteableDataset writer = new LazyWriteableDataset("image", Dataset.FLOAT, shape, max, shape, null); // DO NOT COPY!
+    			file.createData(par, writer); 
+				file.close();
+
+    			int index = 0;
+    			while(getState().isRunning()) {
+
+    				try {
+						acquireRunLock(); // Blocks if paused.
+	
+	    				int[] start = {index, 0, 0};
+	    				int[] stop  = {index+1, 1024, 1024};
+	    				index++;
+	    				if (index>23) index = 23; // Stall on the last image to avoid writing massive stacks
+	    				
+	    				IDataset       rimage   = Random.rand(new int[]{1, ishape[0], ishape[1]});
+	    				rimage.setName("image");
+	   				    writer.setSlice(new IMonitor.Stub(), rimage, start, stop, null);
+	   				    file.flush();
+	   				    
+	   					long exposure = Math.round(((double)params.get("exposure"))*1000d);
+	   					Thread.sleep(exposure);
+	    				System.out.println(">> HDF5 wrote image to "+params.get("file").toString());
+	    				
+	    				if (index>=amount) {
+	    					break;
+	    				}
+    				} finally {
+    					releaseRunLock();
+     				}
+
+    			}
+   			
+    		} catch (Exception ne) {
+    			ne.printStackTrace();
+    			
+			}
 			
 			setDeviceState(DeviceState.READY); // State change
 	        sendEvent(new MalcolmEventBean(getState())); // Scan end event

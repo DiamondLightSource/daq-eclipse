@@ -1,9 +1,5 @@
 package org.eclipse.scanning.test.malcolm.mock;
 
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
-import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.test.malcolm.AbstractAbortingMalcolmTest;
 import org.eclipse.scanning.test.malcolm.device.MockedMalcolmService;
 import org.junit.After;

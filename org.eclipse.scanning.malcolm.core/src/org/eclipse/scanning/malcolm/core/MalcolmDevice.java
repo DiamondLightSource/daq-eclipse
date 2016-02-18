@@ -7,6 +7,13 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.dawnsci.nexus.INexusDevice;
+import org.eclipse.dawnsci.nexus.NXdetector;
+import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusNodeFactory;
+import org.eclipse.dawnsci.nexus.NexusScanInfo;
+import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -18,7 +25,9 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
+import org.eclipse.scanning.api.malcolm.models.MalcolmRequest;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,6 +92,21 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		});		
 		
 	}
+
+
+	@Override
+	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
+		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+	}
+
+	@Override
+	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
+		
+		final NXdetector detector = nodeFactory.createNXdetector();
+		// TODO FIXME Create links to HDF5 file here.
+		return null;
+	}
+
 
 	protected void sendScanEvent(MalcolmEvent<JsonMessage> e) throws Exception {
 		
@@ -165,6 +189,7 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	
 	@Override
 	public void configure(T model) throws MalcolmDeviceException {
+		if (model instanceof MalcolmRequest<?>) model = ((MalcolmRequest<T>)model).getDeviceModel(); 
 		final JsonMessage msg   = connectionDelegate.createCallMessage("configure", model);
 		service.send(this, msg);
 		setModel(model);
@@ -286,5 +311,4 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		}
 
 	}
-
 }

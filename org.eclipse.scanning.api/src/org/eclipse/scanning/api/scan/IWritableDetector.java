@@ -42,7 +42,7 @@ public interface IWritableDetector<T> extends IRunnableEventDevice<T>, INameable
 	 * 
 	 * For GDA8 detectors, the readout will be overridden.
 	 * 
-	 * @return true for a successful readout
+	 * @return true for a successful readout. If false the events will not be fired and the scan will continue.
 	 * @throws DeviceException
 	 */
 	boolean write(IPosition position) throws ScanningException;

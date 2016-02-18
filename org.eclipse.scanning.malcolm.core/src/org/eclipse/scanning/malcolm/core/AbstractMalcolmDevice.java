@@ -3,6 +3,8 @@ package org.eclipse.scanning.malcolm.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.dawnsci.nexus.INexusDevice;
+import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
@@ -21,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * Base class for Malcolm devices
  *
  */
-public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T> implements IMalcolmDevice<T> {
+public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T> implements IMalcolmDevice<T>, INexusDevice<NXdetector> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMalcolmDevice.class);
 	

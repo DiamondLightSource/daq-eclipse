@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="device" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="device" minOccurs="0" maxOccurs="unbounded"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -64,7 +64,7 @@
                </appinfo>
             </annotation>
          </attribute>
-         <attribute name="class" type="string" use="required">
+         <attribute name="class" type="string">
             <annotation>
                <documentation>
                   The device which is being defined by extension point to be available to the scanning mechanism.
@@ -106,6 +106,13 @@
                <appinfo>
                   <meta.attribute kind="resource"/>
                </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  Set this attribute to mark the device name. This is required for malcolm devices and optional for other devices. A device, malcolm or otherwise may be retrieved by name if the name field is set.
+               </documentation>
             </annotation>
          </attribute>
       </complexType>

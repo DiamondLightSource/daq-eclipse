@@ -28,7 +28,11 @@ public class Services {
 	private static BundleContext           context;
 
 	public static IFilePathService getFilePathService() {
-		if (filePathService == null) filePathService = getService(IFilePathService.class);
+		if (filePathService == null) try {
+		     filePathService = getService(IFilePathService.class);
+		} catch (NullPointerException npe) { // No service reference found.
+			filePathService = null;
+		}
 		return filePathService;
 	}
 

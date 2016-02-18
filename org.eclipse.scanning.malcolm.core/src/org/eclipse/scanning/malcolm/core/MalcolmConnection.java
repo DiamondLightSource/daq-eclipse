@@ -67,6 +67,16 @@ public class MalcolmConnection implements IMalcolmConnection {
 	}
 	
 	@Override
+	public boolean isConnected() {
+		try {
+			Collection<String> names = getDeviceNames();
+			return names.size()>0;
+		} catch (Exception ne) {
+			return false;
+		}
+	}
+	
+	@Override
 	public <T> IMalcolmDevice<T> getDevice(String name) throws MalcolmDeviceException {
         return getDevice(name, null);
 	}

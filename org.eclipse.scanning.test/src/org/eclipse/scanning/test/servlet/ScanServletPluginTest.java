@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -20,6 +22,9 @@ import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
+import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
+import org.eclipse.scanning.api.malcolm.IMalcolmService;
+import org.eclipse.scanning.api.malcolm.models.MalcolmRequest;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
@@ -28,6 +33,7 @@ import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.ScanServlet;
 import org.eclipse.scanning.server.servlet.Services;
+import org.eclipse.scanning.test.malcolm.device.MockedMalcolmService;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.AfterClass;
@@ -61,7 +67,7 @@ public class ScanServletPluginTest {
 
 		 */
 		servlet = new ScanServlet();
-		servlet.setBroker("tcp://sci-serv5.diamond.ac.uk:61616");
+		servlet.setBroker("vm://localhost?broker.persistent=false");
 		servlet.setSubmitQueue("org.eclipse.scanning.test.servlet.submitQueue");
 		servlet.setStatusSet("org.eclipse.scanning.test.servlet.statusSet");
 		servlet.setStatusTopic("org.eclipse.scanning.test.servlet.statusTopic");
@@ -87,6 +93,37 @@ public class ScanServletPluginTest {
 		ScanBean bean = createStepScan();
 		runAndCheck(bean, 20);
 	}
+
+	@Test
+	public void testGridScan() throws Exception {
+		
+		ScanBean bean = createGridScan();
+		runAndCheck(bean, 20);
+
+	}
+	
+	@Test
+	public void testMalcScan() throws Exception {
+		
+		ScanBean bean = createMalcolmScan();
+		runAndCheck(bean, 20);
+	}
+
+
+	@Test
+	public void testStepGridScanNested1() throws Exception {
+		
+		ScanBean bean = createStepGridScan(1);
+		runAndCheck(bean, 100);
+	}
+	
+	@Test
+	public void testStepGridScanNested5() throws Exception {
+		
+		ScanBean bean = createStepGridScan(5);
+		runAndCheck(bean, 500);
+	}
+
 	
 	private ScanBean createStepScan() throws IOException {
 		// We write some pojos together to define the scan
@@ -104,28 +141,6 @@ public class ScanServletPluginTest {
 		
 		bean.setScanRequest(req);
 		return bean;
-	}
-
-	@Test
-	public void testGridScan() throws Exception {
-		
-		ScanBean bean = createGridScan();
-		runAndCheck(bean, 20);
-
-	}
-
-	@Test
-	public void testStepGridScanNested1() throws Exception {
-		
-		ScanBean bean = createStepGridScan(1);
-		runAndCheck(bean, 100);
-	}
-	
-	@Test
-	public void testStepGridScanNested5() throws Exception {
-		
-		ScanBean bean = createStepGridScan(5);
-		runAndCheck(bean, 500);
 	}
 
 	private ScanBean createStepGridScan(int outerScanNum) throws IOException {
@@ -179,7 +194,6 @@ public class ScanServletPluginTest {
 		return bean;
 	}
 
-	
 	private ScanBean createGridScan() throws IOException {
 		
 		
@@ -217,6 +231,53 @@ public class ScanServletPluginTest {
 		
 		bean.setScanRequest(req);
 		return bean;
+	}
+
+	private ScanBean createMalcolmScan() throws Exception {
+		
+		
+		// We write some pojos together to define the scan
+		final ScanBean bean = new ScanBean();
+		bean.setName("Hello Scanning World");
+		
+		final ScanRequest<?> req = new ScanRequest<IROI>();
+		req.setModels(new StepModel("temperature", 0, 9, 1));
+		req.setMonitorNames("monitor");
+		
+		final File tmp = File.createTempFile("scan_servlet_test_malc", ".nxs");
+		tmp.deleteOnExit();
+		req.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
+		
+		final MalcolmRequest<Map<String, Object>> malcModel = new MalcolmRequest<Map<String, Object>>();
+	    Map<String, Object> config = new HashMap<String,Object>(2);    
+		// Test params for starting the device 		
+	    fillParameters(config, -1, 10);
+	    malcModel.setDeviceModel(config);
+		malcModel.setDeviceName("zebra");
+		malcModel.setHostName("pausable");
+		malcModel.setPort(-1);
+		req.putDetector("zebra", malcModel);
+		
+		bean.setScanRequest(req);
+		return bean;
+	}
+	
+	private void fillParameters(Map<String, Object> config, long configureSleep, int imageCount) throws Exception {
+		
+		// Params for driving mock mode
+		config.put("nframes", imageCount); // IMAGE_COUNT images to write
+		config.put("shape", new int[]{1024,1024});
+		
+		final File temp = File.createTempFile("testingFile", ".hdf5");
+		temp.deleteOnExit();
+		config.put("file", temp.getAbsolutePath());
+		
+		// The exposure is in seconds
+		config.put("exposure", 0.5);
+		
+		double csleep = configureSleep/1000d;
+		if (configureSleep>0) config.put("configureSleep", csleep); // Sleeps during configure
+
 	}
 
 	private void runAndCheck(ScanBean bean, long maxScanTimeS) throws Exception {
@@ -285,6 +346,14 @@ public class ScanServletPluginTest {
 		// override the connector
 		// DO NOT COPY TESTING ONLY
 		((DeviceServiceImpl)Services.getScanService()).setDeviceService(new MockScannableConnector()); 
+		
+		
+		// Put a connection in the DeviceServiceImpl which is used for the test
+		IMalcolmService malcolmService = new MockedMalcolmService();
+		
+		IMalcolmConnection connection   = malcolmService.createConnection(URI.create("tcp://pausable"));
+		((DeviceServiceImpl)Services.getScanService())._registerConnection(URI.create("tcp://pausable"), connection);
+		
 		// DO NOT COPY TESTING ONLY
 		Services.setConnector(new MockScannableConnector());
 		
