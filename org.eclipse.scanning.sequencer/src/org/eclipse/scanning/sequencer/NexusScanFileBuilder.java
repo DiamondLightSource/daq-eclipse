@@ -16,6 +16,7 @@ import org.eclipse.dawnsci.nexus.builder.NexusDataBuilder;
 import org.eclipse.dawnsci.nexus.builder.NexusEntryBuilder;
 import org.eclipse.dawnsci.nexus.builder.NexusFileBuilder;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
@@ -26,9 +27,10 @@ import org.eclipse.scanning.api.scan.models.ScanDeviceModel.ScanFieldModel;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 
 /**
- * Creates a nexus file for a given {@link ScanModel}.
+ * A wrapper around a nexus file exposing only the methods required for
+ * perfoming a scan.
  */
-class NexusFileScanBuilder {
+class NexusScanFileBuilder {
 	
 	private IDeviceConnectorService deviceService;
 	private ScanModel model;
@@ -40,19 +42,26 @@ class NexusFileScanBuilder {
 	private Map<NexusObjectProvider<?>, DataDevice<?>> dataDevices = new HashMap<>();
 	private NexusFileBuilder fileBuilder;
 	
-	NexusFileScanBuilder(IDeviceConnectorService deviceService) {
+	NexusScanFileBuilder(IDeviceConnectorService deviceService) {
 		this.deviceService = deviceService; 
 	}
 	
 	/**
-	 * Creates a nexus file for the given {@link ScanModel}. 
-	 * @param model
-	 * @return <code>true</code> if the nexus file was created successfully,
-	 *     <code>false</code> otherwise
+	 * Creates the nexus file for the given {@link ScanModel}. 
+	 * The structure of the nexus file is determined by model and the
+	 * devices that the model references - these are retreived from the
+	 * {@link IDeviceConnectorService}.
+	 * 
+	 * @param model model of scan
+	 * @return the nexus scan file  
 	 * @throws NexusException
 	 * @throws ScanningException
 	 */
-	public boolean createNexusFile(ScanModel model) throws NexusException, ScanningException {
+	public NexusScanFile createNexusFile(ScanModel model) throws NexusException, ScanningException {
+		if (fileBuilder != null) {
+			throw new IllegalStateException("The nexus file has already been created");
+		}
+		
 		this.model = model;
 
 		// Add and configures any devices we can get from the scan.
@@ -67,9 +76,8 @@ class NexusFileScanBuilder {
 		// Create a builder
 		fileBuilder = ServiceHolder.getFactory().newNexusFileBuilder(model.getFilePath());
 		createEntry(fileBuilder);
-		fileBuilder.saveFile();
 		
-		return true; // successfully created file
+		return fileBuilder.createFile();
 	}
 	
 	/**

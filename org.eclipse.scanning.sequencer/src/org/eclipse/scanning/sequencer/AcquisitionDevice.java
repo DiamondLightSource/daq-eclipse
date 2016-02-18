@@ -6,6 +6,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.dawnsci.nexus.NexusException;
+import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
@@ -35,6 +36,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private IPositioner                          positioner;
 	private LevelRunner<IRunnableDevice<?>>      runners;
 	private LevelRunner<IRunnableDevice<?>>      writers;
+	// the nexus file
+	private NexusScanFile nexusScanFile = null;
 	
 	/*
 	 * Concurrency design recommended by Keith Ralphs after investigating
@@ -95,17 +98,19 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	}
 
 	/**
-	 * Creates the NeXus file for the scan.
+	 * Creates the NeXus file for the scan, if the scan is configured to
+	 * create one.
 	 * 
 	 * @param model scan model
 	 * @return <code>true</code> if a nexus file was successfully created, <code>false</code> otherwise
-	 * @throws NexusException
-	 * @throws ScanningException
+	 * @throws NexusException if a nexus file should be created
+	 * @throws ScanningException 
 	 */
 	private boolean createNexusFile(ScanModel model) throws NexusException, ScanningException {
 		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return false; // nothing wired 
-		NexusFileScanBuilder nexusBuilder = new NexusFileScanBuilder(getDeviceService());
-		return nexusBuilder.createNexusFile(model);
+		NexusScanFileBuilder fileBuilder = new NexusScanFileBuilder(getDeviceService());
+		nexusScanFile = fileBuilder.createNexusFile(model);
+		return true; // successfully created file
 	}
 
 	@Override
@@ -139,6 +144,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
         	fireRunWillPerform(model.getPositionIterable().iterator().next());
 
         	// The scan loop
+        	nexusScanFile.openToWrite();
         	IPosition pos = null; // We want the last point when we are done so don't use foreach
 	        for (Iterator<IPosition> it = model.getPositionIterable().iterator(); it.hasNext();) {
 				
@@ -156,17 +162,18 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
 	        	writers.await();               // Wait for the previous read out to return, if any
+	        	nexusScanFile.flush();         // flush the nexus file
 	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
 	        	// Send an event about where we are in the scan
 	        	positionComplete(pos, count+1, size);
 	        	++count;
-	        	
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
         	writers.await();                   // Wait for the previous read out to return, if any
+        	nexusScanFile.close();             // close the NeXus file
         	fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
     		fireEnd();
         	
