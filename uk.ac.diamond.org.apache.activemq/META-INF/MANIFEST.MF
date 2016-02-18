@@ -108,6 +108,7 @@ Export-Package: javax.jms,
  org.apache.activemq.usage,
  org.apache.activemq.util,
  org.apache.activemq.util.osgi,
- org.apache.activemq.xbean
+ org.apache.activemq.xbean,
+ org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: org.slf4j;version="1.7.6"

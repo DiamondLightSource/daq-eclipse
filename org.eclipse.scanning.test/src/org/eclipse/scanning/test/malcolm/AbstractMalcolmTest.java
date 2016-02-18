@@ -50,7 +50,7 @@ public abstract class AbstractMalcolmTest {
 	protected final static int IMAGE_COUNT = 5;
 
 		
-	protected static final URI PAUSABLE = URI.create("http://pausable"); 
+	protected static final URI PAUSABLE = URI.create("tcp://pausable"); 
  
 	
 	/**

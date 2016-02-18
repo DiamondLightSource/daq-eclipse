@@ -208,21 +208,5 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		// Otherwise just return the iteration count
 		return iteration;
 	}
-
-
-	@Override
-	public void abort() throws ScanningException {
-		throw new ScanningException("Operation not supported!");
-	}
-
-	@Override
-	public void pause() throws ScanningException {
-		throw new ScanningException("Operation not supported!");
-	}
-
-	@Override
-	public void resume() throws ScanningException {
-		throw new ScanningException("Operation not supported!");
-	}
 	
 }

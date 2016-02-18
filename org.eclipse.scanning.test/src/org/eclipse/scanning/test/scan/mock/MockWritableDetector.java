@@ -53,7 +53,7 @@ public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorMod
 
 	@Override
 	public void abort() throws ScanningException {
-		throw new ScanningException("Not implemented!");
+
 	}
 
 	@Override

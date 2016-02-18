@@ -300,6 +300,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	            }
 	            
         	} catch (EventException ne) {
+        		ne.printStackTrace();
         		if (isDurable()) continue;
         		break;
          		

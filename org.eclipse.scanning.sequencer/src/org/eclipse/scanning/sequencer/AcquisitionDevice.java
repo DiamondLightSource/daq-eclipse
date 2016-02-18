@@ -144,7 +144,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
         	fireRunWillPerform(model.getPositionIterable().iterator().next());
 
         	// The scan loop
-        	nexusScanFile.openToWrite();
+        	if (nexusScanFile!=null) nexusScanFile.openToWrite();
         	IPosition pos = null; // We want the last point when we are done so don't use foreach
 	        for (Iterator<IPosition> it = model.getPositionIterable().iterator(); it.hasNext();) {
 				
@@ -162,7 +162,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
 	        	writers.await();               // Wait for the previous read out to return, if any
-	        	nexusScanFile.flush();         // flush the nexus file
+	        	if (nexusScanFile!=null) nexusScanFile.flush();         // flush the nexus file
 	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
@@ -173,7 +173,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        
 	        // On the last iteration we must wait for the final readout.
         	writers.await();                   // Wait for the previous read out to return, if any
-        	nexusScanFile.close();             // close the NeXus file
+        	if (nexusScanFile!=null) nexusScanFile.close();             // close the NeXus file
         	fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
     		fireEnd();
         	

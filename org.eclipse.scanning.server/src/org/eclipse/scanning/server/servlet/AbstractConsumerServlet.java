@@ -44,7 +44,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 	
 	// Property to specify if one scan at a time or more are completed.
 	private boolean         blocking = true;
-	private boolean         durable = false;
+	private boolean         durable  = true;
 	
 	// Recommended to configure these as
 	protected String        submitQueue = IEventService.SUBMISSION_QUEUE;

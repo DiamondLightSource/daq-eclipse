@@ -250,18 +250,18 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 
 	@Override
 	public void abort() throws ScanningException {
-		throw new ScanningException("Abort is not yet implemented!");
+
 	}
 
 
 	@Override
 	public void pause() throws ScanningException {
-		throw new ScanningException("Pause is not yet implemented!");
+
 	}
 
 	@Override
 	public void resume() throws ScanningException {
-		throw new ScanningException("Resume is not yet implemented!");
+
 	}
 
 }

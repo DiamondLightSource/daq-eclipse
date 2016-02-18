@@ -57,8 +57,7 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	 * 
 	 * @return the current device State. This is not the same as the Status of the scan.
 	 */
-	public DeviceState getDeviceState() throws ScanningException ;
-
+	public DeviceState getDeviceState() throws ScanningException;
 
 	/**
 	 * Blocking call to execute the scan. The position specified may be null.

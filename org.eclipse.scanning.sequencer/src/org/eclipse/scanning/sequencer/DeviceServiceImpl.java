@@ -1,14 +1,24 @@
 package org.eclipse.scanning.sequencer;
 
 import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
+import org.eclipse.scanning.api.malcolm.IMalcolmService;
+import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
+import org.eclipse.scanning.api.malcolm.models.MalcolmRequest;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IDeviceService;
@@ -23,10 +33,21 @@ import org.osgi.framework.ServiceReference;
 public final class DeviceServiceImpl implements IDeviceService {
 	
 	/**
+	 * The default Malcolm Hostname can be injected by spring. Otherwise
+	 * this machine will be used for the malcolm host for instance 'beamline'-control.
+	 */
+	public static String defaultMalcolmHostname = null;
+	
+	/**
 	 * This service can not be present for some tests which run in OSGi
 	 * but mock the test laster.
 	 */
 	private static IDeviceConnectorService deviceService;	
+	
+	/**
+	 * This service must be present.
+	 */
+	private static IMalcolmService         malcolmService;	
 	
 	/**
 	 * Main constuctor used in the running server by OSGi (only)
@@ -40,43 +61,46 @@ public final class DeviceServiceImpl implements IDeviceService {
 		deviceService = dservice;	
 	}
 
-	private static final Map<Class<?>, Class<? extends IRunnableDevice>> scanners;
+	private static final Map<Class<?>, Class<? extends IRunnableDevice>> aquisitionDevices;
+	
+	private static final Map<URI, IMalcolmConnection> connections;
 	
 	// Use a factory pattern to register the types.
 	// This pattern can always be extended by extension points
 	// to allow point generators to be dynamically registered. 
 	static {
 		System.out.println("Starting device service");
-		Map<Class<?>, Class<? extends IRunnableDevice>> tmp = new HashMap<>(7);
-		tmp.put(ScanModel.class,         AcquisitionDevice.class);
+		Map<Class<?>, Class<? extends IRunnableDevice>> aqui = new HashMap<>(7);
+		aqui.put(ScanModel.class,         AcquisitionDevice.class);
 		
 		try {
-			readExtensions(tmp);
+			readExtensions(aqui);
 		} catch (CoreException e) {
 			e.printStackTrace(); // Static block, intentionally do not use logging.
 		}
 
 		
-		scanners = tmp;
+		aquisitionDevices = aqui;
+		connections = new HashMap<>(3);
 	}
 	
-	/**
-	 * Used for testing only
-	 * @param model
-	 * @param device
-	 */
-	public void _register(Class<?> model, Class<? extends IRunnableDevice> device) {
-		scanners.put(model, device);
-	}
-
 	private static void readExtensions(Map<Class<?>, Class<? extends IRunnableDevice>> devs) throws CoreException {
 		
 		if (Platform.getExtensionRegistry()!=null) {
 			final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.device");
 			for (IConfigurationElement e : eles) {
-				final IRunnableDevice gen = (IRunnableDevice)e.createExecutableExtension("class");
+				
 				final Object     mod = e.createExecutableExtension("model");
-				devs.put(mod.getClass(), gen.getClass());
+				
+				if (e.getName().equals("device")) {
+					final IRunnableDevice gen = (IRunnableDevice)e.createExecutableExtension("class");
+					devs.put(mod.getClass(), gen.getClass());
+					
+				// TODO Might have other extension point driven devices
+							
+				} else {
+					throw new CoreException(new Status(IStatus.ERROR, "org.eclipse.scanning.sequencer", "Unrecognized device "+e.getName()));
+				}
 			}
 		}
 	}
@@ -100,10 +124,8 @@ public final class DeviceServiceImpl implements IDeviceService {
 				
 		try {
 			if (deviceService==null) deviceService = getDeviceConnector();
-			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)scanners.get(model.getClass());
-			if (clazz == null) throw new ScanningException("The model '"+model.getClass()+"' does not have a device registered for it!");
 			
-			final IRunnableDevice<T> scanner = clazz.newInstance();
+			final IRunnableDevice<T> scanner = createDevice(model);
 			if (scanner instanceof AbstractRunnableDevice) {
 				AbstractRunnableDevice<T> ascanner = (AbstractRunnableDevice<T>)scanner;
 				ascanner.setScanningService(this);
@@ -121,6 +143,8 @@ public final class DeviceServiceImpl implements IDeviceService {
                 	// no getName() is compulsory in the model
                 }
 			}
+			
+			if (model instanceof MalcolmRequest<?>) model = ((MalcolmRequest<T>)model).getDeviceModel(); 
 			scanner.configure(model);
 			return scanner;
 			
@@ -129,6 +153,53 @@ public final class DeviceServiceImpl implements IDeviceService {
 		} catch (Exception ne) {
 			throw new ScanningException(ne);
 		}
+	}
+	
+	private <T> IRunnableDevice createDevice(T model) throws ScanningException, InstantiationException, IllegalAccessException, URISyntaxException, UnknownHostException {
+		
+		final IRunnableDevice<T> scanner;
+		
+		if (model instanceof MalcolmRequest) {
+			MalcolmRequest req = (MalcolmRequest)model;
+			URI            uri = createMalcolmURI(req);
+			IMalcolmConnection conn = connections.get(uri);
+			if (conn==null || !conn.isConnected()) {
+				conn = malcolmService.createConnection(uri);
+				connections.put(uri, conn);
+			}
+			return conn.getDevice(req.getDeviceName());
+			
+		} else if (aquisitionDevices.containsKey(model.getClass())) {
+			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)aquisitionDevices.get(model.getClass());
+			if (clazz == null) throw new ScanningException("The model '"+model.getClass()+"' does not have a device registered for it!");
+			scanner = clazz.newInstance();
+			
+			// TODO Might have other extension point driven devices
+		} else {
+			throw new ScanningException("The model '"+model.getClass()+"' does not have a device registered for it!");
+		}
+		return scanner;
+	}
+
+	/**
+	 * 
+	 * @param req
+	 * @return malcolm uri for instance <code>tcp://i05-1.control.ac.uk:5600</code>
+	 * @throws UnknownHostException
+	 * @throws URISyntaxException 
+	 */
+	private URI createMalcolmURI(MalcolmRequest req) throws UnknownHostException, URISyntaxException {
+		String hostName = req.getHostName();
+		if (hostName == null) hostName = defaultMalcolmHostname;
+		if (hostName == null) hostName = InetAddress.getLocalHost().getHostName();
+		int    port  = req.getPort();
+		StringBuilder buf = new StringBuilder("tcp://");
+		buf.append(hostName);
+		if (port>0) {
+			buf.append(":");
+			buf.append(port);
+		}
+		return new URI(buf.toString());
 	}
 
 	public static IDeviceConnectorService getDeviceService() {
@@ -147,6 +218,14 @@ public final class DeviceServiceImpl implements IDeviceService {
 	
 	public void stop() {
 		this.context = null;
+		for (URI uri : connections.keySet()) {
+			try {
+				connections.get(uri).dispose();
+			} catch (MalcolmDeviceException e) {
+				System.out.println("Problem closing malcolm connection to "+uri);
+				e.printStackTrace();
+			}
+		}
 	}
 	
     /**
@@ -158,5 +237,37 @@ public final class DeviceServiceImpl implements IDeviceService {
 		return context.getService(ref);
 	}
 
+	public static IMalcolmService getMalcolmService() {
+		return malcolmService;
+	}
+
+	public static void setMalcolmService(IMalcolmService malcolmService) {
+		DeviceServiceImpl.malcolmService = malcolmService;
+	}
+
+	public static String getDefaultMalcolmHostname() {
+		return defaultMalcolmHostname;
+	}
+
+	public static void setDefaultMalcolmHostname(String defaultMalcolmHostname) {
+		DeviceServiceImpl.defaultMalcolmHostname = defaultMalcolmHostname;
+	}
+
+	/**
+	 * Used for testing only
+	 * @param model
+	 * @param device
+	 */
+	public void _register(Class<?> model, Class<? extends IRunnableDevice> device) {
+		aquisitionDevices.put(model, device);
+	}
+	/**
+	 * Used for testing only
+	 * @param uri
+	 * @param connection
+	 */
+	public void _registerConnection(URI uri, IMalcolmConnection connection) {
+		connections.put(uri, connection);
+	}
 
 }

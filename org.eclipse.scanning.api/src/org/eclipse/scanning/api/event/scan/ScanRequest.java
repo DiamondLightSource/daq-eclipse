@@ -58,6 +58,16 @@ public class ScanRequest<T> {
 	 * The end position or null if there is no start position to move to.
 	 */
 	private IPosition end;
+	
+	/**
+	 * Set to ignore processing of this request if the request has been 
+	 * prepared for a specific server. For instance in the case where the client
+	 * has build a legal scan request for a given beamline, it will not want this
+	 * request preprocessed.
+	 * 
+	 * Default is false.
+	 */
+	private boolean ignorePreprocess;
 
 	public ScanRequest() {
 
@@ -109,8 +119,10 @@ public class ScanRequest<T> {
 		result = prime * result + ((detectors == null) ? 0 : detectors.hashCode());
 		result = prime * result + ((end == null) ? 0 : end.hashCode());
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
+		result = prime * result + (ignorePreprocess ? 1231 : 1237);
 		result = prime * result + Arrays.hashCode(models);
 		result = prime * result + Arrays.hashCode(monitorNames);
+		result = prime * result + ((regions == null) ? 0 : regions.hashCode());
 		result = prime * result + ((start == null) ? 0 : start.hashCode());
 		return result;
 	}
@@ -139,9 +151,16 @@ public class ScanRequest<T> {
 				return false;
 		} else if (!filePath.equals(other.filePath))
 			return false;
+		if (ignorePreprocess != other.ignorePreprocess)
+			return false;
 		if (!Arrays.equals(models, other.models))
 			return false;
 		if (!Arrays.equals(monitorNames, other.monitorNames))
+			return false;
+		if (regions == null) {
+			if (other.regions != null)
+				return false;
+		} else if (!regions.equals(other.regions))
 			return false;
 		if (start == null) {
 			if (other.start != null)
@@ -202,6 +221,14 @@ public class ScanRequest<T> {
 	public final void putRegion(String unqiueId, T... areas) {
 		if (this.regions==null) this.regions = new HashMap<>(3);
 		this.regions.put(unqiueId, areas);
+	}
+
+	public boolean isIgnorePreprocess() {
+		return ignorePreprocess;
+	}
+
+	public void setIgnorePreprocess(boolean ignorePreprocess) {
+		this.ignorePreprocess = ignorePreprocess;
 	}
 
 

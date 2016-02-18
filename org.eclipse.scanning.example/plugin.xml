@@ -19,5 +19,13 @@
             model="org.eclipse.scanning.example.detector.DarkImageModel">
       </device>
    </extension>
+   <extension
+         point="org.eclipse.scanning.api.preprocessor">
+      <preprocessor
+            class="org.eclipse.scanning.example.preprocess.ExamplePreprocessor"
+            description="This preprocessor inserts the sample stage names xfred and yfred into models."
+            name="example">
+      </preprocessor>
+   </extension>
 
 </plugin>
