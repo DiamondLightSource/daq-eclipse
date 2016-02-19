@@ -2,8 +2,9 @@ package uk.ac.diamond.json.internal;
 
 import java.io.IOException;
 
-import org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.json.ROIBean;
+import org.eclipse.dawnsci.analysis.dataset.roi.json.ROIBeanFactory;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,17 +14,12 @@ import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 
 public class RegionDeserializer extends JsonDeserializer<IROI> {
 
-	private IJSonMarshaller marshaller;
-
-	public RegionDeserializer(IJSonMarshaller marshaller) {
-		this.marshaller = marshaller;
-	}
-
 	@Override
-	public IROI deserialize(JsonParser parser, DeserializationContext arg1) throws IOException, JsonProcessingException {
-		String json = parser.getText();
+	public IROI deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
 		try {
-			return (IROI)marshaller.unmarshal(json);
+			ROIBean roiBean = parser.readValueAs(ROIBean.class);
+			IROI roi = ROIBeanFactory.decapsulate(roiBean);
+			return roi;
 		} catch (Exception e) {
 			throw new IOException(e);
 		}

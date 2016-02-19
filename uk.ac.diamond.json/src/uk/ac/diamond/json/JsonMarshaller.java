@@ -145,11 +145,11 @@ public class JsonMarshaller implements IJsonMarshaller {
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(IPosition.class,   new PositionSerializer());
 		module.addDeserializer(IPosition.class, new PositionDeserializer());
+		module.addSerializer(IROI.class,        new RegionSerializer());
+		module.addDeserializer(IROI.class,      new RegionDeserializer());
 
 		if (marshaller==null) marshaller = createMarshaller();
 		if (marshaller!=null) { // It can still be null
-			module.addSerializer(IROI.class,        new RegionSerializer(marshaller));
-			module.addDeserializer(IROI.class,      new RegionDeserializer(marshaller));
 			module.addSerializer(IFunction.class,   new FunctionSerializer(marshaller));
 			module.addDeserializer(IFunction.class, new FunctionDeserializer(marshaller));
 		}
