@@ -21,6 +21,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.diamond.json.JsonMarshaller;
+import uk.ac.diamond.json.api.IJsonMarshaller;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 
@@ -45,7 +46,7 @@ public class JSONUnmarshallingRegressionTest {
 	private static final String JSON_FOR_STRING_ARRAY = "[ \"bundle=&version=&class=[Ljava.lang.String;\", [ \"a\", \"b\", \"c\" ] ]";
 	private static final String JSON_FOR_WRAPPED_STRING_ARRAY = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=uk.ac.diamond.json.test.ObjectWrapper\",\n  \"object\" : [ \"bundle=&version=&class=[Ljava.lang.String;\", [ \"a\", \"b\", \"c\" ] ]\n}";
 
-	private JsonMarshaller marshaller;
+	private IJsonMarshaller marshaller;
 	private String json;
 
 	@BeforeClass

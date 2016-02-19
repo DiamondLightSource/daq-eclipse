@@ -26,6 +26,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
 
 import uk.ac.diamond.json.JsonMarshaller;
+import uk.ac.diamond.json.api.IJsonMarshaller;
 import uk.ac.diamond.json.internal.Activator;
 import uk.ac.diamond.json.test.testobject.Animal;
 import uk.ac.diamond.json.test.testobject.Bird;
@@ -60,7 +61,7 @@ public class JSONMarshallerTest {
 	private static final long TEST_LONG = 1234567890L;
 	private static final String JSON_FOR_TEST_LONG = "[ \"bundle=&version=&class=java.lang.Long\", 1234567890 ]";
 
-	private JsonMarshaller marshaller;
+	private IJsonMarshaller marshaller;
 
 	private String json;
 
