@@ -132,13 +132,14 @@ public class ActivemqConnectorService implements IEventConnectorService {
 			@SuppressWarnings("unchecked")
 			U result = (U) osgiMapper.readValue(string, Object.class);
 			return result;
-		} catch (JsonMappingException jme) {
-			if (!jme.getMessage().contains(TYPE_INFO_FIELD_NAME)) {
-				throw jme;
+		} catch (JsonMappingException | IllegalArgumentException ex) {
+			if ((ex instanceof JsonMappingException && ex.getMessage().contains(TYPE_INFO_FIELD_NAME))
+					|| ex instanceof IllegalArgumentException && ex.getCause() instanceof ClassNotFoundException) {
+				// No bundle and class information in the JSON - fall back to old mapper in case JSON has come from an older version
+				if (nonOsgiMapper == null) nonOsgiMapper = createNonOsgiMapper();
+				return (U) nonOsgiMapper.readValue(string, beanClass);
 			}
-			// No bundle and class information in the JSON - fall back to old mapper in case JSON has come from an older version
-			if (nonOsgiMapper == null) nonOsgiMapper = createNonOsgiMapper();
-			return (U) nonOsgiMapper.readValue(string, beanClass);
+			throw ex;
 		}
 	}
 
