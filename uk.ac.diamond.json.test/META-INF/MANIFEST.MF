@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Json Marshaller Test
+Bundle-SymbolicName: uk.ac.diamond.json.test
+Bundle-Version: 1.0.0.qualifier
+Fragment-Host: uk.ac.diamond.json;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.junit;bundle-version="4.10.0",
+ org.mockito.mockito-core;bundle-version="1.9.5",
+ org.objenesis;bundle-version="2.1.0",
+ org.eclipse.dawnsci.analysis.dataset,
+ org.dawnsci.persistence
+Import-Package: org.apache.commons.lang,
+ org.dawnsci.commandserver.mx.beans
