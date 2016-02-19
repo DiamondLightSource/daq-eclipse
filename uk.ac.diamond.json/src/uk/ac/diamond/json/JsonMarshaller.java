@@ -36,11 +36,27 @@ import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
- *
+ * JSON marshaller implementation which allows objects to be converted to and from JSON strings
+ * <p>
+ * This implementation adds OSGi type information to encoded JSON strings and will use it if present when deserializing.
+ * <p>
+ * If type information is not present in a JSON string it will attempt to deserialize it anyway, but in an OSGi
+ * environment this will probably fail for anything except primitive and core Java types since other classes will not be
+ * available to this bundle's classloader. If classloading fails, it might still be possible to make deserialization
+ * work correctly in some cases by setting the thread context classloader before calling the unmarshal method, since
+ * some of the required classes (but not necessarily all) might be available to the classloader which loaded the
+ * caller's class:
+ * <pre>
+ * ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+ * try {
+ * 	Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+ * 	// call the unmarshaller
+ * } finally {
+ * 	Thread.currentThread().setContextClassLoader(tccl);
+ * }
+ * </pre>
  *
  * @author Colin Palmer
- * @author Matthew Gerring
- *
  */
 public class JsonMarshaller implements IJsonMarshaller {
 
@@ -101,7 +117,6 @@ public class JsonMarshaller implements IJsonMarshaller {
 	 * This method will try to find the correct classes for deserialization if possible. If you still have problems
 	 * with ClassNotFoundExceptions, one option which might help is to try setting the thread context classloader
 	 * before calling the unmarshal method:
-	 * <p>
 	 * <pre>
 	 * ClassLoader tccl = Thread.currentThread().getContextClassLoader();
 	 * try {
