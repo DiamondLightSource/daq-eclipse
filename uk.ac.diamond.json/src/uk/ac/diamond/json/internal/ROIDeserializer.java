@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 
-public class RegionDeserializer extends JsonDeserializer<IROI> {
+public class ROIDeserializer extends JsonDeserializer<IROI> {
 
 	@Override
 	public IROI deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {

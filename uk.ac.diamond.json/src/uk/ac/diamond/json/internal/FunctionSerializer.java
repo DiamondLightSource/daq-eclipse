@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
+// FIXME this currently writes a String object to the output instead of a FunctionBean
 public class FunctionSerializer extends JsonSerializer<IFunction> {
 
 	private IJSonMarshaller marshaller;
@@ -20,11 +21,11 @@ public class FunctionSerializer extends JsonSerializer<IFunction> {
 	}
 
 	@Override
-	public void serialize(IFunction arg0, JsonGenerator gen, SerializerProvider arg2)
+	public void serialize(IFunction func, JsonGenerator gen, SerializerProvider prov)
 			throws IOException, JsonProcessingException {
-		
+
 		try {
-			gen.writeObject(marshaller.marshal(arg0));
+			gen.writeObject(marshaller.marshal(func));
 		} catch (Exception e) {
 			throw new IOException(e);
 		}

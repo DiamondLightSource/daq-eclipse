@@ -17,8 +17,8 @@ import uk.ac.diamond.json.internal.FunctionSerializer;
 import uk.ac.diamond.json.internal.OSGiBundleProvider;
 import uk.ac.diamond.json.internal.PositionDeserializer;
 import uk.ac.diamond.json.internal.PositionSerializer;
-import uk.ac.diamond.json.internal.RegionDeserializer;
-import uk.ac.diamond.json.internal.RegionSerializer;
+import uk.ac.diamond.json.internal.ROIDeserializer;
+import uk.ac.diamond.json.internal.ROISerializer;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -145,8 +145,8 @@ public class JsonMarshaller implements IJsonMarshaller {
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(IPosition.class,   new PositionSerializer());
 		module.addDeserializer(IPosition.class, new PositionDeserializer());
-		module.addSerializer(IROI.class,        new RegionSerializer());
-		module.addDeserializer(IROI.class,      new RegionDeserializer());
+		module.addSerializer(IROI.class,        new ROISerializer());
+		module.addDeserializer(IROI.class,      new ROIDeserializer());
 
 		if (marshaller==null) marshaller = createMarshaller();
 		if (marshaller!=null) { // It can still be null

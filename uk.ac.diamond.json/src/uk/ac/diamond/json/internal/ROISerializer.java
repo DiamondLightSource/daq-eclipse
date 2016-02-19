@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
-public class RegionSerializer extends JsonSerializer<IROI> {
+public class ROISerializer extends JsonSerializer<IROI> {
 
 	@Override
 	public void serialize(IROI roi, JsonGenerator gen, SerializerProvider prov)

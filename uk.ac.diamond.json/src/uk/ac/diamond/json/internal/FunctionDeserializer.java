@@ -20,7 +20,7 @@ public class FunctionDeserializer extends JsonDeserializer<IFunction> {
 	}
 
 	@Override
-	public IFunction deserialize(JsonParser parser, DeserializationContext arg1)
+	public IFunction deserialize(JsonParser parser, DeserializationContext context)
 			throws IOException, JsonProcessingException {
 		String json = parser.getText();
 		try {
