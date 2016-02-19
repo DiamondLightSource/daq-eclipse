@@ -16,11 +16,11 @@ import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import uk.ac.diamond.json.JsonMarshaller;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 
@@ -48,14 +48,12 @@ public class JSONUnmarshallingRegressionTest {
 	private ActivemqConnectorService marshaller;
 	private String json;
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		IJSonMarshaller roiMarhsaller = new JacksonMarshaller();
-		ActivemqConnectorService.setMarshaller(roiMarhsaller);
-	}
-
 	@Before
 	public void setUp() throws Exception {
+		IJSonMarshaller roiMarhsaller = new JacksonMarshaller();
+		JsonMarshaller.setMarshaller(roiMarhsaller);
+		JsonMarshaller jsonMarshaller = new JsonMarshaller();
+		ActivemqConnectorService.setJsonMarshaller(jsonMarshaller);
 		marshaller = new ActivemqConnectorService();
 	}
 
@@ -71,6 +69,8 @@ public class JSONUnmarshallingRegressionTest {
 		}
 		json = null;
 		marshaller = null;
+		JsonMarshaller.setMarshaller(null);
+		ActivemqConnectorService.setJsonMarshaller(null);
 	}
 
 	@Test

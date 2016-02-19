@@ -1,9 +1,12 @@
 package uk.ac.diamond.daq.activemq.connector.test;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
-import static org.hamcrest.CoreMatchers.*;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,6 +16,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.dawnsci.persistence.json.JacksonMarshaller;
+import org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,11 +28,12 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-import uk.ac.diamond.daq.activemq.connector.internal.Activator;
 import uk.ac.diamond.daq.activemq.connector.test.testobject.Animal;
 import uk.ac.diamond.daq.activemq.connector.test.testobject.Bird;
 import uk.ac.diamond.daq.activemq.connector.test.testobject.Cat;
 import uk.ac.diamond.daq.activemq.connector.test.testobject.Person;
+import uk.ac.diamond.json.JsonMarshaller;
+import uk.ac.diamond.json.internal.Activator;
 
 /**
  * Unit tests for the Jackson JSON marshaller.
@@ -100,7 +106,11 @@ public class JSONMarshallerTest {
 		bundleProvider.registerBundleForClass(Bird.class, exampleBundleV2);
 		bundleProvider.registerBundleForClass(Cat.class, otherExampleBundle);
 
-		marshaller = new ActivemqConnectorService(bundleProvider);
+		IJSonMarshaller roiMarhsaller = new JacksonMarshaller();
+		JsonMarshaller.setMarshaller(roiMarhsaller);
+		JsonMarshaller jsonMarshaller = new JsonMarshaller(bundleProvider);
+		ActivemqConnectorService.setJsonMarshaller(jsonMarshaller);
+		marshaller = new ActivemqConnectorService();
 	}
 
 	private void createTestObjects() {

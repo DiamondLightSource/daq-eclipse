@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.util.UUID;
 
 import org.dawnsci.persistence.json.JacksonMarshaller;
+import org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -24,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import uk.ac.diamond.json.JsonMarshaller;
 
 public class SerializationTest {
 
@@ -32,8 +34,11 @@ public class SerializationTest {
 	@Before
 	public void create() throws Exception {
 		// Non-OSGi for test - do not copy!
-		this.connectorService = new ActivemqConnectorService(); // Just for ActiveMQ connection!
-		ActivemqConnectorService.setMarshaller(new JacksonMarshaller());
+		IJSonMarshaller roiMarhsaller = new JacksonMarshaller();
+		JsonMarshaller.setMarshaller(roiMarhsaller);
+		JsonMarshaller jsonMarshaller = new JsonMarshaller();
+		ActivemqConnectorService.setJsonMarshaller(jsonMarshaller);
+		connectorService = new ActivemqConnectorService();
 	}
 	
 	@Test

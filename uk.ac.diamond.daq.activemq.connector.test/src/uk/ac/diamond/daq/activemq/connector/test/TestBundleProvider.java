@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.osgi.framework.Bundle;
 
-import uk.ac.diamond.daq.activemq.connector.internal.BundleProvider;
+import uk.ac.diamond.json.internal.BundleProvider;
 
 /**
  * A BundleProvider implementation for use in unit tests.
