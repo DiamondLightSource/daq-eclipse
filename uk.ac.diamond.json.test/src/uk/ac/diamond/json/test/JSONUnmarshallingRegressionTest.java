@@ -10,14 +10,11 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.dawnsci.commandserver.mx.beans.ProjectBean;
-import org.dawnsci.persistence.json.JacksonMarshaller;
-import org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -51,12 +48,6 @@ public class JSONUnmarshallingRegressionTest {
 	private IJsonMarshaller marshaller;
 	private String json;
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		IJSonMarshaller roiMarhsaller = new JacksonMarshaller();
-		JsonMarshaller.setMarshaller(roiMarhsaller);
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		marshaller = new JsonMarshaller();
@@ -66,11 +57,12 @@ public class JSONUnmarshallingRegressionTest {
 	public void tearDown() throws Exception {
 		if (json != null) {
 			// So we can see what's going on
-			System.out.println("JSON: " + json);
+//			System.out.println("JSON: " + json);
 
 			// To make it easy to replace expected JSON values in the code when we're sure they're correct
+			@SuppressWarnings("unused")
 			String javaLiteralForJSONString = '"' + StringEscapeUtils.escapeJava(json) + '"';
-			System.out.println("Java literal:\n" + javaLiteralForJSONString);
+//			System.out.println("Java literal:\n" + javaLiteralForJSONString);
 		}
 		json = null;
 		marshaller = null;

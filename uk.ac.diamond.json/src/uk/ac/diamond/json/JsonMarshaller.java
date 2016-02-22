@@ -2,18 +2,12 @@ package uk.ac.diamond.json;
 
 import java.util.Collection;
 
-import org.eclipse.dawnsci.analysis.api.fitting.functions.IFunction;
-import org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.scanning.api.points.IPosition;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
 import uk.ac.diamond.json.api.IJsonMarshaller;
 import uk.ac.diamond.json.internal.BundleAndClassNameIdResolver;
 import uk.ac.diamond.json.internal.BundleProvider;
-import uk.ac.diamond.json.internal.FunctionDeserializer;
-import uk.ac.diamond.json.internal.FunctionSerializer;
 import uk.ac.diamond.json.internal.OSGiBundleProvider;
 import uk.ac.diamond.json.internal.PositionDeserializer;
 import uk.ac.diamond.json.internal.PositionSerializer;
@@ -65,9 +59,6 @@ public class JsonMarshaller implements IJsonMarshaller {
 	private BundleProvider bundleProvider;
 	private ObjectMapper osgiMapper;
 	private ObjectMapper nonOsgiMapper;
-	private static IJSonMarshaller marshaller;
-
-	private static BundleContext context;
 
 	static {
 		System.out.println("Started " + IJsonMarshaller.class.getSimpleName());
@@ -78,13 +69,6 @@ public class JsonMarshaller implements IJsonMarshaller {
 	 */
 	public JsonMarshaller() {
 		this(new OSGiBundleProvider());
-	}
-
-	public void start(BundleContext context) {
-		JsonMarshaller.context = context;
-	}
-	public void stop() {
-		JsonMarshaller.context = null;
 	}
 
 	/**
@@ -162,12 +146,7 @@ public class JsonMarshaller implements IJsonMarshaller {
 		module.addDeserializer(IPosition.class, new PositionDeserializer());
 		module.addSerializer(IROI.class,        new ROISerializer());
 		module.addDeserializer(IROI.class,      new ROIDeserializer());
-
-		if (marshaller==null) marshaller = createMarshaller();
-		if (marshaller!=null) { // It can still be null
-			module.addSerializer(IFunction.class,   new FunctionSerializer(marshaller));
-			module.addDeserializer(IFunction.class, new FunctionDeserializer(marshaller));
-		}
+		// TODO add similar serializers for IFunction
 		mapper.registerModule(module);
 
 		// Be careful adjusting these settings - changing them will probably cause various unit tests to fail which
@@ -177,22 +156,6 @@ public class JsonMarshaller implements IJsonMarshaller {
 		mapper.enable(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS);
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		return mapper;
-	}
-
-	/**
-	 *
-	 * @return marshaller service if one can be found or null
-	 * if it cannot.
-	 */
-	private IJSonMarshaller createMarshaller() {
-		if (context==null) return null;
-		try {
-			ServiceReference<IJSonMarshaller> ref = context.getServiceReference(IJSonMarshaller.class);
-			return context.getService(ref);
-		} catch (Exception ignored) {
-			// TODO Auto-generated method stub
-			return null;
-		}
 	}
 
 	/**
@@ -264,13 +227,5 @@ public class JsonMarshaller implements IJsonMarshaller {
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 		return mapper;
-	}
-
-	public static IJSonMarshaller getMarshaller() {
-		return marshaller;
-	}
-
-	public static void setMarshaller(IJSonMarshaller marshaller) {
-		JsonMarshaller.marshaller = marshaller;
 	}
 }
