@@ -28,6 +28,7 @@ import java.util.List;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.Point;
@@ -67,6 +68,27 @@ public class GridTest {
 
 		assertEquals(pointList.size(), gen.size());
 		checkPoints(pointList);
+		GeneratorUtil.testGeneratorPoints(gen);
+	}
+
+	@Test(expected = GeneratorException.class)
+	public void testNegativeRowCount() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(0);
+		box.setyStart(0);
+		box.setWidth(3);
+		box.setHeight(3);
+
+		GridModel model = new GridModel();
+		model.setRows(-20);  // An unsigned integer type would solve this problem...
+		model.setColumns(20);
+		model.setBoundingBox(box);
+
+		IPointGenerator<GridModel, Point> gen = service.createGenerator(model);
+		List<Point> pointList = gen.createPoints();
+
+		assertEquals(pointList.size(), gen.size());
 		GeneratorUtil.testGeneratorPoints(gen);
 	}
 
