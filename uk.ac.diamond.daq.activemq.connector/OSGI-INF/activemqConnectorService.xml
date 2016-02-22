@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="start" immediate="true" name="Activemq Connector Service">
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="Activemq Connector Service">
    <implementation class="uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService"/>
     <service>
       <provide interface="org.eclipse.scanning.api.event.IEventConnectorService"/>
