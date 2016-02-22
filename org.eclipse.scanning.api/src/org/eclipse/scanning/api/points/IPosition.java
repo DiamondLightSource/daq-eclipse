@@ -6,15 +6,14 @@ import java.util.Map;
 import org.eclipse.scanning.api.scan.IDeviceService;
 
 /**
- * <pre>
  * A position is a location of one or more values. It is
  * used to group scannables when moving to a position
  * by level.
- * 
+ * <p>
  * For instance a group of scannables which need to be at a
  * certain location. For example at the start of a scan or
  * for a scan datapoint.
- * 
+ * <p>
  * <B>NOTE:</B> An object is available using IDeviceService.createPositioner()
  * called IPositioner which can move scannables to a given
  * position by level.

@@ -1,21 +1,8 @@
 package org.eclipse.scanning.api.points.models;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-
 import org.eclipse.scanning.api.points.annot.FieldDescriptor;
 
 public class StepModel extends AbstractPointsModel implements IScanPathModel {
-
-	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-	@Override
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		this.pcs.addPropertyChangeListener(listener);
-	}
-	@Override
-	public void removePropertyChangeListener(PropertyChangeListener listener) {
-		this.pcs.removePropertyChangeListener(listener);
-	}
 
 	@FieldDescriptor(label="Device")
 	private String name;

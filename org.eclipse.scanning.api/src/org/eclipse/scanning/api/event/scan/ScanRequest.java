@@ -135,7 +135,7 @@ public class ScanRequest<T> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ScanRequest other = (ScanRequest) obj;
+		ScanRequest<?> other = (ScanRequest<?>) obj;
 		if (detectors == null) {
 			if (other.detectors != null)
 				return false;

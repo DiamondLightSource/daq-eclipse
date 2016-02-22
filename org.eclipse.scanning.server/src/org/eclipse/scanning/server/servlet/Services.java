@@ -6,6 +6,7 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IFilePathService;
+import org.eclipse.scanning.api.scan.process.IPreprocessingService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -25,6 +26,7 @@ public class Services {
 	private static IDeviceConnectorService connector;
 	private static IMalcolmService         malcService;
 	private static IFilePathService        filePathService;
+	private static IPreprocessingService   preprocessingService;
 	private static BundleContext           context;
 
 	public static IFilePathService getFilePathService() {
@@ -104,5 +106,16 @@ public class Services {
 		if (context == null) return null;
 		ServiceReference<T> ref = context.getServiceReference(clazz);
         return context.getService(ref);
+	}
+
+
+	public static IPreprocessingService getPreprocessingService() {
+		if (preprocessingService == null) preprocessingService = getService(IPreprocessingService.class);
+		return preprocessingService;
+	}
+
+
+	public static void setPreprocessingService(IPreprocessingService preprocessingService) {
+		Services.preprocessingService = preprocessingService;
 	}
 }

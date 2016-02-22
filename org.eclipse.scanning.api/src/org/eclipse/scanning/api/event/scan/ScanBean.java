@@ -29,7 +29,7 @@ import org.eclipse.scanning.api.points.MapPosition;
 public final class ScanBean extends StatusBean { 
 	
 	// Field required to start a scan, may be null.
-	private ScanRequest scanRequest;
+	private ScanRequest<?> scanRequest;
 		
 	// General Information
 	private String  deviceName;
@@ -265,11 +265,11 @@ public final class ScanBean extends StatusBean {
 		return true;
 	}
 
-	public ScanRequest getScanRequest() {
+	public ScanRequest<?> getScanRequest() {
 		return scanRequest;
 	}
 
-	public void setScanRequest(ScanRequest scanRequest) {
+	public void setScanRequest(ScanRequest<?> scanRequest) {
 		this.scanRequest = scanRequest;
 	}
 

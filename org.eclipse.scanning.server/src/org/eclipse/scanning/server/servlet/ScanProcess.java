@@ -20,7 +20,6 @@ import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.IRunnableDevice;
-import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -179,7 +178,6 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	private List<IRunnableDevice<?>> getDetectors(Map<String, ?> detectors) throws EventException {
 		if (detectors==null) return null;
 		try {
@@ -187,7 +185,6 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			
 			final IDeviceService service = Services.getScanService();
 			for (String name : detectors.keySet()) {
-				@SuppressWarnings("rawtypes")
 				Object dmodel = detectors.get(name);
 				IRunnableDevice<?> detector = (IRunnableDevice<?>)service.createRunnableDevice(dmodel);
 				ret.add(detector);

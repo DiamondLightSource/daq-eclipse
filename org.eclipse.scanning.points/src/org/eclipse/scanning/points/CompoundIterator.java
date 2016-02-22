@@ -72,6 +72,7 @@ public class CompoundIterator implements Iterator<IPosition> {
 
 	private Iterator<? extends IPosition>[] initIterators() {
 		final IPointGenerator<?,? extends IPosition>[] gs = gen.getGenerators();
+		@SuppressWarnings("unchecked")
 		Iterator<? extends IPosition>[] ret = new Iterator[gs.length];
 		for (int i = 0; i < gs.length; i++) {
 			ret[i] = gs[i].iterator();

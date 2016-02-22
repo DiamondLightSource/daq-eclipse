@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="Json Marshaller Service">
+   <implementation class="uk.ac.diamond.json.JsonMarshaller"/>
+    <service>
+      <provide interface="uk.ac.diamond.json.api.IJsonMarshaller"/>
+   </service>
+</scr:component>
