@@ -62,11 +62,10 @@ public interface IDeviceService {
 
 	
 	/**
-	 * Create an empty scanner which can run an iterable to complete a scan.
-	 * The scanner returned will be an IScanner for running the whole scan rather than
-	 * for a particular detector. The model passed in however defines the required detector.
+	 * Create a new runnable device from a model. If the device has a name the
+	 * new device will be recorded in the name to device map and be retrievable by name.
 	 * 
-	 * The model is provided and the configure(...) method called on the scanner 
+	 * The model is provided and the configure(...) method called on the device 
 	 * automatically. A ScanningException is thrown if the model is invalid.
 	 * 
 	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmRequest}. 
@@ -79,11 +78,15 @@ public interface IDeviceService {
 	<T> IRunnableDevice<T> createRunnableDevice(T model) throws ScanningException;
 	
 	/**
-	 * Create an empty scanner which can run an iterable to complete a scan.
+	 * Create a new runnable device from a model. If the device has a name the
+	 * new device will be recorded in the name to device map and be retrievable by name.
 	 * 
 	 * The model is provided and the configure(...) method called on the scanner 
 	 * automatically. A ScanningException is thrown if the model is invalid.
 	 * 
+	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmRequest}. 
+	 * This class holds the port, hostname, malcolm model and device name to make a connection to the device.
+     *
 	 * @param model, information to do the scan
 	 * @param To publish scan events on or null not to publish events.
 	 * @param hservice, may be null, in which case system looks for service using OSGi
@@ -92,5 +95,29 @@ public interface IDeviceService {
 	 */
 	<T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher) throws ScanningException;
 	
+
+	/**
+	 * Get a runnable device by name. If the device was created by spring it may need configuring
+	 * before use. If the device was added to the service after a createRunnableDevice(...) call, 
+	 * it will already be configured. 
+	 * 
+	 * @param name
+	 * @return
+	 * @throws ScanningException
+	 */
+	<T> IRunnableDevice<T> getRunnableDevice(String name) throws ScanningException;
+	
+	
+	/**
+	 * Get a runnable device by name. If the device was created by spring it may need configuring
+	 * before use. If the device was added to the service after a createRunnableDevice(...) call, 
+	 * it will already be configured.
+	 * 
+	 * @param name 
+	 * @param publisher used for a particular run of the device. This must be set with care as only one publisher may be active on a device at a time.
+	 * @return
+	 * @throws ScanningException
+	 */
+	<T> IRunnableDevice<T> getRunnableDevice(String name, IPublisher<ScanBean> publisher) throws ScanningException;
 
 }

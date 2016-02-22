@@ -110,6 +110,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return false; // nothing wired 
 		NexusScanFileBuilder fileBuilder = new NexusScanFileBuilder(getDeviceService());
 		nexusScanFile = fileBuilder.createNexusFile(model);
+    	if (nexusScanFile!=null) nexusScanFile.openToWrite();
 		return true; // successfully created file
 	}
 
@@ -144,7 +145,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
         	fireRunWillPerform(model.getPositionIterable().iterator().next());
 
         	// The scan loop
-        	if (nexusScanFile!=null) nexusScanFile.openToWrite();
         	IPosition pos = null; // We want the last point when we are done so don't use foreach
 	        for (Iterator<IPosition> it = model.getPositionIterable().iterator(); it.hasNext();) {
 				
@@ -339,5 +339,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		} finally {
 			lock.unlock();
 		}
+	}
+	
+	@Override
+	public boolean isVirtual() {
+		return true;
 	}
 }

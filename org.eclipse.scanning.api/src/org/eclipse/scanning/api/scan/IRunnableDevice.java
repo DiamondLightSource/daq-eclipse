@@ -72,4 +72,17 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	 * @throws ScanningException
 	 */
 	public void abort() throws ScanningException;
+	
+	/**
+	 * If the device is a virtual device which like a scan device controlling other
+	 * hardware, it will return true for virtual. Normally hardware which is wrapped by
+	 * a single java class will return false. It is not virtual and one instance of the wrapping
+	 * class should exist. For standard non-virtual devices the IDeviceService will 
+	 * cache the connection to the device such that it only has one connection and configuration.
+	 * 
+	 * @return
+	 */
+	default boolean isVirtual() {
+		return false;
+	}
 }
