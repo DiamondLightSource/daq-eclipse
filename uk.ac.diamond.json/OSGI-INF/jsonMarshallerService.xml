@@ -2,6 +2,6 @@
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="Json Marshaller Service">
    <implementation class="uk.ac.diamond.json.JsonMarshaller"/>
     <service>
-      <provide interface="org.eclipse.scanning.api.event.IEventConnectorService"/>
+      <provide interface="uk.ac.diamond.json.api.IJsonMarshaller"/>
    </service>
 </scr:component>
