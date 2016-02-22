@@ -97,6 +97,20 @@ public class StepTest {
 		// TODO Should this throw an exception or do this? Possible to do a size 1 step makes some tests easier to write.
 	}
 	
+	@Test(expected = GeneratorException.class)
+	public void testMisdirectedStepGenSize() throws Exception {
+
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
+		gen.size();
+	}
+
+	@Test(expected = GeneratorException.class)
+	public void testMisdirectedStepGenPoints() throws Exception {
+
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
+		gen.createPoints();  // FIXME: Currently this causes an OutOfMemoryError.
+	}
+
 	@Test
 	public void testTolerance() throws Exception {
 		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel());
