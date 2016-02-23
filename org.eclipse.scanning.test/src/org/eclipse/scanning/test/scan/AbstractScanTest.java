@@ -20,6 +20,7 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
+import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -191,11 +192,37 @@ public class AbstractScanTest {
 			
 			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
 			
-		} catch (Exception expected) {
-			return;  // TODO: Check for correct exception type, error message.
+		} catch (GeneratorException ex) {
+			assertEquals("Invalid points model!", ex.getMessage());
+			return;
 		}
 		
-		throw new Exception("Scanner failed to throw Exception on invalid step model input.");
+		throw new Exception("Generator failed to throw GeneratorException(\"Invalid model!\") on invalid step model input.");
+	}
+
+	@Test
+	public void testZeroStepStepScan() throws Exception {
+
+		StepModel model = new StepModel();
+		model.setStart(0);
+		model.setStop(10);
+		model.setStep(0);
+		model.setName("myStepModel");
+		
+		try {
+			IRunnableDevice<ScanModel> scanner = createTestScanner(model, null, null, null, null);
+			
+			// Cast to AbstractRunnableDevice gives us non-blocking .start() method.
+			((AbstractRunnableDevice<ScanModel>) scanner).start(null);
+			
+			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
+			
+		} catch (GeneratorException ex) {
+			assertEquals("Invalid points model!", ex.getMessage());
+			return;
+		}
+		
+		throw new Exception("Generator failed to throw GeneratorException(\"Invalid model!\") on invalid step model input.");
 	}
 	
 	

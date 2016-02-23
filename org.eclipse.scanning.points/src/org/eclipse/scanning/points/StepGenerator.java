@@ -15,10 +15,18 @@ public class StepGenerator extends AbstractGenerator<StepModel, IPosition> {
 	}
 
 	@Override
+	protected boolean isValidModel(StepModel model) {
+		double div = ((model.getStop()-model.getStart())/model.getStep());
+		return !(div < 0);  // This means NaN is considered valid.
+		// Therefore .createGenerator(new StepModel()) will still work.
+		// But .createGenerator(new StepModel("myStepModel", 0, 10, 0)).createPoints() will hang!
+		// TODO: Be stricter about this.
+	}
+
+	@Override
 	public int size() throws GeneratorException {
 		if (containers!=null) throw new GeneratorException("Cannot deal with regions in a step scan!");
 		double div = ((model.getStop()-model.getStart())/model.getStep());
-		if (div < 0) throw new GeneratorException("Model step size has the wrong sign!");
 		div += (model.getStep() / 100); // add tolerance of 1% of step value
 		return (int)Math.floor(div+1);
 	}

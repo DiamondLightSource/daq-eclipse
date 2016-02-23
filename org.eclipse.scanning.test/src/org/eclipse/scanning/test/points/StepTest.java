@@ -108,7 +108,7 @@ public class StepTest {
 	public void testMisdirectedStepGenPoints() throws Exception {
 
 		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
-		gen.createPoints();  // FIXME: Currently this causes an OutOfMemoryError.
+		gen.createPoints();
 	}
 
 	@Test
