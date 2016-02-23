@@ -65,7 +65,7 @@ public class Point extends AbstractPosition {
 
 	@Override
 	public List<String> getNames() {
-		return Arrays.asList(xName, yName);
+		return Arrays.asList(yName, xName);
 	}
 
 	@Override
