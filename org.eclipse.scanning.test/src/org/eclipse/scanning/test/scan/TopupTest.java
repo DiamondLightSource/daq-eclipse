@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import uk.ac.diamond.json.JsonMarshaller;
 
 public class TopupTest {
 
@@ -58,6 +59,8 @@ public class TopupTest {
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
 
 		gservice  = new PointGeneratorFactory();
+
+		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
 		MockDetectorModel dmodel = new MockDetectorModel();

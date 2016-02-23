@@ -35,7 +35,8 @@ import org.eclipse.scanning.event.dry.DryRunCreator;
 import org.junit.After;
 import org.junit.Test;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import uk.ac.diamond.json.JsonMarshaller;
+import uk.ac.diamond.json.api.IJsonMarshaller;
 
 public class AbstractConsumerTest {
 
@@ -71,8 +72,8 @@ public class AbstractConsumerTest {
 	
 			TextMessage msg = (TextMessage)consumer.receive(1000);
 			
-			ActivemqConnectorService cservice = new ActivemqConnectorService();
-			StatusBean fromQ = cservice.unmarshal(msg.getText(), StatusBean.class);
+			IJsonMarshaller marshaller = new JsonMarshaller();
+			StatusBean fromQ = marshaller.unmarshal(msg.getText(), StatusBean.class);
         	
         	if (!fromQ.equals(bean)) throw new Exception("The bean from the queue was not the same as that submitted! q="+fromQ+" submit="+bean);
         	

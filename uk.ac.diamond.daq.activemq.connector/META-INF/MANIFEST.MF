@@ -7,7 +7,6 @@ Bundle-Vendor: Diamond Light Source
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Service-Component: OSGI-INF/*.xml
 Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
- uk.ac.diamond.json;bundle-version="1.0.0",
  uk.ac.diamond.json.api;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: uk.ac.diamond.daq.activemq.connector

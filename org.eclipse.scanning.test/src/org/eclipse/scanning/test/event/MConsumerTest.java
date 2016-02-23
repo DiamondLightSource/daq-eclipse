@@ -17,6 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import uk.ac.diamond.json.JsonMarshaller;
 
 /**
  * Class to test that we can run 
@@ -32,6 +33,7 @@ public class MConsumerTest extends AbstractMConsumerTest{
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
+		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// Use in memory broker removes requirement on network and external ActiveMQ process
