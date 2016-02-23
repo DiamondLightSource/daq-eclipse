@@ -282,7 +282,7 @@ public class ScanServletPluginTest {
 	    fillParameters(config, -1, 10);
 	    malcModel.setDeviceModel(config);
 		malcModel.setDeviceName("zebra");
-		malcModel.setHostName("pausable");
+		malcModel.setHostName("standard");
 		malcModel.setPort(-1);
 		req.putDetector("zebra", malcModel);
 		
@@ -381,8 +381,9 @@ public class ScanServletPluginTest {
 		// Put a connection in the DeviceServiceImpl which is used for the test
 		IMalcolmService malcolmService = new MockedMalcolmService();
 		
-		IMalcolmConnection connection   = malcolmService.createConnection(URI.create("tcp://pausable"));
-		((DeviceServiceImpl)Services.getScanService())._registerConnection(URI.create("tcp://pausable"), connection);
+		// Should create a standard MockedMalcolmDevice and not one of the more complex types.
+		IMalcolmConnection connection   = malcolmService.createConnection(URI.create("tcp://standard"));
+		((DeviceServiceImpl)Services.getScanService())._registerConnection(URI.create("tcp://standard"), connection);
 		
 		// DO NOT COPY TESTING ONLY
 		Services.setConnector(new MockScannableConnector());

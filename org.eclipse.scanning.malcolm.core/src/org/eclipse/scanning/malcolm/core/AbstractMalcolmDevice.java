@@ -2,6 +2,7 @@ package org.eclipse.scanning.malcolm.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
@@ -12,6 +13,9 @@ import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.models.MalcolmModel;
+import org.eclipse.scanning.api.malcolm.models.OneDetectorTestMappingModel;
+import org.eclipse.scanning.api.malcolm.models.TwoDetectorTestMappingModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -26,6 +30,8 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T> implements IMalcolmDevice<T>, INexusDevice<NXdetector> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMalcolmDevice.class);
+	
+	private String filePath;
 	
 	// Events
 	protected MalcolmEventDelegate eventDelegate;
@@ -112,6 +118,33 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 
 	protected void sendEvent(MalcolmEventBean event) throws Exception {
 		eventDelegate.sendEvent(event);
+	}
+
+	protected String getFileName() {
+		String filePath = getFilePath();
+		if (filePath ==null) return null;
+		filePath = filePath.replace('\\', '/');
+		return filePath.substring(filePath.lastIndexOf('/')+1);
+	}
+	
+	public String getFilePath() {
+		
+		if (model !=null) {
+			if (model instanceof MalcolmModel)return((MalcolmModel)model).getFilePath();
+			
+			// Malcolm v1 hack because the models are not standardised for V1
+			if (model instanceof OneDetectorTestMappingModel)return ((OneDetectorTestMappingModel)model).getHdf5File();
+			// Malcolm v1 hack because the models are not standardised for V1
+			if (model instanceof TwoDetectorTestMappingModel)return ((TwoDetectorTestMappingModel)model).getHdf5File1();
+			// Malcolm v1 hack because the models are not standardised for V1
+			if (model instanceof Map)return ((Map)model).get("file").toString(); // Causes an exception if not there.
+		}
+		
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
 	}
 
 }

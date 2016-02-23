@@ -12,6 +12,7 @@ import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
+import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
@@ -31,10 +32,8 @@ import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
 class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	
-	private   static INexusFileFactory   factory;
+	private INexusFileFactory   factory;
 
-	protected Map<String,Object> params;
-	
 	// Latch used such that one thread may wait the state changing at a time.
 	// As of 04 Sep 2015 this is only used to latch external test threads whilst they wait for
 	// a device state change. Unless there is a good reason not to, this map should probably be injected when
@@ -62,6 +61,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 				throw new MalcolmDeviceException("Method not implemented!");
 			}
 		};
+		this.factory = new NexusFileFactoryHDF5();
 	}
 	
 	MockedMalcolmDevice(String name, final LatchDelegate latcher) throws ScanningException {
@@ -71,6 +71,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		this.taskRunLock    = new ReentrantLock(true);
 		setDeviceState(DeviceState.IDLE);
 		setName(name);
+		this.factory = new NexusFileFactoryHDF5();
 	}
 
 	public DeviceState getState() {
@@ -129,7 +130,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		
 		validate(params);
 		setDeviceState(DeviceState.CONFIGURING);
-		this.params = params;
+		this.model = params;
 		if (params.containsKey("configureSleep")) {
 			try {
 				long sleepTime = Math.round(((double)params.get("configureSleep"))*1000d);
@@ -159,7 +160,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		if (getState().isRunning()) throw new MalcolmDeviceException(this, "Device '"+getName()+"' is already running or paused!");
 		
 		try {
-			run(params); // mimicks running malcolm hdf5
+			run(model); // mimicks running malcolm hdf5
 						
 		} catch (Exception e) {
             setDeviceState(DeviceState.FAULT);
@@ -184,8 +185,8 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		
 		final NXdetector detector = nodeFactory.createNXdetector();
-		// TODO FIXME Create links to HDF5 file here.
-		return null;
+		detector.addExternalLink(NXdetector.NX_DATA, getFileName(), "/entry/data");
+		return detector;
 	}
 
 
@@ -393,5 +394,4 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		// TODO Auto-generated method stub
 		
 	}
-
 }

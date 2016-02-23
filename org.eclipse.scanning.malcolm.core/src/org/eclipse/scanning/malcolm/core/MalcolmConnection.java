@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 
-public class MalcolmConnection implements IMalcolmConnection {
+class MalcolmConnection implements IMalcolmConnection {
 
 	private IMalcolmConnectorService<JsonMessage> connector;	
 	private Map<String, IMalcolmDevice<?>>        devices;

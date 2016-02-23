@@ -30,14 +30,16 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 			@Override
 			public Long call() throws Exception {
 
-				int[] shape = (int[])params.get("shape");
+				int[] shape = (int[])model.get("shape");
 				if (shape==null) shape = new int[]{1024,1024};
 				IDataset       rimage   = Random.rand(shape);
 				rimage.setName("image");
 				
+				
+				// TODO FIXME Have to remove this is order for device to work @see MockedMalcolmDevice
  				IHierarchicalDataFile file=null;
  				try {
-        			file = HierarchicalDataFactory.getWriter((String)params.get("file"));
+        			file = HierarchicalDataFactory.getWriter((String)model.get("file"));
  					
 					file.group("/entry");
 					file.group("/entry/data");
@@ -50,7 +52,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 					// will call sendEvent(...) in the same way.
 					final MalcolmEventBean bean = new MalcolmEventBean(getState());
 					bean.setPercentComplete((count/amount)*100d);	
-					bean.setFilePath((String)params.get("file"));
+					bean.setFilePath((String)model.get("file"));
 					bean.setDatasetPath("/entry/data");
 					
 					// Hardcoded shape change of dataset, in reality it will not be so simple.
@@ -81,7 +83,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 		
 		validate(params);
 		setState(DeviceState.CONFIGURING);
-		this.params = params;
+		this.model = params;
 		if (params.containsKey("configureSleep")) {
 			try {
 				long sleepTime = Math.round(((double)params.get("configureSleep"))*1000d);

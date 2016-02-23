@@ -43,7 +43,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 			setState(DeviceState.RUNNING); // Will send an event
 
 	        count  = 0;
-	        amount = (int)params.get("nframes");
+	        amount = (int)model.get("nframes");
 	        
 	        // Send scan start
 			sendEvent(new MalcolmEventBean(getState()));
@@ -57,7 +57,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 				}
 				
 				// Sleep (no need to lock while sleeping)
-				long sleep = Math.round((double)params.get("exposure")*1000d);
+				long sleep = Math.round((double)model.get("exposure")*1000d);
 				Thread.sleep(sleep);
 
 			} // End fake scanning loop.

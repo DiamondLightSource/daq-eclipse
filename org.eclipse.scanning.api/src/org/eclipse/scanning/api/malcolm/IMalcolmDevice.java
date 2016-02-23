@@ -45,14 +45,7 @@ import org.eclipse.scanning.api.scan.IRunnableEventDevice;
 public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEventPublisher, ILatchableDevice {
 	
 	// TODO setAttribute, getAttribute
-	
-	// TODO Table of 'positions' in configure map. Needed for wrapping with external dimension, sets the position in nexus file to write.
-	// Name (String), Type desrc (Map<String, int>), Value (double[] or numeric list), String unit (can be null/unset)
-	// List of rows in the object to serialize.
-	// Sending this to Malcolm for the info for a write, positions of frames 
-	// Examples from Tom's tests 
-	
-	
+		
 	/**
 	 * allowed in any state. Can be used to check a param dict for validity. Will always report the same result whatever
 	 * the current state of the device. Will raise exception if it is invalid
