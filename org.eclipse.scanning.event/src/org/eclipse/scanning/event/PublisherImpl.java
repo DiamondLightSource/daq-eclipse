@@ -215,7 +215,9 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 
 				final T qbean;
 				try {
-					qbean = service.unmarshal(t.getText(), (Class<T>)bean.getClass());
+					@SuppressWarnings("unchecked")
+					Class<T> beanClass = (Class<T>) bean.getClass();
+					qbean = service.unmarshal(t.getText(), beanClass);
 					if (qbean==null) continue;
 				} catch (Exception ne) {
 					// If we cannot deserialize to the type passed in, it certainly is
@@ -234,6 +236,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		if (jMSMessageID!=null) {
 			MessageConsumer consumer = qSession.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
 			Message m = consumer.receive(500);
+			consumer.close();
 			if (m!=null && m instanceof TextMessage) {
 				MessageProducer producer = qSession.createProducer(queue);
 				
