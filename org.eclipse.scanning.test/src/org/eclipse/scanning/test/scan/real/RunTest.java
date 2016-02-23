@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import uk.ac.diamond.json.JsonMarshaller;
 
 public class RunTest {
 
@@ -20,6 +21,7 @@ public class RunTest {
 	
 	@Before
 	public void before() throws URISyntaxException {
+		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html

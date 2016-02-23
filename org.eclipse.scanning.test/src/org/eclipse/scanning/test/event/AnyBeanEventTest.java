@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import uk.ac.diamond.json.JsonMarshaller;
 
 public class AnyBeanEventTest {
 
@@ -28,6 +29,7 @@ public class AnyBeanEventTest {
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
+		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// Use in memory broker removes requirement on network and external ActiveMQ process

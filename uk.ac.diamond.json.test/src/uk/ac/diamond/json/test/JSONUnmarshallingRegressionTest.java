@@ -10,14 +10,11 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.dawnsci.commandserver.mx.beans.ProjectBean;
-import org.dawnsci.persistence.json.JacksonMarshaller;
-import org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -37,7 +34,7 @@ public class JSONUnmarshallingRegressionTest {
 	// An example of a bean used by Xia2 which could be sent by another process and must deserialize correctly in current version
 	private static final String JSON_FOR_PROJECT_BEAN = "{\"status\":\"COMPLETE\",\"name\":\"X1_weak_M1S1_1 - X1_weak_M1S1_1\",\"message\":\"Xia2 run completed normally\",\"percentComplete\":100.0,\"userName\":\"awa25\",\"hostName\":\"cs04r-sc-vserv-45.diamond.ac.uk\",\"runDirectory\":\"/dls/i03/data/2016/cm14451-1/processed/tmp/2016-01-27/fake085224/MultiCrystal_1\",\"uniqueId\":\"1453910139320_94ed2a2b-997e-4dbc-ad6e-0c3c04bb2c82\",\"submissionTime\":1453910139340,\"properties\":null,\"projectName\":\"MultiCrystalRerun\",\"cystalName\":\"fake085224\",\"sweeps\":[{\"name\":\"X1_weak_M1S1_1\",\"sessionId\":\"55167\",\"dataCollectionId\":\"1007379\",\"imageDirectory\":\"/dls/i03/data/2016/cm14451-1/tmp/2016-01-27/fake085224/\",\"firstImageName\":\"X1_weak_M1S1_1_0001.cbf\",\"start\":1,\"end\":900,\"wavelength\":0.979493,\"xBeam\":212.51,\"yBeam\":219.98,\"resolution\":null}],\"wavelength\":\"NaN\",\"commandLineSwitches\":\"\",\"anomalous\":true,\"spaceGroup\":null,\"unitCell\":null,\"resolution\":null}";
 
-	// Example of JSON produced for an ROI. (Encoded object should really be a ROIBean but is actually a String)
+	// Example of JSON produced for an ROI
 	private static final String JSON_FOR_RECTANGULAR_ROI = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.json.RectangularROIBean\",\n  \"type\" : \"RectangularROI\",\n  \"startPoint\" : [ -3.5, 4.0 ],\n  \"lengths\" : [ 8.0, 6.1 ],\n  \"angle\" : 0.0,\n  \"endPoint\" : [ 4.5, 10.1 ]\n}";
 
 	private static final String JSON_FOR_WRAPPED_RECTANGULAR_ROI = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=uk.ac.diamond.json.test.ROIWrapper\",\n  \"object\" : {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.json.RectangularROIBean\",\n    \"type\" : \"RectangularROI\",\n    \"startPoint\" : [ -3.5, 4.0 ],\n    \"lengths\" : [ 8.0, 6.1 ],\n    \"angle\" : 0.0,\n    \"endPoint\" : [ 4.5, 10.1 ]\n  }\n}";
@@ -51,12 +48,6 @@ public class JSONUnmarshallingRegressionTest {
 	private IJsonMarshaller marshaller;
 	private String json;
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		IJSonMarshaller roiMarhsaller = new JacksonMarshaller();
-		JsonMarshaller.setMarshaller(roiMarhsaller);
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		marshaller = new JsonMarshaller();
@@ -66,11 +57,12 @@ public class JSONUnmarshallingRegressionTest {
 	public void tearDown() throws Exception {
 		if (json != null) {
 			// So we can see what's going on
-			System.out.println("JSON: " + json);
+//			System.out.println("JSON: " + json);
 
 			// To make it easy to replace expected JSON values in the code when we're sure they're correct
+			@SuppressWarnings("unused")
 			String javaLiteralForJSONString = '"' + StringEscapeUtils.escapeJava(json) + '"';
-			System.out.println("Java literal:\n" + javaLiteralForJSONString);
+//			System.out.println("Java literal:\n" + javaLiteralForJSONString);
 		}
 		json = null;
 		marshaller = null;
@@ -137,7 +129,7 @@ public class JSONUnmarshallingRegressionTest {
 	public void testGenericROIFieldDeserialization() throws Exception {
 		IROI roi = new RectangularROI(-3.5, 4.0, 8.0, 6.1, 0.0);
 		ObjectWrapper<IROI> expected = new ObjectWrapper<>(roi);
-		ObjectWrapper<?> actual = marshaller.unmarshal(JSON_FOR_WRAPPED_RECTANGULAR_ROI, ObjectWrapper.class);
+		ObjectWrapper<?> actual = marshaller.unmarshal(JSON_FOR_GENERIC_WRAPPED_RECTANGULAR_ROI, ObjectWrapper.class);
 		assertEquals(expected, actual);
 	}
 

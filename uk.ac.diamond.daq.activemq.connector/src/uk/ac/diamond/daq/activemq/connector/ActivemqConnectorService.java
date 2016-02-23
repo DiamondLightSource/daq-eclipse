@@ -36,6 +36,11 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	 * Default public constructor - for testing purposes only! Otherwise use OSGi to get the service.
 	 */
 	public ActivemqConnectorService() {
+		if (jsonMarshaller == null) {
+			// OSGi should always provide the JSON marshaller. If it's not present, probably someone is calling this
+			// constructor directly and may have forgotten to set the JSON marshaller first, so we print a warning
+			System.err.println(this.getClass().getSimpleName() + " needs an IJsonMarshaller to function correctly");
+		}
 	}
 
 	@Override

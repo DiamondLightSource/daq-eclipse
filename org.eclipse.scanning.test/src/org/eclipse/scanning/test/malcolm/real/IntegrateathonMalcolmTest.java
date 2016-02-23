@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import uk.ac.diamond.json.JsonMarshaller;
 import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
 //@Ignore(" We use this test to specifically talk to an I05-1 device called 'arpes'")
@@ -51,7 +52,8 @@ public class IntegrateathonMalcolmTest {
 		
 		
 		this.pservice   = new PointGeneratorFactory();
-		
+
+		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
 		IEventService eservice   = new EventServiceImpl(new ActivemqConnectorService());
 		publisher  = eservice.createPublisher(new URI("vm://localhost?broker.persistent=false"), "test.malcolm.scanEventTopic");
 		subscriber = eservice.createSubscriber(new URI("vm://localhost?broker.persistent=false"), "test.malcolm.scanEventTopic");

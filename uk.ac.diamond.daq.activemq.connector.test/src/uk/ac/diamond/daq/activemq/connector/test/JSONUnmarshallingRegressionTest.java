@@ -9,8 +9,6 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.dawnsci.commandserver.mx.beans.ProjectBean;
-import org.dawnsci.persistence.json.JacksonMarshaller;
-import org.eclipse.dawnsci.analysis.api.persistence.IJSonMarshaller;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -50,8 +48,6 @@ public class JSONUnmarshallingRegressionTest {
 
 	@Before
 	public void setUp() throws Exception {
-		IJSonMarshaller roiMarhsaller = new JacksonMarshaller();
-		JsonMarshaller.setMarshaller(roiMarhsaller);
 		JsonMarshaller jsonMarshaller = new JsonMarshaller();
 		ActivemqConnectorService.setJsonMarshaller(jsonMarshaller);
 		marshaller = new ActivemqConnectorService();
@@ -61,15 +57,15 @@ public class JSONUnmarshallingRegressionTest {
 	public void tearDown() throws Exception {
 		if (json != null) {
 			// So we can see what's going on
-			System.out.println("JSON: " + json);
+//			System.out.println("JSON: " + json);
 
 			// To make it easy to replace expected JSON values in the code when we're sure they're correct
+			@SuppressWarnings("unused")
 			String javaLiteralForJSONString = '"' + StringEscapeUtils.escapeJava(json) + '"';
-			System.out.println("Java literal:\n" + javaLiteralForJSONString);
+//			System.out.println("Java literal:\n" + javaLiteralForJSONString);
 		}
 		json = null;
 		marshaller = null;
-		JsonMarshaller.setMarshaller(null);
 		ActivemqConnectorService.setJsonMarshaller(null);
 	}
 
@@ -173,8 +169,8 @@ public class JSONUnmarshallingRegressionTest {
 
 	@Test
 	public void testSimpleMapDeserialization() throws Exception {
+		@SuppressWarnings("unused")
 		Map<?,?> map = marshaller.unmarshal("{ \"String key\" : \"String value\", \"Int key\" : 5 }", Map.class);
-		System.out.println(map.getClass());
 	}
 }
 
