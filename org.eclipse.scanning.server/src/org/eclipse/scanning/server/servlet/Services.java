@@ -7,6 +7,7 @@ import org.eclipse.scanning.api.scan.IDeviceConnectorService;
 import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.process.IPreprocessingService;
+import org.eclipse.scanning.api.script.IScriptService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -27,6 +28,8 @@ public class Services {
 	private static IMalcolmService         malcService;
 	private static IFilePathService        filePathService;
 	private static IPreprocessingService   preprocessingService;
+	private static IScriptService          scriptService;	
+	
 	private static BundleContext           context;
 
 	public static IFilePathService getFilePathService() {
@@ -117,5 +120,16 @@ public class Services {
 
 	public static void setPreprocessingService(IPreprocessingService preprocessingService) {
 		Services.preprocessingService = preprocessingService;
+	}
+
+
+	public static IScriptService getScriptService() {
+		return scriptService;
+	}
+
+
+	public static void setScriptService(IScriptService scriptService) {
+		if (scriptService == null) scriptService = getService(IScriptService.class);
+		Services.scriptService = scriptService;
 	}
 }
