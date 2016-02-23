@@ -110,3 +110,4 @@ Export-Package: javax.jms,
  org.apache.activemq.util.osgi,
  org.apache.activemq.xbean
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Eclipse-BuddyPolicy: registered
