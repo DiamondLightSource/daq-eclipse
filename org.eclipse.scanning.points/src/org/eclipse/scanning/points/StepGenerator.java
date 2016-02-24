@@ -17,10 +17,7 @@ public class StepGenerator extends AbstractGenerator<StepModel, IPosition> {
 	@Override
 	protected boolean isValidModel(StepModel model) {
 		double div = ((model.getStop()-model.getStart())/model.getStep());
-		return !(div < 0);  // This means NaN is considered valid.
-		// Therefore .createGenerator(new StepModel()) will still work.
-		// But .createGenerator(new StepModel("myStepModel", 0, 10, 0)).createPoints() will hang!
-		// TODO: Be stricter about this.
+		return 0 < div && Double.isFinite(div);
 	}
 
 	@Override
