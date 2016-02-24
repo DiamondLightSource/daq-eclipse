@@ -34,10 +34,8 @@ import uk.ac.diamond.json.test.testobject.Cat;
 import uk.ac.diamond.json.test.testobject.Person;
 
 /**
- * Unit tests for the Jackson JSON marshaller.
- * <p>
- * This class is abstract to allow subclasses to set up the marshaller as required before the tests are run, and
- * to provide values for the JSON strings used in the tests.
+ * Unit tests for the Jackson JSON marshaller which check the behaviour in a simulated OSGi environment where classes
+ * need to be loaded from the correct bundles.
  * <p>
  * If the marshaller settings are changed, the new JSON string produced in each test can be written to std out by
  * uncommenting the relevant line in tearDown(), allowing it to be copied into the Java code to update the tests.
@@ -45,7 +43,7 @@ import uk.ac.diamond.json.test.testobject.Person;
  * @author Colin Palmer
  *
  */
-public class JSONMarshallerTest {
+public class JSONMarshallerOSGiBundleTest {
 
 	private static final String JSON_FOR_JIM = "{\n  \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.json.test.testobject.Person\",\n  \"name\" : \"Jim\",\n  \"pet\" : {\n    \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.example&version=2.0.0&class=uk.ac.diamond.json.test.testobject.Bird\",\n    \"name\" : \"Polly\",\n    \"feathers\" : \"Green\"\n  }\n}";
 	private static final String JSON_FOR_JOHN = "{\n  \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.json.test.testobject.Person\",\n  \"name\" : \"John\",\n  \"pet\" : {\n    \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.other_example&version=0.0.0&class=uk.ac.diamond.json.test.testobject.Cat\",\n    \"name\" : \"Felix\",\n    \"whiskers\" : \"Luxuriant\"\n  }\n}";
@@ -54,12 +52,6 @@ public class JSONMarshallerTest {
 	private static final String JSON_FOR_ANIMAL_LIST = "[ \"bundle=&version=&class=java.util.ArrayList\", [ {\n  \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.other_example&version=0.0.0&class=uk.ac.diamond.json.test.testobject.Cat\",\n  \"name\" : \"Felix\",\n  \"whiskers\" : \"Luxuriant\"\n}, {\n  \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.example&version=2.0.0&class=uk.ac.diamond.json.test.testobject.Bird\",\n  \"name\" : \"Polly\",\n  \"feathers\" : \"Green\"\n}, {\n  \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.other_example&version=0.0.0&class=uk.ac.diamond.json.test.testobject.Cat\",\n  \"name\" : \"Felix\",\n  \"whiskers\" : \"Luxuriant\"\n} ] ]";
 	private static final String JSON_FOR_ANIMAL_SET = "[ \"bundle=&version=&class=java.util.HashSet\", [ {\n  \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.other_example&version=0.0.0&class=uk.ac.diamond.json.test.testobject.Cat\",\n  \"name\" : \"Felix\",\n  \"whiskers\" : \"Luxuriant\"\n}, {\n  \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.example&version=2.0.0&class=uk.ac.diamond.json.test.testobject.Bird\",\n  \"name\" : \"Polly\",\n  \"feathers\" : \"Green\"\n} ] ]";
 	private static final String JSON_FOR_ANIMAL_MAP = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=java.util.HashMap\",\n  \"Polly\" : {\n    \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.example&version=2.0.0&class=uk.ac.diamond.json.test.testobject.Bird\",\n    \"name\" : \"Polly\",\n    \"feathers\" : \"Green\"\n  },\n  \"Felix\" : {\n    \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.other_example&version=0.0.0&class=uk.ac.diamond.json.test.testobject.Cat\",\n    \"name\" : \"Felix\",\n    \"whiskers\" : \"Luxuriant\"\n  },\n  \"John\" : {\n    \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.json.test.testobject.Person\",\n    \"name\" : \"John\",\n    \"pet\" : {\n      \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.other_example&version=0.0.0&class=uk.ac.diamond.json.test.testobject.Cat\",\n      \"name\" : \"Felix\",\n      \"whiskers\" : \"Luxuriant\"\n    }\n  },\n  \"Jim\" : {\n    \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.example&version=1.2.0.test&class=uk.ac.diamond.json.test.testobject.Person\",\n    \"name\" : \"Jim\",\n    \"pet\" : {\n      \"@bundle_and_class\" : \"bundle=uk.ac.diamond.daq.test.example&version=2.0.0&class=uk.ac.diamond.json.test.testobject.Bird\",\n      \"name\" : \"Polly\",\n      \"feathers\" : \"Green\"\n    }\n  }\n}";
-	private static final String TEST_STRING = "Hello world!";
-	private static final String JSON_FOR_TEST_STRING = "\"Hello world!\"";
-	private static final int TEST_INT = -56;
-	private static final String JSON_FOR_TEST_INT = "-56";
-	private static final long TEST_LONG = 1234567890L;
-	private static final String JSON_FOR_TEST_LONG = "[ \"bundle=&version=&class=java.lang.Long\", 1234567890 ]";
 
 	private IJsonMarshaller marshaller;
 
@@ -185,7 +177,7 @@ public class JSONMarshallerTest {
 	}
 
 	@Test
-	public void testDeserialisationOfConcreteBeanBAsAbstractBean() throws Exception {
+	public void testDeserialisationOfFelixAsAnimal() throws Exception {
 		Animal deserializedFelix = marshaller.unmarshal(JSON_FOR_FELIX, Animal.class);
 		assertEquals("Felix", deserializedFelix.getName());
 		assertThat(deserializedFelix, is(instanceOf(Cat.class)));
@@ -271,41 +263,5 @@ public class JSONMarshallerTest {
 		assertThat(map.get(john.getName()), is(equalTo(john)));
 		assertThat(map.get(felix.getName()), is(equalTo(felix)));
 		assertThat(map.get(polly.getName()), is(equalTo(polly)));
-	}
-
-	@Test
-	public void testIntSerialization() throws Exception {
-		json = marshaller.marshal(TEST_INT);
-		assertEquals(JSON_FOR_TEST_INT, json);
-	}
-
-	@Test
-	public void testIntDeserialization() throws Exception {
-		Object result = marshaller.unmarshal(JSON_FOR_TEST_INT, Object.class);
-		assertThat(result, is(equalTo(TEST_INT)));
-	}
-
-	@Test
-	public void testLongSerialization() throws Exception {
-		json = marshaller.marshal(TEST_LONG);
-		assertEquals(JSON_FOR_TEST_LONG, json);
-	}
-
-	@Test
-	public void testLongDeserialization() throws Exception {
-		Object result = marshaller.unmarshal(JSON_FOR_TEST_LONG, Object.class);
-		assertThat(result, is(equalTo(TEST_LONG)));
-	}
-
-	@Test
-	public void testStringSerialization() throws Exception {
-		json = marshaller.marshal(TEST_STRING);
-		assertEquals(JSON_FOR_TEST_STRING, json);
-	}
-
-	@Test
-	public void testStringDeserialization() throws Exception {
-		Object result = marshaller.unmarshal(JSON_FOR_TEST_STRING, Object.class);
-		assertEquals(TEST_STRING, result);
 	}
 }

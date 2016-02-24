@@ -1,7 +1,10 @@
 package uk.ac.diamond.json.test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,12 +27,23 @@ import uk.ac.diamond.json.api.IJsonMarshaller;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
- * Regression tests to ensure beans serialized by old versions of the connector can still be deserialized correctly.
+ * Unit tests for the Jackson JSON marshaller which check (de)serialization of a range of types, but without the
+ * complication of checking classes are loaded from the correct OSGi bundles.
+ * <p>
+ * If the marshaller settings are changed, the new JSON string produced in each test can be written to std out by
+ * uncommenting the relevant line in tearDown(), allowing it to be copied into the Java code to update the tests.
  *
  * @author Colin Palmer
  *
  */
-public class JSONUnmarshallingRegressionTest {
+public class JSONMarshallerNonOSGiTest {
+
+	private static final String TEST_STRING = "Hello world!";
+	private static final String JSON_FOR_TEST_STRING = "\"Hello world!\"";
+	private static final int TEST_INT = -56;
+	private static final String JSON_FOR_TEST_INT = "-56";
+	private static final long TEST_LONG = 1234567890L;
+	private static final String JSON_FOR_TEST_LONG = "[ \"bundle=&version=&class=java.lang.Long\", 1234567890 ]";
 
 	// An example of a bean used by Xia2 which could be sent by another process and must deserialize correctly in current version
 	private static final String JSON_FOR_PROJECT_BEAN = "{\"status\":\"COMPLETE\",\"name\":\"X1_weak_M1S1_1 - X1_weak_M1S1_1\",\"message\":\"Xia2 run completed normally\",\"percentComplete\":100.0,\"userName\":\"awa25\",\"hostName\":\"cs04r-sc-vserv-45.diamond.ac.uk\",\"runDirectory\":\"/dls/i03/data/2016/cm14451-1/processed/tmp/2016-01-27/fake085224/MultiCrystal_1\",\"uniqueId\":\"1453910139320_94ed2a2b-997e-4dbc-ad6e-0c3c04bb2c82\",\"submissionTime\":1453910139340,\"properties\":null,\"projectName\":\"MultiCrystalRerun\",\"cystalName\":\"fake085224\",\"sweeps\":[{\"name\":\"X1_weak_M1S1_1\",\"sessionId\":\"55167\",\"dataCollectionId\":\"1007379\",\"imageDirectory\":\"/dls/i03/data/2016/cm14451-1/tmp/2016-01-27/fake085224/\",\"firstImageName\":\"X1_weak_M1S1_1_0001.cbf\",\"start\":1,\"end\":900,\"wavelength\":0.979493,\"xBeam\":212.51,\"yBeam\":219.98,\"resolution\":null}],\"wavelength\":\"NaN\",\"commandLineSwitches\":\"\",\"anomalous\":true,\"spaceGroup\":null,\"unitCell\":null,\"resolution\":null}";
@@ -66,6 +80,89 @@ public class JSONUnmarshallingRegressionTest {
 		}
 		json = null;
 		marshaller = null;
+	}
+
+	@Test
+	public void testIntSerialization() throws Exception {
+		json = marshaller.marshal(TEST_INT);
+		assertEquals(JSON_FOR_TEST_INT, json);
+	}
+
+	@Test
+	public void testIntDeserialization() throws Exception {
+		Object result = marshaller.unmarshal(JSON_FOR_TEST_INT, Object.class);
+		assertThat(result, is(equalTo(TEST_INT)));
+	}
+
+	@Test
+	public void testLongSerialization() throws Exception {
+		json = marshaller.marshal(TEST_LONG);
+		assertEquals(JSON_FOR_TEST_LONG, json);
+	}
+
+	@Test
+	public void testLongDeserialization() throws Exception {
+		Object result = marshaller.unmarshal(JSON_FOR_TEST_LONG, Object.class);
+		assertThat(result, is(equalTo(TEST_LONG)));
+	}
+
+	@Test
+	public void testStringSerialization() throws Exception {
+		json = marshaller.marshal(TEST_STRING);
+		assertEquals(JSON_FOR_TEST_STRING, json);
+	}
+
+	@Test
+	public void testStringDeserialization() throws Exception {
+		Object result = marshaller.unmarshal(JSON_FOR_TEST_STRING, Object.class);
+		assertEquals(TEST_STRING, result);
+	}
+
+	@Test
+	public void testStringArraySerialization() throws Exception {
+		json = marshaller.marshal(STRING_ARRAY);
+		assertEquals(JSON_FOR_STRING_ARRAY, json);
+	}
+
+	@Test
+	public void testStringArrayDeserialization() throws Exception {
+		String[] actual = marshaller.unmarshal(JSON_FOR_STRING_ARRAY, String[].class);
+		assertArrayEquals(actual, STRING_ARRAY);
+	}
+
+	@Test
+	public void testSimpleStringArrayDeserialization() throws Exception {
+		String[] actual = marshaller.unmarshal("[ \"a\", \"b\", \"c\" ]", String[].class);
+		assertArrayEquals(actual, STRING_ARRAY);
+	}
+
+	@Test
+	public void testStringArrayFieldSerialization() throws Exception {
+		ObjectWrapper<String[]> arrayWrapper = new ObjectWrapper<>(STRING_ARRAY);
+		json = marshaller.marshal(arrayWrapper);
+		assertEquals(JSON_FOR_WRAPPED_STRING_ARRAY, json);
+	}
+
+	@Test
+	public void testStringArrayFieldDeserialization() throws Exception {
+		ObjectWrapper<String[]> expected = new ObjectWrapper<>(STRING_ARRAY);
+		ObjectWrapper<?> actual = marshaller.unmarshal(JSON_FOR_WRAPPED_STRING_ARRAY, ObjectWrapper.class);
+		assertArrayEquals(expected.getObject(), (Object[]) actual.getObject());
+	}
+
+	@Test
+	public void testObjectArrayDeserialization() throws Exception {
+		Object[] actual = marshaller.unmarshal("[ \"a\", \"b\", 5 ]", Object[].class);
+		assertArrayEquals(actual, new Object[] { "a", "b", 5 });
+	}
+
+	@Test
+	public void testSimpleMapDeserialization() throws Exception {
+		Map<String, Object> expected = new HashMap<>();
+		expected.put("String key", "String value");
+		expected.put("Int key", 5);
+		Map<?,?> actual = marshaller.unmarshal("{ \"String key\" : \"String value\", \"Int key\" : 5 }", Map.class);
+		assertEquals(expected, actual);
 	}
 
 	@Test
@@ -148,53 +245,6 @@ public class JSONUnmarshallingRegressionTest {
 		ObjectWrapper<List<IROI>> expected = new ObjectWrapper<>(Arrays.asList(roi));
 		ObjectWrapper<?> actual = marshaller.unmarshal(JSON_FOR_WRAPPED_RECTANGULAR_ROI_LIST, ObjectWrapper.class);
 		assertEquals(expected.getObject(), actual.getObject());
-	}
-
-	@Test
-	public void testStringArraySerialization() throws Exception {
-		json = marshaller.marshal(STRING_ARRAY);
-		assertEquals(JSON_FOR_STRING_ARRAY, json);
-	}
-
-	@Test
-	public void testStringArrayDeserialization() throws Exception {
-		String[] actual = marshaller.unmarshal(JSON_FOR_STRING_ARRAY, String[].class);
-		assertArrayEquals(actual, STRING_ARRAY);
-	}
-
-	@Test
-	public void testSimpleStringArrayDeserialization() throws Exception {
-		String[] actual = marshaller.unmarshal("[ \"a\", \"b\", \"c\" ]", String[].class);
-		assertArrayEquals(actual, STRING_ARRAY);
-	}
-
-	@Test
-	public void testStringArrayFieldSerialization() throws Exception {
-		ObjectWrapper<String[]> arrayWrapper = new ObjectWrapper<>(STRING_ARRAY);
-		json = marshaller.marshal(arrayWrapper);
-		assertEquals(JSON_FOR_WRAPPED_STRING_ARRAY, json);
-	}
-
-	@Test
-	public void testStringArrayFieldDeserialization() throws Exception {
-		ObjectWrapper<String[]> expected = new ObjectWrapper<>(STRING_ARRAY);
-		ObjectWrapper<?> actual = marshaller.unmarshal(JSON_FOR_WRAPPED_STRING_ARRAY, ObjectWrapper.class);
-		assertArrayEquals(expected.getObject(), (Object[]) actual.getObject());
-	}
-
-	@Test
-	public void testObjectArrayDeserialization() throws Exception {
-		Object[] actual = marshaller.unmarshal("[ \"a\", \"b\", 5 ]", Object[].class);
-		assertArrayEquals(actual, new Object[] { "a", "b", 5 });
-	}
-
-	@Test
-	public void testSimpleMapDeserialization() throws Exception {
-		Map<String, Object> expected = new HashMap<>();
-		expected.put("String key", "String value");
-		expected.put("Int key", 5);
-		Map<?,?> actual = marshaller.unmarshal("{ \"String key\" : \"String value\", \"Int key\" : 5 }", Map.class);
-		assertEquals(expected, actual);
 	}
 }
 
