@@ -18,35 +18,16 @@
 
 package uk.ac.diamond.json.roimixins;
 
-import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public abstract class IROIMixIn {
+public abstract class CircularROIMixIn {
 
-	@JsonProperty abstract void setPoint(double[] point);
+	@JsonProperty abstract double getRadius();
 
-	// TODO do these need to be explicitly ignored?
-//	public void setPoint(int[] point);
-//	public void setPoint(int x, int y);
-//	public void setPoint(double x, double y);
+	@JsonProperty abstract void setRadius(double radius);
 
-	@JsonIgnore abstract double[] getPointRef();
+	@JsonIgnore abstract double[] getCentre();
 
-	@JsonProperty abstract double[] getPoint();
-
-	@JsonIgnore abstract double getPointX();
-
-	@JsonIgnore abstract double getPointY();
-
-	@JsonIgnore abstract int[] getIntPoint();
-
-	@JsonIgnore abstract void setPlot(boolean require);
-
-	@JsonIgnore abstract boolean isPlot();
-
-	@JsonIgnore abstract IRectangularROI getBounds();
-
-	@JsonIgnore abstract boolean isNearOutline(double x, double y, double distance);
+	@JsonIgnore abstract void setCentre(double... centre);
 }

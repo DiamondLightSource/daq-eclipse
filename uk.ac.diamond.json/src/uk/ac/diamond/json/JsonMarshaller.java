@@ -5,6 +5,8 @@ import java.util.Collection;
 import org.eclipse.dawnsci.analysis.api.roi.IOrientableROI;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IPosition;
 
@@ -14,9 +16,11 @@ import uk.ac.diamond.json.internal.BundleProvider;
 import uk.ac.diamond.json.internal.OSGiBundleProvider;
 import uk.ac.diamond.json.internal.PositionDeserializer;
 import uk.ac.diamond.json.internal.PositionSerializer;
+import uk.ac.diamond.json.roimixins.CircularROIMixIn;
 import uk.ac.diamond.json.roimixins.IOrientableROIMixIn;
 import uk.ac.diamond.json.roimixins.IROIMixIn;
 import uk.ac.diamond.json.roimixins.IRectangularROIMixIn;
+import uk.ac.diamond.json.roimixins.LinearROIMixIn;
 import uk.ac.diamond.json.roimixins.RectangularROIMixIn;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -155,6 +159,8 @@ public class JsonMarshaller implements IJsonMarshaller {
 		module.setMixInAnnotation(IOrientableROI.class, IOrientableROIMixIn.class);
 		module.setMixInAnnotation(IRectangularROI.class, IRectangularROIMixIn.class);
 		module.setMixInAnnotation(RectangularROI.class, RectangularROIMixIn.class);
+		module.setMixInAnnotation(CircularROI.class, CircularROIMixIn.class);
+		module.setMixInAnnotation(LinearROI.class, LinearROIMixIn.class);
 
 		mapper.registerModule(module);
 
