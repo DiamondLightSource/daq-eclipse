@@ -196,7 +196,8 @@ public class BundleAndClassNameIdResolverTest {
 
 		// Ideally this should fail with IllegalArgumentException to simulate the case where the class cannot be found
 		// because it is in the wrong bundle. But the Bird class is available to the standard classloader (unlike in
-		// the OSGi case) so this actually works. This test is kept simply to document behaviour.
+		// the OSGi case) so this actually works, but a ClassNotFoundException is logged at WARN level.
+		// This test is kept simply to document behaviour.
 		resolver.typeFromId(NONEXISTENT_BIRD_ID);
 	}
 
