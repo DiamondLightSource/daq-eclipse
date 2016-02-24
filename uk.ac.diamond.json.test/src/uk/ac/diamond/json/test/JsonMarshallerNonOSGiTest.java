@@ -75,7 +75,7 @@ public class JsonMarshallerNonOSGiTest {
 	public void tearDown() throws Exception {
 		if (json != null) {
 			// So we can see what's going on
-			System.out.println("JSON: " + json);
+//			System.out.println("JSON: " + json);
 
 			// To make it easy to replace expected JSON values in the code when we're sure they're correct
 			@SuppressWarnings("unused")
