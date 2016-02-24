@@ -197,7 +197,7 @@ public class AbstractScanTest {
 			return;
 		}
 		
-		throw new Exception("Generator failed to throw GeneratorException(\"Invalid model!\") on invalid step model input.");
+		throw new Exception("Generator failed to throw GeneratorException(\"Invalid points model!\") on invalid step model input.");
 	}
 
 	@Test
@@ -222,7 +222,7 @@ public class AbstractScanTest {
 			return;
 		}
 		
-		throw new Exception("Generator failed to throw GeneratorException(\"Invalid model!\") on invalid step model input.");
+		throw new Exception("Generator failed to throw GeneratorException(\"Invalid points model!\") on invalid step model input.");
 	}
 	
 	
