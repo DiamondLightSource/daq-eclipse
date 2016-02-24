@@ -197,6 +197,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		// Setup the bean to sent
 		getBean().setPreviousStatus(getBean().getStatus());
 		getBean().setStatus(Status.COMPLETE);
+		getBean().setPercentComplete(100);
 		
 		// Will send the state of the scan off.
    	    setDeviceState(DeviceState.READY); // Fires!

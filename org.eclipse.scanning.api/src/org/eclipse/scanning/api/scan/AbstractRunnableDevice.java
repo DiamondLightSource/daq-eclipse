@@ -157,7 +157,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		bean.setPoint(count);
 		bean.setPosition(pos);
 		bean.setPreviousDeviceState(bean.getDeviceState());
-		if (size>-1) bean.setPercentComplete((double)count/size);
+		if (size>-1) bean.setPercentComplete(((double)count/size)*100);
 		
 		publisher.broadcast(bean);
 	
