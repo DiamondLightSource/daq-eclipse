@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
  * @author Colin Palmer
  *
  */
-public class JSONMarshallerNonOSGiTest {
+public class JsonMarshallerNonOSGiTest {
 
 	private static final String TEST_STRING = "Hello world!";
 	private static final String JSON_FOR_TEST_STRING = "\"Hello world!\"";
