@@ -18,6 +18,11 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 	}
 
 	@Override
+	protected boolean isValidModel(OneDStepModel model) {
+		return 0 < model.getStep();
+	}
+
+	@Override
 	public Iterator<Point> iterator() {
 		try {
 			return createPoints().iterator();

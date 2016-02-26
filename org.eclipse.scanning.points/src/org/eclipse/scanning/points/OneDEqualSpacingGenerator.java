@@ -18,7 +18,11 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 		setIconPath("icons/scanner--line.png"); // This icon exists in the rendering bundle 
 	}
 
-	
+	@Override
+	protected boolean isValidModel(OneDEqualSpacingModel model) {
+		return 0 <= model.getPoints();
+	}
+
 	/**
 	 * Please override this method, the default creates all points and 
 	 * returns their iterator

@@ -15,6 +15,11 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 	}
 
 	@Override
+	protected boolean isValidModel(GridModel model) {
+		return 0 < model.getRows() && 0 < model.getColumns();
+	}
+
+	@Override
 	public Iterator<Point> iterator() {
 		return new GridIterator(this);
 	}
