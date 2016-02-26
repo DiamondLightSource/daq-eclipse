@@ -52,6 +52,7 @@
             <configuration>
                 <reportOutputDirectory>./</reportOutputDirectory>
                 <destDir>../javadoc</destDir>
+                <failOnError>false</failOnError>
             </configuration>
           </plugin>
       </plugins>
