@@ -168,7 +168,7 @@ public class AbstractScanTest {
 		model.setStart(0);
 		model.setStop(10);
 		model.setStep(1);
-		model.setName("myStepModel");  // ScanningException thrown without this. TODO: Add test.
+		model.setName("myScannable");
 		
 		IRunnableDevice<ScanModel> scanner = createTestScanner(model, null, null, null, null);
 		scanner.run(null);
@@ -182,7 +182,7 @@ public class AbstractScanTest {
 		model.setStart(0);
 		model.setStop(10);
 		model.setStep(-1);
-		model.setName("myStepModel");
+		model.setName("myScannable");
 		
 		try {
 			IRunnableDevice<ScanModel> scanner = createTestScanner(model, null, null, null, null);
