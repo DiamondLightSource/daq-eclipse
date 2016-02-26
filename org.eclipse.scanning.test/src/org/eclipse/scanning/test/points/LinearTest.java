@@ -10,6 +10,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
@@ -44,12 +45,18 @@ public class LinearTest {
         GeneratorUtil.testGeneratorPoints(gen);
 	}
 	
-	@Test(expected = GeneratorException.class)
+	@Test
 	public void testOneDEqualSpacingNoROI() throws GeneratorException {
 		
         OneDEqualSpacingModel model = new OneDEqualSpacingModel();
         model.setPoints(10);
-		
+		BoundingLine bl = new BoundingLine();
+		bl.setxStart(0);
+		bl.setyStart(0);
+		bl.setAngle(0);
+		bl.setLength(10);
+		model.setBoundingLine(bl);
+
 		// Get the point list
 		IPointGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, null);
 		gen.createPoints();
@@ -87,6 +94,23 @@ public class LinearTest {
         GeneratorUtil.testGeneratorPoints(gen);
 	}
 	
+	@Test
+	public void testOneDStepNoROI() throws GeneratorException {
+
+		OneDStepModel model = new OneDStepModel();
+		model.setStep(1);
+		BoundingLine bl = new BoundingLine();
+		bl.setxStart(0);
+		bl.setyStart(0);
+		bl.setAngle(0);
+		bl.setLength(10);
+		model.setBoundingLine(bl);
+
+		// Get the point list
+		IPointGenerator<OneDStepModel,Point> gen = service.createGenerator(model, null);
+		gen.createPoints();
+	}
+
 	@Test(expected = GeneratorException.class)
 	public void testOneDStepNoStep() throws Exception {
 		

@@ -33,6 +33,7 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
+		// FIXME: Make this work with just a bounding line (i.e. no ROI).
 		
 		if (model.getStep()==0) throw new GeneratorException("The step cannot be zero!");
 		if (containers==null) throw new GeneratorException("For "+getClass().getName()+" a "+LinearROI.class.getName()+" must be provided!");

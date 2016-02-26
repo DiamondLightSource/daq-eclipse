@@ -38,6 +38,7 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
+		// FIXME: Make this work with just a bounding line (i.e. no ROI).
 		
 		if (model.getPoints()<1) throw new GeneratorException("Must have one or more points in model!");
 		if (containers==null) throw new GeneratorException("For "+getClass().getName()+" a "+LinearROI.class.getName()+" must be provided!");

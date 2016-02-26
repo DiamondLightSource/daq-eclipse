@@ -23,7 +23,7 @@ public class BoundingLine {
 		return angle;
 	}
 	public void setAngle(double angle) {
-		this.angle = angle;
+		this.angle = angle;  // FIXME: Degrees? Radians?
 	}
 	public double getLength() {
 		return length;
