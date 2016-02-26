@@ -12,5 +12,5 @@ before_install:
  - chmod +x ./org.eclipse.scanning.releng/build/commit-msg.sh
  - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
  
-# Maven compile
+# Maven compile and javadoc
 script: mvn compile javadoc:javadoc
