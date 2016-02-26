@@ -2,7 +2,12 @@ package uk.ac.diamond.json;
 
 import java.util.Collection;
 
+import org.eclipse.dawnsci.analysis.api.roi.IOrientableROI;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IPosition;
 
 import uk.ac.diamond.json.api.IJsonMarshaller;
@@ -11,8 +16,12 @@ import uk.ac.diamond.json.internal.BundleProvider;
 import uk.ac.diamond.json.internal.OSGiBundleProvider;
 import uk.ac.diamond.json.internal.PositionDeserializer;
 import uk.ac.diamond.json.internal.PositionSerializer;
-import uk.ac.diamond.json.internal.ROIDeserializer;
-import uk.ac.diamond.json.internal.ROISerializer;
+import uk.ac.diamond.json.roimixins.CircularROIMixIn;
+import uk.ac.diamond.json.roimixins.IOrientableROIMixIn;
+import uk.ac.diamond.json.roimixins.IROIMixIn;
+import uk.ac.diamond.json.roimixins.IRectangularROIMixIn;
+import uk.ac.diamond.json.roimixins.LinearROIMixIn;
+import uk.ac.diamond.json.roimixins.RectangularROIMixIn;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -144,9 +153,15 @@ public class JsonMarshaller implements IJsonMarshaller {
 		SimpleModule module = new SimpleModule();
 		module.addSerializer(IPosition.class,   new PositionSerializer());
 		module.addDeserializer(IPosition.class, new PositionDeserializer());
-		module.addSerializer(IROI.class,        new ROISerializer());
-		module.addDeserializer(IROI.class,      new ROIDeserializer());
-		// TODO add similar serializers for IFunction
+
+		// Add mix-in annotations for ROIs
+		module.setMixInAnnotation(IROI.class, IROIMixIn.class);
+		module.setMixInAnnotation(IOrientableROI.class, IOrientableROIMixIn.class);
+		module.setMixInAnnotation(IRectangularROI.class, IRectangularROIMixIn.class);
+		module.setMixInAnnotation(RectangularROI.class, RectangularROIMixIn.class);
+		module.setMixInAnnotation(CircularROI.class, CircularROIMixIn.class);
+		module.setMixInAnnotation(LinearROI.class, LinearROIMixIn.class);
+
 		mapper.registerModule(module);
 
 		// Be careful adjusting these settings - changing them will probably cause various unit tests to fail which

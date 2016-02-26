@@ -177,23 +177,22 @@ public class MonitorPluginTest {
         	// This test uses NXpositioner for all scannables and monitors
         	NXpositioner positioner = instrument.getPositioner(deviceName);
         	assertNotNull(positioner);
+        	String nxDataFieldName;
         	
     		dataNode = positioner.getDataNode("value_demand");
     		dataset = dataNode.getDataset().getSlice();
     		shape = dataset.getShape();
 			assertEquals(1, shape.length);
 			if (i < scannableNames.size()) {
-				// TODO what's the expected size for monitors?
-				// maybe they just wouldn't have this field in practice
+				// in practise monitors wouldn't have the 'demand' field
 				assertEquals(sizes[i], shape[0]);
+				nxDataFieldName = deviceName + "_value_demand";
+				assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
+				assertIndices(nxData, nxDataFieldName, i);
+				assertTarget(nxData, nxDataFieldName, rootNode,
+						"/entry/instrument/" + deviceName + "/value_demand");
 			}
 			
-			String nxDataFieldName = deviceName + "_value_demand";
-			assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
-			assertIndices(nxData, nxDataFieldName, i);
-			assertTarget(nxData, nxDataFieldName, rootNode,
-					"/entry/instrument/" + deviceName + "/value_demand");
-        
 			// Actual values should be scanD
 			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
     		dataset = dataNode.getDataset().getSlice();
@@ -204,7 +203,7 @@ public class MonitorPluginTest {
     		assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
     		assertIndices(nxData, nxDataFieldName, defaultDimensionMappings);
     		assertTarget(nxData, nxDataFieldName, rootNode,
-    				"/entry/instument/" + deviceName + "/" + NXpositioner.NX_VALUE);
+    				"/entry/instrument/" + deviceName + "/" + NXpositioner.NX_VALUE);
 		}
 	}
 

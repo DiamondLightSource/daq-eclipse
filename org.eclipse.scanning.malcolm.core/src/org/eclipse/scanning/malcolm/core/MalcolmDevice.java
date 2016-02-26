@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
+import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
@@ -42,7 +43,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
+class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 	private static Logger logger = LoggerFactory.getLogger(MalcolmDevice.class);
 		
@@ -102,9 +103,14 @@ public class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	@Override
 	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		
+		// TODO Malcolm1 hard codes where the axes and detector write to. We do the same.
 		final NXdetector detector = nodeFactory.createNXdetector();
-		// TODO FIXME Create links to HDF5 file here.
-		return null;
+		detector.addExternalLink(NXdetector.NX_DATA, getFileName(), "/entry/data/det1");
+		
+		for (String axis : info.getAxisNames()) {
+			detector.addExternalLink(axis+"_demand", getFileName(), "/entry/data/"+axis+"_demand");
+		}
+		return detector;
 	}
 
 

@@ -24,7 +24,7 @@ public class MockedMalcolmService implements IMalcolmService {
 	@Override
 	public IMalcolmConnection createConnection(URI uri) throws URISyntaxException, MalcolmDeviceException {
 		boolean pausable = uri != null && uri.getHost().equalsIgnoreCase("pausable");
-		if (connection==null) connection = new MockedConnection(latcher, pausable);
+		if (connection==null) connection = new MockedMalcolmConnection(latcher, pausable);
 		return connection;
 	}
 

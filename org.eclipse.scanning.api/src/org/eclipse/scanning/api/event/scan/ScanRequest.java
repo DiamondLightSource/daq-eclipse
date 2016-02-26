@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.script.ScriptRequest;
+import org.eclipse.scanning.api.script.ScriptResponse;
 
 /**
  * A class to encapsulate minimal information required to run a scan.
@@ -55,10 +57,23 @@ public class ScanRequest<T> {
 	private IPosition start;
 	
 	/**
+	 * The script run before the data collection but after the start position has been set.
+	 */
+	private ScriptRequest     before;
+	private ScriptResponse<?> beforeResponse;
+
+	/**
 	 * The end position or null if there is no start position to move to.
 	 */
 	private IPosition end;
 	
+	
+	/**
+	 * The script run after the data collection but before the end position has been set.
+	 */
+	private ScriptRequest after;
+	private ScriptResponse<?> afterResponse;
+
 	/**
 	 * Set to ignore processing of this request if the request has been 
 	 * prepared for a specific server. For instance in the case where the client
@@ -116,6 +131,10 @@ public class ScanRequest<T> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((after == null) ? 0 : after.hashCode());
+		result = prime * result + ((afterResponse == null) ? 0 : afterResponse.hashCode());
+		result = prime * result + ((before == null) ? 0 : before.hashCode());
+		result = prime * result + ((beforeResponse == null) ? 0 : beforeResponse.hashCode());
 		result = prime * result + ((detectors == null) ? 0 : detectors.hashCode());
 		result = prime * result + ((end == null) ? 0 : end.hashCode());
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
@@ -135,7 +154,27 @@ public class ScanRequest<T> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ScanRequest<?> other = (ScanRequest<?>) obj;
+		ScanRequest other = (ScanRequest) obj;
+		if (after == null) {
+			if (other.after != null)
+				return false;
+		} else if (!after.equals(other.after))
+			return false;
+		if (afterResponse == null) {
+			if (other.afterResponse != null)
+				return false;
+		} else if (!afterResponse.equals(other.afterResponse))
+			return false;
+		if (before == null) {
+			if (other.before != null)
+				return false;
+		} else if (!before.equals(other.before))
+			return false;
+		if (beforeResponse == null) {
+			if (other.beforeResponse != null)
+				return false;
+		} else if (!beforeResponse.equals(other.beforeResponse))
+			return false;
 		if (detectors == null) {
 			if (other.detectors != null)
 				return false;
@@ -229,6 +268,38 @@ public class ScanRequest<T> {
 
 	public void setIgnorePreprocess(boolean ignorePreprocess) {
 		this.ignorePreprocess = ignorePreprocess;
+	}
+
+	public ScriptRequest getBefore() {
+		return before;
+	}
+
+	public void setBefore(ScriptRequest before) {
+		this.before = before;
+	}
+
+	public ScriptRequest getAfter() {
+		return after;
+	}
+
+	public void setAfter(ScriptRequest after) {
+		this.after = after;
+	}
+
+	public ScriptResponse<?> getBeforeResponse() {
+		return beforeResponse;
+	}
+
+	public void setBeforeResponse(ScriptResponse<?> beforeResponse) {
+		this.beforeResponse = beforeResponse;
+	}
+
+	public ScriptResponse<?> getAfterResponse() {
+		return afterResponse;
+	}
+
+	public void setAfterResponse(ScriptResponse<?> afterResponse) {
+		this.afterResponse = afterResponse;
 	}
 
 

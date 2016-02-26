@@ -12,14 +12,14 @@ import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 
-public class MockedConnection implements IMalcolmConnection {
+public class MockedMalcolmConnection implements IMalcolmConnection {
 	
 	private Map<String, IMalcolmDevice> devices;
 	private final LatchDelegate latcher;
 	private boolean usePausableDevices;
 	
 
-	public MockedConnection(LatchDelegate latcher, final boolean pausable) {
+	public MockedMalcolmConnection(LatchDelegate latcher, final boolean pausable) {
 		super();
 		this.latcher       = latcher;
 		usePausableDevices = pausable;

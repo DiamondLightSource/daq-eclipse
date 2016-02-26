@@ -48,22 +48,20 @@ public final class DeviceServiceImpl implements IDeviceService {
 	 * This service must be present.
 	 */
 	private static IMalcolmService         malcolmService;	
-	
-	/**
-	 * Main constuctor used in the running server by OSGi (only)
-	 */
-	public DeviceServiceImpl() {
 		
-	}
-	
-	// Test
-	public DeviceServiceImpl(IDeviceConnectorService dservice) {
-		deviceService = dservice;	
-	}
 
+	/**
+	 * Map of device model class to device class.
+	 */
 	private static final Map<Class<?>, Class<? extends IRunnableDevice>> aquisitionDevices;
 	
-	private static final Map<URI, IMalcolmConnection> connections;
+	/**
+	 * Map of device name to created device. Used to avoid
+	 * recreating non-virtual devices many times.
+	 * 
+	 * TODO Should this be populated by spring?
+	 */
+	private static final Map<String, IRunnableDevice> namedDevices;
 	
 	// Use a factory pattern to register the types.
 	// This pattern can always be extended by extension points
@@ -80,9 +78,30 @@ public final class DeviceServiceImpl implements IDeviceService {
 		}
 
 		
-		aquisitionDevices = aqui;
-		connections = new HashMap<>(3);
+		aquisitionDevices  = aqui;
+		namedDevices       = new HashMap<>(3);
+
 	}
+	
+	
+	/**
+	 * Map of malcolm connections made.
+	 */
+	private final Map<URI, IMalcolmConnection> connections;
+
+	/**
+	 * Main constructor used in the running server by OSGi (only)
+	 */
+	public DeviceServiceImpl() {
+		connections        = new HashMap<>(3);
+	}
+	
+	// Test
+	public DeviceServiceImpl(IDeviceConnectorService dservice) {
+		this();
+		deviceService = dservice;	
+	}
+	
 	
 	private static void readExtensions(Map<Class<?>, Class<? extends IRunnableDevice>> devs) throws CoreException {
 		
@@ -132,7 +151,6 @@ public final class DeviceServiceImpl implements IDeviceService {
                 ascanner.setDeviceService(deviceService);
                 ascanner.setPublisher(publisher); // May be null
                 
-                
                 // If the model has a name for the device, we use
                 // it automatically.
                 try {
@@ -140,12 +158,17 @@ public final class DeviceServiceImpl implements IDeviceService {
                     String name = (String)getName.invoke(model);
                     ascanner.setName(name);
                 } catch (NoSuchMethodException ignored) {
-                	// no getName() is compulsory in the model
+                	// getName() is not compulsory in the model
                 }
 			}
 			
 			if (model instanceof MalcolmRequest<?>) model = ((MalcolmRequest<T>)model).getDeviceModel(); 
 			scanner.configure(model);
+			
+			if (!scanner.isVirtual()) {
+				namedDevices.put(scanner.getName(), scanner);
+			}
+			
 			return scanner;
 			
 		} catch (ScanningException s) {
@@ -153,6 +176,22 @@ public final class DeviceServiceImpl implements IDeviceService {
 		} catch (Exception ne) {
 			throw new ScanningException(ne);
 		}
+	}
+	
+	@Override
+	public <T> IRunnableDevice<T> getRunnableDevice(String name) throws ScanningException {
+		return getRunnableDevice(name, null);
+	}
+
+	@Override
+	public <T> IRunnableDevice<T> getRunnableDevice(String name, IPublisher<ScanBean> publisher) throws ScanningException {
+		
+		IRunnableDevice<T> device = (IRunnableDevice<T>)namedDevices.get(name);
+		if (device!=null && publisher!=null && device instanceof AbstractRunnableDevice) {
+			AbstractRunnableDevice<T> adevice = (AbstractRunnableDevice<T>)device;
+			adevice.setPublisher(publisher); // Now all its moves will be reported by this publisher.
+		}
+		return device;
 	}
 	
 	private <T> IRunnableDevice createDevice(T model) throws ScanningException, InstantiationException, IllegalAccessException, URISyntaxException, UnknownHostException {

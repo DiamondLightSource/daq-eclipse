@@ -24,6 +24,8 @@ import org.eclipse.scanning.api.scan.process.ProcessingException;
     {@literal </bean>}
      
     </pre>
+    
+    FIXME Add security via activemq layer. Anyone can run this now.
 
  * 
  * @author Matthew Gerring

@@ -12,4 +12,5 @@ before_install:
  - chmod +x ./org.eclipse.scanning.releng/build/commit-msg.sh
  - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
  
-script: ant -buildfile ./org.eclipse.scanning.releng/build/build.xml
+# Maven compile
+script: mvn compile

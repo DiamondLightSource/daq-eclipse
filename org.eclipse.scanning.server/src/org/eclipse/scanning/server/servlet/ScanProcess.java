@@ -23,6 +23,11 @@ import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.api.script.IScriptService;
+import org.eclipse.scanning.api.script.ScriptExecutionException;
+import org.eclipse.scanning.api.script.ScriptRequest;
+import org.eclipse.scanning.api.script.ScriptResponse;
+import org.eclipse.scanning.api.script.UnsupportedLanguageException;
 
 /**
  * Object for running a scan.
@@ -32,7 +37,10 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
  */
 class ScanProcess implements IConsumerProcess<ScanBean> {
 
+	// Services
 	private IPositioner                positioner;
+	private IScriptService             scriptService;
+	
 	private ScanBean                   bean;
 	private IPublisher<ScanBean>       response;
 	private IRunnableDevice<ScanModel> device;
@@ -52,6 +60,8 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			}
 		}
 		
+		this.scriptService = Services.getScriptService();
+		
 		bean.setPreviousStatus(Status.SUBMITTED);
 		bean.setStatus(Status.QUEUED);
 		broadcast(bean);
@@ -70,16 +80,26 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 	@Override
 	public void execute() throws EventException {
 		
-		try {			
+		try {
+			
+			// Move to a position if they set one
 			if (bean.getScanRequest().getStart()!=null) {
 				positioner.setPosition(bean.getScanRequest().getStart());
 			}
+			
+			// Run a script, if any has been requested
+			ScriptResponse<?> res = runScript(bean.getScanRequest().getBefore());
+			bean.getScanRequest().setBeforeResponse(res);
 			
 			this.device = createRunnableDevice(bean);
 			
 			if (blocking) {
 			    device.run(null); // Runs until done
 			    
+				// Run a script, if any has been requested
+			    res = runScript(bean.getScanRequest().getAfter());
+				bean.getScanRequest().setAfterResponse(res);
+
 				if (bean.getScanRequest().getEnd()!=null) {
 					positioner.setPosition(bean.getScanRequest().getEnd());
 				}
@@ -87,6 +107,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			} else {
 				((AbstractRunnableDevice<ScanModel>)device).start(null);
 				
+				if (bean.getScanRequest().getAfter()!=null) throw new EventException("Cannot run end script when scan is async.");
 				if (bean.getScanRequest().getEnd()!=null) throw new EventException("Cannot perform end position when scan is async.");
 			}
 			
@@ -96,7 +117,8 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			broadcast(bean);
 			
 
-		} catch (ScanningException | InterruptedException ne) {
+	    // Intentionally do not catch EventException, that passes straight up.
+		} catch (ScanningException | InterruptedException | UnsupportedLanguageException | ScriptExecutionException ne) {
 			ne.printStackTrace();
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.FAILED);
@@ -105,6 +127,12 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			
 			throw new EventException(ne);
 		}
+	}
+
+	private ScriptResponse<?> runScript(ScriptRequest req) throws EventException, UnsupportedLanguageException, ScriptExecutionException {
+		if (req==null) return null; // Nothing to do
+		if (scriptService==null) throw new EventException("Not script service is available, cannot run script request "+req);
+		return scriptService.execute(req);		
 	}
 
 	private IRunnableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws ScanningException, EventException {

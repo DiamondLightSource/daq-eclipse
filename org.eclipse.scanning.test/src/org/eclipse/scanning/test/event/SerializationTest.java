@@ -32,8 +32,7 @@ public class SerializationTest {
 	@Before
 	public void create() throws Exception {
 		// Non-OSGi for test - do not copy!
-		JsonMarshaller jsonMarshaller = new JsonMarshaller();
-		ActivemqConnectorService.setJsonMarshaller(jsonMarshaller);
+		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
 		connectorService = new ActivemqConnectorService();
 	}
 	
