@@ -5,8 +5,8 @@ last_msg="$(git log -1 --pretty=%B)"
 echo "The last commit was: $last_msg"
 
 
-# We check the last commit message has a ticket
-if [[ $last_msg =~ .*(jira\.diamond\.ac\.uk).* ]]; then
+# We check the last commit message has a ticket or starts with "Merge"
+if [[ $last_msg =~ ^Merge.*|^merge.*|.*(jira\.diamond\.ac\.uk).* ]]; then
     echo "Jira ticket or merge found, build may proceed"
     exit 0
 fi
