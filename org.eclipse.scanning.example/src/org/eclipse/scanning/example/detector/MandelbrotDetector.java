@@ -50,7 +50,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  */
 public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel>, INexusDevice<NXdetector> {
 
-	public static final String VALUE_NAME = "mandelbrot_value";
+	private static final String FIELD_NAME_TOTAL = "total";
 
 	private IDataset              image;
 	private ILazyWriteableDataset data;
@@ -63,7 +63,17 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	}
 
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		DelegateNexusProvider<NXdetector> nexusProvider = new DelegateNexusProvider<NXdetector>(
+				getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		// add both fields to any NXdata groups that this device is added to
+		nexusProvider.setDataFieldNames(NXdetector.NX_DATA, FIELD_NAME_TOTAL);
+		
+		// "data" is the name of the primary data field (i.e. the 'signal' field of the default NXdata)
+		nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
+		// and we want an additional NXdata group with "total" as the signal field
+		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_TOTAL);
+
+		return nexusProvider;
 	}
 
 	@Override
@@ -71,17 +81,18 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		
 		final NXdetector detector = nodeFactory.createNXdetector();
 		// We add 2 to the scan rank to include the image
-		int rank = info.getRank()+2; // scan rank plus two dimensions for the image.
-		data = detector.initializeLazyDataset(NXdetector.NX_DATA, rank, Dataset.FLOAT64);
+		int scanRank = info.getRank();
+		int dataRank = info.getRank() + 2; // scan rank plus two dimensions for the image.
+		data = detector.initializeLazyDataset(NXdetector.NX_DATA, dataRank, Dataset.FLOAT64);
 		
-		mvalue = detector.initializeLazyDataset("total", 2, Dataset.FLOAT64);
+		// total is a single scalar value (i.e. zero-dimensional) for each point in the scan
+		mvalue = detector.initializeLazyDataset(FIELD_NAME_TOTAL, scanRank, Dataset.FLOAT64);
 		
 		// Setting chunking is a very good idea if speed is required.
 		data.setChunking(info.createChunk(model.getRows(), model.getColumns()));
 		
 		return detector;
 	}
-
 
 	public int[] getDataDimensions() throws Exception {
 		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
@@ -125,9 +136,11 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
     public boolean write(IPosition pos) throws ScanningException {
 		
 		try {
-			SliceND sliceND = NexusScanInfo.createLocation(data, pos.getNames(), pos.getIndices(), model.getRows(), model.getColumns());
+			SliceND sliceND = NexusScanInfo.createLocation(data, pos.getNames(), pos.getIndices(),
+					model.getRows(), model.getColumns());
 			data.setSlice(null, image, sliceND);
 
+			// This fixes total for nD
 			sliceND = NexusScanInfo.createLocation(mvalue, pos.getNames(), pos.getIndices());
 			mvalue.setSlice(null, DoubleDataset.createFromObject(value), sliceND);
 			

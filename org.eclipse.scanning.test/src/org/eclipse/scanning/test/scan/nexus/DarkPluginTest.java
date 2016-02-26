@@ -2,8 +2,8 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertAxes;
 import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertIndices;
-import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertTarget;
 import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertSignal;
+import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertTarget;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -13,8 +13,9 @@ import static org.junit.Assert.assertSame;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
@@ -123,10 +124,9 @@ public class DarkPluginTest {
 		nf.openToRead();
 		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
 		NXroot rootNode = (NXroot) nexusTree.getGroupNode();
-		NXentry entry = rootNode.getEntry();
 
 		List<String> positionerNames = scanModel.getPositionIterable().iterator().next().getNames();
-
+		
 		// check the data for the dark detector
 		checkDark(rootNode, positionerNames, sizes);
 		
@@ -191,39 +191,57 @@ public class DarkPluginTest {
 	
 	private void checkNXdata(NXroot rootNode, String detectorName, List<String> scannableNames) {
 		NXentry entry = rootNode.getEntry();
-		NXdata data = entry.getData(detectorName);
-		assertNotNull(data);
-		
-		// check the default data field for the NXdata group
-		assertSignal(data, NXdata.NX_DATA);
-		assertSame(data.getDataNode(NXdata.NX_DATA), 
-				entry.getInstrument().getDetector(detectorName).getDataNode(NXdetector.NX_DATA));
-		assertTarget(data, NXdata.NX_DATA, rootNode, "/entry/instrument/" + detectorName + "/data");
 
-		int rank = entry.getInstrument().getDetector(detectorName).getDataNode(NXdetector.NX_DATA).getRank();
-		String[] expectedAxesNames = Stream.concat(scannableNames.stream().map(x -> x + "_value_demand"),
-				Collections.nCopies(rank - scannableNames.size(), ".").stream()).toArray(String[]::new);
-		assertAxes(data, expectedAxesNames);
-		int[] defaultDimensionMappings = IntStream.range(0, scannableNames.size()).toArray();
-		
-		// check the value_demand and value fields for each scannable
-		for (int i = 0; i < scannableNames.size(); i++) {
-			String positionerName = scannableNames.get(i);
-			NXpositioner positioner = entry.getInstrument().getPositioner(positionerName);
+		Map<String, NXdata> nxDataGroups = entry.getChildren(NXdata.class);
+		List<String> dataGroupNamesForDevice = nxDataGroups.keySet().stream()
+				.filter(name -> name.startsWith(detectorName)).collect(Collectors.toList());
+
+		for (String nxDataGroupName : dataGroupNamesForDevice) {
+			NXdata data = nxDataGroups.get(nxDataGroupName);
+			assertNotNull(data);
+
+			// check the default data field for the NXdata group
+			String sourceFieldName = nxDataGroupName.equals(detectorName) ? NXdetector.NX_DATA : "total";
+			assertSignal(data, sourceFieldName);
 			
-			// check value_demand data node
-			String demandFieldName = positionerName + "_" + NXpositioner.NX_VALUE + "_demand";
-			assertSame(data.getDataNode(demandFieldName), positioner.getDataNode("value_demand"));
-			assertIndices(data, demandFieldName, i);
-			assertTarget(data, demandFieldName, rootNode,
-					"/entry/instrument/" + positionerName + "/value_demand");
+			assertSame(data.getDataNode(sourceFieldName),
+					entry.getInstrument().getDetector(detectorName).getDataNode(sourceFieldName));
+			assertTarget(data, NXdata.NX_DATA, rootNode, "/entry/instrument/" + detectorName
+					+ "/data");
+
+			int rank = entry.getInstrument().getDetector(detectorName)
+					.getDataNode(NXdetector.NX_DATA).getRank();
+			List<String> expectedAxesNames = scannableNames.stream().map(x -> x + "_value_demand").
+					collect(Collectors.toList());
+			if (sourceFieldName.equals(NXdetector.NX_DATA)) {
+				// add placeholder value "." for each additional dimension
+				expectedAxesNames.addAll(Collections.nCopies(rank - scannableNames.size(), "."));
+			}
 			
-			// check value data node
-			String valueFieldName = positionerName + "_" + NXpositioner.NX_VALUE;
-			assertSame(data.getDataNode(valueFieldName), positioner.getDataNode(NXpositioner.NX_VALUE));
-			assertIndices(data, valueFieldName, defaultDimensionMappings);
-			assertTarget(data, valueFieldName, rootNode,
-					"/entry/instrument/" + positionerName + "/" + NXpositioner.NX_VALUE);
+			assertAxes(data, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
+			int[] defaultDimensionMappings = IntStream.range(0, scannableNames.size()).toArray();
+
+			// check the value_demand and value fields for each scannable
+			for (int i = 0; i < scannableNames.size(); i++) {
+				String positionerName = scannableNames.get(i);
+				NXpositioner positioner = entry.getInstrument().getPositioner(positionerName);
+
+				// check value_demand data node
+				String demandFieldName = positionerName + "_" + NXpositioner.NX_VALUE + "_demand";
+				assertSame(data.getDataNode(demandFieldName),
+						positioner.getDataNode("value_demand"));
+				assertIndices(data, demandFieldName, i);
+				assertTarget(data, demandFieldName, rootNode, "/entry/instrument/" + positionerName
+						+ "/value_demand");
+
+				// check value data node
+				String valueFieldName = positionerName + "_" + NXpositioner.NX_VALUE;
+				assertSame(data.getDataNode(valueFieldName),
+						positioner.getDataNode(NXpositioner.NX_VALUE));
+				assertIndices(data, valueFieldName, defaultDimensionMappings);
+				assertTarget(data, valueFieldName, rootNode, "/entry/instrument/" + positionerName
+						+ "/" + NXpositioner.NX_VALUE);
+			}
 		}
 	}
 
@@ -232,9 +250,9 @@ public class DarkPluginTest {
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
 		gmodel.setxName("xNex");
-		gmodel.setColumns(size[size.length-2]);
+		gmodel.setColumns(size[size.length-1]);
 		gmodel.setyName("yNex");
-		gmodel.setRows(size[size.length-1]);
+		gmodel.setRows(size[size.length-2]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
 		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
