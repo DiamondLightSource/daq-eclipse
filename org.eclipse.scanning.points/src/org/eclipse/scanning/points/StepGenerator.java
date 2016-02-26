@@ -15,9 +15,10 @@ public class StepGenerator extends AbstractGenerator<StepModel, IPosition> {
 	}
 
 	@Override
-	protected boolean isValidModel(StepModel model) {
+	protected void validateModel(StepModel model) throws GeneratorException {
 		double div = ((model.getStop()-model.getStart())/model.getStep());
-		return 0 < div && Double.isFinite(div);
+		if (div < 0) throw new GeneratorException("Model step is directed backwards!");
+		if (!Double.isFinite(div)) throw new GeneratorException("Model step size must be nonzero!");
 	}
 
 	@Override

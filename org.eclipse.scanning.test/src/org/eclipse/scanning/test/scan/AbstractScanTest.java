@@ -193,11 +193,11 @@ public class AbstractScanTest {
 			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
 			
 		} catch (GeneratorException ex) {
-			assertEquals("Invalid points model!", ex.getMessage());
+			assertEquals("Model step is directed backwards!", ex.getMessage());
 			return;
 		}
 		
-		throw new Exception("Generator failed to throw GeneratorException(\"Invalid points model!\") on invalid step model input.");
+		throw new Exception("Generator failed to throw GeneratorException(\"Model step is directed backwards!\") on invalid step model input.");
 	}
 
 	@Test
@@ -218,11 +218,11 @@ public class AbstractScanTest {
 			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
 			
 		} catch (GeneratorException ex) {
-			assertEquals("Invalid points model!", ex.getMessage());
+			assertEquals("Model step size must be nonzero!", ex.getMessage());
 			return;
 		}
 		
-		throw new Exception("Generator failed to throw GeneratorException(\"Invalid points model!\") on invalid step model input.");
+		throw new Exception("Generator failed to throw GeneratorException(\"Model step size must be nonzero!\") on invalid step model input.");
 	}
 	
 	
