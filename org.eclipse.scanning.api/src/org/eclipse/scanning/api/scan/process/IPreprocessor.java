@@ -6,7 +6,6 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
  * 
 <pre>
 <b>pre·proc·es·sor</b>
-prēˈpräsˌesər,-ˈprōsˌesər,-əsər/
 <i>noun</i>
 A computer program that modifies data to conform with the input requirements of another program.
 </pre>
