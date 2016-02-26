@@ -11,8 +11,10 @@
 	</prerequisites>
 
 	<modules>
+        <module>org.eclipse.scanning.target.platform</module>
 		<module>org.eclipse.scanning.api</module>
 		<module>org.eclipse.scanning.command</module>
+		<module>org.eclipse.scanning.event</module>
 	</modules>
 
 	<properties>
