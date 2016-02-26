@@ -6,10 +6,10 @@ Bundle-Version: 1.0.0.qualifier
 Fragment-Host: uk.ac.diamond.json;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.junit;bundle-version="4.10.0",
- org.mockito.mockito-core;bundle-version="1.9.5",
- org.objenesis;bundle-version="2.1.0",
  org.eclipse.dawnsci.analysis.dataset,
- org.dawnsci.persistence
+ org.dawnsci.persistence,
+ org.mockito;bundle-version="1.9.5",
+ org.objenesis;bundle-version="1.0.0"
 Import-Package: org.apache.commons.lang,
  org.dawnsci.commandserver.mx.beans
 Export-Package: uk.ac.diamond.json.test

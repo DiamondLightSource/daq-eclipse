@@ -1,14 +1,14 @@
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertAxes;
-import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertIndices;
-import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertTarget;
-import static org.eclipse.dawnsci.nexus.test.util.NexusAssert.assertSignal;
-import static org.junit.Assert.assertArrayEquals;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertArrayEquals;
 
 import java.io.File;
 import java.util.ArrayList;
