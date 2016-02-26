@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
+import static uk.ac.diamond.json.test.JsonUtils.assertJsonEquals;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -136,13 +137,13 @@ public class JsonMarshallerOSGiBundleTest {
 	@Test
 	public void testSerializationOfJim() throws Exception {
 		json = marshaller.marshal(jim);
-		assertEquals(JSON_FOR_JIM, json);
+		assertJsonEquals(JSON_FOR_JIM, json);
 	}
 
 	@Test
 	public void testSerializationOfJohn() throws Exception {
 		json = marshaller.marshal(john);
-		assertEquals(JSON_FOR_JOHN, json);
+		assertJsonEquals(JSON_FOR_JOHN, json);
 	}
 
 	@Test
@@ -173,7 +174,7 @@ public class JsonMarshallerOSGiBundleTest {
 	@Test
 	public void testSerialisationOfFelix() throws Exception {
 		json = marshaller.marshal(felix);
-		assertEquals(JSON_FOR_FELIX, json);
+		assertJsonEquals(JSON_FOR_FELIX, json);
 	}
 
 	@Test
@@ -188,7 +189,7 @@ public class JsonMarshallerOSGiBundleTest {
 	public void testArraySerialization() throws Exception {
 		Object[] animalArray = new Animal[] { felix, polly, felix };
 		json = marshaller.marshal(animalArray);
-		assertEquals(JSON_FOR_ANIMAL_ARRAY, json);
+		assertJsonEquals(JSON_FOR_ANIMAL_ARRAY, json);
 	}
 
 	@Test
@@ -213,7 +214,7 @@ public class JsonMarshallerOSGiBundleTest {
 	public void testListSerialization() throws Exception {
 		List<Animal> animalList = Arrays.asList(felix, polly, felix);
 		json = marshaller.marshal(animalList);
-		assertEquals(JSON_FOR_ANIMAL_LIST, json);
+		assertJsonEquals(JSON_FOR_ANIMAL_LIST, json);
 	}
 
 	@Test
@@ -250,7 +251,7 @@ public class JsonMarshallerOSGiBundleTest {
 		map.put(felix.getName(), felix);
 		map.put(polly.getName(), polly);
 		json = marshaller.marshal(map);
-		assertEquals(JSON_FOR_ANIMAL_MAP, json);
+		assertJsonEquals(JSON_FOR_ANIMAL_MAP, json);
 	}
 
 	@Test
