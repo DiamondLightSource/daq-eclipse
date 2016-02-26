@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -59,6 +60,18 @@ public class RasterTest {
 		assertEquals(2.0, pointList.get(11).getY(), 1e-8);
 		
         GeneratorUtil.testGeneratorPoints(gen);
+	}
+	
+	@Test(expected = GeneratorException.class)  // TODO: What should the behaviour be?
+	public void testNegativeXStep() throws Exception {
+		RectangularROI boundingRectangle = new RectangularROI(0, 0, 3, 3, 0);
+
+		RasterModel model = new RasterModel();
+		model.setxStep(-1);
+		model.setyStep(1);
+
+		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);
+		List<Point> pointList = gen.createPoints();
 	}
 
 	// Note this is a bit of a integration test not a strict unit test

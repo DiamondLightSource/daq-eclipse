@@ -33,11 +33,9 @@ public class StepTest {
 	
 	@Test
 	public void testSizes() throws Exception {
-		
-		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel());
 
 		StepModel model = new StepModel("Temperature", 290,300,1);	
-		gen.setModel(model);
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(model);
 		assertEquals(11, gen.size());
 		GeneratorUtil.testGeneratorPoints(gen);
 		
@@ -97,13 +95,26 @@ public class StepTest {
 		// TODO Should this throw an exception or do this? Possible to do a size 1 step makes some tests easier to write.
 	}
 	
+	@Test(expected = GeneratorException.class)
+	public void testMisdirectedStepGenSize() throws Exception {
+
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
+		gen.size();
+	}
+
+	@Test(expected = GeneratorException.class)
+	public void testMisdirectedStepGenPoints() throws Exception {
+
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
+		gen.createPoints();
+	}
+
 	@Test
 	public void testTolerance() throws Exception {
-		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel());
 
 		// within the 1% of step size tolerance
 		StepModel model = new StepModel("Temperature", 0.0, 2.0, 0.667);	
-		gen.setModel(model);
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(model);
 		assertEquals(4, gen.size());
 		
 		// outside the 1% of step size tolerance
@@ -114,12 +125,10 @@ public class StepTest {
 	
 	@Test
 	public void testSequence() throws Exception {
-		
 
-		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel());
 
 		StepModel model = new StepModel("Temperature", 290,300,1);	
-		gen.setModel(model);
+		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(model);
 		checkSequence(gen, 290.0, 291.0, 292.0, 293.0, 294.0, 295.0, 296.0, 297.0, 298.0, 299.0, 300.0);
 		GeneratorUtil.testGeneratorPoints(gen);
 		

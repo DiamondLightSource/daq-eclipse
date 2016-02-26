@@ -103,6 +103,21 @@ public class LinearTest {
 	}
 	
 	@Test(expected = GeneratorException.class)
+	public void testOneDStepNegativeStep() throws Exception {
+
+		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
+
+		OneDStepModel model = new OneDStepModel();
+		model.setStep(-0.3);
+
+		// Get the point list
+		IPointGenerator<OneDStepModel,Point> gen = service.createGenerator(model, roi);
+		List<Point> pointList = gen.createPoints();
+		GeneratorUtil.testGeneratorPoints(gen);
+
+	}
+
+	@Test(expected = GeneratorException.class)
 	public void testOneDStepWrongROI() throws Exception {
 		
 		RectangularROI roi = new RectangularROI(new double[]{0,0}, new double[]{3,3});
