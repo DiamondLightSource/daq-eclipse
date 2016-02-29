@@ -19,19 +19,13 @@
 package org.eclipse.scanning.example.detector;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.api.metadata.AxesMetadata;
-import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
-import org.eclipse.dawnsci.analysis.dataset.metadata.AxesMetadataImpl;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
@@ -44,7 +38,6 @@ import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
-
 /**
  * A dummy detector which must be set up with references to two Scannables representing X and Y positions. When used in a step scan, this detector generates a
  * value of 0 if the point (x, y) is in the Mandelbrot set, and greater than zero otherwise.
@@ -53,13 +46,19 @@ import org.eclipse.scanning.api.scan.ScanningException;
  */
 public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel>, INexusDevice<NXdetector> {
 
-	private static final String FIELD_NAME_TOTAL = "total";
+	private static final String FIELD_NAME_VALUE = "value";
+	private static final String FIELD_NAME_SPECTRUM = "spectrum";
 
-	private IDataset              image;
-	private ILazyWriteableDataset data;
-	private ILazyWriteableDataset mvalue;
-	private double                value;
-	
+	// Data to be passed from run() to write()
+	private IDataset image;
+	private IDataset spectrum;
+	private double value;
+
+	// Writable datasets
+	private ILazyWriteableDataset imageData;
+	private ILazyWriteableDataset spectrumData;
+	private ILazyWriteableDataset valueData;
+
 	public MandelbrotDetector() throws IOException {
 		super();
 		this.model = new MandelbrotModel();
@@ -68,13 +67,16 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
 		DelegateNexusProvider<NXdetector> nexusProvider = new DelegateNexusProvider<NXdetector>(
 				getName(), NexusBaseClass.NX_DETECTOR, info, this);
-		// add both fields to any NXdata groups that this device is added to
-		nexusProvider.setDataFieldNames(NXdetector.NX_DATA, FIELD_NAME_TOTAL);
+
+		// Add all fields for any NXdata groups that this device creates
+		nexusProvider.setDataFieldNames(NXdetector.NX_DATA, FIELD_NAME_SPECTRUM, FIELD_NAME_VALUE);
 		
 		// "data" is the name of the primary data field (i.e. the 'signal' field of the default NXdata)
 		nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
-		// and we want an additional NXdata group with "total" as the signal field
-		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_TOTAL);
+		// An additional NXdata group with "spectrum" as the signal to hold the 1D spectrum data
+		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_SPECTRUM);
+		// An additional NXdata group with "value" as the signal to hold the Mandelbrot value
+		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_VALUE);
 
 		return nexusProvider;
 	}
@@ -83,81 +85,78 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		
 		final NXdetector detector = nodeFactory.createNXdetector();
-		// We add 2 to the scan rank to include the image
-		int scanRank = info.getRank();
-		int dataRank = scanRank + 2; // scan rank plus two dimensions for the image.
-		data = detector.initializeLazyDataset(NXdetector.NX_DATA, dataRank, Dataset.FLOAT64);
 
-		// total is a single scalar value (i.e. zero-dimensional) for each point in the scan
-		mvalue = detector.initializeLazyDataset(FIELD_NAME_TOTAL, scanRank, Dataset.FLOAT64);
-		
+		int scanRank = info.getRank();
+		// We add 2 to the scan rank to include the image
+		imageData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank + 2, Dataset.FLOAT64);
+		// We add 1 to the scan rank to include the spectrum
+		spectrumData = detector.initializeLazyDataset(FIELD_NAME_SPECTRUM, scanRank + 1, Dataset.FLOAT64);
+		// Total is a single scalar value (i.e. zero-dimensional) for each point in the scan
+		// Dimensions match that of the scan
+		valueData = detector.initializeLazyDataset(FIELD_NAME_VALUE, scanRank, Dataset.FLOAT64);
+
 		// Setting chunking is a very good idea if speed is required.
-		data.setChunking(info.createChunk(model.getRows(), model.getColumns()));
-		
+		imageData.setChunking(info.createChunk(model.getRows(), model.getColumns()));
+		// FIXME This should work but causes a HDF5 Error: #000: H5Pdcpl.c line 2034 in H5Pset_chunk(): all chunk dimensions must be positive.
+		// Leave commented out for now
+		//spectrumData.setChunking(info.createChunk(model.getPoints()));
+
 		// Write detector metadata
 		detector.setField("exposure_time", model.getExposure());
+		detector.setAttribute("exposure_time", "units", "seconds");
 		detector.setField("escape_radius", model.getEscapeRadius());
 		detector.setField("max_iterations", model.getMaxIterations());
+
 		// The axis datasets
 		// FIXME These are not linked using an axis tag to the 4D block (Don't think thats possible yet)
-		detector.setDataset("julia_x", DatasetFactory.createLinearSpace(-model.getMaxX(), model.getMaxX(), model.getRows(), Dataset.FLOAT64));
-		detector.setDataset("julia_y", DatasetFactory.createLinearSpace(-model.getMaxY(), model.getMaxY(), model.getColumns(), Dataset.FLOAT64));
-		
+		detector.setDataset("image_x_axis", DatasetFactory.createLinearSpace(-model.getMaxX(), model.getMaxX(), model.getRows(), Dataset.FLOAT64));
+		detector.setDataset("image_y_axis", DatasetFactory.createLinearSpace(-model.getMaxY(), model.getMaxY(), model.getColumns(), Dataset.FLOAT64));
+		detector.setDataset("spectrum_axis", DatasetFactory.createLinearSpace(0.0, model.getMaxX(), model.getPoints(), Dataset.FLOAT64));
+
 		return detector;
 	}
 
-	public int[] getDataDimensions() throws Exception {
-		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
-			return new int[] { model.getPoints() };
-		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
-			return new int[] { model.getColumns(), model.getRows() };
-		} else {
-			throw new IllegalStateException("Unknown number of dimensions!");
-		}
-	}
-
-
 	@Override
-	public void configure(MandelbrotModel model) throws ScanningException {	
+	public void configure(MandelbrotModel model) throws ScanningException {
 		super.configure(model);
 		setName(model.getName());
 	}
 
 	@Override
 	public void run(IPosition pos) throws ScanningException, InterruptedException {
-		
-		final double a = (Double)pos.get(model.getxName());
-		final double b = (Double)pos.get(model.getyName());
 
+		// Find out where we are in the scan. This is unique to the Mandelbrot
+		// detector as it's a dummy in general a detector shouldn't need to get
+		// the position in the scan
+		final double a = (Double) pos.get(model.getxName());
+		final double b = (Double) pos.get(model.getyName());
+
+		// Calculate the data for the image spectrum and total
+		image = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
+		spectrum = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxX(), model.getPoints());
 		value = mandelbrot(a, b);
-		
-		if (model.getOutputDimensions() == OutputDimensions.ONE_D) {
-			image = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxX(), model.getPoints());
-		} else if (model.getOutputDimensions() == OutputDimensions.TWO_D) {
-			image = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
-		}
-		final Map<String, Serializable> mp = new HashMap<>(1);
-		mp.put("value", value);
-		Metadata meta = new Metadata(mp);
-		image.addMetadata(meta);	
-		
-		if (model.getExposure()>0) Thread.sleep(Math.round(1000*model.getExposure()));
-  	}
-	
-	@Override
-    public boolean write(IPosition pos) throws ScanningException {
-		
-		try {
-			SliceND sliceND = NexusScanInfo.createLocation(data, pos.getNames(), pos.getIndices(),
-					model.getRows(), model.getColumns());
-			data.setSlice(null, image, sliceND);
 
-			// This fixes total for nD
-			sliceND = NexusScanInfo.createLocation(mvalue, pos.getNames(), pos.getIndices());
-			mvalue.setSlice(null, DoubleDataset.createFromObject(value), sliceND);
+		// Pause for a bit to make exposure time work
+		if (model.getExposure() > 0) {
+			Thread.sleep(Math.round(1000 * model.getExposure()));
+		}
+	}
+
+	@Override
+	public boolean write(IPosition pos) throws ScanningException {
+
+		try {
+			SliceND sliceND = NexusScanInfo.createLocation(imageData, pos.getNames(), pos.getIndices(), model.getRows(), model.getColumns());
+			imageData.setSlice(null, image, sliceND);
 			
+			sliceND = NexusScanInfo.createLocation(spectrumData, pos.getNames(), pos.getIndices(), model.getPoints());
+			spectrumData.setSlice(null, spectrum, sliceND);
+
+			sliceND = NexusScanInfo.createLocation(valueData, pos.getNames(), pos.getIndices());
+			valueData.setSlice(null, DoubleDataset.createFromObject(value), sliceND);
+
 		} catch (Exception e) {
-			throw new ScanningException(e.getMessage(), e); 
+			throw new ScanningException("Failed to write the data to the NeXus file", e);
 		}
 
 		return true;
