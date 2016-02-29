@@ -61,17 +61,82 @@ public class RasterTest {
 		
         GeneratorUtil.testGeneratorPoints(gen);
 	}
-	
-	// TODO Test does not pass Nic
-	//@Test(expected = GeneratorException.class)  // TODO: What should the behaviour be?
-	public void testNegativeXStep() throws Exception {
-		RectangularROI boundingRectangle = new RectangularROI(0, 0, 3, 3, 0);
+
+	@Test
+	public void testSimpleBox() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(0);
+		box.setyStart(0);
+		box.setWidth(5);
+		box.setHeight(5);
 
 		RasterModel model = new RasterModel();
-		model.setxStep(-1);
+		model.setxStep(1);
 		model.setyStep(1);
+		model.setBoundingBox(box);
 
-		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);
+		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model);
+		List<Point> pointList = gen.createPoints();
+
+		// Zeroth point is (0, 0).
+		assertEquals(0.0, pointList.get(0).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(0).getY(), 1e-8);
+
+		// First point is (1, 0).
+		assertEquals(1.0, pointList.get(1).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(1).getY(), 1e-8);
+	}
+
+	@Test
+	public void testNegativeStep() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(5);
+		box.setyStart(0);
+		box.setWidth(-5);
+		box.setHeight(5);
+
+		RasterModel model = new RasterModel();
+
+		model.setxStep(-1);
+		// Okay to do this here because there is "negative width"
+		// for the points to protrude into.
+
+		model.setyStep(1);
+		model.setBoundingBox(box);
+
+		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model);
+		List<Point> pointList = gen.createPoints();
+
+		// Zeroth point is (5, 0).
+		assertEquals(5.0, pointList.get(0).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(0).getY(), 1e-8);
+
+		// First point is (4, 0).
+		assertEquals(4.0, pointList.get(1).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(1).getY(), 1e-8);
+	}
+
+	@Test(expected=GeneratorException.class)
+	public void testBackwardsStep() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(0);
+		box.setyStart(0);
+		box.setWidth(5);
+		box.setHeight(5);
+
+		RasterModel model = new RasterModel();
+
+		model.setxStep(-1);
+		// Not okay to do this here because there is no "negative width"
+		// for the points to protrude into.
+
+		model.setyStep(1);
+		model.setBoundingBox(box);
+
+		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model);
 		List<Point> pointList = gen.createPoints();
 	}
 
