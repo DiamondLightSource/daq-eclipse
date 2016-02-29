@@ -93,24 +93,186 @@ public class GridTest {
 	}
 
 	@Test
-	public void testNegativeWidthBoundingBox() throws Exception {
+	public void testSimpleBox() throws Exception {
 
 		BoundingBox box = new BoundingBox();
-		box.setxStart(0);
-		box.setyStart(0);
-		box.setWidth(-3);  // TODO: Should this work? It works.
-		box.setHeight(3);
+		box.setxStart(-0.5);
+		box.setyStart(-0.5);
+		box.setWidth(5);
+		box.setHeight(5);
 
 		GridModel model = new GridModel();
-		model.setRows(20);
-		model.setColumns(20);
+		model.setRows(5);
+		model.setColumns(5);
 		model.setBoundingBox(box);
 
 		IPointGenerator<GridModel, Point> gen = service.createGenerator(model);
 		List<Point> pointList = gen.createPoints();
 
-		assertEquals(pointList.size(), gen.size());
-		GeneratorUtil.testGeneratorPoints(gen);
+		// Zeroth point is (0, 0).
+		assertEquals(0.0, pointList.get(0).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(0).getY(), 1e-8);
+
+		// Oneth point is (1, 0).
+		assertEquals(1.0, pointList.get(1).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(1).getY(), 1e-8);
+
+		// Fifth point is (0, 1).
+		assertEquals(0.0, pointList.get(5).getX(), 1e-8);
+		assertEquals(1.0, pointList.get(5).getY(), 1e-8);
+	}
+
+	@Test
+	public void testSimpleBoxSnake() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(-0.5);
+		box.setyStart(-0.5);
+		box.setWidth(5);
+		box.setHeight(5);
+
+		GridModel model = new GridModel();
+		model.setRows(5);
+		model.setColumns(5);
+		model.setSnake(true);
+		model.setBoundingBox(box);
+
+		IPointGenerator<GridModel, Point> gen = service.createGenerator(model);
+		List<Point> pointList = gen.createPoints();
+
+		// Zeroth point is (0, 0).
+		assertEquals(0.0, pointList.get(0).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(0).getY(), 1e-8);
+
+		// Oneth point is (1, 0).
+		assertEquals(1.0, pointList.get(1).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(1).getY(), 1e-8);
+
+		// Fifth point is (4, 1).
+		assertEquals(4.0, pointList.get(5).getX(), 1e-8);
+		assertEquals(1.0, pointList.get(5).getY(), 1e-8);
+	}
+
+	@Test
+	public void testBackwardsBox() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(4.5);
+		box.setyStart(-0.5);
+		box.setWidth(-5);
+		box.setHeight(5);
+
+		GridModel model = new GridModel();
+		model.setRows(5);
+		model.setColumns(5);
+		model.setBoundingBox(box);
+
+		IPointGenerator<GridModel, Point> gen = service.createGenerator(model);
+		List<Point> pointList = gen.createPoints();
+
+		// Zeroth point is (4, 0).
+		assertEquals(4.0, pointList.get(0).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(0).getY(), 1e-8);
+
+		// Oneth point is (3, 0).
+		assertEquals(3.0, pointList.get(1).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(1).getY(), 1e-8);
+
+		// Fifth point is (4, 1).
+		assertEquals(4.0, pointList.get(5).getX(), 1e-8);
+		assertEquals(1.0, pointList.get(5).getY(), 1e-8);
+	}
+
+	@Test
+	public void testBackwardsBoxSnake() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(4.5);
+		box.setyStart(-0.5);
+		box.setWidth(-5);
+		box.setHeight(5);
+
+		GridModel model = new GridModel();
+		model.setRows(5);
+		model.setColumns(5);
+		model.setSnake(true);
+		model.setBoundingBox(box);
+
+		IPointGenerator<GridModel, Point> gen = service.createGenerator(model);
+		List<Point> pointList = gen.createPoints();
+
+		// Zeroth point is (4, 0).
+		assertEquals(4.0, pointList.get(0).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(0).getY(), 1e-8);
+
+		// Oneth point is (3, 0).
+		assertEquals(3.0, pointList.get(1).getX(), 1e-8);
+		assertEquals(0.0, pointList.get(1).getY(), 1e-8);
+
+		// Fifth point is (0, 1).
+		assertEquals(0.0, pointList.get(5).getX(), 1e-8);
+		assertEquals(1.0, pointList.get(5).getY(), 1e-8);
+	}
+
+	@Test
+	public void testDoublyBackwardsBox() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(4.5);
+		box.setyStart(4.5);
+		box.setWidth(-5);
+		box.setHeight(-5);
+
+		GridModel model = new GridModel();
+		model.setRows(5);
+		model.setColumns(5);
+		model.setBoundingBox(box);
+
+		IPointGenerator<GridModel, Point> gen = service.createGenerator(model);
+		List<Point> pointList = gen.createPoints();
+
+		// Zeroth point is (4, 4).
+		assertEquals(4.0, pointList.get(0).getX(), 1e-8);
+		assertEquals(4.0, pointList.get(0).getY(), 1e-8);
+
+		// Oneth point is (3, 4).
+		assertEquals(3.0, pointList.get(1).getX(), 1e-8);
+		assertEquals(4.0, pointList.get(1).getY(), 1e-8);
+
+		// Fifth point is (4, 3).
+		assertEquals(4.0, pointList.get(5).getX(), 1e-8);
+		assertEquals(3.0, pointList.get(5).getY(), 1e-8);
+	}
+
+	@Test
+	public void testDoublyBackwardsBoxSnake() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setxStart(4.5);
+		box.setyStart(4.5);
+		box.setWidth(-5);
+		box.setHeight(-5);
+
+		GridModel model = new GridModel();
+		model.setRows(5);
+		model.setColumns(5);
+		model.setSnake(true);
+		model.setBoundingBox(box);
+
+		IPointGenerator<GridModel, Point> gen = service.createGenerator(model);
+		List<Point> pointList = gen.createPoints();
+
+		// Zeroth point is (4, 4).
+		assertEquals(4.0, pointList.get(0).getX(), 1e-8);
+		assertEquals(4.0, pointList.get(0).getY(), 1e-8);
+
+		// Oneth point is (3, 4).
+		assertEquals(3.0, pointList.get(1).getX(), 1e-8);
+		assertEquals(4.0, pointList.get(1).getY(), 1e-8);
+
+		// Fifth point is (0, 3).
+		assertEquals(0.0, pointList.get(5).getX(), 1e-8);
+		assertEquals(3.0, pointList.get(5).getY(), 1e-8);
 	}
 
 	@Test
