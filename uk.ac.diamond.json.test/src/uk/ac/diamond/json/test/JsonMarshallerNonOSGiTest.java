@@ -5,6 +5,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static uk.ac.diamond.json.test.JsonUtils.assertJsonEquals;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -89,7 +90,7 @@ public class JsonMarshallerNonOSGiTest {
 	@Test
 	public void testIntSerialization() throws Exception {
 		json = marshaller.marshal(TEST_INT);
-		assertEquals(JSON_FOR_TEST_INT, json);
+		assertJsonEquals(JSON_FOR_TEST_INT, json);
 	}
 
 	@Test
@@ -101,7 +102,7 @@ public class JsonMarshallerNonOSGiTest {
 	@Test
 	public void testLongSerialization() throws Exception {
 		json = marshaller.marshal(TEST_LONG);
-		assertEquals(JSON_FOR_TEST_LONG, json);
+		assertJsonEquals(JSON_FOR_TEST_LONG, json);
 	}
 
 	@Test
@@ -113,7 +114,7 @@ public class JsonMarshallerNonOSGiTest {
 	@Test
 	public void testStringSerialization() throws Exception {
 		json = marshaller.marshal(TEST_STRING);
-		assertEquals(JSON_FOR_TEST_STRING, json);
+		assertJsonEquals(JSON_FOR_TEST_STRING, json);
 	}
 
 	@Test
@@ -125,7 +126,7 @@ public class JsonMarshallerNonOSGiTest {
 	@Test
 	public void testStringArraySerialization() throws Exception {
 		json = marshaller.marshal(STRING_ARRAY);
-		assertEquals(JSON_FOR_STRING_ARRAY, json);
+		assertJsonEquals(JSON_FOR_STRING_ARRAY, json);
 	}
 
 	@Test
@@ -144,7 +145,7 @@ public class JsonMarshallerNonOSGiTest {
 	public void testStringArrayFieldSerialization() throws Exception {
 		ObjectWrapper<String[]> arrayWrapper = new ObjectWrapper<>(STRING_ARRAY);
 		json = marshaller.marshal(arrayWrapper);
-		assertEquals(JSON_FOR_WRAPPED_STRING_ARRAY, json);
+		assertJsonEquals(JSON_FOR_WRAPPED_STRING_ARRAY, json);
 	}
 
 	@Test
@@ -183,15 +184,15 @@ public class JsonMarshallerNonOSGiTest {
 	public void testProjectBeanSerialization() throws Exception {
 		ProjectBean bean = marshaller.unmarshal(JSON_FOR_PROJECT_BEAN, ProjectBean.class);
 		json = marshaller.marshal(bean);
-		// New json is different from original because it is indented and has type info
-		assertEquals("{\n  \"@bundle_and_class\" : \"bundle=&version=&class=org.dawnsci.commandserver.mx.beans.ProjectBean\",\n  \"uniqueId\" : \"1453910139320_94ed2a2b-997e-4dbc-ad6e-0c3c04bb2c82\",\n  \"status\" : [ \"bundle=&version=&class=org.eclipse.scanning.api.event.status.Status\", \"COMPLETE\" ],\n  \"name\" : \"X1_weak_M1S1_1 - X1_weak_M1S1_1\",\n  \"message\" : \"Xia2 run completed normally\",\n  \"percentComplete\" : 100.0,\n  \"userName\" : \"awa25\",\n  \"hostName\" : \"cs04r-sc-vserv-45.diamond.ac.uk\",\n  \"runDirectory\" : \"/dls/i03/data/2016/cm14451-1/processed/tmp/2016-01-27/fake085224/MultiCrystal_1\",\n  \"submissionTime\" : 1453910139340,\n  \"projectName\" : \"MultiCrystalRerun\",\n  \"cystalName\" : \"fake085224\",\n  \"sweeps\" : [ \"bundle=&version=&class=java.util.ArrayList\", [ {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.dawnsci.commandserver.mx.beans.SweepBean\",\n    \"name\" : \"X1_weak_M1S1_1\",\n    \"sessionId\" : \"55167\",\n    \"dataCollectionId\" : \"1007379\",\n    \"imageDirectory\" : \"/dls/i03/data/2016/cm14451-1/tmp/2016-01-27/fake085224/\",\n    \"firstImageName\" : \"X1_weak_M1S1_1_0001.cbf\",\n    \"start\" : 1,\n    \"end\" : 900,\n    \"wavelength\" : 0.979493,\n    \"xBeam\" : 212.51,\n    \"yBeam\" : 219.98\n  } ] ],\n  \"wavelength\" : \"NaN\",\n  \"commandLineSwitches\" : \"\",\n  \"anomalous\" : true\n}", json);
+		// New json is different from original because it has type info
+		assertJsonEquals("{\n  \"@bundle_and_class\" : \"bundle=&version=&class=org.dawnsci.commandserver.mx.beans.ProjectBean\",\n  \"uniqueId\" : \"1453910139320_94ed2a2b-997e-4dbc-ad6e-0c3c04bb2c82\",\n  \"status\" : [ \"bundle=&version=&class=org.eclipse.scanning.api.event.status.Status\", \"COMPLETE\" ],\n  \"name\" : \"X1_weak_M1S1_1 - X1_weak_M1S1_1\",\n  \"message\" : \"Xia2 run completed normally\",\n  \"percentComplete\" : 100.0,\n  \"userName\" : \"awa25\",\n  \"hostName\" : \"cs04r-sc-vserv-45.diamond.ac.uk\",\n  \"runDirectory\" : \"/dls/i03/data/2016/cm14451-1/processed/tmp/2016-01-27/fake085224/MultiCrystal_1\",\n  \"submissionTime\" : 1453910139340,\n  \"projectName\" : \"MultiCrystalRerun\",\n  \"cystalName\" : \"fake085224\",\n  \"sweeps\" : [ \"bundle=&version=&class=java.util.ArrayList\", [ {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.dawnsci.commandserver.mx.beans.SweepBean\",\n    \"name\" : \"X1_weak_M1S1_1\",\n    \"sessionId\" : \"55167\",\n    \"dataCollectionId\" : \"1007379\",\n    \"imageDirectory\" : \"/dls/i03/data/2016/cm14451-1/tmp/2016-01-27/fake085224/\",\n    \"firstImageName\" : \"X1_weak_M1S1_1_0001.cbf\",\n    \"start\" : 1,\n    \"end\" : 900,\n    \"wavelength\" : 0.979493,\n    \"xBeam\" : 212.51,\n    \"yBeam\" : 219.98\n  } ] ],\n  \"wavelength\" : \"NaN\",\n  \"commandLineSwitches\" : \"\",\n  \"anomalous\" : true\n}", json);
 	}
 
 	@Test
 	public void testROISerialization() throws Exception {
 		IROI roi = new RectangularROI(-3.5, 4.0, 8.0, 6.1, 0.0);
 		json = marshaller.marshal(roi);
-		assertEquals(JSON_FOR_RECTANGULAR_ROI, json);
+		assertJsonEquals(JSON_FOR_RECTANGULAR_ROI, json);
 	}
 
 	@Test
@@ -206,7 +207,7 @@ public class JsonMarshallerNonOSGiTest {
 		IROI roi = new RectangularROI(-3.5, 4.0, 8.0, 6.1, 0.0);
 		ROIWrapper roiWrapper = new ROIWrapper(roi);
 		json = marshaller.marshal(roiWrapper);
-		assertEquals(JSON_FOR_WRAPPED_RECTANGULAR_ROI, json);
+		assertJsonEquals(JSON_FOR_WRAPPED_RECTANGULAR_ROI, json);
 	}
 
 	@Test
@@ -222,7 +223,7 @@ public class JsonMarshallerNonOSGiTest {
 		IROI roi = new RectangularROI(-3.5, 4.0, 8.0, 6.1, 0.0);
 		ObjectWrapper<IROI> roiWrapper = new ObjectWrapper<>(roi);
 		json = marshaller.marshal(roiWrapper);
-		assertEquals(JSON_FOR_GENERIC_WRAPPED_RECTANGULAR_ROI, json);
+		assertJsonEquals(JSON_FOR_GENERIC_WRAPPED_RECTANGULAR_ROI, json);
 	}
 
 	@Test
@@ -238,7 +239,7 @@ public class JsonMarshallerNonOSGiTest {
 		IROI roi = new RectangularROI(-3.5, 4.0, 8.0, 6.1, 0.0);
 		ObjectWrapper<List<IROI>> roiWrapper = new ObjectWrapper<>(Arrays.asList(roi));
 		json = marshaller.marshal(roiWrapper);
-		assertEquals(JSON_FOR_WRAPPED_RECTANGULAR_ROI_LIST, json);
+		assertJsonEquals(JSON_FOR_WRAPPED_RECTANGULAR_ROI_LIST, json);
 	}
 
 	@Test
@@ -290,7 +291,7 @@ public class JsonMarshallerNonOSGiTest {
 		assertEquals(pointROI, actual); // PointROI.copy() doesn't work so compare with original object instead
 	}
 
-	@Ignore("Currently fails because PolylineROI.equals() causes a stack overflow")
+	@Ignore("Currently fails because PolylineROI.equals() causes a stack overflow - see DAWNSCI-5981")
 	@Test
 	public void testPolygonalROI() throws Exception {
 		// Create ROI

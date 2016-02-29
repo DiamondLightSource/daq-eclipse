@@ -258,7 +258,7 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	}
 
 	@Override
-	public DeviceState latch(long time, TimeUnit unit, DeviceState... ignoredStates) throws MalcolmDeviceException {
+	public DeviceState latch(long time, TimeUnit unit, final DeviceState... ignoredStates) throws MalcolmDeviceException {
 		
 		try {
 			
