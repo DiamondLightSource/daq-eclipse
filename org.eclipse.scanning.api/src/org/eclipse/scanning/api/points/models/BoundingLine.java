@@ -1,5 +1,12 @@
 package org.eclipse.scanning.api.points.models;
 
+
+/**
+ * A model defining a line in two dimensional space, which can be used to confine and give scale to a {@link IBoundingLineModel}.
+ *
+ * @author Colin Palmer
+ *
+ */
 public class BoundingLine {
 
 	private double xStart;

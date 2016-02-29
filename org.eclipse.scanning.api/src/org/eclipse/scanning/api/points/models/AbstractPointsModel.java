@@ -6,6 +6,12 @@ import java.util.UUID;
 
 import org.eclipse.scanning.api.points.annot.FieldDescriptor;
 
+/**
+ * Abstract base class for scan models, which provides property change support for the convenience of subclasses.
+ *
+ * @author Colin Palmer
+ *
+ */
 public abstract class AbstractPointsModel implements IScanPathModel {
 	
 

@@ -3,6 +3,12 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+/**
+ * A model for a scan at a single two-dimensional point.
+ *
+ * @author Colin Palmer
+ *
+ */
 public class SinglePointModel extends AbstractPointsModel implements IPointModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);

@@ -1,5 +1,14 @@
 package org.eclipse.scanning.api.points.models;
 
+
+/**
+ * A model for a scan within a rectangular box in two-dimensional space.
+ * <p>
+ * This abstract class defines the box size and the names of the two axes.
+ *
+ * @author Colin Palmer
+ *
+ */
 public abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
 
 

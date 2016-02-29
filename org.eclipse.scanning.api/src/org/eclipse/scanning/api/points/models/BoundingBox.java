@@ -1,7 +1,13 @@
 package org.eclipse.scanning.api.points.models;
 
+/**
+ * A model defining a box in two dimensional space, which can be used to confine and give scale to a {@link IBoundingBoxModel}.
+ *
+ * @author Colin Palmer
+ *
+ */
 public class BoundingBox {
-	
+
 	public BoundingBox() {
 	}
 	public BoundingBox(double xStart, double yStart, double width, double height) {

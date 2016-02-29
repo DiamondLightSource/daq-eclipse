@@ -3,6 +3,13 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+/**
+ * A model for a scan along a straight line in two-dimensional space, dividing the line into the number of points given
+ * in this model.
+ *
+ * @author Colin Palmer
+ *
+ */
 public class OneDEqualSpacingModel extends AbstractPointsModel implements IBoundingLineModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);

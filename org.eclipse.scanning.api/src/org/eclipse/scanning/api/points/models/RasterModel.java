@@ -1,20 +1,12 @@
 package org.eclipse.scanning.api.points.models;
 
 /**
- * <pre>
- * snake = true
- * -------------------->
- *                     |
- * <--------------------
- * |
- * --------------------> etc.
- * 
- * snake = false
- * -------------------->
- * -------------------->
- * -------------------->
- * </pre>
-**/
+ * A model for a raster scan within a rectangular box in two-dimensional space, beginning at the box's start
+ * coordinates and moving in X and Y steps of the sizes set in this model.
+ *
+ * @author Colin Palmer
+ *
+ */
 public class RasterModel extends AbstractBoundingBoxModel {
 
 	private double xStep = 1;
@@ -47,6 +39,21 @@ public class RasterModel extends AbstractBoundingBoxModel {
 		this.yStep = yStep;
 		this.pcs.firePropertyChange("yStep", oldValue, yStep);
 	}
+	/**
+	 * <pre>
+	 * snake = true
+	 * -------------------->
+	 *                     |
+	 * <--------------------
+	 * |
+	 * --------------------> etc.
+     * 
+     * snake = false
+     * -------------------->
+     * -------------------->
+     * -------------------->
+     * </pre>
+	**/
 	public boolean isSnake() {
 		return snake;
 	}
