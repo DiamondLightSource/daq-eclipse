@@ -21,6 +21,7 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 		// and this flips the "x" and/or "y" point order.
 		if (model.getRows() <= 0) throw new GeneratorException("Model must have a positive number of rows!");
 		if (model.getColumns() <= 0) throw new GeneratorException("Model must have a positive number of columns!");
+		if (model.getBoundingBox() == null) throw new GeneratorException("Model must have a BoundingBox!");
 	}
 
 	@Override
