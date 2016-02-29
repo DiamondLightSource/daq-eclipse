@@ -18,8 +18,8 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 	}
 
 	@Override
-	protected boolean isValidModel(OneDStepModel model) {
-		return 0 < model.getStep();
+	protected void validateModel(OneDStepModel model) throws GeneratorException {
+		if (model.getStep() <= 0) throw new GeneratorException("Model step size must be positive!");
 	}
 
 	@Override
@@ -33,8 +33,8 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
+		// FIXME: Make this work with just a bounding line (i.e. no ROI).
 		
-		if (model.getStep()==0) throw new GeneratorException("The step cannot be zero!");
 		if (containers==null) throw new GeneratorException("For "+getClass().getName()+" a "+LinearROI.class.getName()+" must be provided!");
 		if (containers.size()!=1) throw new GeneratorException("For "+getClass().getName()+" a single "+LinearROI.class.getName()+" must be provided!");
 		

@@ -40,7 +40,7 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 
 	@Override
 	public void setModel(T model) throws GeneratorException {
-		if (!isValidModel(model)) throw new GeneratorException("Invalid points model!");
+		validateModel(model);
 		// FIXME: People can still do generator.getModel.setStep(0) (etc.) and break things.
 		// Models seem like the kind of thing which should be immutable (i.e. not beans...).
 		// (Or as a hack the getter could return a copy.)
@@ -48,12 +48,13 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 	}
 	
 	/**
-	 * Concrete Generators should override this method if some regions of
-	 * their model parameter space are "invalid" (and errors arising in the
-	 * invalid subspace would be otherwise hard to catch).
+	 * If the given model is considered "invalid", this method throws a 
+	 * GeneratorException explaining why it is considered invalid. Otherwise,
+	 * just returns. A model should be considered invalid if its parameters
+	 * would cause the generator implementation to hang or crash.
 	 */
-	protected boolean isValidModel(T model) {
-		return true;
+	protected void validateModel(T model) throws GeneratorException {
+		// TODO: Make this an abstract method.
 	}
 
 	/**

@@ -19,8 +19,8 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 	}
 
 	@Override
-	protected boolean isValidModel(OneDEqualSpacingModel model) {
-		return 0 <= model.getPoints();
+	protected void validateModel(OneDEqualSpacingModel model) throws GeneratorException {
+		if (model.getPoints() < 1) throw new GeneratorException("Must have one or more points in model!");
 	}
 
 	/**
@@ -38,8 +38,8 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
+		// FIXME: Make this work with just a bounding line (i.e. no ROI).
 		
-		if (model.getPoints()<1) throw new GeneratorException("Must have one or more points in model!");
 		if (containers==null) throw new GeneratorException("For "+getClass().getName()+" a "+LinearROI.class.getName()+" must be provided!");
 		if (containers.size()!=1) throw new GeneratorException("For "+getClass().getName()+" a single "+LinearROI.class.getName()+" must be provided!");
 		LinearROI roi = (LinearROI)containers.get(0).getROI();

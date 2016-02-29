@@ -10,10 +10,12 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class LinearTest {
@@ -44,14 +46,21 @@ public class LinearTest {
         GeneratorUtil.testGeneratorPoints(gen);
 	}
 	
-	@Test(expected = GeneratorException.class)
+	@Ignore("2016-02-29, waiting for better OneDEqualSpacingGenerator implementation")
+	@Test
 	public void testOneDEqualSpacingNoROI() throws GeneratorException {
 		
-        OneDEqualSpacingModel model = new OneDEqualSpacingModel();
-        model.setPoints(10);
-		
+		OneDEqualSpacingModel model = new OneDEqualSpacingModel();
+		model.setPoints(10);
+		BoundingLine bl = new BoundingLine();
+		bl.setxStart(0);
+		bl.setyStart(0);
+		bl.setAngle(0);
+		bl.setLength(10);
+		model.setBoundingLine(bl);
+
 		// Get the point list
-		IPointGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model, null);
+		IPointGenerator<OneDEqualSpacingModel,Point> gen = service.createGenerator(model);
 		gen.createPoints();
 	}
 
@@ -86,7 +95,25 @@ public class LinearTest {
 		assertEquals(15, pointList.size());
         GeneratorUtil.testGeneratorPoints(gen);
 	}
-	
+
+	@Ignore("2016-02-29, waiting for better OneDStepGenerator implementation")
+	@Test
+	public void testOneDStepNoROI() throws GeneratorException {
+
+		OneDStepModel model = new OneDStepModel();
+		model.setStep(1);
+		BoundingLine bl = new BoundingLine();
+		bl.setxStart(0);
+		bl.setyStart(0);
+		bl.setAngle(0);
+		bl.setLength(10);
+		model.setBoundingLine(bl);
+
+		// Get the point list
+		IPointGenerator<OneDStepModel,Point> gen = service.createGenerator(model);
+		gen.createPoints();
+	}
+
 	@Test(expected = GeneratorException.class)
 	public void testOneDStepNoStep() throws Exception {
 		

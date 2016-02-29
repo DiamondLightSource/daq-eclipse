@@ -3,6 +3,7 @@ package org.eclipse.scanning.points;
 import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
+import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.GridModel;
 
@@ -15,8 +16,12 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 	}
 
 	@Override
-	protected boolean isValidModel(GridModel model) {
-		return 0 < model.getRows() && 0 < model.getColumns();
+	protected void validateModel(GridModel model) throws GeneratorException {
+		// As implemented, model width and/or height can be negative,
+		// and this flips the "x" and/or "y" point order.
+		if (model.getRows() <= 0) throw new GeneratorException("Model must have a positive number of rows!");
+		if (model.getColumns() <= 0) throw new GeneratorException("Model must have a positive number of columns!");
+		if (model.getBoundingBox() == null) throw new GeneratorException("Model must have a BoundingBox!");
 	}
 
 	@Override
