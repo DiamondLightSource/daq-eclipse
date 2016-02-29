@@ -50,8 +50,8 @@ public class LinearTest {
 	@Test
 	public void testOneDEqualSpacingNoROI() throws GeneratorException {
 		
-        OneDEqualSpacingModel model = new OneDEqualSpacingModel();
-        model.setPoints(10);
+		OneDEqualSpacingModel model = new OneDEqualSpacingModel();
+		model.setPoints(10);
 		BoundingLine bl = new BoundingLine();
 		bl.setxStart(0);
 		bl.setyStart(0);
