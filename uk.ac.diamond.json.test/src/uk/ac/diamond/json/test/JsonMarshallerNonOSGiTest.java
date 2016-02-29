@@ -23,7 +23,6 @@ import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.diamond.json.JsonMarshaller;
@@ -281,17 +280,14 @@ public class JsonMarshallerNonOSGiTest {
 
 	@Test
 	public void testPointROI() throws Exception {
-		double x = 10.23;
-		double y = -12.3;
-
 		// Create ROI
-		PointROI pointROI = new PointROI(x, y);
+		PointROI pointROI = new PointROI(10.23, -12.3);
+		Object expected = pointROI.copy();
 		json = marshaller.marshal(pointROI);
 		Object actual = marshaller.unmarshal(json, Object.class);
-		assertEquals(pointROI, actual); // PointROI.copy() doesn't work so compare with original object instead
+		assertEquals(expected, actual);
 	}
 
-	@Ignore("Currently fails because PolylineROI.equals() causes a stack overflow - see DAWNSCI-5981")
 	@Test
 	public void testPolygonalROI() throws Exception {
 		// Create ROI
