@@ -26,9 +26,12 @@ import java.util.Map;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
+import org.eclipse.dawnsci.analysis.api.metadata.AxesMetadata;
 import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
+import org.eclipse.dawnsci.analysis.dataset.metadata.AxesMetadataImpl;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
@@ -82,14 +85,23 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		final NXdetector detector = nodeFactory.createNXdetector();
 		// We add 2 to the scan rank to include the image
 		int scanRank = info.getRank();
-		int dataRank = info.getRank() + 2; // scan rank plus two dimensions for the image.
+		int dataRank = scanRank + 2; // scan rank plus two dimensions for the image.
 		data = detector.initializeLazyDataset(NXdetector.NX_DATA, dataRank, Dataset.FLOAT64);
-		
+
 		// total is a single scalar value (i.e. zero-dimensional) for each point in the scan
 		mvalue = detector.initializeLazyDataset(FIELD_NAME_TOTAL, scanRank, Dataset.FLOAT64);
 		
 		// Setting chunking is a very good idea if speed is required.
 		data.setChunking(info.createChunk(model.getRows(), model.getColumns()));
+		
+		// Write detector metadata
+		detector.setField("exposure_time", model.getExposure());
+		detector.setField("escape_radius", model.getEscapeRadius());
+		detector.setField("max_iterations", model.getMaxIterations());
+		// The axis datasets
+		// FIXME These are not linked using an axis tag to the 4D block (Don't think thats possible yet)
+		detector.setDataset("julia_x", DatasetFactory.createLinearSpace(-model.getMaxX(), model.getMaxX(), model.getRows(), Dataset.FLOAT64));
+		detector.setDataset("julia_y", DatasetFactory.createLinearSpace(-model.getMaxY(), model.getMaxY(), model.getColumns(), Dataset.FLOAT64));
 		
 		return detector;
 	}

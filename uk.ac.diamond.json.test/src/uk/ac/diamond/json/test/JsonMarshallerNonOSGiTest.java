@@ -23,7 +23,6 @@ import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.diamond.json.JsonMarshaller;
@@ -47,8 +46,8 @@ public class JsonMarshallerNonOSGiTest {
 	private static final String JSON_FOR_TEST_STRING = "\"Hello world!\"";
 	private static final int TEST_INT = -56;
 	private static final String JSON_FOR_TEST_INT = "-56";
-	private static final long TEST_LONG = 1234567890L;
-	private static final String JSON_FOR_TEST_LONG = "[ \"bundle=&version=&class=java.lang.Long\", 1234567890 ]";
+	private static final long TEST_LONG = 12345678900L;
+	private static final String JSON_FOR_TEST_LONG = "12345678900";
 
 	// An example of a bean used by Xia2 which could be sent by another process and must deserialize correctly in current version
 	private static final String JSON_FOR_PROJECT_BEAN = "{\"status\":\"COMPLETE\",\"name\":\"X1_weak_M1S1_1 - X1_weak_M1S1_1\",\"message\":\"Xia2 run completed normally\",\"percentComplete\":100.0,\"userName\":\"awa25\",\"hostName\":\"cs04r-sc-vserv-45.diamond.ac.uk\",\"runDirectory\":\"/dls/i03/data/2016/cm14451-1/processed/tmp/2016-01-27/fake085224/MultiCrystal_1\",\"uniqueId\":\"1453910139320_94ed2a2b-997e-4dbc-ad6e-0c3c04bb2c82\",\"submissionTime\":1453910139340,\"properties\":null,\"projectName\":\"MultiCrystalRerun\",\"cystalName\":\"fake085224\",\"sweeps\":[{\"name\":\"X1_weak_M1S1_1\",\"sessionId\":\"55167\",\"dataCollectionId\":\"1007379\",\"imageDirectory\":\"/dls/i03/data/2016/cm14451-1/tmp/2016-01-27/fake085224/\",\"firstImageName\":\"X1_weak_M1S1_1_0001.cbf\",\"start\":1,\"end\":900,\"wavelength\":0.979493,\"xBeam\":212.51,\"yBeam\":219.98,\"resolution\":null}],\"wavelength\":\"NaN\",\"commandLineSwitches\":\"\",\"anomalous\":true,\"spaceGroup\":null,\"unitCell\":null,\"resolution\":null}";
@@ -61,7 +60,7 @@ public class JsonMarshallerNonOSGiTest {
 	private static final String JSON_FOR_WRAPPED_RECTANGULAR_ROI_LIST = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=uk.ac.diamond.json.test.ObjectWrapper\",\n  \"object\" : [ \"bundle=&version=&class=java.util.ArrayList\", [ {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI\",\n    \"lengths\" : [ 8.0, 6.1 ],\n    \"angle\" : 0.0,\n    \"point\" : [ -3.5, 4.0 ]\n  } ] ]\n}";
 
 	private static final String[] STRING_ARRAY = { "a", "b", "c" };
-	private static final String JSON_FOR_STRING_ARRAY = "[ \"bundle=&version=&class=[Ljava.lang.String;\", [ \"a\", \"b\", \"c\" ] ]";
+	private static final String JSON_FOR_STRING_ARRAY = "[ \"a\", \"b\", \"c\" ]";
 	private static final String JSON_FOR_WRAPPED_STRING_ARRAY = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=uk.ac.diamond.json.test.ObjectWrapper\",\n  \"object\" : [ \"bundle=&version=&class=[Ljava.lang.String;\", [ \"a\", \"b\", \"c\" ] ]\n}";
 
 	private IJsonMarshaller marshaller;
@@ -153,6 +152,12 @@ public class JsonMarshallerNonOSGiTest {
 		ObjectWrapper<String[]> expected = new ObjectWrapper<>(STRING_ARRAY);
 		ObjectWrapper<?> actual = marshaller.unmarshal(JSON_FOR_WRAPPED_STRING_ARRAY, ObjectWrapper.class);
 		assertArrayEquals(expected.getObject(), (Object[]) actual.getObject());
+	}
+
+	@Test
+	public void testObjectArraySerialization() throws Exception {
+		json = marshaller.marshal(new Object[] { "a", "b", 5 });
+		assertJsonEquals("[ \"bundle=&version=&class=[Ljava.lang.Object;\", [ \"a\", \"b\", 5 ] ]", json);
 	}
 
 	@Test
@@ -281,17 +286,14 @@ public class JsonMarshallerNonOSGiTest {
 
 	@Test
 	public void testPointROI() throws Exception {
-		double x = 10.23;
-		double y = -12.3;
-
 		// Create ROI
-		PointROI pointROI = new PointROI(x, y);
+		PointROI pointROI = new PointROI(10.23, -12.3);
+		Object expected = pointROI.copy();
 		json = marshaller.marshal(pointROI);
 		Object actual = marshaller.unmarshal(json, Object.class);
-		assertEquals(pointROI, actual); // PointROI.copy() doesn't work so compare with original object instead
+		assertEquals(expected, actual);
 	}
 
-	@Ignore("Currently fails because PolylineROI.equals() causes a stack overflow - see DAWNSCI-5981")
 	@Test
 	public void testPolygonalROI() throws Exception {
 		// Create ROI
