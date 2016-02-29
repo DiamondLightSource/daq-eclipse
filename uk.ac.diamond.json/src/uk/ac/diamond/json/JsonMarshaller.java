@@ -217,13 +217,18 @@ public class JsonMarshaller implements IJsonMarshaller {
 			return new BundleAndClassNameIdResolver(baseType, config.getTypeFactory(), bundleProvider);
 		}
 
-		// Override DefaultTypeResolverBuilder#useForType() to add type information to all except primitive types
+		// Override DefaultTypeResolverBuilder#useForType() to add type information to all except primitive and final
+		// core Java types
 		@Override
 		public boolean useForType(JavaType type) {
 			while (type.isArrayType()) {
 				type = type.getContentType();
 			}
-			return !type.isPrimitive();
+			boolean isNotPrimitive = !type.isPrimitive();
+			boolean isFinal = type.isFinal();
+			boolean isCoreJavaClass = type.getRawClass().getName().startsWith("java.");
+			boolean isNotFinalCoreJavaClass = !(isFinal && isCoreJavaClass);
+			return isNotPrimitive && isNotFinalCoreJavaClass;
 		}
 	}
 
