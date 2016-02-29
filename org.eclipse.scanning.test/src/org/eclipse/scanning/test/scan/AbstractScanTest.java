@@ -207,7 +207,7 @@ public class AbstractScanTest {
 		model.setStart(0);
 		model.setStop(10);
 		model.setStep(0);
-		model.setName("myStepModel");
+		model.setName("myScannable");
 		
 		try {
 			IRunnableDevice<ScanModel> scanner = createTestScanner(model, null, null, null, null);
