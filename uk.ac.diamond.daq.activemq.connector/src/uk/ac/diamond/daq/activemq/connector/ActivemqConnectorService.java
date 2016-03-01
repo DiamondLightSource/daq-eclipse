@@ -29,7 +29,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	}
 
 	static {
-		System.out.println("Started "+IEventConnectorService.class.getSimpleName());
+		System.out.println("Started " + ActivemqConnectorService.class.getSimpleName());
 	}
 
 	/**
