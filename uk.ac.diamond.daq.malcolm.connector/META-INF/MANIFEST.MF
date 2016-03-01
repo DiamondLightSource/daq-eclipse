@@ -13,7 +13,7 @@ Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
 Export-Package: uk.ac.diamond.malcolm.jacksonzeromq.connector
 Import-Package: javax.jms,
  org.apache.activemq,
- org.slf4j;version="1.7.6"
+ org.slf4j;version="1.7.2"
 Bundle-ClassPath: lib/activemq-all-5.9.0.jar,
  .
 Service-Component: OSGI-INF/*.xml

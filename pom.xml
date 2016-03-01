@@ -32,14 +32,6 @@
 	<properties>
 		<tycho-version>0.24.0</tycho-version>
 	</properties>
-
-	<repositories>
-	    <repository>
-	      <id>eclipse-mars</id>
-	      <layout>p2</layout>
-	      <url>http://download.eclipse.org/releases/mars</url>
-	    </repository>		    
-	</repositories>
 	
 	<dependencies>
 	    <dependency>

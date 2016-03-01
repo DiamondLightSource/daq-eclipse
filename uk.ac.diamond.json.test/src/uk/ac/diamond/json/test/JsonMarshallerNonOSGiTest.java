@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.dawnsci.commandserver.mx.beans.ProjectBean;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
@@ -25,10 +24,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 import uk.ac.diamond.json.JsonMarshaller;
 import uk.ac.diamond.json.api.IJsonMarshaller;
-
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * Unit tests for the Jackson JSON marshaller which check (de)serialization of a range of types, but without the

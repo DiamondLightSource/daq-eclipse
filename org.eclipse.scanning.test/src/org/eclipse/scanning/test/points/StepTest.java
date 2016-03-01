@@ -1,8 +1,6 @@
 package org.eclipse.scanning.test.points;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import java.util.Iterator;
 
@@ -12,7 +10,6 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.StepGenerator;
 import org.junit.Before;
 import org.junit.Test;
 

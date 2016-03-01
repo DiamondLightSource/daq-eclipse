@@ -13,4 +13,5 @@ before_install:
  - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
  
 # Maven compile and test 
-script: mvn clean compile surefire:test
+# No need to run this as default travis will find maven and run it
+# script: mvn clean compile surefire:test
