@@ -3,8 +3,6 @@ package org.eclipse.scanning.example.detector;
 
 public class MandelbrotModel {
 
-	private OutputDimensions outputDimensions = OutputDimensions.TWO_D;
-
 	private int    maxIterations;
 	private double escapeRadius;
 	private int    columns;
@@ -89,9 +87,6 @@ public class MandelbrotModel {
 		temp = Double.doubleToLongBits(maxY);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime
-				* result
-				+ ((outputDimensions == null) ? 0 : outputDimensions.hashCode());
 		result = prime * result + points;
 		result = prime * result + rows;
 		result = prime * result + ((xName == null) ? 0 : xName.hashCode());
@@ -128,8 +123,6 @@ public class MandelbrotModel {
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
-		if (outputDimensions != other.outputDimensions)
-			return false;
 		if (points != other.points)
 			return false;
 		if (rows != other.rows)
@@ -146,12 +139,7 @@ public class MandelbrotModel {
 			return false;
 		return true;
 	}
-	public OutputDimensions getOutputDimensions() {
-		return outputDimensions;
-	}
-	public void setOutputDimensions(OutputDimensions outputDimensions) {
-		this.outputDimensions = outputDimensions;
-	}
+
 	public String getName() {
 		return name;
 	}
