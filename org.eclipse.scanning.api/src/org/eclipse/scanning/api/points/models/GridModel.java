@@ -1,20 +1,13 @@
 package org.eclipse.scanning.api.points.models;
 
+
 /**
- * <pre>
- * snake = true
- * -------------------->
- *                     |
- * <--------------------
- * |
- * --------------------> etc.
- * 
- * snake = false
- * -------------------->
- * -------------------->
- * -------------------->
- * </pre>
-**/
+ * A model for a raster scan within a rectangular box in two-dimensional space, which evenly fills the box with a grid
+ * defined by the number columns and rows set in this model.
+ *
+ * @author Colin Palmer
+ *
+ */
 public class GridModel extends AbstractBoundingBoxModel {
 
 	private int columns = 1;

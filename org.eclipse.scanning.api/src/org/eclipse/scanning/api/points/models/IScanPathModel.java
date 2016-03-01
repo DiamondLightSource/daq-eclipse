@@ -2,6 +2,12 @@ package org.eclipse.scanning.api.points.models;
 
 import java.beans.PropertyChangeListener;
 
+/**
+ * A model which defines the movement parameters for one or more dimensions of a scan.
+ *
+ * @author Colin Palmer
+ *
+ */
 public interface IScanPathModel {
 
 	/**

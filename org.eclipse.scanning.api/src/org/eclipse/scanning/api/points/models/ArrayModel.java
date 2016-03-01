@@ -3,6 +3,12 @@ package org.eclipse.scanning.api.points.models;
 import java.util.Arrays;
 
 
+/**
+ * A model for a scan at an array of defined positions along a single axis.
+ *
+ * @author Colin Palmer
+ *
+ */
 public class ArrayModel extends AbstractPointsModel implements IScanPathModel {
 
 	private String name;
