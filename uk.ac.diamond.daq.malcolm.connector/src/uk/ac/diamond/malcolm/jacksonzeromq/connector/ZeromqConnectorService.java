@@ -7,6 +7,8 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.jms.ConnectionFactory;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
@@ -314,7 +316,7 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 	}
 
 	@Override
-	public Object createConnectionFactory(URI uri) {
+	public ConnectionFactory createConnectionFactory(URI uri) {
 		return new ActiveMQConnectionFactory(uri);		
 	}
 
