@@ -2,6 +2,8 @@ package org.eclipse.scanning.api.event;
 
 import java.net.URI;
 
+import javax.jms.ConnectionFactory;
+
 /**
  * Clients do not need to consume this service, it is provided by a bundle in the
  * workspace. Tests can hardcode an implementation of this service.
@@ -32,12 +34,11 @@ public interface IEventConnectorService {
 
 	/**
 	 * Create a connection factory for sending events. This method 
-	 * may return null or a class implementing javax.jms.ConnectionFactory
-	 * or javax.jms.QueueConnectionFactory
+	 * may return null.
 	 * 
 	 * @param uri
 	 * @return
 	 */
-	Object createConnectionFactory(URI uri);
+	ConnectionFactory createConnectionFactory(URI uri);
 
 }

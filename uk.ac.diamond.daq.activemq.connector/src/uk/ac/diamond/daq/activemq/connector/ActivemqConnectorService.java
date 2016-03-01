@@ -2,6 +2,8 @@ package uk.ac.diamond.daq.activemq.connector;
 
 import java.net.URI;
 
+import javax.jms.ConnectionFactory;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 
@@ -39,7 +41,7 @@ public class ActivemqConnectorService implements IEventConnectorService {
 	}
 
 	@Override
-	public Object createConnectionFactory(URI uri) {
+	public ConnectionFactory createConnectionFactory(URI uri) {
 		return new ActiveMQConnectionFactory(uri);
 	}
 
