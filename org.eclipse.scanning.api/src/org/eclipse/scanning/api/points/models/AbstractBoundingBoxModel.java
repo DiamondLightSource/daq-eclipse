@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.points.models;
 
+import org.eclipse.scanning.api.annotation.UiHidden;
+
 
 /**
  * A model for a scan within a rectangular box in two-dimensional space.
@@ -11,11 +13,10 @@ package org.eclipse.scanning.api.points.models;
  */
 public abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
 
-
 	private BoundingBox boundingBox;
 	private String      xName = "x";
 	private String      yName = "y";
-	
+
 	protected AbstractBoundingBoxModel() {
 		super();
 	}
@@ -25,8 +26,8 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 		setyName(yName);
 	}
 
-	
 	@Override
+	@UiHidden
 	public BoundingBox getBoundingBox() {
 		return boundingBox;
 	}
@@ -36,6 +37,7 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 		this.boundingBox = newValue;
 		this.pcs.firePropertyChange("boundingBox", oldValue, newValue);
 	}
+	@UiHidden
 	public String getxName() {
 		return xName;
 	}
@@ -44,6 +46,7 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 		this.xName = newValue;
 		this.pcs.firePropertyChange("xName", oldValue, newValue);
 	}
+	@UiHidden
 	public String getyName() {
 		return yName;
 	}
@@ -87,5 +90,4 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 			return false;
 		return true;
 	}
-
 }

@@ -3,6 +3,8 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+import org.eclipse.scanning.api.annotation.UiHidden;
+
 /**
  * A model for a scan along a straight line in two-dimensional space, dividing the line into the number of points given
  * in this model.
@@ -38,6 +40,7 @@ public class OneDEqualSpacingModel extends AbstractPointsModel implements IBound
 		this.pcs.firePropertyChange("points", oldValue, points);
 	}
 	@Override
+	@UiHidden
 	public BoundingLine getBoundingLine() {
 		return boundingLine;
 	}

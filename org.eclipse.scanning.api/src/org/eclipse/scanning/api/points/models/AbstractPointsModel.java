@@ -4,6 +4,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.UUID;
 
+import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.points.annot.FieldDescriptor;
 
 /**
@@ -13,7 +14,6 @@ import org.eclipse.scanning.api.points.annot.FieldDescriptor;
  *
  */
 public abstract class AbstractPointsModel implements IScanPathModel {
-	
 
 	@FieldDescriptor(visible=false)
 	private String      uniqueKey;
@@ -32,6 +32,7 @@ public abstract class AbstractPointsModel implements IScanPathModel {
 		this.pcs.removePropertyChangeListener(listener);
 	}
 
+	@UiHidden
 	public String getUniqueKey() {
 		return uniqueKey;
 	}
@@ -64,5 +65,4 @@ public abstract class AbstractPointsModel implements IScanPathModel {
 			return false;
 		return true;
 	}
-
 }
