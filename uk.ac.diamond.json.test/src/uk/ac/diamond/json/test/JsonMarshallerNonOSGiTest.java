@@ -2,6 +2,7 @@ package uk.ac.diamond.json.test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -84,6 +85,21 @@ public class JsonMarshallerNonOSGiTest {
 		}
 		json = null;
 		marshaller = null;
+	}
+
+	@Test
+	public void testNullSerialization() throws Exception {
+		// Not actually sure whether it's best to just serialize null (which Jackson allows perfectly happily) or throw
+		// a NullPointerException. For now we'll just serialize it and confirm that behaviour with this test, but it
+		// might be better to throw instead.
+		json = marshaller.marshal(null);
+		assertJsonEquals("null", json);
+	}
+
+	@Test
+	public void testNullDeserialization() throws Exception {
+		Object actual = marshaller.unmarshal("null", Object.class);
+		assertThat(actual, is(nullValue()));
 	}
 
 	@Test
