@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package uk.ac.diamond.json.test;
+package uk.ac.diamond.json.test.testobject;
 
 import java.util.ArrayList;
 import java.util.List;
