@@ -2,18 +2,22 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
-import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -192,16 +196,32 @@ public class DarkPluginTest {
 	private void checkNXdata(NXroot rootNode, String detectorName, List<String> scannableNames) {
 		NXentry entry = rootNode.getEntry();
 
+		LinkedHashMap<String, Integer> detectorDataFields = new LinkedHashMap<>();
+		detectorDataFields.put(NXdetector.NX_DATA, 2); // num additional dimensions
+		if (detectorName.equals("mandelbrot")) {
+			detectorDataFields.put("spectrum", 1);
+			detectorDataFields.put("value", 0);
+		}
+		
+		Map<String, String> expectedDataGroupNamesForDevice =
+				detectorDataFields.keySet().stream().collect(Collectors.toMap(Function.identity(),
+						x -> detectorName + (x.equals(NXdetector.NX_DATA) ? "" : "_" + x)));
+		
 		Map<String, NXdata> nxDataGroups = entry.getChildren(NXdata.class);
 		List<String> dataGroupNamesForDevice = nxDataGroups.keySet().stream()
 				.filter(name -> name.startsWith(detectorName)).collect(Collectors.toList());
+		assertEquals(detectorDataFields.size(), dataGroupNamesForDevice.size());
+		assertThat(dataGroupNamesForDevice, containsInAnyOrder(
+				expectedDataGroupNamesForDevice.values().toArray()));
 
-		for (String nxDataGroupName : dataGroupNamesForDevice) {
+		for (String dataFieldName : expectedDataGroupNamesForDevice.keySet()) {
+			String nxDataGroupName = expectedDataGroupNamesForDevice.get(dataFieldName); 
 			NXdata data = nxDataGroups.get(nxDataGroupName);
 			assertNotNull(data);
 
 			// check the default data field for the NXdata group
-			String sourceFieldName = nxDataGroupName.equals(detectorName) ? NXdetector.NX_DATA : "total";
+			String sourceFieldName = nxDataGroupName.equals(detectorName) ? NXdetector.NX_DATA :
+				nxDataGroupName.substring(nxDataGroupName.indexOf('_') + 1);
 			assertSignal(data, sourceFieldName);
 			
 			assertSame(data.getDataNode(sourceFieldName),
@@ -209,14 +229,13 @@ public class DarkPluginTest {
 			assertTarget(data, NXdata.NX_DATA, rootNode, "/entry/instrument/" + detectorName
 					+ "/data");
 
+			// append _value_demand to each name in list
 			int rank = entry.getInstrument().getDetector(detectorName)
-					.getDataNode(NXdetector.NX_DATA).getRank();
+					.getDataNode(sourceFieldName).getRank();
 			List<String> expectedAxesNames = scannableNames.stream().map(x -> x + "_value_demand").
 					collect(Collectors.toList());
-			if (sourceFieldName.equals(NXdetector.NX_DATA)) {
-				// add placeholder value "." for each additional dimension
-				expectedAxesNames.addAll(Collections.nCopies(rank - scannableNames.size(), "."));
-			}
+			// add placeholder value "." for each additional dimension
+			expectedAxesNames.addAll(Collections.nCopies(rank - scannableNames.size(), "."));
 			
 			assertAxes(data, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 			int[] defaultDimensionMappings = IntStream.range(0, scannableNames.size()).toArray();

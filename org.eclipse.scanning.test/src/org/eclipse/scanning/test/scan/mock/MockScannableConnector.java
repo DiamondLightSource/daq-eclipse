@@ -34,10 +34,10 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		register(new MockNeXusScannable("xNex", 0d,  3));
 		register(new MockNeXusScannable("yNex", 0d,  3));
 		
-		for (int i = 1; i < 10; i++) {
+		for (int i = 0; i < 10; i++) {
 			register(new MockNeXusScannable("neXusScannable"+i, 0d,  3));
 	    }
-		for (int i = 1; i < 10; i++) {
+		for (int i = 0; i < 10; i++) {
 			register(new MockNeXusScannable("monitor"+i, 0d,  3));
 	    }
 
