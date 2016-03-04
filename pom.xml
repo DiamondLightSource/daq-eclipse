@@ -12,6 +12,7 @@
 
 	<modules>
         <module>org.eclipse.scanning.target.platform</module>
+		<module>../org.eclipse.dawnsci</module>
 		<module>org.eclipse.scanning.api</module>
 		<module>org.eclipse.scanning.command</module>
 		<module>org.eclipse.scanning.event</module>
@@ -19,6 +20,8 @@
 		<module>org.eclipse.scanning.example</module>
 		<module>org.eclipse.scanning.malcolm.core</module>
 		<module>org.eclipse.scanning.points</module>
+		<module>org.eclipse.scanning.server</module>
+		<module>../../jeromq</module>
 		<module>org.eclipse.scanning.sequencer</module>
 		<module>org.eclipse.scanning.test</module>
 		<module>uk.ac.diamond.daq.activemq.connector</module>
