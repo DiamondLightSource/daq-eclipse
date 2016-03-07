@@ -6,6 +6,7 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Diamond Light Source
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0"
+Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
+ uk.ac.diamond.jython
 Service-Component: OSGI-INF/*.xml
 Export-Package: org.eclipse.scanning.command
