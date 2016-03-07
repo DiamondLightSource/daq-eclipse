@@ -169,12 +169,12 @@ class NexusScanFileBuilder {
 
 		// create the NXdata group for the primary data field
 		String primaryDeviceName = primaryDevice.getName();
-		String primaryDataFieldName = primaryDevice.getPrimaryDataFieldName();
+		String primaryDataFieldName = primaryDevice.getPrimaryDataField();
 		createNXDataGroup(entryBuilder, primaryDevice, monitors, scannables,
 				primaryDeviceName, primaryDataFieldName);
 		
 		// create an NXdata group for each additional primary data field
-		for (String dataFieldName : primaryDevice.getAdditionalPrimaryDataFieldNames()) {
+		for (String dataFieldName : primaryDevice.getAdditionalPrimaryDataFields()) {
 			String dataGroupName = primaryDeviceName + "_" + dataFieldName;
 			createNXDataGroup(entryBuilder, primaryDevice, monitors, scannables,
 					dataGroupName, dataFieldName);
@@ -223,7 +223,7 @@ class NexusScanFileBuilder {
 		if (detectors.isEmpty() && monitors.isEmpty()) {
 			// using scannable as primary device as well as a scannable
 			// only use main data field (e.g. value for an NXpositioner)
-			dataDevice.setSourceFields(nexusObjectProvider.getPrimaryDataFieldName());
+			dataDevice.setSourceFields(nexusObjectProvider.getPrimaryDataField());
 		}
 
 		return dataDevice;
