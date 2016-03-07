@@ -27,10 +27,10 @@ def create_model(type, params):
 def scan(points_model, detector, exposure):
     # We could generate the full ScanModel here, but we'd probably end up
     # doing too much work in Python.
-    global _pmodel;  _pmodel = points_model
     global _detector;  _detector = detector
     global _exposure;  _exposure = exposure
-    # TODO: Send a trigger to Java somehow? (Queue?)
+    _output.put(points_model)
+    # FIXME: Put everything in the queue.
     # TODO: Dynamically enumerate detectors to avoid quote marks?
 
 
