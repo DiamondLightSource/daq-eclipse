@@ -3,6 +3,7 @@ package org.eclipse.scanning.command;
 import org.python.core.PyException;
 import org.python.util.PythonInterpreter;
 import org.eclipse.scanning.api.points.models.*;
+import org.eclipse.scanning.api.scan.models.ScanModel;
 
 
 public class CommandInterpreter {
@@ -29,6 +30,14 @@ public class CommandInterpreter {
 
 	public AbstractPointsModel retrieveModel() {
 		return pi.get("_pmodel", AbstractPointsModel.class);
+	}
+
+	public String retrieveDetector() {
+		return pi.get("_detector", String.class);
+	}
+
+	public double retrieveExposure() {
+		return pi.get("_exposure", Double.class);
 	}
 
 }

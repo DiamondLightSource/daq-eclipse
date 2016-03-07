@@ -14,11 +14,13 @@ public class CommandTest {
 	public void testGridCommand() throws PyException {
 
 		CommandInterpreter ci = new CommandInterpreter();
-		ci.exec("grid(5, 5, bbox=(0, 0, 10, 10,), snake=True)");
+		ci.exec("scan(grid(5, 5, bbox=(0, 0, 10, 10), snake=True), 'det', 0.1)");
 		AbstractPointsModel pm = ci.retrieveModel();
 
 		assertEquals(GridModel.class, pm.getClass());
 		assertEquals(5, ((GridModel) pm).getRows());
+		assertEquals("det", ci.retrieveDetector());
+		assertEquals(0.1, ci.retrieveExposure(), 1e-8);
 	}
 
 }

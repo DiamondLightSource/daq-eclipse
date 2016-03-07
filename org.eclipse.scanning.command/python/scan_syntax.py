@@ -6,33 +6,43 @@ setter_blacklists = {
     # TODO: Make some of these optional (e.g. setxName).
 }
 
-def scan(pmodel_type, pmodel_params):
-    # The available points model classes have been placed in our global
-    # scope by Java. Choose one and instantiate it.
-    pmodel = globals()['_'+pmodel_type.capitalize()+'Model']()
 
-    # For each non-blacklisted pmodel setter field, call the setter with the
-    # corresponding value from pmodel_params.
-    setters = set(filter(lambda x: x.startswith('set'), dir(pmodel)))
-    required_setters = setters - setter_blacklists[pmodel_type]
+def create_model(type, params):
+    # We only use this for points models, but in theory it could be used for
+    # any Javabean.
+
+    # The available model classes have been placed in our global scope by
+    # Java. Choose one and instantiate it.
+    model = globals()['_'+type.capitalize()+'Model']()
+
+    # Call each non-blacklisted setter with the corresponding param value.
+    setters = set(filter(lambda x: x.startswith('set'), dir(model)))
+    required_setters = setters - setter_blacklists[type]
     for setter in required_setters:
-        getattr(pmodel, setter)(pmodel_params[setter[3].lower()+setter[4:]])
-        # Note that we are forced to call all the setters.
+        getattr(model, setter)(params[setter[3].lower()+setter[4:]])
 
-    # Rather than explicitly returning pmodel, set a global variable:
-    global _pmodel
-    _pmodel = pmodel
+    return model
+
+
+def scan(points_model, detector, exposure):
+    # We could generate the full ScanModel here, but we'd probably end up
+    # doing too much work in Python.
+    global _pmodel;  _pmodel = points_model
+    global _detector;  _detector = detector
+    global _exposure;  _exposure = exposure
+    # TODO: Send a trigger to Java somehow? (Queue?)
+    # TODO: Dynamically enumerate detectors to avoid quote marks?
 
 
 # It is now trivial to define convenience functions here. For instance:
 def step(start, stop, step):
-    return scan('step', {'start': start,
-                         'stop': stop,
-                         'step': step})
+    return create_model('step', {'start': start,
+                                 'stop': stop,
+                                 'step': step})
 
 
 def grid(rows, cols, bbox=(0, 0, 0, 0), snake=False):
-    return scan('grid', {'rows': rows,
-                         'columns': cols,
-                         'snake': snake,
-                         'boundingBox': _BoundingBox(*bbox)})
+    return create_model('grid', {'rows': rows,
+                                 'columns': cols,
+                                 'snake': snake,
+                                 'boundingBox': _BoundingBox(*bbox)})
