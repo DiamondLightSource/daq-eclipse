@@ -13,6 +13,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
@@ -196,11 +198,13 @@ public class DarkPluginTest {
 	private void checkNXdata(NXroot rootNode, String detectorName, List<String> scannableNames) {
 		NXentry entry = rootNode.getEntry();
 
-		LinkedHashMap<String, Integer> detectorDataFields = new LinkedHashMap<>();
-		detectorDataFields.put(NXdetector.NX_DATA, 2); // num additional dimensions
-		if (detectorName.equals("mandelbrot")) {
-			detectorDataFields.put("spectrum", 1);
-			detectorDataFields.put("value", 0);
+		LinkedHashMap<String, List<String>> detectorDataFields = new LinkedHashMap<>();
+		if (detectorName.equals("dark")) {
+			detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("."));
+		} else if (detectorName.equals("mandelbrot")) {
+			detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("image_x_axis", "image_y_axis"));
+			detectorDataFields.put("spectrum", Arrays.asList("spectrum_axis"));
+			detectorDataFields.put("value", Collections.emptyList());
 		}
 		
 		Map<String, String> expectedDataGroupNamesForDevice =
@@ -232,10 +236,11 @@ public class DarkPluginTest {
 			// append _value_demand to each name in list
 			int rank = entry.getInstrument().getDetector(detectorName)
 					.getDataNode(sourceFieldName).getRank();
-			List<String> expectedAxesNames = scannableNames.stream().map(x -> x + "_value_demand").
-					collect(Collectors.toList());
+			List<String> expectedAxesNames = Stream.concat(
+					scannableNames.stream().map(x -> x + "_value_demand"),
+					detectorDataFields.get(sourceFieldName).stream()).collect(Collectors.toList());
 			// add placeholder value "." for each additional dimension
-			expectedAxesNames.addAll(Collections.nCopies(rank - scannableNames.size(), "."));
+//			expectedAxesNames.addAll(Collections.nCopies(rank - scannableNames.size(), "."));
 			
 			assertAxes(data, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 			int[] defaultDimensionMappings = IntStream.range(0, scannableNames.size()).toArray();

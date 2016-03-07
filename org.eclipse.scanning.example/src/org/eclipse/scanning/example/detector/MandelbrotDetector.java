@@ -65,19 +65,23 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	}
 
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
+		int scanRank = info.getRank();
+
 		DelegateNexusProvider<NXdetector> nexusProvider = new DelegateNexusProvider<NXdetector>(
 				getName(), NexusBaseClass.NX_DETECTOR, info, this);
-
-		// Add all fields for any NXdata groups that this device creates
-		nexusProvider.setDataFieldNames(NXdetector.NX_DATA, FIELD_NAME_SPECTRUM, FIELD_NAME_VALUE);
 		
 		// "data" is the name of the primary data field (i.e. the 'signal' field of the default NXdata)
-		nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
+		nexusProvider.setPrimaryDataField(NXdetector.NX_DATA);
 		// An additional NXdata group with "spectrum" as the signal to hold the 1D spectrum data
 		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_SPECTRUM);
 		// An additional NXdata group with "value" as the signal to hold the Mandelbrot value
 		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_VALUE);
-
+		
+		nexusProvider.addDataField("image_x_axis", NXdetector.NX_DATA, scanRank); 
+		nexusProvider.addDataField("image_y_axis", NXdetector.NX_DATA, scanRank + 1);
+		
+		nexusProvider.addDataField("spectrum_axis", FIELD_NAME_SPECTRUM, scanRank);
+		
 		return nexusProvider;
 	}
 
@@ -113,6 +117,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		detector.setDataset("image_y_axis", DatasetFactory.createLinearSpace(-model.getMaxY(), model.getMaxY(), model.getColumns(), Dataset.FLOAT64));
 		detector.setDataset("spectrum_axis", DatasetFactory.createLinearSpace(0.0, model.getMaxX(), model.getPoints(), Dataset.FLOAT64));
 
+		
 		return detector;
 	}
 
