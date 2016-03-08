@@ -11,7 +11,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Collections;
@@ -26,6 +25,8 @@ import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
 import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
+import org.eclipse.dawnsci.analysis.dataset.impl.StringDataset;
+import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXdetector;
@@ -36,6 +37,9 @@ import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
+import org.eclipse.scanning.api.IAttributeContainer;
+import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -58,25 +62,25 @@ import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
-public class MandelbrotExamplePluginTest {
+public class AttributePluginTest {
 
+	protected IDeviceService              dservice;
+	protected IDeviceConnectorService     connector;
+	protected IPointGeneratorService      gservice;
+	protected IEventService               eservice;
+	private IWritableDetector<MandelbrotModel> detector;
+	private INexusFileFactory             fileFactory;
 	
-	private static INexusFileFactory   fileFactory;
-	
-	private static IDeviceService        service;
-	private static IPointGeneratorService       gservice;
-	private static IDeviceConnectorService connector;
-	
-	private static IWritableDetector<MandelbrotModel> detector;
-
-	@BeforeClass
-	public static void before() throws Exception {
+	@Before
+	public void setup() throws ScanningException {
+		
+		fileFactory = new NexusFileFactoryHDF5();		
 		
 		connector = new MockScannableConnector();
-		service   = new DeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		dservice  = new DeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
 		
 		MandelbrotModel model = new MandelbrotModel();
@@ -84,7 +88,7 @@ public class MandelbrotExamplePluginTest {
 		model.setxName("xNex");
 		model.setyName("yNex");
 		
-		detector = (IWritableDetector<MandelbrotModel>)service.createRunnableDevice(model);
+		detector = (IWritableDetector<MandelbrotModel>)dservice.createRunnableDevice(model);
 		assertNotNull(detector);
 		detector.addRunListener(new IRunListener.Stub() {
 			@Override
@@ -94,105 +98,51 @@ public class MandelbrotExamplePluginTest {
 		});
 
 	}
-	
-	@Test
-	public void test2ConsecutiveSmallScans() throws Exception {	
+
+	@Test 
+	public void simpleAttributes() throws Exception {
 		
+		IScannable<?> x = connector.getScannable("xNex");
+		if (!(x instanceof IAttributeContainer)) throw new Exception("xNex is not "+IAttributeContainer.class.getSimpleName());
+		IAttributeContainer xc = (IAttributeContainer)x;
+		xc.setAttribute("description", "Reality is a shapeless unity.\nThe mind which distinguishes between aspects of this unity, sees only disunity.\nRemain unconcerned.");
+	
 		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
 		scanner.run(null);
-
-		scanner = createGridScan(detector, 2, 2);
-		scanner.run(null);
-	}
-	
-	/**
-	 * This test fails if the chunking is not done by the detector.
-	 *  
-	 * @throws Exception
-	 */
-	@Test
-	public void testWriteTime2Dvs3D() throws Exception {
-
-		// Tell configure detector to write 1 image into a 2D scan
-		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 8, 5);
-		ScanModel mod = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
-		IPosition first = mod.getPositionIterable().iterator().next();
-		detector.run(first);
 		
-		long before = System.currentTimeMillis();
-		detector.write(first);
-		long after = System.currentTimeMillis();
-		long diff2 = (after-before);
-		System.out.println("Writing 1 image in 3D stack took: "+diff2+" ms");
+		checkNexusFile(scanner, 2, 2);
+		checkAttribute(scanner, "xNex", "description");
+	}
+
+
+	private void checkAttribute(IRunnableDevice<ScanModel> scanner, String sName, String attrName) throws Exception {
 		
-		scanner = createGridScan(detector, 10, 8, 5);
-		mod = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
-		first = mod.getPositionIterable().iterator().next();
-		detector.run(first);
+		IScannable<?> s = connector.getScannable(sName);
+		if (!(s instanceof IAttributeContainer)) throw new Exception(sName+" is not "+IAttributeContainer.class.getSimpleName());
 		
-		before = System.currentTimeMillis();
-		detector.write(first);
-		after = System.currentTimeMillis();
-		long diff3 = (after-before);
-		System.out.println("Writing 1 image in 4D stack took: "+diff3+" ms");
-
-		assertTrue(diff3<Math.max(20, diff2*1.5));
-	}
-
-	@Test
-	public void test2DNexusScan() throws Exception {
-		testScan(8,5);
-	}
-	
-	@Test
-	public void test3DNexusScan() throws Exception {
-		testScan(3,2,5);
-	}
-	
-	// TODO Why does this not pass?
-	//@Test
-	public void test3DNexusScanLarge() throws Exception {
-		long before = System.currentTimeMillis();
-		testScan(300,2,5);
-		long after = System.currentTimeMillis();
-		long diff  = after-before;
-		assertTrue(diff<20000);
-	}
-
-	@Test
-	public void test4DNexusScan() throws Exception {
-		testScan(3,3,2,2);
-	}
-	
-	@Test
-	public void test5DNexusScan() throws Exception {
-		testScan(1,1,1,2,2);
-	}
-	
-	@Test
-	public void test8DNexusScan() throws Exception {
-		testScan(1,1,1,1,1,1,2,2);
-	}
-	
-	private void testScan(int... shape) throws Exception {
+		IAttributeContainer sc = (IAttributeContainer)s;		
+		String attrValue = sc.getAttribute(attrName);
 		
-		IRunnableDevice<ScanModel> scanner = createGridScan(detector, shape); // Outer scan of another scannable, for instance temp.
-		scanner.run(null);
-	
-		// Check we reached ready (it will normally throw an exception on error)
-		checkNexusFile(scanner, shape); // Step model is +1 on the size
+		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
+		NexusFile nf = fileFactory.newNexusFile(filePath);
+		nf.openToRead();
+		
+		DataNode node = nf.getData("/entry/instrument/" + sName + "/"+attrName);
+		StringDataset sData = (StringDataset)node.getDataset().getSlice();
+		
+		assertEquals(sData.get(0), attrValue);
 	}
-
 
 	private void checkNexusFile(IRunnableDevice<ScanModel> scanner,
 			                    int... sizes) throws NexusException, ScanningException {
-		
+
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 
 		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
 		NexusFile nf = fileFactory.newNexusFile(filePath);
 		nf.openToRead();
+		
 		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
 		NXroot rootNode = (NXroot) nexusTree.getGroupNode();
 		NXentry entry = rootNode.getEntry();
@@ -202,13 +152,13 @@ public class MandelbrotExamplePluginTest {
 		detectorDataFields.put(NXdetector.NX_DATA, 2); // num additional dimensions
 		detectorDataFields.put("spectrum", 1);
 		detectorDataFields.put("value", 0);
-		
+
 		String detectorName = scanModel.getDetectors().get(0).getName();
 		NXdetector detector = instrument.getDetector(detectorName);
 		// map of detector data field to name of nxData group where that field is the @signal field
 		Map<String, String> expectedDataGroupNames =
 				detectorDataFields.keySet().stream().collect(Collectors.toMap(Function.identity(),
-				x -> detectorName + (x.equals(NXdetector.NX_DATA) ? "" : "_" + x)));
+						x -> detectorName + (x.equals(NXdetector.NX_DATA) ? "" : "_" + x)));
 
 		// validate the main NXdata generated by the NexusDataBuilder
 		Map<String, NXdata> nxDataGroups = entry.getChildren(NXdata.class);
@@ -286,6 +236,8 @@ public class MandelbrotExamplePluginTest {
 								+ NXpositioner.NX_VALUE);
 			}
 		}
+		
+		nf.close();
 	}
 
 	private IRunnableDevice<ScanModel> createGridScan(final IRunnableDevice<?> detector, int... size) throws Exception {
@@ -326,15 +278,14 @@ public class MandelbrotExamplePluginTest {
 		System.out.println("File writing to "+smodel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
 			@Override
-					public void runWillPerform(RunEvent evt)
-							throws ScanningException {
-						try {
-							System.out.println("Running acquisition scan of size "+fgen.size());
+			public void runWillPerform(RunEvent evt) throws ScanningException {
+				try {
+					System.out.println("Running acquisition scan of size "+fgen.size());
 				} catch (GeneratorException e) {
 					throw new ScanningException(e);
 				}
@@ -344,12 +295,5 @@ public class MandelbrotExamplePluginTest {
 		return scanner;
 	}
 
-	public static INexusFileFactory getFileFactory() {
-		return fileFactory;
-	}
-
-	public static void setFileFactory(INexusFileFactory fileFactory) {
-		MandelbrotExamplePluginTest.fileFactory = fileFactory;
-	}
 
 }

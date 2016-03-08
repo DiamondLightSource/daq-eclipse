@@ -13,6 +13,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.AbstractScannable;
+import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Scalar;
@@ -20,10 +21,8 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListenable;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.PositionDelegate;
-import org.eclipse.scanning.api.scan.models.AxisModel;
-import org.eclipse.scanning.api.scan.models.ScannableModel;
 
-public class MockScannable extends AbstractScannable<Number> implements IPositionListenable {
+public class MockScannable extends AbstractScannable<Number> implements IConfigurable<MockScannableModel>, IPositionListenable {
 
 	private Number  position = 0d;
 	private boolean requireSleep=true;
@@ -31,7 +30,7 @@ public class MockScannable extends AbstractScannable<Number> implements IPositio
 	private List<Number>            values;
 	private List<AbstractPosition>  positions;
 	
-	protected ScannableModel     model;
+	protected MockScannableModel     model;
 	private LazyWriteableDataset writer;
 	private PositionDelegate     delegate;
 	
@@ -65,7 +64,7 @@ public class MockScannable extends AbstractScannable<Number> implements IPositio
 	}
 	
 	@Override
-	public void configure(AxisModel model) throws ScanningException {
+	public void configure(MockScannableModel model) throws ScanningException {
 		this.model = model;
 		
 		if (model instanceof MockScannableModel) {

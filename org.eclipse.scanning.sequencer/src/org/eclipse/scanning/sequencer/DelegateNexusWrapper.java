@@ -15,8 +15,6 @@ import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.api.scan.models.AxisModel;
 
 /**
  * Class provides aq default implementation which will write any
