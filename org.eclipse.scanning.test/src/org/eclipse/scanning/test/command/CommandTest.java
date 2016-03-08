@@ -38,6 +38,95 @@ public class CommandTest {
 	}
 
 	@Test
+	public void testRasterCommand() throws PyException, InterruptedException {
+
+		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+
+		Interpreter ci = new Interpreter(
+				ciOutput,
+				"scan(raster(axes=('x', 'y'), inc=(1, 1), bbox=(0, 0, 10, 10), snake=True), 'det', 0.1)"
+			);
+
+		new Thread(ci).start();
+
+		InterpreterResult cr = ciOutput.take();
+
+		assertEquals(RasterModel.class, cr.pmodels.get(0).getClass());
+		assertEquals(1.0, ((RasterModel) cr.pmodels.get(0)).getxStep(), 1e-8);
+		assertEquals("det", cr.detector);
+		assertEquals(0.1, cr.exposure, 1e-8);
+	}
+
+	@Test
+	public void testArrayCommand() throws PyException, InterruptedException {
+
+		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+
+		Interpreter ci = new Interpreter(
+				ciOutput,
+				"scan(array('qty', [0, 1, 1.5, 1e10]), 'det', 0.1)"
+			);
+
+		new Thread(ci).start();
+
+		InterpreterResult cr = ciOutput.take();
+
+		assertEquals(ArrayModel.class, cr.pmodels.get(0).getClass());
+		assertEquals(1.5, ((ArrayModel) cr.pmodels.get(0)).getPositions()[2], 1e-8);
+	}
+
+	@Test
+	public void testOneDEqualSpacingCommand() throws PyException, InterruptedException {
+
+		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+
+		Interpreter ci = new Interpreter(
+				ciOutput,
+				"scan(line(origin=(0, 0), length=10, angle=0.1, count=10), 'det', 0.1)"
+			);
+
+		new Thread(ci).start();
+
+		InterpreterResult cr = ciOutput.take();
+
+		assertEquals(OneDEqualSpacingModel.class, cr.pmodels.get(0).getClass());
+	}
+
+	@Test
+	public void testOneDStepCommand() throws PyException, InterruptedException {
+
+		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+
+		Interpreter ci = new Interpreter(
+				ciOutput,
+				"scan(line(origin=(0, 0), length=10, angle=0.1, step=1), 'det', 0.1)"
+			);
+
+		new Thread(ci).start();
+
+		InterpreterResult cr = ciOutput.take();
+
+		assertEquals(OneDStepModel.class, cr.pmodels.get(0).getClass());
+	}
+
+	@Test
+	public void testSinglePointCommand() throws PyException, InterruptedException {
+
+		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+
+		Interpreter ci = new Interpreter(
+				ciOutput,
+				"scan(point(4, 5), 'det', 0.1)"
+			);
+
+		new Thread(ci).start();
+
+		InterpreterResult cr = ciOutput.take();
+
+		assertEquals(SinglePointModel.class, cr.pmodels.get(0).getClass());
+	}
+
+	@Test
 	public void testCompoundCommand() throws PyException, InterruptedException {
 
 		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);

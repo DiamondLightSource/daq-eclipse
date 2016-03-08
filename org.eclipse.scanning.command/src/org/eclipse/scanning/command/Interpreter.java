@@ -29,7 +29,13 @@ public class Interpreter implements Runnable {
 		pi.set("_InterpreterResult", InterpreterResult.class);
 		pi.set("_StepModel", StepModel.class);
 		pi.set("_GridModel", GridModel.class);
+		pi.set("_RasterModel", RasterModel.class);
+		pi.set("_SinglePointModel", SinglePointModel.class);
+		pi.set("_ArrayModel", ArrayModel.class);
+		pi.set("_OneDEqualSpacingModel", OneDEqualSpacingModel.class);
+		pi.set("_OneDStepModel", OneDStepModel.class);
 		pi.set("_BoundingBox", BoundingBox.class);
+		pi.set("_BoundingLine", BoundingLine.class);
 		pi.set("_output", this.output);
 
 		// FIXME: How to properly specify the path to the Python file?
