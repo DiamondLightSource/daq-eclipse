@@ -1,9 +1,9 @@
 package org.eclipse.scanning.test.scan.mock;
 
 import org.eclipse.dawnsci.nexus.NexusFile;
-import org.eclipse.scanning.api.ScannableModel;
+import org.eclipse.scanning.api.scan.models.AxisModel;
 
-public class MockScannableModel extends ScannableModel {
+public class MockScannableModel extends AxisModel {
 
 	private NexusFile file;
 	private int size;

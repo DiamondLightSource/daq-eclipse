@@ -6,13 +6,17 @@ import org.eclipse.scanning.api.points.IPosition;
  * 
  * Something that can take part in a sequenced scan which can have its position set.
  * 
- * Unlike a detector, a scannable does not have a model and has attributes directly 
- * on the interface
+ * This scannable is inspired by the original GDA8 Scannable. Very approximately Scannable
+ * is IScannable<Object>. Some methods have be changed because the original Scannable had
+ * some stale design. For instance IScanable has one setPosition which is blocking until 
+ * it has moved. Also it is possible to set position knowing where the demand values of
+ * other scannables are. This is important so that during a scan, each scannable when it is
+ * told to move, has available all the other moves at that IPosition in the scan.
  * 
  * @author Matthew Gerring
  *
  */
-public interface IScannable<T> extends ILevel, INameable, IConfigurable<ScannableModel> {
+public interface IScannable<T> extends ILevel, INameable {
 	
 	/**
 	 * Returns the current position of the Scannable. Called by ConcurentScan at the end of the point. 
