@@ -1,4 +1,4 @@
-package org.eclipse.scanning.api;
+package org.eclipse.scanning.api.scan.models;
 
 /**
  *
@@ -6,6 +6,7 @@ package org.eclipse.scanning.api;
  * is configured during a scan. For instance, information for writing a NeXus file.
  *
  * @author Matthew Gerring
+ * @see AxisModel
  *
  */
 public class ScannableModel {

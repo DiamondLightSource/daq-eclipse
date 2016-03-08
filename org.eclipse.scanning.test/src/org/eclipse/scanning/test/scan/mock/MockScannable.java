@@ -12,8 +12,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
-import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.ScannableModel;
+import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Scalar;
@@ -21,11 +20,11 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListenable;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.PositionDelegate;
+import org.eclipse.scanning.api.scan.models.AxisModel;
+import org.eclipse.scanning.api.scan.models.ScannableModel;
 
-public class MockScannable implements IScannable<Number>, IPositionListenable {
+public class MockScannable extends AbstractScannable<Number> implements IPositionListenable {
 
-	private int     level;
-	private String  name;
 	private Number  position = 0d;
 	private boolean requireSleep=true;
 
@@ -47,26 +46,26 @@ public class MockScannable implements IScannable<Number>, IPositionListenable {
     }
 	public MockScannable(String name, double position) {
     	this();
-		this.name = name;
+		setName(name);
 		this.position = position;
 	}
 	
 	public MockScannable(String name, Double position, int level) {
     	this();
-		this.level = level;
-		this.name = name;
+		setLevel(level);
+		setName(name);
 		this.position = position;
 	}
 	public MockScannable(String name, Double position, int level, String unit) {
     	this();
-		this.level = level;
-		this.name = name;
+		setLevel(level);
+		setName(name);
 		this.position = position;
 		this.unit = unit;
 	}
 	
 	@Override
-	public void configure(ScannableModel model) throws ScanningException {
+	public void configure(AxisModel model) throws ScanningException {
 		this.model = model;
 		
 		if (model instanceof MockScannableModel) {
@@ -101,18 +100,6 @@ public class MockScannable implements IScannable<Number>, IPositionListenable {
 	}
 
 	
-	public int getLevel() {
-		return level;
-	}
-	public void setLevel(int level) {
-		this.level = level;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
 	public Number getPosition() {
 		return position;
 	}
@@ -160,7 +147,7 @@ public class MockScannable implements IScannable<Number>, IPositionListenable {
 	
 	@Override
 	public String toString() {
-		return "MockScannable [level=" + level + ", name=" + name
+		return "MockScannable [level=" + getLevel() + ", name=" + getName()
 				+ ", position=" + position + "]";
 	}
 	public boolean isRequireSleep() {
