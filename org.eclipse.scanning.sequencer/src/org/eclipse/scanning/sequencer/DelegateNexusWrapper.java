@@ -49,10 +49,10 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 		final NXpositioner positioner = nodeFactory.createNXpositioner();
 		positioner.setNameScalar(scannable.getName());
 
-		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE,   1, Dtype.FLOAT64);
+		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Dtype.FLOAT64);
 		lzDemand.setChunking(new int[]{1});
 		
-		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank()+1, Dtype.FLOAT64);
+		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dtype.FLOAT64);
 		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 
 		return positioner;
@@ -100,7 +100,7 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 		if (actual!=null) {
 			// write actual position
 			final IDataset newActualPositionData = DatasetFactory.createFromObject(actual);
-			SliceND sliceND = NexusScanInfo.createLocation(lzValue, loc.getNames(), loc.getIndices(), 1);
+			SliceND sliceND = NexusScanInfo.createLocation(lzValue, loc.getNames(), loc.getIndices());
 			lzValue.setSlice(null, newActualPositionData, sliceND);
 		}
 
