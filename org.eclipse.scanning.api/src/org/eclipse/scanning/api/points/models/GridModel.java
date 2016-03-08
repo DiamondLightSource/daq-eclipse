@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.points.models;
 
+import org.eclipse.scanning.api.annotation.MinimumValue;
+
 
 /**
  * A model for a raster scan within a rectangular box in two-dimensional space, which evenly fills the box with a grid
@@ -10,8 +12,8 @@ package org.eclipse.scanning.api.points.models;
  */
 public class GridModel extends AbstractBoundingBoxModel {
 
-	private int columns = 1;
-	private int rows = 1;
+	private int columns = 5;
+	private int rows = 5;
 	private boolean snake = false;
 
 	public GridModel() {
@@ -24,6 +26,7 @@ public class GridModel extends AbstractBoundingBoxModel {
 	public String getName() {
 		return "Grid";
 	}
+	@MinimumValue("1")
 	public int getColumns() {
 		return columns;
 	}
@@ -32,6 +35,7 @@ public class GridModel extends AbstractBoundingBoxModel {
 		this.columns = columns;
 		this.pcs.firePropertyChange("columns", oldValue, columns);
 	}
+	@MinimumValue("1")
 	public int getRows() {
 		return rows;
 	}
