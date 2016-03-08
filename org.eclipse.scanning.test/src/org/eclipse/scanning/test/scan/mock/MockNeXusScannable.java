@@ -55,6 +55,15 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dataset.FLOAT64);
 		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 
+		// We create the attributes, if any
+		if (getAttributeNames()!=null) for(String attrName : getAttributeNames()) {
+			try {
+				positioner.setField(attrName, getAttribute(attrName));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
 		return positioner;
 	}	
 	

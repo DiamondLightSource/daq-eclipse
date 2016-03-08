@@ -27,7 +27,7 @@ public class ScanPluginTest extends AbstractScanTest {
 	@Before
 	public void setup() throws ScanningException {
 		connector = new MockScannableConnector();
-		sservice  = ScanPluginTest.scanningService;
+		dservice  = ScanPluginTest.scanningService;
 		gservice  = ScanPluginTest.generatorService;
 		eservice  = ScanPluginTest.eventService;
 		
@@ -35,8 +35,8 @@ public class ScanPluginTest extends AbstractScanTest {
 		assertNotNull(generatorService);
 		assertNotNull(eventService);
 		
-		if (sservice instanceof DeviceServiceImpl) {
-			((DeviceServiceImpl)sservice).setDeviceService(connector);
+		if (dservice instanceof DeviceServiceImpl) {
+			((DeviceServiceImpl)dservice).setDeviceService(connector);
 		}
 	}
 

@@ -22,8 +22,8 @@ public class ScanTest extends AbstractScanTest {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		connector = new MockScannableConnector();
-		sservice  = new DeviceServiceImpl(connector);
-		DeviceServiceImpl impl = (DeviceServiceImpl)sservice;
+		dservice  = new DeviceServiceImpl(connector);
+		DeviceServiceImpl impl = (DeviceServiceImpl)dservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
 
