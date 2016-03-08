@@ -69,10 +69,10 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 				getName(), NexusBaseClass.NX_DETECTOR, info, this);
 
 		// Add all fields for any NXdata groups that this device creates
-		nexusProvider.setDataFieldNames(NXdetector.NX_DATA, FIELD_NAME_SPECTRUM, FIELD_NAME_VALUE);
+		nexusProvider.setDataFields(NXdetector.NX_DATA, FIELD_NAME_SPECTRUM, FIELD_NAME_VALUE);
 		
 		// "data" is the name of the primary data field (i.e. the 'signal' field of the default NXdata)
-		nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
+		nexusProvider.setPrimaryDataField(NXdetector.NX_DATA);
 		// An additional NXdata group with "spectrum" as the signal to hold the 1D spectrum data
 		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_SPECTRUM);
 		// An additional NXdata group with "value" as the signal to hold the Mandelbrot value

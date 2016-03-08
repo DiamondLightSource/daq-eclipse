@@ -11,6 +11,7 @@ import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NexusFile;
+import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -94,13 +95,13 @@ public class LowLevelDetectorPluginTest {
 		smod.setFile(file);
 		smod.setSize(8);
 		IScannable<Number> x = connector.getScannable("x");
-		x.configure(smod);
+		((IConfigurable)x).configure(smod);
 		
 		smod = new MockScannableModel();
 		smod.setFile(file);
 		smod.setSize(5);
 		IScannable<Number> y = connector.getScannable("y");
-		y.configure(smod);
+		((IConfigurable)y).configure(smod);
 		
 		IRunnableDevice<MockWritingMandlebrotModel> det = service.createRunnableDevice(model);
 		model.getFile().close();

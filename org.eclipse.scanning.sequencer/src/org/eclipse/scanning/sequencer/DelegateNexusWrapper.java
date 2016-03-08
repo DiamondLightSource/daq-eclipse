@@ -12,10 +12,11 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.ScannableModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.models.AxisModel;
 
 /**
  * Class provides aq default implementation which will write any
@@ -24,7 +25,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * @author Matthew Gerring
  *
  */
-class DelegateNexusWrapper implements IScannable<Object>, INexusDevice<NXpositioner> {
+class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDevice<NXpositioner> {
 	
 	public static final String FIELD_NAME_DEMAND_VALUE = NXpositioner.NX_VALUE + "_demand";
 
@@ -45,13 +46,15 @@ class DelegateNexusWrapper implements IScannable<Object>, INexusDevice<NXpositio
 	@Override
 	public NXpositioner createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		
+		// FIXME the AxisModel should be used here to work out axes if it is non-null
+		
 		final NXpositioner positioner = nodeFactory.createNXpositioner();
 		positioner.setNameScalar(scannable.getName());
 
-		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE,   1, Dtype.FLOAT64);
+		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Dtype.FLOAT64);
 		lzDemand.setChunking(new int[]{1});
 		
-		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank()+1, Dtype.FLOAT64);
+		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dtype.FLOAT64);
 		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 
 		return positioner;
@@ -78,11 +81,6 @@ class DelegateNexusWrapper implements IScannable<Object>, INexusDevice<NXpositio
 	}
 
 	@Override
-	public void configure(ScannableModel model) throws ScanningException {
-		scannable.configure(model);
-	}
-
-	@Override
 	public Object getPosition() throws Exception {
 		return scannable.getPosition();
 	}
@@ -104,7 +102,7 @@ class DelegateNexusWrapper implements IScannable<Object>, INexusDevice<NXpositio
 		if (actual!=null) {
 			// write actual position
 			final IDataset newActualPositionData = DatasetFactory.createFromObject(actual);
-			SliceND sliceND = NexusScanInfo.createLocation(lzValue, loc.getNames(), loc.getIndices(), 1);
+			SliceND sliceND = NexusScanInfo.createLocation(lzValue, loc.getNames(), loc.getIndices());
 			lzValue.setSlice(null, newActualPositionData, sliceND);
 		}
 

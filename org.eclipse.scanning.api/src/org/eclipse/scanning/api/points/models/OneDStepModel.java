@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+import org.eclipse.scanning.api.annotation.MinimumValue;
 import org.eclipse.scanning.api.annotation.UiHidden;
 
 /**
@@ -31,6 +32,7 @@ public class OneDStepModel extends AbstractPointsModel implements IBoundingLineM
 	public String getName() {
 		return "Step";
 	}
+	@MinimumValue("0")
 	public double getStep() {
 		return step;
 	}

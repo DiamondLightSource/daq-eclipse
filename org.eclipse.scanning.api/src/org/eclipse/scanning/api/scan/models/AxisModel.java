@@ -1,4 +1,4 @@
-package org.eclipse.scanning.api;
+package org.eclipse.scanning.api.scan.models;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
