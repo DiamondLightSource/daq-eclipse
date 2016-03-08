@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.points.models;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
+import org.eclipse.scanning.api.annotation.MinimumValue;
 import org.eclipse.scanning.api.annotation.UiHidden;
 
 /**
@@ -25,12 +26,13 @@ public class OneDEqualSpacingModel extends AbstractPointsModel implements IBound
 	}
 
 	private BoundingLine boundingLine;
-	private int points = 1;
+	private int points = 5;
 
 	@Override
 	public String getName() {
 		return "Equal Spacing";
 	}
+	@MinimumValue("1")
 	public int getPoints() {
 		return points;
 	}

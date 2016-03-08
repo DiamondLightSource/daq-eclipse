@@ -10,9 +10,12 @@
 // for details.
 
 /**
- * This package is a copy of most of the files from org.metawidget.inspector.annotation. The annotations had to be
- * separated from the MetawidgetAnnotationInspector because the inspector has other dependencies (via metawidget-core)
- * which cannot be satisfied in all places where access to the annotation classes is needed.
+ * This package contains a copy of most of the files from org.metawidget.inspector.annotation. The annotations had to
+ * be separated from the MetawidgetAnnotationInspector because the inspector has other dependencies (via
+ * metawidget-core) which cannot be satisfied in all places where access to the annotation classes is needed.
+ * <p>
+ * It also contains some annotations copied from org.eclipse.richbeans.api.generator, so they can also be used on
+ * classes in the scanning project.
  * <p>
  * Original metawidget java doc:
  * <p>
