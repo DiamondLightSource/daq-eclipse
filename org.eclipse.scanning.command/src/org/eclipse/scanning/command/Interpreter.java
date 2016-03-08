@@ -1,5 +1,6 @@
 package org.eclipse.scanning.command;
 
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 
 import org.python.core.PyException;
@@ -24,6 +25,7 @@ public class Interpreter implements Runnable {
 		this.output = output;
 
 		// Put some classes in the Python module scope.
+		pi.set("_ArrayList", ArrayList.class);
 		pi.set("_InterpreterResult", InterpreterResult.class);
 		pi.set("_StepModel", StepModel.class);
 		pi.set("_GridModel", GridModel.class);
