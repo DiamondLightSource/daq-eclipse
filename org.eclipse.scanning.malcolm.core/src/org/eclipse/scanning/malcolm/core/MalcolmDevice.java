@@ -97,7 +97,10 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 	@Override
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		DelegateNexusProvider prov = new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		// TODO Find this out from the attributes of the device?
+		prov.setExternalDatasetRank(NXdetector.NX_DATA, 4); // FIXME Malcolm1 can only to x and y scanning of a 2D detector.
+		return prov;
 	}
 
 	@Override
