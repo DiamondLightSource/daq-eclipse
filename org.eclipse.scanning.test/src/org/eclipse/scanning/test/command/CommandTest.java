@@ -2,8 +2,8 @@ package org.eclipse.scanning.test.command;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 
 import org.eclipse.scanning.api.points.models.*;
 import org.eclipse.scanning.command.Interpreter;
@@ -18,7 +18,7 @@ public class CommandTest {
 	public void testGridCommand() throws PyException, InterruptedException {
 
 		// The CommandInterpreter will send out models (and stuff) on this queue.
-		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+		BlockingQueue<InterpreterResult> ciOutput = new SynchronousQueue<InterpreterResult>();
 		// TODO: Use a different BlockingQueue implementation?
 
 		Interpreter ci = new Interpreter(
@@ -40,7 +40,7 @@ public class CommandTest {
 	@Test
 	public void testRasterCommand() throws PyException, InterruptedException {
 
-		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+		BlockingQueue<InterpreterResult> ciOutput = new SynchronousQueue<InterpreterResult>();
 
 		Interpreter ci = new Interpreter(
 				ciOutput,
@@ -60,7 +60,7 @@ public class CommandTest {
 	@Test
 	public void testArrayCommand() throws PyException, InterruptedException {
 
-		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+		BlockingQueue<InterpreterResult> ciOutput = new SynchronousQueue<InterpreterResult>();
 
 		Interpreter ci = new Interpreter(
 				ciOutput,
@@ -78,7 +78,7 @@ public class CommandTest {
 	@Test
 	public void testOneDEqualSpacingCommand() throws PyException, InterruptedException {
 
-		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+		BlockingQueue<InterpreterResult> ciOutput = new SynchronousQueue<InterpreterResult>();
 
 		Interpreter ci = new Interpreter(
 				ciOutput,
@@ -95,7 +95,7 @@ public class CommandTest {
 	@Test
 	public void testOneDStepCommand() throws PyException, InterruptedException {
 
-		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+		BlockingQueue<InterpreterResult> ciOutput = new SynchronousQueue<InterpreterResult>();
 
 		Interpreter ci = new Interpreter(
 				ciOutput,
@@ -112,7 +112,7 @@ public class CommandTest {
 	@Test
 	public void testSinglePointCommand() throws PyException, InterruptedException {
 
-		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+		BlockingQueue<InterpreterResult> ciOutput = new SynchronousQueue<InterpreterResult>();
 
 		Interpreter ci = new Interpreter(
 				ciOutput,
@@ -129,7 +129,7 @@ public class CommandTest {
 	@Test
 	public void testCompoundCommand() throws PyException, InterruptedException {
 
-		BlockingQueue<InterpreterResult> ciOutput = new ArrayBlockingQueue<InterpreterResult>(1);
+		BlockingQueue<InterpreterResult> ciOutput = new SynchronousQueue<InterpreterResult>();
 
 		Interpreter ci = new Interpreter(
 				ciOutput,
