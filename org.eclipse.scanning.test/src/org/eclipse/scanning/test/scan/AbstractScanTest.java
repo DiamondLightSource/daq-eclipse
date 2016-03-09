@@ -46,15 +46,15 @@ import org.junit.Test;
 
 public class AbstractScanTest {
 
-	protected IDeviceService              sservice;
-	protected IDeviceConnectorService       connector;
-	protected IPointGeneratorService        gservice;
-	protected IEventService                 eservice;
+	protected IDeviceService              dservice;
+	protected IDeviceConnectorService     connector;
+	protected IPointGeneratorService      gservice;
+	protected IEventService               eservice;
 
 	@Test
 	public void testSetSimplePosition() throws Exception {
 
-		IPositioner     pos    = sservice.createPositioner();
+		IPositioner     pos    = dservice.createPositioner();
 		pos.setPosition(new MapPosition("x:0:1, y:0:2"));
 		
 		assertTrue(connector.getScannable("x").getPosition().equals(1d));
@@ -72,7 +72,7 @@ public class AbstractScanTest {
 	@Test
 	public void testLevels() throws Exception {
 
-		IPositioner     pos    = sservice.createPositioner();
+		IPositioner     pos    = dservice.createPositioner();
 		
 		final List<String> scannablesMoved = new ArrayList<>(6);
 		pos.addPositionListener(new IPositionListener.Stub() {
@@ -116,7 +116,7 @@ public class AbstractScanTest {
  			}
 		} 
 		
-		IPositioner positioner   = sservice.createPositioner();
+		IPositioner positioner   = dservice.createPositioner();
 
 		final List<String> levelsMoved = new ArrayList<>(6);
 		positioner.addPositionListener(new IPositionListener.Stub() {
@@ -233,7 +233,7 @@ public class AbstractScanTest {
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setCollectionTime(0.1);
 		dmodel.setAbortCount(3); // Aborts on the third write call by throwing an exception
-		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>)sservice.createRunnableDevice(dmodel);
+		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>)dservice.createRunnableDevice(dmodel);
 		
 		// 2. Check run fails and check exception is that which the detector provided
 		// Not some horrible reflection one.
@@ -377,20 +377,18 @@ public class AbstractScanTest {
 		assertEquals(gen.size(), dmodel.getWritten());
 	}
 
-	private IRunnableDevice<ScanModel> createTestScanner(
-			AbstractPointsModel pmodel,
-			final ScanBean bean,
-			final IPublisher<ScanBean> publisher,
-			IScannable<?> monitor,
-			IRunnableDevice<MockDetectorModel> detector
-		) throws Exception {
+	private IRunnableDevice<ScanModel> createTestScanner(AbstractPointsModel pmodel,
+														final ScanBean bean,
+														final IPublisher<ScanBean> publisher,
+														IScannable<?> monitor,
+														IRunnableDevice<MockDetectorModel> detector) throws Exception {
 		
 		// Configure a detector with a collection time.
 		if (detector == null) {
 			MockDetectorModel dmodel = new MockDetectorModel();
 			dmodel.setCollectionTime(0.1);
 			dmodel.setName("detector");
-			detector = sservice.createRunnableDevice(dmodel);
+			detector = dservice.createRunnableDevice(dmodel);
 		}
 		
 		// If none passed, create scan points for a grid.
@@ -411,7 +409,7 @@ public class AbstractScanTest {
 		if (monitor!=null) smodel.setMonitors(monitor);
 		
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, publisher);
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, publisher);
 		return scanner;
 	}
 

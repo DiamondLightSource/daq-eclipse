@@ -4,9 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.api.scan.models.AxisModel;
-
 /**
  * 
  * Convenience class using inheritance to contain some of the general 
@@ -23,9 +20,8 @@ import org.eclipse.scanning.api.scan.models.AxisModel;
  *
  * @param <T>
  */
-public abstract class AbstractScannable<T> implements IScannable<T>, IConfigurable<AxisModel>, IAttributeContainer {
+public abstract class AbstractScannable<T> implements IScannable<T>, IAttributeContainer {
 
-	protected AxisModel         model;
 	private Map<String, Object> attributes;
 	private int                 level;
 	private String              name;
@@ -34,13 +30,6 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IConfigurab
 		attributes = new HashMap<>(7); // TODO 
 	}
 	
-	/**
-	 * An AxisModel or a class extending AxisModel may be provided to the 
-	 * scannable. AxisModel is used to orient 
-	 */
-	public void configure(AxisModel model) throws ScanningException {
-		this.model = model;
-	}
 	
 	/**
 	 * 

@@ -178,7 +178,9 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 
 	@Override
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		DelegateNexusProvider prov = new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		prov.setExternalDatasetRank(NXdetector.NX_DATA, 3);
+		return prov;
 	}
 
 	@Override

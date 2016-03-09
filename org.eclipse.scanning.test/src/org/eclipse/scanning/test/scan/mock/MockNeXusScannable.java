@@ -12,6 +12,7 @@ import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.sequencer.nexus.AttributeManager;
 
 /**
  * 
@@ -55,9 +56,16 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dataset.FLOAT64);
 		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 
+		try {
+			AttributeManager.registerAttributes(positioner, this);
+		} catch (Exception e) {
+			e.printStackTrace(); // This is a mock, it should not do this
+			throw new RuntimeException(e);
+		}
+		
 		return positioner;
 	}	
-	
+
 	public void setPosition(Number value, IPosition position) throws Exception {
 		if (value!=null) super.setPosition(value, position);	
 		if (position!=null) write(value, getPosition(), position);
