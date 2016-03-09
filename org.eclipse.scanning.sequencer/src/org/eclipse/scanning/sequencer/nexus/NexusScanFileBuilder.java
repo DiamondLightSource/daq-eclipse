@@ -1,4 +1,4 @@
-package org.eclipse.scanning.sequencer;
+package org.eclipse.scanning.sequencer.nexus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,13 +24,14 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanDataModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel.ScanFieldModel;
+import org.eclipse.scanning.sequencer.ServiceHolder;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 
 /**
  * A wrapper around a nexus file exposing only the methods required for
  * perfoming a scan.
  */
-class NexusScanFileBuilder {
+public class NexusScanFileBuilder {
 	
 	private IDeviceConnectorService deviceService;
 	private ScanModel model;
@@ -42,7 +43,7 @@ class NexusScanFileBuilder {
 	private Map<NexusObjectProvider<?>, DataDevice<?>> dataDevices = new HashMap<>();
 	private NexusFileBuilder fileBuilder;
 	
-	NexusScanFileBuilder(IDeviceConnectorService deviceService) {
+	public NexusScanFileBuilder(IDeviceConnectorService deviceService) {
 		this.deviceService = deviceService; 
 	}
 	
