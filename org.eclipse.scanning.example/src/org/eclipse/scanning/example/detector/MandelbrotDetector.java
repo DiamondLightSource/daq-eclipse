@@ -97,9 +97,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 		// Setting chunking is a very good idea if speed is required.
 		imageData.setChunking(info.createChunk(model.getRows(), model.getColumns()));
-		// FIXME This should work but causes a HDF5 Error: #000: H5Pdcpl.c line 2034 in H5Pset_chunk(): all chunk dimensions must be positive.
-		// Leave commented out for now
-		//spectrumData.setChunking(info.createChunk(model.getPoints()));
+		spectrumData.setChunking(info.createChunk(model.getPoints()));
 
 		// Write detector metadata
 		detector.setField("exposure_time", model.getExposure());
