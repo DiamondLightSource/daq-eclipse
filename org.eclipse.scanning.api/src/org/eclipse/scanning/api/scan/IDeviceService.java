@@ -81,6 +81,23 @@ public interface IDeviceService {
 	 * Create a new runnable device from a model. If the device has a name the
 	 * new device will be recorded in the name to device map and be retrievable by name.
 	 * 
+	 * The model is provided and the configure(...) method called on the device 
+	 * automatically. A ScanningException is thrown if the model is invalid.
+	 * 
+	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmRequest}. 
+	 * This class holds the port, hostname, malcolm model and device name to make a connection to the device.
+	 * 
+	 * @param model, information to do the scan
+	 * @param configure
+	 * @return
+	 * @throws ScanningException
+	 */
+	<T> IRunnableDevice<T> createRunnableDevice(T model, boolean configure) throws ScanningException;
+
+	/**
+	 * Create a new runnable device from a model. If the device has a name the
+	 * new device will be recorded in the name to device map and be retrievable by name.
+	 * 
 	 * The model is provided and the configure(...) method called on the scanner 
 	 * automatically. A ScanningException is thrown if the model is invalid.
 	 * 
