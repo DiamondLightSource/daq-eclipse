@@ -25,14 +25,29 @@ public class CommandTest {
 	public void testGridCommand() throws PyException, InterruptedException {
 
 		InterpreterResult r = interpret(
-				"scan(grid(axes=('x', 'y'), div=(5, 5), bbox=(0, 0, 10, 10), snake=True), 'det', 0.1)"
+				"scan(grid(axes=('my_x', 'y'), div=(5, 5), bbox=(0, 0, 10, 10), snake=True), 'det', 0.1)"
 			);
 
 		assertEquals(1, r.pmodels.size());  // I.e. this is not a compound scan.
 		assertEquals(GridModel.class, r.pmodels.get(0).getClass());
 		assertEquals(5, ((GridModel) r.pmodels.get(0)).getRows());
+		assertEquals("my_x", ((GridModel) r.pmodels.get(0)).getxName());
+		assertEquals(10.0, ((GridModel) r.pmodels.get(0)).getBoundingBox().getWidth(), 1e-8);
 		assertEquals("det", r.detector);
 		assertEquals(0.1, r.exposure, 1e-8);
+	}
+
+	@Test
+	public void testStepCommand() throws PyException, InterruptedException {
+
+		InterpreterResult r = interpret(
+				"scan(step('my_scannable', -2, 5, 0.5), 'det', 0.1)"
+			);
+
+		assertEquals(StepModel.class, r.pmodels.get(0).getClass());
+		assertEquals(-2.0, ((StepModel) r.pmodels.get(0)).getStart(), 1e-8);
+		assertEquals(5.0, ((StepModel) r.pmodels.get(0)).getStop(), 1e-8);
+		assertEquals(0.5, ((StepModel) r.pmodels.get(0)).getStep(), 1e-8);
 	}
 
 	@Test
@@ -63,20 +78,27 @@ public class CommandTest {
 	public void testOneDEqualSpacingCommand() throws PyException, InterruptedException {
 
 		InterpreterResult r = interpret(
-				"scan(line(origin=(0, 0), length=10, angle=0.1, count=10), 'det', 0.1)"
+				"scan(line(origin=(0, 4), length=10, angle=0.1, count=10), 'det', 0.1)"
 			);
 
 		assertEquals(OneDEqualSpacingModel.class, r.pmodels.get(0).getClass());
+		assertEquals(0.0, ((OneDEqualSpacingModel) r.pmodels.get(0)).getBoundingLine().getxStart(), 1e-8);
+		assertEquals(4.0, ((OneDEqualSpacingModel) r.pmodels.get(0)).getBoundingLine().getyStart(), 1e-8);
+		assertEquals(0.1, ((OneDEqualSpacingModel) r.pmodels.get(0)).getBoundingLine().getAngle(), 1e-8);
+		assertEquals(10, ((OneDEqualSpacingModel) r.pmodels.get(0)).getPoints());
 	}
 
 	@Test
 	public void testOneDStepCommand() throws PyException, InterruptedException {
 
 		InterpreterResult r = interpret(
-				"scan(line(origin=(0, 0), length=10, angle=0.1, step=1), 'det', 0.1)"
+				"scan(line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5), 'det', 0.1)"
 			);
 
 		assertEquals(OneDStepModel.class, r.pmodels.get(0).getClass());
+		assertEquals(-2.0, ((OneDStepModel) r.pmodels.get(0)).getBoundingLine().getxStart(), 1e-8);
+		assertEquals(1.3, ((OneDStepModel) r.pmodels.get(0)).getBoundingLine().getyStart(), 1e-8);
+		assertEquals(0.5, ((OneDStepModel) r.pmodels.get(0)).getStep(), 1e-8);
 	}
 
 	@Test
@@ -87,6 +109,7 @@ public class CommandTest {
 			);
 
 		assertEquals(SinglePointModel.class, r.pmodels.get(0).getClass());
+		assertEquals(4.0, ((SinglePointModel) r.pmodels.get(0)).getX(), 1e-8);
 	}
 
 	@Test
@@ -106,6 +129,8 @@ public class CommandTest {
 		// It is our job to interpret the list of points models as a compound scan.
 		assertEquals(GridModel.class, r.pmodels.get(0).getClass());
 		assertEquals(StepModel.class, r.pmodels.get(1).getClass());
+
+		assertEquals(5, ((GridModel) r.pmodels.get(0)).getRows());
 	}
 
 }
