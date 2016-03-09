@@ -100,7 +100,18 @@ public class AttributePluginTest {
 	}
 
 	@Test 
-	public void simpleAttributes() throws Exception {
+	public void name() throws Exception {
+		
+		// All scannables should have their name set ok
+		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
+		scanner.run(null);
+		
+		checkNexusFile(scanner, 2, 2);
+		checkAttribute(scanner, "xNex", "name");
+	}
+
+	@Test 
+	public void description() throws Exception {
 		
 		IScannable<?> x = connector.getScannable("xNex");
 		if (!(x instanceof IAttributeContainer)) throw new Exception("xNex is not "+IAttributeContainer.class.getSimpleName());
@@ -114,6 +125,20 @@ public class AttributePluginTest {
 		checkAttribute(scanner, "xNex", "description");
 	}
 
+	//@Test 
+	public void lots() throws Exception {
+		
+		IScannable<?> x = connector.getScannable("xNex");
+		if (!(x instanceof IAttributeContainer)) throw new Exception("xNex is not "+IAttributeContainer.class.getSimpleName());
+		IAttributeContainer xc = (IAttributeContainer)x;
+		xc.setAttribute("description", "Reality is a shapeless unity.\nThe mind which distinguishes between aspects of this unity, sees only disunity.\nRemain unconcerned.");
+	
+		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
+		scanner.run(null);
+		
+		checkNexusFile(scanner, 2, 2);
+		checkAttribute(scanner, "xNex", "description");
+	}
 
 	private void checkAttribute(IRunnableDevice<ScanModel> scanner, String sName, String attrName) throws Exception {
 		

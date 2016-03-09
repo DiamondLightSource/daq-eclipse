@@ -8,7 +8,7 @@ import java.util.Collection;
  * @author Matthew Gerring
  *
  */
-public interface IAttributeContainer {
+public interface IAttributeContainer extends INameable {
 	
 	/**
 	 * 
