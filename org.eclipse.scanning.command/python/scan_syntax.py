@@ -4,7 +4,7 @@
 
 # There are some setter fields which the end user does not set:
 setter_blacklist = frozenset(['setUniqueKey'])
-# TODO: Make some of fields optional (e.g. setxName)?
+# TODO: Make some fields optional (e.g. setxName)?
 
 
 def bean(java_class, params, setter_blacklist=setter_blacklist):
@@ -29,11 +29,11 @@ def bean(java_class, params, setter_blacklist=setter_blacklist):
 
 
 def model(type, params):
-    """Return a points model, wrapped in a list.
+    """Return an object conforming to IScanPathModel, wrapped in a list.
 
     The idea behind the list wrapping is that, from the interpreter's point of
     view, a "non-compound" scan is represented as a compound scan with a
-    single element; thus, a list with one element.
+    single component scan path; thus, a list with one element.
 
     Then, to create a compound model we simply concatenate individual models.
     """
