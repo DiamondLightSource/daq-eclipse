@@ -3,7 +3,7 @@
 
 
 # There are some setter fields which the end user does not set:
-setter_blacklist = set(['setUniqueKey'])
+setter_blacklist = frozenset(['setUniqueKey'])
 # TODO: Make some of fields optional (e.g. setxName)?
 
 
@@ -21,9 +21,8 @@ def bean(java_class, params, setter_blacklist=setter_blacklist):
     bean_ = globals()[java_class]()
 
     # Call each non-blacklisted setter with the corresponding param value.
-    setters = set(filter(lambda x: x.startswith('set'), dir(bean_)))
-    required_setters = setters - setter_blacklist
-    for setter in required_setters:
+    setters = frozenset(filter(lambda x: x.startswith('set'), dir(bean_)))
+    for setter in (setters - setter_blacklist):
         getattr(bean_, setter)(params[setter[3].lower()+setter[4:]])
 
     return bean_
