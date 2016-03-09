@@ -124,6 +124,21 @@ public class AttributePluginTest {
 		checkNexusFile(scanner, 2, 2);
 		checkAttribute(scanner, "xNex", "description");
 	}
+	
+	@Test 
+	public void fred() throws Exception {
+		
+		IScannable<?> x = connector.getScannable("xNex");
+		if (!(x instanceof IAttributeContainer)) throw new Exception("xNex is not "+IAttributeContainer.class.getSimpleName());
+		IAttributeContainer xc = (IAttributeContainer)x;
+		xc.setAttribute("fred", "Fred this is your conscious speaking.");
+	
+		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
+		scanner.run(null);
+		
+		checkNexusFile(scanner, 2, 2);
+		checkAttribute(scanner, "xNex", "fred");
+	}
 
 	@Test 
 	public void lots() throws Exception {
