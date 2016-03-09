@@ -20,12 +20,13 @@ import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.IDeviceConnectorService;
+import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanDataModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel.ScanFieldModel;
-import org.eclipse.scanning.sequencer.ServiceHolder;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.sequencer.ServiceHolder;
 
 /**
  * A wrapper around a nexus file exposing only the methods required for
@@ -58,7 +59,7 @@ public class NexusScanFileBuilder {
 	 * @throws NexusException
 	 * @throws ScanningException
 	 */
-	public NexusScanFile createNexusFile(ScanModel model) throws NexusException, ScanningException {
+	public NexusScanFile createNexusFile(ScanModel model, IRunnableDevice<?> scanDevice) throws NexusException, ScanningException {
 		if (fileBuilder != null) {
 			throw new IllegalStateException("The nexus file has already been created");
 		}
@@ -70,6 +71,8 @@ public class NexusScanFileBuilder {
 		final List<String> scannableNames = pos.getNames();
 		scanInfo = new NexusScanInfo(scannableNames);
 		detectors = getNexusDevices(model.getDetectors(), scanInfo);
+		if (scanDevice instanceof INexusDevice) detectors.add(((INexusDevice)scanDevice).getNexusProvider(scanInfo));
+		
 		scannables = getNexusScannables(scannableNames, scanInfo);
 		monitors = getNexusDevices(model.getMonitors(), scanInfo);
 		

@@ -112,11 +112,9 @@ public final class DeviceServiceImpl implements IDeviceService {
 				final Object     mod = e.createExecutableExtension("model");
 				
 				if (e.getName().equals("device")) {
-					final IRunnableDevice gen = (IRunnableDevice)e.createExecutableExtension("class");
-					devs.put(mod.getClass(), gen.getClass());
-					
-				// TODO Might have other extension point driven devices
-							
+					final IRunnableDevice device = (IRunnableDevice)e.createExecutableExtension("class");
+					devs.put(mod.getClass(), device.getClass());
+
 				} else {
 					throw new CoreException(new Status(IStatus.ERROR, "org.eclipse.scanning.sequencer", "Unrecognized device "+e.getName()));
 				}
@@ -135,11 +133,21 @@ public final class DeviceServiceImpl implements IDeviceService {
 	
 	@Override
 	public final <T> IRunnableDevice<T> createRunnableDevice(T model) throws ScanningException {
-        return createRunnableDevice(model, null);
+        return createRunnableDevice(model, null, true);
+	}
+	
+
+	@Override
+	public <T> IRunnableDevice<T> createRunnableDevice(T model, boolean configure) throws ScanningException {
+        return createRunnableDevice(model, null, configure);
 	}
 
 	@Override
 	public final <T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher) throws ScanningException {
+        return createRunnableDevice(model, publisher, true);
+	}
+	
+	private final <T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, boolean configure) throws ScanningException {
 				
 		try {
 			if (deviceService==null) deviceService = getDeviceConnector();
@@ -163,7 +171,7 @@ public final class DeviceServiceImpl implements IDeviceService {
 			}
 			
 			if (model instanceof MalcolmRequest<?>) model = ((MalcolmRequest<T>)model).getDeviceModel(); 
-			scanner.configure(model);
+			if (configure) scanner.configure(model);
 			
 			if (!scanner.isVirtual()) {
 				namedDevices.put(scanner.getName(), scanner);

@@ -143,26 +143,10 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		try {
 			final ScanModel smodel = new ScanModel();
 			smodel.setPositionIterable(getPositionIterable(req));
-			smodel.setDetectors(getDetectors(req.getDetectors()));
+			configureBean(smodel, bean);
+			smodel.setDetectors(getDetectors(bean, req.getDetectors()));
 			smodel.setMonitors(getMonitors(req.getMonitorNames()));
 			smodel.setBean(bean);
-			
-			// the name of the scan should be set here.
-			if (req.getFilePath()==null) {
-				IFilePathService fservice = Services.getFilePathService();
-				if (fservice!=null) {
-					try {
-						smodel.setFilePath(fservice.nextPath());
-					} catch (Exception e) {
-						throw new EventException(e);
-					}
-				} else {
-					smodel.setFilePath(null); // It is allowable to run a scan without a nexus file.
-				}
-			} else {
-			    smodel.setFilePath(req.getFilePath());
-			}
-			bean.setFilePath(smodel.getFilePath());
 			
 			return Services.getScanService().createRunnableDevice(smodel, response);
 			
@@ -173,6 +157,31 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			if (e instanceof EventException) throw (EventException)e;
 			throw new EventException(e);
 		}
+	}
+
+	private void configureBean(ScanModel smodel, ScanBean bean) throws EventException {
+		
+		ScanRequest<?> req = bean.getScanRequest();
+		// the name of the scan should be set here.
+		if (req.getFilePath()==null) {
+			IFilePathService fservice = Services.getFilePathService();
+			if (fservice!=null) {
+				try {
+					smodel.setFilePath(fservice.nextPath());
+				} catch (Exception e) {
+					throw new EventException(e);
+				}
+			} else {
+				smodel.setFilePath(null); // It is allowable to run a scan without a nexus file.
+			}
+		} else {
+		    smodel.setFilePath(req.getFilePath());
+		}
+		bean.setFilePath(smodel.getFilePath());
+		
+		int size  = 0;
+		for (IPosition unused : smodel.getPositionIterable()) size++; // Fast even for large stuff
+        bean.setSize(size);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -206,7 +215,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		}
 	}
 	
-	private List<IRunnableDevice<?>> getDetectors(Map<String, ?> detectors) throws EventException {
+	private List<IRunnableDevice<?>> getDetectors(ScanBean bean, Map<String, ?> detectors) throws EventException {
 		if (detectors==null) return null;
 		try {
 			final List<IRunnableDevice<?>> ret = new ArrayList<>(3);
@@ -214,7 +223,11 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			final IDeviceService service = Services.getScanService();
 			for (String name : detectors.keySet()) {
 				Object dmodel = detectors.get(name);
-				IRunnableDevice<?> detector = (IRunnableDevice<?>)service.createRunnableDevice(dmodel);
+				IRunnableDevice<Object> detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
+				if (device instanceof AbstractRunnableDevice<?>) {
+					((AbstractRunnableDevice<?>)device).setBean(getBean());
+				}
+				detector.configure(dmodel);
 				ret.add(detector);
 			}
 			return ret;
