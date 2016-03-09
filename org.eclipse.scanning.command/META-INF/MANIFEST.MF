@@ -8,6 +8,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0"
 Service-Component: OSGI-INF/*.xml
-Export-Package: org.eclipse.scanning.command
+Export-Package: org.eclipse.scanning.command,
+ org.python.core
 Bundle-ClassPath: lib/jython-standalone-2.7.0.jar,
  .
