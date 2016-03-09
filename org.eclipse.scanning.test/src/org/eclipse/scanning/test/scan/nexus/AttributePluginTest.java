@@ -11,6 +11,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Collections;
@@ -125,19 +126,45 @@ public class AttributePluginTest {
 		checkAttribute(scanner, "xNex", "description");
 	}
 
-	//@Test 
+	@Test 
 	public void lots() throws Exception {
 		
 		IScannable<?> x = connector.getScannable("xNex");
 		if (!(x instanceof IAttributeContainer)) throw new Exception("xNex is not "+IAttributeContainer.class.getSimpleName());
 		IAttributeContainer xc = (IAttributeContainer)x;
+		
+		// @see http://download.nexusformat.org/doc/html/classes/base_classes/NXpositioner.html
+		//description: NX_CHAR
 		xc.setAttribute("description", "Reality is a shapeless unity.\nThe mind which distinguishes between aspects of this unity, sees only disunity.\nRemain unconcerned.");
+
+		// value[n]: NX_NUMBER {units=NX_ANY}
+		// raw_value[n]: NX_NUMBER {units=NX_ANY}
+		// target_value[n]: NX_NUMBER {units=NX_ANY}
+        // tolerance[n]: NX_NUMBER {units=NX_ANY}
+
+		//soft_limit_min: NX_NUMBER {units=NX_ANY}
+		xc.setAttribute("soft_limit_min", 1);
+
+		// soft_limit_max: NX_NUMBER {units=NX_ANY}
+		xc.setAttribute("soft_limit_max", 10);
+
+		// velocity: NX_NUMBER {units=NX_ANY}
+		xc.setAttribute("velocity", 1.2);
+		
+		// acceleration_time: NX_NUMBER {units=NX_ANY}
+		xc.setAttribute("acceleration_time", 0.1);
+
+		// controller_record: NX_CHAR
+		xc.setAttribute("controller_record", "Homer Simpson");
 	
 		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
 		scanner.run(null);
 		
 		checkNexusFile(scanner, 2, 2);
-		checkAttribute(scanner, "xNex", "description");
+		
+		for(String aName : xc.getAttributeNames()) {
+		    checkAttribute(scanner, "xNex", aName);
+		}
 	}
 
 	private void checkAttribute(IRunnableDevice<ScanModel> scanner, String sName, String attrName) throws Exception {
@@ -146,16 +173,23 @@ public class AttributePluginTest {
 		if (!(s instanceof IAttributeContainer)) throw new Exception(sName+" is not "+IAttributeContainer.class.getSimpleName());
 		
 		IAttributeContainer sc = (IAttributeContainer)s;		
-		String attrValue = sc.getAttribute(attrName);
+		Object attrValue = sc.getAttribute(attrName);
 		
 		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
 		NexusFile nf = fileFactory.newNexusFile(filePath);
 		nf.openToRead();
 		
 		DataNode node = nf.getData("/entry/instrument/" + sName + "/"+attrName);
-		StringDataset sData = (StringDataset)node.getDataset().getSlice();
+		IDataset sData = (IDataset)node.getDataset().getSlice();
 		
-		assertEquals(sData.get(0), attrValue);
+		if ("name".equals(attrName)) {
+			assertEquals(sData.getString(0), sName);
+		} else if (attrValue instanceof Number) {
+			assertTrue(sData.getDouble(0)==((Number)attrValue).doubleValue());
+		} else {
+			assertEquals(sData.getString(0), (String)attrValue);
+		}
+		
 	}
 
 	private void checkNexusFile(IRunnableDevice<ScanModel> scanner,
