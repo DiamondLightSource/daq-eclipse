@@ -113,6 +113,13 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		detector.setDataset("image_y_axis", DatasetFactory.createLinearSpace(-model.getMaxY(), model.getMaxY(), model.getColumns(), Dataset.FLOAT64));
 		detector.setDataset("spectrum_axis", DatasetFactory.createLinearSpace(0.0, model.getMaxX(), model.getPoints(), Dataset.FLOAT64));
 
+		try {
+			Attributes.registerAttributes(detector, this);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return detector;
 	}
 
