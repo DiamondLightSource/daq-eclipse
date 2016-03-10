@@ -68,6 +68,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	private ILazyWriteableDataset uniqueKeys;
 		
 	/**
+	 * Used to define 
+	 */
+	private ILazyWriteableDataset points;
+
+	/**
 	 * Package private constructor, devices are created by the service.
 	 */
 	AcquisitionDevice() {
@@ -87,11 +92,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		final NXobject positioner = nodeFactory.createNXdetector();
 		positioner.setField("name", getName());
 		uniqueKeys = positioner.initializeLazyDataset("uniqueKeys", info.getRank(), Dataset.FLOAT64);
+		points     = positioner.initializeLazyDataset("points",     info.getRank(), Dataset.STRING);
 		
 		// Setting chunking
 		final int[] chunk = new int[info.getRank()];
 		for (int i = 0; i < info.getRank(); i++) chunk[i] = 1;
 		uniqueKeys.setChunking(chunk);
+		points.setChunking(chunk);
 		
 		return positioner;
 	}
@@ -206,7 +213,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		        		        	
 	        	// Send an event about where we are in the scan
 	        	positionComplete(pos, count+1, size);
-	        	recordUniqueKey(count+1, pos);
+	        	record(count+1, pos);
 	        	++count;
 	        }
 	        
@@ -238,7 +245,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 * @param loc
 	 * @throws Exception
 	 */
-	private void recordUniqueKey(int pointNum, IPosition loc) throws Exception {
+	private void record(int pointNum, IPosition loc) throws Exception {
 		if (uniqueKeys==null) return;
 		final Dataset newActualPositionData = DatasetFactory.createFromObject(pointNum);
 		SliceND sliceND = NexusScanInfo.createLocation(uniqueKeys, loc.getNames(), loc.getIndices()); // no varargs for scalar value

@@ -51,6 +51,13 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 		int[] chunk = info.createChunk(model.getLineSize(), model.getChannelCount(), model.getSpectraSize());
 		context.setChunking(chunk);
 		
+		try {
+			Attributes.registerAttributes(detector, this);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		return detector;
 	}
 

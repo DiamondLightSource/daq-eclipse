@@ -70,6 +70,12 @@ public class DarkImageDetector extends AbstractRunnableDevice<DarkImageModel> im
 		// Setting chunking is a very good idea if speed is required.
 		data.setChunking(new int[]{1, model.getRows(), model.getColumns()});
 		
+		try {
+			Attributes.registerAttributes(detector, this);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return detector;
 	}
 

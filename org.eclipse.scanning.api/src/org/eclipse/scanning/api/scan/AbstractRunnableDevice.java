@@ -5,10 +5,13 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import org.eclipse.scanning.api.IAttributeContainer;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -23,7 +26,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
  *
  * @param <T>
  */
-public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T> {
+public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IAttributeContainer {
 
 	// Data
 	protected T                          model;
@@ -33,15 +36,19 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   ScanBean                   bean;
 
 	// OSGi services and intraprocess events
-	protected IDeviceService           scanningService;
+	protected IDeviceService             scanningService;
 	protected IDeviceConnectorService    deviceService;
 	private   IPublisher<ScanBean>       publisher;
 	
 	// Listeners
 	private   Collection<IRunListener>   rlisteners;
+	
+	// Attributes
+	private Map<String, Object>          attributes;
 
 	protected AbstractRunnableDevice() {
-		this.scanId    = UUID.randomUUID().toString();
+		this.scanId     = UUID.randomUUID().toString();
+		this.attributes = new HashMap<>(7); // TODO 
 	}
 
 	public ScanBean getBean() {
@@ -263,5 +270,44 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void resume() throws ScanningException {
 
 	}
+
+	
+	
+	/**
+	 * 
+	 * @return null if no attributes, otherwise collection of the names of the attributes set
+	 */
+	public Collection<String> getAttributeNames() {
+		return attributes.keySet();
+	}
+
+	/**
+	 * Set any attribute the implementing classes may provide
+	 * 
+	 * @param attributeName
+	 *            is the name of the attribute
+	 * @param value
+	 *            is the value of the attribute
+	 * @throws DeviceException
+	 *             if an attribute cannot be set
+	 */
+	public <A> void setAttribute(String attributeName, A value) throws Exception {
+		attributes.put(attributeName, (A)value);
+	}
+
+	/**
+	 * Get the value of the specified attribute
+	 * 
+	 * @param attributeName
+	 *            is the name of the attribute
+	 * @return the value of the attribute
+	 * @throws DeviceException
+	 *             if an attribute cannot be retrieved
+	 */
+	@SuppressWarnings("unchecked")
+	public <A> A getAttribute(String attributeName) throws Exception {
+		return (A)attributes.get(attributeName);
+	}
+	
 
 }
