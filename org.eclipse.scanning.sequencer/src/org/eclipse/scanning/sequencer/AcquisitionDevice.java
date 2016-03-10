@@ -247,9 +247,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 */
 	private void record(int pointNum, IPosition loc) throws Exception {
 		if (uniqueKeys==null) return;
-		final Dataset newActualPositionData = DatasetFactory.createFromObject(pointNum);
 		SliceND sliceND = NexusScanInfo.createLocation(uniqueKeys, loc.getNames(), loc.getIndices()); // no varargs for scalar value
+
+		final Dataset newActualPositionData = DatasetFactory.createFromObject(pointNum);
 		uniqueKeys.setSlice(null, newActualPositionData, sliceND);
+		
+		final Dataset point = DatasetFactory.createFromObject(loc.toString());
+		points.setSlice(null, point, sliceND);
 	}
 
 	private void fireEnd() throws ScanningException {
