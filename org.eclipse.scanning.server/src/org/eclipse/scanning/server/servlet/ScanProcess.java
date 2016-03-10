@@ -224,8 +224,8 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			for (String name : detectors.keySet()) {
 				Object dmodel = detectors.get(name);
 				IRunnableDevice<Object> detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
-				if (device instanceof AbstractRunnableDevice<?>) {
-					((AbstractRunnableDevice<?>)device).setBean(getBean());
+				if (detector instanceof AbstractRunnableDevice<?>) {
+					((AbstractRunnableDevice<?>)detector).setBean(bean);
 				}
 				detector.configure(dmodel);
 				ret.add(detector);
