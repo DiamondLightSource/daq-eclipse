@@ -1,10 +1,43 @@
 # This file is executed inline by the by the Jython interpreter (i.e. it's not
 # "imported" in the usual Python sense).
 
+from jarray import array as _array
+
 
 # There are some setter fields which the end user does not set:
-setter_blacklist = frozenset(['setUniqueKey'])
-# TODO: Make some fields optional (e.g. setxName)?
+setter_blacklist = {
+    '_ScanRequest': frozenset(['setAfter',
+                               'setAfterResponse',
+                               'setBefore',
+                               'setBeforeResponse',
+                               'setEnd',
+                               'setFilePath',
+                               'setIgnorePreprocess',
+                               'setMonitorNames',
+                               'setStart']),
+
+    '_StepModel': frozenset(['setUniqueKey']),
+    '_GridModel': frozenset(['setUniqueKey']),
+    '_RasterModel': frozenset(['setUniqueKey']),
+    '_SinglePointModel': frozenset(['setUniqueKey']),
+    '_OneDEqualSpacingModel': frozenset(['setUniqueKey']),
+    '_OneDStepModel': frozenset(['setUniqueKey']),
+
+    '_BoundingBox': frozenset([]),
+    '_BoundingLine': frozenset([]),
+
+    '_MandelbrotModel': frozenset(['setColumns',
+                                   'setEscapeRadius',
+                                   'setMaxIterations',
+                                   'setMaxX',
+                                   'setMaxY',
+                                   'setName',
+                                   'setPoints',
+                                   'setRows',
+                                   'setxName',
+                                   'setyName']),
+}
+# TODO: Make some fields optional (e.g. setxName)? setter_graylist?
 
 
 def bean(java_class, params, setter_blacklist=setter_blacklist):
@@ -22,58 +55,62 @@ def bean(java_class, params, setter_blacklist=setter_blacklist):
 
     # Call each non-blacklisted setter with the corresponding param value.
     setters = frozenset(filter(lambda x: x.startswith('set'), dir(bean_)))
-    for setter in (setters - setter_blacklist):
+    for setter in (setters - setter_blacklist[java_class]):
         getattr(bean_, setter)(params[setter[3].lower()+setter[4:]])
 
     return bean_
 
 
-def model(type, params):
-    """Return an object conforming to IScanPathModel, wrapped in a list.
-
-    The idea behind the list wrapping is that, from the interpreter's point of
-    view, a "non-compound" scan is represented as a compound scan with a
-    single component scan path; thus, a list with one element.
-
-    Then, to create a compound model we simply concatenate individual models.
+def model(type, params):  # TODO: Don't shadow `type` builtin.
+    """Return an object conforming to IScanPathModel.
     """
-    # Degenerate case of compound model -> one list element.
-    return [bean('_'+type[0].upper()+type[1:]+'Model', params)]
+    return bean('_'+type[0].upper()+type[1:]+'Model', params)
 
 
-def compound(*points_models):
-    """Concatenate points models to form a representation of a compound model.
-    """
-    return reduce(lambda a, b: a + b, points_models)
-
-
-def scan(points_models, detector, exposure):
+# TODO: block=False kwarg.
+def scan(pm_roi_tuples, det_exp_tuples):
     """Submit a scan request to the parent Java process.
-
-    `points_models` is a list. If its length is greater than one, this
-    represents a compound scan.
     """
-    # We could generate the full ScanModel here, but we'd probably end up
-    # doing too much work in Python.
-    _output.put(
-        _InterpreterResult(_ArrayList(points_models), detector, exposure))
-    # TODO: Dynamically enumerate detectors to avoid quote marks?
+    # We could generate the full ScanModel here, but we'd probably end up doing
+    # too much work in Python.
+    unzip = lambda l: zip(*l)
+    points_models, roi_lists = unzip(pm_roi_tuples)
+    detector_names, exposures = unzip(det_exp_tuples)
+
+    # Care is required here. We must pass IROI arrays, not lists. Jython cannot
+    # do this coercion for us, because of Java type erasure!
+    roi_arrays = map(lambda l: _array(l, _IROI), roi_lists)
+
+    # A ScanRequest expects ROIs to be specified as a map in the following
+    # (bizarre?) format:
+    roi_map = {model.getUniqueKey(): roi_array
+               for (model, roi_array) in zip(points_models, roi_arrays)}
+
+    detector_map = {n: _dmodel(n, exp)
+                    for (n, exp) in zip(detector_names, exposures)}
+
+    _output.put(bean('_ScanRequest', {'models': points_models,
+                                      'regions': roi_map,
+                                      'detectors': detector_map}))
 
 
-# It is now trivial to define convenience functions here. For instance:
+## Points models ##
+
 def step(scannable, start, stop, step):
+    roi = None
     return model('step', {'name': scannable,
                           'start': start,
                           'stop': stop,
-                          'step': step})
+                          'step': step}), [roi]
 
 
-def grid(axes=None, div=None, bbox=None, snake=False):
+def grid(axes=None, div=None, bbox=None, snake=False, roi=None):
     assert None not in (axes, div, bbox)
     (xName, yName) = axes
     (rows, cols) = div
     (xStart, yStart, width, height) = bbox
     # TODO: Should snake be True or False by default?
+    # TODO: Allow multiple ROIs.
     return model('grid', {'xName': xName,
                           'yName': yName,
                           'rows': rows,
@@ -82,7 +119,7 @@ def grid(axes=None, div=None, bbox=None, snake=False):
                           'boundingBox': b_box(xStart,
                                                yStart,
                                                width,
-                                               height)})
+                                               height)}), [roi]
 
 
 def array(scannable, positions):
@@ -92,10 +129,11 @@ def array(scannable, positions):
     amodel = _ArrayModel()
     amodel.setName(scannable)
     amodel.setPositions(*positions)
-    return [amodel]
+    roi = None
+    return amodel, [roi]
 
 
-def raster(axes=None, inc=None, bbox=None, snake=False):
+def raster(axes=None, inc=None, bbox=None, snake=False, roi=None):
     assert None not in (axes, inc, bbox)
     (xName, yName) = axes
     (xStep, yStep) = inc
@@ -108,31 +146,36 @@ def raster(axes=None, inc=None, bbox=None, snake=False):
                             'boundingBox': b_box(xStart,
                                                  yStart,
                                                  width,
-                                                 height)})
+                                                 height)}), [roi]
 
 
 def point(x, y):
-    return model('singlePoint', {'x': x, 'y': y})
+    roi = None
+    return model('singlePoint', {'x': x, 'y': y}), [roi]
 
 
 def line(origin=None, length=None, angle=None, step=None, count=None):
     assert None not in (origin, length, angle)
     (xStart, yStart) = origin
+    roi = None
     if step is not None:
         assert count is None
         return model('oneDStep', {'step': step,
                                   'boundingLine': b_line(xStart,
                                                          yStart,
                                                          length,
-                                                         angle)})
+                                                         angle)}), [roi]
     else:
         assert count is not None
-        return model('oneDEqualSpacing', {'points': count,
-                                          'boundingLine': b_line(xStart,
-                                                                 yStart,
-                                                                 length,
-                                                                 angle)})
+        return model(
+            'oneDEqualSpacing', {'points': count,
+                                 'boundingLine': b_line(xStart,
+                                                        yStart,
+                                                        length,
+                                                        angle)}), [roi]
 
+
+## Bounding shapes ##  TODO: Private use only?
 
 def b_box(xStart, yStart, width, height):
     return bean('_BoundingBox', {'xStart': xStart,
@@ -146,3 +189,25 @@ def b_line(xStart, yStart, length, angle):
                                   'yStart': yStart,
                                   'length': length,
                                   'angle': angle})
+
+
+## ROIs ##
+
+def circ(x, y, radius):
+    return _CircularROI(radius, x, y)
+
+
+def poly(*xy_tuples):
+    return _PolygonalROI(_PolylineROI(*map(lambda (x, y): _PointROI(x, y),
+                                           xy_tuples)))
+
+
+def rect(x, y, w, h, angle):
+    return _RectangularROI(x, y, w, h, angle)
+
+
+## Detectors ##
+
+def _dmodel(name, exposure, *args, **kwargs):
+    # This should take a string, maybe other params, and return a dmodel.
+    return bean('_MandelbrotModel', {'exposure': exposure})
