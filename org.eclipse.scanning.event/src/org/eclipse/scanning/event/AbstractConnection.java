@@ -27,7 +27,7 @@ class AbstractConnection {
 	protected String                 submitQueueName;
 	protected String                 statusQueueName;
 	protected String                 statusTopicName;
-	protected String                 killTopicName;
+	protected String                 commandTopicName;
 
 	protected IEventConnectorService service;
 	
@@ -41,12 +41,12 @@ class AbstractConnection {
 		this.service = service;
 	}
 	
-	AbstractConnection(URI uri, String submitQName, String statusQName, String statusTName, String terminateTName, IEventConnectorService service) {
+	AbstractConnection(URI uri, String submitQName, String statusQName, String statusTName, String commandTName, IEventConnectorService service) {
 		this.uri = uri;
 		this.submitQueueName = submitQName;
 		this.statusQueueName = statusQName;
 		this.statusTopicName = statusTName;
-		this.killTopicName = terminateTName;
+		this.commandTopicName = commandTName;
 		this.service = service;
 	}
 	
@@ -187,12 +187,12 @@ class AbstractConnection {
 		this.statusTopicName = statusTopicName;
 	}
 
-	public String getKillTopicName() {
-		return killTopicName;
+	public String getCommandTopicName() {
+		return commandTopicName;
 	}
 
-	public void setKillTopicName(String terminateTopicName) {
-		this.killTopicName = terminateTopicName;
+	public void setCommandTopicName(String terminateTopicName) {
+		this.commandTopicName = terminateTopicName;
 	}
 	
 	protected boolean isSame(Object qbean, Object bean) {

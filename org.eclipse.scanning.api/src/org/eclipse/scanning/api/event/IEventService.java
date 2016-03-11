@@ -68,7 +68,7 @@ public interface IEventService {
 	/**
 	 * The default topic used for terminate events.
 	 */
-	public static final String KILL_TOPIC = "org.eclipse.scanning.terminate.topic";
+	public static final String CMD_TOPIC = "org.eclipse.scanning.command.topic";
 
 	/**
 	 * The default queue used for holding status events.
@@ -150,7 +150,7 @@ public interface IEventService {
 	 * @param submissionQName
 	 * @param statusQName
 	 * @param statusTName
-	 * @param killTName
+	 * @param commandTName
 	 * @param service, may be null, should be null in the OSGi case
 	 * @return
 	 */
@@ -158,7 +158,7 @@ public interface IEventService {
 						                                        String statusQName,
 						                                        String statusTName,
 						                                        String heartbeatTName, 
-						                                        String killTName) throws EventException;
+						                                        String commandTName) throws EventException;
 
 	
 	/**

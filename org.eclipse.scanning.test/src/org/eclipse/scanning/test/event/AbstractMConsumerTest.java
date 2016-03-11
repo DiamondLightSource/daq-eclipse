@@ -1,12 +1,16 @@
 package org.eclipse.scanning.test.event;
 
+import static org.junit.Assert.assertTrue;
+
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -27,7 +31,7 @@ public class AbstractMConsumerTest {
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
-		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
 		try {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
@@ -51,7 +55,7 @@ public class AbstractMConsumerTest {
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
-		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
 		try {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
@@ -76,6 +80,58 @@ public class AbstractMConsumerTest {
 			consumer2.disconnect();
 		}
     }
+    
+    @Test
+    public void testTwoConsumersPausedTenSubmits() throws Exception {
+    	
+		consumer.setRunner(new DryRunCreator<StatusBean>(false));
+		consumer.start();
+ 
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
+		try {
+			consumer2.setName("Test Consumer "+2);
+			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
+			consumer2.clearQueue(IEventService.STATUS_SET);
+			consumer2.setRunner(new DryRunCreator<StatusBean>(false));
+			consumer2.start();
+			
+			List<StatusBean> submissions = new ArrayList<StatusBean>(10);
+			for (int i = 0; i < 10; i++) {
+				submissions.add(doSubmit("Test "+i));
+				System.out.println("Submitted: Test "+i);
+				Thread.sleep(10);
+			}
+			 	
+			Thread.sleep(2000); // Let them do something
+			
+			IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
+			PauseBean pbean = new PauseBean();
+			pbean.setQueueName(consumer.getSubmitQueueName());
+			pauser.broadcast(pbean);
+
+			Thread.sleep(2000); // Let them pause
+			
+			assertTrue(!consumer.isActive());
+			assertTrue(!consumer2.isActive());
+			
+			pbean.setPause(false);
+			pauser.broadcast(pbean);
+
+			Thread.sleep(1000);
+
+			assertTrue(consumer.isActive());
+			assertTrue(consumer2.isActive());
+	
+			Thread.sleep(11000); // 10000 to do the loop, 1000 for luck
+			checkStatus(submissions);
+			
+		} finally {
+			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
+			consumer2.clearQueue(IEventService.STATUS_SET);
+			consumer2.disconnect();
+		}
+    }
+
 
     @Test
     public void testTwoConsumersTenSubmitsThreads() throws Exception {
@@ -83,7 +139,7 @@ public class AbstractMConsumerTest {
 		consumer.setRunner(new DryRunCreator<StatusBean>(false));
 		consumer.start();
  
-		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
+		IConsumer<StatusBean> consumer2   = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
 		try {
 			consumer2.setName("Test Consumer "+2);
 			consumer2.clearQueue(IEventService.SUBMISSION_QUEUE);
@@ -133,7 +189,7 @@ public class AbstractMConsumerTest {
 		List<IConsumer<StatusBean>> consumers   = new ArrayList<>(9);
 		try {
 			for (int i = 2; i < 11; i++) {
-				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
+				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
 				c.setName("Test Consumer "+i);
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
 				c.clearQueue(IEventService.STATUS_SET);
@@ -173,7 +229,7 @@ public class AbstractMConsumerTest {
 		List<IConsumer<StatusBean>> consumers   = new ArrayList<>(9);
 		try {
 			for (int i = 2; i < 11; i++) {
-				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.KILL_TOPIC);
+				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
 				c.setName("Test Consumer "+i);
 				c.clearQueue(IEventService.SUBMISSION_QUEUE);
 				c.clearQueue(IEventService.STATUS_SET);

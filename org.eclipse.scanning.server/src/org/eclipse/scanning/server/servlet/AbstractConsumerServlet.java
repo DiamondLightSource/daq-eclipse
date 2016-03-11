@@ -53,7 +53,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 	
 	// Recommended not to change these because easier for UI to inspect consumer created
 	protected String        heartbeatTopic = IEventService.HEARTBEAT_TOPIC;
-	protected String        killTopic      = IEventService.KILL_TOPIC;
+	protected String        killTopic      = IEventService.CMD_TOPIC;
 
 	protected IConsumer<B> consumer;
 	private boolean        isConnected;
