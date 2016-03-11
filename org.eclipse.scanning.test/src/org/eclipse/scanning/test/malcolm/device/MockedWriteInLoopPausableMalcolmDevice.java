@@ -10,6 +10,7 @@ import org.eclipse.dawnsci.hdf.object.IHierarchicalDataFile;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
+import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModelWithMap;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 
@@ -30,7 +31,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 			@Override
 			public Long call() throws Exception {
 
-				int[] shape = (int[])model.get("shape");
+				int[] shape = (int[])model.getParameterMap().get("shape");
 				if (shape==null) shape = new int[]{1024,1024};
 				IDataset       rimage   = Random.rand(shape);
 				rimage.setName("image");
@@ -39,7 +40,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 				// TODO FIXME Have to remove this is order for device to work @see MockedMalcolmDevice
  				IHierarchicalDataFile file=null;
  				try {
-        			file = HierarchicalDataFactory.getWriter((String)model.get("file"));
+        			file = HierarchicalDataFactory.getWriter((String)model.getParameterMap().get("file"));
  					
 					file.group("/entry");
 					file.group("/entry/data");
@@ -52,7 +53,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 					// will call sendEvent(...) in the same way.
 					final MalcolmEventBean bean = new MalcolmEventBean(getState());
 					bean.setPercentComplete((count/amount)*100d);	
-					bean.setFilePath((String)model.get("file"));
+					bean.setFilePath((String)model.getParameterMap().get("file"));
 					bean.setDatasetPath("/entry/data");
 					
 					// Hardcoded shape change of dataset, in reality it will not be so simple.
@@ -70,7 +71,8 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 	}
 
 	@Override
-	public Map<String, Object> validate(Map<String, Object> params) throws MalcolmDeviceException {
+	public MalcolmDetectorModelWithMap validate(MalcolmDetectorModelWithMap model) throws MalcolmDeviceException {
+		Map<String, Object> params = model.getParameterMap();
 		if (!params.containsKey("shape")) throw new MalcolmDeviceException(this, "shape must be set!");
 		if (!params.containsKey("nframes")) throw new MalcolmDeviceException(this, "nframes must be set!");
 		if (!params.containsKey("file")) throw new MalcolmDeviceException(this, "file must be set!");
@@ -79,14 +81,14 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 	}
 
 	@Override
-	public void configure(Map<String, Object> params) throws ScanningException {
+	public void configure(MalcolmDetectorModelWithMap params) throws ScanningException {
 		
 		validate(params);
 		setState(DeviceState.CONFIGURING);
 		this.model = params;
-		if (params.containsKey("configureSleep")) {
+		if (params.getParameterMap().containsKey("configureSleep")) {
 			try {
-				long sleepTime = Math.round(((double)params.get("configureSleep"))*1000d);
+				long sleepTime = Math.round(((double)params.getParameterMap().get("configureSleep"))*1000d);
 				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
 				throw new MalcolmDeviceException(this, "Cannot sleep during configure!", e);
@@ -96,7 +98,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 		
 		// We configure a bean with all the scan specific things
 		final MalcolmEventBean bean = new MalcolmEventBean();
-		bean.setFilePath(params.get("file").toString());
+		bean.setFilePath(params.getParameterMap().get("file").toString());
 		bean.setDatasetPath("/entry/data");
 		bean.setDeviceName(getName());
 		bean.setBeamline("Testing");

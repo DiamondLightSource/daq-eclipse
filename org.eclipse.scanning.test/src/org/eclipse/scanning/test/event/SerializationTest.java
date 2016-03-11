@@ -103,7 +103,7 @@ public class SerializationTest {
 
 		final MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setName("detector");
-		dmodel.setCollectionTime(0.1);
+		dmodel.setExposureTime(0.1);
 		req.putDetector("detector", dmodel);
 		
 		bean.setScanRequest(req);

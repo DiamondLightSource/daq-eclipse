@@ -1,18 +1,20 @@
 package org.eclipse.scanning.test.scan.mock;
 
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 
-public class MockDetectorModel {
+
+public class MockDetectorModel implements IDetectorModel {
 
 	public MockDetectorModel() {
 	
 	}
 	
-	public MockDetectorModel(double collectionTime) {
+	public MockDetectorModel(double exposureTime) {
 		super();
-		this.collectionTime = collectionTime;
+		this.exposureTime = exposureTime;
 	}
 
-	private double collectionTime;
+	private double exposureTime;
 	
 	private int ran=0;
 	private int written=0;
@@ -20,12 +22,12 @@ public class MockDetectorModel {
 	private String name;
 
 	
-	public double getCollectionTime() {
-		return collectionTime;
+	public double getExposureTime() {
+		return exposureTime;
 	}
 
-	public void setCollectionTime(double collectionTime) {
-		this.collectionTime = collectionTime;
+	public void setExposureTime(double exposureTime) {
+		this.exposureTime = exposureTime;
 	}
 
 	public int getRan() {
@@ -50,7 +52,7 @@ public class MockDetectorModel {
 		int result = 1;
 		result = prime * result + abortCount;
 		long temp;
-		temp = Double.doubleToLongBits(collectionTime);
+		temp = Double.doubleToLongBits(exposureTime);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ran;
 		result = prime * result + written;
@@ -68,8 +70,8 @@ public class MockDetectorModel {
 		MockDetectorModel other = (MockDetectorModel) obj;
 		if (abortCount != other.abortCount)
 			return false;
-		if (Double.doubleToLongBits(collectionTime) != Double
-				.doubleToLongBits(other.collectionTime))
+		if (Double.doubleToLongBits(exposureTime) != Double
+				.doubleToLongBits(other.exposureTime))
 			return false;
 		if (ran != other.ran)
 			return false;

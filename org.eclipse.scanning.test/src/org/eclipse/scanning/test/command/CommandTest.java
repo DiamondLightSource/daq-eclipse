@@ -41,7 +41,7 @@ public class CommandTest {
 
 		assertTrue(r.getDetectors().keySet().contains("det"));
 		assertEquals(MandelbrotModel.class, r.getDetectors().get("det").getClass());
-		assertEquals(0.1, ((MandelbrotModel) r.getDetectors().get("det")).getExposure(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) r.getDetectors().get("det")).getExposureTime(), 1e-8);
 	}
 
 	@Test
