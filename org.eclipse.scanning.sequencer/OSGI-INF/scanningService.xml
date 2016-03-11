@@ -2,7 +2,7 @@
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="start" immediate="true" name="Scanning Service">
    <implementation class="org.eclipse.scanning.sequencer.DeviceServiceImpl"/>
    <service>
-      <provide interface="org.eclipse.scanning.api.scan.IDeviceService"/>
+      <provide interface="org.eclipse.scanning.api.device.IDeviceService"/>
    </service>
-   <reference bind="setDeviceService" cardinality="0..1" interface="org.eclipse.scanning.api.scan.IDeviceConnectorService" name="IDeviceConnectorService" policy="static" />
+   <reference bind="setDeviceService" cardinality="0..1" interface="org.eclipse.scanning.api.device.IDeviceConnectorService" name="IDeviceConnectorService" policy="static" />
 </scr:component>

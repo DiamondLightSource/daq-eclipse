@@ -1,6 +1,7 @@
-package org.eclipse.scanning.api.scan;
+package org.eclipse.scanning.api.device;
 
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 
 /**

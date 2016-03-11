@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.malcolm;
 
-import org.eclipse.scanning.api.scan.IRunnableEventDevice;
+import org.eclipse.scanning.api.device.IRunnableEventDevice;
 
 
 /**

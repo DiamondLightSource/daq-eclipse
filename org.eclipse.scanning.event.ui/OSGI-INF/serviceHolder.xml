@@ -6,5 +6,5 @@
    <reference bind="setGeneratorService" cardinality="1..1" interface="org.eclipse.scanning.api.points.IPointGeneratorService" name="IPointGeneratorService" policy="static"/>
    <reference bind="setExpressionService" cardinality="1..1" interface="org.eclipse.dawnsci.analysis.api.expressions.IExpressionService" name="IExpressionService" policy="static"/>
    <reference bind="setLoaderService" cardinality="1..1" interface="org.eclipse.dawnsci.analysis.api.io.ILoaderService" name="ILoaderService" policy="static"/>
-   <reference bind="setDeviceConnectorService" cardinality="0..1" interface="org.eclipse.scanning.api.scan.IDeviceConnectorService" name="IDeviceConnectorService" policy="static"/>
+   <reference bind="setDeviceConnectorService" cardinality="0..1" interface="org.eclipse.scanning.api.device.IDeviceConnectorService" name="IDeviceConnectorService" policy="static"/>
 </scr:component>

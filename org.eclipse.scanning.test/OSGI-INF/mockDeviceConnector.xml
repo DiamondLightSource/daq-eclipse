@@ -2,6 +2,6 @@
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="Mock Device Connector">
    <implementation class="org.eclipse.scanning.test.scan.mock.MockScannableConnector"/>
    <service>
-      <provide interface="org.eclipse.scanning.api.scan.IDeviceConnectorService"/>
+      <provide interface="org.eclipse.scanning.api.device.IDeviceConnectorService"/>
    </service>
 </scr:component>

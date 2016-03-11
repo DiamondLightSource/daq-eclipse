@@ -1,4 +1,6 @@
-package org.eclipse.scanning.api.scan;
+package org.eclipse.scanning.api.device;
+
+import org.eclipse.scanning.api.scan.ScanningException;
 
 public interface IPauseableDevice<T> extends IRunnableDevice<T> {
 
