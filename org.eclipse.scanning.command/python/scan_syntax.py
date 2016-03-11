@@ -1,41 +1,49 @@
-# This file is executed inline by the by the Jython interpreter (i.e. it's not
-# "imported" in the usual Python sense).
-
+# Jython wildcard imports are buggy, it would seem...
 from jarray import array as _array
+from org.eclipse.scanning.api.event.scan import ScanRequest
+from org.eclipse.dawnsci.analysis.api.roi import IROI
+from org.eclipse.dawnsci.analysis.dataset.roi import (
+    CircularROI, RectangularROI, PolygonalROI, PolylineROI, PointROI)
+from org.eclipse.scanning.api.points.models import (
+    StepModel, GridModel, RasterModel, SinglePointModel,
+    OneDEqualSpacingModel, OneDStepModel, ArrayModel,
+    BoundingBox, BoundingLine)
+from org.eclipse.scanning.command import QueueSingleton
+from org.eclipse.scanning.example.detector import MandelbrotModel
 
 
 # There are some setter fields which the end user does not set:
 setter_blacklist = {
-    '_ScanRequest': frozenset(['setAfter',
-                               'setAfterResponse',
-                               'setBefore',
-                               'setBeforeResponse',
-                               'setEnd',
-                               'setFilePath',
-                               'setIgnorePreprocess',
-                               'setMonitorNames',
-                               'setStart']),
+    'ScanRequest': frozenset(['setAfter',
+                              'setAfterResponse',
+                              'setBefore',
+                              'setBeforeResponse',
+                              'setEnd',
+                              'setFilePath',
+                              'setIgnorePreprocess',
+                              'setMonitorNames',
+                              'setStart']),
 
-    '_StepModel': frozenset(['setUniqueKey']),
-    '_GridModel': frozenset(['setUniqueKey']),
-    '_RasterModel': frozenset(['setUniqueKey']),
-    '_SinglePointModel': frozenset(['setUniqueKey']),
-    '_OneDEqualSpacingModel': frozenset(['setUniqueKey']),
-    '_OneDStepModel': frozenset(['setUniqueKey']),
+    'StepModel': frozenset(['setUniqueKey']),
+    'GridModel': frozenset(['setUniqueKey']),
+    'RasterModel': frozenset(['setUniqueKey']),
+    'SinglePointModel': frozenset(['setUniqueKey']),
+    'OneDEqualSpacingModel': frozenset(['setUniqueKey']),
+    'OneDStepModel': frozenset(['setUniqueKey']),
 
-    '_BoundingBox': frozenset([]),
-    '_BoundingLine': frozenset([]),
+    'BoundingBox': frozenset([]),
+    'BoundingLine': frozenset([]),
 
-    '_MandelbrotModel': frozenset(['setColumns',
-                                   'setEscapeRadius',
-                                   'setMaxIterations',
-                                   'setMaxX',
-                                   'setMaxY',
-                                   'setName',
-                                   'setPoints',
-                                   'setRows',
-                                   'setxName',
-                                   'setyName']),
+    'MandelbrotModel': frozenset(['setColumns',
+                                  'setEscapeRadius',
+                                  'setMaxIterations',
+                                  'setMaxX',
+                                  'setMaxY',
+                                  'setName',
+                                  'setPoints',
+                                  'setRows',
+                                  'setxName',
+                                  'setyName']),
 }
 # TODO: Make some fields optional (e.g. setxName)? setter_graylist?
 
@@ -48,6 +56,9 @@ def bean(java_class, params, setter_blacklist=setter_blacklist):
     `setLength`, this function will call it with the value `params['length']`.
     If the key does not exist in `params`, this function will throw an
     exception. Blacklisted setters will not be called.
+
+    This is just a constructor for beans which guarantees all the necessary
+    setters are called.
     """
     # The available model classes have been placed in our global scope by
     # Java. Choose one and instantiate it.
@@ -64,7 +75,7 @@ def bean(java_class, params, setter_blacklist=setter_blacklist):
 def model(type, params):  # TODO: Don't shadow `type` builtin.
     """Return an object conforming to IScanPathModel.
     """
-    return bean('_'+type[0].upper()+type[1:]+'Model', params)
+    return bean(type[0].upper()+type[1:]+'Model', params)
 
 
 # TODO: block=False kwarg.
@@ -79,7 +90,7 @@ def scan(pm_roi_tuples, det_exp_tuples):
 
     # Care is required here. We must pass IROI arrays, not lists. Jython cannot
     # do this coercion for us, because of Java type erasure!
-    roi_arrays = map(lambda l: _array(l, _IROI), roi_lists)
+    roi_arrays = map(lambda l: _array(l, IROI), roi_lists)
 
     # A ScanRequest expects ROIs to be specified as a map in the following
     # (bizarre?) format:
@@ -89,9 +100,10 @@ def scan(pm_roi_tuples, det_exp_tuples):
     detector_map = {n: _dmodel(n, exp)
                     for (n, exp) in zip(detector_names, exposures)}
 
-    _output.put(bean('_ScanRequest', {'models': points_models,
-                                      'regions': roi_map,
-                                      'detectors': detector_map}))
+    QueueSingleton.INSTANCE.put(
+        bean('ScanRequest', {'models': points_models,
+                             'regions': roi_map,
+                             'detectors': detector_map}))
 
 
 ## Points models ##
@@ -126,7 +138,7 @@ def array(scannable, positions):
     # We have to manually call ArrayModel.setPositions,
     # as it takes a (Double... positions) argument.
     # This is not ideal... TODO
-    amodel = _ArrayModel()
+    amodel = ArrayModel()
     amodel.setName(scannable)
     amodel.setPositions(*positions)
     roi = None
@@ -178,14 +190,14 @@ def line(origin=None, length=None, angle=None, step=None, count=None):
 ## Bounding shapes ##  TODO: Private use only?
 
 def b_box(xStart, yStart, width, height):
-    return bean('_BoundingBox', {'xStart': xStart,
+    return bean('BoundingBox', {'xStart': xStart,
                                  'yStart': yStart,
                                  'width': width,
                                  'height': height})
 
 
 def b_line(xStart, yStart, length, angle):
-    return bean('_BoundingLine', {'xStart': xStart,
+    return bean('BoundingLine', {'xStart': xStart,
                                   'yStart': yStart,
                                   'length': length,
                                   'angle': angle})
@@ -194,20 +206,20 @@ def b_line(xStart, yStart, length, angle):
 ## ROIs ##
 
 def circ(x, y, radius):
-    return _CircularROI(radius, x, y)
+    return CircularROI(radius, x, y)
 
 
 def poly(*xy_tuples):
-    return _PolygonalROI(_PolylineROI(*map(lambda (x, y): _PointROI(x, y),
+    return PolygonalROI(PolylineROI(*map(lambda (x, y): PointROI(x, y),
                                            xy_tuples)))
 
 
 def rect(x, y, w, h, angle):
-    return _RectangularROI(x, y, w, h, angle)
+    return RectangularROI(x, y, w, h, angle)
 
 
 ## Detectors ##
 
 def _dmodel(name, exposure, *args, **kwargs):
     # This should take a string, maybe other params, and return a dmodel.
-    return bean('_MandelbrotModel', {'exposure': exposure})
+    return bean('MandelbrotModel', {'exposure': exposure})

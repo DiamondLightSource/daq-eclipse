@@ -2,13 +2,12 @@ package org.eclipse.scanning.test.command;
 
 import static org.junit.Assert.*;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.*;
 import org.eclipse.scanning.command.Interpreter;
+import org.eclipse.scanning.command.QueueSingleton;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.junit.Test;
 import org.python.core.PyException;
@@ -17,10 +16,8 @@ import org.python.core.PyException;
 public class CommandTest {
 
 	private ScanRequest<IROI> interpret(String command) throws PyException, InterruptedException {
-		// The Interpreter will send out models (and stuff) on this queue.
-		BlockingQueue<ScanRequest<IROI>> iOutput = new SynchronousQueue<ScanRequest<IROI>>();
-		new Thread(new Interpreter(iOutput, command)).start();
-		return iOutput.take();
+		new Thread(new Interpreter(command)).start();
+		return QueueSingleton.INSTANCE.take();
 	}
 
 	@Test
