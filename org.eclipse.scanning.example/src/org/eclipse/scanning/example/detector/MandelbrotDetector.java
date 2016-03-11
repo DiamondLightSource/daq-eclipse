@@ -33,6 +33,7 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.IWritableDetector;
@@ -64,6 +65,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		this.model = new MandelbrotModel();
 	}
 
+	@Override
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
 		DelegateNexusProvider<NXdetector> nexusProvider = new DelegateNexusProvider<NXdetector>(
 				getName(), NexusBaseClass.NX_DETECTOR, info, this);
@@ -97,9 +99,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 		// Setting chunking is a very good idea if speed is required.
 		imageData.setChunking(info.createChunk(model.getRows(), model.getColumns()));
-		// FIXME This should work but causes a HDF5 Error: #000: H5Pdcpl.c line 2034 in H5Pset_chunk(): all chunk dimensions must be positive.
-		// Leave commented out for now
-		//spectrumData.setChunking(info.createChunk(model.getPoints()));
+		spectrumData.setChunking(info.createChunk(model.getPoints()));
 
 		// Write detector metadata
 		detector.setField("exposure_time", model.getExposure());
@@ -113,17 +113,27 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		detector.setDataset("image_y_axis", DatasetFactory.createLinearSpace(-model.getMaxY(), model.getMaxY(), model.getColumns(), Dataset.FLOAT64));
 		detector.setDataset("spectrum_axis", DatasetFactory.createLinearSpace(0.0, model.getMaxX(), model.getPoints(), Dataset.FLOAT64));
 
+		try {
+			Attributes.registerAttributes(detector, this);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return detector;
 	}
 
 	@Override
 	public void configure(MandelbrotModel model) throws ScanningException {
-		super.configure(model);
+		setDeviceState(DeviceState.CONFIGURING);
 		setName(model.getName());
+		// super.configure sets device state to ready
+		super.configure(model);
 	}
 
 	@Override
 	public void run(IPosition pos) throws ScanningException, InterruptedException {
+		setDeviceState(DeviceState.RUNNING);
 
 		// Find out where we are in the scan. This is unique to the Mandelbrot
 		// detector as it's a dummy in general a detector shouldn't need to get
@@ -140,6 +150,8 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		if (model.getExposure() > 0) {
 			Thread.sleep(Math.round(1000 * model.getExposure()));
 		}
+
+		// TODO Should device state be set back to ready here? The device has finished acquiring (calculating) but the data is not in the file yet?
 	}
 
 	@Override
@@ -156,9 +168,13 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 			valueData.setSlice(null, DoubleDataset.createFromObject(value), sliceND);
 
 		} catch (Exception e) {
+			// Change state to fault if exception is caught
+			setDeviceState(DeviceState.FAULT);
 			throw new ScanningException("Failed to write the data to the NeXus file", e);
 		}
 
+		// Finished writing set state back to ready
+		setDeviceState(DeviceState.READY);
 		return true;
 	}
 
