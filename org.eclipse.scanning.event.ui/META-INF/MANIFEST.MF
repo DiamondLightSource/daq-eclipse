@@ -14,7 +14,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Service-Component: OSGI-INF/*.xml
 Import-Package: javax.jms,
- org.slf4j;version="1.7.6"
+ org.slf4j;version="[1.7.2,2.0.0)"
 Export-Package: org.eclipse.scanning.event.ui,
  org.eclipse.scanning.event.ui.dialog,
  org.eclipse.scanning.event.ui.preference,
