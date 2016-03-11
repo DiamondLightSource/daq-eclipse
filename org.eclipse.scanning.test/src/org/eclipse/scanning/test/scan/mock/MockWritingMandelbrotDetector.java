@@ -33,10 +33,10 @@ import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
-import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 

@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.scan.IDeviceConnectorService;
-import org.eclipse.scanning.api.scan.IWritableDetector;
+import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 public class MockScannableConnector implements IDeviceConnectorService {

@@ -3,10 +3,10 @@ package org.eclipse.scanning.sequencer;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableEventDevice;
+import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.IWritableDetector;
-import org.eclipse.scanning.api.scan.IRunnableDevice;
-import org.eclipse.scanning.api.scan.IRunnableEventDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 /**

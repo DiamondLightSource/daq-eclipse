@@ -1,9 +1,9 @@
 package org.eclipse.scanning.server.servlet;
 
+import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 

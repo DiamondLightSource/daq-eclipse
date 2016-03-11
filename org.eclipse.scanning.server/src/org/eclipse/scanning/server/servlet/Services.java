@@ -1,10 +1,10 @@
 package org.eclipse.scanning.server.servlet;
 
+import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.scan.IDeviceConnectorService;
-import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.process.IPreprocessingService;
 import org.eclipse.scanning.api.script.IScriptService;

@@ -7,6 +7,7 @@ Bundle-Vendor: Diamond Light Source
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.eclipse.scanning.api,
  org.eclipse.scanning.api.annotation,
+ org.eclipse.scanning.api.device,
  org.eclipse.scanning.api.event,
  org.eclipse.scanning.api.event.alive,
  org.eclipse.scanning.api.event.bean,

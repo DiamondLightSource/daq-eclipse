@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
@@ -17,7 +18,6 @@ import org.eclipse.scanning.api.malcolm.models.MalcolmModel;
 import org.eclipse.scanning.api.malcolm.models.OneDetectorTestMappingModel;
 import org.eclipse.scanning.api.malcolm.models.TwoDetectorTestMappingModel;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.scan;
 
+import org.eclipse.scanning.api.device.IRunnableDevice;
+
 public class ScanningException extends Exception {
 
 	/**

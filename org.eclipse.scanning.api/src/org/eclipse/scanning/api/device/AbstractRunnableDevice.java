@@ -1,4 +1,4 @@
-package org.eclipse.scanning.api.scan;
+package org.eclipse.scanning.api.device;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -17,6 +17,7 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 

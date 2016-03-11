@@ -1,8 +1,9 @@
-package org.eclipse.scanning.api.scan;
+package org.eclipse.scanning.api.device;
 
 import java.util.List;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
  * Clients do not need to consume this service, it is used to provide connection
