@@ -90,16 +90,15 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	IProcessCreator<T> getRunner();
 	
 	/**
-	 * The topic used to terminate the running process and get the consumer to stop.
+	 * The topic used to run commands like terminate the running process and get the consumer to stop.
 	 * @return topic name
 	 */
-	public String getKillTopicName();
+	public String getCommandTopicName();
 	
 	/**
-	 * The topic used to terminate the running process and get the consumer to stop.
-	 * @return topic name
+	 * The topic used  to run commands terminate the running process and get the consumer to stop.
 	 */
-	public void setKillTopicName(String terminateName);
+	public void setCommandTopicName(String commandTName);
 	
     /**
      * The string UUID which denotes this consumer
@@ -116,7 +115,12 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 */
 	public void disconnect() throws EventException;
 
-	
+	/**
+	 * 
+	 * @return true if the consumer is active and actively running things from the queue.
+	 */
+	public boolean isActive();
+
 	public boolean isDurable();
 	public void setDurable(boolean durable);
 }

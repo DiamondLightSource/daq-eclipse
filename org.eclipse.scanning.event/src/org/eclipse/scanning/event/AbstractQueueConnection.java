@@ -35,8 +35,8 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 		super(uri, topic, service);
 	}
 
-	AbstractQueueConnection(URI uri, String submitQName, String statusQName, String statusTName, String terminateTName, IEventConnectorService service) {
-        super(uri, submitQName, statusQName, statusTName, terminateTName, service);
+	AbstractQueueConnection(URI uri, String submitQName, String statusQName, String statusTName, String commandTName, IEventConnectorService service) {
+        super(uri, submitQName, statusQName, statusTName, commandTName, service);
 	}
 
 	private Class<U> beanClass;

@@ -14,7 +14,7 @@ package org.eclipse.scanning.api.event.status;
  * @author Matthew Gerring
  *
  */
-public enum Status { // TODO Should this be called QueueStatus to avoid confusion?
+public enum Status { // TODO Should this be called QueueStatus or JobStatus to avoid confusion?
 
 	SUBMITTED, QUEUED, RUNNING, TERMINATED, REQUEST_TERMINATE, FAILED, COMPLETE, UNFINISHED, NONE;
 

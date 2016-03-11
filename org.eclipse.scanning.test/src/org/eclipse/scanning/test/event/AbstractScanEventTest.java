@@ -222,11 +222,16 @@ public class AbstractScanEventTest {
 		bean2.setDeviceState(DeviceState.CONFIGURING);
 		publisher.broadcast(bean2);
 
+		bean.setPreviousDeviceState(DeviceState.CONFIGURING);
 		bean.setDeviceState(DeviceState.READY);
 		publisher.broadcast(bean);
+
+		bean2.setPreviousDeviceState(DeviceState.CONFIGURING);
 		bean2.setDeviceState(DeviceState.READY);
 		publisher.broadcast(bean2);
 
+		bean.setPreviousDeviceState(DeviceState.READY);
+		bean2.setPreviousDeviceState(DeviceState.READY);
 		for (int i = 0; i < 10; i++) {
 			bean.setDeviceState(DeviceState.RUNNING);
 			bean.setPercentComplete(i*10);
@@ -236,8 +241,11 @@ public class AbstractScanEventTest {
 			publisher.broadcast(bean2);
 		}
 		
+		bean.setPreviousDeviceState(DeviceState.RUNNING);
 		bean.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean);
+		
+	    bean2.setPreviousDeviceState(DeviceState.RUNNING);
 		bean2.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean2);
 		

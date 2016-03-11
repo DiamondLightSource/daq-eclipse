@@ -1,37 +1,21 @@
 package org.eclipse.scanning.api.event.alive;
 
-import java.util.UUID;
-
 /**
  * Used to stop the consumer, optionally the process running the consumer may be exited.
  * 
  * @author Matthew Gerring
  *
  */
-public class KillBean {
+public class KillBean extends ConsumerCommandBean {
 
-	private UUID    consumerId;
 	private boolean exitProcess=true;
 	private boolean disconnect=true;
-	private String  message;
-
-	public UUID getConsumerId() {
-		return consumerId;
-	}
-
-	public void setConsumerId(UUID consumerId) {
-		this.consumerId = consumerId;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((consumerId == null) ? 0 : consumerId.hashCode());
+		int result = super.hashCode();
 		result = prime * result + (disconnect ? 1231 : 1237);
 		result = prime * result + (exitProcess ? 1231 : 1237);
-		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		return result;
 	}
 
@@ -39,24 +23,14 @@ public class KillBean {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		KillBean other = (KillBean) obj;
-		if (consumerId == null) {
-			if (other.consumerId != null)
-				return false;
-		} else if (!consumerId.equals(other.consumerId))
-			return false;
 		if (disconnect != other.disconnect)
 			return false;
 		if (exitProcess != other.exitProcess)
-			return false;
-		if (message == null) {
-			if (other.message != null)
-				return false;
-		} else if (!message.equals(other.message))
 			return false;
 		return true;
 	}
@@ -75,13 +49,5 @@ public class KillBean {
 
 	public void setDisconnect(boolean disconnect) {
 		this.disconnect = disconnect;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
 	}
 }

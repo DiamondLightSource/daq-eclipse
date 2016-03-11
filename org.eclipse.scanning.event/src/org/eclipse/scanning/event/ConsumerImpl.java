@@ -7,6 +7,9 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -21,8 +24,10 @@ import javax.jms.TextMessage;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.KillBean;
+import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
@@ -46,7 +51,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	private IPublisher<U>                 status;
 	private IPublisher<HeartbeatBean>     alive;
 	private ISubscriber<IBeanListener<U>> terminator;
-	private ISubscriber<IBeanListener<KillBean>> killer;
+	private ISubscriber<IBeanListener<ConsumerCommandBean>> command;
 	private ISubmitter<U>                 mover;
 
 	private IProcessCreator<U>            runner;
@@ -57,17 +62,29 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	private volatile Map<String, WeakReference<IConsumerProcess<U>>>  processes;
 	private IEventService                 eservice;
 	private Map<String, U>                overrideMap;
+	
+	/*
+	 * Concurrency design recommended by Keith Ralphs after investigating
+	 * how to pause and resume a collection cycle using Reentrant locks.
+	 * Design requires these three fields.
+	 */
+	private ReentrantLock    lock;
+	private Condition        paused;
+	private volatile boolean awaitPaused;
+
 
 	ConsumerImpl(URI uri, String submitQName, 
 			              String statusQName,
 			              String statusTName, 
 			              String heartbeatTName,
-			              String killTName,
+			              String commandTName,
 			              IEventConnectorService service,
 			              IEventService          eservice) throws EventException {
 		
-		super(uri, submitQName, statusQName, statusTName, killTName, service);
+		super(uri, submitQName, statusQName, statusTName, commandTName, service);
 		this.eservice = eservice;
+		this.lock      = new ReentrantLock();
+		this.paused    = lock.newCondition();
 		
 		durable    = true;
 		consumerId = UUID.randomUUID();
@@ -84,33 +101,66 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 			alive.setConsumerName(getName());
 		}
 				
-		if (killTName!=null) {
-			killer = eservice.createSubscriber(uri, killTName);
-			killer.addListener(new IBeanListener<KillBean>() {
+		if (commandTName!=null) {
+			command = eservice.createSubscriber(uri, commandTName);
+			command.addListener(new IBeanListener<ConsumerCommandBean>() {
 				@Override
-				public void beanChangePerformed(BeanEvent<KillBean> evt) {
-					KillBean kbean = evt.getBean();
-					if (kbean.getConsumerId().equals(getConsumerId())) {
-						try {
-							stop();
-							if (kbean.isDisconnect()) disconnect();
-						} catch (EventException e) {
-							logger.error("An internal error occurred trying to terminate the consumer "+getName()+" "+getConsumerId());
-						}
-						if (kbean.isExitProcess()) {
-							try {
-								Thread.sleep(2500);
-							} catch (InterruptedException e) {
-								logger.error("Unable to pause before exit", e);
-							}
-							System.exit(0); // Normal orderly exit
-						}
+				public void beanChangePerformed(BeanEvent<ConsumerCommandBean> evt) {
+					ConsumerCommandBean bean = evt.getBean();
+					if (isCommandForMe(bean)) {
+						if (bean instanceof KillBean)   terminate((KillBean)bean);
+						if (bean instanceof PauseBean)  processPause((PauseBean)bean);
 					}
 				}
 			});
 		}
 	}
 	
+	protected void processPause(PauseBean bean) {
+		try {
+			if (bean.isPause()) {
+				pause();
+			} else {
+				resume();
+			}
+		} catch (Exception ne) {
+			logger.error("Unable to process pause command on consumer '"+getName()+"'. Consumer will stop.", ne);
+			try {
+				stop();
+				disconnect();
+			} catch (EventException e) {
+				logger.error("An internal error occurred trying to terminate the consumer "+getName()+" "+getConsumerId());
+			}
+		}
+	}
+
+	protected void terminate(KillBean kbean) {
+		try {
+			stop();
+			if (kbean.isDisconnect()) disconnect();
+		} catch (EventException e) {
+			logger.error("An internal error occurred trying to terminate the consumer "+getName()+" "+getConsumerId());
+		}
+		if (kbean.isExitProcess()) {
+			try {
+				Thread.sleep(2500);
+			} catch (InterruptedException e) {
+				logger.error("Unable to pause before exit", e);
+			}
+			System.exit(0); // Normal orderly exit
+		}
+	}
+
+	protected boolean isCommandForMe(ConsumerCommandBean bean) {
+		if (bean.getConsumerId()!=null) { 
+			if (bean.getConsumerId().equals(getConsumerId())) return true;
+		}
+		if (bean.getQueueName()!=null) {
+			if (bean.getQueueName().equals(getSubmitQueueName())) return true;
+		}
+		return false;
+	}
+
 	protected void updateQueue(U bean) throws EventException {
 		
 		Session session = null;
@@ -175,7 +225,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		mover.disconnect();
 		status.disconnect();
 		alive.disconnect();
-		killer.disconnect();
+		command.disconnect();
 		if (overrideMap!=null) overrideMap.clear();
 		try {
 			if (connection!=null) connection.close();
@@ -277,8 +327,9 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		
 		long waitTime = 0;
 		 
-		while(isActive()){
+		while(isActive()) {
         	try {
+        		checkPaused(); // blocks until not paused.
         		
         		// Consumes messages from the queue.
 	        	Message m = getMessage(uri, getSubmitQueueName());
@@ -340,6 +391,66 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		}
 	}
 	
+	private void checkPaused() throws Exception {
+		
+		if (!isActive()) throw new Exception("The consumer is not active and cannot be paused!");
+
+		// Check the locking using a condition
+    	if(!lock.tryLock(1, TimeUnit.SECONDS)) {
+    		throw new EventException("Internal Error - Could not obtain lock to run device!");    		
+    	}
+    	try {
+    		if (!isActive()) throw new Exception("The consumer is not active and cannot be paused!");
+       	    if (awaitPaused) {
+       	    	setActive(false);
+        		paused.await(); // Until unpaused
+       	    	setActive(true);
+       	    }
+    	} finally {
+    		lock.unlock();
+    	}
+		
+	}
+	
+	private void pause() throws EventException {
+		
+		if (!isActive()) throw new EventException("The consumer is not active and cannot be paused!");
+		try {
+			lock.lockInterruptibly();
+		} catch (Exception ne) {
+			throw new EventException(ne);
+		}
+		
+		try {
+			awaitPaused = true;
+			consumer.close();
+			consumer = null; // Force unpaused consumers to make a new connection.
+			
+		} catch (Exception ne) {
+			throw new EventException(ne);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	public void resume() throws EventException {
+		
+		try {
+			lock.lockInterruptibly();
+		} catch (Exception ne) {
+			throw new EventException(ne);
+		}
+		
+		try {
+			awaitPaused = false;
+			// We don't have to actually start anything again because the getMessage(...) call reconnects automatically.
+			paused.signalAll();
+			
+		} finally {
+			lock.unlock();
+		}
+	}
+
 	private void executeBean(U bean) throws EventException {
 		
 		// We record the bean in the status queue
@@ -443,6 +554,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		if (alive!=null) alive.setConsumerName(getName());
 	}
 
+	@Override
 	public boolean isActive() {
 		return active;
 	}
@@ -451,10 +563,12 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		this.active = active;
 	}
 
+	@Override
 	public boolean isDurable() {
 		return durable;
 	}
 
+	@Override
 	public void setDurable(boolean durable) {
 		this.durable = durable;
 	}
