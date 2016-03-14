@@ -115,7 +115,7 @@ public class NexusScanFileBuilder {
 	}
 	
 	private List<NexusObjectProvider<?>> getNexusScannables(List<String> scannableNames, NexusScanInfo scanInfo) throws ScanningException {
-		final List<IScannable<?>> scannables = new ArrayList<>(scannableNames.isEmpty() ? 0 : scannableNames.size());
+		final List<IScannable<?>> scannables = new ArrayList<>();
 		if (scannableNames != null) for (String scannableName : scannableNames) {
 			IScannable<?> scannable = deviceService.getScannable(scannableName);
 			if (scannable == null) {
