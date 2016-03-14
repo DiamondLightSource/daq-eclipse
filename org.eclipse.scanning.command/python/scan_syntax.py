@@ -78,12 +78,13 @@ def model(type, params):  # TODO: Don't shadow `type` builtin.
     return bean(type[0].upper()+type[1:]+'Model', params)
 
 
-def _listify(tuples):  # Idempotent.
-    if type(tuples) is not list:
-        assert type(tuples) is tuple
-        return [tuples]
+def _listify(sheep):  # Idempotent.
+    # The argument is called "sheep" because it may be either
+    # plural ("[a list of] sheep") or singular ("[a] sheep").
+    if type(sheep) is list:
+        return sheep
     else:
-        return tuples
+        return [sheep]
 
 
 # TODO: block=False kwarg.
@@ -96,23 +97,23 @@ def scan(pm_roi_tuples, det_exp_tuples):
     pm_roi_tuples, det_exp_tuples = map(_listify,
                                         (pm_roi_tuples, det_exp_tuples))
 
-    # We could generate the full ScanModel here, but we'd probably end up doing
-    # too much work in Python.
     unzip = lambda l: zip(*l)
     points_models, roi_lists = unzip(pm_roi_tuples)
     detector_names, exposures = unzip(det_exp_tuples)
 
     # Care is required here. We must pass IROI arrays, not lists. Jython cannot
     # do this coercion for us, because of Java type erasure!
-    roi_arrays = map(lambda l: _array(l, IROI), roi_lists)
+    # Furthermore, we _listify() the ROI inputs here, so users can type either
+    # roi=circ(x, y, r) or roi=[circ(x, y, r), rect(x, y, w, h, angle)].
+    roi_arrays = map(lambda l: _array(_listify(l), IROI), roi_lists)
 
     # A ScanRequest expects ROIs to be specified as a map in the following
     # (bizarre?) format:
     roi_map = {model.getUniqueKey(): roi_array
                for (model, roi_array) in zip(points_models, roi_arrays)}
 
-    detector_map = {n: _dmodel(n, exp)
-                    for (n, exp) in zip(detector_names, exposures)}
+    detector_map = {name: _dmodel(name, exposure)
+                    for (name, exposure) in zip(detector_names, exposures)}
 
     QueueSingleton.INSTANCE.put(
         bean('ScanRequest', {'models': points_models,
@@ -127,7 +128,7 @@ def step(scannable, start, stop, step):
     return model('step', {'name': scannable,
                           'start': start,
                           'stop': stop,
-                          'step': step}), [roi]
+                          'step': step}), roi
 
 
 def grid(axes=None, div=None, bbox=None, snake=False, roi=None):
@@ -136,7 +137,6 @@ def grid(axes=None, div=None, bbox=None, snake=False, roi=None):
     (rows, cols) = div
     (xStart, yStart, width, height) = bbox
     # TODO: Should snake be True or False by default?
-    # TODO: Allow multiple ROIs.
     return model('grid', {'xName': xName,
                           'yName': yName,
                           'rows': rows,
@@ -145,7 +145,7 @@ def grid(axes=None, div=None, bbox=None, snake=False, roi=None):
                           'boundingBox': b_box(xStart,
                                                yStart,
                                                width,
-                                               height)}), [roi]
+                                               height)}), roi
 
 
 def array(scannable, positions):
@@ -156,7 +156,7 @@ def array(scannable, positions):
     amodel.setName(scannable)
     amodel.setPositions(*positions)
     roi = None
-    return amodel, [roi]
+    return amodel, roi
 
 
 def raster(axes=None, inc=None, bbox=None, snake=False, roi=None):
@@ -172,12 +172,12 @@ def raster(axes=None, inc=None, bbox=None, snake=False, roi=None):
                             'boundingBox': b_box(xStart,
                                                  yStart,
                                                  width,
-                                                 height)}), [roi]
+                                                 height)}), roi
 
 
 def point(x, y):
     roi = None
-    return model('singlePoint', {'x': x, 'y': y}), [roi]
+    return model('singlePoint', {'x': x, 'y': y}), roi
 
 
 def line(origin=None, length=None, angle=None, step=None, count=None):
@@ -190,7 +190,7 @@ def line(origin=None, length=None, angle=None, step=None, count=None):
                                   'boundingLine': b_line(xStart,
                                                          yStart,
                                                          length,
-                                                         angle)}), [roi]
+                                                         angle)}), roi
     else:
         assert count is not None
         return model(
@@ -198,7 +198,7 @@ def line(origin=None, length=None, angle=None, step=None, count=None):
                                  'boundingLine': b_line(xStart,
                                                         yStart,
                                                         length,
-                                                        angle)}), [roi]
+                                                        angle)}), roi
 
 
 ## Bounding shapes ##  TODO: Private use only?

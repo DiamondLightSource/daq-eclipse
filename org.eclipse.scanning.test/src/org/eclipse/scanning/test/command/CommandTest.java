@@ -3,7 +3,7 @@ package org.eclipse.scanning.test.command;
 import static org.junit.Assert.*;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
-import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.*;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.*;
 import org.eclipse.scanning.command.Interpreter;
@@ -58,12 +58,20 @@ public class CommandTest {
 	public void testRasterCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan(raster(axes=('x', 'y'), inc=(1, 1), bbox=(0, 0, 10, 10), snake=True),"
-			+	"     ('det', 0.1))                                                        "
+				"scan(raster(axes=('x', 'y'),                           "
+			+	"            inc=(1, 1),                                "
+			+	"            bbox=(0, 0, 10, 10),                       "
+			+	"            snake=True,                                "
+			+	"            roi=[circ(4, 4, 5),                        "
+			+	"                 rect(3, 4, 3, 3, 0.1)]), ('det', 0.1))"
 			);
 
 		assertEquals(RasterModel.class, r.getModels()[0].getClass());
 		assertEquals(1.0, ((RasterModel) r.getModels()[0]).getxStep(), 1e-8);
+
+		assertEquals(2, r.getRegions(r.getModels()[0].getUniqueKey()).length);
+		assertEquals(CircularROI.class, r.getRegions(r.getModels()[0].getUniqueKey())[0].getClass());
+		assertEquals(RectangularROI.class, r.getRegions(r.getModels()[0].getUniqueKey())[1].getClass());
 	}
 
 	@Test
