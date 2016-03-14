@@ -78,10 +78,24 @@ def model(type, params):  # TODO: Don't shadow `type` builtin.
     return bean(type[0].upper()+type[1:]+'Model', params)
 
 
+def _listify(tuples):  # Idempotent.
+    if type(tuples) is not list:
+        assert type(tuples) is tuple
+        return [tuples]
+    else:
+        return tuples
+
+
 # TODO: block=False kwarg.
 def scan(pm_roi_tuples, det_exp_tuples):
     """Submit a scan request to the parent Java process.
     """
+    # The effect of the following line is to make square brackets optional when
+    # calling this function with length-1 tuple lists. E.g.:
+    # scan([grid(...)], [('det', 0.1)]) -> scan(grid(...), ('det', 0.1)).
+    pm_roi_tuples, det_exp_tuples = map(_listify,
+                                        (pm_roi_tuples, det_exp_tuples))
+
     # We could generate the full ScanModel here, but we'd probably end up doing
     # too much work in Python.
     unzip = lambda l: zip(*l)

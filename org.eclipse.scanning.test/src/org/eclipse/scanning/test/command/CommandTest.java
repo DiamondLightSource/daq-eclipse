@@ -24,8 +24,8 @@ public class CommandTest {
 	public void testGridCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan([grid(axes=('my_x', 'y'), div=(5, 5), bbox=(0, 0, 10, 10), roi=circ(4, 4, 5))],"
-			+	"     [('det', 0.1)])                                                                "
+				"scan(grid(axes=('my_x', 'y'), div=(5, 5), bbox=(0, 0, 10, 10), roi=circ(4, 4, 5)),"
+			+	"     ('det', 0.1))                                                                "
 			);
 
 		assertEquals(1, r.getModels().length);  // I.e. this is not a compound scan.
@@ -45,7 +45,7 @@ public class CommandTest {
 	public void testStepCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan([step('my_scannable', -2, 5, 0.5)], [('det', 0.1)])"
+				"scan(step('my_scannable', -2, 5, 0.5), ('det', 0.1))"
 			);
 
 		assertEquals(StepModel.class, r.getModels()[0].getClass());
@@ -58,8 +58,8 @@ public class CommandTest {
 	public void testRasterCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan([raster(axes=('x', 'y'), inc=(1, 1), bbox=(0, 0, 10, 10), snake=True)],"
-			+	"     [('det', 0.1)])                                                        "
+				"scan(raster(axes=('x', 'y'), inc=(1, 1), bbox=(0, 0, 10, 10), snake=True),"
+			+	"     ('det', 0.1))                                                        "
 			);
 
 		assertEquals(RasterModel.class, r.getModels()[0].getClass());
@@ -70,7 +70,7 @@ public class CommandTest {
 	public void testArrayCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan([array('qty', [0, 1, 1.5, 1e10])], [('det', 0.1)])"
+				"scan(array('qty', [0, 1, 1.5, 1e10]), ('det', 0.1))"
 			);
 
 		assertEquals(ArrayModel.class, r.getModels()[0].getClass());
@@ -81,7 +81,7 @@ public class CommandTest {
 	public void testOneDEqualSpacingCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan([line(origin=(0, 4), length=10, angle=0.1, count=10)], [('det', 0.1)])"
+				"scan(line(origin=(0, 4), length=10, angle=0.1, count=10), ('det', 0.1))"
 			);
 
 		assertEquals(OneDEqualSpacingModel.class, r.getModels()[0].getClass());
@@ -95,7 +95,7 @@ public class CommandTest {
 	public void testOneDStepCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan([line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5)], [('det', 0.1)])"
+				"scan(line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5), ('det', 0.1))"
 			);
 
 		assertEquals(OneDStepModel.class, r.getModels()[0].getClass());
@@ -108,7 +108,7 @@ public class CommandTest {
 	public void testSinglePointCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan([point(4, 5)], [('det', 0.1)])"
+				"scan(point(4, 5), ('det', 0.1))"
 			);
 
 		assertEquals(SinglePointModel.class, r.getModels()[0].getClass());
@@ -124,7 +124,7 @@ public class CommandTest {
 			+	"        grid(axes=('x', 'y'), div=(5, 5), bbox=(0, 0, 10, 10), snake=True),"
 			+	"        step('qty', 0, 10, 1),                                             "
 			+	"    ],                                                                     "
-			+	"    [('det', 0.1)]                                                         "
+			+	"    ('det', 0.1)                                                           "
 			+	")                                                                          "
 			);
 
