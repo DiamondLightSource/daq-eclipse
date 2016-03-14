@@ -24,8 +24,8 @@ public class CommandTest {
 	public void testGridCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan(grid(axes=('my_x', 'y'), div=(5, 5), bbox=(0, 0, 10, 10), roi=circ(4, 4, 5)),"
-			+	"     ('det', 0.1))                                                                "
+				"scan(grid(axes=('my_x', 'y'), count=(5, 5), bbox=(0, 0, 10, 10), roi=circ(4, 4, 5)),"
+			+	"     ('det', 0.1))                                                                  "
 			);
 
 		assertEquals(1, r.getModels().length);  // I.e. this is not a compound scan.
@@ -58,12 +58,12 @@ public class CommandTest {
 	public void testRasterCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan(raster(axes=('x', 'y'),                           "
-			+	"            inc=(1, 1),                                "
-			+	"            bbox=(0, 0, 10, 10),                       "
-			+	"            snake=True,                                "
-			+	"            roi=[circ(4, 4, 5),                        "
-			+	"                 rect(3, 4, 3, 3, 0.1)]), ('det', 0.1))"
+				"scan(grid(axes=('x', 'y'),                           "
+			+	"          step=(1, 1),                               "
+			+	"          bbox=(0, 0, 10, 10),                       "
+			+	"          snake=True,                                "
+			+	"          roi=[circ(4, 4, 5),                        "
+			+	"               rect(3, 4, 3, 3, 0.1)]), ('det', 0.1))"
 			);
 
 		assertEquals(RasterModel.class, r.getModels()[0].getClass());
@@ -127,13 +127,13 @@ public class CommandTest {
 	public void testCompoundCommand() throws PyException, InterruptedException {
 
 		ScanRequest<IROI> r = interpret(
-				"scan(                                                                      "
-			+	"    [                                                                      "
-			+	"        grid(axes=('x', 'y'), div=(5, 5), bbox=(0, 0, 10, 10), snake=True),"
-			+	"        step('qty', 0, 10, 1),                                             "
-			+	"    ],                                                                     "
-			+	"    ('det', 0.1)                                                           "
-			+	")                                                                          "
+				"scan(                                                                        "
+			+	"    [                                                                        "
+			+	"        grid(axes=('x', 'y'), count=(5, 5), bbox=(0, 0, 10, 10), snake=True),"
+			+	"        step('qty', 0, 10, 1),                                               "
+			+	"    ],                                                                       "
+			+	"    ('det', 0.1)                                                             "
+			+	")                                                                            "
 			);
 
 		assertEquals(2, r.getModels().length);  // I.e. this is a compound scan with two components.

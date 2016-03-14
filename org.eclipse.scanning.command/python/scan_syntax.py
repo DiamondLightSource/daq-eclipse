@@ -131,21 +131,35 @@ def step(scannable, start, stop, step):
                           'step': step}), roi
 
 
-def grid(axes=None, div=None, bbox=None, snake=False, roi=None):
-    assert None not in (axes, div, bbox)
-    (xName, yName) = axes
-    (rows, cols) = div
-    (xStart, yStart, width, height) = bbox
+def grid(axes=None, count=None, step=None, bbox=None, snake=False, roi=None):
     # TODO: Should snake be True or False by default?
-    return model('grid', {'xName': xName,
-                          'yName': yName,
-                          'rows': rows,
-                          'columns': cols,
-                          'snake': snake,
-                          'boundingBox': b_box(xStart,
-                                               yStart,
-                                               width,
-                                               height)}), roi
+    assert None not in (axes, bbox)
+    (xName, yName) = axes
+    (xStart, yStart, width, height) = bbox
+    if count is not None:
+        assert step is None
+        (rows, cols) = count
+        return model('grid', {'xName': xName,
+                              'yName': yName,
+                              'rows': rows,
+                              'columns': cols,
+                              'snake': snake,
+                              'boundingBox': b_box(xStart,
+                                                   yStart,
+                                                   width,
+                                                   height)}), roi
+    else:
+        assert step is not None
+        (xStep, yStep) = step
+        return model('raster', {'xName': xName,
+                                'yName': yName,
+                                'xStep': xStep,
+                                'yStep': yStep,
+                                'snake': snake,
+                                'boundingBox': b_box(xStart,
+                                                     yStart,
+                                                     width,
+                                                     height)}), roi
 
 
 def array(scannable, positions):
@@ -157,22 +171,6 @@ def array(scannable, positions):
     amodel.setPositions(*positions)
     roi = None
     return amodel, roi
-
-
-def raster(axes=None, inc=None, bbox=None, snake=False, roi=None):
-    assert None not in (axes, inc, bbox)
-    (xName, yName) = axes
-    (xStep, yStep) = inc
-    (xStart, yStart, width, height) = bbox
-    return model('raster', {'xName': xName,
-                            'yName': yName,
-                            'xStep': xStep,
-                            'yStep': yStep,
-                            'snake': snake,
-                            'boundingBox': b_box(xStart,
-                                                 yStart,
-                                                 width,
-                                                 height)}), roi
 
 
 def point(x, y):
