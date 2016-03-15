@@ -267,6 +267,9 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 								l.scanEventPerformed(e);
 							}
 						}
+					} catch (RuntimeException e) {
+						logger.error("RuntimeException occured despatching event", e);
+						continue;
 						
 					} catch (InterruptedException e) {
 						logger.error("Stopping event despatch thread ", e);
