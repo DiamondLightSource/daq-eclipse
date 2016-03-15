@@ -132,6 +132,65 @@ public class AbstractMConsumerTest {
 		}
     }
 
+    @Test
+    public void testTenConsumersTenSubmitsPaused() throws Exception {
+    	
+		consumer.setRunner(new DryRunCreator<StatusBean>(false));
+		consumer.start();
+ 
+		List<IConsumer<StatusBean>> consumers   = new ArrayList<>(9);
+		try {
+			for (int i = 2; i < 11; i++) {
+				IConsumer<StatusBean> c = eservice.createConsumer(consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
+				c.setName("Test Consumer "+i);
+				c.clearQueue(IEventService.SUBMISSION_QUEUE);
+				c.clearQueue(IEventService.STATUS_SET);
+				c.setRunner(new DryRunCreator<StatusBean>(false));
+				c.start();
+				consumers.add(c);
+			}
+			
+			List<StatusBean> submissions = new ArrayList<StatusBean>(10);
+			for (int i = 0; i < 10; i++) {
+				submissions.add(doSubmit("Test "+i));
+				System.out.println("Submitted: Test "+i);
+				Thread.sleep(10);
+			}
+			 	
+			Thread.sleep(2000);
+
+			IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
+			PauseBean pbean = new PauseBean();
+			pbean.setQueueName(consumer.getSubmitQueueName());
+			pauser.broadcast(pbean);
+			
+
+			Thread.sleep(2000); // Let them pause
+			
+			assertTrue(!consumer.isActive());
+			for (IConsumer<StatusBean> cons : consumers) assertTrue(!cons.isActive());
+			
+			pbean.setPause(false);
+			pauser.broadcast(pbean);
+
+			Thread.sleep(1000);
+
+			assertTrue(consumer.isActive());
+			for (IConsumer<StatusBean> cons : consumers) assertTrue(cons.isActive());
+	
+			Thread.sleep(13000); // 10000 to do the loop, 3000 for luck
+			
+			checkStatus(submissions);
+			
+		} finally {
+			for (IConsumer<StatusBean> c : consumers) {
+				c.clearQueue(IEventService.SUBMISSION_QUEUE);
+				c.clearQueue(IEventService.STATUS_SET);
+				c.disconnect();
+			}
+		}
+    }
+
 
     @Test
     public void testTwoConsumersTenSubmitsThreads() throws Exception {
