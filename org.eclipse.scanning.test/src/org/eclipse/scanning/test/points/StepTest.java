@@ -127,27 +127,27 @@ public class StepTest {
 		StepModel model = new StepModel("Temperature", 290,300,1);	
 		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(model);
 		checkSequence(gen, 290.0, 291.0, 292.0, 293.0, 294.0, 295.0, 296.0, 297.0, 298.0, 299.0, 300.0);
-		GeneratorUtil.testGeneratorPoints(gen);
+		GeneratorUtil.testGeneratorPoints(gen, 11);
 		
 		model = new StepModel("Temperature", 0,3, 0.6);	
 		gen.setModel(model);
 		checkSequence(gen, 0d, 0.6, 1.2, 1.8, 2.4, 3.0);
-		GeneratorUtil.testGeneratorPoints(gen);
+		GeneratorUtil.testGeneratorPoints(gen, 6);
 
 		model = new StepModel("Temperature", 1, 4, 0.6);	
 		gen.setModel(model);
 		checkSequence(gen, 1.0, 1.6, 2.2, 2.8, 3.4, 4.0);
-		GeneratorUtil.testGeneratorPoints(gen);
+		GeneratorUtil.testGeneratorPoints(gen, 6);
 		
 		model = new StepModel("Temperature", 11, 14, 0.6);	
 		gen.setModel(model);
 		checkSequence(gen, 11.0, 11.6, 12.2, 12.8, 13.4, 14.0);
-		GeneratorUtil.testGeneratorPoints(gen);
+		GeneratorUtil.testGeneratorPoints(gen, 6);
 
 		model = new StepModel("Temperature", 1,4, 0.5);	
 		gen.setModel(model);
 		checkSequence(gen, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0);
-		GeneratorUtil.testGeneratorPoints(gen);
+		GeneratorUtil.testGeneratorPoints(gen, 7);
 	}
 
 	private void checkSequence(IPointGenerator<StepModel, IPosition> gen, double... positions) throws Exception {

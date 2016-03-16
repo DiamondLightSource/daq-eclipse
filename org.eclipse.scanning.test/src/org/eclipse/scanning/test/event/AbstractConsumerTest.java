@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.event;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.net.InetAddress;
@@ -298,6 +299,35 @@ public class AbstractConsumerTest {
 		assertTrue(consumer.isActive());
     }
 
+    @Test
+    public void testReorderingAPausedQueue() throws Exception {
+    	
+		consumer.setRunner(new DryRunCreator<StatusBean>(true));
+		consumer.start();
+
+		// Bung ten things on there.
+		for (int i = 0; i < 10; i++) {
+			StatusBean bean = new StatusBean();
+			bean.setName("Submission"+i);
+			bean.setStatus(Status.SUBMITTED);
+			bean.setHostName(InetAddress.getLocalHost().getHostName());
+			bean.setMessage("Hello World");
+			bean.setUniqueId(UUID.randomUUID().toString());
+			submitter.submit(bean);
+		}
+
+		Thread.sleep(500);
+
+		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
+		PauseBean pbean = new PauseBean();
+		pbean.setQueueName(consumer.getSubmitQueueName());
+		pauser.broadcast(pbean);
+		
+		// Now we are paused. Read the submission queue
+		List<StatusBean> submitQ = consumer.getSubmissionQueue();
+		assertEquals(9, submitQ.size());
+	
+    }
 
 
 	@Test

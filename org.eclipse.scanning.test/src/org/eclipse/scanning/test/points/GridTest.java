@@ -18,8 +18,12 @@
 
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,9 +35,11 @@ import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,7 +74,7 @@ public class GridTest {
 
 		assertEquals(pointList.size(), gen.size());
 		checkPoints(pointList);
-		GeneratorUtil.testGeneratorPoints(gen);
+		GeneratorUtil.testGeneratorPoints(gen, 20, 20);
 	}
 
 	@Test(expected = GeneratorException.class)
@@ -89,7 +95,7 @@ public class GridTest {
 		List<Point> pointList = gen.createPoints();
 
 		assertEquals(pointList.size(), gen.size());
-		GeneratorUtil.testGeneratorPoints(gen);
+		GeneratorUtil.testGeneratorPoints(gen, 20, 20);
 	}
 
 	@Test
@@ -293,7 +299,7 @@ public class GridTest {
 		assertEquals(pointList.size(), gen.size());
 
 		checkPoints(pointList);
-		GeneratorUtil.testGeneratorPoints(gen);
+		GeneratorUtil.testGeneratorPoints(gen, 20, 20);
 	}
 
 	@Test
@@ -316,7 +322,7 @@ public class GridTest {
 		assertArrayEquals(pointList.toArray(), gen.createPoints().toArray());
 
 		checkPoints(pointList);
-		GeneratorUtil.testGeneratorPoints(gen);
+		GeneratorUtil.testGeneratorPoints(gen, 20, 20);
 
 	}
 

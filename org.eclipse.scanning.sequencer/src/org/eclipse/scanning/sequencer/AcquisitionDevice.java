@@ -253,7 +253,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		uniqueKeys.setSlice(null, newActualPositionData, sliceND);
 		
 		final Dataset point = DatasetFactory.createFromObject(loc.toString());
-		points.setSlice(null, point, sliceND);
+		//points.setSlice(null, point, sliceND);
 	}
 
 	private void fireEnd() throws ScanningException {
@@ -295,14 +295,18 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 
 	private void checkPaused() throws Exception {
 		
-		if (!getDeviceState().isRunning()) throw new Exception("The scan state is "+getDeviceState());
+		if (!getDeviceState().isRunning() && getDeviceState()!=DeviceState.READY) {
+			throw new Exception("The scan state is "+getDeviceState());
+		}
 
 		// Check the locking using a condition
     	if(!lock.tryLock(1, TimeUnit.SECONDS)) {
     		throw new ScanningException(this, "Internal Error - Could not obtain lock to run device!");    		
     	}
     	try {
-    		if (!getDeviceState().isRunning()) throw new Exception("The scan state is "+getDeviceState());
+    		if (!getDeviceState().isRunning() && getDeviceState()!=DeviceState.READY) {
+    			throw new Exception("The scan state is "+getDeviceState());
+    		}
        	    if (awaitPaused) {
         		setDeviceState(DeviceState.PAUSED);
         		paused.await();
