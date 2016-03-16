@@ -1,6 +1,7 @@
 package org.eclipse.scanning.server.servlet;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.scan.IFilePathService;
+import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -162,7 +164,9 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 	private void configureBean(ScanModel smodel, ScanBean bean) throws EventException {
 		
 		ScanRequest<?> req = bean.getScanRequest();
-		// the name of the scan should be set here.
+		
+		// Set the file path to the next scan file path from the service
+		// which manages scan names.
 		if (req.getFilePath()==null) {
 			IFilePathService fservice = Services.getFilePathService();
 			if (fservice!=null) {
@@ -179,9 +183,11 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		}
 		bean.setFilePath(smodel.getFilePath());
 		
-		int size  = 0;
-		for (IPosition unused : smodel.getPositionIterable()) size++; // Fast even for large stuff
-        bean.setSize(size);
+		// 
+		ScanEstimator estimator = new ScanEstimator(smodel.getPositionIterable(), bean.isShapeEstimationRequired());
+		bean.setSize(estimator.getSize());
+		bean.setShape(estimator.getShape());
+		
 	}
 
 	@SuppressWarnings("unchecked")

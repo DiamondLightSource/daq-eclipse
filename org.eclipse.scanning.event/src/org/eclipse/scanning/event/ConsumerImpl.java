@@ -287,6 +287,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 				WeakReference<IConsumerProcess<U>> ref = processes.remove(bean.getUniqueId());
 				try {
 					if (ref==null) { // Might be in submit queue still
+						pause();
 						updateQueue(bean);
 						
 					} else {
