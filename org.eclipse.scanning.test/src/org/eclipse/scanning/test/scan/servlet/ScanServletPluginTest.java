@@ -135,6 +135,7 @@ public class ScanServletPluginTest {
 		
 		ScanBean bean = createMalcolmScan();
 		runAndCheck(bean, 20);
+		// TODO check nexus file written correctly, including unique keys
 	}
 
 

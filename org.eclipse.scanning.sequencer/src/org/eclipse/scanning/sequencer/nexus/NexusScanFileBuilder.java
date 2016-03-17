@@ -19,9 +19,9 @@ import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.models.ScanDataModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel.ScanFieldModel;
@@ -29,8 +29,7 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.ServiceHolder;
 
 /**
- * A wrapper around a nexus file exposing only the methods required for
- * perfoming a scan.
+ * Builds the NeXus file for a scan given a {@link ScanModel}.
  */
 public class NexusScanFileBuilder {
 	
@@ -40,18 +39,20 @@ public class NexusScanFileBuilder {
 	private List<NexusObjectProvider<?>> detectors;
 	private List<NexusObjectProvider<?>> scannables;
 	private List<NexusObjectProvider<?>> monitors;
+	private ScanPointsWriter scanPointsWriter;
 	
 	private Map<NexusObjectProvider<?>, DataDevice<?>> dataDevices = new HashMap<>();
 	private NexusFileBuilder fileBuilder;
 	
 	public NexusScanFileBuilder(IDeviceConnectorService deviceService) {
-		this.deviceService = deviceService; 
+		this.deviceService = deviceService;
+		this.scanPointsWriter = new ScanPointsWriter();
 	}
 	
 	/**
 	 * Creates the nexus file for the given {@link ScanModel}. 
 	 * The structure of the nexus file is determined by model and the
-	 * devices that the model references - these are retreived from the
+	 * devices that the model references - these are retrieved from the
 	 * {@link IDeviceConnectorService}.
 	 * 
 	 * @param model model of scan
@@ -59,22 +60,16 @@ public class NexusScanFileBuilder {
 	 * @throws NexusException
 	 * @throws ScanningException
 	 */
-	public NexusScanFile createNexusFile(ScanModel model, IRunnableDevice<?> scanDevice) throws NexusException, ScanningException {
+	public NexusScanFile createNexusFile(ScanModel model) throws NexusException, ScanningException {
 		if (fileBuilder != null) {
 			throw new IllegalStateException("The nexus file has already been created");
 		}
 		
 		this.model = model;
 
-		// Add and configures any devices we can get from the scan.
-		final IPosition pos = model.getPositionIterable().iterator().next(); // The first position should have the same names as all positions.
-		final List<String> scannableNames = pos.getNames();
-		scanInfo = new NexusScanInfo(scannableNames);
-		detectors = getNexusDevices(model.getDetectors(), scanInfo);
-		if (scanDevice instanceof INexusDevice) detectors.add(((INexusDevice)scanDevice).getNexusProvider(scanInfo));
-		
-		scannables = getNexusScannables(scannableNames, scanInfo);
-		monitors = getNexusDevices(model.getMonitors(), scanInfo);
+		// extract the nexus devices. The detectors and monitors come from the model
+		// the scannables from
+		extractNexusDevices();
 		
 		// We use the new nexus framework to join everything up into the scan
 		// Create a builder
@@ -82,6 +77,32 @@ public class NexusScanFileBuilder {
 		createEntry(fileBuilder);
 		
 		return fileBuilder.createFile();
+	}
+	
+	protected void extractNexusDevices() throws ScanningException {
+		// Add and configures any devices we can get from the scan.
+		final IPosition pos = model.getPositionIterable().iterator().next(); // The first position should have the same names as all positions.
+		final List<String> scannableNames = pos.getNames();
+		scanInfo = new NexusScanInfo(scannableNames);
+		
+		detectors = getNexusDevices(model.getDetectors(), scanInfo);
+		
+		scannables = getNexusScannables(scannableNames, scanInfo);
+		
+		monitors = getNexusDevices(model.getMonitors(), scanInfo);
+		
+		scanPointsWriter.setNexusObjectProviders(getNexusObjectProviders());
+		monitors.add(scanPointsWriter.getNexusProvider(scanInfo));
+	}
+	
+	public List<NexusObjectProvider<?>> getNexusObjectProviders() {
+		int size = detectors.size() + scannables.size() + monitors.size();
+		List<NexusObjectProvider<?>> nexusObjectProviders = new ArrayList<>(size);
+		nexusObjectProviders.addAll(detectors);
+		nexusObjectProviders.addAll(scannables);
+		nexusObjectProviders.addAll(monitors);
+		
+		return nexusObjectProviders;
 	}
 	
 	/**
@@ -155,15 +176,16 @@ public class NexusScanFileBuilder {
 
 		// determine the primary device
 		if (detector != null) {
-			// if there's a detector that it is the primary device
+			// if there's a detector then it is the primary device
 			primaryDevice = detector;
 		} else if (!monitors.isEmpty()) {
-			// otherwise it's the first monitor
+			// otherwise the first monitor is
 			primaryDevice = monitors.get(0);
-			// this monitor is removed from the list of monitors so as not to add it as a data device
+			// and this monitor is removed from the list of monitors so
+			// that it isn't also added as a data device
 			monitors = monitors.subList(1, monitors.size());
 		} else if (!scannables.isEmpty()) {
-			// unless there's no monitors either (a rare edge case), where we use the first scannable
+			// if there are no monitors either (a rare edge case), where we use the first scannable
 			// note that this scannable is also added as data device
 			primaryDevice = scannables.get(0);
 		} else {
@@ -322,6 +344,10 @@ public class NexusScanFileBuilder {
 				dataDevice.setDestinationFieldName(sourceFieldName, destinationFieldName);
 			}
 		}
+	}
+
+	public IPositionListener getScanPointsWriter() {
+		return scanPointsWriter;
 	}
 	
 }
