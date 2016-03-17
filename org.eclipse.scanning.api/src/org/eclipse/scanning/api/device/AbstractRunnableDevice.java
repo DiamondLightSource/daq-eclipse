@@ -159,16 +159,15 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	}
 
 	protected void positionComplete(IPosition pos, int count, int size) throws EventException, ScanningException {
-		
-		if (publisher==null) return;
 		final ScanBean bean = getBean();
 		bean.setPoint(count);
 		bean.setPosition(pos);
 		bean.setPreviousDeviceState(bean.getDeviceState());
 		if (size>-1) bean.setPercentComplete(((double)count/size)*100);
-		
-		publisher.broadcast(bean);
-	
+
+		if (publisher != null) {
+			publisher.broadcast(bean);
+		}
 	}
 
 	public String getScanId() {

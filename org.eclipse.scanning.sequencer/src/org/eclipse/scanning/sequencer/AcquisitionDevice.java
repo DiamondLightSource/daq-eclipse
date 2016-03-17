@@ -9,14 +9,8 @@ import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
-import org.eclipse.dawnsci.nexus.INexusDevice;
-import org.eclipse.dawnsci.nexus.NXobject;
-import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusException;
-import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
-import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPauseableDevice;
@@ -42,7 +36,7 @@ import org.eclipse.scanning.sequencer.nexus.NexusScanFileBuilder;
  *
  * @param <T>
  */
-final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implements INexusDevice<NXobject>{
+final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	// Scanning stuff
 	private IPositioner                          positioner;
@@ -82,26 +76,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		setName("solstice_scan");
 	}
 	
-	public NexusObjectProvider<NXobject> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXobject>(getName(), NexusBaseClass.NX_DETECTOR, "uniqueKeys", info, this);
-	}
-
-	@Override
-	public NXobject createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
-		
-		final NXobject positioner = nodeFactory.createNXdetector();
-		positioner.setField("name", getName());
-		uniqueKeys = positioner.initializeLazyDataset("uniqueKeys", info.getRank(), Dataset.FLOAT64);
-		points     = positioner.initializeLazyDataset("points",     info.getRank(), Dataset.STRING);
-		
-		// Setting chunking
-		final int[] chunk = new int[info.getRank()];
-		for (int i = 0; i < info.getRank(); i++) chunk[i] = 1;
-		uniqueKeys.setChunking(chunk);
-		points.setChunking(chunk);
-		
-		return positioner;
-	}
 	/**
 	 * Method to configure the device. It also will check if the
 	 * declared devices in the scan are INexusDevice. If they are,
@@ -152,10 +126,16 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 * @throws ScanningException 
 	 */
 	private boolean createNexusFile(ScanModel model) throws NexusException, ScanningException {
-		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return false; // nothing wired 
+		if (model.getFilePath() == null || ServiceHolder.getFactory() == null) {
+			return false; // nothing wired, don't write a nexus file 
+		}
+		
 		NexusScanFileBuilder fileBuilder = new NexusScanFileBuilder(getDeviceService());
-		nexusScanFile = fileBuilder.createNexusFile(model, this);
-    	if (nexusScanFile!=null) nexusScanFile.openToWrite();
+		nexusScanFile = fileBuilder.createNexusFile(model);
+    	positioner.addPositionListener(fileBuilder.getScanPointsWriter());
+		
+		nexusScanFile.openToWrite();
+		
 		return true; // successfully created file
 	}
 
@@ -213,7 +193,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		        		        	
 	        	// Send an event about where we are in the scan
 	        	positionComplete(pos, count+1, size);
-	        	record(count+1, pos);
+//	        	record(count+1, pos);
 	        	++count;
 	        }
 	        

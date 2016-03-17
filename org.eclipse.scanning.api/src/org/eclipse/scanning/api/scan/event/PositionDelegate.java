@@ -7,6 +7,7 @@ import java.util.List;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
  * Manages position listeners.
@@ -18,7 +19,7 @@ public class PositionDelegate {
 
 	private Collection<IPositionListener> listeners;
 
-	public boolean firePositionWillPerform(IPosition position) {
+	public boolean firePositionWillPerform(IPosition position) throws ScanningException {
 		if (listeners==null) return true;
 		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		final PositionEvent evnt = new PositionEvent(position);
@@ -29,7 +30,7 @@ public class PositionDelegate {
 		return true;
 	}
 
-	public void firePositionPerformed(int finalLevel, IPosition position) {
+	public void firePositionPerformed(int finalLevel, IPosition position) throws ScanningException {
 		if (listeners==null) return;
 		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		final PositionEvent evnt = new PositionEvent(position);
@@ -37,7 +38,7 @@ public class PositionDelegate {
 		for (IPositionListener l : ls)  l.positionPerformed(evnt);
 	}
 
-	public void fireLevelPerformed(int level, List<? extends ILevel> levels, IPosition position) {
+	public void fireLevelPerformed(int level, List<? extends ILevel> levels, IPosition position) throws ScanningException {
 		if (listeners==null) return;
 		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		final PositionEvent evnt = new PositionEvent(position);
