@@ -6,9 +6,13 @@ import static org.junit.Assert.assertTrue;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.EventListener;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.jms.Connection;
@@ -36,6 +40,7 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.dry.DryRunCreator;
+import org.eclipse.scanning.event.dry.FastRunCreator;
 import org.junit.After;
 import org.junit.Test;
 
@@ -302,7 +307,7 @@ public class AbstractConsumerTest {
     @Test
     public void testReorderingAPausedQueue() throws Exception {
     	
-		consumer.setRunner(new DryRunCreator<StatusBean>(true));
+		consumer.setRunner(new FastRunCreator<StatusBean>(100, true));
 		consumer.start();
 
 		// Bung ten things on there.
@@ -313,20 +318,67 @@ public class AbstractConsumerTest {
 			bean.setHostName(InetAddress.getLocalHost().getHostName());
 			bean.setMessage("Hello World");
 			bean.setUniqueId(UUID.randomUUID().toString());
+			bean.setUserName(String.valueOf(i));
 			submitter.submit(bean);
 		}
 
-		Thread.sleep(500);
-
+		Thread.sleep(100);
 		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
 		PauseBean pbean = new PauseBean();
 		pbean.setQueueName(consumer.getSubmitQueueName());
 		pauser.broadcast(pbean);
 		
 		// Now we are paused. Read the submission queue
+		Thread.sleep(100);
 		List<StatusBean> submitQ = consumer.getSubmissionQueue();
 		assertEquals(9, submitQ.size());
 	
+		Thread.sleep(2000); // Wait for 0 to run and check again that nothing else is
+		
+		submitQ = consumer.getSubmissionQueue();
+		assertEquals(9, submitQ.size()); // It really has paused has it?
+		
+		// Right then we will reorder it.
+		consumer.cleanQueue(consumer.getSubmitQueueName());
+		
+		// Reverse sort
+		Collections.sort(submitQ, new Comparator<StatusBean>() {
+			@Override
+			public int compare(StatusBean o1, StatusBean o2) {
+				int y = Integer.valueOf(o1.getUserName());
+				int x = Integer.valueOf(o2.getUserName());
+				return (x < y) ? -1 : ((x == y) ? 0 : 1);
+			}
+		});
+		
+		// Start the consumer again
+		pbean.setPause(false);
+		pauser.broadcast(pbean);
+		
+		// Resubmit in new order 9-1
+		for (StatusBean statusBean : submitQ) submitter.submit(statusBean);
+		
+		final Map<String, StatusBean> run = new LinkedHashMap<>(9); // Order important
+		ISubscriber<EventListener> sub = eservice.createSubscriber(consumer.getUri(), consumer.getStatusTopicName());
+		sub.addListener(new IBeanListener<StatusBean>() {
+			@Override
+			public void beanChangePerformed(BeanEvent<StatusBean> evt) {
+				// Many events come through here but each scan is run in order
+				StatusBean bean = evt.getBean();
+				run.put(bean.getName(), bean);
+			}
+		});
+
+		while(!consumer.getSubmissionQueue().isEmpty()) Thread.sleep(1000); // Wait for all to run
+		
+		Thread.sleep(200); // ensure last one is running or ran.
+		
+		List<StatusBean> ordered = new ArrayList<>(run.values());
+		assertEquals(9, ordered.size());
+		for (int i = 0; i < ordered.size(); i++) {
+			int t = Integer.valueOf(ordered.get(i).getUserName());
+			if ((9-i) != t) throw new Exception("The run order was not 9-1 after reordering!");
+		}
     }
 
 
@@ -419,6 +471,7 @@ public class AbstractConsumerTest {
 			throw new Exception("The pulse continues to beat after death. Ahhhhhh! Is it a vampir? Do we need the garlic?!");
 		}
 
+		subscriber.disconnect();
    }
 
    private StatusBean doSubmit() throws Exception {
