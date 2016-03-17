@@ -18,10 +18,22 @@ class DryRunProcess<T extends StatusBean> implements IConsumerProcess<T> {
 	
 	private boolean terminated;
 
+	private int stop;
+	private int start;
+	private int step;
+	private long sleep;
+
 	public DryRunProcess(T bean, IPublisher<T> statusPublisher, boolean blocking) {
+		this(bean,statusPublisher,blocking,0,100,1,100);
+	}
+	public DryRunProcess(T bean, IPublisher<T> statusPublisher, boolean blocking, int start, int stop, int step, long sleep) {
 		this.bean      = bean;
 		this.publisher = statusPublisher;
 		this.blocking  = blocking;
+		this.start = start;
+		this.stop  = stop;
+		this.step  = step;
+		this.sleep  = sleep;
 	}
 
 	@Override
@@ -56,29 +68,32 @@ class DryRunProcess<T extends StatusBean> implements IConsumerProcess<T> {
 	
 	private void run()  throws EventException {
 		
+		bean.setPreviousStatus(Status.QUEUED);
 		bean.setStatus(Status.RUNNING);
 		bean.setPercentComplete(0d);
 		publisher.broadcast(bean);
 
 		terminated = false;
-		for (int i = 0; i < 100; i++) {
+		for (int i = start; i <= stop; i+=step) {
 			
 			if (isTerminated()) {
+				bean.setPreviousStatus(Status.RUNNING);
 				bean.setStatus(Status.TERMINATED);
 				publisher.broadcast(bean);
 				return;
 			}
 			
 			try {
-				Thread.sleep(100);
+				Thread.sleep(sleep);
 			} catch (InterruptedException e) {
 				logger.error("Dry run sleeping failed", e);
 			}
 			System.out.println("Dry run : "+bean.getPercentComplete()+" : "+bean.getName());
-			bean.setPercentComplete(i);
+			bean.setPercentComplete((Double.valueOf(i)/Double.valueOf(stop))*100d);
 			publisher.broadcast(bean);
 		}
 
+		bean.setPreviousStatus(Status.RUNNING);
 		bean.setStatus(Status.COMPLETE);
 		bean.setPercentComplete(100);
 		bean.setMessage("Dry run complete (no software run)");
