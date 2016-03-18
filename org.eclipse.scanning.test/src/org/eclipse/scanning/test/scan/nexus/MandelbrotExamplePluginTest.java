@@ -2,6 +2,8 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPoints;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -183,10 +185,8 @@ public class MandelbrotExamplePluginTest {
 		checkNexusFile(scanner, shape); // Step model is +1 on the size
 	}
 
-
 	private void checkNexusFile(IRunnableDevice<ScanModel> scanner,
 			                    int... sizes) throws NexusException, ScanningException {
-		
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 
@@ -197,7 +197,10 @@ public class MandelbrotExamplePluginTest {
 		NXroot rootNode = (NXroot) nexusTree.getGroupNode();
 		NXentry entry = rootNode.getEntry();
 		NXinstrument instrument = entry.getInstrument();
-
+		
+		// check that the scan points have been written correctly
+		assertScanPointsGroup(entry, sizes);
+		
 		LinkedHashMap<String, Integer> detectorDataFields = new LinkedHashMap<>();
 		detectorDataFields.put(NXdetector.NX_DATA, 2); // num additional dimensions
 		detectorDataFields.put("spectrum", 1);
@@ -251,8 +254,10 @@ public class MandelbrotExamplePluginTest {
 			expectedAxesNames.addAll(Collections.nCopies(valueRank, "."));
 			assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 
-			int[] defaultDimensionMappings = IntStream.range(0, sizes.length)
-					.toArray();
+			// assert that the uniqueKeys and points datasets have been written correctly
+			assertScanPoints(nxData, sizes);
+			
+			int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
 			for (int i = 0; i < scannableNames.size(); i++) {
 				// Demand values should be 1D
 				String scannableName = scannableNames.get(i);
@@ -287,7 +292,7 @@ public class MandelbrotExamplePluginTest {
 			}
 		}
 	}
-
+	
 	private IRunnableDevice<ScanModel> createGridScan(final IRunnableDevice<?> detector, int... size) throws Exception {
 		
 		// Create scan points for a grid and make a generator

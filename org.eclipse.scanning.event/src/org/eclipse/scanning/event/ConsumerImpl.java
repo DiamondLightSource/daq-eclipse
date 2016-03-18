@@ -267,6 +267,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 				}
 			}
 		};
+		setActive(true);
 		consumerThread.setDaemon(true);
 		consumerThread.setPriority(Thread.NORM_PRIORITY-1);
 		consumerThread.start();
