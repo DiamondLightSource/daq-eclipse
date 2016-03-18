@@ -19,6 +19,7 @@ import javax.jms.TextMessage;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
@@ -30,8 +31,8 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 	private long   lifeTime;
 	private long   timestamp;
 
-	SubmitterImpl(URI uri, String submitQueue, IEventConnectorService service) {
-		super(uri, null, service);
+	SubmitterImpl(URI uri, String submitQueue, IEventConnectorService service, IEventService eservice) {
+		super(uri, null, service, eservice);
 		setSubmitQueueName(submitQueue);
 	}
 
@@ -202,4 +203,5 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 		this.timestamp = timestamp;
 	}
 
+	
 }

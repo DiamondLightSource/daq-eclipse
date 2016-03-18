@@ -2,6 +2,7 @@ package org.eclipse.scanning.event;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -24,19 +25,26 @@ import javax.jms.TextMessage;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.PauseBean;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IQueueConnection;
+import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
 public abstract class AbstractQueueConnection<U extends StatusBean> extends AbstractConnection implements IQueueConnection<U>{
 
+	protected IEventService          eservice;
 
-	AbstractQueueConnection(URI uri, String topic, IEventConnectorService service) {
+	AbstractQueueConnection(URI uri, String topic, IEventConnectorService service, IEventService eservice) {
 		super(uri, topic, service);
+		this.eservice = eservice;
 	}
 
-	AbstractQueueConnection(URI uri, String submitQName, String statusQName, String statusTName, String commandTName, IEventConnectorService service) {
+	AbstractQueueConnection(URI uri, String submitQName, String statusQName, String statusTName, String commandTName, IEventConnectorService service, IEventService eservice) {
         super(uri, submitQName, statusQName, statusTName, commandTName, service);
+		this.eservice = eservice;
 	}
 
 	private Class<U> beanClass;
@@ -58,7 +66,6 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 		
 		if (fieldName!=null) c = getComparator(fieldName);
 			
-
 		QueueReader<U> reader = new QueueReader<U>(service, c);
 		try {
 			return reader.getBeans(uri, qName, beanClass);
@@ -70,6 +77,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 
 	private Comparator<U> getComparator(final String fieldName) {
 		
+		if (fieldName==null) return null;
 		if ("submissionTime".equals(fieldName)) { // Short cu no reflection
 			
 			return new Comparator<U>() {		
@@ -274,6 +282,64 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 					logger.error("Cannot close queue!", e);
 				}
 			}
+		}
+	}
+	
+	@Override
+	public void reorder(U bean, int amount) throws EventException {
+		
+		if (amount==0) return; // Nothing to do, no exception required, order unchanged.
+		
+		PauseBean pbean = new PauseBean();
+		pbean.setQueueName(getSubmitQueueName());
+		pbean.setMessage("Pause to reorder '"+bean.getName()+"' "+amount);
+		
+		IPublisher<PauseBean> publisher = eservice.createPublisher(getUri(), getCommandTopicName());
+		publisher.broadcast(pbean);
+		
+		try {
+			
+			// We are paused, read the queue
+			List<U> submitted = getQueue(getSubmitQueueName(), null);
+			if (submitted==null || submitted.size()<1) throw new EventException("There is nothing submitted waiting to be run\n\nPerhaps the job started to run.");
+
+			Collections.reverse(submitted); // It comes out with the head at 0 and tail at size-1
+			boolean found = false;
+			int index = -1;
+			for (U u : submitted) {
+				index++;
+				if (u.getUniqueId().equals(bean.getUniqueId())) {
+					found=true;
+					break;
+				}
+			}
+			if (!found) throw new EventException("Cannot find bean '"+bean.getName()+"' in submission queue!\nIt might be running now.");
+			
+			if (index<1 && amount<0) throw new EventException("'"+bean.getName()+"' is already at the tail of the submission queue.");
+			if (index+amount>submitted.size()-1) throw new EventException("'"+bean.getName()+"' is already at the head of the submission queue.");
+			
+			clearQueue(getSubmitQueueName());
+			
+			U existing = submitted.get(index);
+			if (amount>0) {
+				submitted.add(index+amount+1, existing);
+				submitted.remove(index);
+			} else {
+				submitted.add(index+amount, existing);
+				submitted.remove(index+1);
+			}
+			
+			Collections.reverse(submitted); // It goes back with the head at 0 and tail at size-1
+			
+			ISubmitter<U> submitter = this instanceof ISubmitter 
+					                ? (ISubmitter<U>)this 
+					                : (ISubmitter<U>)eservice.createSubmitter(getUri(), getSubmitQueueName());
+			
+		    for (U u : submitted) submitter.submit(u);
+			
+		} finally {
+			pbean.setPause(false);
+			publisher.broadcast(pbean);
 		}
 	}
 	

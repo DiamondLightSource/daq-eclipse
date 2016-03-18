@@ -72,4 +72,15 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 * It is not compulsory to set the bean class unless trying to deserialize messages sent by older versions of the connector service.
 	 */
 	public void setBeanClass(Class<T> beanClass);
+
+	/**
+	 * Attempts to reorder the bean in the submission queue. This is only 
+	 * possible if the bean is 
+	 * 
+	 * @param selection
+	 * @param amount (e.g. +1 more urgent, -1 less urgent)
+	 * @throws EventException if there was an issue with the required position in the queue.
+	 */
+	void reorder(T bean, int amount) throws EventException;
+
 }
