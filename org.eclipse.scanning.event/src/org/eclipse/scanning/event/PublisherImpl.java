@@ -67,6 +67,9 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	protected void send(MessageProducer producer, Object message, long messageLifetime)  throws Exception {
 
 		String json = service.marshal(message);
+		
+		if (connection==null) createConnection();
+		if (session == null)  createSession();
 		TextMessage temp = session.createTextMessage(json);
 		producer.send(temp, DeliveryMode.NON_PERSISTENT, 1, messageLifetime);	
 		if (out!=null) out.println(json);

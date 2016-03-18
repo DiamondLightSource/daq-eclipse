@@ -60,7 +60,6 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	
 	private volatile boolean              active;
 	private volatile Map<String, WeakReference<IConsumerProcess<U>>>  processes;
-	private IEventService                 eservice;
 	private Map<String, U>                overrideMap;
 	
 	/*
@@ -81,8 +80,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 			              IEventConnectorService service,
 			              IEventService          eservice) throws EventException {
 		
-		super(uri, submitQName, statusQName, statusTName, commandTName, service);
-		this.eservice = eservice;
+		super(uri, submitQName, statusQName, statusTName, commandTName, service, eservice);
 		this.lock      = new ReentrantLock();
 		this.paused    = lock.newCondition();
 		
@@ -237,7 +235,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 
 	@Override
 	public List<U> getSubmissionQueue() throws EventException {
-		return getQueue(getSubmitQueueName(), "submissionTime");
+		return getQueue(getSubmitQueueName(), null);
 	}
 
 	@Override
@@ -424,7 +422,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		
 		try {
 			awaitPaused = true;
-			consumer.close();
+			if (consumer!=null) consumer.close();
 			consumer = null; // Force unpaused consumers to make a new connection.
 			
 		} catch (Exception ne) {

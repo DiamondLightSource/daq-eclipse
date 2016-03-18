@@ -13,6 +13,7 @@ import javax.jms.Topic;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +25,10 @@ class AbstractConnection {
 	protected final URI              uri;
 	protected String                 topicName;
 	
-	protected String                 submitQueueName;
-	protected String                 statusQueueName;
-	protected String                 statusTopicName;
-	protected String                 commandTopicName;
+	protected String                 submitQueueName  = IEventService.SUBMISSION_QUEUE;
+	protected String                 statusQueueName  = IEventService.STATUS_SET;
+	protected String                 statusTopicName  = IEventService.STATUS_TOPIC;
+	protected String                 commandTopicName = IEventService.CMD_TOPIC;
 
 	protected IEventConnectorService service;
 	
@@ -67,7 +68,7 @@ class AbstractConnection {
 	}
 
 	
-	private void createSession() throws JMSException {
+	protected void createSession() throws JMSException {
 		this.session      = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 	
@@ -75,7 +76,7 @@ class AbstractConnection {
 		this.qSession     = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 
-	private void createConnection() throws JMSException {
+	protected void createConnection() throws JMSException {
 		Object factory = service.createConnectionFactory(uri);
 		QueueConnectionFactory connectionFactory = (QueueConnectionFactory)factory;		
 		this.connection = connectionFactory.createQueueConnection();
@@ -94,6 +95,7 @@ class AbstractConnection {
 		} finally {
 			connection = null;
 			session = null;
+			qSession = null;
 		}
 	}
 
