@@ -50,24 +50,56 @@ class AbstractConnection {
 		this.service = service;
 	}
 	
+	/**
+	 * Deals with reconnecting or if broker gone down, fails
+	 * 
+	 * @param topicName
+	 * @return
+	 * @throws JMSException
+	 */
 	protected Topic createTopic(String topicName) throws JMSException {
 		
-		if (connection==null) createConnection();
-		if (session == null)  createSession();
-		
-		return session.createTopic(topicName);
+		// Deals with reconnecting or if broker gone down, fails
+		try {
+			if (connection==null) createConnection();
+			if (session == null)  createSession();
+			
+			return session.createTopic(topicName);
+			
+		} catch (Exception ne) {
+			createConnection();
+			createQSession();
+			
+			return session.createTopic(topicName);
+		}
 	}
 	
+	/**
+	 * Deals with reconnecting or if broker gone down, fails
+	 * 
+	 * @param queueName
+	 * @return
+	 * @throws JMSException
+	 */
 	protected Queue createQueue(String queueName) throws JMSException {
 		
-		if (connection==null) createConnection();
-		if (qSession == null) createQSession();
-		
-		return qSession.createQueue(queueName);
+		// Deals with reconnecting or if broker gone down, fails
+		try {
+			if (connection==null) createConnection();
+			if (qSession == null) createQSession();
+			
+			return qSession.createQueue(queueName);
+			
+		} catch (Exception ne) {
+			createConnection();
+			createQSession();
+			
+			return qSession.createQueue(queueName);
+		}
 	}
 
 	
-	private void createSession() throws JMSException {
+	protected void createSession() throws JMSException {
 		this.session      = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 	
@@ -75,7 +107,7 @@ class AbstractConnection {
 		this.qSession     = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 
-	private void createConnection() throws JMSException {
+	protected void createConnection() throws JMSException {
 		Object factory = service.createConnectionFactory(uri);
 		QueueConnectionFactory connectionFactory = (QueueConnectionFactory)factory;		
 		this.connection = connectionFactory.createQueueConnection();

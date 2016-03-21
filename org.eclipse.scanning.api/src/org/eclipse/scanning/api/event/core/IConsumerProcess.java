@@ -28,9 +28,49 @@ public interface IConsumerProcess<T> {
 	 * Execute the process, if an exception is thrown the process is set to 
 	 * failed and the message is the message of the exception.
 	 * 
+	 * This is the blocking method to run the process. 
+	 * The start method will be called by the consumer running the process
+	 * and by default terminate is called in the same thread. If blocking is
+	 * set to 
+	 * 
 	 * @throws Exception
 	 */
 	public void execute() throws EventException;
+	
+	/**
+	 * If the process is non-blocking this method will start a thread
+	 * which calls execute (and the method will return).
+	 * 
+	 * By default a process blocks until it is done. isBlocking() and start()
+	 * may be overridden to redefine this.
+	 * 
+	 * @throws EventException
+	 */
+	default void start() throws EventException {
+		
+		if (isBlocking()) {
+			execute(); // Block until process has run.
+		} else {
+			final Thread thread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						execute();
+					} catch (EventException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}, "Run "+getBean());
+			thread.setDaemon(true);
+			thread.setPriority(Thread.MAX_PRIORITY);
+			thread.start();
+		}
+	}
+	
+	default boolean isBlocking() {
+		return true;
+	}
 	
 	/**
 	 * Please provide a termination for the process by implementing this method.
