@@ -13,7 +13,6 @@ import java.net.URI;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
@@ -122,7 +121,7 @@ public class StatusQueueView extends ViewPart {
 	private ISubscriber<IBeanListener<AdministratorMessage>> adminMonitor;
 	private ISubmitter<StatusBean>                           queueConnection;
 
-	private Action rerun, kill, up, down, pause;
+	private Action rerun, remove, up, down, pause;
 	private IEventService service;
 	
 	public StatusQueueView() {
@@ -173,14 +172,16 @@ public class StatusQueueView extends ViewPart {
 	protected void updateSelected() {
 		StatusBean bean = getSelection();
 		if (bean == null) bean = new StatusBean();
-		boolean isSubmitted = bean.getStatus()==org.eclipse.scanning.api.event.status.Status.SUBMITTED;
-		boolean isRunning = true;
-		if (bean!=null) isRunning = !bean.getStatus().isFinal();
-		kill.setEnabled(isRunning || isSubmitted);
+		
+		remove.setEnabled(bean.getStatus()!=null);
 		rerun.setEnabled(true);
+		
+		boolean isSubmitted = bean.getStatus()==org.eclipse.scanning.api.event.status.Status.SUBMITTED;
 		up.setEnabled(isSubmitted);
 		down.setEnabled(isSubmitted);
-		pause.setEnabled(bean.getStatus()==org.eclipse.scanning.api.event.status.Status.RUNNING);
+		pause.setEnabled(bean.getStatus().isRunning()||bean.getStatus().isPaused());
+		pause.setChecked(bean.getStatus().isPaused());
+		pause.setText(bean.getStatus().isPaused()?"Resume job":"Pause job");
 	}
 
 	/**
@@ -328,25 +329,27 @@ public class StatusQueueView extends ViewPart {
 		menuMan.add(down);
 		dropDown.add(down);
 
-		this.pause = new Action("Pause job", Activator.getDefault().getImageDescriptor("icons/control-pause.png")) {
+		this.pause = new Action("Pause job", IAction.AS_CHECK_BOX) {
 			public void run() {
-				
+				pauseJob();
 			}
 		};
+		pause.setImageDescriptor(Activator.getDefault().getImageDescriptor("icons/control-pause.png"));
 		pause.setEnabled(false);
+		pause.setChecked(false);
 		toolMan.add(pause);
 		menuMan.add(pause);
 		dropDown.add(pause);
 		
-		this.kill = new Action("Stop/Terminate job", Activator.getDefault().getImageDescriptor("icons/control-stop-square.png")) {
+		this.remove = new Action("Stop job or remove if finished", Activator.getDefault().getImageDescriptor("icons/control-stop-square.png")) {
 			public void run() {
 				stopJob();
 			}
 		};
-		kill.setEnabled(false);
-		toolMan.add(kill);
-		menuMan.add(kill);
-		dropDown.add(kill);
+		remove.setEnabled(false);
+		toolMan.add(remove);
+		menuMan.add(remove);
+		dropDown.add(remove);
 		
 		this.rerun = new Action("Rerun...", Activator.getDefault().getImageDescriptor("icons/rerun.png")) {
 			public void run() {
@@ -422,14 +425,65 @@ public class StatusQueueView extends ViewPart {
 		viewer.getControl().setMenu(menuMan.createContextMenu(viewer.getControl()));
 	}
 
-	protected void stopJob() {
+	protected void pauseJob() {
+		
 		final StatusBean bean = getSelection();
 		if (bean==null) return;
 		
 		if (bean.getStatus().isFinal()) {
-			MessageDialog.openInformation(getViewSite().getShell(), "Run '"+bean.getName()+"' inactive", "Run '"+bean.getName()+"' is inactive and cannot be terminated.");
+			MessageDialog.openInformation(getViewSite().getShell(), "Run '"+bean.getName()+"' inactive", "Run '"+bean.getName()+"' is inactive and cannot be paused.");
 			return;
 		}
+
+		try {
+			if (bean.getStatus().isPaused()) {
+				bean.setStatus(org.eclipse.scanning.api.event.status.Status.REQUEST_RESUME);
+				bean.setMessage("Resume of "+bean.getName());
+			} else {
+				bean.setStatus(org.eclipse.scanning.api.event.status.Status.REQUEST_PAUSE);
+				bean.setMessage("Pause of "+bean.getName());
+			}
+			
+			IPublisher<StatusBean> terminate = service.createPublisher(getUri(), getTopicName());
+			terminate.broadcast(bean);
+			
+		} catch (Exception e) {
+			ErrorDialog.openError(getViewSite().getShell(), "Cannot pause "+bean.getName(), "Cannot pause "+bean.getName()+"\n\nPlease contact your support representative.",
+					new Status(IStatus.ERROR, "org.eclipse.scanning.event.ui", e.getMessage()));
+		}
+
+	}
+	
+	protected void stopJob() {
+		
+		final StatusBean bean = getSelection();
+		if (bean==null) return;
+		
+		
+		if (!bean.getStatus().isActive()) {
+			
+			String queueName = null;
+			
+			if (bean.getStatus()!=org.eclipse.scanning.api.event.status.Status.SUBMITTED) {
+				queueName = getQueueName();
+				boolean ok = MessageDialog.openQuestion(getSite().getShell(), "Confirm Remove '"+bean.getName()+"'", "Are you sure you would like to remove '"+bean.getName()+"'?");
+				if (!ok) return;
+			} else {
+				// Submitted delete it right away without asking or the consumer will run it!
+				queueName = getSubmissionQueueName();
+			}
+			
+		    // It is submitted and not running. We can probably delete it.
+			try {
+				queueConnection.remove(bean, queueName);
+				refresh();
+			} catch (EventException e) {
+				ErrorDialog.openError(getViewSite().getShell(), "Cannot delete "+bean.getName(), "Cannot delete "+bean.getName()+"\n\nIt might have changed state at the same time and being remoted.",
+						new Status(IStatus.ERROR, "org.eclipse.scanning.event.ui", e.getMessage()));
+			}
+			return;
+		}
+		
 		try {
 			
 			final DateFormat format = DateFormat.getDateTimeInstance();
@@ -439,7 +493,7 @@ public class StatusQueueView extends ViewPart {
 			if (!ok) return;
 			
 			bean.setStatus(org.eclipse.scanning.api.event.status.Status.REQUEST_TERMINATE);
-			bean.setMessage("Requesting a termination of "+bean.getName());
+			bean.setMessage("Termination of "+bean.getName());
 			
 			IPublisher<StatusBean> terminate = service.createPublisher(getUri(), getTopicName());
 			terminate.broadcast(bean);

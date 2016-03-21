@@ -13,7 +13,7 @@ import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IPauseableDevice;
+import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -352,7 +352,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		try {
 			awaitPaused = true;
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
-				if (device instanceof IPauseableDevice) ((IPauseableDevice)device).pause();
+				if (device instanceof IPausableDevice) ((IPausableDevice)device).pause();
 			}
 			
 		} catch (ScanningException s) {
@@ -379,7 +379,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		try {
 			awaitPaused = false;
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
-				if (device instanceof IPauseableDevice) ((IPauseableDevice)device).resume();
+				if (device instanceof IPausableDevice) ((IPausableDevice)device).resume();
 			}
 			paused.signalAll();
 			

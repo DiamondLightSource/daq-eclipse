@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IDeviceService;
-import org.eclipse.scanning.api.device.IPauseableDevice;
+import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -84,19 +84,19 @@ public class ThreadScanTest {
 	@Test
 	public void testPauseAndResume2Threads() throws Throwable {
 		
-		IPauseableDevice<?> device = createConfiguredDevice(5, 5);
+		IPausableDevice<?> device = createConfiguredDevice(5, 5);
 		pause1000ResumeLoop(device, 2, 2000, false);
 	}
 	
 	@Test
 	public void testPauseAndResume10Threads() throws Throwable {
 		
-		IPauseableDevice<?> device = createConfiguredDevice(10, 10);
+		IPausableDevice<?> device = createConfiguredDevice(10, 10);
 		pause1000ResumeLoop(device, 10, 2000, false);
 	}
 
 
-	protected IRunnableDevice<?> pause1000ResumeLoop(final IPauseableDevice<?> device, 
+	protected IRunnableDevice<?> pause1000ResumeLoop(final IPausableDevice<?> device, 
 													 int threadcount, 
 													 long sleepTime, 
 													 boolean expectExceptions) throws Throwable {
@@ -205,7 +205,7 @@ public class ThreadScanTest {
 		});	
 	}
 
-	private IPauseableDevice<?> createConfiguredDevice(int rows, int columns) throws ScanningException, GeneratorException, URISyntaxException {
+	private IPausableDevice<?> createConfiguredDevice(int rows, int columns) throws ScanningException, GeneratorException, URISyntaxException {
 		
 		// Configure a detector with a collection time.
 		MockDetectorModel dmodel = new MockDetectorModel();
@@ -226,7 +226,7 @@ public class ThreadScanTest {
 		smodel.setDetectors(detector);
 		
 		// Create a scan and run it
-		IPauseableDevice<ScanModel> scanner = (IPauseableDevice<ScanModel>) sservice.createRunnableDevice(smodel, publisher);
+		IPausableDevice<ScanModel> scanner = (IPausableDevice<ScanModel>) sservice.createRunnableDevice(smodel, publisher);
 		return scanner;
 	}
 
@@ -252,7 +252,7 @@ public class ThreadScanTest {
 		return device;
 	}
 	
-	protected synchronized void checkPauseResume(IPauseableDevice<?> device, long pauseTime, boolean ignoreReady) throws Exception {
+	protected synchronized void checkPauseResume(IPausableDevice<?> device, long pauseTime, boolean ignoreReady) throws Exception {
 		
 		
 		// No fudgy sleeps allowed in test must be as dataacq would use.

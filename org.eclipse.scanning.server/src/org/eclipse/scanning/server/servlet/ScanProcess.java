@@ -1,16 +1,16 @@
 package org.eclipse.scanning.server.servlet;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IConsumerProcess;
+import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -37,21 +37,18 @@ import org.eclipse.scanning.api.script.UnsupportedLanguageException;
  * @author Matthew Gerring
  *
  */
-class ScanProcess implements IConsumerProcess<ScanBean> {
+class ScanProcess extends AbstractPausableProcess<ScanBean> {
 
 	// Services
 	private IPositioner                positioner;
 	private IScriptService             scriptService;
 	
-	private ScanBean                   bean;
-	private IPublisher<ScanBean>       response;
-	private IRunnableDevice<ScanModel> device;
+	private IPausableDevice<ScanModel> device;
 	private boolean                    blocking;
 
 	public ScanProcess(ScanBean scanBean, IPublisher<ScanBean> response, boolean blocking) throws EventException {
 		
-		this.bean     = scanBean;
-		this.response = response;
+		super(scanBean, response);
 		this.blocking = blocking;
 		
 		if (bean.getScanRequest().getStart()!=null || bean.getScanRequest().getEnd()!=null) {
@@ -68,15 +65,15 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		bean.setStatus(Status.QUEUED);
 		broadcast(bean);
 	}
-
+	
 	@Override
-	public ScanBean getBean() {
-		return bean;
+	public void doPause() throws Exception {
+		device.pause();
 	}
-
+	
 	@Override
-	public IPublisher<ScanBean> getPublisher() {
-		return response;
+	public void doResume() throws Exception  {
+		device.resume();
 	}
 
 	@Override
@@ -137,7 +134,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		return scriptService.execute(req);		
 	}
 
-	private IRunnableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws ScanningException, EventException {
+	private IPausableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws ScanningException, EventException {
 
 		ScanRequest<?> req = bean.getScanRequest();
 		if (req==null) throw new ScanningException("There must be a scan request to run a new scan!");
@@ -150,7 +147,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			smodel.setMonitors(getMonitors(req.getMonitorNames()));
 			smodel.setBean(bean);
 			
-			return Services.getScanService().createRunnableDevice(smodel, response);
+			return (IPausableDevice<ScanModel>)Services.getScanService().createRunnableDevice(smodel, publisher);
 			
 		} catch (Exception e) {
 			bean.setStatus(Status.FAILED);
@@ -254,8 +251,8 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 	}
 
 	private void broadcast(ScanBean bean) throws EventException {
-		if (response!=null && response.isAlive()) {
-			response.broadcast(bean);
+		if (publisher!=null && publisher.isAlive()) {
+			publisher.broadcast(bean);
 		}		
 	}
 
