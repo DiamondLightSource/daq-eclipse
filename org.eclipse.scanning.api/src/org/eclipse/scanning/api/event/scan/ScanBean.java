@@ -208,7 +208,7 @@ public final class ScanBean extends StatusBean {
 	}
 
 	public boolean scanEnd() {
-		return Status.RUNNING ==previousStatus && Status.RUNNING!=status;
+		return previousStatus.isRunning() && Status.RUNNING!=status;
 	}
 
 	@Override

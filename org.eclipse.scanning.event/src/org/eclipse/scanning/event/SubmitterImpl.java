@@ -105,64 +105,14 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 	}
 	
 	@Override
-	public boolean remove(T bean) throws EventException {
-			
-		QueueConnection send     = null;
-		QueueSession    session  = null;
-		MessageProducer producer = null;
-
-		try {
-
-			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)service.createConnectionFactory(uri);
-			send              = connectionFactory.createQueueConnection();
-
-			session = send.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-			Queue queue = session.createQueue(getSubmitQueueName());
-			QueueBrowser qb = session.createBrowser(queue);
-	
-			@SuppressWarnings("rawtypes")
-			Enumeration  e  = qb.getEnumeration();
-	
-			String jMSMessageID = null;
-			while(e.hasMoreElements()) {
-				Message m = (Message)e.nextElement();
-				if (m==null) continue;
-				if (m instanceof TextMessage) {
-					TextMessage t = (TextMessage)m;
-
-					final T qbean = service.unmarshal(t.getText(), null);
-					if (qbean==null) continue;
-					if (isSame(qbean, bean)) {
-						jMSMessageID = t.getJMSMessageID();
-						break;
-					}
-				}
-			}
-	
-			qb.close();
-	
-			if (jMSMessageID!=null) {
-				MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
-				Message m = consumer.receive(1000);
-				return m!=null;
-			}
-	
-			return false;
-			
-		} catch (Exception ne) {
-			throw new EventException("Cannot remove item "+bean, ne);
-		}  finally {
-			try {
-				if (send!=null)     send.close();
-				if (session!=null)  session.close();
-				if (producer!=null) producer.close();
-			} catch (Exception e) {
-				throw new EventException("Cannot close connection as expected!", e);
-			}
-		}
-
+	public boolean reorder(T bean, int amount) throws EventException {
+		return reorder(bean, getSubmitQueueName(), amount);
 	}
 
+	@Override
+	public boolean remove(T bean) throws EventException {
+        return remove(bean, getSubmitQueueName());
+	}
 
 	public String getUniqueId() {
 		return uniqueId;

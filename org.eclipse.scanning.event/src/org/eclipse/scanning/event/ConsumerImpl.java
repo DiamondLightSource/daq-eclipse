@@ -50,7 +50,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	private UUID                          consumerId;
 	private IPublisher<U>                 status;
 	private IPublisher<HeartbeatBean>     alive;
-	private ISubscriber<IBeanListener<U>> terminator;
+	private ISubscriber<IBeanListener<U>> manager;
 	private ISubscriber<IBeanListener<ConsumerCommandBean>> command;
 	private ISubmitter<U>                 mover;
 
@@ -163,6 +163,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		
 		Session session = null;
 		try {
+			pause();
+			
 			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			Queue queue = session.createQueue(getSubmitQueueName());
 			QueueBrowser qb = session.createBrowser(queue);
@@ -204,7 +206,9 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 						
 		} catch (Exception ne) {
 			throw new EventException("Cannot reorder queue!", ne);
+			
 		} finally {
+			resume();
 			try {
 				if (session!=null) session.close();
 			} catch (JMSException e) {
@@ -273,30 +277,39 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		consumerThread.start();
 	}
 	
-	private void startTerminator() throws EventException {
+
+	private void startJobManager() throws EventException {
 		
-		if (terminator!=null) terminator.disconnect();
-		terminator = eservice.createSubscriber(uri, getStatusTopicName());
-		terminator.addListener(new IBeanListener<U>() {
+		if (manager!=null) manager.disconnect();
+		manager = eservice.createSubscriber(uri, getStatusTopicName());
+		manager.addListener(new IBeanListener<U>() {
 			@Override
 			public void beanChangePerformed(BeanEvent<U> evt) {
 				U bean = evt.getBean();
-				if (bean.getStatus()!=Status.REQUEST_TERMINATE) return;
+				if (!bean.getStatus().isRequest()) return;
 				
-				WeakReference<IConsumerProcess<U>> ref = processes.remove(bean.getUniqueId());
+				WeakReference<IConsumerProcess<U>> ref = processes.get(bean.getUniqueId());
 				try {
 					if (ref==null) { // Might be in submit queue still
-						pause();
 						updateQueue(bean);
-						
+
 					} else {
 						IConsumerProcess<U> process = ref.get();
 						if (process!=null) {
-							process.terminate();
+							process.getBean().setStatus(bean.getStatus());
+							process.getBean().setMessage(bean.getMessage());
+							if (bean.getStatus()==Status.REQUEST_TERMINATE) {
+								processes.remove(bean.getUniqueId());
+								process.terminate();
+							} else if (bean.getStatus()==Status.REQUEST_PAUSE) {
+								process.pause();
+							} else if (bean.getStatus()==Status.REQUEST_RESUME) {
+								process.resume();
+							}
 						}
 					}
-				} catch (EventException e) {
-					logger.error("Cannot terminate process "+bean.getUniqueId(), e);
+				} catch (EventException ne) {
+					logger.error("Internal error, please contact your support representative.", ne);
 				}
 			}
 		});
@@ -317,7 +330,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	@Override
 	public void run() throws EventException {
 		
-		startTerminator();
+		startJobManager();
 
 		if (runner!=null) {
 			alive.setAlive(true);
@@ -350,7 +363,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	            	
 	            }
 	            
-        	} catch (EventException ne) {
+        	} catch (EventException | InterruptedException ne) {
         		ne.printStackTrace();
         		if (isDurable()) continue;
         		break;

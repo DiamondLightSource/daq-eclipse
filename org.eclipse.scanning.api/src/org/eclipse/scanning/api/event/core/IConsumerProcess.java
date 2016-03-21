@@ -16,13 +16,13 @@ public interface IConsumerProcess<T> {
 	 *  
 	 * @return the bean which this process is currently running.
 	 */
-	public T getBean();
+	T getBean();
 	
 	/**
 	 *  
 	 * @return the bean which this process is currently running.
 	 */
-	public IPublisher<T> getPublisher();
+	IPublisher<T> getPublisher();
 	
 	/**
 	 * Execute the process, if an exception is thrown the process is set to 
@@ -35,7 +35,7 @@ public interface IConsumerProcess<T> {
 	 * 
 	 * @throws Exception
 	 */
-	public void execute() throws EventException;
+	void execute() throws EventException;
 	
 	/**
 	 * If the process is non-blocking this method will start a thread
@@ -79,6 +79,20 @@ public interface IConsumerProcess<T> {
 	 * 
 	 * @throws Exception
 	 */
-	public void terminate() throws EventException;
+	void terminate() throws EventException;
+
+	/**
+	 * Call to pause the running process.
+	 */
+	default void pause() throws EventException {
+		
+	}
+	
+	/**
+	 * Call to resume the process.
+	 */
+	default void resume() throws EventException {
+
+	}
 
 }

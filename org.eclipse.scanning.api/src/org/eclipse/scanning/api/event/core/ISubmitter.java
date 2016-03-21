@@ -24,11 +24,27 @@ public interface ISubmitter<T> extends IQueueConnection<T> {
 	void submit(T bean, boolean prepareBean) throws EventException;
 	
 	/**
-	 * Tries to remove the bean from the set
+	 * Tries to reorder the bean in the submission queue if it is
+	 * still there. If the bean has been moved to the status set, 
+	 * it will not be moved 
 	 * 
-	 * NOTE This method can end up reordering the items - only use on queues
-	 * which are being used like Sets, not queues like submission queues
-	 * in which order matters.
+	 * A pause will automatically be done while the bean
+	 * is removed.
+	 * 
+	 * @param bean
+	 * @return
+	 * @throws EventException
+	 */
+	boolean reorder(T bean, int amount) throws EventException;
+
+	/**
+	 * Tries to remove the bean from the submission queue if it is
+	 * still there. If the bean has been moved to the status set, 
+	 * it will not be removed 
+	 * 
+	 * NOTE This method can end up reordering the items.
+	 * A pause will automatically be done while the bean
+	 * is removed.
 	 * 
 	 * @param bean
 	 * @return

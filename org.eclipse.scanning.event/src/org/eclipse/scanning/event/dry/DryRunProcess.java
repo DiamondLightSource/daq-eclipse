@@ -1,21 +1,18 @@
 package org.eclipse.scanning.event.dry;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IConsumerProcess;
+import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class DryRunProcess<T extends StatusBean> implements IConsumerProcess<T> {
+class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess<T> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DryRunProcess.class);
 
-	private final T                      bean;
-	private final IPublisher<T>          publisher;
-	private boolean                      blocking;
-	
+	private boolean blocking;
 	private boolean terminated;
 
 	private int stop;
@@ -23,27 +20,18 @@ class DryRunProcess<T extends StatusBean> implements IConsumerProcess<T> {
 	private int step;
 	private long sleep;
 
+	private Thread thread;
+
 	public DryRunProcess(T bean, IPublisher<T> statusPublisher, boolean blocking) {
 		this(bean,statusPublisher,blocking,0,100,1,100);
 	}
 	public DryRunProcess(T bean, IPublisher<T> statusPublisher, boolean blocking, int start, int stop, int step, long sleep) {
-		this.bean      = bean;
-		this.publisher = statusPublisher;
+		super(bean, statusPublisher);
 		this.blocking  = blocking;
 		this.start = start;
 		this.stop  = stop;
 		this.step  = step;
 		this.sleep  = sleep;
-	}
-
-	@Override
-	public T getBean() {
-		return bean;
-	}
-
-	@Override
-	public IPublisher<T> getPublisher() {
-		return publisher;
 	}
 
 	@Override
@@ -68,18 +56,21 @@ class DryRunProcess<T extends StatusBean> implements IConsumerProcess<T> {
 	
 	private void run()  throws EventException {
 		
-		bean.setPreviousStatus(Status.QUEUED);
-		bean.setStatus(Status.RUNNING);
-		bean.setPercentComplete(0d);
-		publisher.broadcast(bean);
+		this.thread = Thread.currentThread();
+		getBean().setPreviousStatus(Status.QUEUED);
+		getBean().setStatus(Status.RUNNING);
+		getBean().setPercentComplete(0d);
+		getPublisher().broadcast(getBean());
 
 		terminated = false;
 		for (int i = start; i <= stop; i+=step) {
 			
+			checkPaused(); // Blocks if is, sends events
+			
 			if (isTerminated()) {
-				bean.setPreviousStatus(Status.RUNNING);
-				bean.setStatus(Status.TERMINATED);
-				publisher.broadcast(bean);
+				getBean().setPreviousStatus(Status.RUNNING);
+				getBean().setStatus(Status.TERMINATED);
+				getPublisher().broadcast(getBean());
 				return;
 			}
 			
@@ -88,20 +79,21 @@ class DryRunProcess<T extends StatusBean> implements IConsumerProcess<T> {
 			} catch (InterruptedException e) {
 				logger.error("Dry run sleeping failed", e);
 			}
-			System.out.println("Dry run : "+bean.getPercentComplete()+" : "+bean.getName());
-			bean.setPercentComplete((Double.valueOf(i)/Double.valueOf(stop))*100d);
-			publisher.broadcast(bean);
+			System.out.println("Dry run : "+getBean().getPercentComplete()+" : "+getBean().getName());
+			getBean().setPercentComplete((Double.valueOf(i)/Double.valueOf(stop))*100d);
+			getPublisher().broadcast(getBean());
 		}
 
-		bean.setPreviousStatus(Status.RUNNING);
-		bean.setStatus(Status.COMPLETE);
-		bean.setPercentComplete(100);
-		bean.setMessage("Dry run complete (no software run)");
-		publisher.broadcast(bean);
+		getBean().setPreviousStatus(Status.RUNNING);
+		getBean().setStatus(Status.COMPLETE);
+		getBean().setPercentComplete(100);
+		getBean().setMessage("Dry run complete (no software run)");
+		getPublisher().broadcast(getBean());
 	}
 
 	@Override
 	public void terminate() throws EventException {
+		if (thread!=null) thread.interrupt();
 		terminated = true;
 	}
 
