@@ -68,11 +68,25 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 
 		String json = service.marshal(message);
 		
+		TextMessage msg = createTextMessage(json);
+		producer.send(msg, DeliveryMode.NON_PERSISTENT, 1, messageLifetime);	
+		if (out!=null) out.println(json);
+	}
+	
+	private TextMessage createTextMessage(String json) throws JMSException {
+		
 		if (connection==null) createConnection();
 		if (session == null)  createSession();
-		TextMessage temp = session.createTextMessage(json);
-		producer.send(temp, DeliveryMode.NON_PERSISTENT, 1, messageLifetime);	
-		if (out!=null) out.println(json);
+		
+		TextMessage message = null;
+		try {
+			message = session.createTextMessage(json);
+		} catch (javax.jms.IllegalStateException ne) {
+			createConnection();
+			createSession();
+			message = session.createTextMessage(json);
+		}
+        return message;
 	}
 
 	public boolean isAlive() {
