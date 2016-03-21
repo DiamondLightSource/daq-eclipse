@@ -486,7 +486,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 
 		IConsumerProcess<U> process = runner.createProcess(bean, status);
 		processes.put(bean.getUniqueId(), new WeakReference<IConsumerProcess<U>>(process));
-		process.execute(); // Depending on the process this may or may not run in a separate thread.
+		
+		process.start(); // Depending on the process may run in a separate thread (default is not to)
 	}
 
 	protected void checkTime(long waitTime) {

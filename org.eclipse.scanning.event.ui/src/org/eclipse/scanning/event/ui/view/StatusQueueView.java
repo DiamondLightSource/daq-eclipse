@@ -164,21 +164,25 @@ public class StatusQueueView extends ViewPart {
 		viewer.addSelectionChangedListener(new ISelectionChangedListener() {	
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				StatusBean bean = getSelection();
-				if (bean == null) bean = new StatusBean();
-				boolean isSubmitted = bean.getStatus()==org.eclipse.scanning.api.event.status.Status.SUBMITTED;
-				boolean isRunning = true;
-				if (bean!=null) isRunning = !bean.getStatus().isFinal();
-				kill.setEnabled(isRunning || isSubmitted);
-				rerun.setEnabled(true);
-				up.setEnabled(isSubmitted);
-				down.setEnabled(isSubmitted);
-				pause.setEnabled(bean.getStatus()==org.eclipse.scanning.api.event.status.Status.RUNNING);
+				updateSelected();
 			}
 		});
 
 	}
 	
+	protected void updateSelected() {
+		StatusBean bean = getSelection();
+		if (bean == null) bean = new StatusBean();
+		boolean isSubmitted = bean.getStatus()==org.eclipse.scanning.api.event.status.Status.SUBMITTED;
+		boolean isRunning = true;
+		if (bean!=null) isRunning = !bean.getStatus().isFinal();
+		kill.setEnabled(isRunning || isSubmitted);
+		rerun.setEnabled(true);
+		up.setEnabled(isSubmitted);
+		down.setEnabled(isSubmitted);
+		pause.setEnabled(bean.getStatus()==org.eclipse.scanning.api.event.status.Status.RUNNING);
+	}
+
 	/**
 	 * Listens to a topic
 	 */
@@ -261,6 +265,7 @@ public class StatusQueueView extends ViewPart {
 				if (queue.containsKey(bean.getUniqueId())) {
 					queue.get(bean.getUniqueId()).merge(bean);
 					viewer.refresh();
+					updateSelected();
 				} else {
 					reconnect();
 				}
@@ -516,6 +521,7 @@ public class StatusQueueView extends ViewPart {
 
 	public void refresh() {
 		reconnect();
+		updateSelected();
 	}
 
 	protected void reconnect() {
