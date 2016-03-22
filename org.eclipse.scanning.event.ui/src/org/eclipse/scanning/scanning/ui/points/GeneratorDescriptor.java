@@ -28,6 +28,11 @@ public class GeneratorDescriptor implements ISeriesItemDescriptor {
 	}
 
 	@Override
+	public String toString() {
+		return "GeneratorDescriptor ["+generator.getLabel()+"]";
+	}
+
+	@Override
 	public IPointGenerator<?, ?> getSeriesObject() throws GeneratorException {
 		if (generator==null) generator = pservice.createGenerator(id);
 		return generator;
@@ -35,17 +40,23 @@ public class GeneratorDescriptor implements ISeriesItemDescriptor {
 
 	@Override
 	public String getName() {
-		return generator.getId();
+		String id = generator.getId();
+		if (id == null) id = generator.getClass().getName();
+		return id;
 	}
 
 	@Override
 	public String getLabel() {
-		return generator.getLabel();
+		String label = generator.getLabel();
+		if (label == null) label = generator.getClass().getSimpleName();
+		return label;
 	}
 
 	@Override
 	public String getDescription() {
-		return generator.getDescription();
+		String desc =  generator.getDescription();
+		if (desc == null) desc = "Generator called '"+generator.getClass().getSimpleName()+"'";
+		return desc;
 	}
 
 	@Override
@@ -76,11 +87,11 @@ public class GeneratorDescriptor implements ISeriesItemDescriptor {
 
 	/**
 	 * When there are scanning categories which support different particular scan algorithms,
-	 * we will set the categories by extension point. For now all are 'Solstice Scanning'
+	 * we will set the categories by extension point. For now all are 'Solstice'
 	 * @return
 	 */
 	public String getCategoryLabel() {
-		return "Solstice Scanning";
+		return "Solstice";
 	}
 
 	private static Map<String, Image> icons;

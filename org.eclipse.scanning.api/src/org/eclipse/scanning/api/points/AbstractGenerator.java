@@ -40,7 +40,7 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 
 	@Override
 	public void setModel(T model) throws GeneratorException {
-		validateModel(model);
+		//validateModel(model);
 		// FIXME: People can still do generator.getModel.setStep(0) (etc.) and break things.
 		// Models seem like the kind of thing which should be immutable (i.e. not beans...).
 		// (Or as a hack the getter could return a copy.)
