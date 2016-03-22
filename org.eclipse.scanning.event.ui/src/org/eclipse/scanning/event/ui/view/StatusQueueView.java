@@ -522,7 +522,7 @@ public class StatusQueueView extends ViewPart {
 		if (bean==null) return;
 
 		try {
-			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.dawnsci.commandserver.ui.rerunHandler");
+			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.event.ui.rerunHandler");
 			if (c!=null) {
 				for (IConfigurationElement i : c) {
 					final IRerunHandler handler = (IRerunHandler)i.createExecutableExtension("class");
@@ -869,7 +869,7 @@ public class StatusQueueView extends ViewPart {
 		
 		if (bean == null) return;
 		try {
-			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.dawnsci.commandserver.ui.resultsOpenHandler");
+			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.event.ui.resultsOpenHandler");
 			if (c!=null) {
 				for (IConfigurationElement i : c) {
 					final IResultOpenHandler handler = (IResultOpenHandler)i.createExecutableExtension("class");
