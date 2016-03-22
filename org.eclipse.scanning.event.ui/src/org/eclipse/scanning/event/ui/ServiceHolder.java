@@ -20,6 +20,7 @@ public class ServiceHolder {
 	private static BundleContext context;
 
 	public static IEventConnectorService getEventConnectorService() {
+		if (eventConnectorService==null) eventConnectorService = getService(IEventConnectorService.class);
 		return eventConnectorService;
 	}
 
@@ -28,6 +29,7 @@ public class ServiceHolder {
 	}
 
 	public static IEventService getEventService() {
+		if (eventService==null) eventService = getService(IEventService.class);
 		return eventService;
 	}
 
@@ -36,6 +38,7 @@ public class ServiceHolder {
 	}
 
 	public static IPointGeneratorService getGeneratorService() {
+		if (generatorService==null) generatorService = getService(IPointGeneratorService.class);
 		return generatorService;
 	}
 
@@ -44,6 +47,7 @@ public class ServiceHolder {
 	}
 
 	public static IExpressionService getExpressionService() {
+		if (expressionService==null) expressionService = getService(IExpressionService.class);
 		return expressionService;
 	}
 
@@ -52,6 +56,7 @@ public class ServiceHolder {
 	}
 
 	public static ILoaderService getLoaderService() {
+		if (loaderService==null) loaderService = getService(ILoaderService.class);
 		return loaderService;
 	}
 

@@ -10,7 +10,7 @@
  *    Matthew Gerring - initial API and implementation and/or initial documentation
  *******************************************************************************/
 
-package org.eclipse.scanning.api.points.annot;
+package org.eclipse.scanning.api.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -21,6 +21,12 @@ import java.lang.annotation.Target;
  * By default all fields in the model are editable. This annotation can be used to 
  * mark fields as invisible or just read only. This is used in the GUI to determine which
  * fields of the model should be editable in the UI.
+ * 
+ * @author Matthew Gerring
+ * @see org.eclipse.scanning.scanning.ui.ScanningPerspective This perspective ties in with
+ * the models and the scan command processing. It produces a general scan user interface which
+ * is interoperable with queues and the jython command line.
+ * 
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -68,6 +74,18 @@ public @interface FieldDescriptor {
 	 * @return the unit that the fields value should be in.
 	 */
 	public String unit() default "";
+		
+	/**
+	 * Used to specify if a field is linked to a scannable
+	 * and if so which field contains the scannable name.
+	 * If it is set, the units of the
+	 * scannable are read using the device connector and 
+	 * presented in the user interface when the value of
+	 * this annotated field is shown.
+	 * 
+	 * @return name of the field that references a scannable to use for user interface presentation.
+	 */
+	public String scannable() default "";
 	
 	/**
 	 * 
@@ -109,15 +127,5 @@ public @interface FieldDescriptor {
 	 * The position of the field in the list, providing a way to override the default alphabetic sorting of fields
 	 */
 	public int fieldPosition() default Integer.MAX_VALUE;
-	
-	/**
-	 * Used to specify if a field is linked to a scannable and if so which field contains the
-	 * scannable name. If it is the units of the
-	 * scannable are read using the device connector and presented in the user interface.
-	 * 
-	 * @return name of the field that references a scannable to use for user interface presentation.
-	 */
-	public String scannable() default "";
-	
 
 }

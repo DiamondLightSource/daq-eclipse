@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-import org.eclipse.scanning.api.points.annot.FieldDescriptor;
+import org.eclipse.scanning.api.annotation.FieldDescriptor;
 
 /**
  * A model for a scan along one axis with start and stop positions and a step size.

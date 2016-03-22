@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
+import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.MinimumValue;
 
 
@@ -12,8 +13,13 @@ import org.eclipse.scanning.api.annotation.MinimumValue;
  */
 public class GridModel extends AbstractBoundingBoxModel {
 
+	@FieldDescriptor(label="Columns (fast)", max=100000, min=1, hint="The number of columns that the grid should run over, the fast direction.")
 	private int columns = 5;
+	
+	@FieldDescriptor(label="Rows (slow)", max=100000, min=1, hint="The number of rows that the grid should run over, the slow direction.")
 	private int rows = 5;
+	
+	@FieldDescriptor(label="Snake")
 	private boolean snake = false;
 
 	public GridModel() {

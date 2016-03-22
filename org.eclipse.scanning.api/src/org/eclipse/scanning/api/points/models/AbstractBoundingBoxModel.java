@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
+import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.UiHidden;
 
 
@@ -13,8 +14,13 @@ import org.eclipse.scanning.api.annotation.UiHidden;
  */
 public abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
 
+	@FieldDescriptor(visible=false)
 	private BoundingBox boundingBox;
+	
+	@FieldDescriptor(label="Fast", hint="The name of the scannable in the fast direction, for instance 'x'.") // TODO Right?
 	private String      xName = "x";
+	
+	@FieldDescriptor(label="Slow", hint="The name of the scannable in the fast direction, for instance 'y'.")  // TODO Right?
 	private String      yName = "y";
 
 	protected AbstractBoundingBoxModel() {
