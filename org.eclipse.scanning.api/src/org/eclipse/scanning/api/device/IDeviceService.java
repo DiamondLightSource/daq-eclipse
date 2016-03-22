@@ -69,8 +69,8 @@ public interface IDeviceService {
 	 * The model is provided and the configure(...) method called on the device 
 	 * automatically. A ScanningException is thrown if the model is invalid.
 	 * 
-	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmRequest}. 
-	 * This class holds the port, hostname, malcolm model and device name to make a connection to the device.
+	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModel}. 
+	 * This class holds a bean with the port, hostname, and device name to make a connection to the device.
 	 * 
 	 * @param model, information to do the scan
 	 * @return
@@ -85,8 +85,8 @@ public interface IDeviceService {
 	 * The model is provided and the configure(...) method called on the device 
 	 * automatically. A ScanningException is thrown if the model is invalid.
 	 * 
-	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmRequest}. 
-	 * This class holds the port, hostname, malcolm model and device name to make a connection to the device.
+	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModel}. 
+	 * This class holds a bean with the port, hostname, and device name to make a connection to the device.
 	 * 
 	 * @param model, information to do the scan
 	 * @param configure
@@ -102,8 +102,8 @@ public interface IDeviceService {
 	 * The model is provided and the configure(...) method called on the scanner 
 	 * automatically. A ScanningException is thrown if the model is invalid.
 	 * 
-	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmRequest}. 
-	 * This class holds the port, hostname, malcolm model and device name to make a connection to the device.
+	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModel}. 
+	 * This class holds a bean with the port, hostname, and device name to make a connection to the device.
      *
 	 * @param model, information to do the scan
 	 * @param To publish scan events on or null not to publish events.

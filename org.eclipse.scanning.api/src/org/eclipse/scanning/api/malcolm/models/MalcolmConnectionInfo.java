@@ -1,27 +1,19 @@
 package org.eclipse.scanning.api.malcolm.models;
 
 /**
- * 
- * Bean for requesting a malcolm device. May be set in a ScanRequest to provide
+ * Bean for requesting a malcolm device. May be set in a MalcolmDetectorModel to provide
  * the information to connect to malcolm.
- * 
+ *
  * @author Matthew Gerring
  *
  */
-public class MalcolmRequest<T> {
-	
+public class MalcolmConnectionInfo {
 
 	/**
 	 * Name of the malcolm device which we would like to run.
 	 * Must be set.
 	 */
 	private String deviceName;
-
-	/**
-	 * The model for the detector.
-	 * Must be set
-	 */
-	private T deviceModel;
 	
 	/**
 	 * The hostname to construct the malcolm uri with. 
@@ -41,14 +33,6 @@ public class MalcolmRequest<T> {
 
 	public void setDeviceName(String deviceName) {
 		this.deviceName = deviceName;
-	}
-
-	public T getDeviceModel() {
-		return deviceModel;
-	}
-
-	public void setDeviceModel(T deviceModel) {
-		this.deviceModel = deviceModel;
 	}
 
 	public String getHostName() {
@@ -71,7 +55,6 @@ public class MalcolmRequest<T> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((deviceModel == null) ? 0 : deviceModel.hashCode());
 		result = prime * result + ((deviceName == null) ? 0 : deviceName.hashCode());
 		result = prime * result + ((hostName == null) ? 0 : hostName.hashCode());
 		result = prime * result + port;
@@ -86,12 +69,7 @@ public class MalcolmRequest<T> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MalcolmRequest other = (MalcolmRequest) obj;
-		if (deviceModel == null) {
-			if (other.deviceModel != null)
-				return false;
-		} else if (!deviceModel.equals(other.deviceModel))
-			return false;
+		MalcolmConnectionInfo other = (MalcolmConnectionInfo) obj;
 		if (deviceName == null) {
 			if (other.deviceName != null)
 				return false;

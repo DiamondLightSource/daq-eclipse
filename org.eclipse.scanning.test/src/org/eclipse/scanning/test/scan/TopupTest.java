@@ -64,7 +64,7 @@ public class TopupTest {
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
 		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setCollectionTime(0.1);
+		dmodel.setExposureTime(0.1);
 		dmodel.setName("detector");
 		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>) sservice.createRunnableDevice(dmodel);
 		

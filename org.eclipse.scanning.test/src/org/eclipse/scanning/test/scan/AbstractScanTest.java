@@ -231,7 +231,7 @@ public class AbstractScanTest {
 		
 		// 1. Set the model to make the detector throw an exception
 		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setCollectionTime(0.1);
+		dmodel.setExposureTime(0.1);
 		dmodel.setAbortCount(3); // Aborts on the third write call by throwing an exception
 		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>)dservice.createRunnableDevice(dmodel);
 		
@@ -386,7 +386,7 @@ public class AbstractScanTest {
 		// Configure a detector with a collection time.
 		if (detector == null) {
 			MockDetectorModel dmodel = new MockDetectorModel();
-			dmodel.setCollectionTime(0.1);
+			dmodel.setExposureTime(0.1);
 			dmodel.setName("detector");
 			detector = dservice.createRunnableDevice(dmodel);
 		}

@@ -1,7 +1,10 @@
 package org.eclipse.scanning.example.detector;
 
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 
-public class MandelbrotModel {
+
+
+public class MandelbrotModel implements IDetectorModel {
 
 	private int    maxIterations;
 	private double escapeRadius;
@@ -13,7 +16,7 @@ public class MandelbrotModel {
 	private String name;
 	private String xName;
 	private String yName;
-	private double exposure; // Seconds
+	private double exposureTime; // Seconds
 
 	public MandelbrotModel() {
 		
@@ -79,7 +82,7 @@ public class MandelbrotModel {
 		long temp;
 		temp = Double.doubleToLongBits(escapeRadius);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(exposure);
+		temp = Double.doubleToLongBits(exposureTime);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + maxIterations;
 		temp = Double.doubleToLongBits(maxX);
@@ -107,8 +110,8 @@ public class MandelbrotModel {
 		if (Double.doubleToLongBits(escapeRadius) != Double
 				.doubleToLongBits(other.escapeRadius))
 			return false;
-		if (Double.doubleToLongBits(exposure) != Double
-				.doubleToLongBits(other.exposure))
+		if (Double.doubleToLongBits(exposureTime) != Double
+				.doubleToLongBits(other.exposureTime))
 			return false;
 		if (maxIterations != other.maxIterations)
 			return false;
@@ -159,12 +162,12 @@ public class MandelbrotModel {
 		this.yName = yName;
 	}
 	
-	public double getExposure() {
-		return exposure;
+	public double getExposureTime() {
+		return exposureTime;
 	}
 
-	public void setExposure(double exposure) {
-		this.exposure = exposure;
+	public void setExposureTime(double exposure) {
+		this.exposureTime = exposure;
 	}
 
 }
