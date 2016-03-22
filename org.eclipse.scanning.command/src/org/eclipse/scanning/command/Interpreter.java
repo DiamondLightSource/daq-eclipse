@@ -6,7 +6,7 @@ import org.python.util.PythonInterpreter;
 
 public class Interpreter implements Runnable {
 
-	private PythonInterpreter pi;
+	protected PythonInterpreter pi;
 	private String command;  // This is temporarily here for testing purposes.
 	// TODO: run() should listen for user input from... somewhere.
 
