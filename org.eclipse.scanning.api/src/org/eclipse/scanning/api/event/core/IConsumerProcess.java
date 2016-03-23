@@ -10,19 +10,8 @@ import org.eclipse.scanning.api.event.EventException;
  * @author Matthew Gerring
  *
  */
-public interface IConsumerProcess<T> {
+public interface IConsumerProcess<T> extends IPublishable<T>{
 
-	/**
-	 *  
-	 * @return the bean which this process is currently running.
-	 */
-	T getBean();
-	
-	/**
-	 *  
-	 * @return the bean which this process is currently running.
-	 */
-	IPublisher<T> getPublisher();
 	
 	/**
 	 * Execute the process, if an exception is thrown the process is set to 

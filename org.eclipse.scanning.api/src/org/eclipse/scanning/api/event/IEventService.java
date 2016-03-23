@@ -6,6 +6,8 @@ import java.util.EventListener;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.IRequester;
+import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -15,6 +17,16 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * The scanning event service allows one to subscribe to 
  * and broadcast events. It may be backed by the EventBus or
  * plain JMS queues and topics depending on the service implementor.
+ * 
+ * <pre>
+ * <b>
+ * o subscriber/publisher used for broadcasting to multiple clients.
+ * o submitter/consumer used for processing queues
+ * o request/response used for get/post synchronous interaction 
+ *   (the uuid is used to ensure that the request and response match)
+ *   
+ * </b>
+ * </pre>
  *
  * <pre>
  * <code>
@@ -160,6 +172,29 @@ public interface IEventService {
 						                                        String heartbeatTName, 
 						                                        String commandTName) throws EventException;
 
+	/**
+	 * A poster encapsulates sending and receiving a reply. For instance request a list of 
+	 * detectors on the server. This is the same as creating a broadcaster, sending an object
+	 * then subscribing to the reply.
+	 * 
+	 * @param uri
+	 * @param requestTopic
+	 * @param responseTopic
+	 * @return
+	 * @throws EventException
+	 */
+	public <T extends IdBean> IRequester<T> createRequestor(URI uri, String requestTopic, String responseTopic) throws EventException;
+	
+	/**
+	 * Creates a responder on a given topic.
+	 * 
+	 * @param uri
+	 * @param requestTopic
+	 * @param responseTopic
+	 * @return
+	 * @throws EventException
+	 */
+	public <T extends IdBean> IResponder<T> createResponder(URI uri, String requestTopic, String responseTopic) throws EventException;
 	
 	/**
 	 * Checks the heartbeat can be found and if it cannot in the given time, throws an exception.
