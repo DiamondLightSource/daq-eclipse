@@ -7,8 +7,11 @@ import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
+import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -87,9 +90,18 @@ public class EventServiceImpl implements IEventService {
 	}
 
 	@Override
-	public <T extends INameable> void checkTopic(URI uri, String patientName, long listenTime, String topicName,
-			Class<T> beanClass) throws EventException, InterruptedException {
+	public <T extends INameable> void checkTopic(URI uri, String patientName, long listenTime, String topicName, Class<T> beanClass) throws EventException, InterruptedException {
 		TopicChecker<T> checker = new TopicChecker<T>(this, uri, patientName, listenTime, topicName, beanClass);
 		checker.checkPulse();
+	}
+
+	@Override
+	public <T extends IdBean> IRequester<T> createRequestor(URI uri, String requestTopic, String responseTopic) throws EventException {
+		return new RequesterImpl<T>(uri, requestTopic, responseTopic, this);
+	}
+
+	@Override
+	public <T extends IdBean> IResponder<T> createResponder(URI uri, String requestTopic, String responseTopic) throws EventException {
+		return new ResponderImpl<T>(uri, requestTopic, responseTopic, this);
 	}
 }
