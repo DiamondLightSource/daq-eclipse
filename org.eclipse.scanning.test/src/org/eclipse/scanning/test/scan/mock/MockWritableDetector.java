@@ -22,7 +22,7 @@ public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorMod
 	@Override
 	public void run(IPosition pos) throws ScanningException {
 		try {
-			Thread.sleep((long)(getModel().getCollectionTime()*1000));
+			Thread.sleep((long)(getModel().getExposureTime()*1000));
 			getModel().setRan(getModel().getRan()+1);
 		} catch (Exception ne) {
 			throw new ScanningException("Cannot to do readout", ne);

@@ -88,7 +88,7 @@ public class ScanExecutionTest {
 	protected void executeTestScan(TestScanBean bean) throws Exception {
 				
 		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setCollectionTime(0.1);
+		dmodel.setExposureTime(0.1);
 		dmodel.setName("swmr");
 		IWritableDetector<?> detector = (IWritableDetector<?>) scanService.createRunnableDevice(dmodel);
 		assertNotNull(detector);

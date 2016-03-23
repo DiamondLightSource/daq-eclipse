@@ -5,6 +5,7 @@ import java.util.Map;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
+import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModelWithMap;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -25,7 +26,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	}
 
 	@Override
-	public Map<String, Object> validate(Map<String, Object> params) throws MalcolmDeviceException {
+	public MalcolmDetectorModelWithMap validate(MalcolmDetectorModelWithMap params) throws MalcolmDeviceException {
 		throw new MalcolmDeviceException(this, "Validate is not implemented!");
 	}
 
@@ -43,7 +44,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 			setState(DeviceState.RUNNING); // Will send an event
 
 	        count  = 0;
-	        amount = (int)model.get("nframes");
+	        amount = (int)model.getParameterMap().get("nframes");
 	        
 	        // Send scan start
 			sendEvent(new MalcolmEventBean(getState()));
@@ -57,7 +58,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 				}
 				
 				// Sleep (no need to lock while sleeping)
-				long sleep = Math.round((double)model.get("exposure")*1000d);
+				long sleep = Math.round((double)model.getParameterMap().get("exposure")*1000d);
 				Thread.sleep(sleep);
 
 			} // End fake scanning loop.

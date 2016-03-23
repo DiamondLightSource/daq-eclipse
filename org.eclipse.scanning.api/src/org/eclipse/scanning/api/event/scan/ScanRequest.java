@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.script.ScriptRequest;
@@ -39,7 +40,7 @@ public class ScanRequest<T> {
 	/** 
 	 * The names of the detectors to use in the scan, may be null.
 	 */
-	private Map<String, Object> detectors;
+	private Map<String, IDetectorModel> detectors;
 	
 	/**
 	 * The names of monitors in the scan, may be null.
@@ -154,7 +155,7 @@ public class ScanRequest<T> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ScanRequest other = (ScanRequest) obj;
+		ScanRequest<?> other = (ScanRequest<?>) obj;
 		if (after == null) {
 			if (other.after != null)
 				return false;
@@ -215,15 +216,15 @@ public class ScanRequest<T> {
 				+ Arrays.toString(monitorNames) + ", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
 	}
 
-	public Map<String, Object> getDetectors() {
+	public Map<String, IDetectorModel> getDetectors() {
 		return detectors;
 	}
 
-	public void setDetectors(Map<String, Object> detectors) {
+	public void setDetectors(Map<String, IDetectorModel> detectors) {
 		this.detectors = detectors;
 	}
 
-	public void putDetector(String name, Object dmodel) {
+	public void putDetector(String name, IDetectorModel dmodel) {
 		if (detectors==null) detectors = new HashMap<>(3);
 		detectors.put(name, dmodel);
 	}

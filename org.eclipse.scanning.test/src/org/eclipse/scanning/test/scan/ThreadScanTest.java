@@ -209,7 +209,7 @@ public class ThreadScanTest {
 		
 		// Configure a detector with a collection time.
 		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setCollectionTime(0.1);
+		dmodel.setExposureTime(0.1);
 		dmodel.setName("detector");
 		IRunnableDevice<MockDetectorModel> detector = sservice.createRunnableDevice(dmodel);
 		

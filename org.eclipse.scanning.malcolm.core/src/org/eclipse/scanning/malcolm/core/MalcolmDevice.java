@@ -26,7 +26,7 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
-import org.eclipse.scanning.api.malcolm.models.MalcolmRequest;
+import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.slf4j.Logger;
@@ -198,7 +198,6 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	
 	@Override
 	public void configure(T model) throws MalcolmDeviceException {
-		if (model instanceof MalcolmRequest<?>) model = ((MalcolmRequest<T>)model).getDeviceModel(); 
 		final JsonMessage msg   = connectionDelegate.createCallMessage("configure", model);
 		service.send(this, msg);
 		setModel(model);
