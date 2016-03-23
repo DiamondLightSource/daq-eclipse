@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.points.models;
 
+import org.eclipse.scanning.api.annotation.FieldDescriptor;
+
 /**
  * A model for a raster scan within a rectangular box in two-dimensional space, beginning at the box's start
  * coordinates and moving in X and Y steps of the sizes set in this model.
@@ -9,9 +11,15 @@ package org.eclipse.scanning.api.points.models;
  */
 public class RasterModel extends AbstractBoundingBoxModel {
 
+	@FieldDescriptor(label="Fast Step", scannable="xName", hint="The step in the fast direction to take in the units of the fast scannable.")
 	private double xStep = 1;
+	
+	@FieldDescriptor(label="Slow Step", scannable="yName", hint="The step in the slow direction to take in the units of the slow scannable.")
 	private double yStep = 1;
+	
+	@FieldDescriptor(label="Snake", hint="Snake: left->right->left etc. Nonsnake left->right, repeat") 
 	private boolean snake = false;
+	
 	public RasterModel() {
 		
 	}

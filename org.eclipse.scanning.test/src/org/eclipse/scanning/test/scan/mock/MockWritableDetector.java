@@ -2,10 +2,10 @@ package org.eclipse.scanning.test.scan.mock;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
-import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorModel> implements IWritableDetector<MockDetectorModel> {
@@ -22,7 +22,7 @@ public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorMod
 	@Override
 	public void run(IPosition pos) throws ScanningException {
 		try {
-			Thread.sleep((long)(getModel().getCollectionTime()*1000));
+			Thread.sleep((long)(getModel().getExposureTime()*1000));
 			getModel().setRan(getModel().getRan()+1);
 		} catch (Exception ne) {
 			throw new ScanningException("Cannot to do readout", ne);

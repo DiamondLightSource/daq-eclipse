@@ -24,13 +24,14 @@ import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
+import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModelWithMap;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 
 import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
-class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
+class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWithMap> {
 	
 	private INexusFileFactory   factory;
 
@@ -117,7 +118,8 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	}
 
 	@Override
-	public Map<String, Object> validate(Map<String, Object> params) throws MalcolmDeviceException {
+	public MalcolmDetectorModelWithMap validate(MalcolmDetectorModelWithMap model) throws MalcolmDeviceException {
+		Map<String, Object> params = model.getParameterMap();
 		if (!params.containsKey("shape")) throw new MalcolmDeviceException(this, "shape must be set!");
 		if (!params.containsKey("nframes")) throw new MalcolmDeviceException(this, "nframes must be set!");
 		if (!params.containsKey("file")) throw new MalcolmDeviceException(this, "file must be set!");
@@ -126,14 +128,13 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	}
 
 	@Override
-	public void configure(Map<String, Object> params) throws ScanningException {
-		
-		validate(params);
+	public void configure(MalcolmDetectorModelWithMap model) throws ScanningException {
+		validate(model);
 		setDeviceState(DeviceState.CONFIGURING);
-		this.model = params;
-		if (params.containsKey("configureSleep")) {
+		this.model = model;
+		if (model.getParameterMap().containsKey("configureSleep")) {
 			try {
-				long sleepTime = Math.round(((double)params.get("configureSleep"))*1000d);
+				long sleepTime = Math.round(((double)model.getParameterMap().get("configureSleep"))*1000d);
 				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
 				throw new MalcolmDeviceException(this, "Cannot sleep during configure!", e);
@@ -143,7 +144,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		
 		// We configure a bean with all the scan specific things
 		final MalcolmEventBean bean = new MalcolmEventBean();
-		bean.setFilePath(params.get("file").toString());
+		bean.setFilePath(model.getParameterMap().get("file").toString());
 		bean.setDatasetPath("/entry/data");
 		bean.setDeviceName(getName());
 		bean.setBeamline("Testing");
@@ -160,7 +161,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 		if (getState().isRunning()) throw new MalcolmDeviceException(this, "Device '"+getName()+"' is already running or paused!");
 		
 		try {
-			run(model); // mimicks running malcolm hdf5
+			run(model.getParameterMap()); // mimicks running malcolm hdf5
 						
 		} catch (Exception e) {
             setDeviceState(DeviceState.FAULT);
@@ -178,7 +179,8 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 
 	@Override
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		DelegateNexusProvider prov = new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		DelegateNexusProvider<NXdetector> prov = new DelegateNexusProvider<>(
+				getName(), NexusBaseClass.NX_DETECTOR, info, this);
 		prov.setExternalDatasetRank(NXdetector.NX_DATA, 3);
 		return prov;
 	}
@@ -250,6 +252,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<Map<String, Object>> {
 	    				if (index>=amount) {
 	    					break;
 	    				}
+	    				if (getPublisher() != null) getPublisher().broadcast(getBean());
     				} finally {
     					releaseRunLock();
      				}

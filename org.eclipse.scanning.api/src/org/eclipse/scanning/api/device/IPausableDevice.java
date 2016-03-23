@@ -1,6 +1,8 @@
-package org.eclipse.scanning.api.scan;
+package org.eclipse.scanning.api.device;
 
-public interface IPauseableDevice<T> extends IRunnableDevice<T> {
+import org.eclipse.scanning.api.scan.ScanningException;
+
+public interface IPausableDevice<T> extends IRunnableDevice<T> {
 
 	/**
 	 * Allowed when the device is in Running state. Will block until the device is in a rest state. 

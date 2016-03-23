@@ -2,6 +2,7 @@ package org.eclipse.scanning.event;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -24,19 +25,26 @@ import javax.jms.TextMessage;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.PauseBean;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IQueueConnection;
+import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
 public abstract class AbstractQueueConnection<U extends StatusBean> extends AbstractConnection implements IQueueConnection<U>{
 
+	protected IEventService          eservice;
 
-	AbstractQueueConnection(URI uri, String topic, IEventConnectorService service) {
+	AbstractQueueConnection(URI uri, String topic, IEventConnectorService service, IEventService eservice) {
 		super(uri, topic, service);
+		this.eservice = eservice;
 	}
 
-	AbstractQueueConnection(URI uri, String submitQName, String statusQName, String statusTName, String terminateTName, IEventConnectorService service) {
-        super(uri, submitQName, statusQName, statusTName, terminateTName, service);
+	AbstractQueueConnection(URI uri, String submitQName, String statusQName, String statusTName, String commandTName, IEventConnectorService service, IEventService eservice) {
+        super(uri, submitQName, statusQName, statusTName, commandTName, service);
+		this.eservice = eservice;
 	}
 
 	private Class<U> beanClass;
@@ -58,7 +66,6 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 		
 		if (fieldName!=null) c = getComparator(fieldName);
 			
-
 		QueueReader<U> reader = new QueueReader<U>(service, c);
 		try {
 			return reader.getBeans(uri, qName, beanClass);
@@ -70,6 +77,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 
 	private Comparator<U> getComparator(final String fieldName) {
 		
+		if (fieldName==null) return null;
 		if ("submissionTime".equals(fieldName)) { // Short cu no reflection
 			
 			return new Comparator<U>() {		
@@ -183,7 +191,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 							}
 	
 							// If it is running and older than a certain time, we clear it up
-							if (qbean.getStatus()==Status.RUNNING) {
+							if (qbean.getStatus().isRunning()) {
 								final long submitted = qbean.getSubmissionTime();
 								final long current   = System.currentTimeMillis();
 								if (current-submitted > getMaximumRunningAge()) {
@@ -276,6 +284,134 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 			}
 		}
 	}
+	
+	@Override
+	public boolean reorder(U bean, String queueName, int amount) throws EventException {
+		
+		if (amount==0) return false; // Nothing to reorder, no exception required, order unchanged.
+		
+		PauseBean pbean = new PauseBean();
+		pbean.setQueueName(queueName);
+		pbean.setMessage("Pause to reorder '"+bean.getName()+"' "+amount);
+		
+		IPublisher<PauseBean> publisher = eservice.createPublisher(getUri(), getCommandTopicName());
+		publisher.broadcast(pbean);
+		
+		try {
+			
+			// We are paused, read the queue
+			List<U> submitted = getQueue(queueName, null);
+			if (submitted==null || submitted.size()<1) throw new EventException("There is nothing submitted waiting to be run\n\nPerhaps the job started to run.");
+
+			Collections.reverse(submitted); // It comes out with the head at 0 and tail at size-1
+			boolean found = false;
+			int index = -1;
+			for (U u : submitted) {
+				index++;
+				if (u.getUniqueId().equals(bean.getUniqueId())) {
+					found=true;
+					break;
+				}
+			}
+			if (!found) throw new EventException("Cannot find bean '"+bean.getName()+"' in submission queue!\nIt might be running now.");
+			
+			if (index<1 && amount<0) throw new EventException("'"+bean.getName()+"' is already at the tail of the submission queue.");
+			if (index+amount>submitted.size()-1) throw new EventException("'"+bean.getName()+"' is already at the head of the submission queue.");
+			
+			clearQueue(queueName);
+			
+			U existing = submitted.get(index);
+			if (amount>0) {
+				submitted.add(index+amount+1, existing);
+				submitted.remove(index);
+			} else {
+				submitted.add(index+amount, existing);
+				submitted.remove(index+1);
+			}
+			
+			Collections.reverse(submitted); // It goes back with the head at 0 and tail at size-1
+			
+			ISubmitter<U> submitter = this instanceof ISubmitter 
+					                ? (ISubmitter<U>)this 
+					                : (ISubmitter<U>)eservice.createSubmitter(getUri(), queueName);
+			
+		    for (U u : submitted) submitter.submit(u);
+			
+		    return true; // It was reordered
+		    
+		} finally {
+			pbean.setPause(false);
+			publisher.broadcast(pbean);
+		}
+	}
+	
+	@Override
+	public boolean remove(U bean, String queueName) throws EventException {
+			
+		QueueConnection send     = null;
+		QueueSession    session  = null;
+
+		PauseBean pbean = new PauseBean();
+		pbean.setQueueName(queueName);
+		pbean.setMessage("Pause to remove '"+bean.getName()+"' ");
+		
+		IPublisher<PauseBean> publisher = eservice.createPublisher(getUri(), getCommandTopicName());
+		publisher.broadcast(pbean);
+
+		try {
+
+			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)service.createConnectionFactory(uri);
+			send  = connectionFactory.createQueueConnection(); // This times out when the server is not there.
+			session  = send.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+			Queue queue   = session.createQueue(queueName);
+			send.start();
+
+			QueueBrowser qb = session.createBrowser(queue);
+			@SuppressWarnings("rawtypes")
+			Enumeration  e  = qb.getEnumeration();
+	
+			String jMSMessageID = null;
+			while(e.hasMoreElements()) {
+				Message m = (Message)e.nextElement();
+				if (m==null) continue;
+				if (m instanceof TextMessage) {
+					TextMessage t = (TextMessage)m;
+
+					final U qbean = service.unmarshal(t.getText(), null);
+					if (qbean==null) continue;
+					if (isSame(qbean, bean)) {
+						jMSMessageID = t.getJMSMessageID();
+						break;
+					}
+				}
+			}
+	
+			qb.close();
+	
+			if (jMSMessageID!=null) {
+				MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
+				Message m = consumer.receive(1000);
+				return m!=null; // It might have been removed ok
+			}
+	
+			return false; // It was not removed
+			
+		} catch (Exception ne) {
+			throw new EventException("Cannot remove item "+bean, ne);
+			
+		}  finally {
+			pbean.setPause(false);
+			publisher.broadcast(pbean);
+			try {
+				if (send!=null)     send.close();
+				if (session!=null)  session.close();
+			} catch (Exception e) {
+				throw new EventException("Cannot close connection as expected!", e);
+			}
+		}
+
+	}
+
 	
 	protected static final long TWO_DAYS = 48*60*60*1000; // ms
 	protected static final long A_WEEK   = 7*24*60*60*1000; // ms

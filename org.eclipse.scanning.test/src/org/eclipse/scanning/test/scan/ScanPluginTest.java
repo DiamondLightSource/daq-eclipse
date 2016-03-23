@@ -2,9 +2,9 @@ package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertNotNull;
 
+import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;

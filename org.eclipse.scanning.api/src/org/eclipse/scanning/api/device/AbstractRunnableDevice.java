@@ -1,4 +1,4 @@
-package org.eclipse.scanning.api.scan;
+package org.eclipse.scanning.api.device;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -17,6 +17,7 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 
@@ -158,16 +159,15 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	}
 
 	protected void positionComplete(IPosition pos, int count, int size) throws EventException, ScanningException {
-		
-		if (publisher==null) return;
 		final ScanBean bean = getBean();
 		bean.setPoint(count);
 		bean.setPosition(pos);
 		bean.setPreviousDeviceState(bean.getDeviceState());
 		if (size>-1) bean.setPercentComplete(((double)count/size)*100);
-		
-		publisher.broadcast(bean);
-	
+
+		if (publisher != null) {
+			publisher.broadcast(bean);
+		}
 	}
 
 	public String getScanId() {

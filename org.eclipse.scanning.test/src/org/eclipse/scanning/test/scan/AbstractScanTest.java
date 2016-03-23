@@ -13,6 +13,11 @@ import java.util.List;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
@@ -30,11 +35,6 @@ import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
-import org.eclipse.scanning.api.scan.IDeviceConnectorService;
-import org.eclipse.scanning.api.scan.IRunnableDevice;
-import org.eclipse.scanning.api.scan.IDeviceService;
-import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
@@ -231,7 +231,7 @@ public class AbstractScanTest {
 		
 		// 1. Set the model to make the detector throw an exception
 		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setCollectionTime(0.1);
+		dmodel.setExposureTime(0.1);
 		dmodel.setAbortCount(3); // Aborts on the third write call by throwing an exception
 		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>)dservice.createRunnableDevice(dmodel);
 		
@@ -386,7 +386,7 @@ public class AbstractScanTest {
 		// Configure a detector with a collection time.
 		if (detector == null) {
 			MockDetectorModel dmodel = new MockDetectorModel();
-			dmodel.setCollectionTime(0.1);
+			dmodel.setExposureTime(0.1);
 			dmodel.setName("detector");
 			detector = dservice.createRunnableDevice(dmodel);
 		}

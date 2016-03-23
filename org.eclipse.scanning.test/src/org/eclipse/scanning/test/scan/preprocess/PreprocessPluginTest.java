@@ -6,13 +6,13 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
-import org.eclipse.scanning.api.malcolm.models.MalcolmRequest;
+import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
+import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModelWithMap;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
@@ -86,7 +86,7 @@ public class PreprocessPluginTest {
 
 		final MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setName("detector");
-		dmodel.setCollectionTime(0.1);
+		dmodel.setExposureTime(0.1);
 		req.putDetector("detector", dmodel);
 
 		return req;
@@ -128,12 +128,12 @@ public class PreprocessPluginTest {
 		mandyModel.setName("mandelbrot");
 		mandyModel.setxName("xNex");
 		mandyModel.setyName("yNex");
-		mandyModel.setExposure(0.01);
+		mandyModel.setExposureTime(0.01);
 		req.putDetector("mandelbrot", mandyModel);
 		
 		final MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setName("detector");
-		dmodel.setCollectionTime(0.01);
+		dmodel.setExposureTime(0.01);
 		req.putDetector("detector", dmodel);
 
 		return req;
@@ -181,17 +181,20 @@ public class PreprocessPluginTest {
 		final File tmp = File.createTempFile("scan_servlet_test_malc", ".nxs");
 		tmp.deleteOnExit();
 		req.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
-		
-		final MalcolmRequest<Map<String, Object>> malcModel = new MalcolmRequest<Map<String, Object>>();
-	    Map<String, Object> config = new HashMap<String,Object>(2);    
-		// Test params for starting the device 		
-	    fillParameters(config, -1, 10);
-	    malcModel.setDeviceModel(config);
-		malcModel.setDeviceName("zebra");
-		malcModel.setHostName("pausable");
-		malcModel.setPort(-1);
+
+		final MalcolmDetectorModelWithMap malcModel = new MalcolmDetectorModelWithMap();
+		// Test params for starting the device
+		fillParameters(malcModel.getParameterMap(), -1, 10);
+
+		final MalcolmConnectionInfo connectionInfo = new MalcolmConnectionInfo();
+		connectionInfo.setDeviceName("zebra");
+		connectionInfo.setHostName("pausable");
+		connectionInfo.setPort(-1);
+
+		malcModel.setConnectionInfo(connectionInfo);
+
 		req.putDetector("zebra", malcModel);
-		
+
 		return req;
 	}
 	

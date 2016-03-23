@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.*;
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.*;
 import org.eclipse.scanning.command.Interpreter;
@@ -76,14 +77,14 @@ public class CommandTest {
 		assertEquals(6, cregion.getCentre()[1], 1e-8);
 		assertEquals(5, cregion.getRadius(), 1e-8);
 
-		Map<String, Object> detectors = request.getDetectors();
+		Map<String, IDetectorModel> detectors = request.getDetectors();
 		assertTrue(detectors.keySet().contains("mandelbrot"));
 
 		Object dmodel = detectors.get("mandelbrot");
 		assertEquals(MandelbrotModel.class, dmodel.getClass());
 
 		MandelbrotModel mmodel = (MandelbrotModel) dmodel;
-		assertEquals(0.1, mmodel.getExposure(), 1e-8);
+		assertEquals(0.1, mmodel.getExposureTime(), 1e-8);
 	}
 
 	@Test
@@ -216,14 +217,14 @@ public class CommandTest {
 		assertEquals(4, spmodel.getX(), 1e-8);
 		assertEquals(5, spmodel.getY(), 1e-8);
 
-		Map<String, Object> detectors = request.getDetectors();
+		Map<String, IDetectorModel> detectors = request.getDetectors();
 		assertTrue(detectors.keySet().contains("mandelbrot"));
 
 		Object dmodel = detectors.get("mandelbrot");
 		assertEquals(MandelbrotModel.class, dmodel.getClass());
 
 		MandelbrotModel mmodel = (MandelbrotModel) dmodel;
-		assertEquals(0.1, mmodel.getExposure(), 1e-8);
+		assertEquals(0.1, mmodel.getExposureTime(), 1e-8);
 	}
 
 	@Test
@@ -233,19 +234,19 @@ public class CommandTest {
 				"mscan([point(4, 5)], mandelbrot(0.1))"
 			);
 		assertEquals(4, ((SinglePointModel) request.getModels()[0]).getX(), 1e-8);
-		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposure(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
 		request = interpret(
 				"mscan(point(4, 5), [mandelbrot(0.1)])"
 			);
 		assertEquals(4, ((SinglePointModel) request.getModels()[0]).getX(), 1e-8);
-		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposure(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
 		request = interpret(
 				"mscan([point(4, 5)], [mandelbrot(0.1)])"
 			);
 		assertEquals(4, ((SinglePointModel) request.getModels()[0]).getX(), 1e-8);
-		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposure(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 	}
 
 	@Test

@@ -9,7 +9,7 @@
  * Contributors:
  *    Matthew Gerring - initial API and implementation and/or initial documentation
  *******************************************************************************/
-package org.eclipse.scanning.api.points.annot;
+package org.eclipse.scanning.api.annotation;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

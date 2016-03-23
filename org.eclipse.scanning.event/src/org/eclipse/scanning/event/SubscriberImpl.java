@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EventListener;
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -43,9 +46,10 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 	
 	private static String DEFAULT_KEY = UUID.randomUUID().toString(); // Does not really matter what key is used for the default collection.
 
-	private Map<String, Collection<T>>  slisteners; // Scan listeners
-	private Map<String, Collection<T>>  hlisteners; // Scan listeners
+	private Map<String, Collection<T>>    slisteners; // Scan listeners
+	private Map<String, Collection<T>>    hlisteners; // Scan listeners
 	private Map<Class, DiseminateHandler> dMap;
+	private BlockingQueue<DespatchEvent>  queue;
 	
 	private MessageConsumer scanConsumer, hearbeatConsumer;
 	
@@ -53,7 +57,6 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 		super(uri, topic, service);
 		slisteners = new ConcurrentHashMap<String, Collection<T>>(31); // Concurrent overkill?
 		hlisteners = new ConcurrentHashMap<String, Collection<T>>(31); // Concurrent overkill?
-		
 		dMap       = createDiseminateHandlers();
 	}
 
@@ -64,7 +67,8 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 
 	@Override
 	public void addListener(String scanID, T listener) throws EventException{
-		
+		setConnected(true);
+		createDespatchThread();
 		registerListener(scanID, listener, slisteners);
 		if (scanConsumer == null) {
 			try {
@@ -150,18 +154,17 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 				DeviceState now = sbean.getDeviceState();
 				DeviceState was = sbean.getPreviousDeviceState();
 				if (now!=null && now!=was) {
-					l.scanStateChanged(new ScanEvent(sbean));
+					queue.add(new DespatchEvent(l, new ScanEvent(sbean), true));
 					return;
 				} else {
 					Status snow = sbean.getStatus();
 					Status swas = sbean.getPreviousStatus();
 					if (snow!=null && snow!=swas && swas!=null) {
-						l.scanStateChanged(new ScanEvent(sbean));
+						queue.add(new DespatchEvent(l, new ScanEvent(sbean), true));
 						return;
 					}
-				}
-				
-				l.scanEventPerformed(new ScanEvent(sbean));
+				}		
+				queue.add(new DespatchEvent(l, new ScanEvent(sbean), false));
 			}
 		});
 		ret.put(IHeartbeatListener.class, new DiseminateHandler() {
@@ -169,7 +172,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 				// Used casting because generics got silly
 				HeartbeatBean hbean = (HeartbeatBean)bean;
 				IHeartbeatListener l= (IHeartbeatListener)e;
-				l.heartbeatPerformed(new HeartbeatEvent(hbean));
+				queue.add(new DespatchEvent(l, new HeartbeatEvent(hbean)));
 			}
 		});
 		ret.put(IBeanListener.class, new DiseminateHandler() {
@@ -177,7 +180,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 				// Used casting because generics got silly
 				@SuppressWarnings("unchecked")
 				IBeanListener<Object> l = (IBeanListener<Object>)e;
-				l.beanChangePerformed(new BeanEvent<Object>(bean));
+				queue.add(new DespatchEvent(l, new BeanEvent<Object>(bean)));
 			}
 		});
 
@@ -185,6 +188,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 		return ret;
 	}
 	
+
 
 	private interface DiseminateHandler {
 		public void diseminate(Object bean, EventListener listener) throws ClassCastException;
@@ -228,11 +232,97 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 		} finally {
 			scanConsumer = null;
 			hearbeatConsumer = null;
+			setConnected(false);
 		}
 		super.disconnect();
+		if (queue!=null) queue.add(DespatchEvent.STOP);
 	}
 	
 	protected boolean isListenersEmpty() {
 		return slisteners.isEmpty() && hlisteners.isEmpty();
+	}
+	
+	private boolean connected; 
+
+	private void createDespatchThread() {
+		
+		if (queue!=null) return;
+		queue      = new LinkedBlockingQueue<>(); // Small, if they do work and things back-up, exceptions will occur.
+		
+		final Thread despachter = new Thread(new Runnable() {
+			public void run() {
+				while(isConnected()) {
+					try {
+						DespatchEvent event = queue.take();
+						if (event==DespatchEvent.STOP) return;
+						
+						if (event.listener instanceof IHeartbeatListener) ((IHeartbeatListener)event.listener).heartbeatPerformed((HeartbeatEvent)event.object);
+						if (event.listener instanceof IBeanListener)      ((IBeanListener)event.listener).beanChangePerformed((BeanEvent)event.object);
+						if (event.listener instanceof IScanListener){
+							IScanListener l = (IScanListener)event.listener;
+							ScanEvent     e = (ScanEvent)event.object;
+							if (event.isStateChange()) {
+								l.scanStateChanged(e);
+							} else {
+								l.scanEventPerformed(e);
+							}
+						}
+					} catch (RuntimeException e) {
+						logger.error("RuntimeException occured despatching event", e);
+						continue;
+						
+					} catch (InterruptedException e) {
+						logger.error("Stopping event despatch thread ", e);
+						return;
+					}
+				}
+			}
+		}, "Submitter despatch thread "+getSubmitQueueName());
+		despachter.setDaemon(true);
+		despachter.setPriority(Thread.NORM_PRIORITY-1);
+		despachter.start();
+	}
+
+	/**
+	 * Immutable event for queue.
+	 * 
+	 * @author fcp94556
+	 *
+	 */
+	private static class DespatchEvent {
+		
+		public static final DespatchEvent STOP = new DespatchEvent(null, new EventObject(DespatchEvent.class));
+		
+		protected final EventListener listener;
+		protected final EventObject   object;
+		protected final boolean       isStateChange;
+		
+		public DespatchEvent(EventListener listener, EventObject object) {
+			this(listener, object, false);
+		}
+		public DespatchEvent(EventListener listener2, EventObject object2, boolean b) {
+			this.listener = listener2;
+			this.object   = object2;
+			this.isStateChange = b;
+		}
+		public EventListener getListener() {
+			return listener;
+		}
+		public EventObject getObject() {
+			return object;
+		}
+		public boolean isStateChange() {
+			return isStateChange;
+		}
+
+	}
+
+
+	public boolean isConnected() {
+		return connected;
+	}
+
+	public void setConnected(boolean connected) {
+		this.connected = connected;
 	}
 }

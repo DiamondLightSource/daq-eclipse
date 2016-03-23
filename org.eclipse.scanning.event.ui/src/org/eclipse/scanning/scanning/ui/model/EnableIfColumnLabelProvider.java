@@ -1,7 +1,7 @@
 package org.eclipse.scanning.scanning.ui.model;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.scanning.api.points.annot.FieldValue;
+import org.eclipse.scanning.api.annotation.FieldValue;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;

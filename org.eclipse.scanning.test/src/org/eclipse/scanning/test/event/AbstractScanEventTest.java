@@ -222,11 +222,16 @@ public class AbstractScanEventTest {
 		bean2.setDeviceState(DeviceState.CONFIGURING);
 		publisher.broadcast(bean2);
 
+		bean.setPreviousDeviceState(DeviceState.CONFIGURING);
 		bean.setDeviceState(DeviceState.READY);
 		publisher.broadcast(bean);
+
+		bean2.setPreviousDeviceState(DeviceState.CONFIGURING);
 		bean2.setDeviceState(DeviceState.READY);
 		publisher.broadcast(bean2);
 
+		bean.setPreviousDeviceState(DeviceState.READY);
+		bean2.setPreviousDeviceState(DeviceState.READY);
 		for (int i = 0; i < 10; i++) {
 			bean.setDeviceState(DeviceState.RUNNING);
 			bean.setPercentComplete(i*10);
@@ -236,8 +241,88 @@ public class AbstractScanEventTest {
 			publisher.broadcast(bean2);
 		}
 		
+		bean.setPreviousDeviceState(DeviceState.RUNNING);
 		bean.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean);
+		
+	    bean2.setPreviousDeviceState(DeviceState.RUNNING);
+		bean2.setDeviceState(DeviceState.IDLE);
+		publisher.broadcast(bean2);
+		
+		// Wait for 10 secs >> 2 secs
+		Thread.sleep(10000); // The bean should go back and forth in ms anyway
+
+		if (gotBack.size()!=4) throw new Exception("The wrong number of state changes happened during the fake scan! Number found "+gotBack.size());
+ 	
+		checkState(0, DeviceState.CONFIGURING, gotBack);
+		checkState(1, DeviceState.READY,       gotBack);
+		checkState(2, DeviceState.RUNNING,     gotBack);
+		checkState(3, DeviceState.IDLE,        gotBack);
+		
+		if (all.size()!=(2*gotBack.size())) {
+			throw new Exception("The size of all events was not twice as big as those for one specific scan yet we only had two scans publishing!");
+		}
+	}
+	
+	@Test
+	public void testEventHandlerThrowsException() throws Exception {
+
+		final ScanBean bean = new ScanBean();
+		bean.setName("fred");
+		bean.setDeviceState(DeviceState.IDLE);
+		
+		final ScanBean bean2 = new ScanBean();
+		bean2.setName("fred2");
+		bean2.setDeviceState(DeviceState.IDLE);
+		
+		final List<ScanBean> gotBack = new ArrayList<ScanBean>();
+		subscriber.addListener(bean.getUniqueId(), new IScanListener.Stub() {
+			@Override
+			public void scanStateChanged(ScanEvent evt) {
+				gotBack.add(evt.getBean());
+				// Throw an exception
+				throw new RuntimeException("Test exception");
+			}
+		});
+		
+		final List<ScanBean> all = new ArrayList<ScanBean>();
+		subscriber.addListener(new IScanListener.Stub() {
+			@Override
+			public void scanStateChanged(ScanEvent evt) {
+				all.add(evt.getBean());
+			}
+		});
+
+		// Mimic scan
+		bean.setDeviceState(DeviceState.CONFIGURING);
+		publisher.broadcast(bean);
+		bean2.setDeviceState(DeviceState.CONFIGURING);
+		publisher.broadcast(bean2);
+
+		bean.setPreviousDeviceState(DeviceState.CONFIGURING);
+		bean.setDeviceState(DeviceState.READY);
+		publisher.broadcast(bean);
+
+		bean2.setPreviousDeviceState(DeviceState.CONFIGURING);
+		bean2.setDeviceState(DeviceState.READY);
+		publisher.broadcast(bean2);
+
+		bean.setPreviousDeviceState(DeviceState.READY);
+		bean2.setPreviousDeviceState(DeviceState.READY);
+		for (int i = 0; i < 10; i++) {
+			bean.setDeviceState(DeviceState.RUNNING);
+			bean.setPercentComplete(i*10);
+			publisher.broadcast(bean);
+			bean2.setDeviceState(DeviceState.RUNNING);
+			bean2.setPercentComplete(i*10);
+			publisher.broadcast(bean2);
+		}
+		
+		bean.setPreviousDeviceState(DeviceState.RUNNING);
+		bean.setDeviceState(DeviceState.IDLE);
+		publisher.broadcast(bean);
+		
+	    bean2.setPreviousDeviceState(DeviceState.RUNNING);
 		bean2.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean2);
 		

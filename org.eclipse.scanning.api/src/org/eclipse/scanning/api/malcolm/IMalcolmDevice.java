@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.malcolm;
 
-import org.eclipse.scanning.api.scan.IRunnableEventDevice;
+import org.eclipse.scanning.api.device.IRunnableEventDevice;
 
 
 /**
@@ -54,6 +54,7 @@ public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEven
 	 * 
 	 * @throws MalcolmDeviceException if params are not a just not allowed.
 	 */
+	// FIXME should this return boolean instead of T, or should the Javadoc be updated to say what it really returns?
 	public T validate(T params) throws MalcolmDeviceException;
 	
 	/**

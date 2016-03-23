@@ -33,10 +33,10 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
-import org.eclipse.scanning.api.scan.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
@@ -102,7 +102,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		spectrumData.setChunking(info.createChunk(model.getPoints()));
 
 		// Write detector metadata
-		detector.setField("exposure_time", model.getExposure());
+		detector.setField("exposure_time", model.getExposureTime());
 		detector.setAttribute("exposure_time", "units", "seconds");
 		detector.setField("escape_radius", model.getEscapeRadius());
 		detector.setField("max_iterations", model.getMaxIterations());
@@ -147,8 +147,8 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		value = mandelbrot(a, b);
 
 		// Pause for a bit to make exposure time work
-		if (model.getExposure() > 0) {
-			Thread.sleep(Math.round(1000 * model.getExposure()));
+		if (model.getExposureTime() > 0) {
+			Thread.sleep(Math.round(1000 * model.getExposureTime()));
 		}
 
 		// TODO Should device state be set back to ready here? The device has finished acquiring (calculating) but the data is not in the file yet?

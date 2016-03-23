@@ -9,22 +9,16 @@ import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
-import org.eclipse.dawnsci.nexus.INexusDevice;
-import org.eclipse.dawnsci.nexus.NXobject;
-import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusException;
-import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
-import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IPausableDevice;
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
-import org.eclipse.scanning.api.scan.IPauseableDevice;
-import org.eclipse.scanning.api.scan.IRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -42,7 +36,7 @@ import org.eclipse.scanning.sequencer.nexus.NexusScanFileBuilder;
  *
  * @param <T>
  */
-final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implements INexusDevice<NXobject>{
+final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
 	// Scanning stuff
 	private IPositioner                          positioner;
@@ -82,26 +76,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		setName("solstice_scan");
 	}
 	
-	public NexusObjectProvider<NXobject> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXobject>(getName(), NexusBaseClass.NX_DETECTOR, "uniqueKeys", info, this);
-	}
-
-	@Override
-	public NXobject createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
-		
-		final NXobject positioner = nodeFactory.createNXdetector();
-		positioner.setField("name", getName());
-		uniqueKeys = positioner.initializeLazyDataset("uniqueKeys", info.getRank(), Dataset.FLOAT64);
-		points     = positioner.initializeLazyDataset("points",     info.getRank(), Dataset.STRING);
-		
-		// Setting chunking
-		final int[] chunk = new int[info.getRank()];
-		for (int i = 0; i < info.getRank(); i++) chunk[i] = 1;
-		uniqueKeys.setChunking(chunk);
-		points.setChunking(chunk);
-		
-		return positioner;
-	}
 	/**
 	 * Method to configure the device. It also will check if the
 	 * declared devices in the scan are INexusDevice. If they are,
@@ -152,10 +126,16 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 * @throws ScanningException 
 	 */
 	private boolean createNexusFile(ScanModel model) throws NexusException, ScanningException {
-		if (model.getFilePath()==null || ServiceHolder.getFactory()==null) return false; // nothing wired 
+		if (model.getFilePath() == null || ServiceHolder.getFactory() == null) {
+			return false; // nothing wired, don't write a nexus file 
+		}
+		
 		NexusScanFileBuilder fileBuilder = new NexusScanFileBuilder(getDeviceService());
-		nexusScanFile = fileBuilder.createNexusFile(model, this);
-    	if (nexusScanFile!=null) nexusScanFile.openToWrite();
+		nexusScanFile = fileBuilder.createNexusFile(model);
+    	positioner.addPositionListener(fileBuilder.getScanPointsWriter());
+		
+		nexusScanFile.openToWrite();
+		
 		return true; // successfully created file
 	}
 
@@ -213,7 +193,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		        		        	
 	        	// Send an event about where we are in the scan
 	        	positionComplete(pos, count+1, size);
-	        	record(count+1, pos);
+//	        	record(count+1, pos);
 	        	++count;
 	        }
 	        
@@ -253,7 +233,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		uniqueKeys.setSlice(null, newActualPositionData, sliceND);
 		
 		final Dataset point = DatasetFactory.createFromObject(loc.toString());
-		points.setSlice(null, point, sliceND);
+		//points.setSlice(null, point, sliceND);
 	}
 
 	private void fireEnd() throws ScanningException {
@@ -295,14 +275,18 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 
 	private void checkPaused() throws Exception {
 		
-		if (!getDeviceState().isRunning()) throw new Exception("The scan state is "+getDeviceState());
+		if (!getDeviceState().isRunning() && getDeviceState()!=DeviceState.READY) {
+			throw new Exception("The scan state is "+getDeviceState());
+		}
 
 		// Check the locking using a condition
     	if(!lock.tryLock(1, TimeUnit.SECONDS)) {
     		throw new ScanningException(this, "Internal Error - Could not obtain lock to run device!");    		
     	}
     	try {
-    		if (!getDeviceState().isRunning()) throw new Exception("The scan state is "+getDeviceState());
+    		if (!getDeviceState().isRunning() && getDeviceState()!=DeviceState.READY) {
+    			throw new Exception("The scan state is "+getDeviceState());
+    		}
        	    if (awaitPaused) {
         		setDeviceState(DeviceState.PAUSED);
         		paused.await();
@@ -368,7 +352,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		try {
 			awaitPaused = true;
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
-				if (device instanceof IPauseableDevice) ((IPauseableDevice)device).pause();
+				if (device instanceof IPausableDevice) ((IPausableDevice)device).pause();
 			}
 			
 		} catch (ScanningException s) {
@@ -395,7 +379,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		try {
 			awaitPaused = false;
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
-				if (device instanceof IPauseableDevice) ((IPauseableDevice)device).resume();
+				if (device instanceof IPausableDevice) ((IPausableDevice)device).resume();
 			}
 			paused.signalAll();
 			

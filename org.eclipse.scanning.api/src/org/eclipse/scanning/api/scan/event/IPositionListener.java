@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.scan.event;
 import java.util.EventListener;
 
 import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
  * A positioner moves the motors, taking into account level 
@@ -21,24 +22,31 @@ public interface IPositionListener extends EventListener {
 	
 	/**
 	 * Called just before the position reaches a given value
-	 * @param evt
+	 * @param event
 	 * @return false to abort the point but not the overall scan.
+	 * @throws ScanningException if an exception occurred responding to this event.
+	 *   <em>Note:</em> throwing an exception will stop the scan. If this behaviour is
+	 *   not desirable the exception should be caught and logged instead 
 	 */
-	boolean positionWillPerform(PositionEvent evt);
+	boolean positionWillPerform(PositionEvent evt) throws ScanningException;
 
 	/**
 	 * Called after a given move level has been reached.
-	 * @param evt
+	 * @param event
+	 * @throws ScanningException if an exception occurred responding to this event.
+	 *   <em>Note:</em> throwing an exception will stop the scan. If this behaviour is
+	 *   not desirable the exception should be caught and logged instead 
 	 */
-	void levelPerformed(PositionEvent evt);
+	void levelPerformed(PositionEvent evt) throws ScanningException;
 	
 	/**
 	 * Called after a given position is reached.
-	 * @param evt
+	 * @param event
+	 * @throws ScanningException if an exception occurred responding to this event.
+	 *   <em>Note:</em> throwing an exception will stop the scan. If this behaviour is
+	 *   not desirable the exception should be caught and logged instead 
 	 */
-	void positionPerformed(PositionEvent evt);
-	
-	
+	void positionPerformed(PositionEvent evt) throws ScanningException;
 	
 	public class Stub implements IPositionListener {
 

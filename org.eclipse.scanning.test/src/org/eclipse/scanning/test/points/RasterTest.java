@@ -216,7 +216,7 @@ public class RasterTest {
 		assertEquals(0, pointList.get(4).getX(), 1e-8);
 		assertEquals(1, pointList.get(4).getY(), 1e-8);
 		
-        GeneratorUtil.testGeneratorPoints(gen);
+        GeneratorUtil.testGeneratorPoints(gen, 3, 3);
 	}
 
 	

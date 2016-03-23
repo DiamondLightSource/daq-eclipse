@@ -10,7 +10,7 @@
  *    Matthew Gerring - initial API and implementation and/or initial documentation
  *******************************************************************************/
 
-package org.eclipse.scanning.api.points.annot;
+package org.eclipse.scanning.api.annotation;
 
 /**
  * An enum used to mark options on a OperationModelField as being 

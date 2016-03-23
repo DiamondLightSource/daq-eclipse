@@ -5,8 +5,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IPausableDevice;
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IConsumerProcess;
+import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -16,10 +20,8 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
-import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
-import org.eclipse.scanning.api.scan.IDeviceService;
 import org.eclipse.scanning.api.scan.IFilePathService;
-import org.eclipse.scanning.api.scan.IRunnableDevice;
+import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -35,21 +37,18 @@ import org.eclipse.scanning.api.script.UnsupportedLanguageException;
  * @author Matthew Gerring
  *
  */
-class ScanProcess implements IConsumerProcess<ScanBean> {
+class ScanProcess extends AbstractPausableProcess<ScanBean> {
 
 	// Services
 	private IPositioner                positioner;
 	private IScriptService             scriptService;
 	
-	private ScanBean                   bean;
-	private IPublisher<ScanBean>       response;
-	private IRunnableDevice<ScanModel> device;
+	private IPausableDevice<ScanModel> device;
 	private boolean                    blocking;
 
 	public ScanProcess(ScanBean scanBean, IPublisher<ScanBean> response, boolean blocking) throws EventException {
 		
-		this.bean     = scanBean;
-		this.response = response;
+		super(scanBean, response);
 		this.blocking = blocking;
 		
 		if (bean.getScanRequest().getStart()!=null || bean.getScanRequest().getEnd()!=null) {
@@ -66,15 +65,15 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		bean.setStatus(Status.QUEUED);
 		broadcast(bean);
 	}
-
+	
 	@Override
-	public ScanBean getBean() {
-		return bean;
+	public void doPause() throws Exception {
+		device.pause();
 	}
-
+	
 	@Override
-	public IPublisher<ScanBean> getPublisher() {
-		return response;
+	public void doResume() throws Exception  {
+		device.resume();
 	}
 
 	@Override
@@ -135,7 +134,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		return scriptService.execute(req);		
 	}
 
-	private IRunnableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws ScanningException, EventException {
+	private IPausableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws ScanningException, EventException {
 
 		ScanRequest<?> req = bean.getScanRequest();
 		if (req==null) throw new ScanningException("There must be a scan request to run a new scan!");
@@ -148,7 +147,7 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 			smodel.setMonitors(getMonitors(req.getMonitorNames()));
 			smodel.setBean(bean);
 			
-			return Services.getScanService().createRunnableDevice(smodel, response);
+			return (IPausableDevice<ScanModel>)Services.getScanService().createRunnableDevice(smodel, publisher);
 			
 		} catch (Exception e) {
 			bean.setStatus(Status.FAILED);
@@ -162,7 +161,9 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 	private void configureBean(ScanModel smodel, ScanBean bean) throws EventException {
 		
 		ScanRequest<?> req = bean.getScanRequest();
-		// the name of the scan should be set here.
+		
+		// Set the file path to the next scan file path from the service
+		// which manages scan names.
 		if (req.getFilePath()==null) {
 			IFilePathService fservice = Services.getFilePathService();
 			if (fservice!=null) {
@@ -179,9 +180,11 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 		}
 		bean.setFilePath(smodel.getFilePath());
 		
-		int size  = 0;
-		for (IPosition unused : smodel.getPositionIterable()) size++; // Fast even for large stuff
-        bean.setSize(size);
+		// 
+		ScanEstimator estimator = new ScanEstimator(smodel.getPositionIterable(), bean.isShapeEstimationRequired());
+		bean.setSize(estimator.getSize());
+		bean.setShape(estimator.getShape());
+		
 	}
 
 	@SuppressWarnings("unchecked")
@@ -248,8 +251,8 @@ class ScanProcess implements IConsumerProcess<ScanBean> {
 	}
 
 	private void broadcast(ScanBean bean) throws EventException {
-		if (response!=null && response.isAlive()) {
-			response.broadcast(bean);
+		if (publisher!=null && publisher.isAlive()) {
+			publisher.broadcast(bean);
 		}		
 	}
 

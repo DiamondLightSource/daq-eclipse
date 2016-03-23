@@ -70,7 +70,7 @@
                   The device which is being defined by extension point to be available to the scanning mechanism.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.scanning.api.scan.IRunnableDevice"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.scanning.api.device.IRunnableDevice"/>
                </appinfo>
             </annotation>
          </attribute>

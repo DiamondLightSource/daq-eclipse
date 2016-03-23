@@ -7,7 +7,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  */
 
-package org.eclipse.scanning.api.points.annot;
+package org.eclipse.scanning.api.annotation;
 
 public enum RangeType {
 	

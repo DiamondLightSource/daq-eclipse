@@ -4,8 +4,8 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.UUID;
 
+import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.UiHidden;
-import org.eclipse.scanning.api.points.annot.FieldDescriptor;
 
 /**
  * Abstract base class for scan models, which provides property change support for the convenience of subclasses.

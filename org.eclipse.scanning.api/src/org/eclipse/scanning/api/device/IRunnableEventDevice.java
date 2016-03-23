@@ -1,6 +1,7 @@
-package org.eclipse.scanning.api.scan;
+package org.eclipse.scanning.api.device;
 
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 
 /**
@@ -17,7 +18,7 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
  *
  * @param <T>
  */
-public interface IRunnableEventDevice<T> extends IPauseableDevice<T> {
+public interface IRunnableEventDevice<T> extends IPausableDevice<T> {
 
 	/**
 	 * A listener which notifies when a run of the device will occur and after it

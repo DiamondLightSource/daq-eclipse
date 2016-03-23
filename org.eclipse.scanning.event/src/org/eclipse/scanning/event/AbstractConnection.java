@@ -13,6 +13,7 @@ import javax.jms.Topic;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +25,10 @@ class AbstractConnection {
 	protected final URI              uri;
 	protected String                 topicName;
 	
-	protected String                 submitQueueName;
-	protected String                 statusQueueName;
-	protected String                 statusTopicName;
-	protected String                 killTopicName;
+	protected String                 submitQueueName  = IEventService.SUBMISSION_QUEUE;
+	protected String                 statusQueueName  = IEventService.STATUS_SET;
+	protected String                 statusTopicName  = IEventService.STATUS_TOPIC;
+	protected String                 commandTopicName = IEventService.CMD_TOPIC;
 
 	protected IEventConnectorService service;
 	
@@ -41,33 +42,65 @@ class AbstractConnection {
 		this.service = service;
 	}
 	
-	AbstractConnection(URI uri, String submitQName, String statusQName, String statusTName, String terminateTName, IEventConnectorService service) {
+	AbstractConnection(URI uri, String submitQName, String statusQName, String statusTName, String commandTName, IEventConnectorService service) {
 		this.uri = uri;
 		this.submitQueueName = submitQName;
 		this.statusQueueName = statusQName;
 		this.statusTopicName = statusTName;
-		this.killTopicName = terminateTName;
+		this.commandTopicName = commandTName;
 		this.service = service;
 	}
 	
+	/**
+	 * Deals with reconnecting or if broker gone down, fails
+	 * 
+	 * @param topicName
+	 * @return
+	 * @throws JMSException
+	 */
 	protected Topic createTopic(String topicName) throws JMSException {
 		
-		if (connection==null) createConnection();
-		if (session == null)  createSession();
-		
-		return session.createTopic(topicName);
+		// Deals with reconnecting or if broker gone down, fails
+		try {
+			if (connection==null) createConnection();
+			if (session == null)  createSession();
+			
+			return session.createTopic(topicName);
+			
+		} catch (Exception ne) {
+			createConnection();
+			createQSession();
+			
+			return session.createTopic(topicName);
+		}
 	}
 	
+	/**
+	 * Deals with reconnecting or if broker gone down, fails
+	 * 
+	 * @param queueName
+	 * @return
+	 * @throws JMSException
+	 */
 	protected Queue createQueue(String queueName) throws JMSException {
 		
-		if (connection==null) createConnection();
-		if (qSession == null) createQSession();
-		
-		return qSession.createQueue(queueName);
+		// Deals with reconnecting or if broker gone down, fails
+		try {
+			if (connection==null) createConnection();
+			if (qSession == null) createQSession();
+			
+			return qSession.createQueue(queueName);
+			
+		} catch (Exception ne) {
+			createConnection();
+			createQSession();
+			
+			return qSession.createQueue(queueName);
+		}
 	}
 
 	
-	private void createSession() throws JMSException {
+	protected void createSession() throws JMSException {
 		this.session      = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 	
@@ -75,7 +108,7 @@ class AbstractConnection {
 		this.qSession     = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 
-	private void createConnection() throws JMSException {
+	protected void createConnection() throws JMSException {
 		Object factory = service.createConnectionFactory(uri);
 		QueueConnectionFactory connectionFactory = (QueueConnectionFactory)factory;		
 		this.connection = connectionFactory.createQueueConnection();
@@ -94,6 +127,7 @@ class AbstractConnection {
 		} finally {
 			connection = null;
 			session = null;
+			qSession = null;
 		}
 	}
 
@@ -187,12 +221,12 @@ class AbstractConnection {
 		this.statusTopicName = statusTopicName;
 	}
 
-	public String getKillTopicName() {
-		return killTopicName;
+	public String getCommandTopicName() {
+		return commandTopicName;
 	}
 
-	public void setKillTopicName(String terminateTopicName) {
-		this.killTopicName = terminateTopicName;
+	public void setCommandTopicName(String terminateTopicName) {
+		this.commandTopicName = terminateTopicName;
 	}
 	
 	protected boolean isSame(Object qbean, Object bean) {

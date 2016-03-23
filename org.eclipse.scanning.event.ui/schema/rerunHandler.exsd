@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.dawnsci.commandserver.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema targetNamespace="org.eclipse.scanning.event.ui" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.dawnsci.commandserver.ui" id="rerunHandler" name="Rerun a given result"/>
+         <meta.schema plugin="org.eclipse.scanning.event.ui" id="rerunHandler" name="Rerun a given result"/>
       </appinfo>
       <documentation>
          This extension point is for defining how to rerun a given result. If it is not speficied for a given queue type then the StatusQueueView will still offer a generic reurn of the result.

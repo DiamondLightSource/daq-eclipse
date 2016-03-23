@@ -296,7 +296,7 @@ def rect(origin=None, size=None, angle=0):
 
 def mandelbrot(exposure):
     name = 'mandelbrot'  # Is this right?
-    model = _instantiate(MandelbrotModel, {'exposure': exposure})
+    model = _instantiate(MandelbrotModel, {'exposureTime': exposure})
     return name, model
 
 

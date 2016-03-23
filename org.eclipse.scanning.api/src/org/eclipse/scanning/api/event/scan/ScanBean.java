@@ -37,7 +37,30 @@ public final class ScanBean extends StatusBean {
 	
 	// Where are we in the scan
 	private int       point;
-	private int       size;
+	
+	/**
+	 * Estimated by running the stack. For most static scans size is a constant.
+	 * However scans are allowed to define logic on the iterable.
+	 * In this case size == estimated size!
+	 */
+	private int       size;  
+	
+	/**
+	 * For static scans shape is constant and not estimated. However for
+	 * iterators which calculate things to generate the next point, shape 
+	 * becomes an estimation.
+	 */
+	private int[] shape;
+	
+	/**
+	 * Shape estimation at the start of the scan is slightly
+	 * expensive because it iterates position and the indices
+	 * of the names at that position. It may be turned off to 
+	 * save the CPU for detectors which never need to know 
+	 * shape and simply append in the correct rank per position.
+	 */
+	private boolean shapeEstimationRequired = true;
+	
 	private IPosition position;
 	
 	// State information
@@ -48,8 +71,6 @@ public final class ScanBean extends StatusBean {
 	private String  filePath;
 	private String  datasetPath;
 	private int     scanNumber;
-    private int[]   oldShape;
-    private int[]   newShape;
 		
 	public ScanBean() {
         super();
@@ -103,22 +124,6 @@ public final class ScanBean extends StatusBean {
 		this.deviceState = state;
 	}
 
-	public int[] getOldShape() {
-		return oldShape;
-	}
-
-	public void setOldShape(int[] oldShape) {
-		this.oldShape = oldShape;
-	}
-
-	public int[] getNewShape() {
-		return newShape;
-	}
-
-	public void setNewShape(int[] newShape) {
-		this.newShape = newShape;
-	}
-
 	public String getMessage() {
 		return message;
 	}
@@ -139,8 +144,6 @@ public final class ScanBean extends StatusBean {
 				+ ", filePath=" + filePath
 				+ ", scanNumber=" + scanNumber
 				+ ", datasetPath=" + datasetPath
-				+ ", oldShape=" + Arrays.toString(oldShape)
-				+ ", newShape=" + Arrays.toString(newShape)
 				+ super.toString()+"]";
 	}
 
@@ -160,10 +163,29 @@ public final class ScanBean extends StatusBean {
 		this.point = frame;
 	}
 
+	/**
+	 * NOTE the size is the approximate size of the scan
+	 * by using the iterators. It is legal to do logic
+	 * in an iterator - this means that the overall size
+	 * is not constant for some custom scan types! However
+	 * for the vast majority of linear scans size and shape
+	 * are constant.
+	 *
+	 */
 	public int getSize() {
 		return size;
 	}
 
+	/**
+	 * NOTE the size is the approximate size of the scan
+	 * by using the iterators. It is legal to do logic
+	 * in an iterator - this means that the overall size
+	 * is not constant for some custom scan types! However
+	 * for the vast majority of linear scans size and shape
+	 * are constant.
+	 * 
+	 * @param size
+	 */
 	public void setSize(int size) {
 		this.size = size;
 	}
@@ -186,7 +208,7 @@ public final class ScanBean extends StatusBean {
 	}
 
 	public boolean scanEnd() {
-		return Status.RUNNING ==previousStatus && Status.RUNNING!=status;
+		return previousStatus.isRunning() && Status.RUNNING!=status;
 	}
 
 	@Override
@@ -198,13 +220,13 @@ public final class ScanBean extends StatusBean {
 		result = prime * result + ((deviceName == null) ? 0 : deviceName.hashCode());
 		result = prime * result + ((deviceState == null) ? 0 : deviceState.hashCode());
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
-		result = prime * result + Arrays.hashCode(newShape);
-		result = prime * result + Arrays.hashCode(oldShape);
 		result = prime * result + point;
 		result = prime * result + ((position == null) ? 0 : position.hashCode());
 		result = prime * result + ((previousDeviceState == null) ? 0 : previousDeviceState.hashCode());
 		result = prime * result + scanNumber;
 		result = prime * result + ((scanRequest == null) ? 0 : scanRequest.hashCode());
+		result = prime * result + Arrays.hashCode(shape);
+		result = prime * result + (shapeEstimationRequired ? 1231 : 1237);
 		result = prime * result + size;
 		return result;
 	}
@@ -240,10 +262,6 @@ public final class ScanBean extends StatusBean {
 				return false;
 		} else if (!filePath.equals(other.filePath))
 			return false;
-		if (!Arrays.equals(newShape, other.newShape))
-			return false;
-		if (!Arrays.equals(oldShape, other.oldShape))
-			return false;
 		if (point != other.point)
 			return false;
 		if (position == null) {
@@ -259,6 +277,10 @@ public final class ScanBean extends StatusBean {
 			if (other.scanRequest != null)
 				return false;
 		} else if (!scanRequest.equals(other.scanRequest))
+			return false;
+		if (!Arrays.equals(shape, other.shape))
+			return false;
+		if (shapeEstimationRequired != other.shapeEstimationRequired)
 			return false;
 		if (size != other.size)
 			return false;
@@ -279,6 +301,22 @@ public final class ScanBean extends StatusBean {
 
 	public void setDeviceName(String deviceName) {
 		this.deviceName = deviceName;
+	}
+
+	public int[] getShape() {
+		return shape;
+	}
+
+	public void setShape(int[] shape) {
+		this.shape = shape;
+	}
+
+	public boolean isShapeEstimationRequired() {
+		return shapeEstimationRequired;
+	}
+
+	public void setShapeEstimationRequired(boolean shapeEstimationRequired) {
+		this.shapeEstimationRequired = shapeEstimationRequired;
 	}
 
 }

@@ -19,5 +19,10 @@ public class EmptyGenerator extends AbstractGenerator<EmptyModel,EmptyPosition> 
 	public Iterator<EmptyPosition> iterator() {
 		return Arrays.asList(new EmptyPosition()).iterator();
 	}
+	
+	// Users to not edit the EmptyGenerator
+	public boolean isVisible() {
+		return false;
+	}
 
 }

@@ -13,16 +13,17 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.models.MalcolmRequest;
-import org.eclipse.scanning.api.scan.AbstractRunnableDevice;
-import org.eclipse.scanning.api.scan.IDeviceConnectorService;
-import org.eclipse.scanning.api.scan.IDeviceService;
-import org.eclipse.scanning.api.scan.IRunnableDevice;
+import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
+import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -170,7 +171,6 @@ public final class DeviceServiceImpl implements IDeviceService {
                 }
 			}
 			
-			if (model instanceof MalcolmRequest<?>) model = ((MalcolmRequest<T>)model).getDeviceModel(); 
 			if (configure) scanner.configure(model);
 			
 			if (!scanner.isVirtual()) {
@@ -206,15 +206,15 @@ public final class DeviceServiceImpl implements IDeviceService {
 		
 		final IRunnableDevice<T> scanner;
 		
-		if (model instanceof MalcolmRequest) {
-			MalcolmRequest req = (MalcolmRequest)model;
-			URI            uri = createMalcolmURI(req);
+		if (model instanceof MalcolmDetectorModel) {
+			MalcolmConnectionInfo info = ((MalcolmDetectorModel) model).getConnectionInfo();
+			URI            uri = createMalcolmURI(info);
 			IMalcolmConnection conn = connections.get(uri);
 			if (conn==null || !conn.isConnected()) {
 				conn = malcolmService.createConnection(uri);
 				connections.put(uri, conn);
 			}
-			return conn.getDevice(req.getDeviceName());
+			return conn.getDevice(info.getDeviceName());
 			
 		} else if (aquisitionDevices.containsKey(model.getClass())) {
 			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)aquisitionDevices.get(model.getClass());
@@ -235,7 +235,7 @@ public final class DeviceServiceImpl implements IDeviceService {
 	 * @throws UnknownHostException
 	 * @throws URISyntaxException 
 	 */
-	private URI createMalcolmURI(MalcolmRequest req) throws UnknownHostException, URISyntaxException {
+	private URI createMalcolmURI(MalcolmConnectionInfo req) throws UnknownHostException, URISyntaxException {
 		String hostName = req.getHostName();
 		if (hostName == null) hostName = defaultMalcolmHostname;
 		if (hostName == null) hostName = InetAddress.getLocalHost().getHostName();

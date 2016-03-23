@@ -3,7 +3,7 @@ package org.eclipse.scanning.api.points;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.scan.IDeviceService;
+import org.eclipse.scanning.api.device.IDeviceService;
 
 /**
  * A position is a location of one or more values. It is

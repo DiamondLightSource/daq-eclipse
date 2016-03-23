@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import org.eclipse.scanning.api.event.IdBean;
 
-public class HeartbeatBean extends IdBean {
+public class HeartbeatBean extends ConsumerCommandBean {
 
 	public static final HeartbeatBean EMPTY = new HeartbeatBean();
 
@@ -33,10 +33,6 @@ public class HeartbeatBean extends IdBean {
 	 */
 	private String consumerName;
 
-	/**
-	 * Tells you the unique id of the thing that is alive. May be null.
-	 */
-	private UUID consumerId;
 
 	private ConsumerStatus consumerStatus;
 	
@@ -70,18 +66,11 @@ public class HeartbeatBean extends IdBean {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((beamline == null) ? 0 : beamline.hashCode());
-		result = prime * result
-				+ (int) (conceptionTime ^ (conceptionTime >>> 32));
-		result = prime * result
-				+ ((consumerId == null) ? 0 : consumerId.hashCode());
-		result = prime * result
-				+ ((consumerName == null) ? 0 : consumerName.hashCode());
-		result = prime * result
-				+ ((consumerStatus == null) ? 0 : consumerStatus.hashCode());
-		result = prime * result
-				+ ((hostName == null) ? 0 : hostName.hashCode());
+		result = prime * result + ((beamline == null) ? 0 : beamline.hashCode());
+		result = prime * result + (int) (conceptionTime ^ (conceptionTime >>> 32));
+		result = prime * result + ((consumerName == null) ? 0 : consumerName.hashCode());
+		result = prime * result + ((consumerStatus == null) ? 0 : consumerStatus.hashCode());
+		result = prime * result + ((hostName == null) ? 0 : hostName.hashCode());
 		result = prime * result + (int) (lastAlive ^ (lastAlive >>> 32));
 		result = prime * result + (int) (publishTime ^ (publishTime >>> 32));
 		return result;
@@ -103,11 +92,6 @@ public class HeartbeatBean extends IdBean {
 			return false;
 		if (conceptionTime != other.conceptionTime)
 			return false;
-		if (consumerId == null) {
-			if (other.consumerId != null)
-				return false;
-		} else if (!consumerId.equals(other.consumerId))
-			return false;
 		if (consumerName == null) {
 			if (other.consumerName != null)
 				return false;
@@ -127,19 +111,11 @@ public class HeartbeatBean extends IdBean {
 		return true;
 	}
 
-	public UUID getConsumerId() {
-		return consumerId;
-	}
-
-	public void setConsumerId(UUID consumerId) {
-		this.consumerId = consumerId;
-	}
-
 	@Override
 	public String toString() {
 		return "HeartbeatBean [beamline=" + beamline + ", publishTime="
 				+ publishTime + ", conceptionTime=" + conceptionTime
-				+ ", consumerId=" + consumerId + "]";
+				+ ", consumerId=" + getConsumerId() + "]";
 	}
 
 	public String getConsumerName() {
@@ -175,6 +151,9 @@ public class HeartbeatBean extends IdBean {
 	}
 
 	public boolean equalsIgnoreLastAlive(HeartbeatBean obj) {
+		
+		if (!super.equals(obj)) return false;
+
 		if (this == obj)
 			return true;
 		if (!super.equals(obj))
@@ -188,11 +167,6 @@ public class HeartbeatBean extends IdBean {
 		} else if (!beamline.equals(other.beamline))
 			return false;
 		if (conceptionTime != other.conceptionTime)
-			return false;
-		if (consumerId == null) {
-			if (other.consumerId != null)
-				return false;
-		} else if (!consumerId.equals(other.consumerId))
 			return false;
 		if (consumerName == null) {
 			if (other.consumerName != null)

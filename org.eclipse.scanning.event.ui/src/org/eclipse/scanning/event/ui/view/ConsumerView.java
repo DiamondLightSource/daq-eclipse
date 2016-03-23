@@ -243,7 +243,7 @@ public class ConsumerView extends ViewPart {
 			    kbean.setConsumerId(bean.getConsumerId());
 				
  				try {
- 		       		final IPublisher<KillBean> send = service.createPublisher(getUri(), IEventService.KILL_TOPIC);
+ 		       		final IPublisher<KillBean> send = service.createPublisher(getUri(), IEventService.CMD_TOPIC);
 					send.broadcast(kbean);
 				} catch (Exception e) {
 					logger.error("Cannot terminate consumer "+bean.getConsumerName(), e);
