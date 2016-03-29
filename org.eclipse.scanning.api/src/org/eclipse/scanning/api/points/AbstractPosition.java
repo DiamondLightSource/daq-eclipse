@@ -1,6 +1,5 @@
 package org.eclipse.scanning.api.points;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;

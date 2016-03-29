@@ -179,7 +179,7 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		AbstractGenerator other = (AbstractGenerator) obj;
+		AbstractGenerator<?, ?> other = (AbstractGenerator<?, ?>) obj;
 		if (containers == null) {
 			if (other.containers != null)
 				return false;
