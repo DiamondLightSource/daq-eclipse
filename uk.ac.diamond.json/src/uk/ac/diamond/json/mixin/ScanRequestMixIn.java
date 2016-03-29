@@ -16,19 +16,26 @@
  * with GDA. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.diamond.json.roimixins;
+package uk.ac.diamond.json.mixin;
+
+import java.util.Collection;
+
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+public abstract class ScanRequestMixIn {
 
-public abstract class IOrientableROIMixIn {
+	@JsonProperty abstract Collection<IScanPathModel> getModels();
 
-	@JsonIgnore abstract double getAngleDegrees();
+	@JsonProperty abstract void setModels(Collection<IScanPathModel> models);
 
-	@JsonIgnore abstract void setAngleDegrees(double degrees);
+	@JsonIgnore abstract void setModels(IScanPathModel... models);
 
-	@JsonProperty abstract double getAngle();
+	@JsonProperty abstract Collection<String> getMonitorNames();
 
-	@JsonProperty abstract void setAngle(double angle);
+	@JsonProperty abstract void setMonitorNames(Collection<String> monitorNames);
+
+	@JsonIgnore abstract void setMonitorNames(String... monitorNames);
 }

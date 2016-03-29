@@ -1,5 +1,7 @@
 package org.eclipse.scanning.command;
 
+import java.util.Collection;
+
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
@@ -11,16 +13,16 @@ public class ScanRequestStringifier {
 	// sent across networks/stored in queues, etc..
 
 	final public static String stringify(ScanRequest<IROI> request, Boolean verbose) {
-		IScanPathModel[] models = request.getModels();
+		Collection<IScanPathModel> models = request.getModels();
 
 		String fragment = "mscan(";
 		Boolean argsPartiallyWritten = false;
 
-		if (models.length > 0) {
+		if (models.size() > 0) {
 			// TODO: ROIs.
 			if (argsPartiallyWritten) { fragment += ", "; }
 			if (verbose) { fragment += "path="; }
-			if (models.length > 1) {
+			if (models.size() > 1) {
 				fragment += "[";
 				Boolean listPartiallyWritten = false;
 				for (IScanPathModel model : models) {
@@ -30,7 +32,7 @@ public class ScanRequestStringifier {
 				}
 				fragment += "]";
 			} else {
-				fragment += ModelStringifier.stringify(models[0], verbose);
+				fragment += ModelStringifier.stringify(models.iterator().next(), verbose);
 			}
 			argsPartiallyWritten = true;
 		}
