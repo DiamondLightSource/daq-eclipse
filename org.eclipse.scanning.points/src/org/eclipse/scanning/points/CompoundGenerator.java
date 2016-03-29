@@ -32,14 +32,22 @@ class CompoundGenerator extends AbstractGenerator<IScanPathModel, IPosition> {
 	}
 
 	@Override
-	public int size() throws GeneratorException {
+	protected void validateModel() {
+		// CompoundGenerator is a bit of a special case. this.iterator() calls
+		// the .iterator() methods of the component IPointGenerators, which in
+		// turn each calls .validateModel(). Therefore we don't need to do any
+		// explicit validation here.
+	}
+
+	@Override
+	public int sizeOfValidModel() throws GeneratorException {
 		int size = 1;
 		for (int i = 0; i < generators.length; i++) size*=generators[i].size();
         return size;
 	}
 	
 	@Override
-	public Iterator<IPosition> iterator() {
+	protected Iterator<IPosition> iteratorFromValidModel() {
 		try {
 			return new CompoundIterator(this);
 		} catch (GeneratorException e) {
