@@ -7,5 +7,5 @@
    <reference bind="setConnector" cardinality="0..1" interface="org.eclipse.scanning.api.device.IDeviceConnectorService" name="IDeviceConnectorService" policy="dynamic"/>
    <reference bind="setMalcService" cardinality="0..1" interface="org.eclipse.scanning.api.malcolm.IMalcolmService" name="IMalcolmService" policy="dynamic"/>
    <reference bind="setFilePathService" cardinality="0..1" interface="org.eclipse.scanning.api.scan.IFilePathService" name="IFilePathService" policy="dynamic"/>
-   <reference bind="setPreprocessingService" cardinality="0..1" interface="org.eclipse.scanning.api.scan.process.IPreprocessingService"  name="IPreprocessingService" policy="dynamic"/>
+   <reference bind="addPreprocessor" cardinality="0..n" interface="org.eclipse.scanning.api.scan.process.IPreprocessor" name="IPreprocessor" policy="dynamic" unbind="removePreprocessor"/>
 </scr:component>

@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="Services for Preprocessing Plugin Test">
-   <implementation class="org.eclipse.scanning.test.scan.preprocess.PreprocessPluginTest"/>
-   <reference bind="setService" cardinality="1..1" interface="org.eclipse.scanning.api.scan.process.IPreprocessingService" name="IPreprocessingService" policy="static"/>
-</scr:component>

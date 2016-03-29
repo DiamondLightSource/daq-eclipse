@@ -4,7 +4,7 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.api.scan.process.AbstractPreprocessor;
+import org.eclipse.scanning.api.scan.process.IPreprocessor;
 import org.eclipse.scanning.api.scan.process.ProcessingException;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 
@@ -18,7 +18,12 @@ import org.eclipse.scanning.example.detector.MandelbrotModel;
  * @author Matthew Gerring
  *
  */
-public class ExamplePreprocessor extends AbstractPreprocessor {
+public class ExamplePreprocessor implements IPreprocessor {
+
+	@Override
+	public String getName() {
+		return "example";
+	}
 
 	@Override
 	public <T> ScanRequest<T> preprocess(ScanRequest<T> req) throws ProcessingException {
@@ -43,5 +48,4 @@ public class ExamplePreprocessor extends AbstractPreprocessor {
 		
 		return req;
 	}
-
 }
