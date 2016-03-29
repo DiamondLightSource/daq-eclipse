@@ -5,6 +5,7 @@ import static org.eclipse.scanning.command.ModelStringifier.stringify;
 
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.junit.Test;
 
@@ -72,6 +73,46 @@ public class ModelStringifierTest {
 		assertEquals(
 				"grid(axes=('bob', 'alice'), origin=(0.0, 1.0), size=(10.0, 11.0), count=(3, 4), snake=False)",
 				stringify(gmodel, true));
+	}
+
+	@Test
+	public void testRasterModelConcise() {
+		BoundingBox bbox = new BoundingBox();
+		bbox.setxStart(0);
+		bbox.setyStart(1);
+		bbox.setWidth(10);
+		bbox.setHeight(11);
+
+		RasterModel rmodel = new RasterModel();
+		rmodel.setyName("alice");
+		rmodel.setxName("bob");
+		rmodel.setBoundingBox(bbox);
+		rmodel.setxStep(3);
+		rmodel.setyStep(4);
+
+		assertEquals(
+				"grid(('bob', 'alice'), (0.0, 1.0), (10.0, 11.0), step=(3.0, 4.0), snake=False)",
+				stringify(rmodel, false));
+	}
+
+	@Test
+	public void testRasterModelVerbose() {
+		BoundingBox bbox = new BoundingBox();
+		bbox.setxStart(0);
+		bbox.setyStart(1);
+		bbox.setWidth(10);
+		bbox.setHeight(11);
+
+		RasterModel rmodel = new RasterModel();
+		rmodel.setyName("alice");
+		rmodel.setxName("bob");
+		rmodel.setBoundingBox(bbox);
+		rmodel.setxStep(3);
+		rmodel.setyStep(4);
+
+		assertEquals(
+				"grid(axes=('bob', 'alice'), origin=(0.0, 1.0), size=(10.0, 11.0), step=(3.0, 4.0), snake=False)",
+				stringify(rmodel, true));
 	}
 
 }
