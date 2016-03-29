@@ -16,25 +16,17 @@
  * with GDA. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.diamond.json.roimixins;
-
-import java.util.List;
-
-import org.eclipse.dawnsci.analysis.api.roi.IROI;
-import org.eclipse.dawnsci.analysis.dataset.roi.PointROI;
+package uk.ac.diamond.json.mixin.roi;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
-public abstract class PolylineROIMixIn {
+public abstract class IRectangularROIMixIn {
 
-	@JsonIgnore abstract void setPoint(PointROI point);
+	@JsonIgnore abstract double getLength(int i);
 
-	@JsonIgnore abstract int getSides();
+	@JsonIgnore abstract double[] getEndPoint();
 
-	@JsonIgnore abstract int getNumberOfPoints();
+	@JsonIgnore abstract int[] getIntLengths();
 
-	@JsonProperty abstract List<IROI> getPoints();
-
-	@JsonProperty abstract void setPoints(List<IROI> points);
+	@JsonIgnore abstract int getIntLength(int index);
 }

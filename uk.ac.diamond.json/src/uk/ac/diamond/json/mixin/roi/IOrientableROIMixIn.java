@@ -16,18 +16,19 @@
  * with GDA. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.diamond.json.roimixins;
+package uk.ac.diamond.json.mixin.roi;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public abstract class CircularROIMixIn {
 
-	@JsonProperty abstract double getRadius();
+public abstract class IOrientableROIMixIn {
 
-	@JsonProperty abstract void setRadius(double radius);
+	@JsonIgnore abstract double getAngleDegrees();
 
-	@JsonIgnore abstract double[] getCentre();
+	@JsonIgnore abstract void setAngleDegrees(double degrees);
 
-	@JsonIgnore abstract void setCentre(double... centre);
+	@JsonProperty abstract double getAngle();
+
+	@JsonProperty abstract void setAngle(double angle);
 }
