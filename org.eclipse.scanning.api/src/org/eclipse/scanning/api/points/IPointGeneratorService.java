@@ -1,34 +1,33 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 /**
  * This service generates points for a given scan type.
- * 
  * <p>
- * 
- * <usage><code>
- * IPointGeneratorService pservice  = ... // OSGi <br>
- * 
- * LissajousModel model = new LissajousModel();<br>
+ * Usage:
+ * <usage><code><pre>
+ * IPointGeneratorService pservice  = ... // OSGi
+ *
+ * LissajousModel model = new LissajousModel();
  *  ... // Set values
- * 
- * IPointGenerator<LissajousModel,Point> generator = pservice.createGenerator(model, roi); <br>
- * 
- * Iterator<Point> it = generator.iterator(); <br>
- * ... // Use iterator in a scan. <br>
- * 
- *  <br>
- * // Use size to tell user in GUI the whole size. Avoids making all points if it can <br>
- * int size = generator.size();<br>
- * 
- * // Create and return all the points in memory (might be large). Avoid if possible <br>
- * List<Point> allPoints = generator.createPoints(); <br>
- * 
- * </code></usage>
- * 
+ *
+ * IPointGenerator<LissajousModel,Point> generator = pservice.createGenerator(model, roi);
+ *
+ * Iterator<Point> it = generator.iterator();
+ * ... // Use iterator in a scan.
+ *
+ * // Use size to tell user in GUI the whole size. Avoids making all points if it can
+ * int size = generator.size();
+ *
+ * // Create and return all the points in memory (might be large). Avoid if possible
+ * List<Point> allPoints = generator.createPoints();
+ * </pre></code></usage>
+ *
  * @author Matthew Gerring
  *
  */
@@ -37,10 +36,32 @@ public interface IPointGeneratorService {
 	/**
 	 * Used to create a point generator of a given type
 	 * @param model
-	 * @param region, a reference to an IROI for instance, maybe <b>null</b> if no IROI exists for this scan.
 	 * @return
 	 */
-	<T extends IScanPathModel,R,P extends IPosition> IPointGenerator<T,P> createGenerator(T model, R... roi) throws GeneratorException;
+	default <T extends IScanPathModel,P extends IPosition> IPointGenerator<T,P> createGenerator(T model) throws GeneratorException {
+		return createGenerator(model, Collections.emptyList());
+	}
+
+	/**
+	 * Used to create a point generator of a given type.
+	 * <p>
+	 * Convenience implementation when using only one region of interest
+	 * 
+	 * @param model
+	 * @param region a reference to an IROI for instance
+	 * @return
+	 */
+	default <T extends IScanPathModel,R,P extends IPosition> IPointGenerator<T,P> createGenerator(T model, R region) throws GeneratorException {
+		return createGenerator(model, Arrays.asList(region));
+	}
+
+	/**
+	 * Used to create a point generator of a given type
+	 * @param model
+	 * @param regions a reference to zero or more IROIs for instance
+	 * @return
+	 */
+	<T extends IScanPathModel,R,P extends IPosition> IPointGenerator<T,P> createGenerator(T model, Collection<R> regions) throws GeneratorException;
 
 	/**
 	 * Create a nested or compound generator.
@@ -50,14 +71,14 @@ public interface IPointGeneratorService {
 	 * @return
 	 * @throws GeneratorException
 	 */
-	IPointGenerator<?,IPosition> createCompoundGenerator(IPointGenerator<?,? extends IPosition>... generators) throws GeneratorException;
+	IPointGenerator<?,IPosition> createCompoundGenerator(IPointGenerator<?,?>... generators) throws GeneratorException;
 
 	/**
 	 * Each IPointGenerator must have a unique id which is used to refer to it in the user interface.
 	 * @return
 	 */
 	Collection<String> getRegisteredGenerators();
-	
+
 	/**
 	 * Creates a generator by id which has an model associated with it.
 	 * The model may either be retrieved and have fields set or the generator

@@ -1,14 +1,27 @@
 package org.eclipse.scanning.test.command;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
-import org.eclipse.dawnsci.analysis.dataset.roi.*;
+import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
-import org.eclipse.scanning.api.points.models.*;
+import org.eclipse.scanning.api.points.models.ArrayModel;
+import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
+import org.eclipse.scanning.api.points.models.OneDStepModel;
+import org.eclipse.scanning.api.points.models.RasterModel;
+import org.eclipse.scanning.api.points.models.SinglePointModel;
+import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.command.Interpreter;
 import org.eclipse.scanning.command.QueueSingleton;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
@@ -47,10 +60,10 @@ public class CommandTest {
 			+	")                                "
 			);
 
-		IScanPathModel[] models = request.getModels();
-		assertEquals(1, models.length);  // I.e. this is not a compound scan.
+		Collection<IScanPathModel> models = request.getModels();
+		assertEquals(1, models.size());  // I.e. this is not a compound scan.
 
-		IScanPathModel model = models[0];
+		IScanPathModel model = models.iterator().next();
 		assertEquals(GridModel.class, model.getClass());
 
 		GridModel gmodel = (GridModel) model;
@@ -66,10 +79,10 @@ public class CommandTest {
 		assertEquals(10, bbox.getWidth(), 1e-8);
 		assertEquals(9, bbox.getHeight(), 1e-8);
 
-		IROI[] regions = request.getRegions(gmodel.getUniqueKey());
-		assertEquals(1, regions.length);
+		Collection<IROI> regions = request.getRegions(gmodel.getUniqueKey());
+		assertEquals(1, regions.size());
 
-		IROI region = regions[0];
+		IROI region = regions.iterator().next();
 		assertEquals(CircularROI.class, region.getClass());
 
 		CircularROI cregion = (CircularROI) region;
@@ -95,7 +108,7 @@ public class CommandTest {
 				"mscan(step(my_scannable, -2, 5, 0.5), det=mandelbrot(0.1))"
 			);
 
-		IScanPathModel model = request.getModels()[0];
+		IScanPathModel model = ((List<IScanPathModel>) request.getModels()).get(0);
 		assertEquals(StepModel.class, model.getClass());
 
 		StepModel smodel = (StepModel) model;
@@ -125,23 +138,22 @@ public class CommandTest {
 			+	")                                    "
 			);
 
-		IScanPathModel model = request.getModels()[0];
+		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(RasterModel.class, model.getClass());
 
 		RasterModel rmodel = (RasterModel) model;
 		assertEquals(0.5, rmodel.getxStep(), 1e-8);
 
-		IROI[] regions = request.getRegions(rmodel.getUniqueKey());
-		assertEquals(2, regions.length);
-		assertEquals(CircularROI.class, regions[0].getClass());
-		assertEquals(RectangularROI.class, regions[1].getClass());
+		Collection<IROI> regions = request.getRegions(rmodel.getUniqueKey());
+		assertEquals(2, regions.size());
 
-		CircularROI cregion = (CircularROI) regions[0];
+		Iterator<IROI> regionIterator = regions.iterator();
+		CircularROI cregion = (CircularROI) regionIterator.next();
 		assertEquals(4, cregion.getCentre()[0], 1e-8);
 		assertEquals(4, cregion.getCentre()[1], 1e-8);
 		assertEquals(5, cregion.getRadius(), 1e-8);
 
-		RectangularROI rregion = (RectangularROI) regions[1];
+		RectangularROI rregion = (RectangularROI) regionIterator.next();
 		assertEquals(3, rregion.getPoint()[0], 1e-8);
 		assertEquals(4, rregion.getPoint()[1], 1e-8);
 		assertEquals(3, rregion.getLengths()[0], 1e-8);
@@ -156,7 +168,7 @@ public class CommandTest {
 				"mscan(array('qty', [-3, 1, 1.5, 1e10]), det=mandelbrot(0.1))"
 			);
 
-		IScanPathModel model = request.getModels()[0];
+		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(ArrayModel.class, model.getClass());
 
 		ArrayModel amodel = (ArrayModel) model;
@@ -174,7 +186,7 @@ public class CommandTest {
 				"mscan(line(origin=(0, 4), length=10, angle=0.1, count=10), det=[mandelbrot(0.1)])"
 			);
 
-		IScanPathModel model = request.getModels()[0];
+		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(OneDEqualSpacingModel.class, model.getClass());
 
 		OneDEqualSpacingModel omodel = (OneDEqualSpacingModel) model;
@@ -192,7 +204,7 @@ public class CommandTest {
 				"mscan(line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5), det=mandelbrot(0.1))"
 			);
 
-		IScanPathModel model = request.getModels()[0];
+		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(OneDStepModel.class, model.getClass());
 
 		OneDStepModel omodel = (OneDStepModel) model;
@@ -210,7 +222,7 @@ public class CommandTest {
 				"mscan(point(4, 5), mandelbrot(0.1))"
 			);
 
-		IScanPathModel model = request.getModels()[0];
+		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(SinglePointModel.class, model.getClass());
 
 		SinglePointModel spmodel = (SinglePointModel) model;
@@ -233,19 +245,19 @@ public class CommandTest {
 		ScanRequest<IROI> request = interpret(
 				"mscan([point(4, 5)], mandelbrot(0.1))"
 			);
-		assertEquals(4, ((SinglePointModel) request.getModels()[0]).getX(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
 		request = interpret(
 				"mscan(point(4, 5), [mandelbrot(0.1)])"
 			);
-		assertEquals(4, ((SinglePointModel) request.getModels()[0]).getX(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
 		request = interpret(
 				"mscan([point(4, 5)], [mandelbrot(0.1)])"
 			);
-		assertEquals(4, ((SinglePointModel) request.getModels()[0]).getX(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 	}
 
@@ -262,15 +274,14 @@ public class CommandTest {
 			+	")                                                                                     "
 			);
 
-		IScanPathModel[] models = request.getModels();
-		assertEquals(2, models.length);  // I.e. this is a compound scan with two components.
-		assertEquals(GridModel.class, models[0].getClass());
-		assertEquals(StepModel.class, models[1].getClass());
+		Collection<IScanPathModel> models = request.getModels();
+		assertEquals(2, models.size());  // I.e. this is a compound scan with two components.
 
-		GridModel gmodel = (GridModel) models[0];
+		Iterator<IScanPathModel> modelIterator = models.iterator();
+		GridModel gmodel = (GridModel) modelIterator.next();
 		assertEquals(5, gmodel.getRows());
 
-		StepModel smodel = (StepModel) models[1];
+		StepModel smodel = (StepModel) modelIterator.next();
 		assertEquals(10, smodel.getStop(), 1e-8);
 	}
 

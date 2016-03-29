@@ -1,6 +1,7 @@
 package org.eclipse.scanning.server.servlet;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -239,7 +240,7 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 	}
 
-	private List<IScannable<?>> getMonitors(String... monitorNames) throws EventException {
+	private List<IScannable<?>> getMonitors(Collection<String> monitorNames) throws EventException {
 		if (monitorNames==null) return null;
 		try {
 			final List<IScannable<?>> ret = new ArrayList<>(3);

@@ -42,7 +42,7 @@ public class PreprocessPluginTest {
 		req = preprocessor.preprocess(req);
 		assertNotNull(req);
 
-		StepModel step = (StepModel)req.getModels()[0];
+		StepModel step = (StepModel)req.getModels().toArray()[0];
 		assertTrue(step.getName().equals("xfred"));
 	}
 	
@@ -53,7 +53,7 @@ public class PreprocessPluginTest {
 		req = preprocessor.preprocess(req);
 		assertNotNull(req);
 
-		GridModel grid = (GridModel)req.getModels()[0];
+		GridModel grid = (GridModel)req.getModels().toArray()[0];
 		assertTrue(grid.getxName().equals("xfred"));
 		assertTrue(grid.getyName().equals("yfred"));
 	}

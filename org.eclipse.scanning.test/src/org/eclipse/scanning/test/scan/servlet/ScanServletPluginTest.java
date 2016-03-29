@@ -111,7 +111,7 @@ public class ScanServletPluginTest {
 			for (ScanBean scanBean : beans) {
 				ScanRequest<?> req = scanBean.getScanRequest();
 				
-				StepModel step = (StepModel)req.getModels()[0];
+				StepModel step = (StepModel)req.getModels().toArray()[0];
 				assertTrue(step.getName().equals("xfred"));
 			}
 		} finally {
