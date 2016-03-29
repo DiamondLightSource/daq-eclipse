@@ -63,6 +63,9 @@ def mscan(path=None, det=None, now=False, block=False):
     >>> # Skip the queue and return once the scan is complete.
     >>> mscan(…, …, now=True, block=True)
     """
+    assert path is not None
+    if det is None: det = []
+
     # The effect of the following two lines is to make square brackets optional
     # when calling this function with length-1 lists. I.e. we can do either
     # scan([grid(…)], …) or scan(grid(…), …).
