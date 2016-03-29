@@ -11,7 +11,6 @@ import org.junit.Test;
 
 
 public class ModelStringifierTest {
-	// TODO: Test round-trips, i.e. interpret(stringify(model)) == model.
 
 	@Test
 	public void testStepModelConcise() {
