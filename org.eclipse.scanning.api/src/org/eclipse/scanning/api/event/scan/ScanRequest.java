@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.event.scan;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,12 +31,12 @@ public class ScanRequest<T> {
 	 * 
 	 * e.g. a StepModel
 	 */
-	private IScanPathModel[] models;
+	private Collection<IScanPathModel> models;
 	
 	/**
 	 * A map of the unique id of a model to the set of regions (if any) required by that model.
 	 */
-	private Map<String, T[]> regions;
+	private Map<String, Collection<T>> regions;
 
 	/** 
 	 * The names of the detectors to use in the scan, may be null.
@@ -45,7 +46,7 @@ public class ScanRequest<T> {
 	/**
 	 * The names of monitors in the scan, may be null.
 	 */
-	private String[] monitorNames;
+	private Collection<String> monitorNames;
 	
 	/**
 	 * Part or all of the file path to be used for this scan.
@@ -91,33 +92,42 @@ public class ScanRequest<T> {
 	
 	public ScanRequest(IScanPathModel model, String filePath, String... monitorNames) {
 		super();
-		models = new IScanPathModel[]{model};
-		this.monitorNames = monitorNames;
+		models = Arrays.asList(model);
+		this.monitorNames = Arrays.asList(monitorNames);
 		this.filePath = filePath;
 	}
 	
 	public ScanRequest(IScanPathModel model, T region, String filePath, String... monitorNames) {
-		super();
-		models = new IScanPathModel[]{model};
+		this(model, filePath, monitorNames);
 		putRegion(model.getUniqueKey(), region);
-		this.monitorNames = monitorNames;
-		this.filePath = filePath;
 	}
 
-	public IScanPathModel[] getModels() {
+	public Collection<IScanPathModel> getModels() {
 		return models;
 	}
 	
-	public void setModels(IScanPathModel... models) {
+	public void setModels(Collection<IScanPathModel> models) {
 		this.models = models;
 	}
 
-	public String[] getMonitorNames() {
+	// This varargs implementation has been added for convenience of users of ScanRequest objects
+	// However it requires special handling for serialization (since there are two setters) so be careful changing it!
+	public void setModels(IScanPathModel... models) {
+		setModels(Arrays.asList(models));
+	}
+
+	public Collection<String> getMonitorNames() {
 		return monitorNames;
 	}
 
-	public void setMonitorNames(String... monitorNames) {
+	public void setMonitorNames(Collection<String> monitorNames) {
 		this.monitorNames = monitorNames;
+	}
+
+	// This varargs implementation has been added for convenience of users of ScanRequest objects
+	// However it requires special handling for serialization (since there are two setters) so be careful changing it!
+	public void setMonitorNames(String... monitorNames) {
+		setMonitorNames(Arrays.asList(monitorNames));
 	}
 
 	public String getFilePath() {
@@ -140,8 +150,8 @@ public class ScanRequest<T> {
 		result = prime * result + ((end == null) ? 0 : end.hashCode());
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + (ignorePreprocess ? 1231 : 1237);
-		result = prime * result + Arrays.hashCode(models);
-		result = prime * result + Arrays.hashCode(monitorNames);
+		result = prime * result + ((models == null) ? 0 : models.hashCode());
+		result = prime * result + ((monitorNames == null) ? 0 : monitorNames.hashCode());
 		result = prime * result + ((regions == null) ? 0 : regions.hashCode());
 		result = prime * result + ((start == null) ? 0 : start.hashCode());
 		return result;
@@ -193,9 +203,15 @@ public class ScanRequest<T> {
 			return false;
 		if (ignorePreprocess != other.ignorePreprocess)
 			return false;
-		if (!Arrays.equals(models, other.models))
+		if (models == null) {
+			if (other.models != null)
+				return false;
+		} else if (!models.equals(other.models))
 			return false;
-		if (!Arrays.equals(monitorNames, other.monitorNames))
+		if (monitorNames == null) {
+			if (other.monitorNames != null)
+				return false;
+		} else if (!monitorNames.equals(other.monitorNames))
 			return false;
 		if (regions == null) {
 			if (other.regions != null)
@@ -212,8 +228,8 @@ public class ScanRequest<T> {
 
 	@Override
 	public String toString() {
-		return "ScanRequest [models=" + Arrays.toString(models) + ", detectors=" + detectors + ", monitorNames="
-				+ Arrays.toString(monitorNames) + ", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
+		return "ScanRequest [models=" + models + ", detectors=" + detectors + ", monitorNames="
+				+ monitorNames + ", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
 	}
 
 	public Map<String, IDetectorModel> getDetectors() {
@@ -245,22 +261,22 @@ public class ScanRequest<T> {
 		this.end = end;
 	}
 
-	public Map<String, T[]> getRegions() {
+	public Map<String, Collection<T>> getRegions() {
 		return regions;
 	}
-	public T[] getRegions(String uniqueKey) {
+	public Collection<T> getRegions(String uniqueKey) {
 		if (regions==null) return null;
 		return regions.get(uniqueKey);
 	}
 
-	public void setRegions(Map<String, T[]> regions) {
+	public void setRegions(Map<String, Collection<T>> regions) {
 		this.regions = regions;
 	}
 	
 	@SafeVarargs
-	public final void putRegion(String unqiueId, T... areas) {
+	public final void putRegion(String uniqueId, T... areas) {
 		if (this.regions==null) this.regions = new HashMap<>(3);
-		this.regions.put(unqiueId, areas);
+		this.regions.put(uniqueId, Arrays.asList(areas));
 	}
 
 	public boolean isIgnorePreprocess() {
@@ -302,6 +318,5 @@ public class ScanRequest<T> {
 	public void setAfterResponse(ScriptResponse<?> afterResponse) {
 		this.afterResponse = afterResponse;
 	}
-
 
 }

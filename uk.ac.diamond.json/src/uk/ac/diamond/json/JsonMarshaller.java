@@ -9,6 +9,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.PolylineROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.IPosition;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -32,6 +33,7 @@ import uk.ac.diamond.json.internal.BundleProvider;
 import uk.ac.diamond.json.internal.OSGiBundleProvider;
 import uk.ac.diamond.json.internal.PositionDeserializer;
 import uk.ac.diamond.json.internal.PositionSerializer;
+import uk.ac.diamond.json.mixin.ScanRequestMixIn;
 import uk.ac.diamond.json.mixin.roi.CircularROIMixIn;
 import uk.ac.diamond.json.mixin.roi.IOrientableROIMixIn;
 import uk.ac.diamond.json.mixin.roi.IROIMixIn;
@@ -164,6 +166,9 @@ public class JsonMarshaller implements IJsonMarshaller {
 		module.setMixInAnnotation(CircularROI.class, CircularROIMixIn.class);
 		module.setMixInAnnotation(LinearROI.class, LinearROIMixIn.class);
 		module.setMixInAnnotation(PolylineROI.class, PolylineROIMixIn.class);
+
+		// Add mix-in annotations for other classes
+		module.setMixInAnnotation(ScanRequest.class, ScanRequestMixIn.class);
 
 		mapper.registerModule(module);
 

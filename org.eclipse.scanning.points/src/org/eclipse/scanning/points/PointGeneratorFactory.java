@@ -67,13 +67,15 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	@Override
 	public <T extends IScanPathModel, R, P extends IPosition> IPointGenerator<T,P> createGenerator(T model, Collection<R> regions) throws GeneratorException {
 		try {
-			IPointGenerator<T,P> gen = (IPointGenerator<T,P>)generators.get(model.getClass()).newInstance();			
-			for (R region : regions) {
-				synchModel(model, (IROI) region);
-				break; // to preserve old behaviour of only using first region
-				// TODO fix this by removing break statement and correctly handling multiple regions
+			IPointGenerator<T,P> gen = (IPointGenerator<T,P>)generators.get(model.getClass()).newInstance();
+			if (regions != null) {
+				for (R region : regions) {
+					synchModel(model, (IROI) region);
+					break; // to preserve old behaviour of only using first region
+					// TODO fix this by removing break statement and correctly handling multiple regions
+				}
+				gen.setContainers(wrap(regions));
 			}
-			gen.setContainers(wrap(regions));
 			gen.setModel(model);
 			return gen;
 			
