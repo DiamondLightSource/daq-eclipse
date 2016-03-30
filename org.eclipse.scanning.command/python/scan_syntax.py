@@ -7,6 +7,9 @@ The most important function here is mscan(), which collates information into a
 ScanRequest and submits it to a queue for attention of the GDA server. This is
 the only function with side effects in this module.
 
+Users who want to create a ScanRequest without submitting it to GDA can use the
+pure function scan_request(), whose signature is similar to mscan().
+
 The following pure functions create scan paths which may be passed to mscan():
 grid(), step(), line(), array(), point().
 
@@ -29,7 +32,7 @@ from org.eclipse.scanning.example.detector import MandelbrotModel
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
 # mscan is a free name.
 def mscan(path=None, det=None, now=False, block=False):
-    """Submit a scan request to the GDA server.
+    """Create a ScanRequest and submit it to the GDA server.
 
     A simple usage of this function is as follows:
     >>> mscan(step(my_scannable, 0, 10, 1), det=mandelbrot(0.1))
@@ -61,6 +64,26 @@ def mscan(path=None, det=None, now=False, block=False):
     >>> # Skip the queue and return once the scan is complete.
     >>> mscan(…, …, now=True, block=True)
     """
+    submit(scan_request(path, det), now, block)
+
+
+def submit(request, now=False, block=False):
+    """Submit an existing ScanRequest to the GDA server.
+
+    See the mscan() docstring for details of `now` and `block`.
+    """
+    if now or block:
+        raise NotImplementedError()  # TODO
+    else:
+        # Put a ScanRequest in the queue.
+        QueueSingleton.INSTANCE.put(request)
+
+
+def scan_request(path=None, det=None):
+    """Create a ScanRequest object with the given configuration.
+
+    See the mscan() docstring for usage.
+    """
     assert path is not None
     if det is None: det = []
 
@@ -70,7 +93,7 @@ def mscan(path=None, det=None, now=False, block=False):
     scan_paths = _listify(path)
     detectors = _listify(det)
 
-    (points_models, _) = zip(*scan_paths)  # zip(* == unzip(
+    (scan_path_models, _) = zip(*scan_paths)  # zip(* == unzip(
 
     # ScanRequest expects ROIs to be specified as a map in the following
     # (bizarre?) format:
@@ -82,14 +105,10 @@ def mscan(path=None, det=None, now=False, block=False):
 
     # TODO: Implement monitors.
 
-    if now or block:
-        raise NotImplementedError()  # TODO
-    else:
-        # Put a ScanRequest in the queue.
-        QueueSingleton.INSTANCE.put(
-            _instantiate(ScanRequest, {'models': points_models,
-                                       'regions': roi_map,
-                                       'detectors': detector_map}))
+    return _instantiate(ScanRequest, {'models': scan_path_models,
+                                      'regions': roi_map,
+                                      'detectors': detector_map})
+
 
 
 # Scan paths
