@@ -22,12 +22,6 @@ public class GridModel extends AbstractBoundingBoxModel {
 	@FieldDescriptor(label="Snake")
 	private boolean snake = false;
 
-	public GridModel() {
-	}
-	public GridModel(String xName, String yName) {
-		super(xName, yName);
-	}
-
 	@Override
 	public String getName() {
 		return "Grid";
