@@ -37,7 +37,7 @@ public class ExamplePreprocessor extends AbstractPreprocessor {
 			if (dmodel instanceof MandelbrotModel) {
 				MandelbrotModel mmodel = (MandelbrotModel)dmodel;
 				mmodel.setxName("xfred");
-				mmodel.setxName("yfred");
+				mmodel.setyName("yfred");
 			}
 		}
 		
