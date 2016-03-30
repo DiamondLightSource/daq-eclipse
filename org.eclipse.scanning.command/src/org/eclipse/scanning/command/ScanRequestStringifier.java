@@ -27,12 +27,12 @@ public class ScanRequestStringifier {
 				Boolean listPartiallyWritten = false;
 				for (IScanPathModel model : models) {
 					if (listPartiallyWritten) { fragment += ", "; }
-					fragment += ModelStringifier.stringify(model, verbose);
+					fragment += stringifyModelWithGracefulFailure(model, verbose);
 					listPartiallyWritten = true;
 				}
 				fragment += "]";
 			} else {
-				fragment += ModelStringifier.stringify(models.iterator().next(), verbose);
+				fragment += stringifyModelWithGracefulFailure(models.iterator().next(), verbose);
 			}
 			argsPartiallyWritten = true;
 		}
@@ -42,5 +42,13 @@ public class ScanRequestStringifier {
 		fragment += ")";
 
 		return fragment;
+	}
+
+	final private static String stringifyModelWithGracefulFailure(IScanPathModel model, Boolean verbose) {
+		try {
+			return ModelStringifier.stringify(model, verbose);
+		} catch (StringificationNotImplementedException e) {
+			return "???";
+		}
 	}
 }

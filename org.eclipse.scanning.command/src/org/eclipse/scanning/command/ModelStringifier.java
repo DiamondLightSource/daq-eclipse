@@ -137,10 +137,15 @@ public class ModelStringifier {
 
 	}
 
-	final public static String stringify(IScanPathModel model, Boolean verbose) {
+	final public static String stringify(IScanPathModel model, Boolean verbose)
+			throws StringificationNotImplementedException {
 
 		SimpleEntry<String, LinkedHashMap<SimpleEntry<String, Boolean>, List<String>>> modelSchema =
 				schema.get(model.getClass());
+		if (modelSchema == null) {
+			throw new StringificationNotImplementedException(
+					"Stringification not implemented for this model type.");
+		}
 		String friendlyName = modelSchema.getKey();
 		LinkedHashMap<SimpleEntry<String, Boolean>, List<String>> keywordInfos = modelSchema.getValue();
 

@@ -3,17 +3,19 @@ package org.eclipse.scanning.test.command;
 import static org.junit.Assert.*;
 import static org.eclipse.scanning.command.ModelStringifier.stringify;
 
+import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.command.StringificationNotImplementedException;
 import org.junit.Test;
 
 
 public class ModelStringifierTest {
 
 	@Test
-	public void testStepModelConcise() {
+	public void testStepModelConcise() throws StringificationNotImplementedException {
 		StepModel smodel = new StepModel();
 		smodel.setStart(0);
 		smodel.setStop(10);
@@ -24,7 +26,7 @@ public class ModelStringifierTest {
 	}
 
 	@Test
-	public void testStepModelVerbose() {
+	public void testStepModelVerbose() throws StringificationNotImplementedException {
 		StepModel smodel = new StepModel();
 		smodel.setStart(0);
 		smodel.setStop(10);
@@ -35,7 +37,7 @@ public class ModelStringifierTest {
 	}
 
 	@Test
-	public void testGridModelConcise() {
+	public void testGridModelConcise() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
 		bbox.setxStart(0);
 		bbox.setyStart(1);
@@ -55,7 +57,7 @@ public class ModelStringifierTest {
 	}
 
 	@Test
-	public void testGridModelVerbose() {
+	public void testGridModelVerbose() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
 		bbox.setxStart(0);
 		bbox.setyStart(1);
@@ -75,7 +77,7 @@ public class ModelStringifierTest {
 	}
 
 	@Test
-	public void testRasterModelConcise() {
+	public void testRasterModelConcise() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
 		bbox.setxStart(0);
 		bbox.setyStart(1);
@@ -95,7 +97,7 @@ public class ModelStringifierTest {
 	}
 
 	@Test
-	public void testRasterModelVerbose() {
+	public void testRasterModelVerbose() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
 		bbox.setxStart(0);
 		bbox.setyStart(1);
@@ -112,6 +114,16 @@ public class ModelStringifierTest {
 		assertEquals(
 				"grid(axes=('bob', 'alice'), origin=(0.0, 1.0), size=(10.0, 11.0), step=(3.0, 4.0), snake=False)",
 				stringify(rmodel, true));
+	}
+
+	@Test(expected = StringificationNotImplementedException.class)
+	public void testIllegalModelArgument() throws StringificationNotImplementedException {
+		ArrayModel amodel = new ArrayModel();
+		amodel.setName("fred");
+		amodel.setPositions(-1, 2, 4);
+
+		// Stringify is not implemented for ArrayModel.
+		stringify(amodel, false);
 	}
 
 }
