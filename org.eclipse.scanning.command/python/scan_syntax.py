@@ -97,11 +97,16 @@ def scan_request(path=None, det=None):
 
     # ScanRequest expects ROIs to be specified as a map in the following
     # (bizarre?) format:
-    roi_map = {model.getUniqueKey(): rois
-               for (model, rois) in scan_paths if len(rois) > 0}
+    roi_map = {}  # No dict comprehensions in Python 2.5!
+    for (model, rois) in scan_paths:
+        if len(rois) > 0:
+            roi_map[model.getUniqueKey()] = rois
+    # Nicer Python 2.7 version for if the Jython interpreter is ever upgraded:
+    # roi_map = {model.getUniqueKey(): rois
+    #            for (model, rois) in scan_paths if len(rois) > 0}
 
-    detector_map = {name: model for (name, model) in detectors}
-    # Equivalent to (but less opaque than) detector_map = dict(detectors).
+    detector_map = dict(detectors)
+    # Equivalent to (Python 2.7) {name: model for (name, model) in detectors}.
 
     # TODO: Implement monitors.
 
