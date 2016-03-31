@@ -26,11 +26,6 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 	protected AbstractBoundingBoxModel() {
 		super();
 	}
-	protected AbstractBoundingBoxModel(String xName, String yName) {
-		this();
-		setxName(xName);
-		setyName(yName);
-	}
 
 	@Override
 	@UiHidden

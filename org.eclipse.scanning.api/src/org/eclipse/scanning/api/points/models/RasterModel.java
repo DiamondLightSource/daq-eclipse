@@ -19,13 +19,6 @@ public class RasterModel extends AbstractBoundingBoxModel {
 	
 	@FieldDescriptor(label="Snake", hint="Snake: left->right->left etc. Nonsnake left->right, repeat") 
 	private boolean snake = false;
-	
-	public RasterModel() {
-		
-	}
-	public RasterModel(String xName, String yName) {
-		super(xName, yName);
-	}
 
 	@Override
 	public String getName() {
