@@ -142,8 +142,8 @@ public class SerializationTest {
 		
 		final MandelbrotModel mandyModel = new MandelbrotModel();
 		mandyModel.setName("mandelbrot");
-		mandyModel.setxName("xNex");
-		mandyModel.setyName("yNex");
+		mandyModel.setRealAxisName("xNex");
+		mandyModel.setImaginaryAxisName("yNex");
 		req.putDetector("mandelbrot", mandyModel);
 		
 		bean.setScanRequest(req);

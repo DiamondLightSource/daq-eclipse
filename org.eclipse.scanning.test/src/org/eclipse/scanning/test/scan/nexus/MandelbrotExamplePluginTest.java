@@ -83,8 +83,8 @@ public class MandelbrotExamplePluginTest {
 		
 		MandelbrotModel model = new MandelbrotModel();
 		model.setName("mandelbrot");
-		model.setxName("xNex");
-		model.setyName("yNex");
+		model.setRealAxisName("xNex");
+		model.setImaginaryAxisName("yNex");
 		
 		detector = (IWritableDetector<MandelbrotModel>)service.createRunnableDevice(model);
 		assertNotNull(detector);

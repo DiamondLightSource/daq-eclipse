@@ -124,8 +124,8 @@ public class PreprocessTest {
 		// 2 detectors
 		final MandelbrotModel mandyModel = new MandelbrotModel();
 		mandyModel.setName("mandelbrot");
-		mandyModel.setxName("xNex");
-		mandyModel.setyName("yNex");
+		mandyModel.setRealAxisName("xNex");
+		mandyModel.setImaginaryAxisName("yNex");
 		mandyModel.setExposureTime(0.01);
 		req.putDetector("mandelbrot", mandyModel);
 		
@@ -163,8 +163,8 @@ public class PreprocessTest {
 		
 		final MandelbrotModel mandyModel = new MandelbrotModel();
 		mandyModel.setName("mandelbrot");
-		mandyModel.setxName("xNex");
-		mandyModel.setyName("yNex");
+		mandyModel.setRealAxisName("xNex");
+		mandyModel.setImaginaryAxisName("yNex");
 		req.putDetector("mandelbrot", mandyModel);
 		
 		return req;

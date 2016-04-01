@@ -41,8 +41,8 @@ public class ExamplePreprocessor implements IPreprocessor {
 			Object dmodel = req.getDetectors().get(name);
 			if (dmodel instanceof MandelbrotModel) {
 				MandelbrotModel mmodel = (MandelbrotModel)dmodel;
-				mmodel.setxName("xfred");
-				mmodel.setyName("yfred");
+				mmodel.setRealAxisName("xfred");
+				mmodel.setImaginaryAxisName("yfred");
 			}
 		}
 		
