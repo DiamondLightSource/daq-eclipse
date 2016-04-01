@@ -160,8 +160,8 @@ public class LowLevelDetectorPluginTest {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
-		gmodel.setRows(size[0]);
-		gmodel.setColumns(size[1]);
+		gmodel.setSlowAxisPoints(size[0]);
+		gmodel.setFastAxisPoints(size[1]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
 		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 

@@ -139,8 +139,8 @@ public class TopupTest {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
-		gmodel.setRows(5);
-		gmodel.setColumns(5);
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
 		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 

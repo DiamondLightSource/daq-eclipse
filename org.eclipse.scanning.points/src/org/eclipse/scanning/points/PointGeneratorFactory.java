@@ -154,10 +154,10 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 
 			BoundingBox box = new BoundingBox();
 			IRectangularROI rect = roi.getBounds();
-			box.setxStart(rect.getPoint()[0]);
-			box.setyStart(rect.getPoint()[1]);
-			box.setWidth(rect.getLength(0));
-			box.setHeight(rect.getLength(1));
+			box.setFastAxisStart(rect.getPoint()[0]);
+			box.setSlowAxisStart(rect.getPoint()[1]);
+			box.setFastAxisLength(rect.getLength(0));
+			box.setSlowAxisLength(rect.getLength(1));
 			((IBoundingBoxModel) model).setBoundingBox(box);
 //			return;
 

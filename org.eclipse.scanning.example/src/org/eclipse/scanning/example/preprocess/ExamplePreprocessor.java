@@ -32,8 +32,8 @@ public class ExamplePreprocessor implements IPreprocessor {
 			if (model instanceof StepModel) {
 				((StepModel)model).setName("xfred");
 			} if (model instanceof AbstractBoundingBoxModel) {
-				((AbstractBoundingBoxModel)model).setxName("xfred");
-				((AbstractBoundingBoxModel)model).setyName("yfred");
+				((AbstractBoundingBoxModel)model).setFastAxisName("xfred");
+				((AbstractBoundingBoxModel)model).setSlowAxisName("yfred");
 			}
 		}
 		
@@ -41,8 +41,8 @@ public class ExamplePreprocessor implements IPreprocessor {
 			Object dmodel = req.getDetectors().get(name);
 			if (dmodel instanceof MandelbrotModel) {
 				MandelbrotModel mmodel = (MandelbrotModel)dmodel;
-				mmodel.setxName("xfred");
-				mmodel.setyName("yfred");
+				mmodel.setRealAxisName("xfred");
+				mmodel.setImaginaryAxisName("yfred");
 			}
 		}
 		

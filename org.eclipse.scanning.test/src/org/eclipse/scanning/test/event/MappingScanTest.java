@@ -94,14 +94,14 @@ public class MappingScanTest {
 		int ipoint = 0;
 
 		BoundingBox box = new BoundingBox();
-		box.setxStart(10);
-		box.setyStart(10);
-		box.setWidth(5);
-		box.setHeight(2);
+		box.setFastAxisStart(10);
+		box.setSlowAxisStart(10);
+		box.setFastAxisLength(5);
+		box.setSlowAxisLength(2);
 
 		final GridModel model = new GridModel();
-		model.setRows(2);
-		model.setColumns(5);
+		model.setSlowAxisPoints(2);
+		model.setFastAxisPoints(5);
 		model.setBoundingBox(box);
 
 		IPointGenerator<GridModel, Point> gen = gservice.createGenerator(model);
