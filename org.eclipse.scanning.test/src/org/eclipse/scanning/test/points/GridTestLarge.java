@@ -34,8 +34,8 @@ public class GridTestLarge {
 
 		// Create a raster scan path
 		GridModel model = new GridModel();
-		model.setRows(3162);
-		model.setColumns(3162);
+		model.setSlowAxisPoints(3162);
+		model.setFastAxisPoints(3162);
 
 		testIteratorTime(model, roi, 7852632, 20000);
 	}
@@ -48,8 +48,8 @@ public class GridTestLarge {
 
 		// Create a raster scan path
 		GridModel model = new GridModel();
-		model.setRows(1000);
-		model.setColumns(10000);
+		model.setSlowAxisPoints(1000);
+		model.setFastAxisPoints(10000);
 
 		testIteratorTime(model, roi, 10000000, 20000);
 	}
@@ -101,8 +101,8 @@ public class GridTestLarge {
 
 		// Create a raster scan path
 		GridModel gridScanPath = new GridModel();
-		gridScanPath.setRows(1000);
-		gridScanPath.setColumns(10000);
+		gridScanPath.setSlowAxisPoints(1000);
+		gridScanPath.setFastAxisPoints(10000);
 
 		// Get the point list
 		IPointGenerator<GridModel,Point> gen = service.createGenerator(gridScanPath, boundingRectangle);

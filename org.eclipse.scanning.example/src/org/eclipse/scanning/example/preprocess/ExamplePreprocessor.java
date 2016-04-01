@@ -32,8 +32,8 @@ public class ExamplePreprocessor implements IPreprocessor {
 			if (model instanceof StepModel) {
 				((StepModel)model).setName("xfred");
 			} if (model instanceof AbstractBoundingBoxModel) {
-				((AbstractBoundingBoxModel)model).setxName("xfred");
-				((AbstractBoundingBoxModel)model).setyName("yfred");
+				((AbstractBoundingBoxModel)model).setFastAxisName("xfred");
+				((AbstractBoundingBoxModel)model).setSlowAxisName("yfred");
 			}
 		}
 		

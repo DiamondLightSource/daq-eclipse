@@ -19,8 +19,8 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 	protected void validateModel(GridModel model) throws GeneratorException {
 		// As implemented, model width and/or height can be negative,
 		// and this flips the "x" and/or "y" point order.
-		if (model.getRows() <= 0) throw new GeneratorException("Model must have a positive number of rows!");
-		if (model.getColumns() <= 0) throw new GeneratorException("Model must have a positive number of columns!");
+		if (model.getSlowAxisPoints() <= 0) throw new GeneratorException("Model must have a positive number of rows!");
+		if (model.getFastAxisPoints() <= 0) throw new GeneratorException("Model must have a positive number of columns!");
 		if (model.getBoundingBox() == null) throw new GeneratorException("Model must have a BoundingBox!");
 	}
 

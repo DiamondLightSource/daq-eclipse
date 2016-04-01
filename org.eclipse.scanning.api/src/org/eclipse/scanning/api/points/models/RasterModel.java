@@ -3,8 +3,10 @@ package org.eclipse.scanning.api.points.models;
 import org.eclipse.scanning.api.annotation.FieldDescriptor;
 
 /**
- * A model for a raster scan within a rectangular box in two-dimensional space, beginning at the box's start
- * coordinates and moving in X and Y steps of the sizes set in this model.
+ * A model for a raster scan within a rectangular box in a two-dimensional space, beginning at the box's start
+ * coordinates and moving in steps of the sizes set in this model.
+ * <p>
+ * The "fast" axis forms the inner loop of the scan and the "slow" axis the outer loop.
  *
  * @author Colin Palmer
  *
@@ -12,10 +14,10 @@ import org.eclipse.scanning.api.annotation.FieldDescriptor;
 public class RasterModel extends AbstractBoundingBoxModel {
 
 	@FieldDescriptor(label="Fast Step", scannable="xName", hint="The step in the fast direction to take in the units of the fast scannable.")
-	private double xStep = 1;
+	private double fastAxisStep = 1;
 	
 	@FieldDescriptor(label="Slow Step", scannable="yName", hint="The step in the slow direction to take in the units of the slow scannable.")
-	private double yStep = 1;
+	private double slowAxisStep = 1;
 	
 	@FieldDescriptor(label="Snake", hint="Snake: left->right->left etc. Nonsnake left->right, repeat") 
 	private boolean snake = false;
@@ -24,21 +26,21 @@ public class RasterModel extends AbstractBoundingBoxModel {
 	public String getName() {
 		return "Raster";
 	}
-	public double getxStep() {
-		return xStep;
+	public double getFastAxisStep() {
+		return fastAxisStep;
 	}
-	public void setxStep(double xStep) {
-		double oldValue = this.xStep;
-		this.xStep = xStep;
-		this.pcs.firePropertyChange("xStep", oldValue, xStep);
+	public void setFastAxisStep(double newValue) {
+		double oldValue = this.fastAxisStep;
+		this.fastAxisStep = newValue;
+		this.pcs.firePropertyChange("fastAxisStep", oldValue, newValue);
 	}
-	public double getyStep() {
-		return yStep;
+	public double getSlowAxisStep() {
+		return slowAxisStep;
 	}
-	public void setyStep(double yStep) {
-		double oldValue = this.yStep;
-		this.yStep = yStep;
-		this.pcs.firePropertyChange("yStep", oldValue, yStep);
+	public void setSlowAxisStep(double newValue) {
+		double oldValue = this.slowAxisStep;
+		this.slowAxisStep = newValue;
+		this.pcs.firePropertyChange("slowAxisStep", oldValue, newValue);
 	}
 	/**
 	 * <pre>
@@ -58,10 +60,10 @@ public class RasterModel extends AbstractBoundingBoxModel {
 	public boolean isSnake() {
 		return snake;
 	}
-	public void setSnake(boolean snake) {
+	public void setSnake(boolean newValue) {
 		boolean oldValue = this.snake;
-		this.snake = snake;
-		this.pcs.firePropertyChange("snake", oldValue, snake);
+		this.snake = newValue;
+		this.pcs.firePropertyChange("snake", oldValue, newValue);
 	}
 	@Override
 	public int hashCode() {
@@ -69,9 +71,9 @@ public class RasterModel extends AbstractBoundingBoxModel {
 		int result = super.hashCode();
 		result = prime * result + (snake ? 1231 : 1237);
 		long temp;
-		temp = Double.doubleToLongBits(xStep);
+		temp = Double.doubleToLongBits(fastAxisStep);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(yStep);
+		temp = Double.doubleToLongBits(slowAxisStep);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
@@ -86,11 +88,11 @@ public class RasterModel extends AbstractBoundingBoxModel {
 		RasterModel other = (RasterModel) obj;
 		if (snake != other.snake)
 			return false;
-		if (Double.doubleToLongBits(xStep) != Double
-				.doubleToLongBits(other.xStep))
+		if (Double.doubleToLongBits(fastAxisStep) != Double
+				.doubleToLongBits(other.fastAxisStep))
 			return false;
-		if (Double.doubleToLongBits(yStep) != Double
-				.doubleToLongBits(other.yStep))
+		if (Double.doubleToLongBits(slowAxisStep) != Double
+				.doubleToLongBits(other.slowAxisStep))
 			return false;
 		return true;
 	}

@@ -27,15 +27,15 @@ class GridIterator implements Iterator<Point> {
 	public GridIterator(GridGenerator gen) {
 		this.gen = gen;
 		GridModel model = gen.getModel();
-		this.columns = model.getColumns();
-		this.rows = model.getRows();
+		this.columns = model.getFastAxisPoints();
+		this.rows = model.getSlowAxisPoints();
 		this.snake = model.isSnake();
-		this.xName = model.getxName();
-		this.yName = model.getyName();
-		this.xStep = model.getBoundingBox().getWidth() / columns;
-		this.yStep = model.getBoundingBox().getHeight() / rows;
-		this.minX = model.getBoundingBox().getxStart() + xStep / 2;
-		this.minY = model.getBoundingBox().getyStart() + yStep / 2;
+		this.xName = model.getFastAxisName();
+		this.yName = model.getSlowAxisName();
+		this.xStep = model.getBoundingBox().getFastAxisLength() / columns;
+		this.yStep = model.getBoundingBox().getSlowAxisLength() / rows;
+		this.minX = model.getBoundingBox().getFastAxisStart() + xStep / 2;
+		this.minY = model.getBoundingBox().getSlowAxisStart() + yStep / 2;
 		yIndex = 0;
 		xIndex = -1;
 	}
@@ -43,15 +43,15 @@ class GridIterator implements Iterator<Point> {
 	public GridIterator(RasterGenerator gen) {
 		this.gen = gen;
 		RasterModel model = gen.getModel();
-		this.xStep = model.getxStep();
-		this.yStep = model.getyStep();
+		this.xStep = model.getFastAxisStep();
+		this.yStep = model.getSlowAxisStep();
 		this.snake = model.isSnake();
-		this.xName = model.getxName();
-		this.yName = model.getyName();
-		this.minX = model.getBoundingBox().getxStart();
-		this.minY = model.getBoundingBox().getyStart();
-		this.columns = (int) Math.floor(model.getBoundingBox().getWidth() / xStep + 1);
-		this.rows = (int) Math.floor(model.getBoundingBox().getHeight() / yStep + 1);
+		this.xName = model.getFastAxisName();
+		this.yName = model.getSlowAxisName();
+		this.minX = model.getBoundingBox().getFastAxisStart();
+		this.minY = model.getBoundingBox().getSlowAxisStart();
+		this.columns = (int) Math.floor(model.getBoundingBox().getFastAxisLength() / xStep + 1);
+		this.rows = (int) Math.floor(model.getBoundingBox().getSlowAxisLength() / yStep + 1);
 		yIndex = 0;
 		xIndex = -1;
 	}

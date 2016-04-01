@@ -37,17 +37,17 @@ public class ModelStringifierTest {
 	@Test
 	public void testGridModelConcise() {
 		BoundingBox bbox = new BoundingBox();
-		bbox.setxStart(0);
-		bbox.setyStart(1);
-		bbox.setWidth(10);
-		bbox.setHeight(11);
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
 
 		GridModel gmodel = new GridModel();
-		gmodel.setyName("alice");
-		gmodel.setxName("bob");
+		gmodel.setSlowAxisName("alice");
+		gmodel.setFastAxisName("bob");
 		gmodel.setBoundingBox(bbox);
-		gmodel.setRows(3);
-		gmodel.setColumns(4);
+		gmodel.setSlowAxisPoints(3);
+		gmodel.setFastAxisPoints(4);
 
 		assertEquals(
 				"grid(('bob', 'alice'), (0.0, 1.0), (10.0, 11.0), count=(3, 4), snake=False)",
@@ -57,17 +57,17 @@ public class ModelStringifierTest {
 	@Test
 	public void testGridModelVerbose() {
 		BoundingBox bbox = new BoundingBox();
-		bbox.setxStart(0);
-		bbox.setyStart(1);
-		bbox.setWidth(10);
-		bbox.setHeight(11);
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
 
 		GridModel gmodel = new GridModel();
-		gmodel.setyName("alice");
-		gmodel.setxName("bob");
+		gmodel.setSlowAxisName("alice");
+		gmodel.setFastAxisName("bob");
 		gmodel.setBoundingBox(bbox);
-		gmodel.setRows(3);
-		gmodel.setColumns(4);
+		gmodel.setSlowAxisPoints(3);
+		gmodel.setFastAxisPoints(4);
 
 		assertEquals(
 				"grid(axes=('bob', 'alice'), origin=(0.0, 1.0), size=(10.0, 11.0), count=(3, 4), snake=False)",
