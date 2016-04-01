@@ -9,9 +9,10 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
-import org.eclipse.scanning.api.IAttributeContainer;
+import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
@@ -28,7 +29,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
  *
  * @param <T>
  */
-public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IAttributeContainer {
+public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IScanAttributeContainer {
 
 	// Data
 	protected T                          model;
@@ -47,11 +48,11 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   Collection<IRunListener>   rlisteners;
 	
 	// Attributes
-	private Map<String, Object>          attributes;
+	private Map<String, Object>          scanAttributes;
 
 	protected AbstractRunnableDevice() {
 		this.scanId     = UUID.randomUUID().toString();
-		this.attributes = new HashMap<>(7); // TODO 
+		this.scanAttributes = new HashMap<>(7); // TODO 
 	}
 
 	public ScanBean getBean() {
@@ -291,14 +292,13 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 
 	}
 
-	
-	
 	/**
 	 * 
 	 * @return null if no attributes, otherwise collection of the names of the attributes set
 	 */
-	public Collection<String> getAttributeNames() {
-		return attributes.keySet();
+	@Override
+	public Set<String> getScanAttributeNames() {
+		return scanAttributes.keySet();
 	}
 
 	/**
@@ -311,8 +311,9 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * @throws DeviceException
 	 *             if an attribute cannot be set
 	 */
-	public <A> void setAttribute(String attributeName, A value) throws Exception {
-		attributes.put(attributeName, (A)value);
+	@Override
+	public <A> void setScanAttribute(String attributeName, A value) throws Exception {
+		scanAttributes.put(attributeName, (A)value);
 	}
 
 	/**
@@ -325,8 +326,9 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 *             if an attribute cannot be retrieved
 	 */
 	@SuppressWarnings("unchecked")
-	public <A> A getAttribute(String attributeName) throws Exception {
-		return (A)attributes.get(attributeName);
+	@Override
+	public <A> A getScanAttribute(String attributeName) throws Exception {
+		return (A)scanAttributes.get(attributeName);
 	}
 
 	public DeviceInformation<T> getDeviceInformation() throws ScanningException {

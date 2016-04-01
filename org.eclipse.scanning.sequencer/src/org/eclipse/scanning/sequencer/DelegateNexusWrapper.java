@@ -123,4 +123,10 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 		return scannable.getUnit();
 	}
 
+	@Override
+	public void setMetadataScannable(boolean isSingleWrite) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

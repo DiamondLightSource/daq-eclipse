@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -15,6 +16,7 @@ import java.util.stream.IntStream;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXentry;
@@ -64,47 +66,53 @@ public class BasicScanPluginTest {
 	}
 	
     private IScannable<?>                  monitor;
+    private IScannable<?>                  metadataScannable;
 
     @Before
 	public void beforeTest() throws Exception {
 		monitor = connector.getScannable("monitor1");
+		metadataScannable = connector.getScannable("metadataScannable1");
 	}
 	
 	@Test
 	public void testBasicScan1D() throws Exception {	
-		test(null, 5);
+		test(null, null, 5);
 	}
 	
 	@Test
 	public void testBasicScan2D() throws Exception {	
-		test(null, 8, 5);
+		test(null, null, 8, 5);
 	}
 	
 	@Test
 	public void testBasicScan3D() throws Exception {	
-		test(null, 5, 8, 5);
+		test(null, null, 5, 8, 5);
 	}
 	
 	@Test
 	public void testBasicScan1DWithMonitor() throws Exception {	
-		test(monitor, 5);
+		test(monitor, null, 5);
 	}
 	
 	@Test
 	public void testBasicScan2DWithMonitor() throws Exception {	
-		test(monitor, 8, 5);
+		test(monitor, null, 8, 5);
 	}
 	
 	@Test
 	public void testBasicScan3DWithMonitor() throws Exception {	
-		test(monitor, 5, 8, 5);
+		test(monitor, null, 5, 8, 5);
 	}
 
+	@Test
+	public void testBasicScanWithMetadataScannable() throws Exception {
+		test(monitor, metadataScannable, 8, 5);
+	}
 
-	private void test(IScannable<?> monitor, 	int... shape) throws Exception {
+	private void test(IScannable<?> monitor, IScannable<?> metadataScannable, int... shape) throws Exception {
 
 		// Tell configure detector to write 1 image into a 2D scan
-		IRunnableDevice<ScanModel> scanner = createStepScan(monitor, shape);
+		IRunnableDevice<ScanModel> scanner = createStepScan(monitor, metadataScannable, shape);
 		scanner.run(null);
 
 		checkNexusFile(scanner, shape);
@@ -124,20 +132,28 @@ public class BasicScanPluginTest {
 		NXentry entry = rootNode.getEntry();
 		NXinstrument instrument = entry.getInstrument();
 		
+		// check the scan points have been written correctly
+		assertScanPointsGroup(entry, sizes);
+		
 		DataNode dataNode = null;
 		IDataset dataset = null;
 		int[] shape = null;
- 
-		// Check axes
+		
+		// check metadata scannables
+		if (scanModel.getMetadataScannables() != null) {
+			checkMetadataScannables(scanModel, instrument);
+		}
+		
 		final IPosition pos = scanModel.getPositionIterable().iterator().next();
 		final List<String> scannableNames = pos.getNames();
+		final boolean hasMonitor = scanModel.getMonitors() != null && !scanModel.getMonitors().isEmpty();
 		
-		boolean hasMonitor = scanModel.getMonitors() != null && !scanModel.getMonitors().isEmpty();
 		String dataGroupName = hasMonitor ? scanModel.getMonitors().get(0).getName() :
-			scannableNames.get(0);
+			"solstice_scan_data"; // name of NXdata group created from ScanPointsWriter's data when no detectors or monitors 
 		NXdata nxData = entry.getData(dataGroupName);
 		assertNotNull(nxData);
-		
+
+		// Check axes
 		String[] expectedAxesNames = scannableNames.stream().map(x -> x + "_value_demand").toArray(String[]::new);
 		assertAxes(nxData, expectedAxesNames);
 
@@ -175,7 +191,35 @@ public class BasicScanPluginTest {
 		}
 	}
 
-	private IRunnableDevice<ScanModel> createStepScan(IScannable<?> monitor, int... size) throws Exception {
+	private void checkMetadataScannables(final ScanModel scanModel, NXinstrument instrument) {
+		DataNode dataNode;
+		IDataset dataset;
+		int[] shape;
+		for (IScannable<?> metadataScannable : scanModel.getMetadataScannables()) {
+			NXpositioner positioner = instrument.getPositioner(metadataScannable.getName());
+			assertNotNull(positioner);
+			assertEquals(metadataScannable.getName(), positioner.getNameScalar());
+			
+			dataNode = positioner.getDataNode("value_demand");
+			assertNotNull(dataNode);
+			dataset = dataNode.getDataset().getSlice();
+			shape = dataset.getShape();
+			assertArrayEquals(new int[] { 1 }, shape);
+			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDtype());
+			assertEquals(10.0, dataset.getDouble(0), 1e-15);
+			
+			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
+			assertNotNull(dataNode);
+			dataset = dataNode.getDataset().getSlice();
+			shape = dataset.getShape();
+			assertArrayEquals(new int[] { 1 }, shape);
+			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDtype());
+			assertEquals(10.0, dataset.getDouble(0), 1e-15);
+		}
+	}
+
+	private IRunnableDevice<ScanModel> createStepScan(IScannable<?> monitor,
+			IScannable<?> metadataScannable, int... size) throws Exception {
 		
 		IPointGenerator<?,IPosition> gen = null;
 		
@@ -199,6 +243,7 @@ public class BasicScanPluginTest {
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
 		if (monitor!=null) smodel.setMonitors(monitor);
+		if (metadataScannable != null) smodel.setMetadataScannables(metadataScannable);
 		
 		// Create a file to scan into.
 		File output = File.createTempFile("test_simple_nexus", ".nxs");

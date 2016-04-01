@@ -145,7 +145,8 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			smodel.setPositionIterable(getPositionIterable(req));
 			configureBean(smodel, bean);
 			smodel.setDetectors(getDetectors(bean, req.getDetectors()));
-			smodel.setMonitors(getMonitors(req.getMonitorNames()));
+			smodel.setMonitors(getScannables(req.getMonitorNames()));
+			smodel.setMetadataScannables(getScannables(req.getMetadataScannableNames()));
 			smodel.setBean(bean);
 			
 			return (IPausableDevice<ScanModel>)Services.getScanService().createRunnableDevice(smodel, publisher);
@@ -240,11 +241,12 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 	}
 
-	private List<IScannable<?>> getMonitors(Collection<String> monitorNames) throws EventException {
-		if (monitorNames==null) return null;
+	private List<IScannable<?>> getScannables(Collection<String> scannableNames) throws EventException {
+		// used to get the monitors and the metadata scannables
+		if (scannableNames==null) return null;
 		try {
 			final List<IScannable<?>> ret = new ArrayList<>(3);
-			for (String name : monitorNames) ret.add(Services.getConnector().getScannable(name));
+			for (String name : scannableNames) ret.add(Services.getConnector().getScannable(name));
 			return ret;
 		} catch (ScanningException ne) {
 			throw new EventException(ne);

@@ -1,17 +1,14 @@
 package org.eclipse.scanning.sequencer;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.NexusException;
-import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
+import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -96,6 +93,23 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			writers = LevelRunner.createEmptyRunner();
 		}
 		
+		// tell each scannable whether it is a metadata scannable or not
+		// TODO should this be done in NexusScanFileBuilder?
+		List<String> scannableNames = model.getPositionIterable().iterator().next().getNames();
+		for (String scannableName : scannableNames) {
+			IScannable<?> scannable = deviceService.getScannable(scannableName);
+			if (scannable == null) {
+				throw new IllegalArgumentException("No such scannable: " + scannableName);
+			}
+			scannable.setMetadataScannable(false);
+		}
+		if (model.getMetadataScannables() != null) {
+			for (IScannable<?> metadataScannable : model.getMetadataScannables()) {
+				metadataScannable.setMetadataScannable(true);
+			}
+		}
+		
+		// create the nexus file, if appropriate
 		try {
 			createNexusFile(model);
 		} catch (NexusException e) {
@@ -182,7 +196,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		        		        	
 	        	// Send an event about where we are in the scan
 	        	positionComplete(pos, count+1, size);
-//	        	record(count+1, pos);
 	        	++count;
 	        }
 	        

@@ -19,6 +19,12 @@ import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 
+/**
+ * The scan points writer creates and writes to the unique keys and points
+ * datasets in a nexus file. The unique keys dataset can be used to track how far the scan has
+ * progressed.
+ * @author Matthew Dickie
+ */
 public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionListener {
 
 	public static final String GROUP_NAME_SOLSTICE_SCAN = "solstice_scan";
@@ -39,6 +45,9 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		this.nexusObjectProviders = nexusObjectProviders;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.eclipse.dawnsci.nexus.INexusDevice#getNexusProvider(org.eclipse.dawnsci.nexus.NexusScanInfo)
+	 */
 	@Override
 	public NexusObjectProvider<NXcollection> getNexusProvider(NexusScanInfo info) {
 		DelegateNexusProvider<NXcollection> nexusProvider = new DelegateNexusProvider<NXcollection>(
@@ -50,6 +59,9 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		return nexusProvider;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.dawnsci.nexus.INexusDevice#createNexusObject(org.eclipse.dawnsci.nexus.NexusNodeFactory, org.eclipse.dawnsci.nexus.NexusScanInfo)
+	 */
 	@Override
 	public NXcollection createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		final NXcollection scanPointsCollection = nodeFactory.createNXcollection();
@@ -70,6 +82,9 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		return scanPointsCollection;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.scanning.api.scan.event.IPositionListener#positionPerformed(org.eclipse.scanning.api.scan.PositionEvent)
+	 */
 	@Override
 	public void positionPerformed(PositionEvent event) throws ScanningException {
 		try {
@@ -79,16 +94,27 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.eclipse.scanning.api.scan.event.IPositionListener#positionWillPerform(org.eclipse.scanning.api.scan.PositionEvent)
+	 */
 	@Override
 	public boolean positionWillPerform(PositionEvent event) {
 		return true;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.scanning.api.scan.event.IPositionListener#levelPerformed(org.eclipse.scanning.api.scan.PositionEvent)
+	 */
 	@Override
 	public void levelPerformed(PositionEvent event) {
 		// Do nothing
 	}
 
+	/**
+	 * For each device, if that device writes to an external file, create an external link
+	 * within the scan points collection to the unique keys dataset in that file
+	 * @param scanPointsCollection scan points collection to add any external links to
+	 */
 	private void addLinksToExternalFiles(final NXcollection scanPointsCollection) {
 		if (nexusObjectProviders == null) throw new IllegalStateException("nexusObjectProviders not set");
 		
@@ -104,6 +130,14 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		}
 	}
 
+	/**
+	 * Write the given position to the NexusFile.
+	 * The unique key of the position is added to the <code>uniqueKeys</code> dataset,
+	 * and the position as a string, as returned by {@link IPosition#toString()},
+	 * is added to the <code>points</code>
+	 * @param position
+	 * @throws Exception
+	 */
 	private void writePosition(IPosition position) throws Exception {
 		SliceND sliceND = NexusScanInfo.createLocation(uniqueKeys,
 				position.getNames(), position.getIndices());

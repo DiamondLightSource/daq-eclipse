@@ -1,8 +1,8 @@
 package org.eclipse.scanning.api;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 
@@ -20,11 +20,12 @@ import java.util.Map;
  *
  * @param <T>
  */
-public abstract class AbstractScannable<T> implements IScannable<T>, IAttributeContainer {
+public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttributeContainer {
 
 	private Map<String, Object> attributes;
 	private int                 level;
 	private String              name;
+	private boolean             isMetadataScannable = false;
 	
 	protected AbstractScannable() {
 		attributes = new HashMap<>(7); // TODO 
@@ -35,7 +36,8 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IAttributeC
 	 * 
 	 * @return null if no attributes, otherwise collection of the names of the attributes set
 	 */
-	public Collection<String> getAttributeNames() {
+	@Override
+	public Set<String> getScanAttributeNames() {
 		return attributes.keySet();
 	}
 
@@ -49,7 +51,8 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IAttributeC
 	 * @throws DeviceException
 	 *             if an attribute cannot be set
 	 */
-	public <A> void setAttribute(String attributeName, A value) throws Exception {
+	@Override
+	public <A> void setScanAttribute(String attributeName, A value) throws Exception {
 		attributes.put(attributeName, (A)value);
 	}
 
@@ -63,21 +66,35 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IAttributeC
 	 *             if an attribute cannot be retrieved
 	 */
 	@SuppressWarnings("unchecked")
-	public <A> A getAttribute(String attributeName) throws Exception {
+	@Override
+	public <A> A getScanAttribute(String attributeName) throws Exception {
 		return (A)attributes.get(attributeName);
 	}
 	
 	public int getLevel() {
 		return level;
 	}
+	
 	public void setLevel(int level) {
 		this.level = level;
 	}
+	
 	public String getName() {
 		return name;
 	}
+	
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	@Override
+	public void setMetadataScannable(boolean isMetadataScannable) {
+		this.isMetadataScannable = isMetadataScannable;
+	}
+	
+	@Override
+	public boolean isMetadataScannable() {
+		return isMetadataScannable;
+	}
+	
 }

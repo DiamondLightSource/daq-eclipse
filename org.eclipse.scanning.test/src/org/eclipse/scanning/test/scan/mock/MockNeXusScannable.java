@@ -7,6 +7,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
@@ -33,8 +34,8 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		super();
 	}
 	
-	public MockNeXusScannable(String name, double d, int i) {
-		super(name, d, i);
+	public MockNeXusScannable(String name, double d, int level) {
+		super(name, d, level);
 	}
 
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) {
@@ -45,23 +46,23 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	}
 
 	@Override
-	public NXpositioner createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
+	public NXpositioner createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) throws NexusException {
 		
 		final NXpositioner positioner = nodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
-		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Dataset.FLOAT64);
-		lzDemand.setChunking(new int[]{1});
-		
-		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dataset.FLOAT64);
-		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
-
-		try {
-			AttributeManager.registerAttributes(positioner, this);
-		} catch (Exception e) {
-			e.printStackTrace(); // This is a mock, it should not do this
-			throw new RuntimeException(e);
+		if (isMetadataScannable()) {
+			positioner.setField(FIELD_NAME_DEMAND_VALUE, getPosition().doubleValue());
+			positioner.setValueScalar(getPosition().doubleValue());
+		} else {
+			this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Dataset.FLOAT64);
+			lzDemand.setChunking(new int[]{1});
+			
+			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dataset.FLOAT64);
+			lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 		}
+
+		AttributeManager.registerAttributes(positioner, this);
 		
 		return positioner;
 	}	
@@ -72,7 +73,9 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	}
 
 	private void write(Number demand, Number actual, IPosition loc) throws Exception {
-		
+		if (isMetadataScannable()) {
+			throw new IllegalArgumentException("write() should not be called on metadata scannables");
+		}
 
 		if (actual!=null) {
 			// write actual position
