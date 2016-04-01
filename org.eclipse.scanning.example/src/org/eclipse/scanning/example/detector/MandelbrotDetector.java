@@ -135,6 +135,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public void run(IPosition pos) throws ScanningException, InterruptedException {
 		setDeviceState(DeviceState.RUNNING);
 
+		final long startTime = System.nanoTime();
+		final long targetDuration = (long) model.getExposureTime() * 1000000000; // nanoseconds
+
 		// Find out where we are in the scan. This is unique to the Mandelbrot
 		// detector as it's a dummy in general a detector shouldn't need to get
 		// the position in the scan
@@ -146,9 +149,12 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		spectrum = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxRealCoordinate(), model.getPoints());
 		value = mandelbrot(a, b);
 
-		// Pause for a bit to make exposure time work
-		if (model.getExposureTime() > 0) {
-			Thread.sleep(Math.round(1000 * model.getExposureTime()));
+		// See if we need to sleep to honour the requested exposure time
+		long currentTime = System.nanoTime();
+		long duration = currentTime - startTime;
+		if (duration < targetDuration) {
+			long millisToWait = (targetDuration - duration) / 1000000;
+			Thread.sleep(millisToWait);
 		}
 
 		// TODO Should device state be set back to ready here? The device has finished acquiring (calculating) but the data is not in the file yet?
