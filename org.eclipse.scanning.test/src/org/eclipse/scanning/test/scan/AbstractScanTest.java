@@ -394,8 +394,8 @@ public class AbstractScanTest {
 		// If none passed, create scan points for a grid.
 		if (pmodel == null) {
 			pmodel = new GridModel();
-			((GridModel) pmodel).setRows(5);
-			((GridModel) pmodel).setColumns(5);
+			((GridModel) pmodel).setSlowAxisPoints(5);
+			((GridModel) pmodel).setFastAxisPoints(5);
 			((GridModel) pmodel).setBoundingBox(new BoundingBox(0,0,3,3));
 		}
 		

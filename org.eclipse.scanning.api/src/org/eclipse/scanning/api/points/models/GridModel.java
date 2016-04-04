@@ -6,49 +6,43 @@ import org.eclipse.scanning.api.annotation.MinimumValue;
 
 /**
  * A model for a raster scan within a rectangular box in two-dimensional space, which evenly fills the box with a grid
- * defined by the number columns and rows set in this model.
+ * defined by the numbers of points (along each of the two axes) set in this model.
  *
  * @author Colin Palmer
  *
  */
 public class GridModel extends AbstractBoundingBoxModel {
 
-	@FieldDescriptor(label="Columns (fast)", max=100000, min=1, hint="The number of columns that the grid should run over, the fast direction.")
-	private int columns = 5;
+	@FieldDescriptor(label="Columns (fast)", max=100000, min=1, hint="The number of points that the grid should run over, the fast direction.")
+	private int fastAxisPoints = 5;
 	
-	@FieldDescriptor(label="Rows (slow)", max=100000, min=1, hint="The number of rows that the grid should run over, the slow direction.")
-	private int rows = 5;
+	@FieldDescriptor(label="Rows (slow)", max=100000, min=1, hint="The number of points that the grid should run over, the slow direction.")
+	private int slowAxisPoints = 5;
 	
 	@FieldDescriptor(label="Snake")
 	private boolean snake = false;
-
-	public GridModel() {
-	}
-	public GridModel(String xName, String yName) {
-		super(xName, yName);
-	}
 
 	@Override
 	public String getName() {
 		return "Grid";
 	}
 	@MinimumValue("1")
-	public int getColumns() {
-		return columns;
+	public int getFastAxisPoints() {
+		return fastAxisPoints;
 	}
-	public void setColumns(int columns) {
-		int oldValue = this.columns;
-		this.columns = columns;
-		this.pcs.firePropertyChange("columns", oldValue, columns);
+	public void setFastAxisPoints(int newValue) {
+		int oldValue = this.fastAxisPoints;
+		this.fastAxisPoints = newValue;
+		this.pcs.firePropertyChange("fastAxisPoints", oldValue, newValue);
 	}
 	@MinimumValue("1")
-	public int getRows() {
-		return rows;
+	public int getSlowAxisPoints() {
+		return slowAxisPoints;
 	}
-	public void setRows(int rows) {
-		int oldValue = this.rows;
-		this.rows = rows;
-		this.pcs.firePropertyChange("rows", oldValue, rows);
+	public void setSlowAxisPoints(int newValue) {
+		int oldValue = this.slowAxisPoints;
+		this.slowAxisPoints = newValue;
+		this.pcs.firePropertyChange("slowAxisPoints", oldValue, newValue);
 	}
 	/**
 	 * <pre>
@@ -77,8 +71,8 @@ public class GridModel extends AbstractBoundingBoxModel {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + columns;
-		result = prime * result + rows;
+		result = prime * result + fastAxisPoints;
+		result = prime * result + slowAxisPoints;
 		result = prime * result + (snake ? 1231 : 1237);
 		return result;
 	}
@@ -91,9 +85,9 @@ public class GridModel extends AbstractBoundingBoxModel {
 		if (getClass() != obj.getClass())
 			return false;
 		GridModel other = (GridModel) obj;
-		if (columns != other.columns)
+		if (fastAxisPoints != other.fastAxisPoints)
 			return false;
-		if (rows != other.rows)
+		if (slowAxisPoints != other.slowAxisPoints)
 			return false;
 		if (snake != other.snake)
 			return false;

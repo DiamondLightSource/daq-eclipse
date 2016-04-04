@@ -4,7 +4,7 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.api.scan.process.AbstractPreprocessor;
+import org.eclipse.scanning.api.scan.process.IPreprocessor;
 import org.eclipse.scanning.api.scan.process.ProcessingException;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 
@@ -18,7 +18,12 @@ import org.eclipse.scanning.example.detector.MandelbrotModel;
  * @author Matthew Gerring
  *
  */
-public class ExamplePreprocessor extends AbstractPreprocessor {
+public class ExamplePreprocessor implements IPreprocessor {
+
+	@Override
+	public String getName() {
+		return "example";
+	}
 
 	@Override
 	public <T> ScanRequest<T> preprocess(ScanRequest<T> req) throws ProcessingException {
@@ -27,8 +32,8 @@ public class ExamplePreprocessor extends AbstractPreprocessor {
 			if (model instanceof StepModel) {
 				((StepModel)model).setName("xfred");
 			} if (model instanceof AbstractBoundingBoxModel) {
-				((AbstractBoundingBoxModel)model).setxName("xfred");
-				((AbstractBoundingBoxModel)model).setyName("yfred");
+				((AbstractBoundingBoxModel)model).setFastAxisName("xfred");
+				((AbstractBoundingBoxModel)model).setSlowAxisName("yfred");
 			}
 		}
 		
@@ -36,12 +41,11 @@ public class ExamplePreprocessor extends AbstractPreprocessor {
 			Object dmodel = req.getDetectors().get(name);
 			if (dmodel instanceof MandelbrotModel) {
 				MandelbrotModel mmodel = (MandelbrotModel)dmodel;
-				mmodel.setxName("xfred");
-				mmodel.setxName("yfred");
+				mmodel.setRealAxisName("xfred");
+				mmodel.setImaginaryAxisName("yfred");
 			}
 		}
 		
 		return req;
 	}
-
 }

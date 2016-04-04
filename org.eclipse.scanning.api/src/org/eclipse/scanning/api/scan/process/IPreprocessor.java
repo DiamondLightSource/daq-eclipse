@@ -9,15 +9,11 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 <i>noun</i>
 A computer program that modifies data to conform with the input requirements of another program.
 </pre>
-<br>
-
-
- * A preprocessor contributed by the extension point
- * org.eclipse.scanning.api.preprocessor which makes a 
- * ScanRequest into one which matches the available hardware
- * for a given beamline.
- * 
- * {@link IPreprocessingService}
+ * <p>
+ * A preprocessor which makes a ScanRequest into one which matches the available hardware for a given beamline.
+ * <p>
+ * Preprocessors can be registered as OSGi services (perhaps in Spring config files, using the OSGiServiceRegister
+ * class) and will then be used by the ScanServlet to process scan requests before they are run.
  * 
  * @author Matthew Gerring
  *
@@ -25,14 +21,11 @@ A computer program that modifies data to conform with the input requirements of 
 public interface IPreprocessor {
 
 	/**
-	 * Preprocessor name. For instance "I18", "I05-1" or "mapping".
-	 * The actual name is provided by the extension point and should 
-	 * match the configuration of the process which is running scanning.
-	 * 
-	 * For instance if the config name is "I18" the preprocessor wil;
+	 * Preprocessor name.
 	 * 
 	 * @return
 	 */
+	// TODO decide if this is still useful when not using extension points
 	String getName();
 	
 	/**
