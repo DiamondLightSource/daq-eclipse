@@ -12,6 +12,10 @@ public class ScanRequestStringifier {
 	// because ScanRequest objects are meant to be small things
 	// sent across networks/stored in queues, etc..
 
+	/**
+	 * Return a string of valid Python which, in conjunction with
+	 * scan_syntax.py, would generate the given ScanRequest.
+	 */
 	final public static String stringify(ScanRequest<IROI> request, Boolean verbose) {
 		Collection<IScanPathModel> models = request.getModels();
 

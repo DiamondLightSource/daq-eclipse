@@ -137,8 +137,14 @@ public class ModelStringifier {
 
 	}
 
+	/**
+	 * Return a string of valid Python which, in conjunction with
+	 * scan_syntax.py, would generate the given IScanPathModel.
+	 */
 	final public static String stringify(IScanPathModel model, Boolean verbose)
 			throws StringificationNotImplementedException {
+
+		// TODO: Take also an optional list of ROIs.
 
 		SimpleEntry<String, LinkedHashMap<SimpleEntry<String, Boolean>, List<String>>> modelSchema =
 				schema.get(model.getClass());
