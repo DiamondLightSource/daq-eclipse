@@ -136,7 +136,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		setDeviceState(DeviceState.RUNNING);
 
 		final long startTime = System.nanoTime();
-		final long targetDuration = (long) model.getExposureTime() * 1000000000; // nanoseconds
+		final long targetDuration = (long) (model.getExposureTime() * 1000000000.0); // nanoseconds
 
 		// Find out where we are in the scan. This is unique to the Mandelbrot
 		// detector as it's a dummy in general a detector shouldn't need to get
