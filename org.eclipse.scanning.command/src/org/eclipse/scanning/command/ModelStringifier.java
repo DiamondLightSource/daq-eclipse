@@ -81,16 +81,16 @@ public class ModelStringifier {
 				Boolean>, List<String>>()));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"axes", false), Arrays.asList("getxName", "getyName"));
+				"axes", false), Arrays.asList("getFastAxisName", "getSlowAxisName"));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"origin", false), Arrays.asList("getBoundingBox.getxStart", "getBoundingBox.getyStart"));
+				"origin", false), Arrays.asList("getBoundingBox.getFastAxisStart", "getBoundingBox.getSlowAxisStart"));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"size", false), Arrays.asList("getBoundingBox.getWidth", "getBoundingBox.getHeight"));
+				"size", false), Arrays.asList("getBoundingBox.getFastAxisLength", "getBoundingBox.getSlowAxisLength"));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"count", true), Arrays.asList("getRows", "getColumns"));
+				"count", true), Arrays.asList("getFastAxisPoints", "getSlowAxisPoints"));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
 				"snake", true), Arrays.asList("isSnake"));
@@ -102,16 +102,16 @@ public class ModelStringifier {
 				Boolean>, List<String>>()));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"axes", false), Arrays.asList("getxName", "getyName"));
+				"axes", false), Arrays.asList("getFastAxisName", "getSlowAxisName"));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"origin", false), Arrays.asList("getBoundingBox.getxStart", "getBoundingBox.getyStart"));
+				"origin", false), Arrays.asList("getBoundingBox.getFastAxisStart", "getBoundingBox.getSlowAxisStart"));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"size", false), Arrays.asList("getBoundingBox.getWidth", "getBoundingBox.getHeight"));
+				"size", false), Arrays.asList("getBoundingBox.getFastAxisLength", "getBoundingBox.getSlowAxisLength"));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"step", true), Arrays.asList("getxStep", "getyStep"));
+				"step", true), Arrays.asList("getFastAxisStep", "getSlowAxisStep"));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
 				"snake", true), Arrays.asList("isSnake"));

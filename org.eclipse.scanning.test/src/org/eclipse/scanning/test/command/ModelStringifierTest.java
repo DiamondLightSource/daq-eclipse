@@ -39,80 +39,80 @@ public class ModelStringifierTest {
 	@Test
 	public void testGridModelConcise() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
-		bbox.setxStart(0);
-		bbox.setyStart(1);
-		bbox.setWidth(10);
-		bbox.setHeight(11);
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
 
 		GridModel gmodel = new GridModel();
-		gmodel.setyName("alice");
-		gmodel.setxName("bob");
+		gmodel.setFastAxisName("myFast");
+		gmodel.setSlowAxisName("mySlow");
 		gmodel.setBoundingBox(bbox);
-		gmodel.setRows(3);
-		gmodel.setColumns(4);
+		gmodel.setFastAxisPoints(3);
+		gmodel.setSlowAxisPoints(4);
 
 		assertEquals(
-				"grid(('bob', 'alice'), (0.0, 1.0), (10.0, 11.0), count=(3, 4), snake=False)",
+				"grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 11.0), count=(3, 4), snake=False)",
 				stringify(gmodel, false));
 	}
 
 	@Test
 	public void testGridModelVerbose() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
-		bbox.setxStart(0);
-		bbox.setyStart(1);
-		bbox.setWidth(10);
-		bbox.setHeight(11);
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
 
 		GridModel gmodel = new GridModel();
-		gmodel.setyName("alice");
-		gmodel.setxName("bob");
+		gmodel.setFastAxisName("myFast");
+		gmodel.setSlowAxisName("mySlow");
 		gmodel.setBoundingBox(bbox);
-		gmodel.setRows(3);
-		gmodel.setColumns(4);
+		gmodel.setFastAxisPoints(3);
+		gmodel.setSlowAxisPoints(4);
 
 		assertEquals(
-				"grid(axes=('bob', 'alice'), origin=(0.0, 1.0), size=(10.0, 11.0), count=(3, 4), snake=False)",
+				"grid(axes=('myFast', 'mySlow'), origin=(0.0, 1.0), size=(10.0, 11.0), count=(3, 4), snake=False)",
 				stringify(gmodel, true));
 	}
 
 	@Test
 	public void testRasterModelConcise() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
-		bbox.setxStart(0);
-		bbox.setyStart(1);
-		bbox.setWidth(10);
-		bbox.setHeight(11);
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
 
 		RasterModel rmodel = new RasterModel();
-		rmodel.setyName("alice");
-		rmodel.setxName("bob");
+		rmodel.setFastAxisName("myFast");
+		rmodel.setSlowAxisName("mySlow");
 		rmodel.setBoundingBox(bbox);
-		rmodel.setxStep(3);
-		rmodel.setyStep(4);
+		rmodel.setFastAxisStep(3);
+		rmodel.setSlowAxisStep(4);
 
 		assertEquals(
-				"grid(('bob', 'alice'), (0.0, 1.0), (10.0, 11.0), step=(3.0, 4.0), snake=False)",
+				"grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 11.0), step=(3.0, 4.0), snake=False)",
 				stringify(rmodel, false));
 	}
 
 	@Test
 	public void testRasterModelVerbose() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
-		bbox.setxStart(0);
-		bbox.setyStart(1);
-		bbox.setWidth(10);
-		bbox.setHeight(11);
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
 
 		RasterModel rmodel = new RasterModel();
-		rmodel.setyName("alice");
-		rmodel.setxName("bob");
+		rmodel.setFastAxisName("myFast");
+		rmodel.setSlowAxisName("mySlow");
 		rmodel.setBoundingBox(bbox);
-		rmodel.setxStep(3);
-		rmodel.setyStep(4);
+		rmodel.setFastAxisStep(3);
+		rmodel.setSlowAxisStep(4);
 
 		assertEquals(
-				"grid(axes=('bob', 'alice'), origin=(0.0, 1.0), size=(10.0, 11.0), step=(3.0, 4.0), snake=False)",
+				"grid(axes=('myFast', 'mySlow'), origin=(0.0, 1.0), size=(10.0, 11.0), step=(3.0, 4.0), snake=False)",
 				stringify(rmodel, true));
 	}
 

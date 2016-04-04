@@ -85,8 +85,8 @@ public class AttributePluginTest {
 		
 		MandelbrotModel model = new MandelbrotModel();
 		model.setName("mandelbrot");
-		model.setxName("xNex");
-		model.setyName("yNex");
+		model.setRealAxisName("xNex");
+		model.setImaginaryAxisName("yNex");
 		
 		detector = (IWritableDetector<MandelbrotModel>)dservice.createRunnableDevice(model);
 		assertNotNull(detector);
@@ -317,10 +317,10 @@ public class AttributePluginTest {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
-		gmodel.setxName("xNex");
-		gmodel.setColumns(size[size.length-1]);
-		gmodel.setyName("yNex");
-		gmodel.setRows(size[size.length-2]);
+		gmodel.setFastAxisName("xNex");
+		gmodel.setFastAxisPoints(size[size.length-1]);
+		gmodel.setSlowAxisName("yNex");
+		gmodel.setSlowAxisPoints(size[size.length-2]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
 		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);

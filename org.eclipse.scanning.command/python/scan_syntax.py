@@ -183,10 +183,10 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
 
         model = _instantiate(
                     GridModel,
-                    {'xName': xName,
-                     'yName': yName,
-                     'rows': rows,
-                     'columns': cols,
+                    {'fastAxisName': xName,
+                     'slowAxisName': yName,
+                     'fastAxisPoints': rows,
+                     'slowAxisPoints': cols,
                      'snake': snake,
                      'boundingBox': _bbox(xStart, yStart, width, height)})
 
@@ -195,10 +195,10 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
 
         model = _instantiate(
                     RasterModel,
-                    {'xName': xName,
-                     'yName': yName,
-                     'xStep': xStep,
-                     'yStep': yStep,
+                    {'fastAxisName': xName,
+                     'slowAxisName': yName,
+                     'fastAxisStep': xStep,
+                     'slowAxisStep': yStep,
                      'snake': snake,
                      'boundingBox': _bbox(xStart, yStart, width, height)})
 
@@ -354,13 +354,13 @@ _setter_blacklist = {
     'MandelbrotModel': frozenset(['setColumns',
                                   'setEscapeRadius',
                                   'setMaxIterations',
-                                  'setMaxX',
-                                  'setMaxY',
+                                  'setMaxRealCoordinate',
+                                  'setMaxImaginaryCoordinate',
                                   'setName',
                                   'setPoints',
                                   'setRows',
-                                  'setxName',
-                                  'setyName']),
+                                  'setRealAxisName',
+                                  'setImaginaryAxisName']),
 }
 # TODO: Make some fields optional (e.g. setxName)? setter_graylist?
 
@@ -391,10 +391,10 @@ def _instantiate(Bean, params, setter_blacklist=_setter_blacklist):
 # ---------------
 
 def _bbox(xStart, yStart, width, height):
-    return _instantiate(BoundingBox, {'xStart': xStart,
-                                      'yStart': yStart,
-                                      'width': width,
-                                      'height': height})
+    return _instantiate(BoundingBox, {'fastAxisStart': xStart,
+                                      'slowAxisStart': yStart,
+                                      'fastAxisLength': width,
+                                      'slowAxisLength': height})
 
 
 def _bline(xStart, yStart, length, angle):

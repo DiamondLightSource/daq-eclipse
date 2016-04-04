@@ -5,6 +5,7 @@ import java.util.Iterator;
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.StepModel;
 
 public class StepGenerator extends AbstractGenerator<StepModel, IPosition> {
@@ -15,14 +16,14 @@ public class StepGenerator extends AbstractGenerator<StepModel, IPosition> {
 	}
 
 	@Override
-	protected void validateModel(StepModel model) throws GeneratorException {
+	protected void validateModel() {
 		double div = ((model.getStop()-model.getStart())/model.getStep());
-		if (div < 0) throw new GeneratorException("Model step is directed backwards!");
-		if (!Double.isFinite(div)) throw new GeneratorException("Model step size must be nonzero!");
+		if (div < 0) throw new PointsValidationException("Model step is directed backwards!");
+		if (!Double.isFinite(div)) throw new PointsValidationException("Model step size must be nonzero!");
 	}
 
 	@Override
-	public int size() throws GeneratorException {
+	public int sizeOfValidModel() throws GeneratorException {
 		if (containers!=null) throw new GeneratorException("Cannot deal with regions in a step scan!");
 		double div = ((model.getStop()-model.getStart())/model.getStep());
 		div += (model.getStep() / 100); // add tolerance of 1% of step value
@@ -30,7 +31,7 @@ public class StepGenerator extends AbstractGenerator<StepModel, IPosition> {
 	}
 	
 	@Override
-	public Iterator<IPosition> iterator() {
+	public Iterator<IPosition> iteratorFromValidModel() {
 		return new StepIterator(this);
 	}
 

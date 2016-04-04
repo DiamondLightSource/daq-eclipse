@@ -67,17 +67,17 @@ public class CommandTest {
 		assertEquals(GridModel.class, model.getClass());
 
 		GridModel gmodel = (GridModel) model;
-		assertEquals("fred", gmodel.getxName());
-		assertEquals("y", gmodel.getyName());
-		assertEquals(5, gmodel.getRows());
-		assertEquals(6, gmodel.getColumns());
+		assertEquals("fred", gmodel.getFastAxisName());
+		assertEquals("y", gmodel.getSlowAxisName());
+		assertEquals(5, gmodel.getFastAxisPoints());
+		assertEquals(6, gmodel.getSlowAxisPoints());
 		assertEquals(true, gmodel.isSnake());
 
 		BoundingBox bbox = gmodel.getBoundingBox();
-		assertEquals(0, bbox.getxStart(), 1e-8);
-		assertEquals(2, bbox.getyStart(), 1e-8);
-		assertEquals(10, bbox.getWidth(), 1e-8);
-		assertEquals(9, bbox.getHeight(), 1e-8);
+		assertEquals(0, bbox.getFastAxisStart(), 1e-8);
+		assertEquals(2, bbox.getSlowAxisStart(), 1e-8);
+		assertEquals(10, bbox.getFastAxisLength(), 1e-8);
+		assertEquals(9, bbox.getSlowAxisLength(), 1e-8);
 
 		Collection<IROI> regions = request.getRegions(gmodel.getUniqueKey());
 		assertEquals(1, regions.size());
@@ -142,7 +142,7 @@ public class CommandTest {
 		assertEquals(RasterModel.class, model.getClass());
 
 		RasterModel rmodel = (RasterModel) model;
-		assertEquals(0.5, rmodel.getxStep(), 1e-8);
+		assertEquals(0.5, rmodel.getFastAxisStep(), 1e-8);
 
 		Collection<IROI> regions = request.getRegions(rmodel.getUniqueKey());
 		assertEquals(2, regions.size());
@@ -279,7 +279,7 @@ public class CommandTest {
 
 		Iterator<IScanPathModel> modelIterator = models.iterator();
 		GridModel gmodel = (GridModel) modelIterator.next();
-		assertEquals(5, gmodel.getRows());
+		assertEquals(5, gmodel.getSlowAxisPoints());
 
 		StepModel smodel = (StepModel) modelIterator.next();
 		assertEquals(10, smodel.getStop(), 1e-8);

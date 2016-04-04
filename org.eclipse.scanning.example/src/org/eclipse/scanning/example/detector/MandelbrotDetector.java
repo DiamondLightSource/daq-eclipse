@@ -109,9 +109,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 		// The axis datasets
 		// FIXME These are not linked using an axis tag to the 4D block (Don't think thats possible yet)
-		detector.setDataset("image_x_axis", DatasetFactory.createLinearSpace(-model.getMaxX(), model.getMaxX(), model.getRows(), Dataset.FLOAT64));
-		detector.setDataset("image_y_axis", DatasetFactory.createLinearSpace(-model.getMaxY(), model.getMaxY(), model.getColumns(), Dataset.FLOAT64));
-		detector.setDataset("spectrum_axis", DatasetFactory.createLinearSpace(0.0, model.getMaxX(), model.getPoints(), Dataset.FLOAT64));
+		detector.setDataset("image_x_axis", DatasetFactory.createLinearSpace(-model.getMaxRealCoordinate(), model.getMaxRealCoordinate(), model.getRows(), Dataset.FLOAT64));
+		detector.setDataset("image_y_axis", DatasetFactory.createLinearSpace(-model.getMaxImaginaryCoordinate(), model.getMaxImaginaryCoordinate(), model.getColumns(), Dataset.FLOAT64));
+		detector.setDataset("spectrum_axis", DatasetFactory.createLinearSpace(0.0, model.getMaxRealCoordinate(), model.getPoints(), Dataset.FLOAT64));
 
 		try {
 			Attributes.registerAttributes(detector, this);
@@ -135,20 +135,26 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public void run(IPosition pos) throws ScanningException, InterruptedException {
 		setDeviceState(DeviceState.RUNNING);
 
+		final long startTime = System.nanoTime();
+		final long targetDuration = (long) model.getExposureTime() * 1000000000; // nanoseconds
+
 		// Find out where we are in the scan. This is unique to the Mandelbrot
 		// detector as it's a dummy in general a detector shouldn't need to get
 		// the position in the scan
-		final double a = (Double) pos.get(model.getxName());
-		final double b = (Double) pos.get(model.getyName());
+		final double a = (Double) pos.get(model.getRealAxisName());
+		final double b = (Double) pos.get(model.getImaginaryAxisName());
 
 		// Calculate the data for the image spectrum and total
 		image = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
-		spectrum = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxX(), model.getPoints());
+		spectrum = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxRealCoordinate(), model.getPoints());
 		value = mandelbrot(a, b);
 
-		// Pause for a bit to make exposure time work
-		if (model.getExposureTime() > 0) {
-			Thread.sleep(Math.round(1000 * model.getExposureTime()));
+		// See if we need to sleep to honour the requested exposure time
+		long currentTime = System.nanoTime();
+		long duration = currentTime - startTime;
+		if (duration < targetDuration) {
+			long millisToWait = (targetDuration - duration) / 1000000;
+			Thread.sleep(millisToWait);
 		}
 
 		// TODO Should device state be set back to ready here? The device has finished acquiring (calculating) but the data is not in the file yet?
@@ -182,10 +188,10 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	 * Fill a Julia set around the origin for the value C = a + bi
 	 */
 	private IDataset calculateJuliaSet(final double a, final double b, int columns, int rows) {
-		final double xStart = -model.getMaxX();
-		final double xStop = model.getMaxX();
-		final double yStart = -model.getMaxY();
-		final double yStop = model.getMaxY();
+		final double xStart = -model.getMaxRealCoordinate();
+		final double xStop = model.getMaxRealCoordinate();
+		final double yStart = -model.getMaxImaginaryCoordinate();
+		final double yStop = model.getMaxImaginaryCoordinate();
 		final double yStep = (yStop - yStart) / (rows - 1);
 		double y;
 		IDataset juliaSet = new DoubleDataset(rows,columns);

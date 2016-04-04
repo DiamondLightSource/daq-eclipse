@@ -4,10 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Iterator;
 
-import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
@@ -92,14 +92,14 @@ public class StepTest {
 		// TODO Should this throw an exception or do this? Possible to do a size 1 step makes some tests easier to write.
 	}
 	
-	@Test(expected = GeneratorException.class)
+	@Test(expected = PointsValidationException.class)
 	public void testMisdirectedStepGenSize() throws Exception {
 
 		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
 		gen.size();
 	}
 
-	@Test(expected = GeneratorException.class)
+	@Test(expected = PointsValidationException.class)
 	public void testMisdirectedStepGenPoints() throws Exception {
 
 		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));

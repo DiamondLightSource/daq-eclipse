@@ -16,7 +16,12 @@ public class EmptyGenerator extends AbstractGenerator<EmptyModel,EmptyPosition> 
 	}
 
 	@Override
-	public Iterator<EmptyPosition> iterator() {
+	protected void validateModel() {
+		// Nothing to validate!
+	}
+
+	@Override
+	protected Iterator<EmptyPosition> iteratorFromValidModel() {
 		return Arrays.asList(new EmptyPosition()).iterator();
 	}
 	

@@ -2,7 +2,11 @@ package org.eclipse.scanning.api.points.models;
 
 
 /**
- * A model defining a line in two dimensional space, which can be used to confine and give scale to a {@link IBoundingLineModel}.
+ * A model defining a line in two dimensional space, which can be used to confine and give scale to a {@link
+ * IBoundingLineModel}.
+ * <p>
+ * The position of the line is defined by an (X, Y) start point, an angle (CCW from the positive X axis) and a length.
+ * However, X and Y do not necessarily need to refer to two orthogonal physical axes.
  *
  * @author Colin Palmer
  *

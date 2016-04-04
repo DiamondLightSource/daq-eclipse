@@ -56,17 +56,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private volatile boolean awaitPaused;
 	
 	/**
-	 * Used to write the scan data point number as the scan progresses.
-	 * Same shape as the scan.
-	 */
-	private ILazyWriteableDataset uniqueKeys;
-		
-	/**
-	 * Used to define 
-	 */
-	private ILazyWriteableDataset points;
-
-	/**
 	 * Package private constructor, devices are created by the service.
 	 */
 	AcquisitionDevice() {
@@ -215,25 +204,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			setDeviceState(DeviceState.FAULT);
 			throw new ScanningException(ne);
 		} 
-	}
-
-	/**
-	 * Saves the point number at the next location so that analysis can assertain how many points
-	 * have been run while the scan is running.
-	 * 
-	 * @param pointNum
-	 * @param loc
-	 * @throws Exception
-	 */
-	private void record(int pointNum, IPosition loc) throws Exception {
-		if (uniqueKeys==null) return;
-		SliceND sliceND = NexusScanInfo.createLocation(uniqueKeys, loc.getNames(), loc.getIndices()); // no varargs for scalar value
-
-		final Dataset newActualPositionData = DatasetFactory.createFromObject(pointNum);
-		uniqueKeys.setSlice(null, newActualPositionData, sliceND);
-		
-		final Dataset point = DatasetFactory.createFromObject(loc.toString());
-		//points.setSlice(null, point, sliceND);
 	}
 
 	private void fireEnd() throws ScanningException {

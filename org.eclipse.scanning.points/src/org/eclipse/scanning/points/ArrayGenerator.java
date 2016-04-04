@@ -15,7 +15,12 @@ public class ArrayGenerator extends AbstractGenerator<ArrayModel, IPosition> {
 	}
 
 	@Override
-	public int size() throws GeneratorException {
+	protected void validateModel() {
+		// Nothing(?) to validate.
+	}
+
+	@Override
+	public int sizeOfValidModel() throws GeneratorException {
 		if (containers!=null) throw new GeneratorException("Cannot deal with regions in an array scan!");
 		if (model.getPositions() == null) {
 			return 0;
@@ -24,7 +29,7 @@ public class ArrayGenerator extends AbstractGenerator<ArrayModel, IPosition> {
 	}
 	
 	@Override
-	public Iterator<IPosition> iterator() {
+	protected Iterator<IPosition> iteratorFromValidModel() {
 		return new ArrayIterator(this);
 	}
 
