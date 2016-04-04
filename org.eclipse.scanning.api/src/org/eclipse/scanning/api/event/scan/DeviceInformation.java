@@ -130,4 +130,9 @@ public class DeviceInformation {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "DeviceInformation [name=" + name + ", label=" + label + "]";
+	}
 }

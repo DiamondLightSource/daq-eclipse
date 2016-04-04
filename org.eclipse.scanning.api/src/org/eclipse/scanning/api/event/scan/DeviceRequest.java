@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.event.scan;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.eclipse.scanning.api.event.IdBean;
@@ -16,15 +17,21 @@ import org.eclipse.scanning.api.event.IdBean;
  */
 public class DeviceRequest extends IdBean {
 
-	private List<DeviceInformation> devices;
+	private Collection<DeviceInformation> devices;
 
-	public List<DeviceInformation> getDevices() {
+	public Collection<DeviceInformation> getDevices() {
 		return devices;
 	}
 
-	public void setDevices(List<DeviceInformation> devices) {
+	public void setDevices(Collection<DeviceInformation> devices) {
 		this.devices = devices;
 	}
+	
+	public void merge(DeviceRequest with) {
+		super.merge(with);
+		if (devices==null) devices = with.devices;
+		if (devices!=null) devices.addAll(with.devices);
+ 	}
 
 	@Override
 	public int hashCode() {
@@ -52,7 +59,7 @@ public class DeviceRequest extends IdBean {
 	}
 
 	public void addDeviceInformation(DeviceInformation info) {
-		if (devices==null) devices = new ArrayList<>(7);
+		if (devices==null) devices = new LinkedHashSet(7);
 		devices.add(info);
 	}
 }
