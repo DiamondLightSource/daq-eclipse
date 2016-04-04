@@ -73,17 +73,15 @@ public final class DeviceServiceImpl implements IDeviceService {
 		System.out.println("Starting device service");
 		Map<Class<?>, Class<? extends IRunnableDevice>> aqui = new HashMap<>(7);
 		aqui.put(ScanModel.class,         AcquisitionDevice.class);
-		
+
+		modelledDevices  = aqui;
+		namedDevices       = new HashMap<>(3);
+
 		try {
 			readExtensions(aqui);
 		} catch (CoreException e) {
 			e.printStackTrace(); // Static block, intentionally do not use logging.
 		}
-
-		
-		modelledDevices  = aqui;
-		namedDevices       = new HashMap<>(3);
-
 	}
 	
 	
