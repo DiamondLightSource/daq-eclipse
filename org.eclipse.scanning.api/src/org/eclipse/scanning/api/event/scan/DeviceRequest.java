@@ -2,7 +2,6 @@ package org.eclipse.scanning.api.event.scan;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 
 import org.eclipse.scanning.api.event.IdBean;
 
@@ -27,10 +26,11 @@ public class DeviceRequest extends IdBean {
 		this.devices = devices;
 	}
 	
-	public void merge(DeviceRequest with) {
+	@Override
+	public <T extends IdBean> void merge(T with) {
 		super.merge(with);
-		if (devices==null) devices = with.devices;
-		if (devices!=null) devices.addAll(with.devices);
+		if (devices==null) devices = ((DeviceRequest)with).devices;
+		if (devices!=null) devices.addAll(((DeviceRequest)with).devices);
  	}
 
 	@Override
