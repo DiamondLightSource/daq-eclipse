@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.eclipse.scanning.api.IAttributeContainer;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
@@ -35,6 +36,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   int                        level = 1;
 	private   String                     scanId;
 	private   ScanBean                   bean;
+	private   DeviceInformation          deviceInformation;
 
 	// OSGi services and intraprocess events
 	protected IDeviceService             scanningService;
@@ -307,6 +309,14 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	@SuppressWarnings("unchecked")
 	public <A> A getAttribute(String attributeName) throws Exception {
 		return (A)attributes.get(attributeName);
+	}
+
+	public DeviceInformation getDeviceInformation() {
+		return deviceInformation;
+	}
+
+	public void setDeviceInformation(DeviceInformation deviceInformation) {
+		this.deviceInformation = deviceInformation;
 	}
 	
 
