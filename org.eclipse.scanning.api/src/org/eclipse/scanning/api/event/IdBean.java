@@ -54,8 +54,8 @@ public class IdBean {
 	 * 
 	 * @param with
 	 */
-	public void merge(IdBean with) {
-		this.uniqueId = with.uniqueId;
+	public <T extends IdBean> void merge(T with) {
+		this.uniqueId = with.getUniqueId();
 	}
 
 }
