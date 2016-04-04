@@ -97,6 +97,15 @@ public interface IEventService {
 	 */
 	public static final String ADMIN_MESSAGE_TOPIC = "org.eclipse.scanning.consumer.administratorMessage";
 
+    /**
+     * The default topic used for requests. It is better to use your own topic rather than the default.
+     */
+	public static final String REQUEST_TOPIC      = "org.eclipse.scanning.request.topic";
+
+    /**
+     * The default topic used for responses. It is better to use your own topic rather than the default.
+     */
+	public static final String RESPONSE_TOPIC      = "org.eclipse.scanning.response.topic";
 
 	/**
 	 * Creates an ISubscriber with the default scan event topic and default heartbeat topic.

@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
@@ -54,7 +56,7 @@ public final class DeviceServiceImpl implements IDeviceService {
 	/**
 	 * Map of device model class to device class.
 	 */
-	private static final Map<Class<?>, Class<? extends IRunnableDevice>> aquisitionDevices;
+	private static final Map<Class<?>, Class<? extends IRunnableDevice>> modelledDevices;
 	
 	/**
 	 * Map of device name to created device. Used to avoid
@@ -79,7 +81,7 @@ public final class DeviceServiceImpl implements IDeviceService {
 		}
 
 		
-		aquisitionDevices  = aqui;
+		modelledDevices  = aqui;
 		namedDevices       = new HashMap<>(3);
 
 	}
@@ -113,8 +115,24 @@ public final class DeviceServiceImpl implements IDeviceService {
 				final Object     mod = e.createExecutableExtension("model");
 				
 				if (e.getName().equals("device")) {
+					
 					final IRunnableDevice device = (IRunnableDevice)e.createExecutableExtension("class");
+					device.setName(e.getAttribute("name"));
 					devs.put(mod.getClass(), device.getClass());
+					
+					if (device instanceof AbstractRunnableDevice) {
+						AbstractRunnableDevice adevice = (AbstractRunnableDevice)device;
+						final DeviceInformation info   = new DeviceInformation();
+						info.setLabel(e.getAttribute("label"));
+						info.setDescription(e.getAttribute("description"));
+						info.setId(e.getAttribute("id"));
+						info.setIcon(e.getContributor().getName()+"/"+e.getAttribute("icon"));
+						adevice.setDeviceInformation(info);
+					}
+					
+					if (!device.isVirtual()) {
+						namedDevices.put(device.getName(), device);
+					}
 
 				} else {
 					throw new CoreException(new Status(IStatus.ERROR, "org.eclipse.scanning.sequencer", "Unrecognized device "+e.getName()));
@@ -216,8 +234,8 @@ public final class DeviceServiceImpl implements IDeviceService {
 			}
 			return conn.getDevice(info.getDeviceName());
 			
-		} else if (aquisitionDevices.containsKey(model.getClass())) {
-			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)aquisitionDevices.get(model.getClass());
+		} else if (modelledDevices.containsKey(model.getClass())) {
+			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)modelledDevices.get(model.getClass());
 			if (clazz == null) throw new ScanningException("The model '"+model.getClass()+"' does not have a device registered for it!");
 			scanner = clazz.newInstance();
 			
@@ -306,8 +324,18 @@ public final class DeviceServiceImpl implements IDeviceService {
 	 * @param device
 	 */
 	public void _register(Class<?> model, Class<? extends IRunnableDevice> device) {
-		aquisitionDevices.put(model, device);
+		modelledDevices.put(model, device);
 	}
+	
+	/**
+	 * Used for testing only
+	 * @param model
+	 * @param device
+	 */
+	public void _register(String name, IRunnableDevice<?> device) {
+		namedDevices.put(name, device);
+	}
+
 	/**
 	 * Used for testing only
 	 * @param uri
@@ -315,6 +343,16 @@ public final class DeviceServiceImpl implements IDeviceService {
 	 */
 	public void _registerConnection(URI uri, IMalcolmConnection connection) {
 		connections.put(uri, connection);
+	}
+
+	@Override
+	public Collection<String> getRunnableDeviceNames() throws ScanningException {
+		return namedDevices.keySet();
+	}
+
+	@Override
+	public Collection<Class<?>> getRunnableDeviceModels() throws ScanningException {
+		return modelledDevices.keySet();
 	}
 
 }
