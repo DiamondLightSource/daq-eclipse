@@ -8,11 +8,11 @@ import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
-import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
@@ -118,7 +118,7 @@ public class RasterTest {
 		assertEquals(0.0, pointList.get(1).getY(), 1e-8);
 	}
 
-	@Test(expected=GeneratorException.class)
+	@Test(expected=PointsValidationException.class)
 	public void testBackwardsStep() throws Exception {
 
 		BoundingBox box = new BoundingBox();

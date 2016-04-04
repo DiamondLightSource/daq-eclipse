@@ -10,6 +10,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
@@ -64,7 +65,7 @@ public class LinearTest {
 		gen.createPoints();
 	}
 
-	@Test(expected = GeneratorException.class)
+	@Test(expected = PointsValidationException.class)
 	public void testOneDEqualSpacingNoPoints() throws Exception {
 		
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
@@ -114,7 +115,7 @@ public class LinearTest {
 		gen.createPoints();
 	}
 
-	@Test(expected = GeneratorException.class)
+	@Test(expected = PointsValidationException.class)
 	public void testOneDStepNoStep() throws Exception {
 		
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
@@ -129,7 +130,7 @@ public class LinearTest {
 		
 	}
 	
-	@Test(expected = GeneratorException.class)
+	@Test(expected = PointsValidationException.class)
 	public void testOneDStepNegativeStep() throws Exception {
 
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
