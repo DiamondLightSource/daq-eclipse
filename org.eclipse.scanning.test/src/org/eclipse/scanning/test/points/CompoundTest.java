@@ -154,14 +154,14 @@ public class CompoundTest {
 		assertEquals(11, temp.size());
 
 		BoundingBox box = new BoundingBox();
-		box.setxStart(0);
-		box.setyStart(0);
-		box.setWidth(3);
-		box.setHeight(3);
+		box.setFastAxisStart(0);
+		box.setSlowAxisStart(0);
+		box.setFastAxisLength(3);
+		box.setSlowAxisLength(3);
 
 		GridModel model = new GridModel();
-		model.setRows(20);
-		model.setColumns(20);
+		model.setSlowAxisPoints(20);
+		model.setFastAxisPoints(20);
 		model.setBoundingBox(box);
 
 		// Get the point list
@@ -218,10 +218,10 @@ public class CompoundTest {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
-		gmodel.setxName("xNex");
-		gmodel.setColumns(size[size.length-2]);
-		gmodel.setyName("yNex");
-		gmodel.setRows(size[size.length-1]);
+		gmodel.setFastAxisName("xNex");
+		gmodel.setFastAxisPoints(size[size.length-2]);
+		gmodel.setSlowAxisName("yNex");
+		gmodel.setSlowAxisPoints(size[size.length-1]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
 		IPointGenerator<?,IPosition> gen = service.createGenerator(gmodel);

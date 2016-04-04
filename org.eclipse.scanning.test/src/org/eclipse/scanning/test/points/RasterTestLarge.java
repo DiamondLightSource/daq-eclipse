@@ -36,8 +36,8 @@ public class RasterTestLarge {
 
 		// Create a raster scan path
 		RasterModel model = new RasterModel();
-		model.setxStep(1);
-		model.setyStep(1);
+		model.setFastAxisStep(1);
+		model.setSlowAxisStep(1);
 
 		testIteratorTime(model, roi, 785349, 10000, true);
 	}
@@ -50,8 +50,8 @@ public class RasterTestLarge {
 
 		// Create a raster scan path
 		RasterModel model = new RasterModel();
-		model.setxStep(1);
-		model.setyStep(1);
+		model.setFastAxisStep(1);
+		model.setSlowAxisStep(1);
 
 		testIteratorTime(model, roi, 10011001, 5000, false); // TODO Is 10011001 correct?
 	}
@@ -106,8 +106,8 @@ public class RasterTestLarge {
 
 		// Create a raster scan path
 		RasterModel model = new RasterModel();
-		model.setxStep(1);
-		model.setyStep(1);
+		model.setFastAxisStep(1);
+		model.setSlowAxisStep(1);
 
 		// Get the point list
 		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);

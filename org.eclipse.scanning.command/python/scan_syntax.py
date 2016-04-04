@@ -14,8 +14,6 @@ There are also some pure functions which may be used to narrow the region of
 interest (ROI) when using grid(). They are: circ(), rect(), poly().
 """
 
-from jarray import array as _array
-
 from org.eclipse.scanning.api.event.scan import ScanRequest
 from org.eclipse.dawnsci.analysis.api.roi import IROI
 from org.eclipse.dawnsci.analysis.dataset.roi import (
@@ -73,12 +71,8 @@ def mscan(path=None, det=None, now=False, block=False):
 
     # ScanRequest expects ROIs to be specified as a map in the following
     # (bizarre?) format:
-    roi_map = {model.getUniqueKey(): _array(_listify(roi), IROI)
-               for (model, roi) in scan_paths}
-    # Care is required above. We must pass IROI arrays, not lists. Jython
-    # cannot do this coercion for us, because of Java type erasure!
-    # Furthermore, we _listify() the ROI inputs, so users can type either
-    # roi=circ(x, y, r) or roi=[circ(x, y, r), rect(x, y, w, h, angle)].
+    roi_map = {model.getUniqueKey(): rois
+               for (model, rois) in scan_paths if len(rois) > 0}
 
     detector_map = {name: model for (name, model) in detectors}
     # Equivalent to (but less opaque than) detector_map = dict(detectors).
@@ -123,7 +117,7 @@ def step(axis=None, start=None, stop=None, step=None):
                  'stop': stop,
                  'step': step})
 
-    return model, roi
+    return model, _listify(roi)
 
 
 def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
@@ -181,7 +175,9 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
                      'snake': snake,
                      'boundingBox': _bbox(xStart, yStart, width, height)})
 
-    return model, roi  # roi is sheeplike here (i.e. might be a list).
+    # We _listify() the ROI inputs, so users can type either
+    # roi=circ(x, y, r) or roi=[circ(x, y, r), rect(x, y, w, h, angle)].
+    return model, _listify(roi)
 
 
 # TODO: Add axes=None?
@@ -214,7 +210,7 @@ def line(origin=None, length=None, angle=None, count=None, step=None):
                     {'points': count,
                      'boundingLine': _bline(xStart, yStart, length, angle)})
 
-    return model, roi
+    return model, _listify(roi)
 
 
 # TODO: Rename "array" to "values" or "positions"?
@@ -237,14 +233,14 @@ def array(axis=None, positions=None):
     amodel.setName(axis)
     amodel.setPositions(*positions)
 
-    return amodel, roi
+    return amodel, _listify(roi)
 
 
 def point(x, y):
     """Define a point scan path to be passed to mscan().
     """
     roi = None
-    return _instantiate(SinglePointModel, {'x': x, 'y': y}), roi
+    return _instantiate(SinglePointModel, {'x': x, 'y': y}), _listify(roi)
 
 
 # ROIs
@@ -389,6 +385,8 @@ def _listify(sheep):  # Idempotent.
     # plural ("[a list of] sheep") or singular ("[a] sheep").
     if type(sheep) is list:
         return sheep
+    elif sheep is None:
+        return []
     else:
         return [sheep]
 

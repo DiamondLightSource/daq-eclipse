@@ -1,12 +1,16 @@
 package org.eclipse.scanning.server.servlet;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.IFilePathService;
-import org.eclipse.scanning.api.scan.process.IPreprocessingService;
+import org.eclipse.scanning.api.scan.process.IPreprocessor;
 import org.eclipse.scanning.api.script.IScriptService;
 
 
@@ -26,8 +30,9 @@ public class Services {
 	private static IDeviceConnectorService connector;
 	private static IMalcolmService         malcService;
 	private static IFilePathService        filePathService;
-	private static IPreprocessingService   preprocessingService;
 	private static IScriptService          scriptService;
+
+	private static final Set<IPreprocessor> preprocessors = new LinkedHashSet<>();
 
 	public static IFilePathService getFilePathService() {
 		return filePathService;
@@ -77,19 +82,23 @@ public class Services {
 		Services.malcService = malcService;
 	}
 
-	public static IPreprocessingService getPreprocessingService() {
-		return preprocessingService;
-	}
-
-	public static void setPreprocessingService(IPreprocessingService preprocessingService) {
-		Services.preprocessingService = preprocessingService;
-	}
-
 	public static IScriptService getScriptService() {
 		return scriptService;
 	}
 
 	public static void setScriptService(IScriptService scriptService) {
 		Services.scriptService = scriptService;
+	}
+
+	public static synchronized void addPreprocessor(IPreprocessor preprocessor) {
+		preprocessors.add(preprocessor);
+	}
+
+	public static synchronized void removePreprocessor(IPreprocessor preprocessor) {
+		preprocessors.remove(preprocessor);
+	}
+
+	public static Collection<IPreprocessor> getPreprocessors() {
+		return preprocessors;
 	}
 }

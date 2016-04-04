@@ -65,11 +65,15 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	}
 
 	@Override
-	public <T extends IScanPathModel, R, P extends IPosition> IPointGenerator<T,P> createGenerator(T model, R... regions) throws GeneratorException {
+	public <T extends IScanPathModel, R, P extends IPosition> IPointGenerator<T,P> createGenerator(T model, Collection<R> regions) throws GeneratorException {
 		try {
-			IPointGenerator<T,P> gen = (IPointGenerator<T,P>)generators.get(model.getClass()).newInstance();			
-			if (regions != null && regions.length > 0) {
-				synchModel(model, (IROI) regions[0]);
+			IPointGenerator<T,P> gen = (IPointGenerator<T,P>)generators.get(model.getClass()).newInstance();
+			if (regions != null) {
+				for (R region : regions) {
+					synchModel(model, (IROI) region);
+					break; // to preserve old behaviour of only using first region
+					// TODO fix this by removing break statement and correctly handling multiple regions
+				}
 				gen.setContainers(wrap(regions));
 			}
 			gen.setModel(model);
@@ -120,13 +124,13 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		}
 	}
 
-	private List<IPointContainer<?>> wrap(Object... regions) throws GeneratorException {
+	private List<IPointContainer<?>> wrap(Collection<?> regions) throws GeneratorException {
 		
-		if (regions==null || regions.length<1) return null;
-		if (!(regions[0] instanceof IROI)) throw new GeneratorException("Currently only type "+IROI.class.getName()+" can be wrapped!");
+		if (regions==null || regions.isEmpty()) return null;
 		
 		List<IPointContainer<?>> ret = new ArrayList<>();
 		for (Object region : regions) {
+			if (!(region instanceof IROI)) throw new GeneratorException("Currently only type "+IROI.class.getName()+" can be wrapped!");
 			final IROI roi = (IROI)region;
 			IPointContainer<IROI> container = new IPointContainer<IROI>() {
 				@Override
@@ -150,10 +154,10 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 
 			BoundingBox box = new BoundingBox();
 			IRectangularROI rect = roi.getBounds();
-			box.setxStart(rect.getPoint()[0]);
-			box.setyStart(rect.getPoint()[1]);
-			box.setWidth(rect.getLength(0));
-			box.setHeight(rect.getLength(1));
+			box.setFastAxisStart(rect.getPoint()[0]);
+			box.setSlowAxisStart(rect.getPoint()[1]);
+			box.setFastAxisLength(rect.getLength(0));
+			box.setSlowAxisLength(rect.getLength(1));
 			((IBoundingBoxModel) model).setBoundingBox(box);
 //			return;
 
@@ -173,7 +177,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	}
 
 	@Override
-	public IPointGenerator<?, IPosition> createCompoundGenerator(IPointGenerator<?,? extends IPosition>... generators) throws GeneratorException {
+	public IPointGenerator<?, IPosition> createCompoundGenerator(IPointGenerator<?,?>... generators) throws GeneratorException {
 		return new CompoundGenerator(generators);
 	}
 

@@ -215,8 +215,8 @@ public class ThreadScanTest {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
-		gmodel.setRows(rows);
-		gmodel.setColumns(columns);
+		gmodel.setSlowAxisPoints(rows);
+		gmodel.setFastAxisPoints(columns);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
 		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 

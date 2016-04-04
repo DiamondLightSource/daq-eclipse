@@ -16,7 +16,7 @@
  * with GDA. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.diamond.json.roimixins;
+package uk.ac.diamond.json.mixin.roi;
 
 import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
 
