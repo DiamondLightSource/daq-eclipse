@@ -56,8 +56,10 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 	 * PointsValidationException explaining why it is considered invalid.
 	 * Otherwise, just returns. A model should be considered invalid if its
 	 * parameters would cause the generator implementation to hang or crash.
+	 * 
+	 * @throw exception if model invalid
 	 */
-	protected abstract void validateModel();
+	protected abstract void validateModel() throws PointsValidationException;
 
 	@Override
 	final public int size() throws GeneratorException {
