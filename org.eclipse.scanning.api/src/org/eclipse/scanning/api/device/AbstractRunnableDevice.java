@@ -111,7 +111,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	public void start(final IPosition pos) throws ScanningException, InterruptedException {
 		
-		final List<Throwable> exceptions = new ArrayList<>(1);
+		final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>(1));
 		final Thread thread = new Thread(new Runnable() {
 			public void run() {
 				try {
