@@ -104,7 +104,10 @@
 			<configuration>
                 <testSourceDirectory>${basedir}/src</testSourceDirectory>
                 <testClassesDirectory>${basedir}/bin</testClassesDirectory>
-				<includes>
+	            <excludes>
+	              <exclude>**repository/*</exclude>
+	            </excludes>
+           		<includes>
 					<include>**/Suite.java</include>
 				</includes>
 			</configuration>
