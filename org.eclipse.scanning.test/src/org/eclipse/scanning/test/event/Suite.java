@@ -7,11 +7,12 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	SerializationTest.class,
 	ScanEventTest.class,
-	ConsumerTest.class,
+	// ConsumerTest.class, Takes too long! TODO Make shorter
 	MappingScanTest.class,
 	AnyBeanEventTest.class,
 	HeartbeatTest.class,
-	MConsumerTest.class
+	RequesterTest.class
+	// MConsumerTest.class  Takes too long! TODO Make shorter
 })
 public class Suite {
 
