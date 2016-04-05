@@ -162,6 +162,18 @@ public class AbstractScanTest {
 	}
 	
 	@Test
+	public void testThreadCount() throws Exception {
+			
+		int before = Thread.activeCount();
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
+		scanner.run(null);
+		Thread.sleep(2000);
+		int after = Thread.activeCount();
+		if (after>before+1) throw new Exception("too many extra threads after scan! Expected not more than "+before+1+" got "+after);
+	}
+
+	
+	@Test
 	public void testStepScan() throws Exception {
 		
 		StepModel model = new StepModel();
@@ -192,7 +204,7 @@ public class AbstractScanTest {
 			
 			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
 			
-		} catch (GeneratorException ex) {
+		} catch (Exception ex) {
 			assertEquals("Model step is directed backwards!", ex.getMessage());
 			return;
 		}
@@ -217,7 +229,7 @@ public class AbstractScanTest {
 			
 			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
 			
-		} catch (GeneratorException ex) {
+		} catch (Exception ex) {
 			assertEquals("Model step size must be nonzero!", ex.getMessage());
 			return;
 		}
