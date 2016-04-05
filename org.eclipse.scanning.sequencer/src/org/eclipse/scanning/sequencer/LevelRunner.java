@@ -138,6 +138,12 @@ abstract class LevelRunner<L extends ILevel> {
 		} catch (Exception ne) {
 			if (abortException!=null) throw abortException;
 			throw new ScanningException("Scanning interupted while moving to new position!", ne);
+			
+		} finally {
+			if (block) {
+				eservice.shutdownNow();
+				eservice = null;
+			}
 		}
 		
 		return true;
@@ -229,9 +235,9 @@ abstract class LevelRunner<L extends ILevel> {
 		int processors = Runtime.getRuntime().availableProcessors();
 		return new ThreadPoolExecutor(processors,             /* number of motors to move at the same time. */
 						              processors*2,                                 /* max size current tasks. */
-						              5, TimeUnit.SECONDS,                          /* timeout after - does this need spring config? */
+						              1, TimeUnit.SECONDS,                          /* timeout after - does this need spring config? */
 						              new ArrayBlockingQueue<Runnable>(1000, true), /* max 1000+ncores motors to a level */
-						              new ThreadPoolExecutor.DiscardPolicy());
+						              new ThreadPoolExecutor.AbortPolicy());
 
 	}
 

@@ -192,7 +192,7 @@ public class AbstractScanTest {
 			
 			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
 			
-		} catch (GeneratorException ex) {
+		} catch (Exception ex) {
 			assertEquals("Model step is directed backwards!", ex.getMessage());
 			return;
 		}
@@ -217,7 +217,7 @@ public class AbstractScanTest {
 			
 			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
 			
-		} catch (GeneratorException ex) {
+		} catch (Exception ex) {
 			assertEquals("Model step size must be nonzero!", ex.getMessage());
 			return;
 		}
