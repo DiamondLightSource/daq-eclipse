@@ -117,6 +117,9 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 				try {
 					AbstractRunnableDevice.this.run(pos);
 				} catch (ScanningException|InterruptedException e) {
+					// If you add an exception type to this catch clause,
+					// you must also add an "else if" clause for it inside
+					// the "if (!exceptions.isEmpty())" conditional below.
 					e.printStackTrace();
 					exceptions.add(e);
 				}
@@ -128,7 +131,22 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		// immediately throw any connection exceptions
 		Thread.sleep(500);
 		
-		if (!exceptions.isEmpty()) throw new ScanningException(exceptions.get(0));
+		// Re-throw any exception from the thread.
+		if (!exceptions.isEmpty()) {
+			Throwable ex = exceptions.get(0);
+
+			// We must manually match the possible exception types because Java
+			// doesn't let us do List<Either<ScanningException, InterruptedException>>.
+			if (ex.getClass() == ScanningException.class) {
+				throw (ScanningException) ex;
+
+			} else if (ex.getClass() == InterruptedException.class) {
+				throw (InterruptedException) ex;
+
+			} else {
+				throw new IllegalStateException();
+			}
+		}
 	}
 
 	/**
