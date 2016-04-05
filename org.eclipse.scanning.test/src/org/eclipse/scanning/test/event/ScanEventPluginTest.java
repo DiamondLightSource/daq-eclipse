@@ -25,8 +25,9 @@ public class ScanEventPluginTest extends AbstractScanEventTest{
 	@Before
 	public void createServices() throws Exception {
 		
-		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");	
-		
+		// Use in memory broker removes requirement on network and external ActiveMQ process
+		// http://activemq.apache.org/how-to-unit-test-jms-code.html
+		final URI uri = new URI("vm://localhost?broker.persistent=false");
 		eservice = service;
 		
 		// We use the long winded constructor because we need to pass in the connector.

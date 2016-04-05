@@ -40,11 +40,11 @@ import uk.ac.diamond.json.JsonMarshaller;
 
 public class TopupTest {
 
-	protected IDeviceService              sservice;
+	protected IDeviceService                sservice;
 	protected IDeviceConnectorService       connector;
-	protected IPointGeneratorService             gservice;
+	protected IPointGeneratorService        gservice;
 	protected IEventService                 eservice;
-	private IWritableDetector<Object>       detector;
+	private IWritableDetector<MockDetectorModel>       detector;
 	
 	private List<IPosition>                 positions;
 
@@ -66,7 +66,7 @@ public class TopupTest {
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setExposureTime(0.1);
 		dmodel.setName("detector");
-		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>) sservice.createRunnableDevice(dmodel);
+		detector = (IWritableDetector<MockDetectorModel>) sservice.createRunnableDevice(dmodel);
 		
 		positions = new ArrayList<>(20);
 		detector.addRunListener(new IRunListener.Stub() {

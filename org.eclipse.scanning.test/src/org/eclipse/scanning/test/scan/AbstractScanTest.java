@@ -305,7 +305,9 @@ public class AbstractScanTest {
 		bean.setName("Fred");
 		bean.setUniqueId("fred");
 		
-		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");	
+		// Use in memory broker removes requirement on network and external ActiveMQ process
+		// http://activemq.apache.org/how-to-unit-test-jms-code.html
+		final URI uri = new URI("vm://localhost?broker.persistent=false");
 		final IPublisher<ScanBean> publisher = eservice.createPublisher(uri, IEventService.STATUS_TOPIC);
 		
 		final ISubscriber<IScanListener> subscriber = eservice.createSubscriber(uri, IEventService.STATUS_TOPIC);
