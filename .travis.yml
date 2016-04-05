@@ -23,4 +23,5 @@ install:
   - cd org.eclipse.scanning
  
 # compile and test
-# script: mvn clean compile surefire:test -B 
+script: 
+ - mvn install surefire:test
