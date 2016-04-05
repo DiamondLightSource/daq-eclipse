@@ -184,6 +184,7 @@ abstract class LevelRunner<L extends ILevel> {
 	public void abort() {
 		if (eservice==null) return; // We are already finished
 		eservice.shutdownNow();
+		eservice = null;
 	}
 	
 	/**
@@ -202,6 +203,7 @@ abstract class LevelRunner<L extends ILevel> {
         		       ? (ScanningException)ne
         		       : new ScanningException(ne.getMessage(), ne);
 		eservice.shutdownNow();
+		eservice = null;
 	}
 	
 	public void reset() {
