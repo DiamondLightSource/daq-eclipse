@@ -226,6 +226,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 					for (String jMSMessageID : ids) {
 						MessageConsumer consumer = qSes.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
 						Message m = consumer.receive(1000);
+						consumer.close();
 						if (removeIds.contains(jMSMessageID)) continue; // We are done
 	
 						if (m!=null && m instanceof TextMessage) {
@@ -391,6 +392,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 			if (jMSMessageID!=null) {
 				MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
 				Message m = consumer.receive(1000);
+				consumer.close();
 				return m!=null; // It might have been removed ok
 			}
 	
