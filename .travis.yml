@@ -22,6 +22,5 @@ install:
   - mv ../DiamondLightSource/daq-eclipse org.eclipse.scanning
   - cd org.eclipse.scanning
  
-# Maven compile and test 
-# No need to run this as default travis will find maven and run it
-# script: mvn clean compile surefire:test
+# compile and test
+# script: mvn clean compile surefire:test -B 
