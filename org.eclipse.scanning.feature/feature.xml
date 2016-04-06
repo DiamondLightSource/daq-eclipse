@@ -85,14 +85,14 @@
          unpack="false"/>
 
    <plugin
-         id="uk.ac.diamond.json"
+         id="org.eclipse.dawnsci.json"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="uk.ac.diamond.json.api"
+         id="org.eclipse.dawnsci.json.api"
          download-size="0"
          install-size="0"
          version="0.0.0"

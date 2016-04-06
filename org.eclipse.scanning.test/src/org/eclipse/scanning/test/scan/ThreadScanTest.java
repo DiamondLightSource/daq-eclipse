@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.device.IPausableDevice;
@@ -31,6 +32,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
@@ -42,7 +44,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-import uk.ac.diamond.json.JsonMarshaller;
 
 public class ThreadScanTest {
 	
@@ -67,7 +68,7 @@ public class ThreadScanTest {
 		
 		gservice  = new PointGeneratorFactory();
 
-		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice   = new EventServiceImpl(new ActivemqConnectorService());
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
