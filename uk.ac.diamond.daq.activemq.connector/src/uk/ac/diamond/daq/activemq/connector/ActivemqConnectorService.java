@@ -3,9 +3,8 @@ package uk.ac.diamond.daq.activemq.connector;
 import java.net.URI;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.scanning.api.event.IEventConnectorService;
-
-import uk.ac.diamond.json.api.IJsonMarshaller;
 
 /**
  * This class is temporarily in this plugin and needs to be moved out of it once:
@@ -22,9 +21,9 @@ import uk.ac.diamond.json.api.IJsonMarshaller;
  */
 public class ActivemqConnectorService implements IEventConnectorService {
 
-	private static IJsonMarshaller jsonMarshaller;
+	private static IMarshallerService jsonMarshaller;
 
-	public static void setJsonMarshaller(IJsonMarshaller jsonMarshaller) {
+	public static void setJsonMarshaller(IMarshallerService jsonMarshaller) {
 		ActivemqConnectorService.jsonMarshaller = jsonMarshaller;
 	}
 
