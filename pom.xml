@@ -27,9 +27,6 @@
 		<module>uk.ac.diamond.daq.activemq.connector</module>
 		<module>uk.ac.diamond.daq.activemq.connector.test</module>
 		<module>uk.ac.diamond.daq.malcolm.connector</module>
-		<module>uk.ac.diamond.json</module>
-		<module>uk.ac.diamond.json.api</module>
-		<module>uk.ac.diamond.json.test</module>
 	</modules>
 
 	<properties>

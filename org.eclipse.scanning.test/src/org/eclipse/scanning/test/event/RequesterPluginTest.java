@@ -10,6 +10,7 @@ package org.eclipse.scanning.test.event;
 
 import java.net.URI;
 
+import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -17,11 +18,11 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IResponseCreator;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.DeviceResponse;
 import org.junit.Before;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-import uk.ac.diamond.json.JsonMarshaller;
 
 /**
  * Class to test that we can run 
@@ -60,7 +61,7 @@ public class RequesterPluginTest extends AbstractRequesterTest {
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice = getEventService();
 		
 		// Use in memory broker removes requirement on network and external ActiveMQ process
