@@ -24,4 +24,4 @@ install:
  
 # compile and test
 script: 
- - mvn install surefire:test
+ - mvn clean install surefire:test
