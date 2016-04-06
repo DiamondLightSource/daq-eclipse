@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -18,12 +19,12 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-import uk.ac.diamond.json.JsonMarshaller;
 
 public class SerializationTest {
 
@@ -32,7 +33,7 @@ public class SerializationTest {
 	@Before
 	public void create() throws Exception {
 		// Non-OSGi for test - do not copy!
-		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		connectorService = new ActivemqConnectorService();
 	}
 	

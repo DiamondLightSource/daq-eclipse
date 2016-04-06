@@ -1,8 +1,10 @@
 package org.eclipse.scanning.test.scan;
 
+import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
@@ -12,7 +14,6 @@ import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.Before;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-import uk.ac.diamond.json.JsonMarshaller;
 
 public class ScanTest extends AbstractScanTest {
 	
@@ -29,7 +30,7 @@ public class ScanTest extends AbstractScanTest {
 
 		gservice  = new PointGeneratorFactory();
 
-		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 	}
 }

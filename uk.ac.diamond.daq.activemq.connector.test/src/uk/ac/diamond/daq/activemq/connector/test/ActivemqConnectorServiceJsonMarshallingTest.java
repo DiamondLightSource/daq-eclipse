@@ -10,7 +10,9 @@ import java.util.Map;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +20,6 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-import uk.ac.diamond.json.JsonMarshaller;
 
 /**
  * Regression tests to ensure JSON marshalling still works correctly now it is delegated to another service
@@ -46,7 +47,7 @@ public class ActivemqConnectorServiceJsonMarshallingTest {
 
 	@Before
 	public void setUp() throws Exception {
-		JsonMarshaller jsonMarshaller = new JsonMarshaller();
+		MarshallerService jsonMarshaller = new MarshallerService(new PointsModelMarshaller());
 		ActivemqConnectorService.setJsonMarshaller(jsonMarshaller);
 		marshaller = new ActivemqConnectorService();
 	}
