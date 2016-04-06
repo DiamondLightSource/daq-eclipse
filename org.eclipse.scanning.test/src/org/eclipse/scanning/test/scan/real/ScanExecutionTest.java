@@ -65,7 +65,7 @@ public class ScanExecutionTest {
 	
 	/**
 	 * 
-	 * @param uri - for activemq, for instance tcp://sci-serv5.diamond.ac.uk:61616
+	 * @param uri - for activemq, for instance "vm://localhost?broker.persistent=false"
 	 * @throws URISyntaxException 
 	 * @throws EventException 
 	 */
