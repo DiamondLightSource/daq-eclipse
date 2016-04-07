@@ -92,7 +92,7 @@
          unpack="false"/>
 
    <plugin
-         id="org.eclipse.dawnsci.json.api"
+         id="org.eclipse.dawnsci.analysis.api"
          download-size="0"
          install-size="0"
          version="0.0.0"

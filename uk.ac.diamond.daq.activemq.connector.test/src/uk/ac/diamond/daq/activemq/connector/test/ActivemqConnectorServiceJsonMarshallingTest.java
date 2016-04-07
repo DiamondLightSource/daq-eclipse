@@ -35,11 +35,11 @@ public class ActivemqConnectorServiceJsonMarshallingTest {
 	// Example of JSON produced for an ROI. (Encoded object should really be a ROIBean but is actually a String)
 	private static final String JSON_FOR_RECTANGULAR_ROI = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI\",\n  \"plot\" : false,\n  \"lengths\" : [ 8.0, 6.1 ],\n  \"angle\" : 0.0,\n  \"point\" : [ -3.5, 4.0 ]\n}";
 
-	private static final String JSON_FOR_GENERIC_WRAPPED_RECTANGULAR_ROI = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=uk.ac.diamond.daq.activemq.connector.test.ObjectWrapper\",\n  \"object\" : {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI\",\n    \"plot\" : false,\n    \"angle\" : 0.0,\n    \"lengths\" : [ 8.0, 6.1 ],\n    \"point\" : [ -3.5, 4.0 ]\n  }\n}";
-	private static final String JSON_FOR_WRAPPED_RECTANGULAR_ROI_LIST = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=uk.ac.diamond.daq.activemq.connector.test.ObjectWrapper\",\n  \"object\" : [ \"bundle=&version=&class=java.util.ArrayList\", [ {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI\",\n    \"plot\" : false,\n    \"angle\" : 0.0,\n    \"lengths\" : [ 8.0, 6.1 ],\n    \"point\" : [ -3.5, 4.0 ]\n  } ] ]\n}";
+	private static final String JSON_FOR_GENERIC_WRAPPED_RECTANGULAR_ROI = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=uk.ac.diamond.daq.activemq.connector.test.ObjectWrapper\",\n  \"object\" : {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI\",\n    \"angle\" : 0.0,\n    \"lengths\" : [ 8.0, 6.1 ],\n    \"point\" : [ -3.5, 4.0 ]\n  }\n}";
+	private static final String JSON_FOR_WRAPPED_RECTANGULAR_ROI_LIST = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=uk.ac.diamond.daq.activemq.connector.test.ObjectWrapper\",\n  \"object\" : [ \"bundle=&version=&class=java.util.ArrayList\", [ {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI\",\n    \"angle\" : 0.0,\n    \"lengths\" : [ 8.0, 6.1 ],\n    \"point\" : [ -3.5, 4.0 ]\n  } ] ]\n}";
 
 	private static final String[] STRING_ARRAY = { "a", "b", "c" };
-	private static final String JSON_FOR_STRING_ARRAY = "[ \"bundle=&version=&class=[Ljava.lang.String;\", [ \"a\", \"b\", \"c\" ] ]";
+	private static final String JSON_FOR_STRING_ARRAY = "[ \"a\", \"b\", \"c\" ]";
 	private static final String JSON_FOR_WRAPPED_STRING_ARRAY = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=uk.ac.diamond.daq.activemq.connector.test.ObjectWrapper\",\n  \"object\" : [ \"bundle=&version=&class=[Ljava.lang.String;\", [ \"a\", \"b\", \"c\" ] ]\n}";
 
 	private ActivemqConnectorService marshaller;
