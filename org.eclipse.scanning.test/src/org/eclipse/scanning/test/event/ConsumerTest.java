@@ -10,12 +10,13 @@ package org.eclipse.scanning.test.event;
 
 import java.net.URI;
 
+import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.junit.Before;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-import uk.ac.diamond.json.JsonMarshaller;
 
 /**
  * Class to test that we can run 
@@ -31,7 +32,7 @@ public class ConsumerTest extends AbstractConsumerTest{
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// Use in memory broker removes requirement on network and external ActiveMQ process

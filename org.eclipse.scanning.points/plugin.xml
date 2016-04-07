@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.dawnsci.analysis.api.marshaller">
+      <marshaller
+            class="org.eclipse.scanning.points.serialization.PointsModelMarshaller"
+            id="org.eclipse.scanning.points.pointsModelMarshaller">
+      </marshaller>
+   </extension>
+
+</plugin>

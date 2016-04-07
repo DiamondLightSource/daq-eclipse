@@ -25,12 +25,12 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
-import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -162,6 +162,18 @@ public class AbstractScanTest {
 	}
 	
 	@Test
+	public void testThreadCount() throws Exception {
+			
+		int before = Thread.activeCount();
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
+		scanner.run(null);
+		Thread.sleep(2000);
+		int after = Thread.activeCount();
+		if (after>before+1) throw new Exception("too many extra threads after scan! Expected not more than "+before+1+" got "+after);
+	}
+
+	
+	@Test
 	public void testStepScan() throws Exception {
 		
 		StepModel model = new StepModel();
@@ -192,12 +204,14 @@ public class AbstractScanTest {
 			
 			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
 			
-		} catch (GeneratorException ex) {
-			assertEquals("Model step is directed backwards!", ex.getMessage());
+		} catch (Exception ex) {
+			assertEquals(ScanningException.class, ex.getClass());
+			assertEquals(PointsValidationException.class, ex.getCause().getClass());
+			assertEquals("Model step is directed backwards!", ex.getCause().getMessage());
 			return;
 		}
 		
-		throw new Exception("Generator failed to throw GeneratorException(\"Model step is directed backwards!\") on invalid step model input.");
+		throw new Exception("Scanner failed to throw an exception.");
 	}
 
 	@Test
@@ -217,12 +231,14 @@ public class AbstractScanTest {
 			
 			Thread.sleep(5000);  // testStepScan (the valid one) takes ~2 seconds total.
 			
-		} catch (GeneratorException ex) {
-			assertEquals("Model step size must be nonzero!", ex.getMessage());
+		} catch (Exception ex) {
+			assertEquals(ScanningException.class, ex.getClass());
+			assertEquals(PointsValidationException.class, ex.getCause().getClass());
+			assertEquals("Model step size must be nonzero!", ex.getCause().getMessage());
 			return;
 		}
 		
-		throw new Exception("Generator failed to throw GeneratorException(\"Model step size must be nonzero!\") on invalid step model input.");
+		throw new Exception("Scanner failed to throw an exception.");
 	}
 	
 	
@@ -289,7 +305,9 @@ public class AbstractScanTest {
 		bean.setName("Fred");
 		bean.setUniqueId("fred");
 		
-		final URI uri = new URI("tcp://sci-serv5.diamond.ac.uk:61616");	
+		// Use in memory broker removes requirement on network and external ActiveMQ process
+		// http://activemq.apache.org/how-to-unit-test-jms-code.html
+		final URI uri = new URI("vm://localhost?broker.persistent=false");
 		final IPublisher<ScanBean> publisher = eservice.createPublisher(uri, IEventService.STATUS_TOPIC);
 		
 		final ISubscriber<IScanListener> subscriber = eservice.createSubscriber(uri, IEventService.STATUS_TOPIC);
