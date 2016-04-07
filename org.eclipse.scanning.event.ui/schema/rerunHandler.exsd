@@ -60,7 +60,7 @@
                   
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.dawnsci.commandserver.ui.view.IRerunHandler"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.scanning.event.ui.view.IRerunHandler"/>
                </appinfo>
             </annotation>
          </attribute>
