@@ -25,8 +25,8 @@ from org.eclipse.scanning.api.points.models import (
     StepModel, GridModel, RasterModel, SinglePointModel,
     OneDEqualSpacingModel, OneDStepModel, ArrayModel,
     BoundingBox, BoundingLine)
-from org.eclipse.scanning.command import QueueSingleton
-from org.eclipse.scanning.example.detector import MandelbrotModel
+from org.eclipse.scanning.server.servlet import Services
+from org.eclipse.scanning.api.event.scan import ScanBean
 
 
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
@@ -75,8 +75,10 @@ def submit(request, now=False, block=False):
     if now or block:
         raise NotImplementedError()  # TODO
     else:
-        # Put a ScanRequest in the queue.
-        QueueSingleton.INSTANCE.put(request)
+        services.getEventService() \
+                .createSubmitter("vm://localhost?persistent=false",
+                                 "commandTestQueue") \
+                .submit(_instantiate(ScanBean, {'scanRequest': request}))
 
 
 def scan_request(path=None, det=None):
@@ -314,18 +316,6 @@ def rect(origin=None, size=None, angle=0):
     return RectangularROI(xStart, yStart, width, height, angle)
 
 
-# Detectors
-# ---------
-
-def mandelbrot(exposure):
-    name = 'mandelbrot'  # Is this right?
-    model = _instantiate(MandelbrotModel, {'exposureTime': exposure})
-    return name, model
-
-
-# TODO: Place a detector model in the Python namespace from Java.
-
-
 # Bean construction
 # -----------------
 
@@ -340,6 +330,20 @@ _setter_blacklist = {
                               'setIgnorePreprocess',
                               'setMonitorNames',
                               'setStart']),
+
+    'ScanBean': frozenset(['setFilePath',
+                           'setScanNumber',
+                           'setDataSetPath',
+                           'setBeamline',
+                           'setDeviceState',
+                           'setMessage',
+                           'setPreviousDeviceState',
+                           'setPoint',
+                           'setSize',
+                           'setPosition',
+                           'setDeviceName',
+                           'setShape',
+                           'setShapeEstimationRequired']),
 
     'StepModel': frozenset(['setUniqueKey']),
     'GridModel': frozenset(['setUniqueKey']),

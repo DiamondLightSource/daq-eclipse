@@ -3,15 +3,26 @@ package org.eclipse.scanning.test.command;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.SynchronousQueue;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IConsumer;
+import org.eclipse.scanning.api.event.core.ISubmitter;
+import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.event.scan.ScanEvent;
+import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
@@ -25,6 +36,8 @@ import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.command.Interpreter;
 import org.eclipse.scanning.command.QueueSingleton;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
+import org.eclipse.scanning.server.servlet.ScanServlet;
+import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -33,7 +46,34 @@ import org.python.core.PyException;
 
 public class CommandTest {
 
-	private ScanRequest<IROI> interpret(String command) throws PyException, InterruptedException {
+	private ScanRequest<IROI> interpret(String command) throws PyException, InterruptedException, EventException, URISyntaxException {
+
+		SynchronousQueue<ScanRequest<IROI>> queue = new SynchronousQueue<>();
+
+		ScanServlet ss = new ScanServlet();
+		ss.setBroker("vm://localhost?persistent=false");
+		ss.setSubmitQueue("commandTestQueue");
+		ss.setStatusSet("commandTestStatusSet");
+		ss.setStatusTopic("commandTestStatusTopic");
+		ss.connect();
+		System.out.println("ss.statusTopic is " + ss.getStatusTopic());
+
+		IEventService es = Services.getEventService();
+		ISubscriber<IScanListener> subscriber = es.createSubscriber(
+				new URI("vm://localhost?persistent=false"), ss.getStatusTopic());
+
+		subscriber.addListener(new IScanListener() {
+			@Override
+			public void scanStateChanged(ScanEvent evt) {
+				try {
+					queue.put((ScanRequest<IROI>) evt.getBean().getScanRequest());
+				} catch (InterruptedException e) { }
+			}
+
+			@Override
+			public void scanEventPerformed(ScanEvent evt) { }
+		});
+
 		new Thread(new Interpreter(command) {
 			{
 				// Here we can put objects in the Python namespace for testing purposes.
@@ -41,11 +81,12 @@ public class CommandTest {
 				pi.set("my_scannable", new MockScannable("fred", 10));
 			}
 		}).start();
-		return QueueSingleton.INSTANCE.take();
+
+		return queue.take();
 	}
 
 	@Test
-	public void testGridCommandWithROI() throws PyException, InterruptedException {
+	public void testGridCommandWithROI() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(                           "
@@ -101,7 +142,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testStepCommand() throws PyException, InterruptedException {
+	public void testStepCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> request = interpret(
 				// Note the absence of quotes about my_scannable.
@@ -119,7 +160,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testRasterCommandWithROIs() throws PyException, InterruptedException {
+	public void testRasterCommandWithROIs() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(                               "
@@ -162,7 +203,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testArrayCommand() throws PyException, InterruptedException {
+	public void testArrayCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(array('qty', [-3, 1, 1.5, 1e10]), det=mandelbrot(0.1))"
@@ -180,7 +221,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testOneDEqualSpacingCommand() throws PyException, InterruptedException {
+	public void testOneDEqualSpacingCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(line(origin=(0, 4), length=10, angle=0.1, count=10), det=[mandelbrot(0.1)])"
@@ -198,7 +239,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testOneDStepCommand() throws PyException, InterruptedException {
+	public void testOneDStepCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5), det=mandelbrot(0.1))"
@@ -216,7 +257,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testSinglePointCommand() throws PyException, InterruptedException {
+	public void testSinglePointCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(point(4, 5), mandelbrot(0.1))"
@@ -240,7 +281,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testSquareBracketCombinations() throws PyException, InterruptedException {
+	public void testSquareBracketCombinations() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan([point(4, 5)], mandelbrot(0.1))"
@@ -262,7 +303,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testCompoundCommand() throws PyException, InterruptedException {
+	public void testCompoundCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(                                                                                "
@@ -287,7 +328,7 @@ public class CommandTest {
 
 	@Ignore("ScanRequest<?>.equals() doesn't allow this test to work.")
 	@Test
-	public void testArgStyleInvariance() throws PyException, InterruptedException {
+	public void testArgStyleInvariance() throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		ScanRequest<IROI> requestFullKeywords = interpret(
 				"mscan(                          "
