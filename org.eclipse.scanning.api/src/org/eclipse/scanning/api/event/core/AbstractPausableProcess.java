@@ -1,10 +1,17 @@
 package org.eclipse.scanning.api.event.core;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
@@ -12,6 +19,7 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 	
 	protected final T                      bean;
 	protected final IPublisher<T>          publisher;
+	private boolean                        isCancelled = false;
 
 	/*
 	 * Concurrency design recommended by Keith Ralphs after investigating
@@ -21,6 +29,9 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 	private ReentrantLock    lock;
 	private Condition        paused;
 	private volatile boolean awaitPaused;
+
+	// Logging
+	protected PrintStream out = System.out;
 
 	protected AbstractPausableProcess(T bean, IPublisher<T> publisher) {
 		this.bean = bean;
@@ -136,6 +147,154 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 		// TODO Auto-generated method stub
 		
 	}
+
+	
+	/**
+	 * @return true if windows
+	 */
+	protected final static boolean isWindowsOS() {
+		return (System.getProperty("os.name").indexOf("Windows") == 0);
+	}
+	
+
+
+	/**
+	 * @param dir
+	 * @param template
+	 * @param ext
+	 * @param i
+	 * @return file
+	 */
+	protected final File getUnique(final File dir, final String template, int i) {
+		
+		final File file = new File(dir, template + i );
+		if (!file.exists()) {
+			return file;
+		}
+
+		return getUnique(dir, template, ++i);
+	}
+	
+	protected void setLoggingFile(File logFile) throws IOException {
+		setLoggingFile(logFile, false);
+	}
+	/**
+	 * Calling this method redirects the logging of this Java object
+	 * which is available through the field 'out' to a known file.
+	 * 
+	 * @param logFile
+	 * @throws IOException 
+	 */
+	protected void setLoggingFile(File logFile, boolean append) throws IOException {
+		if (!logFile.exists()) logFile.createNewFile();
+		this.out = new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, append)), true, "UTF-8");
+		publisher.setLoggingStream(out);
+	}
+
+	
+
+	/**
+	 * Writes the project bean at the point where it is run.
+	 * 
+	 * @param processingDir2
+	 * @param fileName - name of file
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 * @throws JsonMappingException 
+	 * @throws JsonGenerationException 
+	 */
+	protected void writeProjectBean(final String dir, final String fileName) throws Exception {
+		
+		writeProjectBean(new File(dir), fileName);
+	}
+	
+	/**
+	 * 
+	 * @param dir
+	 * @param fileName
+	 * @throws Exception
+	 */
+	protected void writeProjectBean(final File dir, final String fileName) throws Exception {
+		
+		final File beanFile = new File(dir, fileName);
+     	beanFile.getParentFile().mkdirs();
+    	if (!beanFile.exists()) beanFile.createNewFile();
+    	
+    	final FileOutputStream stream = new FileOutputStream(beanFile);
+    	try {
+    		String json = publisher.getConnectorService().marshal(bean);
+    		stream.write(json.getBytes("UTF-8"));
+    	}
+    	catch (Exception e) {
+    		e.printStackTrace();
+    	} finally {
+    		stream.close();
+    	}
+	}
+
+
+	/**
+	 * Notify any clients of the beans status
+	 * @param bean
+	 */
+	public void broadcast(StatusBean tbean) {
+		try {
+			bean.merge(tbean);
+			publisher.broadcast(bean);
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot broadcast", e);
+		}
+ 	}
+
+	protected void dryRun() throws EventException {
+		dryRun(100);
+	}
+	protected void dryRun(int size) throws EventException {
+        dryRun(size, true);
+	}
+	
+	protected void dryRun(int size, boolean complete) throws EventException {
+		
+		for (int i = 0; i < size; i++) {
+			
+			checkPaused();
+			if (isCancelled) {
+				bean.setStatus(Status.TERMINATED);
+				broadcast(bean);
+				return;
+			}
+			if (bean.getStatus()==Status.REQUEST_TERMINATE ||
+			    bean.getStatus()==Status.TERMINATED) {
+				return;
+			}
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.out.println("Dry run : "+bean.getPercentComplete());
+			bean.setPercentComplete(i);
+			broadcast(bean);
+		}
+
+		bean.setStatus(Status.COMPLETE);
+		bean.setPercentComplete(100);
+		bean.setMessage("Dry run complete (no software run)");
+		broadcast(bean);
+	}
+
+	
+
+
+	public boolean isCancelled() {
+		return isCancelled;
+	}
+
+
+	public void setCancelled(boolean isCancelled) {
+		this.isCancelled = isCancelled;
+	}
+	
 
 
 }
