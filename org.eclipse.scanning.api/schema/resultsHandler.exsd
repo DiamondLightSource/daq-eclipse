@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.scanning.event.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema targetNamespace="org.eclipse.scanning.api" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.eclipse.scanning.event.ui" id="resultsOpenHandler" name="Open Existing Results"/>
+         <meta.schema plugin="org.eclipse.scanning.api" id="resultsHandler" name="Open Results"/>
       </appinfo>
       <documentation>
          This extension point is for defining what will happen if a result is clicked on in the StatusQueueView.
