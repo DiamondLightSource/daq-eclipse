@@ -228,4 +228,12 @@ public interface IEventService {
 	 */
 	public <T extends INameable> void checkTopic(URI uri, String patientName, long listenTime, String topicName, Class<T> beanClass) throws EventException, InterruptedException;
 
+	
+	/**
+	 * The current event connector service that this event service is using to 
+	 * talk to messaging and to marshall objects.
+	 * 
+	 * @return
+	 */
+	public IEventConnectorService getEventConnectorService();
 }
