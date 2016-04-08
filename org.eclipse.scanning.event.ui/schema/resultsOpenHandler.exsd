@@ -55,7 +55,7 @@
                   A handler which is a delegate for opening results of different bean types. This handler must be very cheap to construct.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.dawnsci.commandserver.ui.view.IResultOpenHandler"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.scanning.event.ui.view.IResultOpenHandler"/>
                </appinfo>
             </annotation>
          </attribute>
