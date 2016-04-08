@@ -17,6 +17,7 @@ There are also some pure functions which may be used to narrow the region of
 interest (ROI) when using grid(). They are: circ(), rect(), poly().
 """
 
+from java.net import URI
 from org.eclipse.scanning.api.event.scan import ScanRequest
 from org.eclipse.dawnsci.analysis.api.roi import IROI
 from org.eclipse.dawnsci.analysis.dataset.roi import (
@@ -75,8 +76,8 @@ def submit(request, now=False, block=False):
     if now or block:
         raise NotImplementedError()  # TODO
     else:
-        services.getEventService() \
-                .createSubmitter("vm://localhost?persistent=false",
+        Services.getEventService() \
+                .createSubmitter(URI("vm://localhost?broker.persistent=false"),
                                  "commandTestQueue") \
                 .submit(_instantiate(ScanBean, {'scanRequest': request}))
 
@@ -114,7 +115,8 @@ def scan_request(path=None, det=None):
 
     return _instantiate(ScanRequest, {'models': scan_path_models,
                                       'regions': roi_map,
-                                      'detectors': detector_map})
+                                      'detectors': detector_map,
+                                      'filePath': '/tmp/test.nxs'}) # TODO
 
 
 
@@ -316,6 +318,13 @@ def rect(origin=None, size=None, angle=0):
     return RectangularROI(xStart, yStart, width, height, angle)
 
 
+# Detectors
+# ---------
+
+def mandelbrot(*args, **kwargs):
+    return None  # TODO
+
+
 # Bean construction
 # -----------------
 
@@ -326,7 +335,7 @@ _setter_blacklist = {
                               'setBefore',
                               'setBeforeResponse',
                               'setEnd',
-                              'setFilePath',
+                              # 'setFilePath', TODO
                               'setIgnorePreprocess',
                               'setMonitorNames',
                               'setStart']),
@@ -343,7 +352,19 @@ _setter_blacklist = {
                            'setPosition',
                            'setDeviceName',
                            'setShape',
-                           'setShapeEstimationRequired']),
+                           'setShapeEstimationRequired',
+                           'setName',
+                           'setProperties',
+                           'setUniqueId',
+                           'setPreviousStatus',
+                           'setUserName',
+                           'setRunDirectory',
+                           'setStatus',
+                           'setHostName',
+                           'setPercentComplete',
+                           'setDatasetPath',
+                           'setProperty',
+                           'setSubmissionTime']),
 
     'StepModel': frozenset(['setUniqueKey']),
     'GridModel': frozenset(['setUniqueKey']),
@@ -387,6 +408,7 @@ def _instantiate(Bean, params, setter_blacklist=_setter_blacklist):
     setters = frozenset(filter(lambda x: x.startswith('set'), dir(bean)))
     for setter in (setters - setter_blacklist[Bean.__name__]):
         getattr(bean, setter)(params[setter[3].lower()+setter[4:]])
+        # TODO: Better error message.
 
     return bean
 

@@ -17,10 +17,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
-import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -34,7 +31,6 @@ import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.command.Interpreter;
-import org.eclipse.scanning.command.QueueSingleton;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.server.servlet.ScanServlet;
 import org.eclipse.scanning.server.servlet.Services;
@@ -46,21 +42,24 @@ import org.python.core.PyException;
 
 public class CommandTest {
 
+	// TODO: Rename this to CommandPluginTest
+	// Note that selecting "Run" rather than "Debug" in Eclipse
+	// results in actually being able to see Python error messages.
+
 	private ScanRequest<IROI> interpret(String command) throws PyException, InterruptedException, EventException, URISyntaxException {
 
 		SynchronousQueue<ScanRequest<IROI>> queue = new SynchronousQueue<>();
 
 		ScanServlet ss = new ScanServlet();
-		ss.setBroker("vm://localhost?persistent=false");
+		ss.setBroker("vm://localhost?broker.persistent=false");
 		ss.setSubmitQueue("commandTestQueue");
 		ss.setStatusSet("commandTestStatusSet");
 		ss.setStatusTopic("commandTestStatusTopic");
 		ss.connect();
-		System.out.println("ss.statusTopic is " + ss.getStatusTopic());
 
 		IEventService es = Services.getEventService();
 		ISubscriber<IScanListener> subscriber = es.createSubscriber(
-				new URI("vm://localhost?persistent=false"), ss.getStatusTopic());
+				new URI("vm://localhost?broker.persistent=false"), ss.getStatusTopic());
 
 		subscriber.addListener(new IScanListener() {
 			@Override
