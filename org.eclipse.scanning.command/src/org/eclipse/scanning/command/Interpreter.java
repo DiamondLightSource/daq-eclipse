@@ -33,8 +33,8 @@ public class Interpreter implements Runnable {
 		// At the moment we use a hack relying on the fact that the
 		// JUnit working directory is org.eclipse.scanning.test/.
 		pi.exec("import sys");
-		pi.exec("sys.path.append('../org.eclipse.scanning.command/python/')");
-		pi.exec("from scan_syntax import *");
+		pi.exec("sys.path.append('../org.eclipse.scanning.command/scripts/')");
+		pi.exec("from mapping_scan_commands import *");
 		pi.exec("populate_detectors('vm://localhost?broker.persistent=false')");
 	}
 

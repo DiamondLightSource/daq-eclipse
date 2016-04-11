@@ -195,6 +195,12 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
     (xStart, yStart) = origin
     (width, height) = size
 
+    bbox = _instantiate(BoundingBox,
+                        {'fastAxisStart': xStart,
+                         'slowAxisStart': yStart,
+                         'fastAxisLength': width,
+                         'slowAxisLength': height})
+
     if count is not None:
         (rows, cols) = count
 
@@ -205,7 +211,7 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
                      'fastAxisPoints': rows,
                      'slowAxisPoints': cols,
                      'snake': snake,
-                     'boundingBox': _bbox(xStart, yStart, width, height)})
+                     'boundingBox': bbox})
 
     else:
         (xStep, yStep) = step
@@ -217,7 +223,7 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
                      'fastAxisStep': xStep,
                      'slowAxisStep': yStep,
                      'snake': snake,
-                     'boundingBox': _bbox(xStart, yStart, width, height)})
+                     'boundingBox': bbox})
 
     # We _listify() the ROI inputs, so users can type either
     # roi=circ(x, y, r) or roi=[circ(x, y, r), rect(x, y, w, h, angle)].
@@ -241,6 +247,12 @@ def line(origin=None, length=None, angle=None, count=None, step=None):
 
     (xStart, yStart) = origin
     roi = None
+
+    bline = _instantiate(BoundingLine,
+                         {'xStart': xStart,
+                          'yStart': yStart,
+                          'length': length,
+                          'angle': angle})
 
     if step is not None:
         model = _instantiate(
@@ -341,106 +353,27 @@ def mandelbrot(*args, **kwargs):
 # Bean construction
 # -----------------
 
-# There are some setter fields which the end user does not set:
-_setter_blacklist = {
-    'ScanRequest': frozenset(['setAfter',
-                              'setAfterResponse',
-                              'setBefore',
-                              'setBeforeResponse',
-                              'setEnd',
-                              # 'setFilePath', TODO
-                              'setIgnorePreprocess',
-                              'setMonitorNames',
-                              'setStart']),
-
-    'ScanBean': frozenset(['setFilePath',
-                           'setScanNumber',
-                           'setDataSetPath',
-                           'setBeamline',
-                           'setDeviceState',
-                           'setMessage',
-                           'setPreviousDeviceState',
-                           'setPoint',
-                           'setSize',
-                           'setPosition',
-                           'setDeviceName',
-                           'setShape',
-                           'setShapeEstimationRequired',
-                           'setName',
-                           'setProperties',
-                           'setUniqueId',
-                           'setPreviousStatus',
-                           'setUserName',
-                           'setRunDirectory',
-                           'setStatus',
-                           'setHostName',
-                           'setPercentComplete',
-                           'setDatasetPath',
-                           'setProperty',
-                           'setSubmissionTime']),
-
-    'StepModel': frozenset(['setUniqueKey']),
-    'GridModel': frozenset(['setUniqueKey']),
-    'RasterModel': frozenset(['setUniqueKey']),
-    'SinglePointModel': frozenset(['setUniqueKey']),
-    'OneDEqualSpacingModel': frozenset(['setUniqueKey']),
-    'OneDStepModel': frozenset(['setUniqueKey']),
-
-    'BoundingBox': frozenset([]),
-    'BoundingLine': frozenset([]),
-
-    'MandelbrotModel': frozenset(['setColumns',
-                                  'setEscapeRadius',
-                                  'setMaxIterations',
-                                  'setMaxRealCoordinate',
-                                  'setMaxImaginaryCoordinate',
-                                  'setName',
-                                  'setPoints',
-                                  'setRows',
-                                  'setRealAxisName',
-                                  'setImaginaryAxisName']),
-}
-# TODO: Make some fields optional (e.g. setxName)? setter_graylist?
-
-
-def _instantiate(Bean, params, setter_blacklist=_setter_blacklist):
+def _instantiate(Bean, params):
     """Instantiate a JavaBean class with the given params.
 
-    Each of the bean's setters is called with the corresponding value from
-    `params`, a dictionary. For instance, if the bean has a method called
-    `setLength`, this function will call it with the value `params['length']`.
-    If the key does not exist in `params`, this function will throw an
-    exception. Blacklisted setters will not be called.
-
-    This is just a constructor for beans which guarantees all the necessary
-    setters are called.
+    `params` is a dictionary containing attributes to call bean setters with.
+    For instance, if params contains {'length': 10}, the instantiated bean will
+    have its setLength method called with the value 10. If no such method
+    exists, a ValueError is thrown.
     """
     bean = Bean()
+    setters = filter(lambda x: x.startswith('set'), dir(bean))
 
-    # Call each non-blacklisted setter with the corresponding param value.
-    setters = frozenset(filter(lambda x: x.startswith('set'), dir(bean)))
-    for setter in (setters - setter_blacklist[Bean.__name__]):
-        getattr(bean, setter)(params[setter[3].lower()+setter[4:]])
-        # TODO: Better error message.
+    # For each param, call one of the setters.
+    for p in params.keys():
+        try:
+            [setter] = filter(lambda s: p == s[3].lower()+s[4:], setters)
+            getattr(bean, setter)(params[p])
+        except ValueError:
+            raise ValueError(
+                "No setter for param '"+p+"' in '"+Bean.__name__+".")
 
     return bean
-
-
-# Bounding shapes
-# ---------------
-
-def _bbox(xStart, yStart, width, height):
-    return _instantiate(BoundingBox, {'fastAxisStart': xStart,
-                                      'slowAxisStart': yStart,
-                                      'fastAxisLength': width,
-                                      'slowAxisLength': height})
-
-
-def _bline(xStart, yStart, length, angle):
-    return _instantiate(BoundingLine, {'xStart': xStart,
-                                       'yStart': yStart,
-                                       'length': length,
-                                       'angle': angle})
 
 
 # Miscellaneous functions
