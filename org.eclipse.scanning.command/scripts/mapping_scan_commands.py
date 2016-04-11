@@ -101,7 +101,6 @@ def scan_request(path=None, det=None):
     See the mscan() docstring for usage.
     """
     assert path is not None
-    if det is None: det = []
 
     # The effect of the following two lines is to make square brackets optional
     # when calling this function with length-1 lists. I.e. we can do either
