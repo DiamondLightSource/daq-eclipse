@@ -27,12 +27,24 @@ from org.eclipse.scanning.api.points.models import (
     OneDEqualSpacingModel, OneDStepModel, ArrayModel,
     BoundingBox, BoundingLine)
 from org.eclipse.scanning.server.servlet import Services
-from org.eclipse.scanning.api.event.scan import ScanBean
+from org.eclipse.scanning.api.event.scan import ScanBean, DeviceRequest
+from org.eclipse.scanning.api.event.IEventService import (
+    SUBMISSION_QUEUE, REQUEST_TOPIC, RESPONSE_TOPIC)
+
+
+def populate_detectors(broker_uri="tcp://localhost:61616"):
+    devices = Services.getEventService() \
+                      .createRequestor(
+                          URI(broker_uri), REQUEST_TOPIC, RESPONSE_TOPIC) \
+                      .post(DeviceRequest()) \
+                      .getDevices()
+    print devices  # TODO
 
 
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
 # mscan is a free name.
-def mscan(path=None, det=None, now=False, block=False):
+def mscan(path=None, det=None, now=False, block=False,
+          broker_uri="tcp://localhost:61616"):
     """Create a ScanRequest and submit it to the GDA server.
 
     A simple usage of this function is as follows:
@@ -65,10 +77,11 @@ def mscan(path=None, det=None, now=False, block=False):
     >>> # Skip the queue and return once the scan is complete.
     >>> mscan(…, …, now=True, block=True)
     """
-    submit(scan_request(path, det), now, block)
+    submit(scan_request(path, det), now, block, broker_uri)
 
 
-def submit(request, now=False, block=False):
+def submit(request, now=False, block=False,
+           broker_uri="tcp://localhost:61616"):
     """Submit an existing ScanRequest to the GDA server.
 
     See the mscan() docstring for details of `now` and `block`.
@@ -77,8 +90,8 @@ def submit(request, now=False, block=False):
         raise NotImplementedError()  # TODO
     else:
         Services.getEventService() \
-                .createSubmitter(URI("vm://localhost?broker.persistent=false"),
-                                 "commandTestQueue") \
+                .createSubmitter(URI(broker_uri),
+                                 SUBMISSION_QUEUE) \
                 .submit(_instantiate(ScanBean, {'scanRequest': request}))
 
 

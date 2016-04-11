@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.command;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -14,11 +15,19 @@ import java.util.concurrent.SynchronousQueue;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.dawnsci.json.MarshallerService;
+import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.IResponder;
+import org.eclipse.scanning.api.event.core.IResponseCreator;
+import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
+import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.ArrayModel;
@@ -31,35 +40,46 @@ import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.command.Interpreter;
+import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.sequencer.DeviceResponse;
+import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.ScanServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
+import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.python.core.PyException;
 
+import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+
 
 public class CommandTest {
 
+	// TODO: Separate this into ScanRequestCreationTest and SubmissionTest.
 	// TODO: Rename this to CommandPluginTest
 	// Note that selecting "Run" rather than "Debug" in Eclipse
 	// results in actually being able to see Python error messages.
 
-	private ScanRequest<IROI> interpret(String command) throws PyException, InterruptedException, EventException, URISyntaxException {
+	String brokerUri = "vm://localhost?broker.persistent=false";
+
+	private ScanRequest<IROI> interpret(String command) throws PyException, InterruptedException, EventException, URISyntaxException, IOException {
 
 		SynchronousQueue<ScanRequest<IROI>> queue = new SynchronousQueue<>();
 
 		ScanServlet ss = new ScanServlet();
-		ss.setBroker("vm://localhost?broker.persistent=false");
-		ss.setSubmitQueue("commandTestQueue");
-		ss.setStatusSet("commandTestStatusSet");
-		ss.setStatusTopic("commandTestStatusTopic");
+		ss.setBroker(brokerUri);
+		ss.setSubmitQueue(IEventService.SUBMISSION_QUEUE);
+		ss.setStatusSet(IEventService.STATUS_SET);
+		ss.setStatusTopic(IEventService.STATUS_TOPIC);
 		ss.connect();
 
 		IEventService es = Services.getEventService();
 		ISubscriber<IScanListener> subscriber = es.createSubscriber(
-				new URI("vm://localhost?broker.persistent=false"), ss.getStatusTopic());
+				new URI(brokerUri), IEventService.STATUS_TOPIC);
 
 		subscriber.addListener(new IScanListener() {
 			@Override
@@ -71,6 +91,28 @@ public class CommandTest {
 
 			@Override
 			public void scanEventPerformed(ScanEvent evt) { }
+		});
+
+		// Block copied from RequesterTest.java.
+		IDeviceService dservice = new DeviceServiceImpl(new MockScannableConnector());
+		MandelbrotDetector mandy = new MandelbrotDetector();
+		final DeviceInformation info = new DeviceInformation(); // This comes from extension point or spring in the real world.
+		info.setName("mandelbrot");
+		info.setLabel("Example Mandelbrot");
+		info.setDescription("Example mandelbrot device");
+		info.setId("org.eclipse.scanning.example.detector.mandelbrotDetector");
+		info.setIcon("org.eclipse.scanning.example/icon/mandelbrot.png");
+		mandy.setDeviceInformation(info);
+		((DeviceServiceImpl)dservice)._register("mandelbrot", mandy);
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		IEventService eservice = new EventServiceImpl(new ActivemqConnectorService());
+		final URI uri = new URI(brokerUri);
+		IResponder<DeviceRequest> responder = eservice.createResponder(uri, IEventService.REQUEST_TOPIC, IEventService.RESPONSE_TOPIC);
+		responder.setResponseCreator(new IResponseCreator<DeviceRequest>() {
+			@Override
+			public IResponseProcess<DeviceRequest> createResponder(DeviceRequest bean, IPublisher<DeviceRequest> statusNotifier) throws EventException {
+				return new DeviceResponse(dservice, bean, statusNotifier);
+			}
 		});
 
 		new Thread(new Interpreter(command) {
@@ -85,7 +127,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testGridCommandWithROI() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testGridCommandWithROI() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(                           "
@@ -96,7 +138,8 @@ public class CommandTest {
 			+	"        size=(10, 9),            "
 			+	"        roi=circ((4, 6), 5)      "
 			+	"    ),                           "
-			+	"    det=mandelbrot(0.1)          "
+			+	"    det=mandelbrot(0.1),         "
+			+	"    broker_uri='"+brokerUri+"',  "
 			+	")                                "
 			);
 
@@ -141,11 +184,12 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testStepCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testStepCommand() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
 				// Note the absence of quotes about my_scannable.
-				"mscan(step(my_scannable, -2, 5, 0.5), det=mandelbrot(0.1))"
+				"mscan(step(my_scannable, -2, 5, 0.5), det=mandelbrot(0.1),"
+			+	"      broker_uri='"+brokerUri+"')                        "
 			);
 
 		IScanPathModel model = ((List<IScanPathModel>) request.getModels()).get(0);
@@ -159,7 +203,7 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testRasterCommandWithROIs() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testRasterCommandWithROIs() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(                               "
@@ -174,7 +218,8 @@ public class CommandTest {
 			+	"            rect((3, 4), (3, 3), 0.1)"
 			+	"        ]                            "
 			+	"    ),                               "
-			+	"    det=mandelbrot(0.1)              "
+			+	"    det=mandelbrot(0.1),             "
+			+	"    broker_uri='"+brokerUri+"',      "
 			+	")                                    "
 			);
 
@@ -202,10 +247,12 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testArrayCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testArrayCommand() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
-				"mscan(array('qty', [-3, 1, 1.5, 1e10]), det=mandelbrot(0.1))"
+				"mscan(array('qty', [-3, 1, 1.5, 1e10]),"
+			+	"      det=mandelbrot(0.1),             "
+			+	"      broker_uri='"+brokerUri+"')     "
 			);
 
 		IScanPathModel model = request.getModels().iterator().next();
@@ -220,10 +267,12 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testOneDEqualSpacingCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testOneDEqualSpacingCommand() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
-				"mscan(line(origin=(0, 4), length=10, angle=0.1, count=10), det=[mandelbrot(0.1)])"
+				"mscan(line(origin=(0, 4), length=10, angle=0.1, count=10),"
+			+	"      det=[mandelbrot(0.1)],                              "
+			+	"      broker_uri='"+brokerUri+"')                         "
 			);
 
 		IScanPathModel model = request.getModels().iterator().next();
@@ -238,10 +287,12 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testOneDStepCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testOneDStepCommand() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
-				"mscan(line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5), det=mandelbrot(0.1))"
+				"mscan(line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5),"
+			+	"      det=mandelbrot(0.1),                                   "
+			+	"      broker_uri='"+brokerUri+"')                            "
 			);
 
 		IScanPathModel model = request.getModels().iterator().next();
@@ -256,10 +307,10 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testSinglePointCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testSinglePointCommand() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
-				"mscan(point(4, 5), mandelbrot(0.1))"
+				"mscan(point(4, 5), mandelbrot(0.1), broker_uri='"+brokerUri+"')"
 			);
 
 		IScanPathModel model = request.getModels().iterator().next();
@@ -280,29 +331,29 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testSquareBracketCombinations() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testSquareBracketCombinations() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
-				"mscan([point(4, 5)], mandelbrot(0.1))"
+				"mscan([point(4, 5)], mandelbrot(0.1), broker_uri='"+brokerUri+"')"
 			);
 		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
 		request = interpret(
-				"mscan(point(4, 5), [mandelbrot(0.1)])"
+				"mscan(point(4, 5), [mandelbrot(0.1)], broker_uri='"+brokerUri+"')"
 			);
 		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
 		request = interpret(
-				"mscan([point(4, 5)], [mandelbrot(0.1)])"
+				"mscan([point(4, 5)], [mandelbrot(0.1)], broker_uri='"+brokerUri+"')"
 			);
 		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 	}
 
 	@Test
-	public void testCompoundCommand() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testCompoundCommand() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
 				"mscan(                                                                                "
@@ -310,7 +361,8 @@ public class CommandTest {
 			+	"        grid(axes=('x', 'y'), count=(5, 5), origin=(0, 0), size=(10, 10), snake=True),"
 			+	"        step('qty', 0, 10, 1),                                                        "
 			+	"    ],                                                                                "
-			+	"    det=mandelbrot(0.1)                                                               "
+			+	"    det=mandelbrot(0.1),                                                              "
+			+	"    broker_uri='"+brokerUri+"',                                                       "
 			+	")                                                                                     "
 			);
 
@@ -327,7 +379,7 @@ public class CommandTest {
 
 	@Ignore("ScanRequest<?>.equals() doesn't allow this test to work.")
 	@Test
-	public void testArgStyleInvariance() throws PyException, InterruptedException, EventException, URISyntaxException {
+	public void testArgStyleInvariance() throws Exception {
 
 		ScanRequest<IROI> requestFullKeywords = interpret(
 				"mscan(                          "
@@ -348,7 +400,8 @@ public class CommandTest {
 			+	"            ),                  "
 			+	"        ]                       "
 			+	"    ),                          "
-			+	"    det=mandelbrot(0.1)         "
+			+	"    det=mandelbrot(0.1),        "
+			+	"    broker_uri='"+brokerUri+"', "
 			+	")                               "
 			);
 
@@ -362,7 +415,8 @@ public class CommandTest {
 			+	"            rect((3, 4), (3, 3), 0.1),  "
 			+	"        ]                               "
 			+	"    ),                                  "
-			+	"    mandelbrot(0.1)                     "
+			+	"    mandelbrot(0.1),                    "
+			+	"    broker_uri='"+brokerUri+"',         "
 			+	")                                       "
 			);
 

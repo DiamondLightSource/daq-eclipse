@@ -35,6 +35,7 @@ public class Interpreter implements Runnable {
 		pi.exec("import sys");
 		pi.exec("sys.path.append('../org.eclipse.scanning.command/python/')");
 		pi.exec("from scan_syntax import *");
+		pi.exec("populate_detectors('vm://localhost?broker.persistent=false')");
 	}
 
 	public void run() throws PyException {
