@@ -377,6 +377,27 @@ public class CommandTest {
 		assertEquals(10, smodel.getStop(), 1e-8);
 	}
 
+	@Test
+	public void testMoveToKeepStillCommand() throws Exception {
+
+		ScanRequest<IROI> request = interpret(
+				// Note the absence of quotes about my_scannable.
+				"mscan([step(my_scannable, -2, 5, 0.5), val('y', 5)],"
+			+	"      det=mandelbrot(0.1),                          "
+			+	"      broker_uri='"+brokerUri+"')                   "
+			);
+
+		Collection<IScanPathModel> models = request.getModels();
+		assertEquals(2, models.size());
+
+		Iterator<IScanPathModel> modelIterator = models.iterator();
+		modelIterator.next();  // Throw away the step model.
+
+		ArrayModel amodel = (ArrayModel) modelIterator.next();
+		assertEquals(1, amodel.getPositions().length);
+		assertEquals(5, amodel.getPositions()[0], 1e-8);
+	}
+
 	@Ignore("ScanRequest<?>.equals() doesn't allow this test to work.")
 	@Test
 	public void testArgStyleInvariance() throws Exception {

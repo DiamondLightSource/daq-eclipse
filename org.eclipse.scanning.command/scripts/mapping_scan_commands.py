@@ -269,13 +269,12 @@ def line(origin=None, length=None, angle=None, count=None, step=None):
     return model, _listify(roi)
 
 
-# TODO: Rename "array" to "values" or "positions"?
-def array(axis=None, positions=None):
+def array(axis=None, values=None):
     """Define an array scan path to be passed to mscan().
 
     Required keyword arguments:
     * axis: a scannable
-    * positions: a list of numerical positions for the scannable to take
+    * values: a list of numerical values for the scannable to take
     """
     # We have to manually call ArrayModel.setPositions,
     # as it takes a (Double... positions) argument.
@@ -287,9 +286,23 @@ def array(axis=None, positions=None):
 
     amodel = ArrayModel()
     amodel.setName(axis)
-    amodel.setPositions(*positions)
+    amodel.setPositions(*values)
 
     return amodel, _listify(roi)
+
+
+def val(axis=None, value=None):
+    """Define a single axis position to be passed to mscan().
+
+    This single-point scan "path" can be used as the innermost scan path in a
+    compound scan to ensure a particular scannable is always set to a given
+    value when exposures are taken. (A.k.a. "move to keep still".)
+
+    For instance:
+    >>> # Step x from 0 to 10, moving y to 5 after each x movement.
+    >>> mscan([step(x, 0, 10, 1), val(y, 5)], …)
+    """
+    return array(axis, [value])
 
 
 def point(x, y):
