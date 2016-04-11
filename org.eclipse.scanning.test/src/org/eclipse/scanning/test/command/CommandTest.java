@@ -120,6 +120,7 @@ public class CommandTest {
 				// Here we can put objects in the Python namespace for testing purposes.
 				// The given command will be interpreted in the context of the objects created here.
 				pi.set("my_scannable", new MockScannable("fred", 10));
+				pi.set("another_scannable", new MockScannable("bill", 3));
 			}
 		}).start();
 
@@ -184,12 +185,14 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testStepCommand() throws Exception {
+	public void testStepCommandWithMonitors() throws Exception {
 
 		ScanRequest<IROI> request = interpret(
 				// Note the absence of quotes about my_scannable.
-				"mscan(step(my_scannable, -2, 5, 0.5), det=mandelbrot(0.1),"
-			+	"      broker_uri='"+brokerUri+"')                        "
+				"mscan(step(my_scannable, -2, 5, 0.5),"
+			+	"      mon=['x', another_scannable],  "  // Monitor two scannables.
+			+	"      det=mandelbrot(0.1),           "
+			+	"      broker_uri='"+brokerUri+"')    "
 			);
 
 		IScanPathModel model = ((List<IScanPathModel>) request.getModels()).get(0);
@@ -200,6 +203,12 @@ public class CommandTest {
 		assertEquals(-2, smodel.getStart(), 1e-8);
 		assertEquals(5, smodel.getStop(), 1e-8);
 		assertEquals(0.5, smodel.getStep(), 1e-8);
+
+		Collection<String> monitors = request.getMonitorNames();
+		assertEquals(2, monitors.size());
+		Iterator<String> monitorIterator = monitors.iterator();
+		assertEquals("x", monitorIterator.next());
+		assertEquals("bill", monitorIterator.next());
 	}
 
 	@Test

@@ -43,7 +43,7 @@ def populate_detectors(broker_uri="tcp://localhost:61616"):
 
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
 # mscan is a free name.
-def mscan(path=None, det=None, now=False, block=False,
+def mscan(path=None, mon=None, det=None, now=False, block=False,
           broker_uri="tcp://localhost:61616"):
     """Create a ScanRequest and submit it to the GDA server.
 
@@ -77,7 +77,7 @@ def mscan(path=None, det=None, now=False, block=False,
     >>> # Skip the queue and return once the scan is complete.
     >>> mscan(…, …, now=True, block=True)
     """
-    submit(scan_request(path, det), now, block, broker_uri)
+    submit(scan_request(path, mon, det), now, block, broker_uri)
 
 
 def submit(request, now=False, block=False,
@@ -95,17 +95,20 @@ def submit(request, now=False, block=False,
                 .submit(_instantiate(ScanBean, {'scanRequest': request}))
 
 
-def scan_request(path=None, det=None):
+def scan_request(path=None, mon=None, det=None):
     """Create a ScanRequest object with the given configuration.
 
     See the mscan() docstring for usage.
     """
     assert path is not None
 
-    # The effect of the following two lines is to make square brackets optional
-    # when calling this function with length-1 lists. I.e. we can do either
-    # scan([grid(…)], …) or scan(grid(…), …).
+    # The effect of the following three lines is to make square brackets
+    # optional when calling this function with length-1 lists. I.e. we can do
+    # either scan([grid(…)], …) or scan(grid(…), …). Also _stringify the
+    # monitors so users can pass either a monitor name in quotes or a scannable
+    # object from the Jython namespace.
     scan_paths = _listify(path)
+    monitors = map(_stringify, _listify(mon))
     detectors = _listify(det)
 
     (scan_path_models, _) = zip(*scan_paths)  # zip(* == unzip(
@@ -127,6 +130,7 @@ def scan_request(path=None, det=None):
 
     return _instantiate(ScanRequest, {'models': scan_path_models,
                                       'regions': roi_map,
+                                      'monitorNames': monitors,
                                       'detectors': detector_map,
                                       'filePath': '/tmp/test.nxs'}) # TODO
 
