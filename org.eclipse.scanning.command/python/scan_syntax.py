@@ -382,7 +382,11 @@ def _instantiate(Bean, params, setter_blacklist=_setter_blacklist):
     # Call each non-blacklisted setter with the corresponding param value.
     setters = frozenset(filter(lambda x: x.startswith('set'), dir(bean)))
     for setter in (setters - setter_blacklist[Bean.__name__]):
-        getattr(bean, setter)(params[setter[3].lower()+setter[4:]])
+        try:
+            getattr(bean, setter)(params[setter[3].lower()+setter[4:]])
+        except KeyError as e:
+            raise KeyError("Param '"+e.args[0]+"' was not provided when "
+                           +"instantiating "+Bean.__name__+".")
 
     return bean
 
