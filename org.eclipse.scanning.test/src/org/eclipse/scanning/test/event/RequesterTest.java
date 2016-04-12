@@ -24,6 +24,9 @@ import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.server.servlet.ConfigureServlet;
+import org.eclipse.scanning.server.servlet.DeviceServlet;
+import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 
@@ -59,23 +62,11 @@ public class RequesterTest extends AbstractRequesterTest {
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
-		
-		// Use in memory broker removes requirement on network and external ActiveMQ process
-		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		final URI uri = new URI("vm://localhost?broker.persistent=false");
-		
-		// We use the long winded constructor because we need to pass in the connector.
-		// In production we would normally 
-		requester  = eservice.createRequestor(uri, IEventService.REQUEST_TOPIC, IEventService.RESPONSE_TOPIC);
-		
-		// This object sits on the server.
-		responder = eservice.createResponder(uri, IEventService.REQUEST_TOPIC, IEventService.RESPONSE_TOPIC);
-		responder.setResponseCreator(new IResponseCreator<DeviceRequest>() {		
-			@Override
-			public IResponseProcess<DeviceRequest> createResponder(DeviceRequest bean, IPublisher<DeviceRequest> statusNotifier) throws EventException {
-				return new DeviceResponse(dservice, bean, statusNotifier);
-			}
-		});
+
+		Services.setScanService(dservice);
+		Services.setEventService(eservice);
+	
+		connect(eservice);
 	}
 	
 }

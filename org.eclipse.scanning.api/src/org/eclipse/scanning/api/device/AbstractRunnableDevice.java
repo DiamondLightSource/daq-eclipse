@@ -36,7 +36,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   int                        level = 1;
 	private   String                     scanId;
 	private   ScanBean                   bean;
-	private   DeviceInformation          deviceInformation;
+	private   DeviceInformation<T>       deviceInformation;
 
 	// OSGi services and intraprocess events
 	protected IDeviceService             scanningService;
@@ -329,11 +329,12 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		return (A)attributes.get(attributeName);
 	}
 
-	public DeviceInformation getDeviceInformation() {
+	public DeviceInformation<T> getDeviceInformation() {
+		deviceInformation.setModel(getModel());
 		return deviceInformation;
 	}
 
-	public void setDeviceInformation(DeviceInformation deviceInformation) {
+	public void setDeviceInformation(DeviceInformation<T> deviceInformation) {
 		this.deviceInformation = deviceInformation;
 	}
 	
