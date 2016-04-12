@@ -35,7 +35,6 @@ public class Interpreter implements Runnable {
 		pi.exec("import sys");
 		pi.exec("sys.path.append('../org.eclipse.scanning.command/scripts/')");
 		pi.exec("from mapping_scan_commands import *");
-		pi.exec("populate_detectors('vm://localhost?broker.persistent=false')");
 	}
 
 	public void run() throws PyException {

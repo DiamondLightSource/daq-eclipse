@@ -121,6 +121,7 @@ public class CommandTest {
 				// The given command will be interpreted in the context of the objects created here.
 				pi.set("my_scannable", new MockScannable("fred", 10));
 				pi.set("another_scannable", new MockScannable("bill", 3));
+				pi.exec("mandelbrot = lambda _: None");  // Blank detector function for now.
 			}
 		}).start();
 

@@ -32,15 +32,6 @@ from org.eclipse.scanning.api.event.IEventService import (
     SUBMISSION_QUEUE, REQUEST_TOPIC, RESPONSE_TOPIC)
 
 
-def populate_detectors(broker_uri="tcp://localhost:61616"):
-    devices = Services.getEventService() \
-                      .createRequestor(
-                          URI(broker_uri), REQUEST_TOPIC, RESPONSE_TOPIC) \
-                      .post(DeviceRequest()) \
-                      .getDevices()
-    print devices  # TODO
-
-
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
 # mscan is a free name.
 def mscan(path=None, mon=None, det=None, now=False, block=False,
@@ -357,13 +348,6 @@ def rect(origin=None, size=None, angle=0):
     (width, height) = size
 
     return RectangularROI(xStart, yStart, width, height, angle)
-
-
-# Detectors
-# ---------
-
-def mandelbrot(*args, **kwargs):
-    return None  # TODO
 
 
 # Bean construction
