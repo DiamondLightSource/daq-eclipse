@@ -19,7 +19,6 @@ interest (ROI) when using grid(). They are: circ(), rect(), poly().
 
 from java.net import URI
 from org.eclipse.scanning.api.event.scan import ScanRequest
-from org.eclipse.dawnsci.analysis.api.roi import IROI
 from org.eclipse.dawnsci.analysis.dataset.roi import (
     CircularROI, RectangularROI, PolygonalROI, PolylineROI, PointROI)
 from org.eclipse.scanning.api.points.models import (
@@ -27,7 +26,7 @@ from org.eclipse.scanning.api.points.models import (
     OneDEqualSpacingModel, OneDStepModel, ArrayModel,
     BoundingBox, BoundingLine)
 from org.eclipse.scanning.server.servlet import Services
-from org.eclipse.scanning.api.event.scan import ScanBean, DeviceRequest
+from org.eclipse.scanning.api.event.scan import ScanBean
 from org.eclipse.scanning.api.event.IEventService import (
     SUBMISSION_QUEUE, REQUEST_TOPIC, RESPONSE_TOPIC)
 
@@ -81,8 +80,7 @@ def submit(request, now=False, block=False,
         raise NotImplementedError()  # TODO
     else:
         Services.getEventService() \
-                .createSubmitter(URI(broker_uri),
-                                 SUBMISSION_QUEUE) \
+                .createSubmitter(URI(broker_uri), SUBMISSION_QUEUE) \
                 .submit(_instantiate(ScanBean, {'scanRequest': request}))
 
 
@@ -116,8 +114,6 @@ def scan_request(path=None, mon=None, det=None):
 
     detector_map = dict(detectors)
     # Equivalent to (Python 2.7) {name: model for (name, model) in detectors}.
-
-    # TODO: Implement monitors.
 
     return _instantiate(ScanRequest, {'models': scan_path_models,
                                       'regions': roi_map,
