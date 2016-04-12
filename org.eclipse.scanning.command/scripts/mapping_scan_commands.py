@@ -27,8 +27,7 @@ from org.eclipse.scanning.api.points.models import (
     BoundingBox, BoundingLine)
 from org.eclipse.scanning.server.servlet import Services
 from org.eclipse.scanning.api.event.scan import ScanBean
-from org.eclipse.scanning.api.event.IEventService import (
-    SUBMISSION_QUEUE, REQUEST_TOPIC, RESPONSE_TOPIC)
+from org.eclipse.scanning.api.event.IEventService import SUBMISSION_QUEUE
 
 
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
