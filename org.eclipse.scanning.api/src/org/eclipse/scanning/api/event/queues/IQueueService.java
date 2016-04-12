@@ -8,11 +8,9 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.core.ISubscriber;
-
-import uk.ac.diamond.daq.queues.api.beans.QueueAtom;
-import uk.ac.diamond.daq.queues.api.beans.QueueBean;
-import uk.ac.diamond.daq.queues.api.beans.Queueable;
-import uk.ac.diamond.daq.queues.beans.SubTaskBean;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 /**
  * The IQueueService manages a single top level job queue {@link IQueue} 

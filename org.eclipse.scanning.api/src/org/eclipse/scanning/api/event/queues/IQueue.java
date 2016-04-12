@@ -7,10 +7,9 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
+import org.eclipse.scanning.api.event.queues.beans.IQueueable;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.StatusBean;
-
-import uk.ac.diamond.daq.queues.api.beans.IQueueable;
-import uk.ac.diamond.daq.queues.api.beans.Queueable;
 
 /**
  * IQueue object contain all the information necessary to interact with and 

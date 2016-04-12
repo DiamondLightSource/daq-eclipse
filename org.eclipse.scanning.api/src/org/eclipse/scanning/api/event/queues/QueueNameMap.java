@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
-import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.status.Status;
 
 /**
