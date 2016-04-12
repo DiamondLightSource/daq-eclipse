@@ -36,9 +36,12 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 		try {
 			final Collection<String> names = dservice.getRunnableDeviceNames();
 			for (String name : names) {
+				
+				if (request.getDeviceName()!=null && !name.matches(request.getDeviceName())) continue;
+				
 				IRunnableDevice<?> device = dservice.getRunnableDevice(name);
 				if (!(device instanceof AbstractRunnableDevice)) continue;
-				DeviceInformation info = ((AbstractRunnableDevice)device).getDeviceInformation();
+				DeviceInformation<?> info = ((AbstractRunnableDevice<?>)device).getDeviceInformation();
 				request.addDeviceInformation(info);
 			}
 			return request;
