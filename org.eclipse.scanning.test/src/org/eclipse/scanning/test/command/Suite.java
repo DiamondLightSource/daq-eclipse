@@ -6,7 +6,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
 	//CommandTest.class, // Seems to crash when run from maven
-	//ModelStringifierTest.class
+	//ModelStringifierTest.class,
+	//RoundTripTest.class
 	
 	// Maven build is giving this:
 	//Failed tests:   

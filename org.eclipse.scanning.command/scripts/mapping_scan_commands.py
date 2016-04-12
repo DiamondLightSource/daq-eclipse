@@ -7,6 +7,9 @@ The most important function here is mscan(), which collates information into a
 ScanRequest and submits it to a queue for attention of the GDA server. This is
 the only function with side effects in this module.
 
+Users who want to create a ScanRequest without submitting it to GDA can use the
+pure function scan_request(), whose signature is similar to mscan().
+
 The following pure functions create scan paths which may be passed to mscan():
 grid(), step(), line(), array(), point().
 
@@ -14,22 +17,25 @@ There are also some pure functions which may be used to narrow the region of
 interest (ROI) when using grid(). They are: circ(), rect(), poly().
 """
 
+from java.net import URI
 from org.eclipse.scanning.api.event.scan import ScanRequest
-from org.eclipse.dawnsci.analysis.api.roi import IROI
 from org.eclipse.dawnsci.analysis.dataset.roi import (
     CircularROI, RectangularROI, PolygonalROI, PolylineROI, PointROI)
 from org.eclipse.scanning.api.points.models import (
     StepModel, GridModel, RasterModel, SinglePointModel,
     OneDEqualSpacingModel, OneDStepModel, ArrayModel,
     BoundingBox, BoundingLine)
-from org.eclipse.scanning.command import QueueSingleton
-from org.eclipse.scanning.example.detector import MandelbrotModel
+from org.eclipse.scanning.server.servlet import Services
+from org.eclipse.scanning.api.event.scan import ScanBean
+from org.eclipse.scanning.api.event.IEventService import (
+    SUBMISSION_QUEUE, REQUEST_TOPIC, RESPONSE_TOPIC)
 
 
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
 # mscan is a free name.
-def mscan(path=None, det=None, now=False, block=False):
-    """Submit a scan request to the GDA server.
+def mscan(path=None, mon=None, det=None, now=False, block=False,
+          broker_uri="tcp://localhost:61616"):
+    """Create a ScanRequest and submit it to the GDA server.
 
     A simple usage of this function is as follows:
     >>> mscan(step(my_scannable, 0, 10, 1), det=mandelbrot(0.1))
@@ -61,32 +67,60 @@ def mscan(path=None, det=None, now=False, block=False):
     >>> # Skip the queue and return once the scan is complete.
     >>> mscan(…, …, now=True, block=True)
     """
-    # The effect of the following two lines is to make square brackets optional
-    # when calling this function with length-1 lists. I.e. we can do either
-    # scan([grid(…)], …) or scan(grid(…), …).
-    scan_paths = _listify(path)
-    detectors = _listify(det)
+    submit(scan_request(path, mon, det), now, block, broker_uri)
 
-    (points_models, _) = zip(*scan_paths)  # zip(* == unzip(
 
-    # ScanRequest expects ROIs to be specified as a map in the following
-    # (bizarre?) format:
-    roi_map = {model.getUniqueKey(): rois
-               for (model, rois) in scan_paths if len(rois) > 0}
+def submit(request, now=False, block=False,
+           broker_uri="tcp://localhost:61616"):
+    """Submit an existing ScanRequest to the GDA server.
 
-    detector_map = {name: model for (name, model) in detectors}
-    # Equivalent to (but less opaque than) detector_map = dict(detectors).
-
-    # TODO: Implement monitors.
-
+    See the mscan() docstring for details of `now` and `block`.
+    """
     if now or block:
         raise NotImplementedError()  # TODO
     else:
-        # Put a ScanRequest in the queue.
-        QueueSingleton.INSTANCE.put(
-            _instantiate(ScanRequest, {'models': points_models,
-                                       'regions': roi_map,
-                                       'detectors': detector_map}))
+        Services.getEventService() \
+                .createSubmitter(URI(broker_uri), SUBMISSION_QUEUE) \
+                .submit(_instantiate(ScanBean, {'scanRequest': request}))
+
+
+def scan_request(path=None, mon=None, det=None):
+    """Create a ScanRequest object with the given configuration.
+
+    See the mscan() docstring for usage.
+    """
+    assert path is not None
+
+    # The effect of the following three lines is to make square brackets
+    # optional when calling this function with length-1 lists. I.e. we can do
+    # either scan([grid(…)], …) or scan(grid(…), …). Also _stringify the
+    # monitors so users can pass either a monitor name in quotes or a scannable
+    # object from the Jython namespace.
+    scan_paths = _listify(path)
+    monitors = map(_stringify, _listify(mon))
+    detectors = _listify(det)
+
+    (scan_path_models, _) = zip(*scan_paths)  # zip(* == unzip(
+
+    # ScanRequest expects ROIs to be specified as a map in the following
+    # (bizarre?) format:
+    roi_map = {}  # No dict comprehensions in Python 2.5!
+    for (model, rois) in scan_paths:
+        if len(rois) > 0:
+            roi_map[model.getUniqueKey()] = rois
+    # Nicer Python 2.7 version for if the Jython interpreter is ever upgraded:
+    # roi_map = {model.getUniqueKey(): rois
+    #            for (model, rois) in scan_paths if len(rois) > 0}
+
+    detector_map = dict(detectors)
+    # Equivalent to (Python 2.7) {name: model for (name, model) in detectors}.
+
+    return _instantiate(ScanRequest, {'models': scan_path_models,
+                                      'regions': roi_map,
+                                      'monitorNames': monitors,
+                                      'detectors': detector_map,
+                                      'filePath': '/tmp/test.nxs'}) # TODO
+
 
 
 # Scan paths
@@ -151,29 +185,35 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
     (xStart, yStart) = origin
     (width, height) = size
 
+    bbox = _instantiate(BoundingBox,
+                        {'fastAxisStart': xStart,
+                         'slowAxisStart': yStart,
+                         'fastAxisLength': width,
+                         'slowAxisLength': height})
+
     if count is not None:
         (rows, cols) = count
 
         model = _instantiate(
                     GridModel,
-                    {'xName': xName,
-                     'yName': yName,
-                     'rows': rows,
-                     'columns': cols,
+                    {'fastAxisName': xName,
+                     'slowAxisName': yName,
+                     'fastAxisPoints': rows,
+                     'slowAxisPoints': cols,
                      'snake': snake,
-                     'boundingBox': _bbox(xStart, yStart, width, height)})
+                     'boundingBox': bbox})
 
     else:
         (xStep, yStep) = step
 
         model = _instantiate(
                     RasterModel,
-                    {'xName': xName,
-                     'yName': yName,
-                     'xStep': xStep,
-                     'yStep': yStep,
+                    {'fastAxisName': xName,
+                     'slowAxisName': yName,
+                     'fastAxisStep': xStep,
+                     'slowAxisStep': yStep,
                      'snake': snake,
-                     'boundingBox': _bbox(xStart, yStart, width, height)})
+                     'boundingBox': bbox})
 
     # We _listify() the ROI inputs, so users can type either
     # roi=circ(x, y, r) or roi=[circ(x, y, r), rect(x, y, w, h, angle)].
@@ -198,6 +238,12 @@ def line(origin=None, length=None, angle=None, count=None, step=None):
     (xStart, yStart) = origin
     roi = None
 
+    bline = _instantiate(BoundingLine,
+                         {'xStart': xStart,
+                          'yStart': yStart,
+                          'length': length,
+                          'angle': angle})
+
     if step is not None:
         model = _instantiate(
                     OneDStepModel,
@@ -213,13 +259,12 @@ def line(origin=None, length=None, angle=None, count=None, step=None):
     return model, _listify(roi)
 
 
-# TODO: Rename "array" to "values" or "positions"?
-def array(axis=None, positions=None):
+def array(axis=None, values=None):
     """Define an array scan path to be passed to mscan().
 
     Required keyword arguments:
     * axis: a scannable
-    * positions: a list of numerical positions for the scannable to take
+    * values: a list of numerical values for the scannable to take
     """
     # We have to manually call ArrayModel.setPositions,
     # as it takes a (Double... positions) argument.
@@ -231,9 +276,23 @@ def array(axis=None, positions=None):
 
     amodel = ArrayModel()
     amodel.setName(axis)
-    amodel.setPositions(*positions)
+    amodel.setPositions(*values)
 
     return amodel, _listify(roi)
+
+
+def val(axis=None, value=None):
+    """Define a single axis position to be passed to mscan().
+
+    This single-point scan "path" can be used as the innermost scan path in a
+    compound scan to ensure a particular scannable is always set to a given
+    value when exposures are taken. (A.k.a. "move to keep still".)
+
+    For instance:
+    >>> # Step x from 0 to 10, moving y to 5 after each x movement.
+    >>> mscan([step(x, 0, 10, 1), val(y, 5)], …)
+    """
+    return array(axis, [value])
 
 
 def point(x, y):
@@ -287,94 +346,30 @@ def rect(origin=None, size=None, angle=0):
     return RectangularROI(xStart, yStart, width, height, angle)
 
 
-# Detectors
-# ---------
-
-def mandelbrot(exposure):
-    name = 'mandelbrot'  # Is this right?
-    model = _instantiate(MandelbrotModel, {'exposureTime': exposure})
-    return name, model
-
-
-# TODO: Place a detector model in the Python namespace from Java.
-
-
 # Bean construction
 # -----------------
 
-# There are some setter fields which the end user does not set:
-_setter_blacklist = {
-    'ScanRequest': frozenset(['setAfter',
-                              'setAfterResponse',
-                              'setBefore',
-                              'setBeforeResponse',
-                              'setEnd',
-                              'setFilePath',
-                              'setIgnorePreprocess',
-                              'setMonitorNames',
-                              'setStart']),
-
-    'StepModel': frozenset(['setUniqueKey']),
-    'GridModel': frozenset(['setUniqueKey']),
-    'RasterModel': frozenset(['setUniqueKey']),
-    'SinglePointModel': frozenset(['setUniqueKey']),
-    'OneDEqualSpacingModel': frozenset(['setUniqueKey']),
-    'OneDStepModel': frozenset(['setUniqueKey']),
-
-    'BoundingBox': frozenset([]),
-    'BoundingLine': frozenset([]),
-
-    'MandelbrotModel': frozenset(['setColumns',
-                                  'setEscapeRadius',
-                                  'setMaxIterations',
-                                  'setMaxX',
-                                  'setMaxY',
-                                  'setName',
-                                  'setPoints',
-                                  'setRows',
-                                  'setxName',
-                                  'setyName']),
-}
-# TODO: Make some fields optional (e.g. setxName)? setter_graylist?
-
-
-def _instantiate(Bean, params, setter_blacklist=_setter_blacklist):
+def _instantiate(Bean, params):
     """Instantiate a JavaBean class with the given params.
 
-    Each of the bean's setters is called with the corresponding value from
-    `params`, a dictionary. For instance, if the bean has a method called
-    `setLength`, this function will call it with the value `params['length']`.
-    If the key does not exist in `params`, this function will throw an
-    exception. Blacklisted setters will not be called.
-
-    This is just a constructor for beans which guarantees all the necessary
-    setters are called.
+    `params` is a dictionary containing attributes to call bean setters with.
+    For instance, if params contains {'length': 10}, the instantiated bean will
+    have its setLength method called with the value 10. If no such method
+    exists, a ValueError is thrown.
     """
     bean = Bean()
+    setters = filter(lambda x: x.startswith('set'), dir(bean))
 
-    # Call each non-blacklisted setter with the corresponding param value.
-    setters = frozenset(filter(lambda x: x.startswith('set'), dir(bean)))
-    for setter in (setters - setter_blacklist[Bean.__name__]):
-        getattr(bean, setter)(params[setter[3].lower()+setter[4:]])
+    # For each param, call one of the setters.
+    for p in params.keys():
+        try:
+            [setter] = filter(lambda s: p == s[3].lower()+s[4:], setters)
+            getattr(bean, setter)(params[p])
+        except ValueError:
+            raise ValueError(
+                "No setter for param '"+p+"' in '"+Bean.__name__+".")
 
     return bean
-
-
-# Bounding shapes
-# ---------------
-
-def _bbox(xStart, yStart, width, height):
-    return _instantiate(BoundingBox, {'xStart': xStart,
-                                      'yStart': yStart,
-                                      'width': width,
-                                      'height': height})
-
-
-def _bline(xStart, yStart, length, angle):
-    return _instantiate(BoundingLine, {'xStart': xStart,
-                                       'yStart': yStart,
-                                       'length': length,
-                                       'angle': angle})
 
 
 # Miscellaneous functions

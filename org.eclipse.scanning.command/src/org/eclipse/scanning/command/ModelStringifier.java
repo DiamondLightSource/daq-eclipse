@@ -81,16 +81,16 @@ public class ModelStringifier {
 				Boolean>, List<String>>()));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"axes", false), Arrays.asList("getxName", "getyName"));
+				"axes", false), Arrays.asList("getFastAxisName", "getSlowAxisName"));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"origin", false), Arrays.asList("getBoundingBox.getxStart", "getBoundingBox.getyStart"));
+				"origin", false), Arrays.asList("getBoundingBox.getFastAxisStart", "getBoundingBox.getSlowAxisStart"));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"size", false), Arrays.asList("getBoundingBox.getWidth", "getBoundingBox.getHeight"));
+				"size", false), Arrays.asList("getBoundingBox.getFastAxisLength", "getBoundingBox.getSlowAxisLength"));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"count", true), Arrays.asList("getRows", "getColumns"));
+				"count", true), Arrays.asList("getFastAxisPoints", "getSlowAxisPoints"));
 
 		schema.get(GridModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
 				"snake", true), Arrays.asList("isSnake"));
@@ -102,16 +102,16 @@ public class ModelStringifier {
 				Boolean>, List<String>>()));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"axes", false), Arrays.asList("getxName", "getyName"));
+				"axes", false), Arrays.asList("getFastAxisName", "getSlowAxisName"));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"origin", false), Arrays.asList("getBoundingBox.getxStart", "getBoundingBox.getyStart"));
+				"origin", false), Arrays.asList("getBoundingBox.getFastAxisStart", "getBoundingBox.getSlowAxisStart"));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"size", false), Arrays.asList("getBoundingBox.getWidth", "getBoundingBox.getHeight"));
+				"size", false), Arrays.asList("getBoundingBox.getFastAxisLength", "getBoundingBox.getSlowAxisLength"));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
-				"step", true), Arrays.asList("getxStep", "getyStep"));
+				"step", true), Arrays.asList("getFastAxisStep", "getSlowAxisStep"));
 
 		schema.get(RasterModel.class).getValue().put(new AbstractMap.SimpleEntry<String, Boolean>(
 				"snake", true), Arrays.asList("isSnake"));
@@ -137,10 +137,21 @@ public class ModelStringifier {
 
 	}
 
-	final public static String stringify(IScanPathModel model, Boolean verbose) {
+	/**
+	 * Return a string of valid Python which, in conjunction with
+	 * scan_syntax.py, would generate the given IScanPathModel.
+	 */
+	final public static String stringify(IScanPathModel model, Boolean verbose)
+			throws StringificationNotImplementedException {
+
+		// TODO: Take also an optional list of ROIs.
 
 		SimpleEntry<String, LinkedHashMap<SimpleEntry<String, Boolean>, List<String>>> modelSchema =
 				schema.get(model.getClass());
+		if (modelSchema == null) {
+			throw new StringificationNotImplementedException(
+					"Stringification not implemented for this model type.");
+		}
 		String friendlyName = modelSchema.getKey();
 		LinkedHashMap<SimpleEntry<String, Boolean>, List<String>> keywordInfos = modelSchema.getValue();
 

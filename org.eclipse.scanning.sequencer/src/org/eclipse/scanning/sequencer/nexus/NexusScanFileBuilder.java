@@ -222,6 +222,10 @@ public class NexusScanFileBuilder {
 			String dataGroupName,
 			String primaryDataFieldName)
 			throws NexusException {
+        // create the data builder and add the primary device
+        if (entryBuilder.getNXentry().containsGroupNode(dataGroupName)) {
+            dataGroupName += "_data"; // append _data if the node already exists
+        }
 		// create the data builder and add the primary device
 		NexusDataBuilder dataBuilder = entryBuilder.newData(dataGroupName);
 		DataDevice<?> primaryDataDevice = createPrimaryDataDevice(primaryDevice, primaryDataFieldName);
