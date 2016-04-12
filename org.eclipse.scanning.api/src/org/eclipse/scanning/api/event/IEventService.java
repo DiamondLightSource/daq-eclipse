@@ -20,7 +20,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * 
  * <pre>
  * <b>
- * o subscriber/publisher used for broadcasting to multiple clients.
+ * o publisher/subscriber used for broadcasting to multiple clients.
  * o submitter/consumer used for processing queues
  * o request/response used for get/post synchronous interaction 
  *   (the uuid is used to ensure that the request and response match)
@@ -228,4 +228,12 @@ public interface IEventService {
 	 */
 	public <T extends INameable> void checkTopic(URI uri, String patientName, long listenTime, String topicName, Class<T> beanClass) throws EventException, InterruptedException;
 
+	
+	/**
+	 * The current event connector service that this event service is using to 
+	 * talk to messaging and to marshall objects.
+	 * 
+	 * @return
+	 */
+	public IEventConnectorService getEventConnectorService();
 }

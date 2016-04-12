@@ -11,6 +11,7 @@ package org.eclipse.scanning.test.event;
 import java.net.URI;
 
 import org.eclipse.dawnsci.json.MarshallerService;
+import org.eclipse.scanning.api.device.DeviceResponse;
 import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -19,7 +20,6 @@ import org.eclipse.scanning.api.event.core.IResponseCreator;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.sequencer.DeviceResponse;
 import org.junit.Before;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;

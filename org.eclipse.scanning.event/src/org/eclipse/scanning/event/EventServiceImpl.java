@@ -23,10 +23,6 @@ public class EventServiceImpl implements IEventService {
 	}
 	
 	private static IEventConnectorService eventConnectorService;
-
-	public static IEventConnectorService getEventConnectorService() {
-		return eventConnectorService;
-	}
 	
 	public EventServiceImpl() {
 		
@@ -104,4 +100,10 @@ public class EventServiceImpl implements IEventService {
 	public <T extends IdBean> IResponder<T> createResponder(URI uri, String requestTopic, String responseTopic) throws EventException {
 		return new ResponderImpl<T>(uri, requestTopic, responseTopic, this);
 	}
+	
+	@Override
+	public IEventConnectorService getEventConnectorService() {
+		return eventConnectorService;
+	}
+
 }
