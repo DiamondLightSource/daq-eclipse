@@ -11,6 +11,8 @@ import org.eclipse.scanning.api.scan.process.ProcessingException;
  * A servlet to do any scan type based on the information provided
  * in a ScanBean.
  * 
+ * @see example.xml
+ * 
      Spring config started, for instance:
     <pre>
     
