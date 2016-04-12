@@ -39,8 +39,14 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 				
 				if (request.getDeviceName()!=null && !name.matches(request.getDeviceName())) continue;
 				
-				IRunnableDevice<?> device = dservice.getRunnableDevice(name);
+				IRunnableDevice<Object> device = dservice.getRunnableDevice(name);
+				if (device==null) throw new EventException("There is no created device called '"+name+"'");
 				if (!(device instanceof AbstractRunnableDevice)) continue;
+				
+				if (request.getDeviceModel()!=null) {
+					device.configure(request.getDeviceModel());
+				}
+				
 				DeviceInformation<?> info = ((AbstractRunnableDevice<?>)device).getDeviceInformation();
 				request.addDeviceInformation(info);
 			}

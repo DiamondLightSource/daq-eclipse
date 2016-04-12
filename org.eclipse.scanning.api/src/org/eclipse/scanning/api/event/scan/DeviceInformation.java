@@ -8,6 +8,11 @@ package org.eclipse.scanning.api.event.scan;
  *
  */
 public class DeviceInformation<T> {
+	
+	/**
+	 * The device state, for instance, IDLE, READY, PAUSED, FAULT etc.
+	 */
+	private DeviceState state;
 
 	/**
 	 * Device name used in scan
@@ -98,6 +103,7 @@ public class DeviceInformation<T> {
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		return result;
 	}
 
@@ -140,6 +146,8 @@ public class DeviceInformation<T> {
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
+		if (state != other.state)
+			return false;
 		return true;
 	}
 
@@ -154,5 +162,13 @@ public class DeviceInformation<T> {
 
 	public void setModel(T model) {
 		this.model = model;
+	}
+
+	public DeviceState getState() {
+		return state;
+	}
+
+	public void setState(DeviceState state) {
+		this.state = state;
 	}
 }

@@ -11,10 +11,17 @@ import org.eclipse.scanning.api.event.IdBean;
  * The solstice service for instance asks the IDeviceService what is available
  * and returns a list of devices and their configuration.
  * 
+ * Servlet may also be used to configure a given device and return the result.
+ * 
  * @author Matthew Gerring
  *
  */
 public class DeviceRequest extends IdBean {
+	
+	/**
+	 * List of all devices
+	 */
+	private Collection<DeviceInformation<?>> devices;
 
 	/**
 	 * A regular expression or string which if set only
@@ -22,8 +29,11 @@ public class DeviceRequest extends IdBean {
 	 */
 	private String deviceName;
 	
-	private Collection<DeviceInformation<?>> devices;
-
+	/**
+	 * The device's model. Normally used to configure a device.
+	 */
+	private Object deviceModel;
+	
 	public Collection<DeviceInformation<?>> getDevices() {
 		return devices;
 	}
@@ -33,16 +43,20 @@ public class DeviceRequest extends IdBean {
 	}
 	
 	@Override
-	public <T extends IdBean> void merge(T with) {
+	public <A extends IdBean> void merge(A with) {
 		super.merge(with);
-		if (devices==null) devices = ((DeviceRequest)with).devices;
-		if (devices!=null) devices.addAll(((DeviceRequest)with).devices);
- 	}
+		DeviceRequest dr = (DeviceRequest)with;
+		if (devices==null) devices = dr.devices;
+		if (devices!=null) devices.addAll(dr.devices);
+		deviceName    = dr.deviceName;
+		deviceModel   = dr.deviceModel;
+	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
+		result = prime * result + ((deviceModel == null) ? 0 : deviceModel.hashCode());
 		result = prime * result + ((deviceName == null) ? 0 : deviceName.hashCode());
 		result = prime * result + ((devices == null) ? 0 : devices.hashCode());
 		return result;
@@ -57,6 +71,11 @@ public class DeviceRequest extends IdBean {
 		if (getClass() != obj.getClass())
 			return false;
 		DeviceRequest other = (DeviceRequest) obj;
+		if (deviceModel == null) {
+			if (other.deviceModel != null)
+				return false;
+		} else if (!deviceModel.equals(other.deviceModel))
+			return false;
 		if (deviceName == null) {
 			if (other.deviceName != null)
 				return false;
@@ -79,8 +98,17 @@ public class DeviceRequest extends IdBean {
 		return deviceName;
 	}
 
-	public void setDeviceName(String deviceName) {
-		this.deviceName = deviceName;
+	public void setDeviceName(String dn) {
+		this.deviceName = dn;
+	}
+
+	@SuppressWarnings("unchecked")
+	public Object getDeviceModel() {
+		return deviceModel;
+	}
+
+	public void setDeviceModel(Object dm) {
+		this.deviceModel = dm;
 	}
 
 	public boolean isEmpty() {
