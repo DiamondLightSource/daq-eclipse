@@ -24,6 +24,10 @@
 		<module>../../jeromq</module>
 		<module>org.eclipse.scanning.sequencer</module>
 		<module>org.eclipse.scanning.test</module>
+		<module>org.eclipse.scanning.example.xcen</module>
+		<module>org.eclipse.scanning.example.xcen.test</module>
+		<module>org.eclipse.scanning.example.xcen.ui</module>
+		
 		<module>uk.ac.diamond.daq.activemq.connector</module>
 		<module>uk.ac.diamond.daq.activemq.connector.test</module>
 		<module>uk.ac.diamond.daq.malcolm.connector</module>

@@ -73,12 +73,15 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
     public void connect() throws EventException, URISyntaxException {	
     	
     	consumer = eventService.createConsumer(new URI(getBroker()), getSubmitQueue(), getStatusSet(), getStatusTopic(), getHeartbeatTopic(), getKillTopic());
+    	consumer.setName(getName());
     	consumer.setDurable(isDurable());
     	consumer.setRunner(new DoObjectCreator<B>());
      	consumer.start();
      	isConnected = true;
     }
     
+	protected abstract String getName();
+
 	class DoObjectCreator<T> implements IProcessCreator<B> {
 		@Override
 		public IConsumerProcess<B> createProcess(B bean, IPublisher<B> response) throws EventException {
@@ -158,6 +161,10 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 
 	public void setDurable(boolean durable) {
 		this.durable = durable;
+	}
+
+	public boolean isConnected() {
+		return isConnected;
 	}
 
 }

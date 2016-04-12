@@ -1,10 +1,7 @@
-package org.eclipse.scanning.sequencer;
+package org.eclipse.scanning.api.device;
 
 import java.util.Collection;
 
-import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceService;
-import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
@@ -17,10 +14,6 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 	private IDeviceService            dservice;
 	private DeviceRequest             bean;
 	private IPublisher<DeviceRequest> publisher;
-
-	public DeviceResponse(DeviceRequest bean, IPublisher<DeviceRequest> statusNotifier) {
-		this(new DeviceServiceImpl(), bean, statusNotifier); // TODO Should we use OSGi for the service def?
-	}
 
 	public DeviceResponse(IDeviceService dservice, DeviceRequest bean, IPublisher<DeviceRequest> statusNotifier) {
 		this.dservice = dservice;

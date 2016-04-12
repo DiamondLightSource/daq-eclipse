@@ -3,6 +3,7 @@ package org.eclipse.scanning.event;
 import java.net.URI;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IRequestResponseConnection;
 
@@ -19,6 +20,10 @@ abstract class AbstractRequestResponseConnection implements IRequestResponseConn
 		this.requestTopic  = reqTopic;
 		this.responseTopic = resTopic;
 		this.eservice     = eservice;
+	}
+	
+	public IEventConnectorService getConnectorService() {
+		return eservice.getEventConnectorService();
 	}
 
 	public URI getUri() {

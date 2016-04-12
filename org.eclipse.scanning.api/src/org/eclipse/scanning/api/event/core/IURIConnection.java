@@ -2,6 +2,8 @@ package org.eclipse.scanning.api.event.core;
 
 import java.net.URI;
 
+import org.eclipse.scanning.api.event.IEventConnectorService;
+
 public interface IURIConnection {
 
 	/**
@@ -9,4 +11,9 @@ public interface IURIConnection {
 	 * @return
 	 */
 	public URI getUri();
+	
+	/**
+	 * The underlyng service which the uri is connected using
+	 */
+	public IEventConnectorService getConnectorService();
 }

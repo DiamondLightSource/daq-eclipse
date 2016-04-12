@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            class="org.eclipse.scanning.example.xcen.ui.XcenPerspective"
+            icon="icons/ruby.png"
+            id="org.eclipse.scanning.example.xcen.ui.XcenPerspective"
+            name="X-Ray Centering">
+      </perspective>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            class="org.eclipse.scanning.example.xcen.ui.views.XcenView"
+            icon="icons/ruby.png"
+            id="org.eclipse.scanning.example.xcen.ui.views.XcenView"
+            name="X-Ray Center">
+      </view>
+      <view
+            class="org.eclipse.scanning.example.xcen.ui.views.XcenDiagram"
+            icon="icons/arrow-circle-225-left.png"
+            id="org.eclipse.scanning.example.xcen.ui.views.XcenDiagram"
+            name="Orientation"
+            restorable="true">
+      </view>
+   </extension>
+</plugin>

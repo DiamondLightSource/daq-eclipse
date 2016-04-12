@@ -32,6 +32,10 @@ import org.eclipse.scanning.api.scan.process.ProcessingException;
  */
 public class ScanServlet extends AbstractConsumerServlet<ScanBean> {
 	
+	@Override
+	public String getName() {
+		return "Scan Consumer";
+	}
 
 	@Override
 	public ScanProcess createProcess(ScanBean scanBean, IPublisher<ScanBean> response) throws EventException {

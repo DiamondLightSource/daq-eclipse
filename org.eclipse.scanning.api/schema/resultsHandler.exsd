@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.scanning.event.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema targetNamespace="org.eclipse.scanning.api" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.eclipse.scanning.event.ui" id="rerunHandler" name="Rerun a given result"/>
+         <meta.schema plugin="org.eclipse.scanning.api" id="resultsHandler" name="Open Results"/>
       </appinfo>
       <documentation>
-         This extension point is for defining how to rerun a given result. If it is not speficied for a given queue type then the StatusQueueView will still offer a generic reurn of the result.
+         This extension point is for defining what will happen if a result is clicked on in the StatusQueueView.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence>
-            <element ref="rerunHandler" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="resultsOpenHandler" minOccurs="1" maxOccurs="unbounded"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,20 +47,15 @@
       </complexType>
    </element>
 
-   <element name="rerunHandler">
-      <annotation>
-         <documentation>
-            Rerun results
-         </documentation>
-      </annotation>
+   <element name="resultsOpenHandler">
       <complexType>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  
+                  A handler which is a delegate for opening results of different bean types. This handler must be very cheap to construct.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.dawnsci.commandserver.ui.view.IRerunHandler"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.scanning.event.ui.view.IResultOpenHandler"/>
                </appinfo>
             </annotation>
          </attribute>

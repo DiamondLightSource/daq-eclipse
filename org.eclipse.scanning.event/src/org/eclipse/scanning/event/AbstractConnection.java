@@ -51,6 +51,10 @@ class AbstractConnection {
 		this.service = service;
 	}
 	
+	public IEventConnectorService getConnectorService() {
+		return service;
+	}
+	
 	/**
 	 * Deals with reconnecting or if broker gone down, fails
 	 * 

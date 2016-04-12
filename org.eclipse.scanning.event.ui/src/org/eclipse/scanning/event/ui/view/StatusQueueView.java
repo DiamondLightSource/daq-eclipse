@@ -522,7 +522,7 @@ public class StatusQueueView extends ViewPart {
 		if (bean==null) return;
 
 		try {
-			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.event.ui.rerunHandler");
+			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.rerunHandler");
 			if (c!=null) {
 				for (IConfigurationElement i : c) {
 					final IRerunHandler handler = (IRerunHandler)i.createExecutableExtension("class");
