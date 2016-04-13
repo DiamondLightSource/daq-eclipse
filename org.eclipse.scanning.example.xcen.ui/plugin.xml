@@ -26,4 +26,16 @@
             restorable="true">
       </view>
    </extension>
+   <extension
+         point="org.eclipse.scanning.api.rerunHandler">
+      <rerunHandler
+            class="org.eclipse.scanning.example.xcen.ui.handlers.RerunHandler">
+      </rerunHandler>
+   </extension>
+   <extension
+         point="org.eclipse.scanning.api.resultsHandler">
+      <resultsHandler
+            class="org.eclipse.scanning.example.xcen.ui.handlers.OpenHandler">
+      </resultsHandler>
+   </extension>
 </plugin>
