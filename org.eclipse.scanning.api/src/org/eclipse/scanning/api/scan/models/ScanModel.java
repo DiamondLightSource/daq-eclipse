@@ -2,6 +2,7 @@ package org.eclipse.scanning.api.scan.models;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.scanning.api.IScannable;
@@ -152,6 +153,10 @@ public class ScanModel {
 
 
 	public Iterable<IPosition> getPositionIterable() {
+		if (positionIterable == null) {
+			return Collections.emptyList();
+		}
+		
 		return positionIterable;
 	}
 
@@ -160,6 +165,9 @@ public class ScanModel {
 	}
 
 	public List<IRunnableDevice<?>> getDetectors() {
+		if (detectors == null) {
+			return Collections.emptyList();
+		}
 		return detectors;
 	}
 
@@ -172,6 +180,9 @@ public class ScanModel {
 	}
 	
 	public List<IScannable<?>> getMonitors() {
+		if (monitors == null) {
+			return Collections.emptyList();
+		}
 		return monitors;
 	}
 	
@@ -184,6 +195,9 @@ public class ScanModel {
 	}
 	
 	public List<IScannable<?>> getMetadataScannables() {
+		if (metadataScannables == null) {
+			return Collections.emptyList();
+		}
 		return metadataScannables;
 	}
 	
@@ -204,6 +218,9 @@ public class ScanModel {
 	}
 	
 	public List<ScanMetadata> getScanMetadata() {
+		if (scanMetadata == null) {
+			return Collections.emptyList();
+		}
 		return scanMetadata;
 	}
 	

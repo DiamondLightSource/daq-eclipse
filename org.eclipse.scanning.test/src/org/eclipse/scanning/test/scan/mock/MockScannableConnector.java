@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.legacy.ILegacyDeviceSupport;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 public class MockScannableConnector implements IDeviceConnectorService {
@@ -63,6 +64,11 @@ public class MockScannableConnector implements IDeviceConnectorService {
 	@Override
 	public List<String> getScannableNames() throws ScanningException {
 		return cache.keySet().stream().filter(key -> cache.get(key) instanceof IScannable).collect(Collectors.toList());
+	}
+
+	@Override
+	public ILegacyDeviceSupport getLegacyDeviceSupport() {
+		return null; // Not supported
 	}
 
 }

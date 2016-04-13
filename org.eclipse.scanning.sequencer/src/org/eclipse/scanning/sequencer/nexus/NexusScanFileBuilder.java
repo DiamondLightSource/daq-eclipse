@@ -1,6 +1,6 @@
 package org.eclipse.scanning.sequencer.nexus;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -16,6 +16,7 @@ import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
+import org.eclipse.dawnsci.nexus.builder.CustomNexusEntryModification;
 import org.eclipse.dawnsci.nexus.builder.DataDevice;
 import org.eclipse.dawnsci.nexus.builder.NexusDataBuilder;
 import org.eclipse.dawnsci.nexus.builder.NexusEntryBuilder;
@@ -45,16 +46,19 @@ public class NexusScanFileBuilder {
 		DETECTOR, SCANNABLE, MONITOR, METADATA_SCANNABLE
 	}
 	
-	private IDeviceConnectorService deviceService;
+	private IDeviceConnectorService deviceConnectorService;
 	private ScanModel model;
 	private NexusScanInfo scanInfo;
 	private ScanPointsWriter scanPointsWriter;
-	private Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders = null;
-	private Map<NexusObjectProvider<?>, DataDevice<?>> dataDevices = new HashMap<>();
 	private NexusFileBuilder fileBuilder;
 	
-	public NexusScanFileBuilder(IDeviceConnectorService deviceService) {
-		this.deviceService = deviceService;
+	// we need to cache various things as they are used more than once
+	private Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders = null;
+	private Map<DeviceType, List<INexusDevice<?>>> nexusDevices;
+	private Map<NexusObjectProvider<?>, DataDevice<?>> dataDevices = new HashMap<>();
+	
+	public NexusScanFileBuilder(IDeviceConnectorService deviceConnectorService) {
+		this.deviceConnectorService = deviceConnectorService;
 		this.scanPointsWriter = new ScanPointsWriter();
 	}
 	
@@ -75,10 +79,13 @@ public class NexusScanFileBuilder {
 		}
 		
 		this.model = model;
+		this.scanInfo = new NexusScanInfo(model.getPositionIterable().iterator().next().getNames());
 
-		// extract the nexus devices. The detectors and monitors come from the model
-		// the scannables from
-		nexusObjectProviders = getNexusDevices();
+		nexusDevices = extractNexusDevices(model);
+		// convert this to a map of nexus object providers for each type
+		nexusObjectProviders = new EnumMap<>(DeviceType.class);
+		nexusDevices.forEach((k, v) -> nexusObjectProviders.put(k, v.stream().map(
+				d -> d.getNexusProvider(scanInfo)).filter(n -> n != null).collect(Collectors.toList())));
 		
 		// create the scan points writer and add it as a monitor
 		scanPointsWriter = createScanPointsWriter();
@@ -92,23 +99,19 @@ public class NexusScanFileBuilder {
 		return fileBuilder.createFile();
 	}
 	
-	private Map<DeviceType, List<NexusObjectProvider<?>>> getNexusDevices() throws ScanningException {
-		// Add and configures any devices we can get from the scan.
-		final IPosition pos = model.getPositionIterable().iterator().next(); // The first position should have the same names as all positions.
-		final List<String> scannableNames = pos.getNames();
-		scanInfo = new NexusScanInfo(scannableNames);
+	private Map<DeviceType, List<INexusDevice<?>>> extractNexusDevices(ScanModel model) throws ScanningException {
+		final IPosition firstPosition = model.getPositionIterable().iterator().next();
+		final List<String> scannableNames = firstPosition.getNames();
 		
-		Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders =
-				new EnumMap<>(DeviceType.class);
-		nexusObjectProviders.put(DeviceType.DETECTOR, getNexusDevices(model.getDetectors(), scanInfo));
-		nexusObjectProviders.put(DeviceType.SCANNABLE, getNexusScannables(scannableNames, scanInfo));
-		nexusObjectProviders.put(DeviceType.MONITOR, getNexusDevices(model.getMonitors(), scanInfo));
-		nexusObjectProviders.put(DeviceType.METADATA_SCANNABLE,
-				getNexusDevices(model.getMetadataScannables(), scanInfo));
+		Map<DeviceType, List<INexusDevice<?>>> nexusDevices = new EnumMap<>(DeviceType.class);
+		nexusDevices.put(DeviceType.DETECTOR, getNexusDevices(model.getDetectors()));
+		nexusDevices.put(DeviceType.SCANNABLE, getNexusScannables(scannableNames));
+		nexusDevices.put(DeviceType.MONITOR, getNexusDevices(model.getMonitors()));
+		nexusDevices.put(DeviceType.METADATA_SCANNABLE, getNexusDevices(model.getMetadataScannables()));
 		
-		return nexusObjectProviders;
+		return nexusDevices;
 	}
-
+	
 	private ScanPointsWriter createScanPointsWriter() {
 		ScanPointsWriter scanPointsWriter = new ScanPointsWriter();
 		
@@ -137,10 +140,26 @@ public class NexusScanFileBuilder {
 		
 		// add all the instruments to the entry
 		entryBuilder.addAll(nexusObjectProviders.values().stream()
-				.flatMap(x -> x.stream())
+				.flatMap(list -> list.stream())
 				.collect(Collectors.toList()));
 
+		// create the NXdata groups
 		createNexusDataGroups(entryBuilder);
+		
+		// perform any custom modificaiton
+		performCustomModifications(entryBuilder);
+	}
+	
+	private void performCustomModifications(NexusEntryBuilder entryBuilder) throws NexusException {
+		Collection<CustomNexusEntryModification> customModifications = nexusDevices.values().stream()
+			.flatMap(list -> list.stream()) // flatten all the lists into a single stream
+			.map(d -> d.getCustomNexusModification()) // map to custom modifications
+			.filter(m -> m != null) // filter out nulls
+			.collect(Collectors.toList()); // collect into a list
+		
+		for (CustomNexusEntryModification customModification : customModifications) {
+			entryBuilder.modifyEntry(customModification);
+		}
 	}
 	
 	private void addScanMetadata(NexusEntryBuilder entryBuilder, List<ScanMetadata> scanMetadataList) throws NexusException {
@@ -177,30 +196,37 @@ public class NexusScanFileBuilder {
 		}
 	}
 	
-	private <T> List<NexusObjectProvider<?>> getNexusDevices(Iterable<T> devices, NexusScanInfo scanInfo) {
-		List<NexusObjectProvider<?>> nexusDevices = new ArrayList<>();
-		if (devices != null) {
-			for (T device : devices) {
-				if (device instanceof INexusDevice<?>) {
-					nexusDevices.add(((INexusDevice<?>) device).getNexusProvider(scanInfo));
-				}
-			}
-		}
-		
-		return nexusDevices;
+	private List<INexusDevice<?>> getNexusDevices(Collection<?> devices) {
+		return devices.stream().filter(d -> d instanceof INexusDevice<?>).map(
+				d -> (INexusDevice<?>) d).collect(Collectors.toList());
 	}
 	
-	private List<NexusObjectProvider<?>> getNexusScannables(List<String> scannableNames, NexusScanInfo scanInfo) throws ScanningException {
-		final List<IScannable<?>> scannables = new ArrayList<>();
-		if (scannableNames != null) for (String scannableName : scannableNames) {
-			IScannable<?> scannable = deviceService.getScannable(scannableName);
+	private List<INexusDevice<?>> getNexusScannables(List<String> scannableNames) throws ScanningException {
+		try {
+			return scannableNames.stream().map(name -> getNexusScannable(name)).filter(s -> s != null).collect(Collectors.toList());
+		} catch (Exception e) {
+			if (e.getCause() instanceof ScanningException) {
+				throw (ScanningException) e.getCause();
+			} else {
+				throw e;
+			}
+		}
+	}
+	
+	private INexusDevice<?> getNexusScannable(String scannableName) {
+		try {
+			IScannable<?> scannable = deviceConnectorService.getScannable(scannableName);
 			if (scannable == null) {
 				throw new IllegalArgumentException("No such scannable: " + scannableName);
 			}
-			scannables.add(scannable);
+			if (scannable instanceof INexusDevice<?>) {
+				return (INexusDevice<?>) scannable;
+			}
+			
+			return null;
+		} catch (ScanningException e) {
+			throw new RuntimeException("Error getting scannable with name: " + scannableName, e);
 		}
-		
-		return getNexusDevices(scannables, scanInfo);
 	}
 	
 	/**

@@ -1,17 +1,24 @@
 package org.eclipse.scanning.sequencer;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.legacy.ILegacyDeviceSupport;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
@@ -77,7 +84,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		getBean().setPreviousStatus(getBean().getStatus());
 		getBean().setStatus(Status.QUEUED);
 		
-		positioner = scanningService.createPositioner();
+		positioner = runnableDeviceService.createPositioner();
 		if (model.getDetectors()!=null) {
 			
 			// Make sure all devices report the same scan id
@@ -93,21 +100,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			writers = LevelRunner.createEmptyRunner();
 		}
 		
-		// tell each scannable whether it is a metadata scannable or not
-		// TODO should this be done in NexusScanFileBuilder?
-		List<String> scannableNames = model.getPositionIterable().iterator().next().getNames();
-		for (String scannableName : scannableNames) {
-			IScannable<?> scannable = deviceService.getScannable(scannableName);
-			if (scannable == null) {
-				throw new IllegalArgumentException("No such scannable: " + scannableName);
-			}
-			scannable.setMetadataScannable(false);
-		}
-		if (model.getMetadataScannables() != null) {
-			for (IScannable<?> metadataScannable : model.getMetadataScannables()) {
-				metadataScannable.setMetadataScannable(true);
-			}
-		}
+		// add legacy metadata scannables and 
+		// tell each scannable whether or not it is a metadata scannable in this scan
+		setMetadataScannables(model);
 		
 		// create the nexus file, if appropriate
 		try {
@@ -117,6 +112,78 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		}
 		
 		setDeviceState(DeviceState.READY); // Notify 
+	}
+
+	/**
+	 * Configures the scannables as metadata scannables or not as appropriate.
+	 * Additionally augments the set of metadata scannables in the model with any scannables from
+	 * the legacy spring configuration.
+	 * 
+	 * @param model
+	 * @throws ScanningException
+	 */
+	private void setMetadataScannables(ScanModel model) throws ScanningException {
+		// TODO: does this belong in NexusScanFileBuilder? It's clogging up this class
+		// and only NexusScanFileBuilder needs to know about metadata scannables
+		
+		// use the first position to get the names of the scannables in the scan
+		// set these as non-metadata-scannables
+		List<String> scannableNames = model.getPositionIterable().iterator().next().getNames();
+		for (String scannableName : scannableNames) {
+			IScannable<?> scannable = connectorService.getScannable(scannableName);
+			if (scannable == null) {
+				throw new IllegalArgumentException("No such scannable: " + scannableName);
+			}
+			scannable.setMetadataScannable(false);
+		}
+		
+		// build up the list of all metadata scannables
+		Set<String> metadataScannableNames = new HashSet<>();
+		
+		// add all metadata scannables in the model
+		metadataScannableNames.addAll(
+				model.getMetadataScannables().stream().map(m -> m.getName()).collect(
+						Collectors.toSet()));
+		
+		ILegacyDeviceSupport legacyDeviceSupport = getConnectorService().getLegacyDeviceSupport();
+
+		// add the metadata scannables from the legacy device support and use it to
+		// add prerequisites of any scannables in the scan
+		if (legacyDeviceSupport != null) {
+			// add the metadata scannables
+			metadataScannableNames.addAll(legacyDeviceSupport.getMetadataScannableNames());
+			
+			// the set of scannable names to check for dependencies
+			Set<String> scannableNamesToCheck = new HashSet<>();
+			scannableNamesToCheck.addAll(metadataScannableNames);
+			scannableNamesToCheck.addAll(scannableNames);
+			do {
+				// check the given set of scannable names for dependencies
+				// each iteration checks the scannable names added in the previous one
+				Set<String> requiredScannables = scannableNamesToCheck.stream().map(
+						deviceName -> legacyDeviceSupport.getLegacyDeviceConfig(deviceName)).
+						filter(Objects::nonNull).
+						flatMap(config -> config.getRequiredScannableNames().stream()).
+						filter(scannableName -> !metadataScannableNames.contains(scannableName)).
+						collect(Collectors.toSet());
+				metadataScannableNames.addAll(requiredScannables);
+				scannableNamesToCheck = requiredScannables;
+			} while (!scannableNamesToCheck.isEmpty());
+		}
+		
+		// remove any scannable names in the scan from the list of metadata scannables
+		metadataScannableNames.removeAll(scannableNames);
+		
+		// get the metadata scannables for the given names
+		IDeviceConnectorService deviceConnectorService = getConnectorService();
+		List<IScannable<?>> metadataScannables = new ArrayList<>(metadataScannableNames.size());
+		for (String scannableName : metadataScannableNames) {
+			IScannable<?> metadataScannable = deviceConnectorService.getScannable(scannableName);
+			metadataScannable.setMetadataScannable(true);
+			metadataScannables.add(metadataScannable);
+		}
+		
+		model.setMetadataScannables(metadataScannables);
 	}
 
 	/**
@@ -133,7 +200,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			return false; // nothing wired, don't write a nexus file 
 		}
 		
-		NexusScanFileBuilder fileBuilder = new NexusScanFileBuilder(getDeviceService());
+		NexusScanFileBuilder fileBuilder = new NexusScanFileBuilder(getConnectorService());
 		nexusScanFile = fileBuilder.createNexusFile(model);
     	positioner.addPositionListener(fileBuilder.getScanPointsWriter());
 		

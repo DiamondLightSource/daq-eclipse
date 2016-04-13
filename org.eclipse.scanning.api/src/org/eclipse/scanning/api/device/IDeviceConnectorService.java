@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.device;
 import java.util.List;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.legacy.ILegacyDeviceSupport;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
@@ -40,11 +41,19 @@ public interface IDeviceConnectorService {
 	List<String> getScannableNames() throws ScanningException;
 
 	/**
-	 * Get a scannable by name
-	 * @param name
-	 * @return
-	 * @throws ScanningException
+	 * Get a scannable by name.
+	 * @param name name of scannable to find
+	 * @return scannable, never <code>null</code>
+	 * @throws ScanningException if no scannable with the given name could be found
 	 */
 	<T> IScannable<T> getScannable(String name) throws ScanningException;
+	
+	/**
+	 * Returns the {@link ILegacyDeviceSupport}. This provides a place for GDA9 to access
+	 * legacy spring configuration settings for GDA8 scannables.
+	 * May be <code>null</code> if legacy devices are not supported
+	 * @return legacy device support
+	 */
+	ILegacyDeviceSupport getLegacyDeviceSupport();
 
 }

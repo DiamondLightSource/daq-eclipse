@@ -41,7 +41,7 @@ import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -60,14 +60,14 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 import org.junit.Test;
 
 public class AttributePluginTest {
 
-	protected IDeviceService              dservice;
+	protected IRunnableDeviceService              dservice;
 	protected IDeviceConnectorService     connector;
 	protected IPointGeneratorService      gservice;
 	protected IEventService               eservice;
@@ -75,12 +75,12 @@ public class AttributePluginTest {
 	private INexusFileFactory             fileFactory;
 	
 	@Before
-	public void setup() throws ScanningException {
+	public void before() throws ScanningException {
 		
 		fileFactory = new NexusFileFactoryHDF5();		
 		
 		connector = new MockScannableConnector();
-		dservice  = new DeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		dservice  = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
 		
 		MandelbrotModel model = new MandelbrotModel();

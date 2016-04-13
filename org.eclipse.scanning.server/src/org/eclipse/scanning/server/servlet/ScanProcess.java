@@ -7,9 +7,9 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -54,7 +54,7 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		
 		if (bean.getScanRequest().getStart()!=null || bean.getScanRequest().getEnd()!=null) {
 			try {
-				this.positioner = Services.getScanService().createPositioner();
+				this.positioner = Services.getRunnableDeviceService().createPositioner();
 			} catch (ScanningException e) {
 				throw new EventException(e);
 			}
@@ -141,15 +141,16 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		if (req==null) throw new ScanningException("There must be a scan request to run a new scan!");
 		
 		try {
-			final ScanModel smodel = new ScanModel();
-			smodel.setPositionIterable(getPositionIterable(req));
-			configureBean(smodel, bean);
-			smodel.setDetectors(getDetectors(bean, req.getDetectors()));
-			smodel.setMonitors(getScannables(req.getMonitorNames()));
-			smodel.setMetadataScannables(getScannables(req.getMetadataScannableNames()));
-			smodel.setBean(bean);
+			final ScanModel scanModel = new ScanModel();
+			scanModel.setPositionIterable(getPositionIterable(req));
+			configureBean(scanModel, bean);
+			scanModel.setDetectors(getDetectors(bean, req.getDetectors()));
+			scanModel.setMonitors(getScannables(req.getMonitorNames()));
+			scanModel.setMetadataScannables(getScannables(req.getMetadataScannableNames()));
+			scanModel.setBean(bean);
 			
-			return (IPausableDevice<ScanModel>)Services.getScanService().createRunnableDevice(smodel, publisher);
+			return (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(
+					scanModel, publisher);
 			
 		} catch (Exception e) {
 			bean.setStatus(Status.FAILED);
@@ -225,7 +226,7 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		try {
 			final List<IRunnableDevice<?>> ret = new ArrayList<>(3);
 			
-			final IDeviceService service = Services.getScanService();
+			final IRunnableDeviceService service = Services.getRunnableDeviceService();
 			for (String name : detectors.keySet()) {
 				Object dmodel = detectors.get(name);
 				IRunnableDevice<Object> detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
@@ -252,7 +253,7 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			throw new EventException(ne);
 		}
 	}
-
+	
 	private void broadcast(ScanBean bean) throws EventException {
 		if (publisher!=null && publisher.isAlive()) {
 			publisher.broadcast(bean);

@@ -44,7 +44,7 @@ import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -65,14 +65,14 @@ import org.eclipse.scanning.api.scan.models.ScanMetadata.MetadataType;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ScanMetadataPluginTest {
 	
-	protected IDeviceService              dservice;
+	protected IRunnableDeviceService              dservice;
 	protected IDeviceConnectorService     connector;
 	protected IPointGeneratorService      gservice;
 	protected IEventService               eservice;
@@ -80,18 +80,18 @@ public class ScanMetadataPluginTest {
 	private INexusFileFactory             fileFactory;
 	
 	@Before
-	public void setup() throws ScanningException {
+	public void before() throws ScanningException {
 		
 		fileFactory = new NexusFileFactoryHDF5();		
 		
 		connector = new MockScannableConnector();
-		dservice  = new DeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		dservice  = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
 		
 		MandelbrotModel model = new MandelbrotModel();
 		model.setName("mandelbrot");
-		model.setxName("xNex");
-		model.setyName("yNex");
+		model.setRealAxisName("xNex");
+		model.setImaginaryAxisName("yNex");
 		
 		detector = (IWritableDetector<MandelbrotModel>)dservice.createRunnableDevice(model);
 		assertNotNull(detector);
@@ -141,10 +141,10 @@ public class ScanMetadataPluginTest {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
-		gmodel.setxName("xNex");
-		gmodel.setColumns(size[size.length-1]);
-		gmodel.setyName("yNex");
-		gmodel.setRows(size[size.length-2]);
+		gmodel.setFastAxisName("xNex");
+		gmodel.setFastAxisPoints(size[size.length-1]);
+		gmodel.setSlowAxisName("yNex");
+		gmodel.setSlowAxisPoints(size[size.length-2]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
 		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);

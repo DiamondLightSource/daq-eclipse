@@ -3,13 +3,12 @@ package org.eclipse.scanning.test.scan.real;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.EventException;
@@ -29,9 +28,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Test;
 
 /**
@@ -46,7 +43,7 @@ public class ScanExecutionTest {
 	
 	private static IEventService     eventService;
 	private static IPointGeneratorService generatorService;
-	private static IDeviceService  scanService;
+	private static IRunnableDeviceService  runnableDeviceService;
 	private static IDeviceConnectorService connector;
 	private static IMalcolmService   malcService;
 	
@@ -90,7 +87,7 @@ public class ScanExecutionTest {
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setExposureTime(0.1);
 		dmodel.setName("swmr");
-		IWritableDetector<?> detector = (IWritableDetector<?>) scanService.createRunnableDevice(dmodel);
+		IWritableDetector<?> detector = (IWritableDetector<?>) runnableDeviceService.createRunnableDevice(dmodel);
 		assertNotNull(detector);
 		
 		detector.addRunListener(new IRunListener.Stub() {
@@ -143,7 +140,7 @@ public class ScanExecutionTest {
 		System.out.println("File writing to "+smodel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = scanService.createRunnableDevice(smodel, null);
+		IRunnableDevice<ScanModel> scanner = runnableDeviceService.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
@@ -176,12 +173,12 @@ public class ScanExecutionTest {
 		ScanExecutionTest.generatorService = generatorService;
 	}
 
-	public static IDeviceService getScanService() {
-		return scanService;
+	public static IRunnableDeviceService getRunnableDeviceService() {
+		return runnableDeviceService;
 	}
 
-	public static void setScanService(IDeviceService scanService) {
-		ScanExecutionTest.scanService = scanService;
+	public static void setRunnableDeviceService(IRunnableDeviceService scanService) {
+		ScanExecutionTest.runnableDeviceService = scanService;
 	}
 
 	public static IMalcolmService getMalcService() {
@@ -200,7 +197,7 @@ public class ScanExecutionTest {
 	public void checkServices() throws Exception {
 		assertNotNull(eventService);
 		assertNotNull(generatorService);
-		assertNotNull(scanService);
+		assertNotNull(runnableDeviceService);
 		assertNotNull(connector);
 		assertNotNull(malcService);
 	}

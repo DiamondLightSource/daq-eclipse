@@ -2,17 +2,17 @@ package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 
 public class ScanPluginTest extends AbstractScanTest {
 	
-	private static IDeviceService  scanningService;
+	private static IRunnableDeviceService  scanningService;
 	private static IPointGeneratorService generatorService;
 	private static IEventService     eventService;
 
@@ -35,16 +35,16 @@ public class ScanPluginTest extends AbstractScanTest {
 		assertNotNull(generatorService);
 		assertNotNull(eventService);
 		
-		if (dservice instanceof DeviceServiceImpl) {
-			((DeviceServiceImpl)dservice).setDeviceService(connector);
+		if (dservice instanceof RunnableDeviceServiceImpl) {
+			((RunnableDeviceServiceImpl)dservice).setDeviceConnectorService(connector);
 		}
 	}
 
-	public static IDeviceService getScanningService() {
+	public static IRunnableDeviceService getScanningService() {
 		return scanningService;
 	}
 
-	public static void setScanningService(IDeviceService scanningService) {
+	public static void setScanningService(IRunnableDeviceService scanningService) {
 		ScanPluginTest.scanningService = scanningService;
 	}
 
