@@ -89,7 +89,10 @@ def scan_request(path=None, mon=None, det=None):
 
     See the mscan() docstring for usage.
     """
-    assert path is not None
+    try:
+        assert path is not None
+    except AssertionError:
+        raise ValueError('Scan request must have a scan path.')
 
     # The effect of the following three lines is to make square brackets
     # optional when calling this function with length-1 lists. I.e. we can do
@@ -121,7 +124,6 @@ def scan_request(path=None, mon=None, det=None):
                                       'detectors': detector_map})
 
 
-
 # Scan paths
 # ----------
 
@@ -133,7 +135,11 @@ def step(axis=None, start=None, stop=None, step=None):
     >>> step(axis=my_scannable, start=0, stop=10, step=1)
     >>> step(my_scannable, 0, 10, 1)
     """
-    assert None not in (axis, start, stop, step)
+    try:
+        assert None not in (axis, start, stop, step)
+    except (TypeError, ValueError):
+        raise ValueError(
+            '`axis`, `start`, `stop` and `step` must be provided.')
 
     # For the first argument, users can pass either a Scannable object
     # or a string. IScanPathModels are only interested in the string (i.e.
@@ -175,14 +181,32 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
     as the union of the individual ROIs. E.g.:
     >>> grid(..., roi=[circ((0, 1), 1.5), rect((-1, -1), (0, 0), 0)])
     """
-    assert None not in (axes, origin, size)
+    try:
+        assert None not in (axes, origin, size)
+    except AssertionError:
+        raise ValueError(
+            '`axes`, `origin` and `size` must be provided to grid().')
 
-    # Assert that exactly one of count, step is None.
-    assert len(filter(lambda arg: arg is None, (count, step))) == 1
+    try:
+        assert len(filter(lambda arg: arg is None, (count, step))) == 1
+    except AssertionError:
+        raise ValueError(
+            'Either `count` or `step` must be provided to to grid().')
 
-    (xName, yName) = map(_stringify, axes)
-    (xStart, yStart) = origin
-    (width, height) = size
+    try:
+        (xName, yName) = map(_stringify, axes)
+    except (TypeError, ValueError):
+        raise ValueError('`axes` must be a pair of scannables (x, y).')
+
+    try:
+        (xStart, yStart) = origin
+    except (TypeError, ValueError):
+        raise ValueError('`origin` must be a pair of values (x0, y0).')
+
+    try:
+        (width, height) = size
+    except (TypeError, ValueError):
+        raise ValueError('`size` must be a pair of values (w, h).')
 
     bbox = _instantiate(BoundingBox,
                         {'fastAxisStart': xStart,
@@ -191,7 +215,10 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
                          'slowAxisLength': height})
 
     if count is not None:
-        (rows, cols) = count
+        try:
+            (rows, cols) = count
+        except (TypeError, ValueError):
+            raise ValueError('`count` must be a pair of integers (r, c).')
 
         model = _instantiate(
                     GridModel,
@@ -203,7 +230,10 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
                      'boundingBox': bbox})
 
     else:
-        (xStep, yStep) = step
+        try:
+            (xStep, yStep) = step
+        except (TypeError, ValueError):
+            raise ValueError('`step` must be a pair of numbers (dx, dy).')
 
         model = _instantiate(
                     RasterModel,
@@ -224,17 +254,29 @@ def line(origin=None, length=None, angle=None, count=None, step=None):
     """Define a line segment scan path to be passed to mscan().
 
     Required keyword arguments:
-    * origin: origin of line segment
+    * origin: origin of line segment (x0, y0)
     * length: length of line segment
     * angle: angle of line segment, CCW from vec(1, 0), specified in radians
     - One of:
       * count: a number of points, equally spaced, along the line segment
       * step: a distance between points along the line segment
     """
-    assert None not in (origin, length, angle)
-    assert len(filter(lambda arg: arg is None, (count, step))) == 1
+    try:
+        assert None not in (origin, length, angle)
+    except (TypeError, ValueError):
+        raise ValueError(
+            '`origin`, `length` and `angle` must be provided to line().')
+    try:
+        assert len(filter(lambda arg: arg is None, (count, step))) == 1
+    except AssertionError:
+        raise ValueError(
+            'Either `count` or `step` must be provided to line().')
 
-    (xStart, yStart) = origin
+    try:
+        (xStart, yStart) = origin
+    except (TypeError, ValueError):
+        raise ValueError('`origin` must be a pair of values (x0, y0).')
+
     roi = None
 
     bline = _instantiate(BoundingLine,
@@ -265,14 +307,17 @@ def array(axis=None, values=None):
     * axis: a scannable
     * values: a list of numerical values for the scannable to take
     """
-    # We have to manually call ArrayModel.setPositions,
-    # as it takes a (Double... positions) argument.
-    # This is not ideal... TODO
+    try:
+        assert None not in (axis, values)
+    except AssertionError:
+        raise ValueError('`axis` and `values` must be provided to array().')
 
     axis = _stringify(axis)
 
     roi = None
 
+    # We have to manually call ArrayModel.setPositions,
+    # as it takes a (Double... positions) argument.
     amodel = ArrayModel()
     amodel.setName(axis)
     amodel.setPositions(*values)
@@ -291,6 +336,11 @@ def val(axis=None, value=None):
     >>> # Step x from 0 to 10, moving y to 5 after each x movement.
     >>> mscan([step(x, 0, 10, 1), val(y, 5)], ...)
     """
+    try:
+        assert None not in (axis, value)
+    except AssertionError:
+        raise ValueError('`axis` and `value` must be provided to val().')
+
     return array(axis, [value])
 
 
@@ -306,10 +356,20 @@ def point(x, y):
 
 def circ(origin=None, radius=None):
     """Define a circular region of interest (ROI) to be passed to grid().
-    """
-    assert None not in (origin, radius)
 
-    (x, y) = origin
+    For instance:
+    >>> circ(origin=(0, 1), radius=3)
+    """
+    try:
+        assert None not in (origin, radius)
+    except AssertionError:
+        raise ValueError(
+            '`origin` and `radius` must be provided to circ().')
+
+    try:
+        (x, y) = origin
+    except (TypeError, ValueError):
+        raise ValueError('`origin` must be a pair of values (x0, y0).')
 
     return CircularROI(radius, x, y)
 
@@ -335,12 +395,24 @@ def rect(origin=None, size=None, angle=0):
     For instance:
     >>> rect((1, 2), (5, 4), 0.1)
 
-    Angles are specified in radians here.
+    Angles are specified in radians here. If no angle is passed, the angle is
+    taken as 0.
     """
-    assert None not in (origin, size, angle)
+    try:
+        assert None not in (origin, size)
+    except AssertionError:
+        raise ValueError(
+            '`origin` and `size` must be provided to rect().')
 
-    (xStart, yStart) = origin
-    (width, height) = size
+    try:
+        (xStart, yStart) = origin
+    except (TypeError, ValueError):
+        raise ValueError('`origin` must be a pair of values (x0, y0).')
+
+    try:
+        (width, height) = size
+    except (TypeError, ValueError):
+        raise ValueError('`size` must be a pair of values (w, h).')
 
     return RectangularROI(xStart, yStart, width, height, angle)
 
