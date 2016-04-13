@@ -40,6 +40,7 @@ import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.command.Interpreter;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
@@ -66,7 +67,9 @@ public class CommandTest {
 
 	String brokerUri = "vm://localhost?broker.persistent=false";
 
-	private ScanRequest<IROI> interpret(String command) throws PyException, InterruptedException, EventException, URISyntaxException, IOException {
+	private ScanRequest<IROI> interpret(String command)
+			throws PyException, InterruptedException, EventException,
+			URISyntaxException, IOException, ScanningException {
 
 		SynchronousQueue<ScanRequest<IROI>> queue = new SynchronousQueue<>();
 

@@ -329,8 +329,9 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		return (A)attributes.get(attributeName);
 	}
 
-	public DeviceInformation<T> getDeviceInformation() {
+	public DeviceInformation<T> getDeviceInformation() throws ScanningException {
 		deviceInformation.setModel(getModel());
+		deviceInformation.setState(getDeviceState());
 		return deviceInformation;
 	}
 

@@ -60,9 +60,10 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	private ILazyWriteableDataset spectrumData;
 	private ILazyWriteableDataset valueData;
 
-	public MandelbrotDetector() throws IOException {
+	public MandelbrotDetector() throws IOException, ScanningException {
 		super();
 		this.model = new MandelbrotModel();
+		setDeviceState(DeviceState.IDLE);
 	}
 
 	@Override

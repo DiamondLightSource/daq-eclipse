@@ -35,9 +35,4 @@ Example spring file to configure the various scanning services
        <property name="responseTopic"   value="org.eclipse.scanning.device.responseTopic"   />
     </bean>
 
-    <bean id="configurer" class="org.eclipse.scanning.server.servlet.ConfigureServlet" init-method="connect">
-       <property name="broker"   value="${org.eclipse.scanning.broker.uri}" />
-       <property name="topic" value="org.eclipse.scanning.server.servlet.configure" />
-    </bean>
-
 </beans>
