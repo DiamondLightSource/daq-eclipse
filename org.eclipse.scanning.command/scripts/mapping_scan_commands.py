@@ -1,17 +1,14 @@
-# coding=utf-8
-# (utf-8 mostly just so we can put ellipses in docstrings.)
-
 """A friendly interface to mapping scans.
 
 The most important function here is mscan(), which collates information into a
-ScanRequest and submits it to a queue for attention of the GDA server. This is
-the only function with side effects in this module.
+ScanRequest and submits it to a queue for attention of the GDA server.
 
 Users who want to create a ScanRequest without submitting it to GDA can use the
-pure function scan_request(), whose signature is similar to mscan().
+pure function scan_request(), whose signature is similar to mscan(). The scan
+request object can later be submitted to the GDA server with submit().
 
 The following pure functions create scan paths which may be passed to mscan():
-grid(), step(), line(), array(), point().
+grid(), step(), line(), array(), point(), val().
 
 There are also some pure functions which may be used to narrow the region of
 interest (ROI) when using grid(). They are: circ(), rect(), poly().
@@ -41,30 +38,34 @@ def mscan(path=None, mon=None, det=None, now=False, block=False,
 
     The above invokation says "please perform a mapping scan over my scannable
     from 0 to 10 with step size 1, collecting data from the 'Mandelbrot'
-    detector with an exposure of 0.1 at each step".
+    detector with an exposure time of 0.1 seconds at each step".
 
     You can specify multiple detectors with a list (square brackets):
-    >>> mscan(…, det=[mandelbrot(0.1), another_detector(0.4)])
+    >>> mscan(..., det=[mandelbrot(0.1), another_detector(0.4)])
+
+    You can specify a scannable or list of scannables to monitor:
+    >>> mscan(..., mon=my_scannable, ...)  # or:
+    >>> mscan(..., mon=[my_scannable, another_scannable], ...)
 
     You can embed one scan path inside another to create a compound scan path:
-    >>> mscan([step(s, 0, 10, 1), step(f, 1, 5, 1)], …)
+    >>> mscan([step(s, 0, 10, 1), step(f, 1, 5, 1)], ...)
 
     The above invokation says "for each point from 0 to 10 on my slow axis, do
     a scan from 1 to 5 on my fast axis". In fact, for the above case, a grid-
     type scan would be more idiomatic:
-    >>> mscan(grid(axes=(f, s), step=(1, 1), origin=(0, 0), size=(10, 4)), …)
+    >>> mscan(grid(axes=(f, s), step=(1, 1), origin=(0, 0), size=(10, 4)), ...)
 
     By default, this function will submit the scan request to a queue and
     return immediately. You may override this behaviour with the "now" and
     "block" keywords:
     >>> # Don't return until the scan is complete.
-    >>> mscan(…, …, block=True)
+    >>> mscan(..., ..., block=True)
 
     >>> # Skip the queue and run the scan now (but don't wait for completion).
-    >>> mscan(…, …, now=True)
+    >>> mscan(..., ..., now=True)
 
     >>> # Skip the queue and return once the scan is complete.
-    >>> mscan(…, …, now=True, block=True)
+    >>> mscan(..., ..., now=True, block=True)
     """
     submit(scan_request(path, mon, det), now, block, broker_uri)
 
@@ -92,9 +93,9 @@ def scan_request(path=None, mon=None, det=None):
 
     # The effect of the following three lines is to make square brackets
     # optional when calling this function with length-1 lists. I.e. we can do
-    # either scan([grid(…)], …) or scan(grid(…), …). Also _stringify the
-    # monitors so users can pass either a monitor name in quotes or a scannable
-    # object from the Jython namespace.
+    # either scan([grid(...)], ...) or scan(grid(...), ...). Also _stringify
+    # the monitors so users can pass either a monitor name in quotes or a
+    # scannable object from the Jython namespace.
     scan_paths = _listify(path)
     monitors = map(_stringify, _listify(mon))
     detectors = _listify(det)
@@ -172,7 +173,7 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
 
     If multiple regions of interest (ROI) are given, the composite ROI is taken
     as the union of the individual ROIs. E.g.:
-    >>> grid(…, …, …, …, …, roi=[circ((0, 1), 1.5), rect((-1, -1), (0, 0), 0])
+    >>> grid(..., roi=[circ((0, 1), 1.5), rect((-1, -1), (0, 0), 0)])
     """
     assert None not in (axes, origin, size)
 
@@ -288,7 +289,7 @@ def val(axis=None, value=None):
 
     For instance:
     >>> # Step x from 0 to 10, moving y to 5 after each x movement.
-    >>> mscan([step(x, 0, 10, 1), val(y, 5)], …)
+    >>> mscan([step(x, 0, 10, 1), val(y, 5)], ...)
     """
     return array(axis, [value])
 
@@ -365,7 +366,7 @@ def _instantiate(Bean, params):
             getattr(bean, setter)(params[p])
         except ValueError:
             raise ValueError(
-                "No setter for param '"+p+"' in '"+Bean.__name__+".")
+                "No setter for param '"+p+"' in "+Bean.__name__+".")
 
     return bean
 
