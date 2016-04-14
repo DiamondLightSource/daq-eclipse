@@ -22,8 +22,11 @@ public class AbstractRequesterTest {
 	protected IRequester<DeviceRequest> requester;
 	protected IResponder<DeviceRequest> responder;
 	
-	protected void connect(IEventService eservice) throws Exception {
+	protected void connect(IEventService eservice, IDeviceService dservice) throws Exception {
 		
+		this.eservice = eservice;
+		this.dservice = dservice;
+
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
 		final URI uri = new URI("vm://localhost?broker.persistent=false");
