@@ -623,7 +623,7 @@ public class StatusQueueView extends ViewPart {
 			return;
 		}
     
-		MessageDialog.openConfirm(getSite().getShell(), "Cannot Edit '"+bean.getName()+"'", "There are no edit handlers registered for '"+bean.getName()+"'\n\nPlease contact your support representative.");
+		MessageDialog.openConfirm(getSite().getShell(), "Cannot Edit '"+bean.getName()+"'", "There are no editers registered for '"+bean.getName()+"'\n\nPlease contact your support representative.");
 
 	}
 

@@ -1,19 +1,13 @@
 package org.eclipse.scanning.event;
 
 import java.net.URI;
-import java.util.Enumeration;
 import java.util.UUID;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
-import javax.jms.QueueBrowser;
-import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
-import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -112,6 +106,11 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 	@Override
 	public boolean remove(T bean) throws EventException {
         return remove(bean, getSubmitQueueName());
+	}
+
+	@Override
+	public boolean replace(T bean) throws EventException {
+        return replace(bean, getSubmitQueueName());
 	}
 
 	public String getUniqueId() {
