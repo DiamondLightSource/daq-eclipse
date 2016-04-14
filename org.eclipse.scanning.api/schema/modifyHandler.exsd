@@ -3,10 +3,10 @@
 <schema targetNamespace="org.eclipse.scanning.api" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.eclipse.scanning.api" id="resultsHandler" name="Open Results"/>
+         <meta.schema plugin="org.eclipse.scanning.api" id="modifyHandler" name="Modify Submitted Run"/>
       </appinfo>
       <documentation>
-         This extension point is for defining what will happen if a result is clicked on in the StatusQueueView.
+         A handler to say what is called when a bean in the queue is modified by the user.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="resultsHandler" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="modifyHandler" minOccurs="1" maxOccurs="unbounded"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,15 +47,15 @@
       </complexType>
    </element>
 
-   <element name="resultsHandler">
+   <element name="modifyHandler">
       <complexType>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  A handler which is a delegate for opening results of different bean types. This handler must be very cheap to construct.
+                  
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.scanning.api.ui.IResultHandler"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.scanning.api.ui.IModifyHandler"/>
                </appinfo>
             </annotation>
          </attribute>
