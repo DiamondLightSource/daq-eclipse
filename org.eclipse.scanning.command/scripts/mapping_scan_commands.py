@@ -14,8 +14,34 @@ There are also some pure functions which may be used to narrow the region of
 interest (ROI) when using grid(). They are: circ(), rect(), poly().
 """
 
+# To use these commands in the GDA Jython REPL:
+#
+# - To server/main/_common/jython_server_facade.xml in your <beamline>-config,
+#   add a gda.jython.ScriptProject with path:
+#   ${gda.install.git.loc}/daq-eclipse.git/org.eclipse.scanning.command/scripts
+#
+# - To localStation.py in your <beamline>-config, add the following line:
+#   from mapping_scan_commands import *
+#
+# - For each detector, write a function which fetches the currently active
+#   detector model, updates it with any given arguments, and returns it as the
+#   second element of a tuple whose first element is the detector name. E.g:
+#
+#   def mandelbrot(exposure_time):
+#       """Create mandelbrot detector settings to be passed to mscan().
+#       """
+#       model = _fetch_model_for_detector('mandelbrot_detector')
+#       model.setExposureTime(exposure_time)
+#       return ('mandelbrot_detector', model)
+#
+#   (_fetch_model_for_detector can be imported from the present module.)
+#
+#   Import this detector function into localStation.py. Then your users can do
+#   >>> mscan(step(x, 0, 10, 1), det=mandelbrot(0.1))
+#
+#   mscan() will send your updated detector model as part of the ScanRequest.
+
 from java.net import URI
-from org.eclipse.scanning.api.event.scan import ScanRequest
 from org.eclipse.dawnsci.analysis.dataset.roi import (
     CircularROI, RectangularROI, PolygonalROI, PolylineROI, PointROI)
 from org.eclipse.scanning.api.points.models import (
@@ -23,8 +49,10 @@ from org.eclipse.scanning.api.points.models import (
     OneDEqualSpacingModel, OneDStepModel, ArrayModel,
     BoundingBox, BoundingLine)
 from org.eclipse.scanning.server.servlet import Services
-from org.eclipse.scanning.api.event.scan import ScanBean
-from org.eclipse.scanning.api.event.IEventService import SUBMISSION_QUEUE
+from org.eclipse.scanning.api.event.scan import (
+    ScanBean, ScanRequest, DeviceRequest)
+from org.eclipse.scanning.api.event.IEventService import (
+    SUBMISSION_QUEUE, REQUEST_TOPIC, RESPONSE_TOPIC)
 
 
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
@@ -441,6 +469,17 @@ def _instantiate(Bean, params):
                 "No setter for param '"+p+"' in "+Bean.__name__+".")
 
     return bean
+
+
+def _fetch_model_for_detector(detector_name,
+                              broker_uri='tcp://localhost:61616'):
+    return Services.getEventService() \
+                   .createRequestor(
+                       URI(broker_uri), REQUEST_TOPIC, RESPONSE_TOPIC) \
+                   .post(_instantiate(
+                       DeviceRequest, {'deviceName': detector_name})) \
+                   .getDeviceInformation() \
+                   .getModel()
 
 
 # Miscellaneous functions
