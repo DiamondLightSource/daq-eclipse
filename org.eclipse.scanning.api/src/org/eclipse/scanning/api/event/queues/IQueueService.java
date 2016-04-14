@@ -13,21 +13,24 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 /**
- * The IQueueService manages a single top level job queue {@link IQueue} 
- * instance (containing beans extending {@link QueueBean}) and multiple active 
- * queue {@link IQueue} instances (containing beans extending the 
- * {@link QueueAtom} class).
+ * The IQueueService provides an interface for the unattended management of 
+ * {@link IEventService} queues.
  * 
- * Active queues are created on the fly each time a {@link SubTaskBean} is 
- * processed. This allows a number of tiers of active queues to be generated,
- * currently limited only by the maximum value of an int (2^32).
+ * Two types of queue may be created, started, stopped or destroyed:
+ * - job-queue - acting on {@link QueueBean}s
+ * - active-queue - acting on {@link QueueAtom}s
  * 
- * The IQueueService also provides methods to interact with the queues: 
- * submitting beans, viewing bean statuses, terminating beans,
- * viewing queue heartbeats and killing consumers. Queue interactions rely on
- * an implementation of {@link IEventService}.
+ * The job-queue is treated as a top-level queue - there should only be one 
+ * created per IQueueService instance. The active-queue is where the actual 
+ * experiment processing should be done; as such there can be any number of 
+ * these in parent-child relationships, with the job-queue at the root of the 
+ * tree.
  * 
- * TODO Add queue pausing and re-ordering.
+ * Methods are provided for interacting with these queues, to submit, re-order 
+ * or remove beans, to pause or terminate processes. The status of beans 
+ * within queues and queues themselves can also be monitored.
+ * 
+ * TODO Add queue pausing, re-ordering, removal.
  *  
  * @author Michael Wharmby
  *
