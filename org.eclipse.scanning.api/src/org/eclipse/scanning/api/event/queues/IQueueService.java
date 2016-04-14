@@ -7,6 +7,7 @@ import java.util.Map;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
+import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
@@ -181,6 +182,43 @@ public interface IQueueService {
 	 */
 	public void activeQueueTerminate(QueueAtom atom, String queueID) throws EventException;
 
+	/**
+	 * Get the {@link IProcessCreator} used as the runner for all 
+	 * active-queues.
+	 * 
+	 * @return Current {@link IProcessCreator} used to configure all 
+	 *         active-queues.
+	 */
+	public IProcessCreator<QueueBean> getJobQueueProcessor();
+	
+	/**
+	 * Change the {@link IProcessCreator} used as the runner for all 
+	 * active-queues.
+	 * 
+	 * @param procCreate {@link IProcessCreator} to be used to configure all 
+	 *        active-queues.
+	 * @throws EventException if trying to set after service started.
+	 */
+	public void setJobQueueProcessor(IProcessCreator<QueueBean> procCreate) throws EventException;
+	
+	/**
+	 * Get the {@link IProcessCreator} used as the runner for all 
+	 * active-queues.
+	 * 
+	 * @return Current {@link IProcessCreator} used to configure all 
+	 *         active-queues.
+	 */
+	public IProcessCreator<QueueAtom> getActiveQueueProcessor();
+	
+	/**
+	 * Change the {@link IProcessCreator} used as the runner for all 
+	 * active-queues.
+	 * 
+	 * @param procCreate {@link IProcessCreator} to be used to configure all 
+	 *        active-queues.
+	 * @throws EventException if trying to set after service started.
+	 */
+	public void setActiveQueueProcessor(IProcessCreator<QueueAtom> procCreate) throws EventException;
 	
 	/**
 	 * Get current state of all beans in the named queue.

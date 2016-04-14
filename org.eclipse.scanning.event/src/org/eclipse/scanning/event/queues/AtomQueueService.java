@@ -74,6 +74,8 @@ public class AtomQueueService implements IQueueService {
 	
 	private String queueRoot, heartbeatTopic, killTopic;
 	private int nrActiveQueues = 0;
+	private IProcessCreator<QueueAtom> activeQueueProcessor = new QueueProcessCreator<QueueAtom>(true);
+	private IProcessCreator<QueueBean> jobQueueProcessor = new QueueProcessCreator<QueueBean>(true);
 	
 	private IQueue<QueueBean> jobQueue;
 	private Map<String, IQueue<QueueAtom>> activeQueues = new HashMap<String, IQueue<QueueAtom>>();
@@ -119,7 +121,7 @@ public class AtomQueueService implements IQueueService {
 		IConsumer<QueueBean> cons = makeQueueConsumer(jqNames);
 		ISubscriber<IHeartbeatListener> mon = makeQueueSubscriber(heartbeatTopic);
 		jobQueue = new Queue<QueueBean>(jqID, jqNames, cons, mon);
-		jobQueue.setProcessor(new QueueProcessCreator<QueueBean>(true));
+		jobQueue.setProcessor(jobQueueProcessor);
 	}
 	
 	@Override
@@ -192,7 +194,7 @@ public class AtomQueueService implements IQueueService {
 		ISubscriber<IHeartbeatListener> mon = makeQueueSubscriber(heartbeatTopic);
 		IQueue<QueueAtom> activeQueue = new Queue<QueueAtom>(aqID, aqNames, cons, mon);
 		activeQueue.clearQueues();
-		activeQueue.setProcessor(new QueueProcessCreator<QueueAtom>(true));
+		activeQueue.setProcessor(activeQueueProcessor);
 		
 		//Add to registry and increment number of registered queues
 		activeQueues.put(aqID, activeQueue);
@@ -337,6 +339,30 @@ public class AtomQueueService implements IQueueService {
 		atomBean.setStatus(Status.REQUEST_TERMINATE);
 		terminator.broadcast(atomBean);
 		terminator.disconnect();
+	}
+
+	@Override
+	public IProcessCreator<QueueBean> getJobQueueProcessor() {
+		return jobQueueProcessor;
+	}
+
+	@Override
+	public void setJobQueueProcessor(IProcessCreator<QueueBean> proCreate)
+			throws EventException {
+		if (alive) throw new EventException("Cannot change job-queue processor when service started.");
+		jobQueueProcessor = proCreate;
+	}
+
+	@Override
+	public IProcessCreator<QueueAtom> getActiveQueueProcessor() {
+		return activeQueueProcessor;
+	}
+
+	@Override
+	public void setActiveQueueProcessor(IProcessCreator<QueueAtom> proCreate)
+			throws EventException {
+		if (alive) throw new EventException("Cannot change active-queue processor when service started.");
+		activeQueueProcessor = proCreate;
 	}
 
 	@Override

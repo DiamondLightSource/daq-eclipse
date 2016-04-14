@@ -30,6 +30,7 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
 import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
 import org.junit.After;
@@ -379,6 +380,20 @@ public class AbstractQueueServiceTest {
 			fail("Shouldn't be able to change Queue root whilst service started");
 		} catch (UnsupportedOperationException ex) {
 			//Expected
+		}
+		
+		//Change the jobQueueProcessor or the activeQueueProcessor
+		try {
+			qServ.setJobQueueProcessor(new AllBeanQueueProcessCreator<QueueBean>(false));
+			fail("Shouldn't be able to change the queue processor whilst service is started.");
+		} catch (EventException e) {
+			//expected
+		}
+		try {
+			qServ.setActiveQueueProcessor(new AllBeanQueueProcessCreator<QueueAtom>(false));
+			fail("Shouldn't be able to change the queue processor whilst service is started.");
+		} catch (EventException e) {
+			//expected
 		}
 	}
 	
