@@ -33,7 +33,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class RequesterPluginTest extends AbstractRequesterTest {
 	
     private static IEventService  eventService;
-    private static IRunnableDeviceService deviceService;
+    private static IRunnableDeviceService runnableDeviceService;
 
 	public static IEventService getEventService() {
 		return eventService;
@@ -43,17 +43,17 @@ public class RequesterPluginTest extends AbstractRequesterTest {
 		RequesterPluginTest.eventService = service;
 	}
 
-	public static IRunnableDeviceService getDeviceService() {
-		return deviceService;
+	public static IRunnableDeviceService getRunnableDeviceService() {
+		return runnableDeviceService;
 	}
 
-	public static void setDeviceService(IRunnableDeviceService deviceService) {
-		RequesterPluginTest.deviceService = deviceService;
+	public static void setRunnableDeviceService(IRunnableDeviceService deviceService) {
+		RequesterPluginTest.runnableDeviceService = deviceService;
 	}
 
 	@Before
 	public void createServices() throws Exception {
-		connect(eventService, deviceService);
+		connect(eventService, runnableDeviceService);
 	}
 	
 }

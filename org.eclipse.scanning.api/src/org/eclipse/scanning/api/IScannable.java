@@ -49,25 +49,6 @@ public interface IScannable<T> extends ILevel, INameable {
 	public void setPosition(T value, IPosition position) throws Exception;
 
 	/**
-	 * Called by the scan framework before a scan to set whether this scannable is a
-	 * metadata scannable in the scan. 
-	 * A metadata scannable only writes its data once, at the start of the scan.
-	 * The scannable may need this information to determine how to write its data.
-	 * 
-	 * @param isMetadataScannable <code>true</code> if this is a single write scannable,
-	 *     <code>false</code> otherwise
-	 */
-	public void setMetadataScannable(boolean isMetadataScannable);
-	
-	/**
-	 * Returns whether this scannable is a metadata scannable within this scan, that is it
-	 * should only write its position once.
-	 * @return <code>true</code> if this scannable is a metadata scannable in the current
-	 *     scan, <code>false</code> otherwise
-	 */
-	public boolean isMetadataScannable();
-
-	/**
 	 * The unit is the unit in which the setPosition and getPosition values are in.
 	 * @return String representation of unit which setPosition and getPosition are using.
 	 */

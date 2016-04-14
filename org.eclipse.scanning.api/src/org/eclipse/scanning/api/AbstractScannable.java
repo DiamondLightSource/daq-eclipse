@@ -86,15 +86,5 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	@Override
-	public void setMetadataScannable(boolean isMetadataScannable) {
-		this.isMetadataScannable = isMetadataScannable;
-	}
-	
-	@Override
-	public boolean isMetadataScannable() {
-		return isMetadataScannable;
-	}
 	
 }

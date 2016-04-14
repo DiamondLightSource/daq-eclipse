@@ -12,7 +12,7 @@ import org.junit.Before;
 
 public class ScanPluginTest extends AbstractScanTest {
 	
-	private static IRunnableDeviceService  scanningService;
+	private static IRunnableDeviceService  runnableDeviceService;
 	private static IPointGeneratorService generatorService;
 	private static IEventService     eventService;
 
@@ -27,11 +27,11 @@ public class ScanPluginTest extends AbstractScanTest {
 	@Before
 	public void setup() throws ScanningException {
 		connector = new MockScannableConnector();
-		dservice  = ScanPluginTest.scanningService;
+		dservice  = ScanPluginTest.runnableDeviceService;
 		gservice  = ScanPluginTest.generatorService;
 		eservice  = ScanPluginTest.eventService;
 		
-		assertNotNull(scanningService);
+		assertNotNull(runnableDeviceService);
 		assertNotNull(generatorService);
 		assertNotNull(eventService);
 		
@@ -40,12 +40,12 @@ public class ScanPluginTest extends AbstractScanTest {
 		}
 	}
 
-	public static IRunnableDeviceService getScanningService() {
-		return scanningService;
+	public static IRunnableDeviceService getRunnableDeviceService() {
+		return runnableDeviceService;
 	}
 
-	public static void setScanningService(IRunnableDeviceService scanningService) {
-		ScanPluginTest.scanningService = scanningService;
+	public static void setRunnableDeviceService(IRunnableDeviceService scanningService) {
+		ScanPluginTest.runnableDeviceService = scanningService;
 	}
 
 	public static IPointGeneratorService getGeneratorService() {

@@ -42,7 +42,7 @@ public class MoveAtomProcessor implements IQueueProcessor {
 	public synchronized <T extends Queueable> IConsumerProcess<T> makeProcessWithScanServ(T bean,
 			IPublisher<T> publisher, boolean blocking, IRunnableDeviceService scanServ)  throws EventException {
 		MoveAtomProcess<T> moveProc = new MoveAtomProcess<T>(bean, publisher, blocking);
-		moveProc.setScanService(scanServ);
+		moveProc.setRunnableDeviceService(scanServ);
 		return moveProc;
 	}
 	
@@ -68,7 +68,7 @@ public class MoveAtomProcessor implements IQueueProcessor {
 		 * For use in testing! 
 		 * @param evServ - class implementing IEventService
 		 */
-		public synchronized void setScanService(IRunnableDeviceService scanServ) {
+		public synchronized void setRunnableDeviceService(IRunnableDeviceService scanServ) {
 			scanService = scanServ;
 		}
 

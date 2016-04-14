@@ -115,7 +115,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	}
 
 	/**
-	 * Configures the scannables as metadata scannables or not as appropriate.
 	 * Additionally augments the set of metadata scannables in the model with any scannables from
 	 * the legacy spring configuration.
 	 * 
@@ -127,23 +126,14 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		// and only NexusScanFileBuilder needs to know about metadata scannables
 		
 		// use the first position to get the names of the scannables in the scan
-		// set these as non-metadata-scannables
 		List<String> scannableNames = model.getPositionIterable().iterator().next().getNames();
-		for (String scannableName : scannableNames) {
-			IScannable<?> scannable = connectorService.getScannable(scannableName);
-			if (scannable == null) {
-				throw new IllegalArgumentException("No such scannable: " + scannableName);
-			}
-			scannable.setMetadataScannable(false);
-		}
 		
-		// build up the list of all metadata scannables
+		// build up the set of all metadata scannables
 		Set<String> metadataScannableNames = new HashSet<>();
 		
-		// add all metadata scannables in the model
-		metadataScannableNames.addAll(
-				model.getMetadataScannables().stream().map(m -> m.getName()).collect(
-						Collectors.toSet()));
+		// add the metadata scannables in the model
+		metadataScannableNames.addAll(model.getMetadataScannables().stream().
+				map(m -> m.getName()).collect(Collectors.toSet()));
 		
 		ILegacyDeviceSupport legacyDeviceSupport = getConnectorService().getLegacyDeviceSupport();
 
@@ -179,7 +169,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		List<IScannable<?>> metadataScannables = new ArrayList<>(metadataScannableNames.size());
 		for (String scannableName : metadataScannableNames) {
 			IScannable<?> metadataScannable = deviceConnectorService.getScannable(scannableName);
-			metadataScannable.setMetadataScannable(true);
 			metadataScannables.add(metadataScannable);
 		}
 		
