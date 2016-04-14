@@ -317,13 +317,21 @@ def line(origin=None, length=None, angle=None, count=None, step=None):
         model = _instantiate(
                     OneDStepModel,
                     {'step': step,
-                     'boundingLine': _bline(xStart, yStart, length, angle)})
+                     'boundingLine': _instantiate(BoundingLine,
+                                                  {'xStart': xStart,
+                                                   'yStart': yStart,
+                                                   'length': length,
+                                                   'angle': angle})})
 
     else:
         model = _instantiate(
                     OneDEqualSpacingModel,
                     {'points': count,
-                     'boundingLine': _bline(xStart, yStart, length, angle)})
+                     'boundingLine': _instantiate(BoundingLine,
+                                                  {'xStart': xStart,
+                                                   'yStart': yStart,
+                                                   'length': length,
+                                                   'angle': angle})})
 
     return model, _listify(roi)
 
