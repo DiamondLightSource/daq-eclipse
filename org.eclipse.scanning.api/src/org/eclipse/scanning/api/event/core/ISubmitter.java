@@ -53,6 +53,20 @@ public interface ISubmitter<T> extends IQueueConnection<T> {
 	boolean remove(T bean) throws EventException;
     
 	/**
+	 * Tries to replace the bean from the submission queue if it is
+	 * still there. If the bean has been moved to the status set, 
+	 * it will not be removed 
+	 * 
+	 * A pause will automatically be done while the bean
+	 * is replace.
+	 * 
+	 * @param bean
+	 * @return
+	 * @throws EventException
+	 */
+	boolean replace(T bean) throws EventException;
+ 
+	/**
      * Unique id for the message.
      * @return
      */

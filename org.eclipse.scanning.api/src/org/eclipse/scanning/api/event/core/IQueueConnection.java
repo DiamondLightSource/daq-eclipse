@@ -104,4 +104,21 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 * @throws EventException
 	 */
 	boolean remove(T bean, String queueName) throws EventException;
+	
+	
+	/**
+	 * Tries to replace the bean from the submission queue if it is
+	 * still there. If the bean has been moved to the status set, 
+	 * it will not be replaced. 
+	 * 
+	 * A pause will automatically be done while the bean
+	 * is replaced.
+	 * 
+	 * @param bean
+	 * @param queueName
+	 * @return
+	 * @throws EventException
+	 */
+	boolean replace(T bean, String queueName) throws EventException;
+
 }

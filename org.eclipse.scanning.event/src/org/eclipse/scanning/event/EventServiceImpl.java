@@ -31,6 +31,7 @@ public class EventServiceImpl implements IEventService {
 	// For tests
 	public EventServiceImpl(IEventConnectorService serviceToUse) {
 		eventConnectorService = serviceToUse;
+		if (eventConnectorService==null) throw new NullPointerException("No '"+IEventConnectorService.class.getSimpleName()+"' was found!");
 	}
 
 	public static void setEventConnectorService(IEventConnectorService eventService) {

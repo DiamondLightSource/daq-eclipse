@@ -50,11 +50,15 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
+import org.eclipse.scanning.api.event.core.ConsumerConfiguration;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.AdministratorMessage;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.api.ui.IModifyHandler;
+import org.eclipse.scanning.api.ui.IRerunHandler;
+import org.eclipse.scanning.api.ui.IResultHandler;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 import org.eclipse.scanning.event.ui.dialog.PropertiesDialog;
@@ -121,7 +125,7 @@ public class StatusQueueView extends ViewPart {
 	private ISubscriber<IBeanListener<AdministratorMessage>> adminMonitor;
 	private ISubmitter<StatusBean>                           queueConnection;
 
-	private Action rerun, remove, up, down, pause;
+	private Action rerun, edit, remove, up, down, pause;
 	private IEventService service;
 	
 	public StatusQueueView() {
@@ -178,6 +182,7 @@ public class StatusQueueView extends ViewPart {
 		
 		boolean isSubmitted = bean.getStatus()==org.eclipse.scanning.api.event.status.Status.SUBMITTED;
 		up.setEnabled(isSubmitted);
+		edit.setEnabled(isSubmitted);
 		down.setEnabled(isSubmitted);
 		pause.setEnabled(bean.getStatus().isRunning()||bean.getStatus().isPaused());
 		pause.setChecked(bean.getStatus().isPaused());
@@ -360,11 +365,22 @@ public class StatusQueueView extends ViewPart {
 		toolMan.add(rerun);
 		menuMan.add(rerun);
 		dropDown.add(rerun);
+		
+		this.edit = new Action("Edit...", Activator.getDefault().getImageDescriptor("icons/edit.png")) {
+			public void run() {
+				editSelection();
+			}
+		};
+		edit.setEnabled(false);
+		toolMan.add(edit);
+		menuMan.add(edit);
+		dropDown.add(edit);
+
 
 		toolMan.add(new Separator());
 		menuMan.add(new Separator());
 		
-		final Action showAll = new Action("Show all reruns", IAction.AS_CHECK_BOX) {
+		final Action showAll = new Action("Show other users results", IAction.AS_CHECK_BOX) {
 			public void run() {
 				showEntireQueue = isChecked();
 				viewer.refresh();
@@ -516,6 +532,102 @@ public class StatusQueueView extends ViewPart {
 
 	}
 
+	/**
+	 * You can override this method to provide custom opening of
+	 * results if required.
+	 * 
+	 * @param bean
+	 */
+	protected void openResults(StatusBean bean) {
+		
+		if (bean == null) return;
+		
+		if (!bean.getStatus().isFinal()) {
+			boolean ok = MessageDialog.openQuestion(getSite().getShell(), "'"+bean.getName()+"' incomplete.", 
+					       "The run of '"+bean.getName()+"' has not completed.\n"+
+			               "Would you like to try to open the results anyway?");
+			if (!ok) return;
+		}
+		try {
+			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.resultsHandler");
+			if (c!=null) {
+				for (IConfigurationElement i : c) {
+					final IResultHandler handler = (IResultHandler)i.createExecutableExtension("class");
+					handler.init(service, createConsumerConfiguration());
+					if (handler.isHandled(bean)) {
+						boolean ok = handler.open(bean);
+						if (ok) return;
+					}
+				}
+			}
+		} catch (Exception ne) {
+			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot open "+bean.getRunDirectory()+" normally, will show directory instead.\n\nPlease contact your support representative.", 
+					new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage()));
+		}
+
+		openDirectory(bean);
+	}
+
+	private void openDirectory(StatusBean bean) {
+		try {
+			final IWorkbenchPage page = Util.getPage();
+			
+			final File fdir = new File(Util.getSanitizedPath(bean.getRunDirectory()));
+			if (!fdir.exists()){
+				MessageDialog.openConfirm(getSite().getShell(), "Directory Not There", "The directory '"+bean.getRunDirectory()+"' has been moved or deleted.\n\nPlease contact your support representative.");
+			    return;
+			}
+			
+			if (Util.isWindowsOS()) { // Open inside DAWN
+				final String         dir  = fdir.getAbsolutePath();		
+				IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(dir+"/fred.html");
+				final IEditorInput edInput = Util.getExternalFileStoreEditorInput(dir);
+				page.openEditor(edInput, desc.getId());
+				
+			} else { // Linux cannot be relied on to open the browser on a directory.
+				Util.browse(fdir);
+			}
+			
+		} catch (Exception e1) {
+			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot open "+bean.getRunDirectory()+".\n\nPlease contact your support representative.", 
+					new Status(IStatus.ERROR, Activator.PLUGIN_ID, e1.getMessage()));
+		}
+	}
+	
+	protected void editSelection() {
+		
+		final StatusBean bean = getSelection();
+		if (bean==null) return;
+
+		if (bean.getStatus()!=org.eclipse.scanning.api.event.status.Status.SUBMITTED) {
+			MessageDialog.openConfirm(getSite().getShell(), "Cannot Edit '"+bean.getName()+"'", "The run '"+bean.getName()+"' cannot be edited because it is not waiting to run.");
+		    return;
+		}
+		
+		try {
+			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.modifyHandler");
+			if (c!=null) {
+				for (IConfigurationElement i : c) {
+					final IModifyHandler handler = (IModifyHandler)i.createExecutableExtension("class");
+					handler.init(service, createConsumerConfiguration());
+					if (handler.isHandled(bean)) {
+						boolean ok = handler.modify(bean);
+						if (ok) return;
+					}
+				}
+			}
+		} catch (Exception ne) {
+			ne.printStackTrace();
+			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot modify "+bean.getRunDirectory()+" normally.\n\nPlease contact your support representative.", 
+					new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage()));
+			return;
+		}
+    
+		MessageDialog.openConfirm(getSite().getShell(), "Cannot Edit '"+bean.getName()+"'", "There are no editers registered for '"+bean.getName()+"'\n\nPlease contact your support representative.");
+
+	}
+
+
 	protected void rerunSelection() {
 		
 		final StatusBean bean = getSelection();
@@ -526,6 +638,7 @@ public class StatusQueueView extends ViewPart {
 			if (c!=null) {
 				for (IConfigurationElement i : c) {
 					final IRerunHandler handler = (IRerunHandler)i.createExecutableExtension("class");
+					handler.init(service, createConsumerConfiguration());
 					if (handler.isHandled(bean)) {
 						boolean ok = handler.run(bean);
 						if (ok) return;
@@ -541,6 +654,10 @@ public class StatusQueueView extends ViewPart {
     
 		// If we have not already handled this rerun, it is possible to call a generic one.
 		rerun(bean);
+	}
+
+	private ConsumerConfiguration createConsumerConfiguration() throws Exception {
+		return new ConsumerConfiguration(getUri(), getSubmissionQueueName(), getTopicName(), getQueueName());
 	}
 
 	private void rerun(StatusBean bean) {
@@ -857,60 +974,6 @@ public class StatusQueueView extends ViewPart {
         
         viewer.getTable().addMouseListener(mouseClick);
 
-	}
-
-	/**
-	 * You can override this method to provide custom opening of
-	 * results if required.
-	 * 
-	 * @param bean
-	 */
-	protected void openResults(StatusBean bean) {
-		
-		if (bean == null) return;
-		try {
-			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.event.ui.resultsOpenHandler");
-			if (c!=null) {
-				for (IConfigurationElement i : c) {
-					final IResultOpenHandler handler = (IResultOpenHandler)i.createExecutableExtension("class");
-					if (handler.isHandled(bean)) {
-						boolean ok = handler.open(bean);
-						if (ok) return;
-					}
-				}
-			}
-		} catch (Exception ne) {
-			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot open "+bean.getRunDirectory()+" normally, will show directory instead.\n\nPlease contact your support representative.", 
-					new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage()));
-		}
-
-		openDirectory(bean);
-	}
-
-	private void openDirectory(StatusBean bean) {
-		try {
-			final IWorkbenchPage page = Util.getPage();
-			
-			final File fdir = new File(Util.getSanitizedPath(bean.getRunDirectory()));
-			if (!fdir.exists()){
-				MessageDialog.openConfirm(getSite().getShell(), "Directory Not There", "The directory '"+bean.getRunDirectory()+"' has been moved or deleted.\n\nPlease contact your support representative.");
-			    return;
-			}
-			
-			if (Util.isWindowsOS()) { // Open inside DAWN
-				final String         dir  = fdir.getAbsolutePath();		
-				IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(dir+"/fred.html");
-				final IEditorInput edInput = Util.getExternalFileStoreEditorInput(dir);
-				page.openEditor(edInput, desc.getId());
-				
-			} else { // Linux cannot be relied on to open the browser on a directory.
-				Util.browse(fdir);
-			}
-			
-		} catch (Exception e1) {
-			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot open "+bean.getRunDirectory()+".\n\nPlease contact your support representative.", 
-					new Status(IStatus.ERROR, Activator.PLUGIN_ID, e1.getMessage()));
-		}
 	}
 
 	@Override

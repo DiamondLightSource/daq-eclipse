@@ -53,7 +53,7 @@ public class RequesterPluginTest extends AbstractRequesterTest {
 
 	@Before
 	public void createServices() throws Exception {
-		connect(eventService);
+		connect(eventService, deviceService);
 	}
 	
 }

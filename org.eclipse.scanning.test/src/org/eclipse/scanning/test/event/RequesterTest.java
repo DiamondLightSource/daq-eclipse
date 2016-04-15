@@ -55,7 +55,7 @@ public class RequesterTest extends AbstractRequesterTest {
 		Services.setScanService(dservice);
 		Services.setEventService(eservice);
 	
-		connect(eservice);
+		connect(eservice, dservice);
 	}
 	
 }
