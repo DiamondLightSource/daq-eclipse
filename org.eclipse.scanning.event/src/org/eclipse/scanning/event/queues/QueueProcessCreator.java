@@ -7,12 +7,17 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.event.queues.beans.MonitorAtom;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.beans.SubTaskBean;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
+import org.eclipse.scanning.event.queues.processors.AtomQueueProcessor;
+import org.eclipse.scanning.event.queues.processors.MonitorAtomProcessor;
+import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
+import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
 
 /**
  * QueueProcessCreator creates the class which processes a given atom/bean. 
@@ -39,7 +44,7 @@ public class QueueProcessCreator<T extends Queueable> implements IProcessCreator
 		processMap = new HashMap<String, IConsumerProcess<T>>();
 		processMap.put(MonitorAtom.class.getSimpleName(), new MonitorAtomProcessor<T>(atomBean, statusNotifier, blocking));
 		processMap.put(MoveAtom.class.getSimpleName(), new MoveAtomProcessor<T>(atomBean, statusNotifier, blocking));
-		processMap.put(ScanAtom.class.getSimpleName(), new ScanAtomProcessor<T>(atomBean, statusNotifier, blocking));
+//		processMap.put(ScanAtom.class.getSimpleName(), new ScanAtomProcessor<T>(atomBean, statusNotifier, blocking));
 		processMap.put(SubTaskBean.class.getSimpleName(), new AtomQueueProcessor<T>(atomBean, statusNotifier, blocking));
 		processMap.put(TaskBean.class.getSimpleName(), new AtomQueueProcessor<T>(atomBean, statusNotifier, blocking));
 		
