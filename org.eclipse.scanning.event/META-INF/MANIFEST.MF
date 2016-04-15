@@ -16,4 +16,5 @@ Import-Package: javax.jms,
 Export-Package: org.eclipse.scanning.event,
  org.eclipse.scanning.event.dry,
  org.eclipse.scanning.event.queues,
- org.eclipse.scanning.event.queues.beans
+ org.eclipse.scanning.event.queues.beans,
+ org.eclipse.scanning.event.queues.processors
