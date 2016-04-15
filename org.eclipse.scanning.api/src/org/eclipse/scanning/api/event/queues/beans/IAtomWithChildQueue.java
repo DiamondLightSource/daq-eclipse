@@ -4,6 +4,8 @@ package org.eclipse.scanning.api.event.queues.beans;
  * Interface allowing messages which are specific to the behaviour & operation
  * of the queue to be passed through the queue hierarchy.
  * 
+ * TODO Make IQueueable
+ * 
  * @author Michael Wharmby
  *
  */

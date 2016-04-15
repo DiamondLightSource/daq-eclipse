@@ -4,6 +4,8 @@ package org.eclipse.scanning.api.event.queues.beans;
  * Interface to enforce the composition rather than inheritance relationship 
  * of IAtomQueues within beans.
  * 
+ * TODO Make child of {@link IAtomWithChildQueue}
+ * 
  * @author Michael Wharmby
  *
  * @param <T> Class extending QueueAtom; this class will be held in the Queue
