@@ -3,33 +3,16 @@ package org.eclipse.scanning.test.command;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.SynchronousQueue;
+import java.util.Properties;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
-import org.eclipse.dawnsci.json.MarshallerService;
-import org.eclipse.scanning.api.device.DeviceResponse;
-import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
-import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.core.IResponder;
-import org.eclipse.scanning.api.event.core.IResponseCreator;
-import org.eclipse.scanning.api.event.core.IResponseProcess;
-import org.eclipse.scanning.api.event.core.ISubscriber;
-import org.eclipse.scanning.api.event.scan.ScanEvent;
-import org.eclipse.scanning.api.event.scan.DeviceInformation;
-import org.eclipse.scanning.api.event.scan.DeviceRequest;
-import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
@@ -40,102 +23,45 @@ import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.command.Interpreter;
-import org.eclipse.scanning.event.EventServiceImpl;
-import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
-import org.eclipse.scanning.server.servlet.ScanServlet;
-import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.python.core.PyException;
-
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.python.util.PythonInterpreter;
 
 
-public class CommandTest {
+public class ScanRequestCreationTest {
+	static PythonInterpreter pi;
 
-	// TODO: Separate this into ScanRequestCreationTest and SubmissionTest.
-	// TODO: Rename this to CommandPluginTest
-	// Note that selecting "Run" rather than "Debug" in Eclipse
-	// results in actually being able to see Python error messages.
+	static {
+		Properties postProperties = new Properties();
 
-	String brokerUri = "vm://localhost?broker.persistent=false";
+		// The following line fixes a Python import error seemingly arising
+		// from using Jython in an OSGI environment.
+		// See http://bugs.jython.org/issue2355 .
+		postProperties.put("python.import.site", "false");
 
-	private ScanRequest<IROI> interpret(String command)
-			throws PyException, InterruptedException, EventException,
-			URISyntaxException, IOException, ScanningException {
+		PythonInterpreter.initialize(System.getProperties(), postProperties, new String[0]);
+		pi = new PythonInterpreter();
 
-		SynchronousQueue<ScanRequest<IROI>> queue = new SynchronousQueue<>();
-
-		ScanServlet ss = new ScanServlet();
-		ss.setBroker(brokerUri);
-		ss.setSubmitQueue(IEventService.SUBMISSION_QUEUE);
-		ss.setStatusSet(IEventService.STATUS_SET);
-		ss.setStatusTopic(IEventService.STATUS_TOPIC);
-		ss.connect();
-
-		IEventService es = Services.getEventService();
-		ISubscriber<IScanListener> subscriber = es.createSubscriber(
-				new URI(brokerUri), IEventService.STATUS_TOPIC);
-
-		subscriber.addListener(new IScanListener() {
-			@Override
-			public void scanStateChanged(ScanEvent evt) {
-				try {
-					queue.put((ScanRequest<IROI>) evt.getBean().getScanRequest());
-				} catch (InterruptedException e) { }
-			}
-
-			@Override
-			public void scanEventPerformed(ScanEvent evt) { }
-		});
-
-		// Block copied from RequesterTest.java.
-		IDeviceService dservice = new DeviceServiceImpl(new MockScannableConnector());
-		MandelbrotDetector mandy = new MandelbrotDetector();
-		final DeviceInformation info = new DeviceInformation(); // This comes from extension point or spring in the real world.
-		info.setName("mandelbrot");
-		info.setLabel("Example Mandelbrot");
-		info.setDescription("Example mandelbrot device");
-		info.setId("org.eclipse.scanning.example.detector.mandelbrotDetector");
-		info.setIcon("org.eclipse.scanning.example/icon/mandelbrot.png");
-		mandy.setDeviceInformation(info);
-		((DeviceServiceImpl)dservice)._register("mandelbrot", mandy);
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
-		IEventService eservice = new EventServiceImpl(new ActivemqConnectorService());
-		final URI uri = new URI(brokerUri);
-		IResponder<DeviceRequest> responder = eservice.createResponder(uri, IEventService.REQUEST_TOPIC, IEventService.RESPONSE_TOPIC);
-		responder.setResponseCreator(new IResponseCreator<DeviceRequest>() {
-			@Override
-			public IResponseProcess<DeviceRequest> createResponder(DeviceRequest bean, IPublisher<DeviceRequest> statusNotifier) throws EventException {
-				return new DeviceResponse(dservice, bean, statusNotifier);
-			}
-		});
-
-		new Thread(new Interpreter(command) {
-			{
-				// Here we can put objects in the Python namespace for testing purposes.
-				// The given command will be interpreted in the context of the objects created here.
-				pi.set("my_scannable", new MockScannable("fred", 10));
-				pi.set("another_scannable", new MockScannable("bill", 3));
-				pi.exec("mandelbrot = lambda _: None");  // Blank detector function for now.
-			}
-		}).start();
-
-		return queue.take();
+		// FIXME: How to properly specify the path to the Python file?
+		// At the moment we use a hack relying on the fact that the
+		// JUnit working directory is org.eclipse.scanning.test/.
+		pi.exec("import sys");
+		pi.exec("sys.path.append('../org.eclipse.scanning.command/scripts/')");
+		pi.exec("from mapping_scan_commands import *");
+		pi.exec("from mapping_scan_commands import _instantiate");
+		pi.exec("from org.eclipse.scanning.example.detector import MandelbrotModel");
+		pi.set("my_scannable", new MockScannable("fred", 10));
+		pi.set("another_scannable", new MockScannable("bill", 3));
+		pi.exec("mandelbrot = lambda t: ('mandelbrot',"
+			+	"_instantiate(MandelbrotModel, {'exposureTime': t}))");
 	}
 
 	@Test
 	public void testGridCommandWithROI() throws Exception {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(                           "
+		pi.exec("sr =                             "
+			+	"scan_request(                    "
 			+	"    grid(                        "
 			+	"        axes=(my_scannable, 'y'),"  // Can use Scannable objects or strings.
 			+	"        count=(5, 6),            "
@@ -144,9 +70,9 @@ public class CommandTest {
 			+	"        roi=circ((4, 6), 5)      "
 			+	"    ),                           "
 			+	"    det=mandelbrot(0.1),         "
-			+	"    broker_uri='"+brokerUri+"',  "
-			+	")                                "
-			);
+			+	")                                ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		Collection<IScanPathModel> models = request.getModels();
 		assertEquals(1, models.size());  // I.e. this is not a compound scan.
@@ -190,14 +116,14 @@ public class CommandTest {
 
 	@Test
 	public void testStepCommandWithMonitors() throws Exception {
-
-		ScanRequest<IROI> request = interpret(
-				// Note the absence of quotes about my_scannable.
-				"mscan(step(my_scannable, -2, 5, 0.5),"
-			+	"      mon=['x', another_scannable],  "  // Monitor two scannables.
-			+	"      det=mandelbrot(0.1),           "
-			+	"      broker_uri='"+brokerUri+"')    "
-			);
+		pi.exec("sr =                               "
+			+	"scan_request(                      "
+			+	"    step(my_scannable, -2, 5, 0.5),"
+			+	"    mon=['x', another_scannable],  "  // Monitor two scannables.
+			+	"    det=mandelbrot(0.1),           "
+			+	")                                  ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = ((List<IScanPathModel>) request.getModels()).get(0);
 		assertEquals(StepModel.class, model.getClass());
@@ -217,9 +143,8 @@ public class CommandTest {
 
 	@Test
 	public void testRasterCommandWithROIs() throws Exception {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(                               "
+		pi.exec("sr =                                 "
+			+	"scan_request(                        "
 			+	"    grid(                            "
 			+	"        axes=('x', 'y'),             "
 			+	"        step=(0.5, 0.6),             "
@@ -232,9 +157,9 @@ public class CommandTest {
 			+	"        ]                            "
 			+	"    ),                               "
 			+	"    det=mandelbrot(0.1),             "
-			+	"    broker_uri='"+brokerUri+"',      "
-			+	")                                    "
-			);
+			+	")                                    ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(RasterModel.class, model.getClass());
@@ -261,12 +186,13 @@ public class CommandTest {
 
 	@Test
 	public void testArrayCommand() throws Exception {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(array('qty', [-3, 1, 1.5, 1e10]),"
-			+	"      det=mandelbrot(0.1),             "
-			+	"      broker_uri='"+brokerUri+"')     "
-			);
+		pi.exec("sr =                                 "
+			+	"scan_request(                        "
+			+	"    array('qty', [-3, 1, 1.5, 1e10]),"
+			+	"    det=mandelbrot(0.1),             "
+			+	")                                    ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(ArrayModel.class, model.getClass());
@@ -281,12 +207,13 @@ public class CommandTest {
 
 	@Test
 	public void testOneDEqualSpacingCommand() throws Exception {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(line(origin=(0, 4), length=10, angle=0.1, count=10),"
-			+	"      det=[mandelbrot(0.1)],                              "
-			+	"      broker_uri='"+brokerUri+"')                         "
-			);
+		pi.exec("sr =                                                    "
+			+	"scan_request(                                           "
+			+	"    line(origin=(0, 4), length=10, angle=0.1, count=10),"
+			+	"    det=[mandelbrot(0.1)],                              "
+			+	")                                                       ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(OneDEqualSpacingModel.class, model.getClass());
@@ -301,12 +228,13 @@ public class CommandTest {
 
 	@Test
 	public void testOneDStepCommand() throws Exception {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5),"
-			+	"      det=mandelbrot(0.1),                                   "
-			+	"      broker_uri='"+brokerUri+"')                            "
-			);
+		pi.exec("sr =                                                       "
+			+	"scan_request(                                              "
+			+	"    line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5),"
+			+	"    det=mandelbrot(0.1),                                   "
+			+	")                                                          ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(OneDStepModel.class, model.getClass());
@@ -321,10 +249,9 @@ public class CommandTest {
 
 	@Test
 	public void testSinglePointCommand() throws Exception {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(point(4, 5), mandelbrot(0.1), broker_uri='"+brokerUri+"')"
-			);
+		pi.exec("sr = scan_request(point(4, 5), det=mandelbrot(0.1))");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(SinglePointModel.class, model.getClass());
@@ -345,39 +272,45 @@ public class CommandTest {
 
 	@Test
 	public void testSquareBracketCombinations() throws Exception {
+		pi.exec("sr0 = scan_request(point(4, 5), det=mandelbrot(0.1))");
+		pi.exec("sr1 = scan_request([point(4, 5)], det=mandelbrot(0.1))");
+		pi.exec("sr2 = scan_request(point(4, 5), det=[mandelbrot(0.1)])");
+		pi.exec("sr3 = scan_request([point(4, 5)], det=[mandelbrot(0.1)])");
 
-		ScanRequest<IROI> request = interpret(
-				"mscan([point(4, 5)], mandelbrot(0.1), broker_uri='"+brokerUri+"')"
-			);
-		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
-		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request1 = pi.get("sr0", ScanRequest.class);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request2 = pi.get("sr1", ScanRequest.class);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request3 = pi.get("sr2", ScanRequest.class);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request4 = pi.get("sr3", ScanRequest.class);
 
-		request = interpret(
-				"mscan(point(4, 5), [mandelbrot(0.1)], broker_uri='"+brokerUri+"')"
-			);
-		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
-		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request1.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request1.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
-		request = interpret(
-				"mscan([point(4, 5)], [mandelbrot(0.1)], broker_uri='"+brokerUri+"')"
-			);
-		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
-		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request2.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request2.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+
+		assertEquals(4, ((SinglePointModel) request3.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request3.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+
+		assertEquals(4, ((SinglePointModel) request4.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request4.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 	}
 
 	@Test
 	public void testCompoundCommand() throws Exception {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(                                                                                "
+		pi.exec("sr =                                                                                  "
+			+	"scan_request(                                                                         "
 			+	"    path=[                                                                            "
 			+	"        grid(axes=('x', 'y'), count=(5, 5), origin=(0, 0), size=(10, 10), snake=True),"
 			+	"        step('qty', 0, 10, 1),                                                        "
 			+	"    ],                                                                                "
 			+	"    det=mandelbrot(0.1),                                                              "
-			+	"    broker_uri='"+brokerUri+"',                                                       "
-			+	")                                                                                     "
-			);
+			+	")                                                                                     ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		Collection<IScanPathModel> models = request.getModels();
 		assertEquals(2, models.size());  // I.e. this is a compound scan with two components.
@@ -392,13 +325,13 @@ public class CommandTest {
 
 	@Test
 	public void testMoveToKeepStillCommand() throws Exception {
-
-		ScanRequest<IROI> request = interpret(
-				// Note the absence of quotes about my_scannable.
-				"mscan([step(my_scannable, -2, 5, 0.5), val('y', 5)],"
-			+	"      det=mandelbrot(0.1),                          "
-			+	"      broker_uri='"+brokerUri+"')                   "
-			);
+		pi.exec("sr =                                              "
+			+	"scan_request(                                     "
+			+	"    [step(my_scannable, -2, 5, 0.5), val('y', 5)],"
+			+	"    det=mandelbrot(0.1),                          "
+			+	")                                                 ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		Collection<IScanPathModel> models = request.getModels();
 		assertEquals(2, models.size());
@@ -414,9 +347,8 @@ public class CommandTest {
 	@Ignore("ScanRequest<?>.equals() doesn't allow this test to work.")
 	@Test
 	public void testArgStyleInvariance() throws Exception {
-
-		ScanRequest<IROI> requestFullKeywords = interpret(
-				"mscan(                          "
+		pi.exec("sr_full =                       "
+			+	"scan_request(                   "
 			+	"    path=grid(                  "
 			+	"        axes=('x', 'y'),        "
 			+	"        origin=(1, 2),          "
@@ -435,12 +367,9 @@ public class CommandTest {
 			+	"        ]                       "
 			+	"    ),                          "
 			+	"    det=mandelbrot(0.1),        "
-			+	"    broker_uri='"+brokerUri+"', "
-			+	")                               "
-			);
-
-		ScanRequest<IROI> requestMinimalKeywords = interpret(
-				"mscan(                                  "
+			+	")                               ");
+		pi.exec("sr_minimal =                            "
+			+	"scan_request(                           "
 			+	"    grid(                               "
 			+	"        ('x', 'y'), (1, 2), (7, 8),     "
 			+	"        step=(0.5, 0.6),                "
@@ -450,11 +379,13 @@ public class CommandTest {
 			+	"        ]                               "
 			+	"    ),                                  "
 			+	"    mandelbrot(0.1),                    "
-			+	"    broker_uri='"+brokerUri+"',         "
-			+	")                                       "
-			);
+			+	")                                       ");
+
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> requestFullKeywords = pi.get("sr_full", ScanRequest.class);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> requestMinimalKeywords = pi.get("sr_minimal", ScanRequest.class);
 
 		assertTrue(requestMinimalKeywords.equals(requestFullKeywords));
 	}
-
 }
