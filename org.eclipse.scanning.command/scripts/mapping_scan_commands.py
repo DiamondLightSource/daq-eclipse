@@ -48,11 +48,10 @@ from org.eclipse.scanning.api.points.models import (
     StepModel, GridModel, RasterModel, SinglePointModel,
     OneDEqualSpacingModel, OneDStepModel, ArrayModel,
     BoundingBox, BoundingLine)
-from org.eclipse.scanning.server.servlet import Services
-from org.eclipse.scanning.api.event.scan import (
-    ScanBean, ScanRequest, DeviceRequest)
-from org.eclipse.scanning.api.event.IEventService import (
-    SUBMISSION_QUEUE, REQUEST_TOPIC, RESPONSE_TOPIC)
+from org.eclipse.scanning.server.servlet.Services import (
+    getEventService, getScanService)
+from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
+from org.eclipse.scanning.api.event.IEventService import SUBMISSION_QUEUE
 
 
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
@@ -107,9 +106,9 @@ def submit(request, now=False, block=False,
     if now or block:
         raise NotImplementedError()  # TODO
     else:
-        Services.getEventService() \
-                .createSubmitter(URI(broker_uri), SUBMISSION_QUEUE) \
-                .submit(_instantiate(ScanBean, {'scanRequest': request}))
+        getEventService() \
+            .createSubmitter(URI(broker_uri), SUBMISSION_QUEUE) \
+            .submit(_instantiate(ScanBean, {'scanRequest': request}))
 
 
 def scan_request(path=None, mon=None, det=None):
@@ -479,15 +478,16 @@ def _instantiate(Bean, params):
     return bean
 
 
-def _fetch_model_for_detector(detector_name,
-                              broker_uri='tcp://localhost:61616'):
-    return Services.getEventService() \
-                   .createRequestor(
-                       URI(broker_uri), REQUEST_TOPIC, RESPONSE_TOPIC) \
-                   .post(_instantiate(
-                       DeviceRequest, {'deviceName': detector_name})) \
-                   .getDeviceInformation() \
-                   .getModel()
+def _fetch_model_for_detector(detector_name):
+
+    detector = getScanService().getRunnableDevice(detector_name)
+
+    try:
+        assert detector is not None
+    except AssertionError:
+        raise ValueError("Detector '"+detector_name+"' not found.")
+
+    return detector.getDeviceInformation().getModel()
 
 
 # Miscellaneous functions
