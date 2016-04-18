@@ -36,7 +36,7 @@ class QueueListener<T extends StatusBean, U extends Queueable> implements IBeanL
 	private Status latestStatus = Status.NONE;
 	private double beanInitPercent;
 	
-	private boolean firstRun = true;
+	private boolean firstRun = true, beanFinal = false;
 	
 	public QueueListener(U bean, AbstractQueueProcessor<U> proc, String beanUID, double beanInitPercent) {
 		this.bean = bean;
@@ -47,6 +47,8 @@ class QueueListener<T extends StatusBean, U extends Queueable> implements IBeanL
 
 	@Override
 	public void beanChangePerformed(BeanEvent<T> evt) {
+		if (beanFinal) return;
+		
 		T qBean = evt.getBean();
 		if (qBean.getUniqueId().equals(beanUID)) {
 			//Update scan percent complete
@@ -120,7 +122,10 @@ class QueueListener<T extends StatusBean, U extends Queueable> implements IBeanL
 				}
 				
 				//This will stop the while loop in execute() so needs to be last
-				if (latestStatus.isFinal() && !latestStatus.isRequest()) proc.setRunComplete(true);
+				if (latestStatus.isFinal() && !latestStatus.isRequest()) {
+					beanFinal = true;
+					proc.setRunComplete(true);
+				}
 			}
 			//Don't know the current state or percent complete, so don't set them.
 			try {

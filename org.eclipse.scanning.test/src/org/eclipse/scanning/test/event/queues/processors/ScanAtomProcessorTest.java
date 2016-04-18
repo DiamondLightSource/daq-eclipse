@@ -26,6 +26,7 @@ import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.dry.DryRunCreator;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.test.event.queues.beans.util.TestAtomMaker;
 import org.eclipse.scanning.test.event.queues.mocks.DummyQueueable;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
@@ -50,18 +51,10 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	public void setup() throws Exception {
 		//Create the event service
 		uri = new URI("vm://localhost?broker.persistent=false");
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService());
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller())); // <-- PointsModelMarshaller needed to serialize ScanRequests
 		evServ = new EventServiceImpl(new ActivemqConnectorService());
 		fakeRunner = new DryRunCreator<ScanBean>(true);
-//		fakeRunner = new IProcessCreator<ScanBean>() {
-//
-//			@Override
-//			public IConsumerProcess<ScanBean> createProcess(ScanBean bean,
-//					IPublisher<ScanBean> statusNotifier) throws EventException {
-//				System.out.println("Creating process for name = "+bean.getName()+" id = "+bean.getUniqueId());
-//				return new DryRunProcess<ScanBean>(bean, statusNotifier, true);
-//			}
-//		};
+
 		//Create the scan consumer & publisher (these are ~real)
 		scanConsumer = evServ.createConsumer(uri, IEventService.SUBMISSION_QUEUE,
 				IEventService.STATUS_SET, IEventService.STATUS_TOPIC,
@@ -107,7 +100,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	public void testExecution() throws Exception {
 		scAt.setName("Test Execution");
 		doExecute();
-		Thread.sleep(20000);
+		Thread.sleep(15000);
 		
 		/*
 		 * After execution:
