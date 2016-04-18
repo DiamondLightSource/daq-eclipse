@@ -16,11 +16,13 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.event.queues.QueueProcessCreator;
 import org.eclipse.scanning.event.queues.beans.MonitorAtom;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
+import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.beans.SubTaskBean;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.eclipse.scanning.event.queues.processors.AtomQueueProcessor;
 import org.eclipse.scanning.event.queues.processors.MonitorAtomProcessor;
 import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
+import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
 import org.eclipse.scanning.test.event.queues.beans.util.TestAtomMaker;
 import org.eclipse.scanning.test.event.queues.beans.util.TestAtomQueueBeanMaker;
 import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
@@ -56,7 +58,7 @@ public class QueueProcessCreatorTest {
 		classMap.put(DummyBean.class.getSimpleName(), DummyProcessor.class.getSimpleName());
 		classMap.put(MonitorAtom.class.getSimpleName(), MonitorAtomProcessor.class.getSimpleName());
 		classMap.put(MoveAtom.class.getSimpleName(), MoveAtomProcessor.class.getSimpleName());
-//FIXME	classMap.put(ScanAtom.class.getSimpleName(), ScanAtomProcessor().class.getSimpleName());
+		classMap.put(ScanAtom.class.getSimpleName(), ScanAtomProcessor.class.getSimpleName());
 		classMap.put(SubTaskBean.class.getSimpleName(), AtomQueueProcessor.class.getSimpleName());
 		classMap.put(TaskBean.class.getSimpleName(), AtomQueueProcessor.class.getSimpleName());
 	}
