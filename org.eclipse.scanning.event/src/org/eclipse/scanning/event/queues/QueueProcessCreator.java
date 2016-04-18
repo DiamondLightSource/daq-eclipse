@@ -56,10 +56,7 @@ public class QueueProcessCreator<T extends Queueable> implements IProcessCreator
 			if(processMap.get(className) == null) throw new EventException("No processor registered for bean");
 			return processMap.get(className).makeProcess(atomBean, statusNotifier, blocking);
 		}
-		throw new EventException("Bean type not registered in queue processMap.");
+		throw new EventException("Bean type '"+className+"' not registered in queue processMap.");
 	}
-
-
-
 
 }
