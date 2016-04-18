@@ -27,6 +27,11 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 //	private IProcess perPointProcess;//TODO
 	private String queueMessage;
 	
+	private String scanSubmitQueueName;
+	private String scanStatusQueueName;
+	private String scanStatusTopicName;
+	private String scanConsumerURI;
+	
 	/**
 	 * No arg constructor for JSON
 	 */
@@ -193,6 +198,38 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 		this.queueMessage = msg;
 	}
 
+	public String getScanSubmitQueueName() {
+		return scanSubmitQueueName;
+	}
+
+	public void setScanSubmitQueueName(String scanSubmitQueueName) {
+		this.scanSubmitQueueName = scanSubmitQueueName;
+	}
+
+	public String getScanStatusQueueName() {
+		return scanStatusQueueName;
+	}
+
+	public void setScanStatusQueueName(String scanStatusQueueName) {
+		this.scanStatusQueueName = scanStatusQueueName;
+	}
+
+	public String getScanStatusTopicName() {
+		return scanStatusTopicName;
+	}
+
+	public void setScanStatusTopicName(String scanStatusTopicName) {
+		this.scanStatusTopicName = scanStatusTopicName;
+	}
+
+	public String getScanConsumerURI() {
+		return scanConsumerURI;
+	}
+
+	public void setScanConsumerURI(String scanConsumerURI) {
+		this.scanConsumerURI = scanConsumerURI;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -205,6 +242,20 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 				+ ((pathModels == null) ? 0 : pathModels.hashCode());
 		result = prime * result
 				+ ((queueMessage == null) ? 0 : queueMessage.hashCode());
+		result = prime * result
+				+ ((scanConsumerURI == null) ? 0 : scanConsumerURI.hashCode());
+		result = prime
+				* result
+				+ ((scanStatusQueueName == null) ? 0 : scanStatusQueueName
+						.hashCode());
+		result = prime
+				* result
+				+ ((scanStatusTopicName == null) ? 0 : scanStatusTopicName
+						.hashCode());
+		result = prime
+				* result
+				+ ((scanSubmitQueueName == null) ? 0 : scanSubmitQueueName
+						.hashCode());
 		return result;
 	}
 
@@ -236,6 +287,26 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 			if (other.queueMessage != null)
 				return false;
 		} else if (!queueMessage.equals(other.queueMessage))
+			return false;
+		if (scanConsumerURI == null) {
+			if (other.scanConsumerURI != null)
+				return false;
+		} else if (!scanConsumerURI.equals(other.scanConsumerURI))
+			return false;
+		if (scanStatusQueueName == null) {
+			if (other.scanStatusQueueName != null)
+				return false;
+		} else if (!scanStatusQueueName.equals(other.scanStatusQueueName))
+			return false;
+		if (scanStatusTopicName == null) {
+			if (other.scanStatusTopicName != null)
+				return false;
+		} else if (!scanStatusTopicName.equals(other.scanStatusTopicName))
+			return false;
+		if (scanSubmitQueueName == null) {
+			if (other.scanSubmitQueueName != null)
+				return false;
+		} else if (!scanSubmitQueueName.equals(other.scanSubmitQueueName))
 			return false;
 		return true;
 	}
