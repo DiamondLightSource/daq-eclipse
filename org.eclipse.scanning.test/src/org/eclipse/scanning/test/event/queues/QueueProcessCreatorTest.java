@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -52,15 +53,15 @@ public class QueueProcessCreatorTest {
 	 * Populate map similar to that in the process creator
 	 */
 	@Before
-	public void createClassMapping() {
+	public void createClassMapping() throws Exception {
 		classMap = new HashMap<>();
-		classMap.put(DummyAtom.class.getSimpleName(), DummyProcessor.class.getSimpleName());
-		classMap.put(DummyBean.class.getSimpleName(), DummyProcessor.class.getSimpleName());
-		classMap.put(MonitorAtom.class.getSimpleName(), MonitorAtomProcessor.class.getSimpleName());
-		classMap.put(MoveAtom.class.getSimpleName(), MoveAtomProcessor.class.getSimpleName());
-		classMap.put(ScanAtom.class.getSimpleName(), ScanAtomProcessor.class.getSimpleName());
-		classMap.put(SubTaskBean.class.getSimpleName(), AtomQueueProcessor.class.getSimpleName());
-		classMap.put(TaskBean.class.getSimpleName(), AtomQueueProcessor.class.getSimpleName());
+		classMap.put(DummyAtom.class.getSimpleName(), new DummyProcessor().makeProcess(null, null, false).getClass().getSimpleName());
+		classMap.put(DummyBean.class.getSimpleName(), new DummyProcessor().makeProcess(null, null, false).getClass().getSimpleName());
+		classMap.put(MonitorAtom.class.getSimpleName(), new MonitorAtomProcessor().makeProcess(null, null, false).getClass().getSimpleName());
+		classMap.put(MoveAtom.class.getSimpleName(), new MoveAtomProcessor().makeProcess(null, null, false).getClass().getSimpleName());
+		classMap.put(ScanAtom.class.getSimpleName(), new ScanAtomProcessor().makeProcess(makeScanAtom(), null, false).getClass().getSimpleName());
+		classMap.put(SubTaskBean.class.getSimpleName(), new AtomQueueProcessor().makeProcess(null, null, false).getClass().getSimpleName());
+		classMap.put(TaskBean.class.getSimpleName(), new AtomQueueProcessor().makeProcess(null, null, false).getClass().getSimpleName());
 	}
 	
 	/**
@@ -79,10 +80,9 @@ public class QueueProcessCreatorTest {
 		//Atoms to test
 		IConsumerProcess<QueueAtom> atomProc;
 		List<QueueAtom> testAtoms = new ArrayList<QueueAtom>();
-		testAtoms.add(new DummyAtom("Charles", 1500));
 		testAtoms.add(TestAtomMaker.makeTestMonitorAtomA());
 		testAtoms.add(TestAtomMaker.makeTestMoveAtomA());
-//		testBeans.add(TestAtomMaker.makeTestScanAtomA());
+		testAtoms.add(makeScanAtom());
 		testAtoms.add(TestAtomQueueBeanMaker.makeDummySubTaskBeanA());
 		
 		qpcA = new QueueProcessCreator<QueueAtom>(blocking);
@@ -97,7 +97,6 @@ public class QueueProcessCreatorTest {
 		//Atoms to test
 		IConsumerProcess<QueueBean> beanProc;
 		List<QueueBean> testBeans = new ArrayList<QueueBean>();
-		testBeans.add(new DummyBean("Andrew", 3000));
 		testBeans.add(TestAtomQueueBeanMaker.makeDummyTaskBeanA());
 		
 		qpcB = new QueueProcessCreator<QueueBean>(blocking);
@@ -130,7 +129,7 @@ public class QueueProcessCreatorTest {
 		testAtoms.add(new DummyAtom("Charles", 1500));
 		testAtoms.add(TestAtomMaker.makeTestMonitorAtomA());
 		testAtoms.add(TestAtomMaker.makeTestMoveAtomA());
-//		testBeans.add(TestAtomMaker.makeTestScanAtomA());
+		testAtoms.add(makeScanAtom());
 		testAtoms.add(TestAtomQueueBeanMaker.makeDummySubTaskBeanA());
 		
 		qpcA = new AllBeanQueueProcessCreator<QueueAtom>(blocking);
@@ -157,6 +156,16 @@ public class QueueProcessCreatorTest {
 			assertEquals("Process has no publisher", pubB, beanProc.getPublisher());
 		}
 
+	}
+	
+	private ScanAtom makeScanAtom() {
+		//ScanAtomProcessor needs a ScanAtom with queue names etc.
+		ScanAtom scAt = TestAtomMaker.makeTestScanAtomA();
+		scAt.setScanConsumerURI("vm://localhost?broker.persistent=false");
+		scAt.setScanSubmitQueueName(IEventService.SUBMISSION_QUEUE);
+		scAt.setScanStatusQueueName(IEventService.STATUS_SET);
+		scAt.setScanStatusTopicName(IEventService.STATUS_TOPIC);
+		return scAt;
 	}
 
 }
