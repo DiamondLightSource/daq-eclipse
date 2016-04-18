@@ -1,7 +1,9 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.IAtomBeanWithQueue;
 import org.eclipse.scanning.api.event.queues.beans.IAtomQueue;
@@ -22,23 +24,33 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  * @param <T> Bean implementing {@link Queueable}, but must be an 
  *            {@link IAtomBeanWithQueue}.
  */
-public class AtomQueueProcessor<T extends Queueable> extends AbstractQueueProcessor<T> {
-
-	public AtomQueueProcessor(T bean, IPublisher<T> publisher, boolean blocking) {
-		super(bean, publisher);
-		// TODO Auto-generated constructor stub
-	}
+public class AtomQueueProcessor implements IQueueProcessor {
 
 	@Override
-	public void execute() throws EventException {
-		// TODO Auto-generated method stub
-		
+	public <T extends Queueable> IConsumerProcess<T> makeProcess(T bean,
+			IPublisher<T> publisher, boolean blocking) {
+		return new AtomQueueProcess<T>(bean, publisher, blocking);
 	}
 
-	@Override
-	public void terminate() throws EventException {
-		// TODO Auto-generated method stub
-		
+	class AtomQueueProcess <T extends Queueable> extends AbstractQueueProcessor<T> {
+
+		public AtomQueueProcess(T bean, IPublisher<T> publisher, boolean blocking) {
+			super(bean, publisher);
+			// TODO Auto-generated constructor stub
+		}
+
+		@Override
+		public void execute() throws EventException {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void terminate() throws EventException {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 }

@@ -6,9 +6,11 @@ import java.util.UUID;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
+import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -31,150 +33,160 @@ import org.slf4j.LoggerFactory;
  * @param <T> Bean implementing {@link Queueable}, but must be a 
  *            {@link ScanAtom}.
  */
-public class ScanAtomProcessor<T extends Queueable> extends AbstractQueueProcessor<T> {
-	
-	private static Logger logger = LoggerFactory.getLogger(ScanAtomProcessor.class);
-	
-	private final String submitQueueName;
-	private final String statusQueueName;
-	private final String statusTopicName;
-	private final URI uri;
-	private IEventService eventService;
-	private ISubmitter<ScanBean> scanSubmitter;
-	private ISubscriber<IBeanListener<ScanBean>> scanSubscriber;
-	
-	private ScanAtom atom;
-	
-	public ScanAtomProcessor(T bean, IPublisher<T> publisher, boolean blocking, URI uri,
-			String subQName, String statQName, String statTName) {
-		super(bean, publisher);
-		this.blocking = blocking;
-		
-		submitQueueName = subQName;
-		statusQueueName = statQName;
-		statusTopicName = statTName;
-		this.uri = uri;
-		
-		//We know the bean is of type MoveAtom as this processor wouldn't get
-		//called otherwise
-		atom = (ScanAtom) bean;
-	}
-	
-	/**
-	 * For use in testing! 
-	 * @param evServ - class implementing IEventService
-	 */
-	public synchronized void setEventService(IEventService evServ) {
-		eventService = evServ;
-	}
+public class ScanAtomProcessor implements IQueueProcessor {
+
+	private static Logger logger = LoggerFactory.getLogger(ScanAtomProcess.class);
 
 	@Override
-	public void execute() throws EventException {
-		//This is the percentage of the ScanAtom given over to config. 
-		final double beanConfigPercent = 5d;
-		
-		broadcast(bean, Status.RUNNING);
-		
-		//Create a scan request from the configuration in the ScanAtom
-		bean.setMessage("Creating scan request from configured values");
-		broadcast(bean, Status.RUNNING);
-		ScanRequest<?> scanReq = new ScanRequest<>();
-		scanReq.setModels(atom.getPathModels());
-		scanReq.setDetectors(atom.getDetectorModels());
-		scanReq.setMonitorNames(atom.getMonitors());
-		broadcast(bean, beanConfigPercent/4);
-		
-		//Make ScanBean from request ScanAtom
-		ScanBean scan = new ScanBean();
-		String scanUID = scan.getUniqueId()!=null ? scan.getUniqueId() : UUID.randomUUID().toString();
-		scan.setBeamline(atom.getBeamline());
-		scan.setName(atom.getName());
-		scan.setHostName(atom.getHostName());
-		scan.setUserName(atom.getUserName());
-		scan.setScanRequest(scanReq);
-		
-		//Create scan subscriber & submitter
-		bean.setMessage("Creating Event Service submitter.");
-		broadcast(bean, Status.RUNNING, bean.getPercentComplete()+(beanConfigPercent/4));
-		createScanSubscriber(scanUID, beanConfigPercent);
-		try {
-			scanSubmitter = eventService.createSubmitter(uri, submitQueueName);
-			scan.setStatus(Status.SUBMITTED);
-			scanSubmitter.submit(scan);
-			scanSubmitter.disconnect();
-		} catch(EventException e) {
-			logger.error("Failed to submit ScanBean to Scan event service.");
-			bean.setMessage("Failed to submit ScanBean to Scan event service: "+e.getMessage());
-			broadcast(bean, Status.FAILED);
-			throw new EventException(e);
+	public <T extends Queueable> IConsumerProcess<T> makeProcess(T bean,
+			IPublisher<T> publisher, boolean blocking) throws EventException {
+		return new ScanAtomProcess<T>(bean, publisher, blocking);
+	}
+
+	class ScanAtomProcess <T extends Queueable> extends AbstractQueueProcessor<T> {
+
+		private final String submitQueueName;
+		private final String statusQueueName;
+		private final String statusTopicName;
+		private final URI uri;
+		private IEventService eventService;
+		private ISubmitter<ScanBean> scanSubmitter;
+		private ISubscriber<IBeanListener<ScanBean>> scanSubscriber;
+
+		private ScanAtom atom;
+
+		public ScanAtomProcess(T bean, IPublisher<T> publisher, boolean blocking) {
+			super(bean, publisher);
+			this.blocking = blocking;
+
+			//We know the bean is of type MoveAtom as this processor wouldn't get
+			//called otherwise
+			atom = (ScanAtom) bean;
+
+			submitQueueName = atom.getSubmitQueueName();
+			statusQueueName = atom.getStatusQueueName();
+			statusTopicName = atom.getStatusTopicName();
+			uri = atom.getConsumerURI();
 		}
-		bean.setMessage("Waiting for scan to complete");
-		broadcast(bean, bean.getPercentComplete()+(beanConfigPercent/2));
-		
-		//Wait while the scan runs in a separate process
-		while (!runComplete) {
+
+		/**
+		 * For use in testing! 
+		 * @param evServ - class implementing IEventService
+		 */
+		public synchronized void setEventService(IEventService evServ) {
+			eventService = evServ;
+		}
+
+		@Override
+		public void execute() throws EventException {
+			//This is the percentage of the ScanAtom given over to config. 
+			final double beanConfigPercent = 5d;
+
+			broadcast(bean, Status.RUNNING);
+
+			//Create a scan request from the configuration in the ScanAtom
+			bean.setMessage("Creating scan request from configured values");
+			broadcast(bean, Status.RUNNING);
+			ScanRequest<?> scanReq = new ScanRequest<>();
+			scanReq.setModels(atom.getPathModels());
+			scanReq.setDetectors(atom.getDetectorModels());
+			scanReq.setMonitorNames(atom.getMonitors());
+			broadcast(bean, beanConfigPercent/4);
+
+			//Make ScanBean from request ScanAtom
+			ScanBean scan = new ScanBean();
+			String scanUID = scan.getUniqueId()!=null ? scan.getUniqueId() : UUID.randomUUID().toString();
+			scan.setBeamline(atom.getBeamline());
+			scan.setName(atom.getName());
+			scan.setHostName(atom.getHostName());
+			scan.setUserName(atom.getUserName());
+			scan.setScanRequest(scanReq);
+
+			//Create scan subscriber & submitter
+			bean.setMessage("Creating Event Service submitter.");
+			broadcast(bean, Status.RUNNING, bean.getPercentComplete()+(beanConfigPercent/4));
+			createScanSubscriber(scanUID, beanConfigPercent);
 			try {
-				Thread.sleep(loopSleepTime);
-			} catch(InterruptedException e) {
+				scanSubmitter = eventService.createSubmitter(uri, submitQueueName);
+				scan.setStatus(Status.SUBMITTED);
+				scanSubmitter.submit(scan);
+				scanSubmitter.disconnect();
+			} catch(EventException e) {
+				logger.error("Failed to submit ScanBean to Scan event service.");
+				bean.setMessage("Failed to submit ScanBean to Scan event service: "+e.getMessage());
+				broadcast(bean, Status.FAILED);
 				throw new EventException(e);
 			}
-			
-			if (runComplete) {
-				scanSubscriber.disconnect();
-				break;
+			bean.setMessage("Waiting for scan to complete");
+			broadcast(bean, bean.getPercentComplete()+(beanConfigPercent/2));
+
+			//Wait while the scan runs in a separate process
+			while (!runComplete) {
+				try {
+					Thread.sleep(loopSleepTime);
+				} catch(InterruptedException e) {
+					throw new EventException(e);
+				}
+
+				if (runComplete) {
+					scanSubscriber.disconnect();
+					break;
+				}
+
+				if(terminated) {
+					//Terminate the child scan
+					scan.setStatus(Status.REQUEST_TERMINATE);
+					IPublisher<ScanBean> scanTerminator = eventService.createPublisher(uri, statusTopicName);
+					scanTerminator.broadcast(scan);
+					scanTerminator.disconnect();
+
+					//Set bean status and exit the loop
+					bean.setStatus(Status.TERMINATED);
+					publisher.broadcast(bean);
+					break;
+				}
 			}
-			
-			if(terminated) {
-				//Terminate the child scan
-				scan.setStatus(Status.REQUEST_TERMINATE);
-				IPublisher<ScanBean> scanTerminator = eventService.createPublisher(uri, statusTopicName);
-				scanTerminator.broadcast(scan);
-				scanTerminator.disconnect();
-				
-				//Set bean status and exit the loop
-				bean.setStatus(Status.TERMINATED);
-				publisher.broadcast(bean);
-				break;
+
+		}
+
+		@Override
+		public void terminate() throws EventException {
+			terminated = true;
+		}
+		/**
+		 * Creates {@link ISubscriber} to listen for percent complete & status 
+		 * changes to beans.
+		 *  
+		 * @throws EventException If listener cannot be added.
+		 */
+		private void createScanSubscriber(String beanID, double configPercent) throws EventException {
+			if(beanID == null) {
+				logger.error("ScanBean ID not set. Cannot follow processing.");
+				broadcast(bean, Status.FAILED);
+				throw new EventException("ScanBean ID not set");
 			}
+
+			scanSubscriber = eventService.createSubscriber(uri, statusTopicName);
+			scanSubscriber.addListener(new QueueListener<ScanBean, T>(bean, this, beanID, configPercent));
 		}
-		
-	}
 
-	@Override
-	public void terminate() throws EventException {
-		terminated = true;
-	}
-	/**
-	 * Creates {@link ISubscriber} to listen for percent complete & status 
-	 * changes to beans.
-	 *  
-	 * @throws EventException If listener cannot be added.
-	 */
-	private void createScanSubscriber(String beanID, double configPercent) throws EventException {
-		if(beanID == null) {
-			logger.error("ScanBean ID not set. Cannot follow processing.");
-			broadcast(bean, Status.FAILED);
-			throw new EventException("ScanBean ID not set");
+		public String getSubmitQueueName() {
+			return submitQueueName;
 		}
-		
-		scanSubscriber = eventService.createSubscriber(uri, statusTopicName);
-		scanSubscriber.addListener(new QueueListener<ScanBean, T>(bean, this, beanID, configPercent));
-	}
 
-	public String getSubmitQueueName() {
-		return submitQueueName;
-	}
+		public String getStatusQueueName() {
+			return statusQueueName;
+		}
 
-	public String getStatusQueueName() {
-		return statusQueueName;
-	}
+		public String getStatusTopicName() {
+			return statusTopicName;
+		}
 
-	public String getStatusTopicName() {
-		return statusTopicName;
-	}
+		public URI getUri() {
+			return uri;
+		}
 
-	public URI getUri() {
-		return uri;
 	}
 
 }
+
