@@ -35,6 +35,8 @@
 
 	<properties>
 		<tycho-version>0.24.0</tycho-version>
+		<richbean-includes>NULL</richbean-includes> <!-- set the rich beans tests to nothing -->
+		<dawnsci-includes>NULL</dawnsci-includes>   <!-- set the dawnsci tests to nothing -->
 	</properties>
 	
 	<dependencies>
