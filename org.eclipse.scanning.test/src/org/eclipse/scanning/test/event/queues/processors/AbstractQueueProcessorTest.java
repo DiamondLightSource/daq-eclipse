@@ -8,18 +8,18 @@ import static org.junit.Assert.assertThat;
 import java.net.URI;
 import java.util.List;
 
+import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.processors.AbstractQueueProcessor;
 import org.eclipse.scanning.test.event.queues.mocks.DummyQueueable;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
 
 public abstract class AbstractQueueProcessorTest<T extends Queueable> {
 	
-	protected AbstractQueueProcessor<T> proc;
+	protected IConsumerProcess<T> proc;
 	
 	protected IPublisher<QueueAtom> statPub;
 	protected URI uri;

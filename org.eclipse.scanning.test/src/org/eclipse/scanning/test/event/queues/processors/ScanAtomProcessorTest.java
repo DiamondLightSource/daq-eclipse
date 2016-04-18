@@ -77,13 +77,20 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		scAt.setUserName("abc12345");
 		scAt.setBeamline("I15-1");
 		
+		scAt.setScanConsumerURI(uri.toString());
+		scAt.setScanSubmitQueueName(IEventService.SUBMISSION_QUEUE);
+		scAt.setScanStatusQueueName(IEventService.STATUS_SET);
+		scAt.setScanStatusTopicName(IEventService.STATUS_TOPIC);
+		
 		processorSetup();
 	}
 	
 	private void  processorSetup() {
-		proc = new ScanAtomProcessor<QueueAtom>(scAt, statPub, true, uri, 
-			IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC);
-	((ScanAtomProcessor<QueueAtom>)proc).setEventService(evServ);
+		try {
+			proc = new ScanAtomProcessor().makeProcessWithEvServ(scAt, statPub, true, evServ);
+		} catch (EventException e) {
+			System.out.println("Failed to create ScanAtomProcessor "+e);
+		}
 	}
 
 	@After

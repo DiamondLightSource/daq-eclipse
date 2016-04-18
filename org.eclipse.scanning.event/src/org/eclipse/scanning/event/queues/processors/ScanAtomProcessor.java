@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -42,6 +43,14 @@ public class ScanAtomProcessor implements IQueueProcessor {
 			IPublisher<T> publisher, boolean blocking) throws EventException {
 		return new ScanAtomProcess<T>(bean, publisher, blocking);
 	}
+	
+	public synchronized <T extends Queueable> IConsumerProcess<T> makeProcessWithEvServ(T bean,
+			IPublisher<T> publisher, boolean blocking, IEventService evServ) throws EventException {
+		ScanAtomProcess<T> scanProc = new ScanAtomProcess<T>(bean, publisher, blocking);
+		scanProc.setEventService(evServ);
+		return scanProc;
+	}
+
 
 	class ScanAtomProcess <T extends Queueable> extends AbstractQueueProcessor<T> {
 
@@ -55,7 +64,7 @@ public class ScanAtomProcessor implements IQueueProcessor {
 
 		private ScanAtom atom;
 
-		public ScanAtomProcess(T bean, IPublisher<T> publisher, boolean blocking) {
+		public ScanAtomProcess(T bean, IPublisher<T> publisher, boolean blocking) throws EventException {
 			super(bean, publisher);
 			this.blocking = blocking;
 
@@ -63,10 +72,17 @@ public class ScanAtomProcessor implements IQueueProcessor {
 			//called otherwise
 			atom = (ScanAtom) bean;
 
-			submitQueueName = atom.getSubmitQueueName();
-			statusQueueName = atom.getStatusQueueName();
-			statusTopicName = atom.getStatusTopicName();
-			uri = atom.getConsumerURI();
+			submitQueueName = atom.getScanSubmitQueueName();
+			statusQueueName = atom.getScanStatusQueueName();
+			statusTopicName = atom.getScanStatusTopicName();
+			try {
+				uri = new URI(atom.getScanConsumerURI());
+			} catch (URISyntaxException e) {
+				logger.error("Failed to set URI of scan service consumer.");
+				bean.setMessage("Failed to set URI of scan service consumer: "+e.getMessage());
+				broadcast(bean, Status.FAILED);
+				throw new EventException(e);
+			}
 		}
 
 		/**

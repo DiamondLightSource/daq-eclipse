@@ -38,6 +38,14 @@ public class MoveAtomProcessor implements IQueueProcessor {
 			IPublisher<T> publisher, boolean blocking)  throws EventException {
 		return new MoveAtomProcess<T>(bean, publisher, blocking);
 	}
+	
+	public synchronized <T extends Queueable> IConsumerProcess<T> makeProcessWithScanServ(T bean,
+			IPublisher<T> publisher, boolean blocking, IDeviceService scanServ)  throws EventException {
+		MoveAtomProcess<T> moveProc = new MoveAtomProcess<T>(bean, publisher, blocking);
+		moveProc.setScanService(scanServ);
+		return moveProc;
+	}
+	
 
 	class MoveAtomProcess<T extends Queueable> extends AbstractQueueProcessor<T> {
 

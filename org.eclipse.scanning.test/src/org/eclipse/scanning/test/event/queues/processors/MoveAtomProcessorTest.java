@@ -29,8 +29,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	}
 	
 	private void processorSetup() throws Exception {
-		proc = new MoveAtomProcessor<QueueAtom>(mvAt, statPub, true);
-		((MoveAtomProcessor<QueueAtom>)proc).setScanService(mss);
+		proc = new MoveAtomProcessor().makeProcessWithScanServ(mvAt, statPub, true, mss);
 	}
 	
 	@Test
