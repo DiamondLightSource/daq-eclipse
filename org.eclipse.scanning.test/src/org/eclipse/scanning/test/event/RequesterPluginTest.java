@@ -53,33 +53,7 @@ public class RequesterPluginTest extends AbstractRequesterTest {
 
 	@Before
 	public void createServices() throws Exception {
-		
-		
-		// Set up stuff because we are not in OSGi with a test
-		// DO NOT COPY TESTING ONLY
-		dservice = getDeviceService();
-		
-		// We wire things together without OSGi here 
-		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
-		eservice = getEventService();
-		
-		// Use in memory broker removes requirement on network and external ActiveMQ process
-		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		final URI uri = new URI("vm://localhost?broker.persistent=false");
-		
-		// We use the long winded constructor because we need to pass in the connector.
-		// In production we would normally 
-		requester  = eservice.createRequestor(uri, IEventService.REQUEST_TOPIC, IEventService.RESPONSE_TOPIC);
-		
-		// This object sits on the server.
-		responder = eservice.createResponder(uri, IEventService.REQUEST_TOPIC, IEventService.RESPONSE_TOPIC);
-		responder.setResponseCreator(new IResponseCreator<DeviceRequest>() {		
-			@Override
-			public IResponseProcess<DeviceRequest> createResponder(DeviceRequest bean, IPublisher<DeviceRequest> statusNotifier) throws EventException {
-				return new DeviceResponse(deviceService, bean, statusNotifier);
-			}
-		});
+		connect(eventService, deviceService);
 	}
 	
 }

@@ -7,7 +7,12 @@ package org.eclipse.scanning.api.event.scan;
  * @author Matthew Gerring
  *
  */
-public class DeviceInformation {
+public class DeviceInformation<T> {
+	
+	/**
+	 * The device state, for instance, IDLE, READY, PAUSED, FAULT etc.
+	 */
+	private DeviceState state;
 
 	/**
 	 * Device name used in scan
@@ -41,6 +46,12 @@ public class DeviceInformation {
 	 * used depending on the UI connecting.
 	 */
 	private String icon;
+	
+	/**
+	 * The model which the detector is currently using. Or if 
+	 * the detector does not have a model, null.
+	 */
+	private T model;
 
 	public String getName() {
 		return name;
@@ -90,7 +101,9 @@ public class DeviceInformation {
 		result = prime * result + ((icon == null) ? 0 : icon.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
+		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		return result;
 	}
 
@@ -123,10 +136,17 @@ public class DeviceInformation {
 				return false;
 		} else if (!label.equals(other.label))
 			return false;
+		if (model == null) {
+			if (other.model != null)
+				return false;
+		} else if (!model.equals(other.model))
+			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
+			return false;
+		if (state != other.state)
 			return false;
 		return true;
 	}
@@ -134,5 +154,21 @@ public class DeviceInformation {
 	@Override
 	public String toString() {
 		return "DeviceInformation [name=" + name + ", label=" + label + "]";
+	}
+
+	public T getModel() {
+		return model;
+	}
+
+	public void setModel(T model) {
+		this.model = model;
+	}
+
+	public DeviceState getState() {
+		return state;
+	}
+
+	public void setState(DeviceState state) {
+		this.state = state;
 	}
 }

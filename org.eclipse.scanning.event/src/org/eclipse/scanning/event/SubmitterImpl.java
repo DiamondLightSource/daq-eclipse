@@ -1,19 +1,16 @@
 package org.eclipse.scanning.event;
 
+import static org.eclipse.scanning.api.event.IEventService.STATUS_TOPIC;
+
 import java.net.URI;
-import java.util.Enumeration;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
-import javax.jms.QueueBrowser;
-import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
-import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
@@ -21,6 +18,10 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
+import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.scan.IScanListener;
+import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
 class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> implements ISubmitter<T> {
@@ -103,6 +104,29 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 		}
 
 	}
+
+	@Override
+	public void blockingSubmit(T bean) throws EventException, InterruptedException {
+
+		final String UID = bean.getUniqueId();
+		ISubscriber<IScanListener> subscriber = eservice.createSubscriber(getUri(), STATUS_TOPIC);
+		final CountDownLatch latch = new CountDownLatch(1);
+
+		subscriber.addListener(new IScanListener() {
+			@Override public void scanEventPerformed(ScanEvent evt) {}
+			@Override
+			public void scanStateChanged(ScanEvent evt) {
+				ScanBean scanBean = evt.getBean();
+				if (scanBean.getUniqueId() == UID
+						&& scanBean.getStatus().isFinal()) {
+					latch.countDown();
+				}
+			}
+		});
+
+		submit(bean);
+		latch.await();
+	}
 	
 	@Override
 	public boolean reorder(T bean, int amount) throws EventException {
@@ -112,6 +136,11 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 	@Override
 	public boolean remove(T bean) throws EventException {
         return remove(bean, getSubmitQueueName());
+	}
+
+	@Override
+	public boolean replace(T bean) throws EventException {
+        return replace(bean, getSubmitQueueName());
 	}
 
 	public String getUniqueId() {

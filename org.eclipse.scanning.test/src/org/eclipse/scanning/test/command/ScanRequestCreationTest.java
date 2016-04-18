@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
@@ -22,33 +23,45 @@ import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.command.Interpreter;
-import org.eclipse.scanning.command.QueueSingleton;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.python.core.PyException;
+import org.python.util.PythonInterpreter;
 
 
-public class CommandTest {
+public class ScanRequestCreationTest {
+	static PythonInterpreter pi;
 
-	private ScanRequest<IROI> interpret(String command) throws PyException, InterruptedException {
-		new Thread(new Interpreter(command) {
-			{
-				// Here we can put objects in the Python namespace for testing purposes.
-				// The given command will be interpreted in the context of the objects created here.
-				pi.set("my_scannable", new MockScannable("fred", 10));
-			}
-		}).start();
-		return QueueSingleton.INSTANCE.take();
+	static {
+		Properties postProperties = new Properties();
+
+		// The following line fixes a Python import error seemingly arising
+		// from using Jython in an OSGI environment.
+		// See http://bugs.jython.org/issue2355 .
+		postProperties.put("python.import.site", "false");
+
+		PythonInterpreter.initialize(System.getProperties(), postProperties, new String[0]);
+		pi = new PythonInterpreter();
+
+		// FIXME: How to properly specify the path to the Python file?
+		// At the moment we use a hack relying on the fact that the
+		// JUnit working directory is org.eclipse.scanning.test/.
+		pi.exec("import sys");
+		pi.exec("sys.path.append('../org.eclipse.scanning.command/scripts/')");
+		pi.exec("from mapping_scan_commands import *");
+		pi.exec("from mapping_scan_commands import _instantiate");
+		pi.exec("from org.eclipse.scanning.example.detector import MandelbrotModel");
+		pi.set("my_scannable", new MockScannable("fred", 10));
+		pi.set("another_scannable", new MockScannable("bill", 3));
+		pi.exec("mandelbrot = lambda t: ('mandelbrot',"
+			+	"_instantiate(MandelbrotModel, {'exposureTime': t}))");
 	}
 
 	@Test
-	public void testGridCommandWithROI() throws PyException, InterruptedException {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(                           "
+	public void testGridCommandWithROI() throws Exception {
+		pi.exec("sr =                             "
+			+	"scan_request(                    "
 			+	"    grid(                        "
 			+	"        axes=(my_scannable, 'y'),"  // Can use Scannable objects or strings.
 			+	"        count=(5, 6),            "
@@ -56,9 +69,10 @@ public class CommandTest {
 			+	"        size=(10, 9),            "
 			+	"        roi=circ((4, 6), 5)      "
 			+	"    ),                           "
-			+	"    det=mandelbrot(0.1)          "
-			+	")                                "
-			);
+			+	"    det=mandelbrot(0.1),         "
+			+	")                                ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		Collection<IScanPathModel> models = request.getModels();
 		assertEquals(1, models.size());  // I.e. this is not a compound scan.
@@ -69,8 +83,8 @@ public class CommandTest {
 		GridModel gmodel = (GridModel) model;
 		assertEquals("fred", gmodel.getFastAxisName());
 		assertEquals("y", gmodel.getSlowAxisName());
-		assertEquals(5, gmodel.getSlowAxisPoints());
-		assertEquals(6, gmodel.getFastAxisPoints());
+		assertEquals(5, gmodel.getFastAxisPoints());
+		assertEquals(6, gmodel.getSlowAxisPoints());
 		assertEquals(true, gmodel.isSnake());
 
 		BoundingBox bbox = gmodel.getBoundingBox();
@@ -101,12 +115,15 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testStepCommand() throws PyException, InterruptedException {
-
-		ScanRequest<IROI> request = interpret(
-				// Note the absence of quotes about my_scannable.
-				"mscan(step(my_scannable, -2, 5, 0.5), det=mandelbrot(0.1))"
-			);
+	public void testStepCommandWithMonitors() throws Exception {
+		pi.exec("sr =                               "
+			+	"scan_request(                      "
+			+	"    step(my_scannable, -2, 5, 0.5),"
+			+	"    mon=['x', another_scannable],  "  // Monitor two scannables.
+			+	"    det=mandelbrot(0.1),           "
+			+	")                                  ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = ((List<IScanPathModel>) request.getModels()).get(0);
 		assertEquals(StepModel.class, model.getClass());
@@ -116,13 +133,18 @@ public class CommandTest {
 		assertEquals(-2, smodel.getStart(), 1e-8);
 		assertEquals(5, smodel.getStop(), 1e-8);
 		assertEquals(0.5, smodel.getStep(), 1e-8);
+
+		Collection<String> monitors = request.getMonitorNames();
+		assertEquals(2, monitors.size());
+		Iterator<String> monitorIterator = monitors.iterator();
+		assertEquals("x", monitorIterator.next());
+		assertEquals("bill", monitorIterator.next());
 	}
 
 	@Test
-	public void testRasterCommandWithROIs() throws PyException, InterruptedException {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(                               "
+	public void testRasterCommandWithROIs() throws Exception {
+		pi.exec("sr =                                 "
+			+	"scan_request(                        "
 			+	"    grid(                            "
 			+	"        axes=('x', 'y'),             "
 			+	"        step=(0.5, 0.6),             "
@@ -134,9 +156,10 @@ public class CommandTest {
 			+	"            rect((3, 4), (3, 3), 0.1)"
 			+	"        ]                            "
 			+	"    ),                               "
-			+	"    det=mandelbrot(0.1)              "
-			+	")                                    "
-			);
+			+	"    det=mandelbrot(0.1),             "
+			+	")                                    ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(RasterModel.class, model.getClass());
@@ -162,11 +185,14 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testArrayCommand() throws PyException, InterruptedException {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(array('qty', [-3, 1, 1.5, 1e10]), det=mandelbrot(0.1))"
-			);
+	public void testArrayCommand() throws Exception {
+		pi.exec("sr =                                 "
+			+	"scan_request(                        "
+			+	"    array('qty', [-3, 1, 1.5, 1e10]),"
+			+	"    det=mandelbrot(0.1),             "
+			+	")                                    ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(ArrayModel.class, model.getClass());
@@ -180,11 +206,14 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testOneDEqualSpacingCommand() throws PyException, InterruptedException {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(line(origin=(0, 4), length=10, angle=0.1, count=10), det=[mandelbrot(0.1)])"
-			);
+	public void testOneDEqualSpacingCommand() throws Exception {
+		pi.exec("sr =                                                    "
+			+	"scan_request(                                           "
+			+	"    line(origin=(0, 4), length=10, angle=0.1, count=10),"
+			+	"    det=[mandelbrot(0.1)],                              "
+			+	")                                                       ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(OneDEqualSpacingModel.class, model.getClass());
@@ -198,11 +227,14 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testOneDStepCommand() throws PyException, InterruptedException {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5), det=mandelbrot(0.1))"
-			);
+	public void testOneDStepCommand() throws Exception {
+		pi.exec("sr =                                                       "
+			+	"scan_request(                                              "
+			+	"    line(origin=(-2, 1.3), length=10, angle=0.1, step=0.5),"
+			+	"    det=mandelbrot(0.1),                                   "
+			+	")                                                          ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(OneDStepModel.class, model.getClass());
@@ -216,11 +248,10 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testSinglePointCommand() throws PyException, InterruptedException {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(point(4, 5), mandelbrot(0.1))"
-			);
+	public void testSinglePointCommand() throws Exception {
+		pi.exec("sr = scan_request(point(4, 5), det=mandelbrot(0.1))");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		IScanPathModel model = request.getModels().iterator().next();
 		assertEquals(SinglePointModel.class, model.getClass());
@@ -240,39 +271,46 @@ public class CommandTest {
 	}
 
 	@Test
-	public void testSquareBracketCombinations() throws PyException, InterruptedException {
+	public void testSquareBracketCombinations() throws Exception {
+		pi.exec("sr0 = scan_request(point(4, 5), det=mandelbrot(0.1))");
+		pi.exec("sr1 = scan_request([point(4, 5)], det=mandelbrot(0.1))");
+		pi.exec("sr2 = scan_request(point(4, 5), det=[mandelbrot(0.1)])");
+		pi.exec("sr3 = scan_request([point(4, 5)], det=[mandelbrot(0.1)])");
 
-		ScanRequest<IROI> request = interpret(
-				"mscan([point(4, 5)], mandelbrot(0.1))"
-			);
-		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
-		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request1 = pi.get("sr0", ScanRequest.class);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request2 = pi.get("sr1", ScanRequest.class);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request3 = pi.get("sr2", ScanRequest.class);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request4 = pi.get("sr3", ScanRequest.class);
 
-		request = interpret(
-				"mscan(point(4, 5), [mandelbrot(0.1)])"
-			);
-		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
-		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request1.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request1.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
-		request = interpret(
-				"mscan([point(4, 5)], [mandelbrot(0.1)])"
-			);
-		assertEquals(4, ((SinglePointModel) request.getModels().iterator().next()).getX(), 1e-8);
-		assertEquals(0.1, ((MandelbrotModel) request.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request2.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request2.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+
+		assertEquals(4, ((SinglePointModel) request3.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request3.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
+
+		assertEquals(4, ((SinglePointModel) request4.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(0.1, ((MandelbrotModel) request4.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 	}
 
 	@Test
-	public void testCompoundCommand() throws PyException, InterruptedException {
-
-		ScanRequest<IROI> request = interpret(
-				"mscan(                                                                                "
+	public void testCompoundCommand() throws Exception {
+		pi.exec("sr =                                                                                  "
+			+	"scan_request(                                                                         "
 			+	"    path=[                                                                            "
 			+	"        grid(axes=('x', 'y'), count=(5, 5), origin=(0, 0), size=(10, 10), snake=True),"
 			+	"        step('qty', 0, 10, 1),                                                        "
 			+	"    ],                                                                                "
-			+	"    det=mandelbrot(0.1)                                                               "
-			+	")                                                                                     "
-			);
+			+	"    det=mandelbrot(0.1),                                                              "
+			+	")                                                                                     ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
 		Collection<IScanPathModel> models = request.getModels();
 		assertEquals(2, models.size());  // I.e. this is a compound scan with two components.
@@ -285,12 +323,32 @@ public class CommandTest {
 		assertEquals(10, smodel.getStop(), 1e-8);
 	}
 
+	@Test
+	public void testMoveToKeepStillCommand() throws Exception {
+		pi.exec("sr =                                              "
+			+	"scan_request(                                     "
+			+	"    [step(my_scannable, -2, 5, 0.5), val('y', 5)],"
+			+	"    det=mandelbrot(0.1),                          "
+			+	")                                                 ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
+
+		Collection<IScanPathModel> models = request.getModels();
+		assertEquals(2, models.size());
+
+		Iterator<IScanPathModel> modelIterator = models.iterator();
+		modelIterator.next();  // Throw away the step model.
+
+		ArrayModel amodel = (ArrayModel) modelIterator.next();
+		assertEquals(1, amodel.getPositions().length);
+		assertEquals(5, amodel.getPositions()[0], 1e-8);
+	}
+
 	@Ignore("ScanRequest<?>.equals() doesn't allow this test to work.")
 	@Test
-	public void testArgStyleInvariance() throws PyException, InterruptedException {
-
-		ScanRequest<IROI> requestFullKeywords = interpret(
-				"mscan(                          "
+	public void testArgStyleInvariance() throws Exception {
+		pi.exec("sr_full =                       "
+			+	"scan_request(                   "
 			+	"    path=grid(                  "
 			+	"        axes=('x', 'y'),        "
 			+	"        origin=(1, 2),          "
@@ -308,12 +366,10 @@ public class CommandTest {
 			+	"            ),                  "
 			+	"        ]                       "
 			+	"    ),                          "
-			+	"    det=mandelbrot(0.1)         "
-			+	")                               "
-			);
-
-		ScanRequest<IROI> requestMinimalKeywords = interpret(
-				"mscan(                                  "
+			+	"    det=mandelbrot(0.1),        "
+			+	")                               ");
+		pi.exec("sr_minimal =                            "
+			+	"scan_request(                           "
 			+	"    grid(                               "
 			+	"        ('x', 'y'), (1, 2), (7, 8),     "
 			+	"        step=(0.5, 0.6),                "
@@ -322,11 +378,14 @@ public class CommandTest {
 			+	"            rect((3, 4), (3, 3), 0.1),  "
 			+	"        ]                               "
 			+	"    ),                                  "
-			+	"    mandelbrot(0.1)                     "
-			+	")                                       "
-			);
+			+	"    mandelbrot(0.1),                    "
+			+	")                                       ");
+
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> requestFullKeywords = pi.get("sr_full", ScanRequest.class);
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> requestMinimalKeywords = pi.get("sr_minimal", ScanRequest.class);
 
 		assertTrue(requestMinimalKeywords.equals(requestFullKeywords));
 	}
-
 }

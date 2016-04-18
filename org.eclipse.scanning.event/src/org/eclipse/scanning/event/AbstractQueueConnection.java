@@ -414,7 +414,51 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 
 	}
 
-	
+	@Override
+	public boolean replace(U bean, String queueName) throws EventException {
+			
+		
+		PauseBean pbean = new PauseBean();
+		pbean.setQueueName(queueName);
+		pbean.setMessage("Pause to replace '"+bean.getName()+"' ");
+		
+		IPublisher<PauseBean> publisher = eservice.createPublisher(getUri(), getCommandTopicName());
+		publisher.broadcast(pbean);
+		
+		try {
+			
+			// We are paused, read the queue
+			List<U> submitted = getQueue(queueName, null);
+			if (submitted==null || submitted.size()<1) throw new EventException("There is nothing submitted waiting to be run\n\nPerhaps the job started to run.");
+
+			boolean found = false;
+			for (int i = 0; i < submitted.size(); i++) {
+				U u = submitted.get(i);
+				if (u.getUniqueId().equals(bean.getUniqueId())) {
+					found=true;
+					submitted.set(i, bean);
+					break;
+				}
+			}
+			if (!found) throw new EventException("Cannot find bean '"+bean.getName()+"' in submission queue!\nIt might be running now.");
+			
+			clearQueue(queueName);
+			
+			ISubmitter<U> submitter = this instanceof ISubmitter 
+					                ? (ISubmitter<U>)this 
+					                : (ISubmitter<U>)eservice.createSubmitter(getUri(), queueName);
+			
+		    for (U u : submitted) submitter.submit(u);
+			
+		    return true; // It was reordered
+		    
+		} finally {
+			pbean.setPause(false);
+			publisher.broadcast(pbean);
+		}
+
+	}
+
 	protected static final long TWO_DAYS = 48*60*60*1000; // ms
 	protected static final long A_WEEK   = 7*24*60*60*1000; // ms
 

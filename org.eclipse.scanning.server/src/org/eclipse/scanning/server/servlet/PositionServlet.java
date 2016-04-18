@@ -17,6 +17,8 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
     {@literal    <property name="topic" value="org.eclipse.scanning.server.servlet.position" />}
     {@literal </bean>}
 </pre>
+
+ * @see example.xml
  * 
  *  FIXME Add security via activemq layer. Anyone can run this now.
     TODO No test for this servlet.
