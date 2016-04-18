@@ -366,7 +366,7 @@ public class StatusQueueView extends ViewPart {
 		menuMan.add(rerun);
 		dropDown.add(rerun);
 		
-		this.edit = new Action("Edit...", Activator.getDefault().getImageDescriptor("icons/edit.png")) {
+		this.edit = new Action("Edit...", Activator.getDefault().getImageDescriptor("icons/modify.png")) {
 			public void run() {
 				editSelection();
 			}
