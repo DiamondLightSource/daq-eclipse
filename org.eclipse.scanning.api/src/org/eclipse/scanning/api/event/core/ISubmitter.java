@@ -22,6 +22,15 @@ public interface ISubmitter<T> extends IQueueConnection<T> {
 	 * @param bean
 	 */
 	void submit(T bean, boolean prepareBean) throws EventException;
+
+	/**
+	 * Send a submission on to the queue. Blocks until bean is
+	 * updated with "final" status.
+	 * @param bean
+	 * @throws EventException
+	 * @throws InterruptedException
+	 */
+	void blockingSubmit(T bean) throws EventException, InterruptedException;
 	
 	/**
 	 * Tries to reorder the bean in the submission queue if it is

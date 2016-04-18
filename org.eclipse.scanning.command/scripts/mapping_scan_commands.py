@@ -48,10 +48,11 @@ from org.eclipse.scanning.api.points.models import (
     StepModel, GridModel, RasterModel, SinglePointModel,
     OneDEqualSpacingModel, OneDStepModel, ArrayModel,
     BoundingBox, BoundingLine)
+from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
+from org.eclipse.scanning.api.event.IEventService import (
+    SUBMISSION_QUEUE, STATUS_TOPIC)
 from org.eclipse.scanning.server.servlet.Services import (
     getEventService, getScanService)
-from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
-from org.eclipse.scanning.api.event.IEventService import SUBMISSION_QUEUE
 
 
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
@@ -103,12 +104,18 @@ def submit(request, now=False, block=False,
 
     See the mscan() docstring for details of `now` and `block`.
     """
-    if now or block:
-        raise NotImplementedError()  # TODO
+    scan_bean = _instantiate(ScanBean, {'scanRequest': request})
+
+    if now:
+        raise NotImplementedError()  # TODO: Raise priority.
+
+    submitter = getEventService() \
+                    .createSubmitter(URI(broker_uri), SUBMISSION_QUEUE)
+
+    if block:
+        submitter.blockingSubmit(scan_bean)
     else:
-        getEventService() \
-            .createSubmitter(URI(broker_uri), SUBMISSION_QUEUE) \
-            .submit(_instantiate(ScanBean, {'scanRequest': request}))
+        submitter.submit(scan_bean)
 
 
 def scan_request(path=None, mon=None, det=None):
