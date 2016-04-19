@@ -1075,7 +1075,7 @@ public class StatusQueueView extends ViewPart {
 	
 	/**
 	 * String to be parsed to properties. In the form of key=value pairs
-	 * separated by semi colons. You may not use the string = or ; in the 
+	 * separated by semi colons. You may not use semi-colons in the 
 	 * keys or values. Keys and values are trimmed so extra spaces will be
 	 * ignored.
 	 * 
@@ -1088,7 +1088,7 @@ public class StatusQueueView extends ViewPart {
 		Properties props = new Properties();
 		final String[] split = properties.split(";");
 		for (String line : split) {
-			final String[] kv = line.split("=");
+			final String[] kv = line.split("=", 2);
 			props.setProperty(kv[0].trim(), kv[1].trim());
 		}
 		return props;
