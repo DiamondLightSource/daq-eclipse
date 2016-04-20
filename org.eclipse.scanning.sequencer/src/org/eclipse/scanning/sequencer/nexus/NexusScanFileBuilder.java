@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,7 +55,7 @@ public class NexusScanFileBuilder {
 	
 	// we need to cache various things as they are used more than once
 	private Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders = null;
-	private Map<DeviceType, List<INexusDevice<?>>> nexusDevices;
+	private Map<DeviceType, List<INexusDevice<?>>> nexusDevices = null;
 	private Map<NexusObjectProvider<?>, DataDevice<?>> dataDevices = new HashMap<>();
 	
 	public NexusScanFileBuilder(IDeviceConnectorService deviceConnectorService) {
@@ -79,9 +80,10 @@ public class NexusScanFileBuilder {
 		}
 		
 		this.model = model;
-		this.scanInfo = new NexusScanInfo(model.getPositionIterable().iterator().next().getNames());
-
+		this.scanInfo = createScanInfo(model);
+		
 		nexusDevices = extractNexusDevices(model);
+		
 		// convert this to a map of nexus object providers for each type
 		nexusObjectProviders = new EnumMap<>(DeviceType.class);
 		nexusDevices.forEach((k, v) -> nexusObjectProviders.put(k, v.stream().map(
@@ -97,6 +99,21 @@ public class NexusScanFileBuilder {
 		createEntry(fileBuilder);
 		
 		return fileBuilder.createFile();
+	}
+	
+	private NexusScanInfo createScanInfo(ScanModel scanModel) {
+		final List<String> scannableNames = 
+				scanModel.getPositionIterable().iterator().next().getNames();
+		
+		NexusScanInfo scanInfo = new NexusScanInfo(scannableNames);
+		scanInfo.setMonitorNames(getDeviceNames(scanModel.getMonitors()));
+		scanInfo.setMetadataScannableNames(getDeviceNames(scanModel.getMetadataScannables()));
+		
+		return scanInfo;
+	}
+	
+	private Set<String> getDeviceNames(Collection<IScannable<?>> devices) {
+		return devices.stream().map(d -> d.getName()).collect(Collectors.toSet());
 	}
 	
 	private Map<DeviceType, List<INexusDevice<?>>> extractNexusDevices(ScanModel model) throws ScanningException {
@@ -138,25 +155,24 @@ public class NexusScanFileBuilder {
 		
 		addScanMetadata(entryBuilder, model.getScanMetadata());
 		
-		// add all the instruments to the entry
-		entryBuilder.addAll(nexusObjectProviders.values().stream()
-				.flatMap(list -> list.stream())
-				.collect(Collectors.toList()));
-
+		// add all the devices to the entry. Metadata scannables are added first
+		addDevicesToEntry(entryBuilder, DeviceType.METADATA_SCANNABLE);
+		for (DeviceType deviceType : EnumSet.complementOf(EnumSet.of(DeviceType.METADATA_SCANNABLE))) {
+			addDevicesToEntry(entryBuilder, deviceType);
+		}
+		
 		// create the NXdata groups
 		createNexusDataGroups(entryBuilder);
-		
-		// perform any custom modificaiton
-		performCustomModifications(entryBuilder);
 	}
 	
-	private void performCustomModifications(NexusEntryBuilder entryBuilder) throws NexusException {
-		Collection<CustomNexusEntryModification> customModifications = nexusDevices.values().stream()
-			.flatMap(list -> list.stream()) // flatten all the lists into a single stream
-			.map(d -> d.getCustomNexusModification()) // map to custom modifications
-			.filter(m -> m != null) // filter out nulls
-			.collect(Collectors.toList()); // collect into a list
+	private void addDevicesToEntry(NexusEntryBuilder entryBuilder, DeviceType deviceType) throws NexusException {
+		entryBuilder.addAll(nexusObjectProviders.get(deviceType));
 		
+		List<CustomNexusEntryModification> customModifications =
+				nexusDevices.get(deviceType).stream().
+				map(d -> d.getCustomNexusModification()).
+				filter(Objects::nonNull).
+				collect(Collectors.toList());
 		for (CustomNexusEntryModification customModification : customModifications) {
 			entryBuilder.modifyEntry(customModification);
 		}
@@ -203,7 +219,9 @@ public class NexusScanFileBuilder {
 	
 	private List<INexusDevice<?>> getNexusScannables(List<String> scannableNames) throws ScanningException {
 		try {
-			return scannableNames.stream().map(name -> getNexusScannable(name)).filter(s -> s != null).collect(Collectors.toList());
+			return scannableNames.stream().map(name -> getNexusScannable(name)).
+					filter(s -> s != null).
+					collect(Collectors.toList());
 		} catch (Exception e) {
 			if (e.getCause() instanceof ScanningException) {
 				throw (ScanningException) e.getCause();

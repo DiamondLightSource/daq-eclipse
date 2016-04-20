@@ -135,10 +135,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		metadataScannableNames.addAll(model.getMetadataScannables().stream().
 				map(m -> m.getName()).collect(Collectors.toSet()));
 		
-		ILegacyDeviceSupport legacyDeviceSupport = getConnectorService().getLegacyDeviceSupport();
-
 		// add the metadata scannables from the legacy device support and use it to
 		// add prerequisites of any scannables in the scan
+		ILegacyDeviceSupport legacyDeviceSupport = getConnectorService().getLegacyDeviceSupport();
 		if (legacyDeviceSupport != null) {
 			// add the metadata scannables
 			metadataScannableNames.addAll(legacyDeviceSupport.getMetadataScannableNames());

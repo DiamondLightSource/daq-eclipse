@@ -200,7 +200,7 @@ public class BasicScanPluginTest {
 			assertNotNull(positioner);
 			assertEquals(metadataScannable.getName(), positioner.getNameScalar());
 			
-			dataNode = positioner.getDataNode("value_demand");
+			dataNode = positioner.getDataNode("value_demand"); // TODO should not be here for metadata scannable
 			assertNotNull(dataNode);
 			dataset = dataNode.getDataset().getSlice();
 			shape = dataset.getShape();

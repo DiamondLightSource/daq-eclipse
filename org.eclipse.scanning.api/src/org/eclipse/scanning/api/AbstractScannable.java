@@ -25,8 +25,6 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 	private Map<String, Object> attributes;
 	private int                 level;
 	private String              name;
-	private boolean             isMetadataScannable = false;
-	
 	protected AbstractScannable() {
 		attributes = new HashMap<>(7); // TODO 
 	}

@@ -51,7 +51,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		final NXpositioner positioner = nodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
-		if (isMetadataScannable()) {
+		if (info.isMetadataScannable(getName())) {
 			positioner.setField(FIELD_NAME_DEMAND_VALUE, getPosition().doubleValue());
 			positioner.setValueScalar(getPosition().doubleValue());
 		} else {
@@ -73,10 +73,6 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	}
 
 	private void write(Number demand, Number actual, IPosition loc) throws Exception {
-		if (isMetadataScannable()) {
-			throw new IllegalArgumentException("write() should not be called on metadata scannables");
-		}
-
 		if (actual!=null) {
 			// write actual position
 			final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
