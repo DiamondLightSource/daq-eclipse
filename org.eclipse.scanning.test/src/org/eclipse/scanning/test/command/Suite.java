@@ -6,6 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
 	ScanRequestCreationTest.class,
+	SubmissionTest.class,
 	ModelStringifierTest.class
 })
 public class Suite { }
