@@ -31,6 +31,7 @@ public abstract class AbstractJythonTest {
 		pi.set("my_scannable", new MockScannable("fred", 10));
 		pi.set("another_scannable", new MockScannable("bill", 3));
 		pi.exec("mandelbrot = lambda t: ('mandelbrot',"
-			+	"_instantiate(MandelbrotModel, {'exposureTime': t}))");
+			+	"_instantiate(MandelbrotModel,"
+			+	"{'exposureTime': t, 'name': 'mandelbrot'}))");
 	}
 }
