@@ -7,7 +7,9 @@ import java.util.Map;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
+import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
@@ -32,6 +34,17 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  * within queues and queues themselves can also be monitored.
  * 
  * TODO Add queue pausing, re-ordering, removal.
+ * 
+ * Matt writes: This TODO should be easy to do.
+ *              Reorder, replace, move are available on IQueueConnection. 
+ *              Pause is done by broadcasting a pause topic, something like:
+ <pre>
+    IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
+	PauseBean pbean = new PauseBean();
+	pbean.setQueueName(consumer.getSubmitQueueName());
+	pauser.broadcast(pbean);
+ </pre>
+ 
  *  
  * @author Michael Wharmby
  *
