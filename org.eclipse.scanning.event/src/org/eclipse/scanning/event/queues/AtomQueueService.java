@@ -227,6 +227,7 @@ public class AtomQueueService implements IQueueService {
 		//Disconnect remaining queue processes and remove from map
 		disposeQueue(queueID, true);
 		activeQueues.remove(queueID);
+		nrActiveQueues = activeQueues.size();
 	}
 
 	@Override
@@ -282,7 +283,9 @@ public class AtomQueueService implements IQueueService {
 		queue.setQueueStatus(QueueStatus.DISPOSED);
 		if (nullify) {
 			if (queueID.equals(jobQueue.getQueueID())) jobQueue = null;
-			else activeQueues.remove(queueID);
+			else if (activeQueues.containsKey(queueID)) {//Prevent adding "non-existent queueID" = null
+				activeQueues.put(queueID, null);
+			}
 		}
 	}
 
@@ -320,6 +323,7 @@ public class AtomQueueService implements IQueueService {
 		//Prepare the atom/bean for submission
 		atomBean.setStatus(Status.SUBMITTED);
 		try {
+			//FIXME Only set if not set already 
 			atomBean.setHostName(InetAddress.getLocalHost().getHostName());
 		} catch (UnknownHostException ex) {
 			throw new EventException("Failed to set hostname on bean. " + ex.getMessage());
@@ -463,6 +467,7 @@ public class AtomQueueService implements IQueueService {
 	}
 	
 	private String generateActiveQueueID() {
+		nrActiveQueues = activeQueues.size();
 		return queueRoot + "." + ACTIVE_QUEUE + "-" + nrActiveQueues;
 	}
 	
