@@ -109,8 +109,8 @@
                 <testClassesDirectory>${basedir}/bin</testClassesDirectory>
 	            <excludes>
 	              <exclude>**repository/*</exclude>
-	              <exclude>**/eclipse/richbeans/*</exclude>
-	              <exclude>**/eclipse/dawnsci/*</exclude>
+	              <exclude>/org/eclipse/richbeans/**</exclude>
+	              <exclude>/org/eclipse/dawnsci/**</exclude>
 	            </excludes>
            		<includes>
 					<include>**/Suite.java</include>
