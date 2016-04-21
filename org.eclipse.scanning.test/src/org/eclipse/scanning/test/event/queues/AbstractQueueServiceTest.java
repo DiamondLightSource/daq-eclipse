@@ -57,7 +57,6 @@ public class AbstractQueueServiceTest {
 	@After
 	public void cleanup() throws Exception{
 		qServ.disposeService();
-		qServ = null; //This is probably unnecessary
 	}
 	
 	@Test
