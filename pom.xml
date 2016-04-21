@@ -35,8 +35,6 @@
 
 	<properties>
 		<tycho-version>0.24.0</tycho-version>
-		<richbean-includes>NULL</richbean-includes> <!-- set the rich beans tests to nothing -->
-		<dawnsci-includes>NULL</dawnsci-includes>   <!-- set the dawnsci tests to nothing -->
 	</properties>
 	
 	<dependencies>
@@ -103,16 +101,18 @@
         <plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-surefire-plugin</artifactId>
-			<version>2.12.4</version>
+			<version>2.19.1</version>
 			<configuration>
                 <testSourceDirectory>${basedir}/src</testSourceDirectory>
                 <testClassesDirectory>${basedir}/bin</testClassesDirectory>
 	            <excludes>
 	              <exclude>**repository/*</exclude>
+				  <exclude>org/eclipse/richbeans/**/Suite.java</exclude>
+				  <exclude>org/eclipse/dawnsci/**/Suite.java</exclude>
 	            </excludes>
            		<includes>
-		          <include>**/scanning/**/Suite.java</include>
-			</includes>
+		          <include>${test.includes}</include>
+			    </includes>
 			</configuration>
   		  </plugin>   
   		            
