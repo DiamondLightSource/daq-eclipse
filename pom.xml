@@ -109,12 +109,10 @@
                 <testClassesDirectory>${basedir}/bin</testClassesDirectory>
 	            <excludes>
 	              <exclude>**repository/*</exclude>
-	              <exclude>**/eclipse/richbeans/*</exclude>
-	              <exclude>**/eclipse/dawnsci/*</exclude>
 	            </excludes>
            		<includes>
-					<include>**/Suite.java</include>
-				</includes>
+		          <include>**/scanning/**/Suite.java</include>
+			</includes>
 			</configuration>
   		  </plugin>   
   		            
