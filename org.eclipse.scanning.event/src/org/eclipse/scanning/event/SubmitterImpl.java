@@ -1,7 +1,5 @@
 package org.eclipse.scanning.event;
 
-import static org.eclipse.scanning.api.event.IEventService.STATUS_TOPIC;
-
 import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -106,21 +104,38 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 	}
 
 	@Override
-	public void blockingSubmit(T bean) throws EventException, InterruptedException {
+	public void blockingSubmit(T bean) throws EventException, InterruptedException, IllegalStateException {
 
+		String topic = getTopicName();
+		if (topic == null) {
+			// We can't block if we don't know what topic to listen to.
+			throw new IllegalStateException(
+					"ISubmitter topicName must be set before blockingSubmit can be called.");
+		}
+
+		// We will listen for an event whose UID matches this bean
+		// and which signals the scan is complete.
+		ISubscriber<IScanListener> subscriber = eservice.createSubscriber(getUri(), topic);
 		final String UID = bean.getUniqueId();
-		ISubscriber<IScanListener> subscriber = eservice.createSubscriber(getUri(), STATUS_TOPIC);
 		final CountDownLatch latch = new CountDownLatch(1);
 
 		subscriber.addListener(new IScanListener() {
-			@Override public void scanEventPerformed(ScanEvent evt) {}
+
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				ScanBean scanBean = evt.getBean();
-				if (scanBean.getUniqueId() == UID
+				if (scanBean.getUniqueId().equals(UID)
 						&& scanBean.getStatus().isFinal()) {
 					latch.countDown();
 				}
+			}
+
+			@Override
+			public void scanEventPerformed(ScanEvent evt) {
+				// We should only have to listen for state changes
+				// but testing shows that we need to listen to all
+				// scan events, like so. FIXME
+				scanStateChanged(evt);
 			}
 		});
 

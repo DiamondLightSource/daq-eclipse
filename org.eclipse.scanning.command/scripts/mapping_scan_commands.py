@@ -113,6 +113,7 @@ def submit(request, now=False, block=False,
                     .createSubmitter(URI(broker_uri), SUBMISSION_QUEUE)
 
     if block:
+        submitter.setTopicName(STATUS_TOPIC)
         submitter.blockingSubmit(scan_bean)
     else:
         submitter.submit(scan_bean)
