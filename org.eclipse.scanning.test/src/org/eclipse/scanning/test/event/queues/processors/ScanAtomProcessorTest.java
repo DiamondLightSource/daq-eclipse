@@ -100,7 +100,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	public void testExecution() throws Exception {
 		scAt.setName("Test Execution");
 		doExecute();
-		Thread.sleep(15000);
+		executionLatch.await();
 		
 		/*
 		 * After execution:
@@ -119,7 +119,6 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		checkBeanStatuses(reportedStatuses, reportedPercent);
 		checkBeanFinalStatus(Status.COMPLETE, true);
 		
-		//Thread.sleep(1000);
 		checkConsumerBeans(Status.COMPLETE);
 		
 		//Assert we have a properly structured ScanBean
@@ -171,9 +170,9 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	public void testTermination() throws Exception {
 		scAt.setName("Test Termination");
 		doExecute();
-		Thread.sleep(4000);
+		Thread.sleep(2000);
 		proc.terminate();
-		Thread.sleep(5000);
+		Thread.sleep(500);
 		
 		/*
 		 * After execution:

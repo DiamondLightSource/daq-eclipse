@@ -7,6 +7,7 @@ import static org.junit.Assert.assertThat;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -24,6 +25,8 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable> {
 	protected IPublisher<QueueAtom> statPub;
 	protected URI uri;
 	protected String topic = "active.queue";
+	
+	protected final CountDownLatch executionLatch = new CountDownLatch(1);
 
 	private Exception thrownException;
 	
@@ -43,6 +46,7 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable> {
 			public void run() {
 				try {
 					proc.execute();
+					executionLatch.countDown();
 				} catch (Exception e) {
 					thrownException = new Exception(e);
 				}
