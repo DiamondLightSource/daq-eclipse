@@ -52,6 +52,15 @@
             name="Model"
             restorable="true">
       </view>
+      <view
+            allowMultiple="true"
+            category="org.eclipse.scanning.scanning.ui"
+            class="org.eclipse.scanning.scanning.ui.device.DetectorView"
+            icon="icons/camera.png"
+            id="org.eclipse.scanning.event.ui.detectorView"
+            name="Detectors"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">
