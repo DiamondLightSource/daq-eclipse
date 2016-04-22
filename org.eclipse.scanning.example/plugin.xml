@@ -13,8 +13,10 @@
             name="mandelbrot">
       </device>
       <device
-            id="org.eclipse.scanning.example.detector.constantVelocityDevice"
             class="org.eclipse.scanning.example.detector.ConstantVelocityDevice"
+            description="Device to do CV scan"
+            id="org.eclipse.scanning.example.detector.constantVelocityDevice"
+            label="Constant Velocity Example"
             model="org.eclipse.scanning.example.detector.ConstantVelocityModel">
       </device>
       <device

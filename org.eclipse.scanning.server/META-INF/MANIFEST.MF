@@ -11,6 +11,7 @@ Service-Component: OSGI-INF/*.xml
 Bundle-ActivationPolicy: lazy
 Export-Package: org.eclipse.scanning.server.servlet
 Eclipse-RegisterBuddy: uk.ac.diamond.org.springframework
-Import-Package: org.osgi.framework;version="1.8.0",
+Import-Package: org.apache.log4j,
+ org.osgi.framework;version="1.8.0",
  org.slf4j;version="[1.7.2,2.0.0)"
 

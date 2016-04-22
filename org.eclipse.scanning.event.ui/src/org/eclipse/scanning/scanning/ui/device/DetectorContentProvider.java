@@ -52,6 +52,7 @@ class DetectorContentProvider implements IStructuredContentProvider {
 		    DeviceRequest req = requester.post(new DeviceRequest());
 		    return req.getDevices().toArray(new DeviceInformation<?>[req.size()]);
 		} catch (Exception ne) {
+			ne.printStackTrace();
 			logger.error("Cannot get devices!", ne);
 			return new DeviceInformation<?>[]{new DeviceInformation<Object>("No devices found")};
 		}

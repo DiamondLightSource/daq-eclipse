@@ -38,9 +38,9 @@ public class DeviceInformation<T> {
 	 * The path to the icon, including bundle. The user interface will then attempt to 
 	 * load this bundle (if it exists in the UI product) and the icon from it.
 	 * <p>
-	 * Form: bundle/subdir/image name
+	 * Form: bundle:subdir(s)/image name
 	 * <p>
-	 * Example: org.eclipse.scanning.example/icons/mandelbrot.png
+	 * Example: org.eclipse.scanning.example:icons/mandelbrot.png
 	 * <p>
 	 * If org.eclipse.scanning.example is not available on the client then a default icon or no icon will be
 	 * used depending on the UI connecting.

@@ -20,14 +20,16 @@ public class ScanningPerspective implements IPerspectiveFactory {
 			IFolderLayout folderLayout = layout.createFolder("folder", IPageLayout.RIGHT, 0.5f, IPageLayout.ID_EDITOR_AREA);
 			folderLayout.addView("org.eclipse.scanning.scanning.ui.generatorEditor");
 			final String detectorId = DetectorView.createId(getUriString(), IEventService.REQUEST_TOPIC, IEventService.RESPONSE_TOPIC);
-			folderLayout.addView("org.eclipse.ant.ui.views.AntView");
+			folderLayout.addView(detectorId);
 		}
 		layout.addView("org.eclipse.scanning.scanning.ui.modelEditor", IPageLayout.BOTTOM, 0.5f, "org.eclipse.scanning.scanning.ui.generatorEditor");
 	}
 
 	private String getUriString() {
-		// TODO Auto-generated method stub
-		return null;
+		String broker = System.getProperty("org.eclipse.scanning.broker.uri");
+		if (broker==null) broker = System.getProperty("gda.activemq.broker.uri");
+		if (broker==null) broker = "vm://localhost?broker.persistent=false";
+		return broker;
 	}
 
 	/**

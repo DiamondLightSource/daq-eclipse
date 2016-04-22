@@ -253,5 +253,6 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		// Otherwise just return the iteration count
 		return iteration;
 	}
-	
+
+
 }
