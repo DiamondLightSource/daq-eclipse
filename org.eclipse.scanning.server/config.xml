@@ -20,9 +20,13 @@
 
     <bean id="deviceServlet" class="org.eclipse.scanning.server.servlet.DeviceServlet" init-method="connect">
        <property name="broker"          value="${org.eclipse.scanning.broker.uri}" />
-       <property name="requestTopic"    value="org.eclipse.scanning.device.requestTopic" />
-       <property name="responseTopic"   value="org.eclipse.scanning.device.responseTopic"   />
+       <property name="requestTopic"    value="org.eclipse.scanning.request.topic" />
+       <property name="responseTopic"   value="org.eclipse.scanning.response.topic"   />
     </bean>
  
+    <bean id="dataServer" class="org.eclipse.dawnsci.remotedataset.server.DataServer" init-method="start">
+        <property name="port"     value="8690" />
+        <property name="bundle"   value="org.eclipse.dawnsci.remotedataset.server" />
+    </bean>
 
 </beans>
