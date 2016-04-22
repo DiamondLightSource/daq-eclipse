@@ -96,7 +96,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		scanConsumer.disconnect();
 	}
 	
-	@Test
+	//@Test
 	public void testExecution() throws Exception {
 		scAt.setName("Test Execution");
 		doExecute();
