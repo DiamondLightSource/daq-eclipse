@@ -46,7 +46,7 @@
       </view>
       <view
             category="org.eclipse.scanning.scanning.ui"
-            class="org.eclipse.scanning.scanning.ui.model.GeneratorModelView"
+            class="org.eclipse.scanning.scanning.ui.model.ModelView"
             icon="icons/scanner--arrow.png"
             id="org.eclipse.scanning.scanning.ui.modelEditor"
             name="Model"
