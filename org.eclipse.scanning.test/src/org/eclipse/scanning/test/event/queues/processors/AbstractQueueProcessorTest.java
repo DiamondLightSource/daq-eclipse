@@ -109,4 +109,17 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable> {
 		}
 	}
 
+	protected void pauseForMockFinalStatus() throws Exception {
+		boolean notFinal = true;
+		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+		DummyQueueable lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+		
+		while (notFinal) {
+			if (lastBean.getStatus().isFinal()) return;
+			Thread.sleep(100);
+			
+			broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+			lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+		}
+	}
 }
