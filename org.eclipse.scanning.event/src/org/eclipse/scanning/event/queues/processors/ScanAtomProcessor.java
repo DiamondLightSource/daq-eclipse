@@ -16,6 +16,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.event.queues.ServiceHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,13 +44,6 @@ public class ScanAtomProcessor implements IQueueProcessor {
 			IPublisher<T> publisher, boolean blocking) throws EventException {
 		return new ScanAtomProcess<T>(bean, publisher, blocking);
 	}
-	
-	public synchronized <T extends Queueable> IConsumerProcess<T> makeProcessWithEvServ(T bean,
-			IPublisher<T> publisher, boolean blocking, IEventService evServ) throws EventException {
-		ScanAtomProcess<T> scanProc = new ScanAtomProcess<T>(bean, publisher, blocking);
-		scanProc.setEventService(evServ);
-		return scanProc;
-	}
 
 
 	class ScanAtomProcess <T extends Queueable> extends AbstractQueueProcessor<T> {
@@ -58,7 +52,7 @@ public class ScanAtomProcessor implements IQueueProcessor {
 		private final String statusQueueName;
 		private final String statusTopicName;
 		private final URI uri;
-		private IEventService eventService;
+		private final IEventService eventService;
 		private ISubmitter<ScanBean> scanSubmitter;
 		private ISubscriber<IBeanListener<ScanBean>> scanSubscriber;
 
@@ -83,14 +77,7 @@ public class ScanAtomProcessor implements IQueueProcessor {
 				broadcast(bean, Status.FAILED);
 				throw new EventException(e);
 			}
-		}
-
-		/**
-		 * For use in testing! 
-		 * @param evServ - class implementing IEventService
-		 */
-		public synchronized void setEventService(IEventService evServ) {
-			eventService = evServ;
+			eventService = ServiceHolder.getEventService();
 		}
 
 		@Override
