@@ -34,7 +34,6 @@ import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.FieldUtils;
 import org.eclipse.scanning.api.annotation.FieldValue;
 import org.eclipse.scanning.api.annotation.FileType;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 import org.eclipse.scanning.scanning.ui.util.PageUtil;
 import org.eclipse.swt.SWT;
@@ -134,11 +133,11 @@ public class ModelFieldEditors {
 
 	public static boolean isEnabled(FieldValue field) {
     	final FieldDescriptor anot  = field.getAnnotation();
-    	final IScanPathModel      model = field.getModel();
+    	final Object      model = field.getModel();
     	return isEnabled(model, anot);
 	}
 
-	private static boolean isEnabled(IScanPathModel model, FieldDescriptor anot) {
+	private static boolean isEnabled(Object model, FieldDescriptor anot) {
 
 		if (anot == null) return true;
 		if (!anot.editable()) return false;

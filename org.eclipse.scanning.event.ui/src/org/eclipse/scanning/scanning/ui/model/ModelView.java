@@ -3,22 +3,23 @@ package org.eclipse.scanning.scanning.ui.model;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.scanning.ui.util.PageUtil;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
-public class GeneratorModelView extends ViewPart implements ISelectionListener {
+public class ModelView extends ViewPart implements ISelectionListener {
 
-	private GeneratorModelViewer modelEditor;
+	private ModelViewer modelEditor;
 	
 	@Override
 	public void createPartControl(Composite parent) {
 		
 		PageUtil.getPage(getSite()).addSelectionListener(this);
 
-		modelEditor = new GeneratorModelViewer(PageUtil.getPage(getSite()));
+		modelEditor = new ModelViewer(PageUtil.getPage(getSite()));
 		modelEditor.createPartControl(parent);
 		
 		getSite().setSelectionProvider(modelEditor);
@@ -41,11 +42,18 @@ public class GeneratorModelView extends ViewPart implements ISelectionListener {
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
 			Object ob = ((IStructuredSelection)selection).getFirstElement();
+			String       name = null;
 			if (ob instanceof ISeriesItemDescriptor) {
 				ISeriesItemDescriptor des = (ISeriesItemDescriptor)ob;
-				final String       name = des.getLabel();
-				setPartName("Model '"+name+"'");
+				name = des.getLabel();
+			} else if (ob instanceof DeviceInformation) {
+				DeviceInformation info = (DeviceInformation)ob;
+				name = info.getLabel();
+				if (name == null) name = info.getName();
+				if (name == null) name = info.getId();
 			}
+			setPartName("Model '"+name+"'");
+
 		}		
 	}
 

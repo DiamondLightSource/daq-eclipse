@@ -8,8 +8,12 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
@@ -61,6 +65,8 @@ public class DetectorView extends EventConnectionView {
 			logger.error("Cannot create content provider", e);
 		}
 		viewer.setInput(new Object());
+		
+		getSite().setSelectionProvider(viewer);
 		
 		createActions();
 		initializeToolBar();
