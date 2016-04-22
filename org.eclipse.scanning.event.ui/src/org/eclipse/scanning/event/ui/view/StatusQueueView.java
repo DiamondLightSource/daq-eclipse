@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -62,7 +61,6 @@ import org.eclipse.scanning.api.ui.IResultHandler;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 import org.eclipse.scanning.event.ui.dialog.PropertiesDialog;
-import org.eclipse.scanning.event.ui.preference.CommandConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -79,7 +77,6 @@ import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
@@ -107,7 +104,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-public class StatusQueueView extends ViewPart {
+public class StatusQueueView extends EventConnectionView {
 	
 	public static final String ID = "org.eclipse.scanning.event.ui.queueView";
 	
@@ -117,7 +114,6 @@ public class StatusQueueView extends ViewPart {
 	private TableViewer                       viewer;
 	
 	// Data
-	private Properties                        idProperties;
 	private Map<String, StatusBean>           queue;
 	private boolean                           showEntireQueue = false;
 
@@ -285,7 +281,7 @@ public class StatusQueueView extends ViewPart {
 		final IContributionManager dropDown = getViewSite().getActionBars().getMenuManager();
 		final MenuManager          menuMan = new MenuManager();
 	
-		final Action openResults = new Action("Open results for selected run", Activator.getDefault().getImageDescriptor("icons/results.png")) {
+		final Action openResults = new Action("Open results for selected run", Activator.getImageDescriptor("icons/results.png")) {
 			public void run() {
 				openResults(getSelection());
 			}
@@ -298,8 +294,7 @@ public class StatusQueueView extends ViewPart {
 		dropDown.add(openResults);
 		dropDown.add(new Separator());
 		
-		this.up = new Action("Less urgent (-1)", Activator.getDefault().getImageDescriptor("icons/arrow-090.png")) {
-			@SuppressWarnings("unused")
+		this.up = new Action("Less urgent (-1)", Activator.getImageDescriptor("icons/arrow-090.png")) {
 			public void run() {
 				final StatusBean bean = getSelection();
 				try {
@@ -316,8 +311,7 @@ public class StatusQueueView extends ViewPart {
 		menuMan.add(up);
 		dropDown.add(up);
 		
-		this.down = new Action("More urgent (+1)", Activator.getDefault().getImageDescriptor("icons/arrow-270.png")) {
-			@SuppressWarnings("unused")
+		this.down = new Action("More urgent (+1)", Activator.getImageDescriptor("icons/arrow-270.png")) {
 			public void run() {
 				final StatusBean bean = getSelection();
 				try {
@@ -339,14 +333,14 @@ public class StatusQueueView extends ViewPart {
 				pauseJob();
 			}
 		};
-		pause.setImageDescriptor(Activator.getDefault().getImageDescriptor("icons/control-pause.png"));
+		pause.setImageDescriptor(Activator.getImageDescriptor("icons/control-pause.png"));
 		pause.setEnabled(false);
 		pause.setChecked(false);
 		toolMan.add(pause);
 		menuMan.add(pause);
 		dropDown.add(pause);
 		
-		this.remove = new Action("Stop job or remove if finished", Activator.getDefault().getImageDescriptor("icons/control-stop-square.png")) {
+		this.remove = new Action("Stop job or remove if finished", Activator.getImageDescriptor("icons/control-stop-square.png")) {
 			public void run() {
 				stopJob();
 			}
@@ -356,7 +350,7 @@ public class StatusQueueView extends ViewPart {
 		menuMan.add(remove);
 		dropDown.add(remove);
 		
-		this.rerun = new Action("Rerun...", Activator.getDefault().getImageDescriptor("icons/rerun.png")) {
+		this.rerun = new Action("Rerun...", Activator.getImageDescriptor("icons/rerun.png")) {
 			public void run() {
 				rerunSelection();
 			}
@@ -366,7 +360,7 @@ public class StatusQueueView extends ViewPart {
 		menuMan.add(rerun);
 		dropDown.add(rerun);
 		
-		this.edit = new Action("Edit...", Activator.getDefault().getImageDescriptor("icons/modify.png")) {
+		this.edit = new Action("Edit...", Activator.getImageDescriptor("icons/modify.png")) {
 			public void run() {
 				editSelection();
 			}
@@ -386,7 +380,7 @@ public class StatusQueueView extends ViewPart {
 				viewer.refresh();
 			}
 		};
-		showAll.setImageDescriptor(Activator.getDefault().getImageDescriptor("icons/spectacle-lorgnette.png"));
+		showAll.setImageDescriptor(Activator.getImageDescriptor("icons/spectacle-lorgnette.png"));
 		
 		toolMan.add(showAll);
 		menuMan.add(showAll);
@@ -397,7 +391,7 @@ public class StatusQueueView extends ViewPart {
 		dropDown.add(new Separator());
 
 		
-		final Action refresh = new Action("Refresh", Activator.getDefault().getImageDescriptor("icons/arrow-circle-double-135.png")) {
+		final Action refresh = new Action("Refresh", Activator.getImageDescriptor("icons/arrow-circle-double-135.png")) {
 			public void run() {
 				reconnect();
 			}
@@ -407,7 +401,7 @@ public class StatusQueueView extends ViewPart {
 		menuMan.add(refresh);
 		dropDown.add(refresh);
 
-		final Action configure = new Action("Configure...", Activator.getDefault().getImageDescriptor("icons/document--pencil.png")) {
+		final Action configure = new Action("Configure...", Activator.getImageDescriptor("icons/document--pencil.png")) {
 			public void run() {
 				PropertiesDialog dialog = new PropertiesDialog(getSite().getShell(), idProperties);
 				
@@ -826,7 +820,6 @@ public class StatusQueueView extends ViewPart {
 	    String beanClassName  = getSecondaryIdAttribute("beanClassName");
 		try {
 		    
-		    @SuppressWarnings("rawtypes")
 		    Bundle bundle = Platform.getBundle(beanBundleName);
 			return (Class<StatusBean>)bundle.loadClass(beanClassName);
 		} catch (Exception ne) {
@@ -982,55 +975,7 @@ public class StatusQueueView extends ViewPart {
 			viewer.getTable().setFocus();
 		}
 	}
-
-
-	private String getTopicName() {
-		final String topicName = getSecondaryIdAttribute("topicName");
-		if (topicName != null) return topicName;
-		return "scisoft.default.STATUS_TOPIC";
-	}
-
-    protected URI getUri() throws Exception {
-		final String uri = getSecondaryIdAttribute("uri");
-		if (uri != null) return new URI(uri.replace("%3A", ":"));
-		return new URI(getCommandPreference(CommandConstants.JMS_URI));
-	}
-    
-    protected String getUserName() {
-		final String name = getSecondaryIdAttribute("userName");
-		if (name != null) return name;
-		return System.getProperty("user.name");
-	}
-   
-    protected String getCommandPreference(String key) {
-		final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-    	return store.getString(key);
-    }
-
-	protected String getQueueName() {
-		final String qName =  getSecondaryIdAttribute("queueName");
-		if (qName != null) return qName;
-		return "scisoft.default.STATUS_QUEUE";
-	}
 	
-	protected String getSubmissionQueueName() {
-		final String qName =  getSecondaryIdAttribute("submissionQueueName");
-		if (qName != null) return qName;
-		return "scisoft.default.SUBMISSION_QUEUE";
-	}
-
-	protected String getSubmitOverrideSetName() {
-		return getSubmissionQueueName()+".overrideSet";
-	}
-	
-	private String getSecondaryIdAttribute(String key) {
-		if (idProperties!=null) return idProperties.getProperty(key);
-		if (getViewSite()==null) return null;
-		final String secondId = getViewSite().getSecondaryId();
-		if (secondId == null) return null;
-		idProperties = parseString(secondId);
-		return idProperties.getProperty(key);
-	}
 
 	public static String createId(final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
 		
@@ -1049,48 +994,4 @@ public class StatusQueueView extends ViewPart {
 		return buf.toString();
 	}
 
-	public static String createSecondaryId(final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
-        return createSecondaryId(null, beanBundleName, beanClassName, queueName, topicName, submissionQueueName);
-	}
-	
-	public static String createSecondaryId(final String uri, final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
-		
-		final StringBuilder buf = new StringBuilder();
-		if (uri!=null) append(buf, "uri",      uri);
-		append(buf, "beanBundleName",      beanBundleName);
-		append(buf, "beanClassName",       beanClassName);
-		append(buf, "queueName",           queueName);
-		append(buf, "topicName",           topicName);
-		append(buf, "submissionQueueName", submissionQueueName);
-		return buf.toString();
-	}
-
-	private static void append(StringBuilder buf, String name, String value) {
-		buf.append(name);
-		buf.append("=");
-		buf.append(value);
-		buf.append(";");
-	}
-	
-	
-	/**
-	 * String to be parsed to properties. In the form of key=value pairs
-	 * separated by semi colons. You may not use semi-colons in the 
-	 * keys or values. Keys and values are trimmed so extra spaces will be
-	 * ignored.
-	 * 
-	 * @param secondId
-	 * @return map of values extracted from the 
-	 */
-	private static Properties parseString(String properties) {
-		
-		if (properties==null) return new Properties();
-		Properties props = new Properties();
-		final String[] split = properties.split(";");
-		for (String line : split) {
-			final String[] kv = line.split("=", 2);
-			props.setProperty(kv[0].trim(), kv[1].trim());
-		}
-		return props;
-	}
 }

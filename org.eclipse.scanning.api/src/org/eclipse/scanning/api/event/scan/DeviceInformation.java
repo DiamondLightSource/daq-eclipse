@@ -52,6 +52,14 @@ public class DeviceInformation<T> {
 	 * the detector does not have a model, null.
 	 */
 	private T model;
+	
+	public DeviceInformation() {
+
+	}
+	
+	public DeviceInformation(String name) {
+	    this.name = name;
+	}
 
 	public String getName() {
 		return name;
