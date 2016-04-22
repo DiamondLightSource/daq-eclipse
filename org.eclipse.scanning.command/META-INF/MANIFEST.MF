@@ -15,5 +15,4 @@ Export-Package: org.eclipse.scanning.command,
  org.python.util
 Bundle-ClassPath: lib/jython-standalone-2.7.0.jar,
  .
-Import-Package: org.eclipse.dawnsci.analysis.api.roi,
- org.eclipse.scanning.example.detector
+Import-Package: org.eclipse.dawnsci.analysis.api.roi
