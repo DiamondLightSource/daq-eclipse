@@ -2,7 +2,6 @@ package org.eclipse.scanning.api.device;
 
 import java.util.Collection;
 
-import org.eclipse.scanning.api.device.legacy.ILegacyDeviceSupport;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;

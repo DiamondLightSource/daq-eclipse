@@ -1,9 +1,10 @@
 package org.eclipse.scanning.api.device;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.device.legacy.ILegacyDeviceSupport;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
@@ -47,13 +48,28 @@ public interface IDeviceConnectorService {
 	 * @throws ScanningException if no scannable with the given name could be found
 	 */
 	<T> IScannable<T> getScannable(String name) throws ScanningException;
+
+	/**
+	 * Returns the set of global metadata scannable names that should be added to all scans.
+	 * This is used to support legacy (GDA8) spring configurations. Should not be called
+	 * by client code.
+	 * @return global metadata scannable names
+	 */
+	@Deprecated
+	default Set<String> getGlobalMetadataScannableNames() {
+		return Collections.emptySet();
+	}
 	
 	/**
-	 * Returns the {@link ILegacyDeviceSupport}. This provides a place for GDA9 to access
-	 * legacy spring configuration settings for GDA8 scannables.
-	 * May be <code>null</code> if legacy devices are not supported
-	 * @return legacy device support
+	 * Returns the set of the names required metadata scannables for the given scannable name.
+	 * This is used to support legacy (GDA8) spring configurations. Should not be called
+	 * by client code. 
+	 * @param scannableName scannable to get required metadata scannable names for
+	 * @return names of required metadata scannables for the scannable with the given name
 	 */
-	ILegacyDeviceSupport getLegacyDeviceSupport();
-
+	@Deprecated
+	default Set<String> getRequiredMetadataScannableNames(String scannableName) {
+		return Collections.emptySet();
+	}
+	
 }

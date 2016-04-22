@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -18,7 +17,6 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
-import org.eclipse.scanning.api.device.legacy.ILegacyDeviceSupport;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
@@ -115,12 +113,14 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	}
 
 	/**
-	 * Additionally augments the set of metadata scannables in the model with any scannables from
-	 * the legacy spring configuration.
-	 * 
+	 * Augments the set of metadata scannables in the model with: <ul>
+	 * <li>any scannables from the legacy spring configuration;</li>
+	 * <li>the required scannables of any scannables in the scan;</li>
+	 * </ul> 
 	 * @param model
 	 * @throws ScanningException
 	 */
+	@SuppressWarnings("deprecation")
 	private void setMetadataScannables(ScanModel model) throws ScanningException {
 		// TODO: does this belong in NexusScanFileBuilder? It's clogging up this class
 		// and only NexusScanFileBuilder needs to know about metadata scannables
@@ -135,30 +135,26 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		metadataScannableNames.addAll(model.getMetadataScannables().stream().
 				map(m -> m.getName()).collect(Collectors.toSet()));
 		
-		// add the metadata scannables from the legacy device support and use it to
-		// add prerequisites of any scannables in the scan
-		ILegacyDeviceSupport legacyDeviceSupport = getConnectorService().getLegacyDeviceSupport();
-		if (legacyDeviceSupport != null) {
-			// add the metadata scannables
-			metadataScannableNames.addAll(legacyDeviceSupport.getMetadataScannableNames());
+		// add the global metadata scannables, and the required metadata scannables for
+		// each scannable in the scan
+		final IDeviceConnectorService connectorService = getConnectorService();
+		metadataScannableNames.addAll(connectorService.getGlobalMetadataScannableNames());
+		
+		// the set of scannable names to check for dependencies
+		Set<String> scannableNamesToCheck = new HashSet<>();
+		scannableNamesToCheck.addAll(metadataScannableNames);
+		scannableNamesToCheck.addAll(scannableNames);
+		do {
+			// check the given set of scannable names for dependencies
+			// each iteration checks the scannable names added in the previous one
+			Set<String> requiredScannables = scannableNamesToCheck.stream().flatMap(
+					name -> connectorService.getRequiredMetadataScannableNames(name).stream())
+					.filter(name -> !metadataScannableNames.contains(name))
+					.collect(Collectors.toSet());
 			
-			// the set of scannable names to check for dependencies
-			Set<String> scannableNamesToCheck = new HashSet<>();
-			scannableNamesToCheck.addAll(metadataScannableNames);
-			scannableNamesToCheck.addAll(scannableNames);
-			do {
-				// check the given set of scannable names for dependencies
-				// each iteration checks the scannable names added in the previous one
-				Set<String> requiredScannables = scannableNamesToCheck.stream().map(
-						deviceName -> legacyDeviceSupport.getLegacyDeviceConfig(deviceName)).
-						filter(Objects::nonNull).
-						flatMap(config -> config.getRequiredScannableNames().stream()).
-						filter(scannableName -> !metadataScannableNames.contains(scannableName)).
-						collect(Collectors.toSet());
-				metadataScannableNames.addAll(requiredScannables);
-				scannableNamesToCheck = requiredScannables;
-			} while (!scannableNamesToCheck.isEmpty());
-		}
+			metadataScannableNames.addAll(requiredScannables);
+			scannableNamesToCheck = requiredScannables;
+		} while (!scannableNamesToCheck.isEmpty());
 		
 		// remove any scannable names in the scan from the list of metadata scannables
 		metadataScannableNames.removeAll(scannableNames);
