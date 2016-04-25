@@ -22,7 +22,6 @@ import java.util.concurrent.CountDownLatch;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.log4j.ConsoleAppender;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
@@ -55,7 +54,7 @@ public class Application implements IApplication {
 	@Override
 	public Object start(IApplicationContext context) throws Exception {
 	
-		org.apache.log4j.Logger.getRootLogger().addAppender(new ConsoleAppender());
+		//org.apache.log4j.Logger.getRootLogger().addAppender(new ConsoleAppender());
 		
 		final Map<?, ?>      args    = context.getArguments();
 		final String[] configuration = (String[])args.get("application.args");
