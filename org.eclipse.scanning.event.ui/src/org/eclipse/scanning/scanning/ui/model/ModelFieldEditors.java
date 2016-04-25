@@ -243,19 +243,23 @@ public class ModelFieldEditors {
 	private static CellEditor getNumberEditor(FieldValue field, final Class<? extends Object> clazz, Composite parent) {
     	
 		FieldDescriptor anot = field.getAnnotation();
-		CellEditor textEd = null;
+		NumberCellEditor textEd = null;
 	    if (anot!=null) {
 	    	textEd = new NumberCellEditor(parent, clazz, anot.min(), anot.max(), anot.unit(), SWT.NONE);
 	    	
 	    	if (anot.numberFormat()!=null && !"".equals(anot.numberFormat())) {
-		    	((NumberCellEditor)textEd).setDecimalFormat(anot.numberFormat());
+	    		textEd.setDecimalFormat(anot.numberFormat());
 		    }
 	    	
 	    } else {
 	    	textEd = new NumberCellEditor(parent, clazz, SWT.NONE);
 	    }
 	    
-	    ((NumberCellEditor)textEd).setAllowInvalidValues(true);
+	    //textEd.setAllowInvalidValues(true);
+	    if (anot.validif().length()>0) {
+	    	final ValidIfDecorator deco = new ValidIfDecorator(field.getName(), field.getModel(), anot.validif());
+	    	textEd.setDelegateDecorator(deco);
+	    }
 
     	return textEd;
 	}
