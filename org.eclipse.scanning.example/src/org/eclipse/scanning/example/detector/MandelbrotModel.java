@@ -1,33 +1,64 @@
 package org.eclipse.scanning.example.detector;
 
+import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 
 public class MandelbrotModel implements IDetectorModel {
 
 	// Parameters controlling iteration and termination of the Julia/Mandelbrot algorithm
+	@FieldDescriptor(label="Maximum Iterations", 
+	         min=1, 
+	         hint="Iterations to use.")
 	private int    maxIterations;
+	
+	@FieldDescriptor(label="Escape Radius", 
+	         min=0, 
+	         hint="The radius of escape for the mandelbrot algorithm.")
 	private double escapeRadius;
 
 	// Parameters controlling the dimensions and size of the 1D and 2D Julia set datasets
+	@FieldDescriptor(label="Columns", 
+	         max=100000, 
+	         min=1, 
+	         hint="The number of points that the grid should run over, the x direction.")
 	private int    columns; // for the 2D dataset, from -maxRealCoordinate to +maxRealCoordinate
+	
+	@FieldDescriptor(label="Rows", 
+	         max=100000, 
+	         min=1, 
+	         hint="The number of points that the grid should run over, the y direction.")
 	private int    rows;    // for the 2D dataset, from -maxImaginaryCoordinate to +maxImaginaryCoordinate
+	
+	@FieldDescriptor(label="Points", 
+	         validif="points<=(maxRealCoordinate*maxIterations)", 
+	         min=1, 
+	         hint="Points of Mandelbrot.")
 	private int    points;  // for the 1D dataset, from 0 to maxRealCoordinate
+	
+	@FieldDescriptor(label="Max. Real Coordinate")
 	private double maxRealCoordinate;
+	
+	@FieldDescriptor(label="Max. Imaginary Coordinate")
 	private double maxImaginaryCoordinate;
 
 	// The names of the scannables used to determine the position to calculate
+	@FieldDescriptor(label="Real Axis Name")
 	private String realAxisName;
+	
+	@FieldDescriptor(label="Imaginary Axis Name")
 	private String imaginaryAxisName;
 
 	/**
 	 * The name of the detector device
 	 */
+	@FieldDescriptor(label="Name")
 	private String name;
 
 	/**
 	 * The exposure time. If calculation is shorter than this, time is artificially added to make the detector respect
 	 * the time that is set.
 	 */
+	@FieldDescriptor(label="Exposure Time")
 	private double exposureTime; // Seconds
 
 	public MandelbrotModel() {
