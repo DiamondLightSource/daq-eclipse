@@ -51,6 +51,13 @@ public @interface FieldDescriptor {
 	 * The expression for enableif on another field of the model might be  'status==OK'
 	 */
 	public String enableif() default "";
+	
+	/**
+	 * 
+	 * @return an expression of other fields that should be evaluated and if it returns
+	 * true, the value entered allowed. Otherwise the foreground will colour red.
+	 */
+	public String validif() default "";
 
 	/**
 	 * The label attribute. If unset, uses the name of the field for the label.
@@ -68,7 +75,7 @@ public @interface FieldDescriptor {
 	 * @return minimum allowed legal value for field
 	 */
 	public double min() default Double.NEGATIVE_INFINITY;
-
+	
 	/**
 	 * 
 	 * @return the unit that the fields value should be in.
