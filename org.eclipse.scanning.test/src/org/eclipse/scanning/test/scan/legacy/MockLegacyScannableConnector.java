@@ -16,8 +16,6 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.test.scan.mock.MockNeXusScannable;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
 
-import jdk.nashorn.internal.ir.SetSplitState;
-
 public class MockLegacyScannableConnector implements IDeviceConnectorService {
 	
 	private static Map<String, INameable> cache; 
