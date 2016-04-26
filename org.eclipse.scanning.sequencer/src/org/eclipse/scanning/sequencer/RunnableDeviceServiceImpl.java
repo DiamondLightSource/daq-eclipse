@@ -33,7 +33,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 @SuppressWarnings("rawtypes")
-public final class DeviceServiceImpl implements IRunnableDeviceService {
+public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	
 	/**
 	 * The default Malcolm Hostname can be injected by spring. Otherwise
@@ -45,14 +45,13 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 	 * This service can not be present for some tests which run in OSGi
 	 * but mock the test laster.
 	 */
-	private static IDeviceConnectorService deviceService;	
+	private static IDeviceConnectorService deviceConnectorService;	
 	
 	/**
 	 * This service must be present.
 	 */
-	private static IMalcolmService         malcolmService;	
-		
-
+	private static IMalcolmService         malcolmService;
+	
 	/**
 	 * Map of device model class to device class.
 	 */
@@ -93,14 +92,14 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 	/**
 	 * Main constructor used in the running server by OSGi (only)
 	 */
-	public DeviceServiceImpl() {
+	public RunnableDeviceServiceImpl() {
 		connections        = new HashMap<>(3);
 	}
 	
 	// Test
-	public DeviceServiceImpl(IDeviceConnectorService dservice) {
+	public RunnableDeviceServiceImpl(IDeviceConnectorService deviceConnectorService) {
 		this();
-		deviceService = dservice;	
+		RunnableDeviceServiceImpl.deviceConnectorService = deviceConnectorService;	
 	}
 	
 	
@@ -115,10 +114,7 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 				if (e.getName().equals("device")) {
 					
 					final IRunnableDevice device = (IRunnableDevice)e.createExecutableExtension("class");
-					
-					String name = e.getAttribute("name");
-					if (name == null) name = e.getAttribute("id");
-					device.setName(name);
+					device.setName(e.getAttribute("name"));
 					devs.put(mod.getClass(), device.getClass());
 					
 					if (device instanceof AbstractRunnableDevice) {
@@ -127,7 +123,7 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 						info.setLabel(e.getAttribute("label"));
 						info.setDescription(e.getAttribute("description"));
 						info.setId(e.getAttribute("id"));
-						if (e.getAttribute("icon")!=null) info.setIcon(e.getContributor().getName()+":"+e.getAttribute("icon"));
+						info.setIcon(e.getContributor().getName()+"/"+e.getAttribute("icon"));
 						adevice.setDeviceInformation(info);
 					}
 					
@@ -146,8 +142,8 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 	@Override
 	public final IPositioner createPositioner() throws ScanningException {
 		// Try to set a deviceService if it is null
-		if (deviceService==null) deviceService = getDeviceConnector();
-		return new ScannablePositioner(deviceService);
+		if (deviceConnectorService==null) deviceConnectorService = getDeviceConnector();
+		return new ScannablePositioner(deviceConnectorService);
 	}
 
 	
@@ -170,13 +166,13 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 	private final <T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, boolean configure) throws ScanningException {
 				
 		try {
-			if (deviceService==null) deviceService = getDeviceConnector();
+			if (deviceConnectorService==null) deviceConnectorService = getDeviceConnector();
 			
 			final IRunnableDevice<T> scanner = createDevice(model);
 			if (scanner instanceof AbstractRunnableDevice) {
 				AbstractRunnableDevice<T> ascanner = (AbstractRunnableDevice<T>)scanner;
 				ascanner.setRunnableDeviceService(this);
-                ascanner.setConnectorService(deviceService);
+                ascanner.setConnectorService(deviceConnectorService);
                 ascanner.setPublisher(publisher); // May be null
                 
                 // If the model has a name for the device, we use
@@ -268,12 +264,12 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 		return new URI(buf.toString());
 	}
 
-	public static IDeviceConnectorService getDeviceService() {
-		return deviceService;
+	public static IDeviceConnectorService getDeviceConnectorService() {
+		return deviceConnectorService;
 	}
 
-	public static void setDeviceService(IDeviceConnectorService connectorService) {
-		DeviceServiceImpl.deviceService = connectorService;
+	public static void setDeviceConnectorService(IDeviceConnectorService connectorService) {
+		RunnableDeviceServiceImpl.deviceConnectorService = connectorService;
 	}
 	
 	private BundleContext context;
@@ -308,7 +304,7 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 	}
 
 	public static void setMalcolmService(IMalcolmService malcolmService) {
-		DeviceServiceImpl.malcolmService = malcolmService;
+		RunnableDeviceServiceImpl.malcolmService = malcolmService;
 	}
 
 	public static String getDefaultMalcolmHostname() {
@@ -316,7 +312,7 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 	}
 
 	public static void setDefaultMalcolmHostname(String defaultMalcolmHostname) {
-		DeviceServiceImpl.defaultMalcolmHostname = defaultMalcolmHostname;
+		RunnableDeviceServiceImpl.defaultMalcolmHostname = defaultMalcolmHostname;
 	}
 
 	/**
@@ -336,7 +332,7 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 	public void _register(String name, IRunnableDevice<?> device) {
 		namedDevices.put(name, device);
 	}
-
+	
 	/**
 	 * Used for testing only
 	 * @param uri

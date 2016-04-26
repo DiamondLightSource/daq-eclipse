@@ -2,7 +2,7 @@ package org.eclipse.scanning.test.scan;
 
 import java.net.URI;
 
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
@@ -19,7 +19,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
@@ -38,7 +38,7 @@ public class ARPESScanTest {
 	protected IMalcolmDevice<OneDetectorTestMappingModel>          device;
 	protected IMalcolmConnectorService<JsonMessage> connectorService;
 	protected IPointGeneratorService                     gservice;
-	protected IDeviceService                      sservice;
+	protected IRunnableDeviceService                      sservice;
 
 	
 	/**
@@ -56,8 +56,8 @@ public class ARPESScanTest {
 		// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
 		this.mservice    = new MalcolmService(); 
 		this.gservice    = new PointGeneratorFactory();
-		this.sservice    = new DeviceServiceImpl(new MockScannableConnector());
-		DeviceServiceImpl impl = (DeviceServiceImpl)sservice;
+		this.sservice    = new RunnableDeviceServiceImpl(new MockScannableConnector());
+		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)sservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
 			

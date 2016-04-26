@@ -14,7 +14,7 @@ import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -24,7 +24,7 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.eclipse.scanning.test.scan.mock.MockScannableModel;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
@@ -51,14 +51,14 @@ public class LowLevelDetectorPluginTest {
 		LowLevelDetectorPluginTest.factory = factory;
 	}
 
-	private IDeviceService        service;
+	private IRunnableDeviceService        service;
 	private IPointGeneratorService       gservice;
 	private IDeviceConnectorService connector;
 	
 	@Before
 	public void before() {
 		connector = new MockScannableConnector();
-		service   = new DeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		service   = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
 	}
 	

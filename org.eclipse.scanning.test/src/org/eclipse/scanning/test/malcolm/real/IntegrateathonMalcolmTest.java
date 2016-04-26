@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.URI;
 
 import org.eclipse.dawnsci.json.MarshallerService;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -28,7 +28,7 @@ import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.After;
 import org.junit.Before;
@@ -42,7 +42,7 @@ public class IntegrateathonMalcolmTest {
 
 	protected IMalcolmConnection         connection;
 	protected IMalcolmDevice<TwoDetectorTestMappingModel>  device;
-	protected IDeviceService             dservice;
+	protected IRunnableDeviceService             dservice;
 	protected IPointGeneratorService     pservice;
 	protected IPublisher<ScanBean>       publisher;
 	protected ISubscriber<IScanListener> subscriber;
@@ -77,7 +77,7 @@ public class IntegrateathonMalcolmTest {
 		this.connection = service.createConnection(new URI("tcp://pc0013.cs.diamond.ac.uk:5600"), new ZeromqConnectorService());
 		this.device     = connection.getDevice("lab", publisher);
 		
-		this.dservice  = new DeviceServiceImpl(new MockScannableConnector());
+		this.dservice  = new RunnableDeviceServiceImpl(new MockScannableConnector());
 		DeviceState state = device.getDeviceState();
 		if (state!=DeviceState.IDLE && state!=DeviceState.READY) device.reset();
     }

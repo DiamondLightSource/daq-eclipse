@@ -35,7 +35,7 @@ import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -51,7 +51,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.ConstantVelocityModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -61,7 +61,7 @@ public class MonitorPluginTest {
 	
 	private static INexusFileFactory   fileFactory;
 	
-	private static IDeviceService        service;
+	private static IRunnableDeviceService        service;
 	private static IPointGeneratorService       gservice;
 	private static IDeviceConnectorService connector;
 	
@@ -71,7 +71,7 @@ public class MonitorPluginTest {
 	public static void before() throws Exception {
 		
 		connector = new MockScannableConnector();
-		service   = new DeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		service   = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
 		
 		ConstantVelocityModel model = new ConstantVelocityModel("cv scan", 100, 200, 25);
