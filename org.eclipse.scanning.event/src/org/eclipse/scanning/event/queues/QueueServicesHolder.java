@@ -1,6 +1,6 @@
 package org.eclipse.scanning.event.queues;
 
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 
@@ -14,15 +14,15 @@ import org.eclipse.scanning.api.event.queues.IQueueService;
  */
 public final class QueueServicesHolder {
 
-	private static IDeviceService deviceService;
+	private static IRunnableDeviceService deviceService;
 	private static IEventService eventService;
 	private static IQueueService queueService;
 
-	public static IDeviceService getDeviceService() {
+	public static IRunnableDeviceService getDeviceService() {
 		return deviceService;
 	}
 
-	public static void setDeviceService(IDeviceService deviceService) {
+	public static void setDeviceService(IRunnableDeviceService deviceService) {
 		QueueServicesHolder.deviceService = deviceService;
 	}
 
