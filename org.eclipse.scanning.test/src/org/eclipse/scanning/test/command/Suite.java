@@ -7,6 +7,6 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	ScanRequestCreationTest.class,
 	SubmissionTest.class,
-	ModelStringifierTest.class
+	PyExpresserTest.class
 })
 public class Suite { }

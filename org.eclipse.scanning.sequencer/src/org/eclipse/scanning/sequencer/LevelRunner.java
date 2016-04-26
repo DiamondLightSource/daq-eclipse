@@ -141,8 +141,10 @@ abstract class LevelRunner<L extends ILevel> {
 			
 		} finally {
 			if (block) {
-				eservice.shutdownNow();
-				eservice = null;
+				if (eservice != null) { // may have already aborted
+					eservice.shutdownNow();
+					eservice = null;
+				}
 			}
 		}
 		

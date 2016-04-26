@@ -29,6 +29,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
@@ -85,7 +86,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	}
 
 	@Override
-	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
+	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) throws NexusException {
 		
 		final NXdetector detector = nodeFactory.createNXdetector();
 
@@ -114,12 +115,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		detector.setDataset("image_y_axis", DatasetFactory.createLinearSpace(-model.getMaxImaginaryCoordinate(), model.getMaxImaginaryCoordinate(), model.getColumns(), Dataset.FLOAT64));
 		detector.setDataset("spectrum_axis", DatasetFactory.createLinearSpace(0.0, model.getMaxRealCoordinate(), model.getPoints(), Dataset.FLOAT64));
 
-		try {
-			Attributes.registerAttributes(detector, this);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Attributes.registerAttributes(detector, this);
 		
 		return detector;
 	}

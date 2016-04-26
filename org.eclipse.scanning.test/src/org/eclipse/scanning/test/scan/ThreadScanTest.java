@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventException;
@@ -33,7 +33,7 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
@@ -47,7 +47,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class ThreadScanTest {
 	
-	private IDeviceService           sservice;
+	private IRunnableDeviceService           sservice;
 	private IDeviceConnectorService    connector;
 	private IPointGeneratorService          gservice;
 	private IEventService              eservice;
@@ -61,8 +61,8 @@ public class ThreadScanTest {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		connector = new MockScannableConnector();
-		sservice  = new DeviceServiceImpl(connector);
-		DeviceServiceImpl impl = (DeviceServiceImpl)sservice;
+		sservice  = new RunnableDeviceServiceImpl(connector);
+		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)sservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
 		

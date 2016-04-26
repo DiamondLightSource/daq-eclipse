@@ -1,13 +1,16 @@
 package org.eclipse.scanning.api.event.scan;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.scan.models.ScanMetadata;
 import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.api.script.ScriptResponse;
 
@@ -49,6 +52,18 @@ public class ScanRequest<T> {
 	private Collection<String> monitorNames;
 	
 	/**
+	 * The names of metadata scannables. These are scannables whose field value(s)
+	 * are written once during the scan, may be null.
+	 */
+	private Collection<String> metadataScannableNames;
+
+	/**
+	 * Scan metadata that is not produced by a particular device, e.g.
+	 * scan command, chemical formula etc., grouped by type.
+	 */
+	private List<ScanMetadata> scanMetadata; // TODO use EnumMap instead of list?
+	
+	/**
 	 * Part or all of the file path to be used for this scan.
 	 */
 	private String filePath;
@@ -85,7 +100,7 @@ public class ScanRequest<T> {
 	 * Default is false.
 	 */
 	private boolean ignorePreprocess;
-
+	
 	public ScanRequest() {
 
 	}
@@ -123,11 +138,25 @@ public class ScanRequest<T> {
 	public void setMonitorNames(Collection<String> monitorNames) {
 		this.monitorNames = monitorNames;
 	}
-
+	
 	// This varargs implementation has been added for convenience of users of ScanRequest objects
 	// However it requires special handling for serialization (since there are two setters) so be careful changing it!
 	public void setMonitorNames(String... monitorNames) {
 		setMonitorNames(Arrays.asList(monitorNames));
+	}
+
+	public Collection<String> getMetadataScannableNames() {
+		return metadataScannableNames;
+	}
+	
+	public void setMetadataScannableNames(Collection<String> metadataScannableNames) {
+		this.metadataScannableNames = metadataScannableNames;
+	}
+	
+	// This varargs implementation has been added for convenience of users of ScanRequest objects
+	// However it requires special handling for serialization (since there are two setters) so be careful changing it!
+	public void setMetadataScannableNames(String... metadataScannableNames) {
+		setMetadataScannableNames(Arrays.asList(metadataScannableNames));
 	}
 
 	public String getFilePath() {
@@ -154,6 +183,8 @@ public class ScanRequest<T> {
 		result = prime * result + ((monitorNames == null) ? 0 : monitorNames.hashCode());
 		result = prime * result + ((regions == null) ? 0 : regions.hashCode());
 		result = prime * result + ((start == null) ? 0 : start.hashCode());
+		result = prime * result + ((scanMetadata == null) ? 0 : scanMetadata.hashCode());
+		result = prime * result + ((metadataScannableNames == null) ? 0 : metadataScannableNames.hashCode());
 		return result;
 	}
 
@@ -213,10 +244,19 @@ public class ScanRequest<T> {
 				return false;
 		} else if (!monitorNames.equals(other.monitorNames))
 			return false;
+		if (metadataScannableNames == null) {
+			if (other.metadataScannableNames != null)
+				return false;
+		}
 		if (regions == null) {
 			if (other.regions != null)
 				return false;
 		} else if (!regions.equals(other.regions))
+			return false;
+		if (scanMetadata == null) {
+			if (other.scanMetadata != null)
+				return false;
+		} else if (!scanMetadata.equals(other.scanMetadata))
 			return false;
 		if (start == null) {
 			if (other.start != null)
@@ -228,8 +268,10 @@ public class ScanRequest<T> {
 
 	@Override
 	public String toString() {
-		return "ScanRequest [models=" + models + ", detectors=" + detectors + ", monitorNames="
-				+ monitorNames + ", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
+		return "ScanRequest [models=" + models + ", detectors=" + detectors +
+				", monitorNames=" + monitorNames +
+				", metadataScannableNames=" + metadataScannableNames +
+				", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
 	}
 
 	public Map<String, IDetectorModel> getDetectors() {
@@ -317,6 +359,21 @@ public class ScanRequest<T> {
 
 	public void setAfterResponse(ScriptResponse<?> afterResponse) {
 		this.afterResponse = afterResponse;
+	}
+	
+	public List<ScanMetadata> getScanMetadata() {
+		return scanMetadata;
+	}
+	
+	public void setScanMetadata(List<ScanMetadata> scanMetadata) {
+		this.scanMetadata = scanMetadata;
+	}
+	
+	public void addScanMetadata(ScanMetadata scanMetadata) {
+		if (this.scanMetadata == null) {
+			this.scanMetadata = new ArrayList<>();
+		}
+		this.scanMetadata.add(scanMetadata);
 	}
 
 }

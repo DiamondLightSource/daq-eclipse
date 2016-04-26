@@ -95,8 +95,6 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 	}
 	
 	private void write(Object demand, Object actual, IPosition loc) throws Exception {
-		
-
 		if (actual!=null) {
 			// write actual position
 			final IDataset newActualPositionData = DatasetFactory.createFromObject(actual);

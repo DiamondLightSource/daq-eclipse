@@ -1,6 +1,6 @@
 package org.eclipse.scanning.event.queues.processors;
 
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -40,16 +40,16 @@ public class MoveAtomProcessor implements IQueueProcessor {
 	}
 	
 	public synchronized <T extends Queueable> IConsumerProcess<T> makeProcessWithScanServ(T bean,
-			IPublisher<T> publisher, boolean blocking, IDeviceService scanServ)  throws EventException {
+			IPublisher<T> publisher, boolean blocking, IRunnableDeviceService scanServ)  throws EventException {
 		MoveAtomProcess<T> moveProc = new MoveAtomProcess<T>(bean, publisher, blocking);
-		moveProc.setScanService(scanServ);
+		moveProc.setRunnableDeviceService(scanServ);
 		return moveProc;
 	}
 	
 
 	class MoveAtomProcess<T extends Queueable> extends AbstractQueueProcessor<T> {
 
-		private IDeviceService scanService;
+		private IRunnableDeviceService scanService;
 		private IPositioner positioner;
 		private MoveAtom atom;
 
@@ -68,7 +68,7 @@ public class MoveAtomProcessor implements IQueueProcessor {
 		 * For use in testing! 
 		 * @param evServ - class implementing IEventService
 		 */
-		public synchronized void setScanService(IDeviceService scanServ) {
+		public synchronized void setRunnableDeviceService(IRunnableDeviceService scanServ) {
 			scanService = scanServ;
 		}
 

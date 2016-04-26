@@ -28,6 +28,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
@@ -61,7 +62,7 @@ public class DarkImageDetector extends AbstractRunnableDevice<DarkImageModel> im
 	}
 
 	@Override
-	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
+	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) throws NexusException {
 		
 		final NXdetector detector = nodeFactory.createNXdetector();
 		
@@ -70,12 +71,8 @@ public class DarkImageDetector extends AbstractRunnableDevice<DarkImageModel> im
 		// Setting chunking is a very good idea if speed is required.
 		data.setChunking(new int[]{1, model.getRows(), model.getColumns()});
 		
-		try {
-			Attributes.registerAttributes(detector, this);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Attributes.registerAttributes(detector, this);
+		
 		return detector;
 	}
 

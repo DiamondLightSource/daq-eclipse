@@ -1,6 +1,6 @@
 package org.eclipse.scanning.server.servlet;
 
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.points.IPosition;
@@ -32,7 +32,7 @@ public class PositionServlet extends AbstractSubscriberServlet<IPosition> {
 	public void doObject(IPosition position, IPublisher<IPosition> response) throws EventException {
 		
 		try {
-			IDeviceService service = Services.getScanService();
+			IRunnableDeviceService service = Services.getRunnableDeviceService();
 			IPositioner    poser   = service.createPositioner();
 		    poser.setPosition(position);
 		    
