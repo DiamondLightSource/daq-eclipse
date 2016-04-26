@@ -37,11 +37,11 @@ import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
-import org.eclipse.scanning.api.IAttributeContainer;
+import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -60,14 +60,14 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 import org.junit.Test;
 
 public class AttributePluginTest {
 
-	protected IDeviceService              dservice;
+	protected IRunnableDeviceService              dservice;
 	protected IDeviceConnectorService     connector;
 	protected IPointGeneratorService      gservice;
 	protected IEventService               eservice;
@@ -75,12 +75,12 @@ public class AttributePluginTest {
 	private INexusFileFactory             fileFactory;
 	
 	@Before
-	public void setup() throws ScanningException {
+	public void before() throws ScanningException {
 		
 		fileFactory = new NexusFileFactoryHDF5();		
 		
 		connector = new MockScannableConnector();
-		dservice  = new DeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
+		dservice  = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
 		
 		MandelbrotModel model = new MandelbrotModel();
@@ -100,7 +100,7 @@ public class AttributePluginTest {
 	}
 
 	@Test 
-	public void name() throws Exception {
+	public void testName() throws Exception {
 		
 		// All scannables should have their name set ok
 		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
@@ -111,12 +111,12 @@ public class AttributePluginTest {
 	}
 
 	@Test 
-	public void description() throws Exception {
+	public void testDescription() throws Exception {
 		
 		IScannable<?> x = connector.getScannable("xNex");
-		if (!(x instanceof IAttributeContainer)) throw new Exception("xNex is not "+IAttributeContainer.class.getSimpleName());
-		IAttributeContainer xc = (IAttributeContainer)x;
-		xc.setAttribute("description", "Reality is a shapeless unity.\nThe mind which distinguishes between aspects of this unity, sees only disunity.\nRemain unconcerned.");
+		if (!(x instanceof IScanAttributeContainer)) throw new Exception("xNex is not "+IScanAttributeContainer.class.getSimpleName());
+		IScanAttributeContainer xc = (IScanAttributeContainer)x;
+		xc.setScanAttribute("description", "Reality is a shapeless unity.\nThe mind which distinguishes between aspects of this unity, sees only disunity.\nRemain unconcerned.");
 	
 		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
 		scanner.run(null);
@@ -126,12 +126,12 @@ public class AttributePluginTest {
 	}
 	
 	@Test 
-	public void fred() throws Exception {
+	public void testFred() throws Exception {
 		
 		IScannable<?> x = connector.getScannable("xNex");
-		if (!(x instanceof IAttributeContainer)) throw new Exception("xNex is not "+IAttributeContainer.class.getSimpleName());
-		IAttributeContainer xc = (IAttributeContainer)x;
-		xc.setAttribute("fred", "Fred this is your conscious speaking.");
+		if (!(x instanceof IScanAttributeContainer)) throw new Exception("xNex is not "+IScanAttributeContainer.class.getSimpleName());
+		IScanAttributeContainer xc = (IScanAttributeContainer)x;
+		xc.setScanAttribute("fred", "Fred this is your conscious speaking.");
 	
 		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
 		scanner.run(null);
@@ -141,15 +141,15 @@ public class AttributePluginTest {
 	}
 
 	@Test 
-	public void lots() throws Exception {
+	public void testSetMultipleAttributes() throws Exception {
 		
 		IScannable<?> x = connector.getScannable("xNex");
-		if (!(x instanceof IAttributeContainer)) throw new Exception("xNex is not "+IAttributeContainer.class.getSimpleName());
-		IAttributeContainer xc = (IAttributeContainer)x;
+		if (!(x instanceof IScanAttributeContainer)) throw new Exception("xNex is not "+IScanAttributeContainer.class.getSimpleName());
+		IScanAttributeContainer xc = (IScanAttributeContainer)x;
 		
 		// @see http://download.nexusformat.org/doc/html/classes/base_classes/NXpositioner.html
 		//description: NX_CHAR
-		xc.setAttribute("description", "Reality is a shapeless unity.\nThe mind which distinguishes between aspects of this unity, sees only disunity.\nRemain unconcerned.");
+		xc.setScanAttribute("description", "Reality is a shapeless unity.\nThe mind which distinguishes between aspects of this unity, sees only disunity.\nRemain unconcerned.");
 
 		// value[n]: NX_NUMBER {units=NX_ANY}
 		// raw_value[n]: NX_NUMBER {units=NX_ANY}
@@ -157,26 +157,26 @@ public class AttributePluginTest {
         // tolerance[n]: NX_NUMBER {units=NX_ANY}
 
 		//soft_limit_min: NX_NUMBER {units=NX_ANY}
-		xc.setAttribute("soft_limit_min", 1);
+		xc.setScanAttribute("soft_limit_min", 1);
 
 		// soft_limit_max: NX_NUMBER {units=NX_ANY}
-		xc.setAttribute("soft_limit_max", 10);
+		xc.setScanAttribute("soft_limit_max", 10);
 
 		// velocity: NX_NUMBER {units=NX_ANY}
-		xc.setAttribute("velocity", 1.2);
+		xc.setScanAttribute("velocity", 1.2);
 		
 		// acceleration_time: NX_NUMBER {units=NX_ANY}
-		xc.setAttribute("acceleration_time", 0.1);
+		xc.setScanAttribute("acceleration_time", 0.1);
 
 		// controller_record: NX_CHAR
-		xc.setAttribute("controller_record", "Homer Simpson");
+		xc.setScanAttribute("controller_record", "Homer Simpson");
 	
 		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
 		scanner.run(null);
 		
 		checkNexusFile(scanner, 2, 2);
 		
-		for(String aName : xc.getAttributeNames()) {
+		for(String aName : xc.getScanAttributeNames()) {
 		    checkAttribute(scanner, "xNex", aName);
 		}
 	}
@@ -184,10 +184,10 @@ public class AttributePluginTest {
 	private void checkAttribute(IRunnableDevice<ScanModel> scanner, String sName, String attrName) throws Exception {
 		
 		IScannable<?> s = connector.getScannable(sName);
-		if (!(s instanceof IAttributeContainer)) throw new Exception(sName+" is not "+IAttributeContainer.class.getSimpleName());
+		if (!(s instanceof IScanAttributeContainer)) throw new Exception(sName+" is not "+IScanAttributeContainer.class.getSimpleName());
 		
-		IAttributeContainer sc = (IAttributeContainer)s;		
-		Object attrValue = sc.getAttribute(attrName);
+		IScanAttributeContainer sc = (IScanAttributeContainer)s;		
+		Object attrValue = sc.getScanAttribute(attrName);
 		
 		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
 		NexusFile nf = fileFactory.newNexusFile(filePath);

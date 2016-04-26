@@ -3,7 +3,7 @@ package org.eclipse.scanning.api.points;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 
 /**
  * A position is a location of one or more values. It is
@@ -18,7 +18,7 @@ import org.eclipse.scanning.api.device.IDeviceService;
  * called IPositioner which can move scannables to a given
  * position by level.
  * 
- * @see IDeviceService
+ * @see IRunnableDeviceService
  * @see org.eclipse.scanning.api.scan.event.IPositioner
  *
  * @author Matthew Gerring
@@ -35,8 +35,9 @@ public interface IPosition {
 	/**
 	 * The names of the scalars set for this position.
 	 * For instance 'x' and 'y' for a map or 'Temperature'
+	 * <em>Note to implementers:</em> should never return <code>null</code> 
 	 * 
-	 * @return
+	 * @return name of scalars
 	 */
 	List<String> getNames();
 	

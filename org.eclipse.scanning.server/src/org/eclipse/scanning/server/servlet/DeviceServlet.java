@@ -30,7 +30,7 @@ public class DeviceServlet extends AbstractResponderServlet<DeviceRequest> {
 
 	@Override
 	public IResponseProcess<DeviceRequest> createResponder(DeviceRequest bean, IPublisher<DeviceRequest> response) throws EventException {
-		return new DeviceResponse(Services.getScanService(), bean, response);
+		return new DeviceResponse(Services.getRunnableDeviceService(), bean, response);
 	}
 
 }

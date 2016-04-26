@@ -4,7 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
 
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.IResponder;
@@ -17,12 +17,12 @@ import org.junit.Test;
 
 public class AbstractRequesterTest {
 
-	protected IDeviceService            dservice;
+	protected IRunnableDeviceService            dservice;
 	protected IEventService             eservice;
 	protected IRequester<DeviceRequest> requester;
 	protected IResponder<DeviceRequest> responder;
 	
-	protected void connect(IEventService eservice, IDeviceService dservice) throws Exception {
+	protected void connect(IEventService eservice, IRunnableDeviceService dservice) throws Exception {
 		
 		this.eservice = eservice;
 		this.dservice = dservice;
