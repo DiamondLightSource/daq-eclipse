@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.eclipse.scanning.api.IAttributeContainer;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
@@ -35,6 +36,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   int                        level = 1;
 	private   String                     scanId;
 	private   ScanBean                   bean;
+	private   DeviceInformation<T>       deviceInformation;
 
 	// OSGi services and intraprocess events
 	protected IDeviceService             scanningService;
@@ -109,12 +111,15 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	public void start(final IPosition pos) throws ScanningException, InterruptedException {
 		
-		final List<Throwable> exceptions = new ArrayList<>(1);
+		final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>(1));
 		final Thread thread = new Thread(new Runnable() {
 			public void run() {
 				try {
 					AbstractRunnableDevice.this.run(pos);
 				} catch (ScanningException|InterruptedException e) {
+					// If you add an exception type to this catch clause,
+					// you must also add an "else if" clause for it inside
+					// the "if (!exceptions.isEmpty())" conditional below.
 					e.printStackTrace();
 					exceptions.add(e);
 				}
@@ -126,7 +131,22 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		// immediately throw any connection exceptions
 		Thread.sleep(500);
 		
-		if (!exceptions.isEmpty()) throw new ScanningException(exceptions.get(0));
+		// Re-throw any exception from the thread.
+		if (!exceptions.isEmpty()) {
+			Throwable ex = exceptions.get(0);
+
+			// We must manually match the possible exception types because Java
+			// doesn't let us do List<Either<ScanningException, InterruptedException>>.
+			if (ex.getClass() == ScanningException.class) {
+				throw (ScanningException) ex;
+
+			} else if (ex.getClass() == InterruptedException.class) {
+				throw (InterruptedException) ex;
+
+			} else {
+				throw new IllegalStateException();
+			}
+		}
 	}
 
 	/**
@@ -308,6 +328,14 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public <A> A getAttribute(String attributeName) throws Exception {
 		return (A)attributes.get(attributeName);
 	}
-	
 
+	public DeviceInformation<T> getDeviceInformation() throws ScanningException {
+		deviceInformation.setModel(getModel());
+		deviceInformation.setState(getDeviceState());
+ 		return deviceInformation;
+	}
+
+	public void setDeviceInformation(DeviceInformation<T> deviceInformation) {
+		this.deviceInformation = deviceInformation;
+	}
 }

@@ -3,17 +3,19 @@ package org.eclipse.scanning.test.command;
 import static org.junit.Assert.*;
 import static org.eclipse.scanning.command.ModelStringifier.stringify;
 
+import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.command.StringificationNotImplementedException;
 import org.junit.Test;
 
 
 public class ModelStringifierTest {
-	// TODO: Test round-trips, i.e. interpret(stringify(model)) == model.
 
 	@Test
-	public void testStepModelConcise() {
+	public void testStepModelConcise() throws StringificationNotImplementedException {
 		StepModel smodel = new StepModel();
 		smodel.setStart(0);
 		smodel.setStop(10);
@@ -24,7 +26,7 @@ public class ModelStringifierTest {
 	}
 
 	@Test
-	public void testStepModelVerbose() {
+	public void testStepModelVerbose() throws StringificationNotImplementedException {
 		StepModel smodel = new StepModel();
 		smodel.setStart(0);
 		smodel.setStop(10);
@@ -35,43 +37,93 @@ public class ModelStringifierTest {
 	}
 
 	@Test
-	public void testGridModelConcise() {
+	public void testGridModelConcise() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
-		bbox.setxStart(0);
-		bbox.setyStart(1);
-		bbox.setWidth(10);
-		bbox.setHeight(11);
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
 
 		GridModel gmodel = new GridModel();
-		gmodel.setyName("alice");
-		gmodel.setxName("bob");
+		gmodel.setFastAxisName("myFast");
+		gmodel.setSlowAxisName("mySlow");
 		gmodel.setBoundingBox(bbox);
-		gmodel.setRows(3);
-		gmodel.setColumns(4);
+		gmodel.setFastAxisPoints(3);
+		gmodel.setSlowAxisPoints(4);
 
 		assertEquals(
-				"grid(('bob', 'alice'), (0.0, 1.0), (10.0, 11.0), count=(3, 4), snake=False)",
+				"grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 11.0), count=(3, 4), snake=False)",
 				stringify(gmodel, false));
 	}
 
 	@Test
-	public void testGridModelVerbose() {
+	public void testGridModelVerbose() throws StringificationNotImplementedException {
 		BoundingBox bbox = new BoundingBox();
-		bbox.setxStart(0);
-		bbox.setyStart(1);
-		bbox.setWidth(10);
-		bbox.setHeight(11);
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
 
 		GridModel gmodel = new GridModel();
-		gmodel.setyName("alice");
-		gmodel.setxName("bob");
+		gmodel.setFastAxisName("myFast");
+		gmodel.setSlowAxisName("mySlow");
 		gmodel.setBoundingBox(bbox);
-		gmodel.setRows(3);
-		gmodel.setColumns(4);
+		gmodel.setFastAxisPoints(3);
+		gmodel.setSlowAxisPoints(4);
 
 		assertEquals(
-				"grid(axes=('bob', 'alice'), origin=(0.0, 1.0), size=(10.0, 11.0), count=(3, 4), snake=False)",
+				"grid(axes=('myFast', 'mySlow'), origin=(0.0, 1.0), size=(10.0, 11.0), count=(3, 4), snake=False)",
 				stringify(gmodel, true));
+	}
+
+	@Test
+	public void testRasterModelConcise() throws StringificationNotImplementedException {
+		BoundingBox bbox = new BoundingBox();
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
+
+		RasterModel rmodel = new RasterModel();
+		rmodel.setFastAxisName("myFast");
+		rmodel.setSlowAxisName("mySlow");
+		rmodel.setBoundingBox(bbox);
+		rmodel.setFastAxisStep(3);
+		rmodel.setSlowAxisStep(4);
+
+		assertEquals(
+				"grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 11.0), step=(3.0, 4.0), snake=False)",
+				stringify(rmodel, false));
+	}
+
+	@Test
+	public void testRasterModelVerbose() throws StringificationNotImplementedException {
+		BoundingBox bbox = new BoundingBox();
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
+
+		RasterModel rmodel = new RasterModel();
+		rmodel.setFastAxisName("myFast");
+		rmodel.setSlowAxisName("mySlow");
+		rmodel.setBoundingBox(bbox);
+		rmodel.setFastAxisStep(3);
+		rmodel.setSlowAxisStep(4);
+
+		assertEquals(
+				"grid(axes=('myFast', 'mySlow'), origin=(0.0, 1.0), size=(10.0, 11.0), step=(3.0, 4.0), snake=False)",
+				stringify(rmodel, true));
+	}
+
+	@Test(expected = StringificationNotImplementedException.class)
+	public void testIllegalModelArgument() throws StringificationNotImplementedException {
+		ArrayModel amodel = new ArrayModel();
+		amodel.setName("fred");
+		amodel.setPositions(-1, 2, 4);
+
+		// Stringify is not implemented for ArrayModel.
+		stringify(amodel, false);
 	}
 
 }

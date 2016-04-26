@@ -14,6 +14,8 @@ import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.servlet.IConsumerServlet;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -38,6 +40,8 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * @param <T>
  */
 public abstract class AbstractConsumerServlet<B extends StatusBean> implements IConsumerServlet<B> {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractConsumerServlet.class);
 	
 	protected IEventService eventService;
 	protected String        broker;
@@ -73,12 +77,16 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
     public void connect() throws EventException, URISyntaxException {	
     	
     	consumer = eventService.createConsumer(new URI(getBroker()), getSubmitQueue(), getStatusSet(), getStatusTopic(), getHeartbeatTopic(), getKillTopic());
+    	consumer.setName(getName());
     	consumer.setDurable(isDurable());
     	consumer.setRunner(new DoObjectCreator<B>());
      	consumer.start();
      	isConnected = true;
+     	logger.info("Started "+getClass().getSimpleName());
     }
     
+	protected abstract String getName();
+
 	class DoObjectCreator<T> implements IProcessCreator<B> {
 		@Override
 		public IConsumerProcess<B> createProcess(B bean, IPublisher<B> response) throws EventException {
@@ -158,6 +166,10 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 
 	public void setDurable(boolean durable) {
 		this.durable = durable;
+	}
+
+	public boolean isConnected() {
+		return isConnected;
 	}
 
 }

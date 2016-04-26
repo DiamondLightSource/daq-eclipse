@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.device;
 
+import java.util.Collection;
+
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
@@ -137,5 +139,20 @@ public interface IDeviceService {
 	 * @throws ScanningException
 	 */
 	<T> IRunnableDevice<T> getRunnableDevice(String name, IPublisher<ScanBean> publisher) throws ScanningException;
+	
+	/**
+	 * A list of the current named runnable devices which may be retrieved and configured.
+	 * @return
+	 * @throws ScanningException
+	 */
+    Collection<String> getRunnableDeviceNames() throws ScanningException;
+    
+	/**
+	 * A list of the current runnable device models which are supported for the createDevice(...) call.
+	 * 
+	 * @return
+	 * @throws ScanningException
+	 */
+    Collection<Class<?>> getRunnableDeviceModels() throws ScanningException;
 
 }

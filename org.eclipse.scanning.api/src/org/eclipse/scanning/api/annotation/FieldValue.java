@@ -27,15 +27,15 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  */
 public class FieldValue {
 
-	private IScanPathModel model;
-	private String          name;
+	private Object  model;
+	private String  name;
 
-	public FieldValue(IScanPathModel model, String name) {
+	public FieldValue(Object model, String name) {
 		this.model = model;
 		this.name  = name;
 	}
 
-	public IScanPathModel getModel() {
+	public Object getModel() {
 		return model;
 	}
 

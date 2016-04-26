@@ -23,6 +23,8 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
+import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
@@ -41,11 +43,9 @@ import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.dry.DryRunCreator;
 import org.eclipse.scanning.event.dry.FastRunCreator;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.junit.After;
 import org.junit.Test;
-
-import uk.ac.diamond.json.JsonMarshaller;
-import uk.ac.diamond.json.api.IJsonMarshaller;
 
 public class AbstractConsumerTest {
 
@@ -81,7 +81,7 @@ public class AbstractConsumerTest {
 	
 			TextMessage msg = (TextMessage)consumer.receive(1000);
 			
-			IJsonMarshaller marshaller = new JsonMarshaller();
+			IMarshallerService marshaller = new MarshallerService(new PointsModelMarshaller());
 			StatusBean fromQ = marshaller.unmarshal(msg.getText(), StatusBean.class);
         	
         	if (!fromQ.equals(bean)) throw new Exception("The bean from the queue was not the same as that submitted! q="+fromQ+" submit="+bean);

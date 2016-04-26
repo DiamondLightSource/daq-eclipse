@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
@@ -22,11 +23,11 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-import uk.ac.diamond.json.JsonMarshaller;
 
 public class MappingScanTest {
 
@@ -40,7 +41,7 @@ public class MappingScanTest {
 
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
 		gservice = new PointGeneratorFactory();
 
@@ -94,14 +95,14 @@ public class MappingScanTest {
 		int ipoint = 0;
 
 		BoundingBox box = new BoundingBox();
-		box.setxStart(10);
-		box.setyStart(10);
-		box.setWidth(5);
-		box.setHeight(2);
+		box.setFastAxisStart(10);
+		box.setSlowAxisStart(10);
+		box.setFastAxisLength(5);
+		box.setSlowAxisLength(2);
 
 		final GridModel model = new GridModel();
-		model.setRows(2);
-		model.setColumns(5);
+		model.setSlowAxisPoints(2);
+		model.setFastAxisPoints(5);
 		model.setBoundingBox(box);
 
 		IPointGenerator<GridModel, Point> gen = gservice.createGenerator(model);

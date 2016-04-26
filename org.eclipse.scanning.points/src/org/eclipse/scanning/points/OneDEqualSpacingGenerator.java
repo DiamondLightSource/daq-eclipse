@@ -8,6 +8,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 
 public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacingModel,Point> {
@@ -19,16 +20,12 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 	}
 
 	@Override
-	protected void validateModel(OneDEqualSpacingModel model) throws GeneratorException {
-		if (model.getPoints() < 1) throw new GeneratorException("Must have one or more points in model!");
+	protected void validateModel() {
+		if (model.getPoints() < 1) throw new PointsValidationException("Must have one or more points in model!");
 	}
 
-	/**
-	 * Please override this method, the default creates all points and 
-	 * returns their iterator
-	 */
 	@Override
-	public Iterator<Point> iterator() {
+	public Iterator<Point> iteratorFromValidModel() {
 		try {
 			return createPoints().iterator();
 		} catch (GeneratorException e) {
@@ -39,6 +36,18 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 	@Override
 	public List<Point> createPoints() throws GeneratorException {
 		// FIXME: Make this work with just a bounding line (i.e. no ROI).
+
+		// FIXME: This code can be called without validateModel() ever having been run.
+		// Therefore, we call validateModel() manually here. What we should do is move
+		// the geometry/maths to iteratorFromValidModel() (in line with the other
+		// generators here) rather than overriding AbstractGenerator.createPoints().
+		// Then we wouldn't need to manually call validateModel().
+		//
+		// However, all these generators are to be rewritten in Python (supposedly)
+		// so this fix might as well wait until then.
+		//
+		// For the moment, just call validateModel() here...
+		validateModel();
 		
 		if (containers==null) throw new GeneratorException("For "+getClass().getName()+" a "+LinearROI.class.getName()+" must be provided!");
 		if (containers.size()!=1) throw new GeneratorException("For "+getClass().getName()+" a single "+LinearROI.class.getName()+" must be provided!");

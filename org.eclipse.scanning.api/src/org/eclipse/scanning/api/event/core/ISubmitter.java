@@ -22,6 +22,22 @@ public interface ISubmitter<T> extends IQueueConnection<T> {
 	 * @param bean
 	 */
 	void submit(T bean, boolean prepareBean) throws EventException;
+
+	/**
+	 * Send a submission on to the queue. Blocks until bean is
+	 * updated with "final" status.
+	 * 
+	 * This method depends on this.setTopicName() already having
+	 * been called with the appropriate status queue name by the
+	 * user of this ISubmitter, because this method's implementation
+	 * listens to the said status topic to determine when to return.
+	 * 
+	 * @param bean
+	 * @throws EventException
+	 * @throws InterruptedException
+	 * @throws IllegalStateException if this.getTopicName() returns null.
+	 */
+	void blockingSubmit(T bean) throws EventException, InterruptedException, IllegalStateException;
 	
 	/**
 	 * Tries to reorder the bean in the submission queue if it is
@@ -52,6 +68,20 @@ public interface ISubmitter<T> extends IQueueConnection<T> {
 	 */
 	boolean remove(T bean) throws EventException;
     
+	/**
+	 * Tries to replace the bean from the submission queue if it is
+	 * still there. If the bean has been moved to the status set, 
+	 * it will not be removed 
+	 * 
+	 * A pause will automatically be done while the bean
+	 * is replace.
+	 * 
+	 * @param bean
+	 * @return
+	 * @throws EventException
+	 */
+	boolean replace(T bean) throws EventException;
+ 
 	/**
      * Unique id for the message.
      * @return

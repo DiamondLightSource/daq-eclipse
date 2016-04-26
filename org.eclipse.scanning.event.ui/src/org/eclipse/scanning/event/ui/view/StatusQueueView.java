@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -50,15 +49,18 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
+import org.eclipse.scanning.api.event.core.ConsumerConfiguration;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.AdministratorMessage;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.api.ui.IModifyHandler;
+import org.eclipse.scanning.api.ui.IRerunHandler;
+import org.eclipse.scanning.api.ui.IResultHandler;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 import org.eclipse.scanning.event.ui.dialog.PropertiesDialog;
-import org.eclipse.scanning.event.ui.preference.CommandConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -75,7 +77,6 @@ import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
@@ -103,7 +104,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-public class StatusQueueView extends ViewPart {
+public class StatusQueueView extends EventConnectionView {
 	
 	public static final String ID = "org.eclipse.scanning.event.ui.queueView";
 	
@@ -113,7 +114,6 @@ public class StatusQueueView extends ViewPart {
 	private TableViewer                       viewer;
 	
 	// Data
-	private Properties                        idProperties;
 	private Map<String, StatusBean>           queue;
 	private boolean                           showEntireQueue = false;
 
@@ -121,7 +121,7 @@ public class StatusQueueView extends ViewPart {
 	private ISubscriber<IBeanListener<AdministratorMessage>> adminMonitor;
 	private ISubmitter<StatusBean>                           queueConnection;
 
-	private Action rerun, remove, up, down, pause;
+	private Action rerun, edit, remove, up, down, pause;
 	private IEventService service;
 	
 	public StatusQueueView() {
@@ -178,6 +178,7 @@ public class StatusQueueView extends ViewPart {
 		
 		boolean isSubmitted = bean.getStatus()==org.eclipse.scanning.api.event.status.Status.SUBMITTED;
 		up.setEnabled(isSubmitted);
+		edit.setEnabled(isSubmitted);
 		down.setEnabled(isSubmitted);
 		pause.setEnabled(bean.getStatus().isRunning()||bean.getStatus().isPaused());
 		pause.setChecked(bean.getStatus().isPaused());
@@ -280,7 +281,7 @@ public class StatusQueueView extends ViewPart {
 		final IContributionManager dropDown = getViewSite().getActionBars().getMenuManager();
 		final MenuManager          menuMan = new MenuManager();
 	
-		final Action openResults = new Action("Open results for selected run", Activator.getDefault().getImageDescriptor("icons/results.png")) {
+		final Action openResults = new Action("Open results for selected run", Activator.getImageDescriptor("icons/results.png")) {
 			public void run() {
 				openResults(getSelection());
 			}
@@ -293,8 +294,7 @@ public class StatusQueueView extends ViewPart {
 		dropDown.add(openResults);
 		dropDown.add(new Separator());
 		
-		this.up = new Action("Less urgent (-1)", Activator.getDefault().getImageDescriptor("icons/arrow-090.png")) {
-			@SuppressWarnings("unused")
+		this.up = new Action("Less urgent (-1)", Activator.getImageDescriptor("icons/arrow-090.png")) {
 			public void run() {
 				final StatusBean bean = getSelection();
 				try {
@@ -311,8 +311,7 @@ public class StatusQueueView extends ViewPart {
 		menuMan.add(up);
 		dropDown.add(up);
 		
-		this.down = new Action("More urgent (+1)", Activator.getDefault().getImageDescriptor("icons/arrow-270.png")) {
-			@SuppressWarnings("unused")
+		this.down = new Action("More urgent (+1)", Activator.getImageDescriptor("icons/arrow-270.png")) {
 			public void run() {
 				final StatusBean bean = getSelection();
 				try {
@@ -334,14 +333,14 @@ public class StatusQueueView extends ViewPart {
 				pauseJob();
 			}
 		};
-		pause.setImageDescriptor(Activator.getDefault().getImageDescriptor("icons/control-pause.png"));
+		pause.setImageDescriptor(Activator.getImageDescriptor("icons/control-pause.png"));
 		pause.setEnabled(false);
 		pause.setChecked(false);
 		toolMan.add(pause);
 		menuMan.add(pause);
 		dropDown.add(pause);
 		
-		this.remove = new Action("Stop job or remove if finished", Activator.getDefault().getImageDescriptor("icons/control-stop-square.png")) {
+		this.remove = new Action("Stop job or remove if finished", Activator.getImageDescriptor("icons/control-stop-square.png")) {
 			public void run() {
 				stopJob();
 			}
@@ -351,7 +350,7 @@ public class StatusQueueView extends ViewPart {
 		menuMan.add(remove);
 		dropDown.add(remove);
 		
-		this.rerun = new Action("Rerun...", Activator.getDefault().getImageDescriptor("icons/rerun.png")) {
+		this.rerun = new Action("Rerun...", Activator.getImageDescriptor("icons/rerun.png")) {
 			public void run() {
 				rerunSelection();
 			}
@@ -360,17 +359,28 @@ public class StatusQueueView extends ViewPart {
 		toolMan.add(rerun);
 		menuMan.add(rerun);
 		dropDown.add(rerun);
+		
+		this.edit = new Action("Edit...", Activator.getImageDescriptor("icons/modify.png")) {
+			public void run() {
+				editSelection();
+			}
+		};
+		edit.setEnabled(false);
+		toolMan.add(edit);
+		menuMan.add(edit);
+		dropDown.add(edit);
+
 
 		toolMan.add(new Separator());
 		menuMan.add(new Separator());
 		
-		final Action showAll = new Action("Show all reruns", IAction.AS_CHECK_BOX) {
+		final Action showAll = new Action("Show other users results", IAction.AS_CHECK_BOX) {
 			public void run() {
 				showEntireQueue = isChecked();
 				viewer.refresh();
 			}
 		};
-		showAll.setImageDescriptor(Activator.getDefault().getImageDescriptor("icons/spectacle-lorgnette.png"));
+		showAll.setImageDescriptor(Activator.getImageDescriptor("icons/spectacle-lorgnette.png"));
 		
 		toolMan.add(showAll);
 		menuMan.add(showAll);
@@ -381,7 +391,7 @@ public class StatusQueueView extends ViewPart {
 		dropDown.add(new Separator());
 
 		
-		final Action refresh = new Action("Refresh", Activator.getDefault().getImageDescriptor("icons/arrow-circle-double-135.png")) {
+		final Action refresh = new Action("Refresh", Activator.getImageDescriptor("icons/arrow-circle-double-135.png")) {
 			public void run() {
 				reconnect();
 			}
@@ -391,7 +401,7 @@ public class StatusQueueView extends ViewPart {
 		menuMan.add(refresh);
 		dropDown.add(refresh);
 
-		final Action configure = new Action("Configure...", Activator.getDefault().getImageDescriptor("icons/document--pencil.png")) {
+		final Action configure = new Action("Configure...", Activator.getImageDescriptor("icons/document--pencil.png")) {
 			public void run() {
 				PropertiesDialog dialog = new PropertiesDialog(getSite().getShell(), idProperties);
 				
@@ -516,16 +526,113 @@ public class StatusQueueView extends ViewPart {
 
 	}
 
+	/**
+	 * You can override this method to provide custom opening of
+	 * results if required.
+	 * 
+	 * @param bean
+	 */
+	protected void openResults(StatusBean bean) {
+		
+		if (bean == null) return;
+		
+		if (!bean.getStatus().isFinal()) {
+			boolean ok = MessageDialog.openQuestion(getSite().getShell(), "'"+bean.getName()+"' incomplete.", 
+					       "The run of '"+bean.getName()+"' has not completed.\n"+
+			               "Would you like to try to open the results anyway?");
+			if (!ok) return;
+		}
+		try {
+			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.resultsHandler");
+			if (c!=null) {
+				for (IConfigurationElement i : c) {
+					final IResultHandler handler = (IResultHandler)i.createExecutableExtension("class");
+					handler.init(service, createConsumerConfiguration());
+					if (handler.isHandled(bean)) {
+						boolean ok = handler.open(bean);
+						if (ok) return;
+					}
+				}
+			}
+		} catch (Exception ne) {
+			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot open "+bean.getRunDirectory()+" normally, will show directory instead.\n\nPlease contact your support representative.", 
+					new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage()));
+		}
+
+		openDirectory(bean);
+	}
+
+	private void openDirectory(StatusBean bean) {
+		try {
+			final IWorkbenchPage page = Util.getPage();
+			
+			final File fdir = new File(Util.getSanitizedPath(bean.getRunDirectory()));
+			if (!fdir.exists()){
+				MessageDialog.openConfirm(getSite().getShell(), "Directory Not There", "The directory '"+bean.getRunDirectory()+"' has been moved or deleted.\n\nPlease contact your support representative.");
+			    return;
+			}
+			
+			if (Util.isWindowsOS()) { // Open inside DAWN
+				final String         dir  = fdir.getAbsolutePath();		
+				IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(dir+"/fred.html");
+				final IEditorInput edInput = Util.getExternalFileStoreEditorInput(dir);
+				page.openEditor(edInput, desc.getId());
+				
+			} else { // Linux cannot be relied on to open the browser on a directory.
+				Util.browse(fdir);
+			}
+			
+		} catch (Exception e1) {
+			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot open "+bean.getRunDirectory()+".\n\nPlease contact your support representative.", 
+					new Status(IStatus.ERROR, Activator.PLUGIN_ID, e1.getMessage()));
+		}
+	}
+	
+	protected void editSelection() {
+		
+		final StatusBean bean = getSelection();
+		if (bean==null) return;
+
+		if (bean.getStatus()!=org.eclipse.scanning.api.event.status.Status.SUBMITTED) {
+			MessageDialog.openConfirm(getSite().getShell(), "Cannot Edit '"+bean.getName()+"'", "The run '"+bean.getName()+"' cannot be edited because it is not waiting to run.");
+		    return;
+		}
+		
+		try {
+			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.modifyHandler");
+			if (c!=null) {
+				for (IConfigurationElement i : c) {
+					final IModifyHandler handler = (IModifyHandler)i.createExecutableExtension("class");
+					handler.init(service, createConsumerConfiguration());
+					if (handler.isHandled(bean)) {
+						boolean ok = handler.modify(bean);
+						if (ok) return;
+					}
+				}
+			}
+		} catch (Exception ne) {
+			ne.printStackTrace();
+			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot modify "+bean.getRunDirectory()+" normally.\n\nPlease contact your support representative.", 
+					new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage()));
+			return;
+		}
+    
+		MessageDialog.openConfirm(getSite().getShell(), "Cannot Edit '"+bean.getName()+"'", "There are no editers registered for '"+bean.getName()+"'\n\nPlease contact your support representative.");
+
+	}
+
+
 	protected void rerunSelection() {
 		
 		final StatusBean bean = getSelection();
 		if (bean==null) return;
 
 		try {
-			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.event.ui.rerunHandler");
+			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.rerunHandler");
 			if (c!=null) {
 				for (IConfigurationElement i : c) {
 					final IRerunHandler handler = (IRerunHandler)i.createExecutableExtension("class");
+					handler.init(service, createConsumerConfiguration());
 					if (handler.isHandled(bean)) {
 						boolean ok = handler.run(bean);
 						if (ok) return;
@@ -541,6 +648,10 @@ public class StatusQueueView extends ViewPart {
     
 		// If we have not already handled this rerun, it is possible to call a generic one.
 		rerun(bean);
+	}
+
+	private ConsumerConfiguration createConsumerConfiguration() throws Exception {
+		return new ConsumerConfiguration(getUri(), getSubmissionQueueName(), getTopicName(), getQueueName());
 	}
 
 	private void rerun(StatusBean bean) {
@@ -709,7 +820,6 @@ public class StatusQueueView extends ViewPart {
 	    String beanClassName  = getSecondaryIdAttribute("beanClassName");
 		try {
 		    
-		    @SuppressWarnings("rawtypes")
 		    Bundle bundle = Platform.getBundle(beanBundleName);
 			return (Class<StatusBean>)bundle.loadClass(beanClassName);
 		} catch (Exception ne) {
@@ -859,115 +969,13 @@ public class StatusQueueView extends ViewPart {
 
 	}
 
-	/**
-	 * You can override this method to provide custom opening of
-	 * results if required.
-	 * 
-	 * @param bean
-	 */
-	protected void openResults(StatusBean bean) {
-		
-		if (bean == null) return;
-		try {
-			final IConfigurationElement[] c = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.event.ui.resultsOpenHandler");
-			if (c!=null) {
-				for (IConfigurationElement i : c) {
-					final IResultOpenHandler handler = (IResultOpenHandler)i.createExecutableExtension("class");
-					if (handler.isHandled(bean)) {
-						boolean ok = handler.open(bean);
-						if (ok) return;
-					}
-				}
-			}
-		} catch (Exception ne) {
-			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot open "+bean.getRunDirectory()+" normally, will show directory instead.\n\nPlease contact your support representative.", 
-					new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage()));
-		}
-
-		openDirectory(bean);
-	}
-
-	private void openDirectory(StatusBean bean) {
-		try {
-			final IWorkbenchPage page = Util.getPage();
-			
-			final File fdir = new File(Util.getSanitizedPath(bean.getRunDirectory()));
-			if (!fdir.exists()){
-				MessageDialog.openConfirm(getSite().getShell(), "Directory Not There", "The directory '"+bean.getRunDirectory()+"' has been moved or deleted.\n\nPlease contact your support representative.");
-			    return;
-			}
-			
-			if (Util.isWindowsOS()) { // Open inside DAWN
-				final String         dir  = fdir.getAbsolutePath();		
-				IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(dir+"/fred.html");
-				final IEditorInput edInput = Util.getExternalFileStoreEditorInput(dir);
-				page.openEditor(edInput, desc.getId());
-				
-			} else { // Linux cannot be relied on to open the browser on a directory.
-				Util.browse(fdir);
-			}
-			
-		} catch (Exception e1) {
-			ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot open "+bean.getRunDirectory()+".\n\nPlease contact your support representative.", 
-					new Status(IStatus.ERROR, Activator.PLUGIN_ID, e1.getMessage()));
-		}
-	}
-
 	@Override
 	public void setFocus() {
 		if (!viewer.getTable().isDisposed()) {
 			viewer.getTable().setFocus();
 		}
 	}
-
-
-	private String getTopicName() {
-		final String topicName = getSecondaryIdAttribute("topicName");
-		if (topicName != null) return topicName;
-		return "scisoft.default.STATUS_TOPIC";
-	}
-
-    protected URI getUri() throws Exception {
-		final String uri = getSecondaryIdAttribute("uri");
-		if (uri != null) return new URI(uri.replace("%3A", ":"));
-		return new URI(getCommandPreference(CommandConstants.JMS_URI));
-	}
-    
-    protected String getUserName() {
-		final String name = getSecondaryIdAttribute("userName");
-		if (name != null) return name;
-		return System.getProperty("user.name");
-	}
-   
-    protected String getCommandPreference(String key) {
-		final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-    	return store.getString(key);
-    }
-
-	protected String getQueueName() {
-		final String qName =  getSecondaryIdAttribute("queueName");
-		if (qName != null) return qName;
-		return "scisoft.default.STATUS_QUEUE";
-	}
 	
-	protected String getSubmissionQueueName() {
-		final String qName =  getSecondaryIdAttribute("submissionQueueName");
-		if (qName != null) return qName;
-		return "scisoft.default.SUBMISSION_QUEUE";
-	}
-
-	protected String getSubmitOverrideSetName() {
-		return getSubmissionQueueName()+".overrideSet";
-	}
-	
-	private String getSecondaryIdAttribute(String key) {
-		if (idProperties!=null) return idProperties.getProperty(key);
-		if (getViewSite()==null) return null;
-		final String secondId = getViewSite().getSecondaryId();
-		if (secondId == null) return null;
-		idProperties = parseString(secondId);
-		return idProperties.getProperty(key);
-	}
 
 	public static String createId(final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
 		
@@ -986,48 +994,4 @@ public class StatusQueueView extends ViewPart {
 		return buf.toString();
 	}
 
-	public static String createSecondaryId(final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
-        return createSecondaryId(null, beanBundleName, beanClassName, queueName, topicName, submissionQueueName);
-	}
-	
-	public static String createSecondaryId(final String uri, final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
-		
-		final StringBuilder buf = new StringBuilder();
-		if (uri!=null) append(buf, "uri",      uri);
-		append(buf, "beanBundleName",      beanBundleName);
-		append(buf, "beanClassName",       beanClassName);
-		append(buf, "queueName",           queueName);
-		append(buf, "topicName",           topicName);
-		append(buf, "submissionQueueName", submissionQueueName);
-		return buf.toString();
-	}
-
-	private static void append(StringBuilder buf, String name, String value) {
-		buf.append(name);
-		buf.append("=");
-		buf.append(value);
-		buf.append(";");
-	}
-	
-	
-	/**
-	 * String to be parsed to properties. In the form of key=value pairs
-	 * separated by semi colons. You may not use the string = or ; in the 
-	 * keys or values. Keys and values are trimmed so extra spaces will be
-	 * ignored.
-	 * 
-	 * @param secondId
-	 * @return map of values extracted from the 
-	 */
-	private static Properties parseString(String properties) {
-		
-		if (properties==null) return new Properties();
-		Properties props = new Properties();
-		final String[] split = properties.split(";");
-		for (String line : split) {
-			final String[] kv = line.split("=");
-			props.setProperty(kv[0].trim(), kv[1].trim());
-		}
-		return props;
-	}
 }

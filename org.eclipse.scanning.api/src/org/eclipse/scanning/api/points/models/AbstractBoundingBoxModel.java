@@ -16,20 +16,15 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 
 	@FieldDescriptor(visible=false)
 	private BoundingBox boundingBox;
-	
+
 	@FieldDescriptor(label="Fast", hint="The name of the scannable in the fast direction, for instance 'x'.") // TODO Right?
-	private String      xName = "x";
-	
+	private String      fastAxisName = "x";
+
 	@FieldDescriptor(label="Slow", hint="The name of the scannable in the fast direction, for instance 'y'.")  // TODO Right?
-	private String      yName = "y";
+	private String      slowAxisName = "y";
 
 	protected AbstractBoundingBoxModel() {
 		super();
-	}
-	protected AbstractBoundingBoxModel(String xName, String yName) {
-		this();
-		setxName(xName);
-		setyName(yName);
 	}
 
 	@Override
@@ -44,30 +39,30 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 		this.pcs.firePropertyChange("boundingBox", oldValue, newValue);
 	}
 	@UiHidden
-	public String getxName() {
-		return xName;
+	public String getFastAxisName() {
+		return fastAxisName;
 	}
-	public void setxName(String newValue) {
-		String oldValue = this.xName;
-		this.xName = newValue;
-		this.pcs.firePropertyChange("xName", oldValue, newValue);
+	public void setFastAxisName(String newValue) {
+		String oldValue = this.fastAxisName;
+		this.fastAxisName = newValue;
+		this.pcs.firePropertyChange("fastAxisName", oldValue, newValue);
 	}
 	@UiHidden
-	public String getyName() {
-		return yName;
+	public String getSlowAxisName() {
+		return slowAxisName;
 	}
-	public void setyName(String newValue) {
-		String oldValue = this.yName;
-		this.yName = newValue;
-		this.pcs.firePropertyChange("yName", oldValue, newValue);
+	public void setSlowAxisName(String newValue) {
+		String oldValue = this.slowAxisName;
+		this.slowAxisName = newValue;
+		this.pcs.firePropertyChange("slowAxisName", oldValue, newValue);
 	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((boundingBox == null) ? 0 : boundingBox.hashCode());
-		result = prime * result + ((xName == null) ? 0 : xName.hashCode());
-		result = prime * result + ((yName == null) ? 0 : yName.hashCode());
+		result = prime * result + ((fastAxisName == null) ? 0 : fastAxisName.hashCode());
+		result = prime * result + ((slowAxisName == null) ? 0 : slowAxisName.hashCode());
 		return result;
 	}
 	@Override
@@ -84,15 +79,15 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 				return false;
 		} else if (!boundingBox.equals(other.boundingBox))
 			return false;
-		if (xName == null) {
-			if (other.xName != null)
+		if (fastAxisName == null) {
+			if (other.fastAxisName != null)
 				return false;
-		} else if (!xName.equals(other.xName))
+		} else if (!fastAxisName.equals(other.fastAxisName))
 			return false;
-		if (yName == null) {
-			if (other.yName != null)
+		if (slowAxisName == null) {
+			if (other.slowAxisName != null)
 				return false;
-		} else if (!yName.equals(other.yName))
+		} else if (!slowAxisName.equals(other.slowAxisName))
 			return false;
 		return true;
 	}

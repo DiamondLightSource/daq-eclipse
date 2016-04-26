@@ -65,7 +65,7 @@ public class ScanExecutionTest {
 	
 	/**
 	 * 
-	 * @param uri - for activemq, for instance tcp://sci-serv5.diamond.ac.uk:61616
+	 * @param uri - for activemq, for instance "vm://localhost?broker.persistent=false"
 	 * @throws URISyntaxException 
 	 * @throws EventException 
 	 */
@@ -109,10 +109,10 @@ public class ScanExecutionTest {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
-		gmodel.setxName("smx");
-		gmodel.setColumns(size[size.length-2]);
-		gmodel.setyName("smy");
-		gmodel.setRows(size[size.length-1]);
+		gmodel.setFastAxisName("smx");
+		gmodel.setFastAxisPoints(size[size.length-2]);
+		gmodel.setSlowAxisName("smy");
+		gmodel.setSlowAxisPoints(size[size.length-1]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,2,2));
 		
 		IPointGenerator<?,IPosition> gen = generatorService.createGenerator(gmodel);

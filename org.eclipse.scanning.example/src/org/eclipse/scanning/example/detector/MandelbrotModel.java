@@ -1,37 +1,79 @@
 package org.eclipse.scanning.example.detector;
 
+import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
-
-
 
 public class MandelbrotModel implements IDetectorModel {
 
+	// Parameters controlling iteration and termination of the Julia/Mandelbrot algorithm
+	@FieldDescriptor(label="Maximum Iterations", 
+	         min=1, 
+	         hint="Iterations to use.")
 	private int    maxIterations;
+	
+	@FieldDescriptor(label="Escape Radius", 
+	         min=0, 
+	         hint="The radius of escape for the mandelbrot algorithm.")
 	private double escapeRadius;
-	private int    columns;
-	private int    rows;
-	private int    points;
-	private double maxX;
-	private double maxY;
+
+	// Parameters controlling the dimensions and size of the 1D and 2D Julia set datasets
+	@FieldDescriptor(label="Columns", 
+	         max=100000, 
+	         min=1, 
+	         hint="The number of points that the grid should run over, the x direction.")
+	private int    columns; // for the 2D dataset, from -maxRealCoordinate to +maxRealCoordinate
+	
+	@FieldDescriptor(label="Rows", 
+	         max=100000, 
+	         min=1, 
+	         hint="The number of points that the grid should run over, the y direction.")
+	private int    rows;    // for the 2D dataset, from -maxImaginaryCoordinate to +maxImaginaryCoordinate
+	
+	@FieldDescriptor(label="Points", 
+	         validif="points<=(maxRealCoordinate*maxIterations)", 
+	         min=1, 
+	         hint="Points of Mandelbrot.")
+	private int    points;  // for the 1D dataset, from 0 to maxRealCoordinate
+	
+	@FieldDescriptor(label="Max. Real Coordinate")
+	private double maxRealCoordinate;
+	
+	@FieldDescriptor(label="Max. Imaginary Coordinate")
+	private double maxImaginaryCoordinate;
+
+	// The names of the scannables used to determine the position to calculate
+	@FieldDescriptor(label="Real Axis Name")
+	private String realAxisName;
+	
+	@FieldDescriptor(label="Imaginary Axis Name")
+	private String imaginaryAxisName;
+
+	/**
+	 * The name of the detector device
+	 */
+	@FieldDescriptor(label="Name")
 	private String name;
-	private String xName;
-	private String yName;
+
+	/**
+	 * The exposure time. If calculation is shorter than this, time is artificially added to make the detector respect
+	 * the time that is set.
+	 */
+	@FieldDescriptor(label="Exposure Time")
 	private double exposureTime; // Seconds
 
 	public MandelbrotModel() {
-		
 		maxIterations = 500;
-		escapeRadius  = 10.0;
-		columns       = 301;
-		rows          = 241;
-		points        = 1000;
-		maxX          = 1.5;
-		maxY          = 1.2;
-		name          = "mandelbrot_detector";
-		xName         = "x";
-		yName         = "y";
+		escapeRadius = 10.0;
+		columns = 301;
+		rows = 241;
+		points = 1000;
+		maxRealCoordinate = 1.5;
+		maxImaginaryCoordinate = 1.2;
+		name = "mandelbrot_detector";
+		realAxisName = "x";
+		imaginaryAxisName = "y";
 	}
-	
+
 	public int getMaxIterations() {
 		return maxIterations;
 	}
@@ -62,17 +104,17 @@ public class MandelbrotModel implements IDetectorModel {
 	public void setPoints(int points) {
 		this.points = points;
 	}
-	public double getMaxX() {
-		return maxX;
+	public double getMaxRealCoordinate() {
+		return maxRealCoordinate;
 	}
-	public void setMaxX(double maxX) {
-		this.maxX = maxX;
+	public void setMaxRealCoordinate(double maxX) {
+		this.maxRealCoordinate = maxX;
 	}
-	public double getMaxY() {
-		return maxY;
+	public double getMaxImaginaryCoordinate() {
+		return maxImaginaryCoordinate;
 	}
-	public void setMaxY(double maxY) {
-		this.maxY = maxY;
+	public void setMaxImaginaryCoordinate(double maxY) {
+		this.maxImaginaryCoordinate = maxY;
 	}
 	@Override
 	public int hashCode() {
@@ -85,15 +127,15 @@ public class MandelbrotModel implements IDetectorModel {
 		temp = Double.doubleToLongBits(exposureTime);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + maxIterations;
-		temp = Double.doubleToLongBits(maxX);
+		temp = Double.doubleToLongBits(maxRealCoordinate);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(maxY);
+		temp = Double.doubleToLongBits(maxImaginaryCoordinate);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + points;
 		result = prime * result + rows;
-		result = prime * result + ((xName == null) ? 0 : xName.hashCode());
-		result = prime * result + ((yName == null) ? 0 : yName.hashCode());
+		result = prime * result + ((realAxisName == null) ? 0 : realAxisName.hashCode());
+		result = prime * result + ((imaginaryAxisName == null) ? 0 : imaginaryAxisName.hashCode());
 		return result;
 	}
 	@Override
@@ -115,11 +157,11 @@ public class MandelbrotModel implements IDetectorModel {
 			return false;
 		if (maxIterations != other.maxIterations)
 			return false;
-		if (Double.doubleToLongBits(maxX) != Double
-				.doubleToLongBits(other.maxX))
+		if (Double.doubleToLongBits(maxRealCoordinate) != Double
+				.doubleToLongBits(other.maxRealCoordinate))
 			return false;
-		if (Double.doubleToLongBits(maxY) != Double
-				.doubleToLongBits(other.maxY))
+		if (Double.doubleToLongBits(maxImaginaryCoordinate) != Double
+				.doubleToLongBits(other.maxImaginaryCoordinate))
 			return false;
 		if (name == null) {
 			if (other.name != null)
@@ -130,15 +172,15 @@ public class MandelbrotModel implements IDetectorModel {
 			return false;
 		if (rows != other.rows)
 			return false;
-		if (xName == null) {
-			if (other.xName != null)
+		if (realAxisName == null) {
+			if (other.realAxisName != null)
 				return false;
-		} else if (!xName.equals(other.xName))
+		} else if (!realAxisName.equals(other.realAxisName))
 			return false;
-		if (yName == null) {
-			if (other.yName != null)
+		if (imaginaryAxisName == null) {
+			if (other.imaginaryAxisName != null)
 				return false;
-		} else if (!yName.equals(other.yName))
+		} else if (!imaginaryAxisName.equals(other.imaginaryAxisName))
 			return false;
 		return true;
 	}
@@ -149,17 +191,17 @@ public class MandelbrotModel implements IDetectorModel {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public String getxName() {
-		return xName;
+	public String getRealAxisName() {
+		return realAxisName;
 	}
-	public void setxName(String xName) {
-		this.xName = xName;
+	public void setRealAxisName(String xName) {
+		this.realAxisName = xName;
 	}
-	public String getyName() {
-		return yName;
+	public String getImaginaryAxisName() {
+		return imaginaryAxisName;
 	}
-	public void setyName(String yName) {
-		this.yName = yName;
+	public void setImaginaryAxisName(String yName) {
+		this.imaginaryAxisName = yName;
 	}
 	
 	public double getExposureTime() {

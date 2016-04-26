@@ -39,30 +39,39 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 	}
 
 	@Override
-	public void setModel(T model) throws GeneratorException {
-		//validateModel(model);
-		// FIXME: People can still do generator.getModel.setStep(0) (etc.) and break things.
-		// Models seem like the kind of thing which should be immutable (i.e. not beans...).
-		// (Or as a hack the getter could return a copy.)
+	public void setModel(T model) {
 		this.model = model;
 	}
 	
+	@Override
+	final public Iterator<P> iterator() {
+		validateModel();
+		return iteratorFromValidModel();
+	};
+
+	protected abstract Iterator<P> iteratorFromValidModel();
+
 	/**
 	 * If the given model is considered "invalid", this method throws a 
-	 * GeneratorException explaining why it is considered invalid. Otherwise,
-	 * just returns. A model should be considered invalid if its parameters
-	 * would cause the generator implementation to hang or crash.
+	 * PointsValidationException explaining why it is considered invalid.
+	 * Otherwise, just returns. A model should be considered invalid if its
+	 * parameters would cause the generator implementation to hang or crash.
+	 * 
+	 * @throw exception if model invalid
 	 */
-	protected void validateModel(T model) throws GeneratorException {
-		// TODO: Make this an abstract method.
+	protected abstract void validateModel() throws PointsValidationException;
+
+	@Override
+	final public int size() throws GeneratorException {
+		validateModel();
+		return sizeOfValidModel();
 	}
 
 	/**
 	 * Please override this method, the default creates all points and 
 	 * returns their size
 	 */
-	@Override
-	public int size() throws GeneratorException {
+	protected int sizeOfValidModel() throws GeneratorException {
 		// For those generators which implement an iterator,
 		// doing this loop is *much* faster for large arrays
 		// because memory does not have to be allocated.

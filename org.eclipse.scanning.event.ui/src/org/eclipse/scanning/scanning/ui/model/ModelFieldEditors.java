@@ -34,7 +34,6 @@ import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.FieldUtils;
 import org.eclipse.scanning.api.annotation.FieldValue;
 import org.eclipse.scanning.api.annotation.FileType;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 import org.eclipse.scanning.scanning.ui.util.PageUtil;
 import org.eclipse.swt.SWT;
@@ -134,11 +133,11 @@ public class ModelFieldEditors {
 
 	public static boolean isEnabled(FieldValue field) {
     	final FieldDescriptor anot  = field.getAnnotation();
-    	final IScanPathModel      model = field.getModel();
+    	final Object      model = field.getModel();
     	return isEnabled(model, anot);
 	}
 
-	private static boolean isEnabled(IScanPathModel model, FieldDescriptor anot) {
+	private static boolean isEnabled(Object model, FieldDescriptor anot) {
 
 		if (anot == null) return true;
 		if (!anot.editable()) return false;
@@ -244,19 +243,23 @@ public class ModelFieldEditors {
 	private static CellEditor getNumberEditor(FieldValue field, final Class<? extends Object> clazz, Composite parent) {
     	
 		FieldDescriptor anot = field.getAnnotation();
-		CellEditor textEd = null;
+		NumberCellEditor textEd = null;
 	    if (anot!=null) {
 	    	textEd = new NumberCellEditor(parent, clazz, anot.min(), anot.max(), anot.unit(), SWT.NONE);
 	    	
 	    	if (anot.numberFormat()!=null && !"".equals(anot.numberFormat())) {
-		    	((NumberCellEditor)textEd).setDecimalFormat(anot.numberFormat());
+	    		textEd.setDecimalFormat(anot.numberFormat());
 		    }
 	    	
 	    } else {
 	    	textEd = new NumberCellEditor(parent, clazz, SWT.NONE);
 	    }
 	    
-	    ((NumberCellEditor)textEd).setAllowInvalidValues(true);
+	    //textEd.setAllowInvalidValues(true);
+	    if (anot.validif().length()>0) {
+	    	final ValidIfDecorator deco = new ValidIfDecorator(field.getName(), field.getModel(), anot.validif());
+	    	textEd.setDelegateDecorator(deco);
+	    }
 
     	return textEd;
 	}

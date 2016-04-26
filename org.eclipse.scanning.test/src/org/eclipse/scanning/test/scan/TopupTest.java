@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IDeviceService;
@@ -26,6 +27,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
@@ -36,15 +38,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-import uk.ac.diamond.json.JsonMarshaller;
 
 public class TopupTest {
 
-	protected IDeviceService              sservice;
+	protected IDeviceService                sservice;
 	protected IDeviceConnectorService       connector;
-	protected IPointGeneratorService             gservice;
+	protected IPointGeneratorService        gservice;
 	protected IEventService                 eservice;
-	private IWritableDetector<Object>       detector;
+	private IWritableDetector<MockDetectorModel>       detector;
 	
 	private List<IPosition>                 positions;
 
@@ -60,13 +61,13 @@ public class TopupTest {
 
 		gservice  = new PointGeneratorFactory();
 
-		ActivemqConnectorService.setJsonMarshaller(new JsonMarshaller());
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setExposureTime(0.1);
 		dmodel.setName("detector");
-		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>) sservice.createRunnableDevice(dmodel);
+		detector = (IWritableDetector<MockDetectorModel>) sservice.createRunnableDevice(dmodel);
 		
 		positions = new ArrayList<>(20);
 		detector.addRunListener(new IRunListener.Stub() {
@@ -139,8 +140,8 @@ public class TopupTest {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
-		gmodel.setRows(5);
-		gmodel.setColumns(5);
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
 		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
 
