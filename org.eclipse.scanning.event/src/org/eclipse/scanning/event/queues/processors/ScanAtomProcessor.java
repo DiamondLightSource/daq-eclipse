@@ -16,7 +16,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.ServiceHolder;
+import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +77,7 @@ public class ScanAtomProcessor implements IQueueProcessor {
 				broadcast(bean, Status.FAILED);
 				throw new EventException(e);
 			}
-			eventService = ServiceHolder.getEventService();
+			eventService = QueueServicesHolder.getEventService();
 		}
 
 		@Override

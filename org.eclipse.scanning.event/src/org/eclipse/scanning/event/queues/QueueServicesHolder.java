@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.event.queues.IQueueService;
  * @author Michael Wharmby
  *
  */
-public final class ServiceHolder {
+public final class QueueServicesHolder {
 
 	private static IDeviceService deviceService;
 	private static IEventService eventService;
@@ -23,11 +23,11 @@ public final class ServiceHolder {
 	}
 
 	public static void setDeviceService(IDeviceService deviceService) {
-		ServiceHolder.deviceService = deviceService;
+		QueueServicesHolder.deviceService = deviceService;
 	}
 
 	public static void unsetDeviceService() {
-		ServiceHolder.deviceService = null;
+		QueueServicesHolder.deviceService = null;
 	}
 
 	public static IEventService getEventService() {
@@ -35,11 +35,11 @@ public final class ServiceHolder {
 	}
 
 	public static void setEventService(IEventService eventService) {
-		ServiceHolder.eventService = eventService;
+		QueueServicesHolder.eventService = eventService;
 	}
 
 	public static void unsetEventService() {
-		ServiceHolder.eventService = null;
+		QueueServicesHolder.eventService = null;
 	}
 
 	public static IQueueService getQueueService() {
@@ -47,11 +47,11 @@ public final class ServiceHolder {
 	}
 
 	public static void setQueueService(IQueueService queueService) {
-		ServiceHolder.queueService = queueService;
+		QueueServicesHolder.queueService = queueService;
 	}
 
 	public static void unsetQueueService() {
-		ServiceHolder.queueService = null;
+		QueueServicesHolder.queueService = null;
 	}
 
 }

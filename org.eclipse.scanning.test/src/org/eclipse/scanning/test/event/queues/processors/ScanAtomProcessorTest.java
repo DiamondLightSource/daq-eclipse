@@ -28,7 +28,7 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.dry.DryRunCreator;
-import org.eclipse.scanning.event.queues.ServiceHolder;
+import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
@@ -58,7 +58,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		uri = new URI("vm://localhost?broker.persistent=false");
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller())); // <-- PointsModelMarshaller needed to serialize ScanRequests
 		evServ = new EventServiceImpl(new ActivemqConnectorService());
-		ServiceHolder.setEventService(evServ);
+		QueueServicesHolder.setEventService(evServ);
 		fakeRunner = new DryRunCreator<ScanBean>(true);
 
 		//Create the scan consumer & publisher (these are ~real)
@@ -84,7 +84,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		processorSetup();
 	}
 	
-	private void  processorSetup() {
+	private void processorSetup() {
 		try {
 			proc = new ScanAtomProcessor().makeProcess(scAt, statPub, true);
 		} catch (EventException e) {
@@ -102,7 +102,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		scanConsumer.disconnect();
 	}
 	
-	//@Test
+	@Test
 	public void testExecution() throws Exception {
 		scAt.setName("Test Execution");
 		doExecute();
@@ -148,7 +148,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	
 	// Attempted to fix intermittent failure on travis.
 	@Test
-	public void testInterruptedExecution() throws Exception {
+	public void testTerminateFromScan() throws Exception {
 		scAt.setName("Test Interrupted Execution");
 		doExecute();
 		
@@ -195,9 +195,8 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	}
 	
 	@Test
-	public void testErrorInScan() throws Exception {
+	public void testFailureInScan() throws Exception {
 		scAt.setName("Failed scan");
-		processorSetup();
 		doExecute();
 		
 		Thread.sleep(2000);
