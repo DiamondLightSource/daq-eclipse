@@ -225,5 +225,20 @@ public interface IAtomQueue<T extends QueueAtom> extends IAtomWithChildQueue {
 	 * @return true if atom already in given list.
 	 */
 	public boolean isAtomInListPresent(Collection<T> atomSet);
+	
+	/**
+	 * Calculate unique hash for this object.
+	 * 
+	 * @return int Hash of this object.
+	 */
+	public int hashCode();
+	
+	/**
+	 * Detemine whether this IAtomQueue is equal to another object.
+	 * 
+	 * @param obj to be compared with this instance.
+	 * @return true if obj and this instance are the same.
+	 */
+	public boolean equals(Object obj);
 
 }
