@@ -31,7 +31,7 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.ScanServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.malcolm.device.MockedMalcolmService;
@@ -378,7 +378,7 @@ public class ScanServletPluginTest {
 		// We will run this test without real GDA devices. Therefore we
 		// override the connector
 		// DO NOT COPY TESTING ONLY
-		DeviceServiceImpl.setDeviceService(new MockScannableConnector()); 
+		RunnableDeviceServiceImpl.setDeviceConnectorService(new MockScannableConnector()); 
 		
 		
 		// Put a connection in the DeviceServiceImpl which is used for the test
@@ -386,7 +386,7 @@ public class ScanServletPluginTest {
 		
 		// Should create a standard MockedMalcolmDevice and not one of the more complex types.
 		IMalcolmConnection connection   = malcolmService.createConnection(URI.create("tcp://standard"));
-		((DeviceServiceImpl)Services.getScanService())._registerConnection(URI.create("tcp://standard"), connection);
+		((RunnableDeviceServiceImpl)Services.getRunnableDeviceService())._registerConnection(URI.create("tcp://standard"), connection);
 		
 		// DO NOT COPY TESTING ONLY
 		Services.setConnector(new MockScannableConnector());
@@ -396,7 +396,7 @@ public class ScanServletPluginTest {
 		assertNotNull(Services.getEventService());
 		assertNotNull(Services.getGeneratorService());
 		assertNotNull(Services.getMalcService());
-		assertNotNull(Services.getScanService());
+		assertNotNull(Services.getRunnableDeviceService());
 	}
 
 }

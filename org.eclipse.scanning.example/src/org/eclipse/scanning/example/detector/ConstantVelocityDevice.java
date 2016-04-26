@@ -8,6 +8,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
@@ -45,7 +46,7 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 	}
 
 	@Override
-	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
+	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) throws NexusException {
 		
 		final NXdetector detector = nodeFactory.createNXdetector();
 		// We add 2 to the scan rank to include the image
@@ -57,12 +58,7 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 		int[] chunk = info.createChunk(model.getLineSize(), model.getChannelCount(), model.getSpectraSize());
 		context.setChunking(chunk);
 		
-		try {
-			Attributes.registerAttributes(detector, this);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Attributes.registerAttributes(detector, this);
 
 		return detector;
 	}

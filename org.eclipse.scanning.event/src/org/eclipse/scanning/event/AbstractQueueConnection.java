@@ -172,7 +172,9 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 	
 						try {
 							final String     json  = t.getText();
-							final StatusBean qbean = service.unmarshal(json, beanClass != null ? beanClass : StatusBean.class);
+							@SuppressWarnings("unchecked")
+							final Class<U> statusBeanClass = (Class<U>) StatusBean.class;
+							final StatusBean qbean = service.unmarshal(json, beanClass != null ? beanClass : statusBeanClass);
 							if (qbean==null)               continue;
 							if (qbean.getStatus()==null)   continue;
 							if (!qbean.getStatus().isStarted()) {

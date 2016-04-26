@@ -541,7 +541,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		final MessageConsumer consumer = session.createConsumer(queue);
 		connection.start();
 		
-		logger.warn(getName()+" Submission ActiveMQ connection to "+uri+" made.");
+		logger.info(getName()+" Submission ActiveMQ connection to "+uri+" made.");
 		
 		return consumer;
 	}

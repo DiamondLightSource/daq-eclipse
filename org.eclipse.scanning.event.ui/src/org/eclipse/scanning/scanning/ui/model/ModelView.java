@@ -52,7 +52,7 @@ public class ModelView extends ViewPart implements ISelectionListener {
 				if (name == null) name = info.getName();
 				if (name == null) name = info.getId();
 			}
-			setPartName("Model '"+name+"'");
+			if (name!=null) setPartName("Model '"+name+"'");
 
 		}		
 	}

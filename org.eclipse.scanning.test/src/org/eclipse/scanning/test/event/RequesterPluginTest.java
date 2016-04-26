@@ -12,7 +12,7 @@ import java.net.URI;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.device.DeviceResponse;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -33,7 +33,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class RequesterPluginTest extends AbstractRequesterTest {
 	
     private static IEventService  eventService;
-    private static IDeviceService deviceService;
+    private static IRunnableDeviceService runnableDeviceService;
 
 	public static IEventService getEventService() {
 		return eventService;
@@ -43,17 +43,17 @@ public class RequesterPluginTest extends AbstractRequesterTest {
 		RequesterPluginTest.eventService = service;
 	}
 
-	public static IDeviceService getDeviceService() {
-		return deviceService;
+	public static IRunnableDeviceService getRunnableDeviceService() {
+		return runnableDeviceService;
 	}
 
-	public static void setDeviceService(IDeviceService deviceService) {
-		RequesterPluginTest.deviceService = deviceService;
+	public static void setRunnableDeviceService(IRunnableDeviceService deviceService) {
+		RequesterPluginTest.runnableDeviceService = deviceService;
 	}
 
 	@Before
 	public void createServices() throws Exception {
-		connect(eventService, deviceService);
+		connect(eventService, runnableDeviceService);
 	}
 	
 }

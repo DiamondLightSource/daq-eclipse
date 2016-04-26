@@ -5,7 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
@@ -26,7 +26,7 @@ public class Services {
 
 	private static IEventService           eventService;
 	private static IPointGeneratorService  generatorService;
-	private static IDeviceService          scanService;
+	private static IRunnableDeviceService          runnableDeviceService;
 	private static IDeviceConnectorService connector;
 	private static IMalcolmService         malcService;
 	private static IFilePathService        filePathService;
@@ -58,12 +58,12 @@ public class Services {
 		Services.generatorService = generatorService;
 	}
 
-	public static IDeviceService getScanService() {
-		return scanService;
+	public static IRunnableDeviceService getRunnableDeviceService() {
+		return runnableDeviceService;
 	}
 
-	public static void setScanService(IDeviceService scanService) {
-		Services.scanService = scanService;
+	public static void setRunnableDeviceService(IRunnableDeviceService deviceService) {
+		Services.runnableDeviceService = deviceService;
 	}
 
 	public static IDeviceConnectorService getConnector() {

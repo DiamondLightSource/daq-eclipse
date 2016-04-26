@@ -8,11 +8,10 @@ import java.util.stream.Collectors;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 public class MockScannableConnector implements IDeviceConnectorService {
-	
+
 	private static Map<String, INameable> cache;
 	
 	// Create a few random scannables with different levels.
@@ -33,14 +32,19 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		register(new MockScannable("x", 0d,  3));
 		register(new MockNeXusScannable("xNex", 0d,  3));
 		register(new MockNeXusScannable("yNex", 0d,  3));
-		
+
 		for (int i = 0; i < 10; i++) {
 			register(new MockNeXusScannable("neXusScannable"+i, 0d,  3));
 	    }
 		for (int i = 0; i < 10; i++) {
 			register(new MockNeXusScannable("monitor"+i, 0d,  3));
 	    }
-
+		for (int i = 0; i < 10; i++) {
+			MockNeXusScannable metadataScannable = new MockNeXusScannable("metadataScannable"+i, 0d, 3);
+			metadataScannable.setInitialPosition(i * 10.0);
+			register(metadataScannable);
+		}
+		
 	}
 
 	private static void register(INameable mockScannable) {

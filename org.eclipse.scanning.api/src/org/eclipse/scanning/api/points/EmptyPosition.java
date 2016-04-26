@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -18,7 +19,7 @@ public class EmptyPosition extends AbstractPosition implements IPosition {
 
 	@Override
 	public List<String> getNames() {
-		return null;
+		return Collections.emptyList();
 	}
 
 	@Override

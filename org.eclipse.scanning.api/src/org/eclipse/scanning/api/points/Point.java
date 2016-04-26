@@ -30,10 +30,10 @@ import java.util.List;
  */
 public class Point extends AbstractPosition {
 
-	private Double  x;
-	private Double  y;
-	private Integer xIndex;
-	private Integer yIndex;
+	private final Double  x;
+	private final Double  y;
+	private final Integer xIndex;
+	private final Integer yIndex;
 	private String  xName = "x";
 	private String  yName = "y";
 

@@ -11,11 +11,11 @@ import org.eclipse.scanning.api.scan.ScanningException;
 
 public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 
-	private IDeviceService            dservice;
+	private IRunnableDeviceService            dservice;
 	private DeviceRequest             bean;
 	private IPublisher<DeviceRequest> publisher;
 
-	public DeviceResponse(IDeviceService dservice, DeviceRequest bean, IPublisher<DeviceRequest> statusNotifier) {
+	public DeviceResponse(IRunnableDeviceService dservice, DeviceRequest bean, IPublisher<DeviceRequest> statusNotifier) {
 		this.dservice = dservice;
 		this.bean     = bean;
 		this.publisher = statusNotifier;

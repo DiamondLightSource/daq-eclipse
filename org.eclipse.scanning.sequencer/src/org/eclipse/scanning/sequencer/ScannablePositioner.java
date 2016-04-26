@@ -22,11 +22,11 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
  */
 final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IPositioner {
 		
-	private IDeviceConnectorService     hservice;
+	private IDeviceConnectorService     connectorService;
 	private List<IScannable<?>>         monitors;
 
 	ScannablePositioner(IDeviceConnectorService service) {	
-		this.hservice = service;
+		this.connectorService = service;
 	}
 	
 	@Override
@@ -41,7 +41,7 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 		MapPosition ret = new MapPosition();
 		for (String name : position.getNames()) {
 			try {
-				IScannable<?> scannable = hservice.getScannable(name);
+				IScannable<?> scannable = connectorService.getScannable(name);
 			    ret.put(name, scannable.getPosition());
 			} catch (Exception ne) {
 				throw new ScanningException("Cannout read value of "+name, ne);
@@ -56,7 +56,7 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 		List<String> names = position.getNames();
 		if (names==null) return null;
 		final List<IScannable<?>> ret = new ArrayList<>(names.size());
-		for (String name : position.getNames()) ret.add(hservice.getScannable(name));
+		for (String name : position.getNames()) ret.add(connectorService.getScannable(name));
 		if (monitors!=null) for(IScannable<?> mon : monitors) ret.add(mon);
 		return ret;
 	}
