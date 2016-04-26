@@ -11,7 +11,7 @@ package org.eclipse.scanning.api.event.queues.beans;
  * @param <T> Class extending QueueAtom; this class will be held in the Queue
  *            inside this Atom/Bean
  */
-public interface IAtomBeanWithQueue<T extends QueueAtom> extends IQueueable {
+public interface IAtomBeanWithQueue<T extends QueueAtom> extends IQueueable, IAtomWithChildQueue {
 	
 	/**
 	 * Get the queue of {@link QueueAtom}s held by this atom/bean.
