@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -53,6 +54,8 @@ public class Application implements IApplication {
 	@Override
 	public Object start(IApplicationContext context) throws Exception {
 	
+		//org.apache.log4j.Logger.getRootLogger().addAppender(new ConsoleAppender());
+		
 		final Map<?, ?>      args    = context.getArguments();
 		final String[] configuration = (String[])args.get("application.args");
         
@@ -108,7 +111,6 @@ public class Application implements IApplication {
 				conf.put(param.getAttributes().getNamedItem("name").getNodeValue(), param.getAttributes().getNamedItem("value").getNodeValue());
 			}
 			Object created = createObject(className, init, conf);
-			System.out.println("Created "+created);
 			objects.add(created);
 		}
 	    
@@ -118,7 +120,9 @@ public class Application implements IApplication {
 	private static Object createObject(String className, String initMethod, Map<String, String> conf) throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, SecurityException, NoSuchFieldException {
 		
 		// Must have a bundle
-		final Bundle bundle = Platform.getBundle(conf.remove("bundle"));
+		String bundleName = conf.remove("bundle");
+		if (bundleName==null) bundleName = "org.eclipse.scanning.server";
+		final Bundle bundle = Platform.getBundle(bundleName);
 	
 		final Class<?> clazz = bundle.loadClass(className);
 		
@@ -132,7 +136,7 @@ public class Application implements IApplication {
 
 		Method method = clazz.getMethod(initMethod);
 		method.invoke(instance);
-		
+		System.out.println("Started Server Extension "+clazz.getSimpleName()+" using "+initMethod);
 		return instance;
 	}
 
@@ -145,19 +149,41 @@ public class Application implements IApplication {
 	}
 
 	private static Object getValue(Map<String, String> conf, String fieldName) {
+		
 		String val = conf.get(fieldName);
+		val = replaceProperties(val); // Insert any system properties that the user used.
+		
 		if ("true".equalsIgnoreCase(val)) {
 			return Boolean.TRUE;
 		} else if ("false".equalsIgnoreCase(val)) {
 			return Boolean.FALSE;
 		} else {
+			// There are faster ways to do this
+			// but they are not required here...
 			try {
-				return Double.parseDouble(val);
-			} catch (Exception ignore) {
-				
+				return Integer.parseInt(val);
+			} catch (Exception ne) {
+				try {
+					return Double.parseDouble(val);
+				} catch (Exception ignored) {
+					
+				}
 			}
 		}
 		return val; // The String
+	}
+
+	/**
+	 * Not very efficient but no dependencies required and does job.
+	 * @param val
+	 * @return
+	 */
+	private static String replaceProperties(String val) {
+		final Properties props = System.getProperties();
+		for (Object name : props.keySet()) {
+			val = val.replace("${"+name+"}", props.getProperty(name.toString()));
+		}
+		return val;
 	}
 
 	@Override

@@ -118,4 +118,8 @@ public class DeviceRequest extends IdBean {
 	public DeviceInformation<?> getDeviceInformation() {
 		return (devices==null) ? null : devices.iterator().next();
 	}
+
+	public int size() {
+		return devices==null ? 0 : devices.size();
+	}
 }

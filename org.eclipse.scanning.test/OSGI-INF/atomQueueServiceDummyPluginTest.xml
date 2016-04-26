@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="AtomQueueService OSGi test declaration">
+   <implementation class="org.eclipse.scanning.test.event.queues.AtomQueueServiceDummyPluginTest"/>
+   <reference bind="setQueueService" cardinality="1..1" interface="org.eclipse.scanning.api.event.queues.IQueueService" name="IQueueService" policy="static" unbind="unsetQueueService"/>
+</scr:component>

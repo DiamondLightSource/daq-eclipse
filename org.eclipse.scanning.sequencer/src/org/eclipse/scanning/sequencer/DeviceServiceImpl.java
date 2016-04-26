@@ -115,7 +115,10 @@ public final class DeviceServiceImpl implements IDeviceService {
 				if (e.getName().equals("device")) {
 					
 					final IRunnableDevice device = (IRunnableDevice)e.createExecutableExtension("class");
-					device.setName(e.getAttribute("name"));
+					
+					String name = e.getAttribute("name");
+					if (name == null) name = e.getAttribute("id");
+					device.setName(name);
 					devs.put(mod.getClass(), device.getClass());
 					
 					if (device instanceof AbstractRunnableDevice) {
@@ -124,7 +127,7 @@ public final class DeviceServiceImpl implements IDeviceService {
 						info.setLabel(e.getAttribute("label"));
 						info.setDescription(e.getAttribute("description"));
 						info.setId(e.getAttribute("id"));
-						info.setIcon(e.getContributor().getName()+"/"+e.getAttribute("icon"));
+						if (e.getAttribute("icon")!=null) info.setIcon(e.getContributor().getName()+":"+e.getAttribute("icon"));
 						adevice.setDeviceInformation(info);
 					}
 					

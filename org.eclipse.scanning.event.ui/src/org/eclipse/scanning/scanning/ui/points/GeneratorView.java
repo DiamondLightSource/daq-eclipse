@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.inject.Inject;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -132,13 +130,13 @@ public class GeneratorView  extends ViewPart {
 					for (int i = 0; i < obj.length; i++) {
 						if (obj[i] instanceof IFile) {
 							IFile file = (IFile) obj[i];
-							readOperationsFromFile(file.getLocation().toOSString(), site);
+							readScans(file.getLocation().toOSString(), site);
 							return;
 						}
 					}
 				} else if (dropData instanceof String[]) {
 					for (String path : (String[])dropData){
-						readOperationsFromFile(path, site);
+						readScans(path, site);
 						return;
 					}
 				}
@@ -238,7 +236,7 @@ public class GeneratorView  extends ViewPart {
 				dialog.create();
 				if (dialog.open() == Dialog.CANCEL) return;
 				String path = dialog.getPath();
-				readOperationsFromFile(path, site);
+				readScans(path, site);
 				lastPath = path;
 			}
 		};
@@ -288,7 +286,7 @@ public class GeneratorView  extends ViewPart {
 			MessageDialog.openInformation(site.getShell(), "Exception while writing scans to file", "An exception occurred while writing the scans to a file.\n" + e.getMessage());
 		}
 	}
-	private void readOperationsFromFile(String filename, IViewSite site) {
+	private void readScans(String filename, IViewSite site) {
 		try {
 			System.out.println("TODO Create way of reading scans from file!");
 			

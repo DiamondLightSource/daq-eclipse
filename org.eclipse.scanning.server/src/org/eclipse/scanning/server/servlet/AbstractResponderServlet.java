@@ -19,6 +19,8 @@ import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.servlet.IConsumerServlet;
 import org.eclipse.scanning.api.event.servlet.IResponderServlet;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -33,6 +35,8 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  */
 public abstract class AbstractResponderServlet<B extends IdBean> implements IResponderServlet<B> {
 	
+	private static final Logger logger = LoggerFactory.getLogger(AbstractResponderServlet.class);
+
 	protected IEventService eventService;
 	protected String        broker;
 	
@@ -60,7 +64,7 @@ public abstract class AbstractResponderServlet<B extends IdBean> implements IRes
     	
 		responder = eventService.createResponder(new URI(broker), requestTopic, responseTopic);
 		responder.setResponseCreator(new DoResponseCreator());
-		
+     	logger.info("Started "+getClass().getSimpleName());
     }
     
 	class DoResponseCreator<T> implements IResponseCreator<B> {

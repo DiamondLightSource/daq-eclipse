@@ -26,6 +26,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.scanning.api.annotation.FieldUtils;
 import org.eclipse.scanning.api.annotation.FieldValue;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.scanning.ui.util.PageUtil;
@@ -62,21 +63,21 @@ import org.eclipse.ui.IWorkbenchPart;
  * @author Matthew Gerring
  *
  */
-public class GeneratorModelViewer implements ISelectionListener, ISelectionChangedListener, ISelectionProvider {
+public class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISelectionProvider {
 
 	
-	private TableViewer           viewer;
-	private IScanPathModel        model;
+	private TableViewer      viewer;
+	private Object           model;
 	
-	public GeneratorModelViewer() {
+	public ModelViewer() {
 		this(true);
 	}
 	
-	public GeneratorModelViewer(boolean addListener) {
+	public ModelViewer(boolean addListener) {
 		this(addListener ? PageUtil.getPage() : null);
 	}
 	
-	public GeneratorModelViewer(IWorkbenchPage page) {
+	public ModelViewer(IWorkbenchPage page) {
 		super();
 		if (page != null) page.addSelectionListener(this);
 	}
@@ -241,6 +242,9 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 				} catch (Exception e) {
 					setGenerator(null);
 				}
+			} else if (ob instanceof DeviceInformation) {
+				setGenerator(null);
+				setModel(((DeviceInformation)ob).getModel());
 			}
 		}
 	}
@@ -256,12 +260,12 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 		this.model = gen.getModel();	
 	}
 
-	public void setModel(IScanPathModel model) {
+	public void setModel(Object model) {
 		this.model = model;
 		viewer.setInput(model);
 	}
 	
-	public IScanPathModel getModel() {
+	public Object getModel() {
 		return model;
 	}
 	
@@ -279,12 +283,12 @@ public class GeneratorModelViewer implements ISelectionListener, ISelectionChang
 			@Override
 			public Object[] getElements(Object inputElement) {
 				
-				IScanPathModel model = null;
+				Object model = null;
 				if (inputElement instanceof IPointGenerator) {
 					IPointGenerator<IScanPathModel,?> op = (IPointGenerator<IScanPathModel,?>)inputElement;
 					model = op.getModel();
-				} else if (inputElement instanceof IScanPathModel) {
-					model = (IScanPathModel)inputElement;
+				} else {
+					model = inputElement;
 				}
 				try {
 					final Collection<FieldValue>  col = FieldUtils.getModelFields(model);

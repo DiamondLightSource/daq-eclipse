@@ -48,6 +48,14 @@ public class ServiceHolder {
 
 	public static IExpressionService getExpressionService() {
 		if (expressionService==null) expressionService = getService(IExpressionService.class);
+		
+		// Use the EmergencyExpressionService, might fail is jexl not there (this is allowed)
+		if (expressionService==null) try {
+			 // Does more limited things but works.
+			expressionService = new org.eclipse.scanning.scanning.ui.util.EmergencyExpressionService();
+		} catch (Exception ignored) {
+			// It is allowed for no JEXL to be in CP.
+		}
 		return expressionService;
 	}
 

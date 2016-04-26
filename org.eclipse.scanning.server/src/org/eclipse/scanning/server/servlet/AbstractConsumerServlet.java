@@ -14,6 +14,8 @@ import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.servlet.IConsumerServlet;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -38,6 +40,8 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * @param <T>
  */
 public abstract class AbstractConsumerServlet<B extends StatusBean> implements IConsumerServlet<B> {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractConsumerServlet.class);
 	
 	protected IEventService eventService;
 	protected String        broker;
@@ -78,6 +82,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
     	consumer.setRunner(new DoObjectCreator<B>());
      	consumer.start();
      	isConnected = true;
+     	logger.info("Started "+getClass().getSimpleName());
     }
     
 	protected abstract String getName();

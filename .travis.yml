@@ -28,4 +28,4 @@ env:
  
 # compile and test
 script: 
- - mvn clean install surefire:test
+ - mvn clean install surefire:test -Dtest.includes=org/eclipse/scanning/**/Suite.java

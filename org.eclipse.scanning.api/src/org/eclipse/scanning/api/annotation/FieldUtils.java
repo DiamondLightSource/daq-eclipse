@@ -22,8 +22,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.eclipse.scanning.api.points.models.IScanPathModel;
-
 public class FieldUtils {
 
 	
@@ -34,7 +32,7 @@ public class FieldUtils {
 		return false;
 	}
 
-	public static FieldDescriptor getAnnotation(IScanPathModel model, String fieldName) {
+	public static FieldDescriptor getAnnotation(Object model, String fieldName) {
 		
 		try {
 			Field field = getField(model, fieldName);
@@ -53,7 +51,7 @@ public class FieldUtils {
 		
 	}
 	
-	public static Field getField(IScanPathModel model, String fieldName) throws NoSuchFieldException, SecurityException {
+	public static Field getField(Object model, String fieldName) throws NoSuchFieldException, SecurityException {
 		
     	Field field;
 		try {
@@ -72,7 +70,7 @@ public class FieldUtils {
 	 * @return collection of fields.
 	 * @throws Exception
 	 */
-	public static Collection<FieldValue> getModelFields(IScanPathModel model) throws Exception {
+	public static Collection<FieldValue> getModelFields(Object model) throws Exception {
 		
 		// Decided not to use the obvious BeanMap here because class problems with
 		// GDA and we have to read annotations anyway.

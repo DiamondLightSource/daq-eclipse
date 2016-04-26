@@ -13,6 +13,8 @@ import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.servlet.ISubscriberServlet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -33,6 +35,7 @@ import org.eclipse.scanning.api.event.servlet.ISubscriberServlet;
  */
 public abstract class AbstractSubscriberServlet<T> implements ISubscriberServlet<T> {
 	
+	private static final Logger logger = LoggerFactory.getLogger(AbstractSubscriberServlet.class);
 	
 	protected IEventService eventService;
 	protected String        broker;
@@ -64,6 +67,7 @@ public abstract class AbstractSubscriberServlet<T> implements ISubscriberServlet
 				}
 			}
 		});
+     	logger.info("Started "+getClass().getSimpleName());
     }
     
 	@PreDestroy
