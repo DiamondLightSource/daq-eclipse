@@ -22,6 +22,7 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 public class TaskBean extends QueueBean implements IAtomBeanWithQueue<SubTaskBean> {
 	
 	private IAtomQueue<SubTaskBean> atomQueue = new AtomQueue<SubTaskBean>();
+	private String queueMessage;
 	
 	/**
 	 * No argument constructor for JSON
@@ -70,11 +71,21 @@ public class TaskBean extends QueueBean implements IAtomBeanWithQueue<SubTaskBea
 	}
 
 	@Override
+	public String getQueueMessage() {
+		return queueMessage;
+	}
+
+	@Override
+	public void setQueueMessage(String msg) {
+		queueMessage = msg;
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((atomQueue == null) ? 0 : atomQueue.hashCode());
+		result = prime * result + ((atomQueue == null) ? 0 : atomQueue.hashCode());
+		result = prime * result + ((queueMessage == null) ? 0 : queueMessage.hashCode());
 		return result;
 	}
 
@@ -91,6 +102,11 @@ public class TaskBean extends QueueBean implements IAtomBeanWithQueue<SubTaskBea
 			if (other.atomQueue != null)
 				return false;
 		} else if (!atomQueue.equals(other.atomQueue))
+			return false;
+		if (queueMessage == null) {
+			if (other.queueMessage != null)
+				return false;
+		} else if (!queueMessage.equals(other.queueMessage))
 			return false;
 		return true;
 	}
