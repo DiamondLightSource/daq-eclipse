@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
@@ -106,7 +107,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	public void testExecution() throws Exception {
 		scAt.setName("Test Execution");
 		doExecute();
-		executionLatch.await();
+		executionLatch.await(30, TimeUnit.SECONDS);
 		
 		/*
 		 * After execution:
@@ -208,7 +209,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		System.out.println("*     FAIL BROADCAST     *");
 		System.out.println("**************************");
 		
-		pauseForMockFinalStatus();
+		pauseForMockFinalStatus(10000);
 		/*
 		 * After execution:
 		 * - first bean in statPub should be Status.RUNNING
@@ -262,7 +263,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 			}
 			
 		});
-		statusLatch.await();
+		statusLatch.await(10, TimeUnit.SECONDS);
 		return;
 	}
 
