@@ -27,5 +27,6 @@ env:
   - LD_LIBRARY_PATH=/home/travis/build/dawn-third/ncsa.hdf/lib/linux-x86_64
  
 # compile and test
+# surefire:test -Dtest.includes=org/eclipse/scanning/**/Suite.java
 script: 
- - mvn clean install surefire:test -Dtest.includes=org/eclipse/scanning/**/Suite.java
+ - mvn clean install 
