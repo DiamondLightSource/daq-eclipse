@@ -124,8 +124,14 @@ abstract class LevelRunner<L extends ILevel> {
 					for (Callable<IPosition> callable : tasks) eservice.submit(callable);
 				} else {
 					// Normally we block until done.
-				    List<Future<IPosition>> pos = eservice.invokeAll(tasks); // blocks until level has run
-					pDelegate.fireLevelPerformed(level, lobjects, getPosition(pos));
+					// Blocks until level has run
+				    List<Future<IPosition>> pos = eservice.invokeAll(tasks, getTimeout(lobjects), TimeUnit.SECONDS);
+				    
+				    // If timed out, some isDone will be false.
+				    for (Future<IPosition> future : pos) {
+						if (!future.isDone()) throw new ScanningException("The timeout of "+timeout+"s has been reached waiting for level "+level+" objects "+toString(lobjects));
+					}
+				    pDelegate.fireLevelPerformed(level, lobjects, getPosition(pos));
 				}
 			}
 			
@@ -141,13 +147,27 @@ abstract class LevelRunner<L extends ILevel> {
 			
 		} finally {
 			if (block) {
-				eservice.shutdownNow();
+				if (eservice!=null) eservice.shutdownNow();
 				eservice = null;
 			}
 		}
 		
 		return true;
 	}
+	
+	protected String toString(List<L> lobjects) {
+		final  StringBuilder buf = new StringBuilder("[");
+		for (L l : lobjects) {
+			buf.append(l);
+			buf.append(", ");
+		}
+		return buf.toString();
+	}
+
+	/**
+	 * The timeout is overridden by some subclasses.
+	 */
+	private long timeout = 10;
 
 	/** 
 	 * Blocks until all the tasks have complete. In order for this call to be worth
@@ -160,8 +180,8 @@ abstract class LevelRunner<L extends ILevel> {
 	 * 
 	 * @throws InterruptedException 
 	 */
-	protected void await() throws InterruptedException {
-        await(1, TimeUnit.MINUTES);// FIXME Does this need spring config?
+	protected void await() throws InterruptedException, ScanningException {
+        await(getTimeout(null));
 	}
 	
 	/** 
@@ -173,12 +193,19 @@ abstract class LevelRunner<L extends ILevel> {
 	 * 
 	 * @throws InterruptedException 
 	 */
-	protected void await(long time, TimeUnit unit) throws InterruptedException {
-		if (eservice==null)          return;
-		if (eservice.isTerminated()) return;
-		eservice.shutdown();
-		eservice.awaitTermination(time, unit); 
-		eservice = null;
+	protected void await(long time) throws InterruptedException, ScanningException{
+		try {
+			if (eservice==null)          return;
+			if (eservice.isTerminated()) return;
+			eservice.shutdown();
+			eservice.awaitTermination(time, TimeUnit.SECONDS); 
+			if (!eservice.isTerminated()) {
+				eservice.shutdownNow();
+			    throw new ScanningException("The timeout of "+timeout+"s has been reached, scan aborting. Please implement ITimeoutable to define how long your device needs to write.");
+			}
+		} finally {
+		    eservice = null;
+		}
 	}
 	
 	public void abort() {
@@ -235,7 +262,7 @@ abstract class LevelRunner<L extends ILevel> {
 	protected ExecutorService createService() {
 		// TODO Need spring config for this.
 		int processors = Runtime.getRuntime().availableProcessors();
-		return new ThreadPoolExecutor(processors,             /* number of motors to move at the same time. */
+		return new ThreadPoolExecutor(processors,                                   /* number of motors to move at the same time. */
 						              processors*2,                                 /* max size current tasks. */
 						              1, TimeUnit.SECONDS,                          /* timeout after - does this need spring config? */
 						              new ArrayBlockingQueue<Runnable>(1000, true), /* max 1000+ncores motors to a level */
@@ -256,10 +283,12 @@ abstract class LevelRunner<L extends ILevel> {
 	}
 
 	private IPosition getPosition(List<Future<IPosition>> futures) throws InterruptedException, ExecutionException {
-	    IPosition ret = new MapPosition();
+		MapPosition ret = new MapPosition();
 	    for (Future<IPosition> future : futures) {
+	    	// Faster than using composite
 	    	IPosition pos = future.get();
-	    	ret = ret.composite(pos);
+	    	ret.putAll(pos);
+	    	ret.putAllIndices(pos);
 		}
 	    return ret;
 	}
@@ -272,7 +301,7 @@ abstract class LevelRunner<L extends ILevel> {
 				return true;
 			}
 			@Override
-			protected void await(long time, TimeUnit unit) throws InterruptedException {
+			protected void await(long time) throws InterruptedException {
 				return;
 			}
 
@@ -287,6 +316,23 @@ abstract class LevelRunner<L extends ILevel> {
 			}
 			
 		};
+	}
+
+	/**
+	 * The await and maximum run time in seconds.
+	 * @param the objects at this level. If null then the maximum of all possible objects in the runner should be used.
+	 * @return
+	 */
+	public long getTimeout(List<L> objects) {
+		return timeout;
+	}
+
+	/**
+	 * The await time in sceonds.
+	 * @return time
+	 */
+	public void setTimeout(long time) {
+		this.timeout = time;
 	}
 
 }

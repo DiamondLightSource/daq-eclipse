@@ -48,7 +48,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	// Attributes
 	private Map<String, Object>          attributes;
-
+	
 	protected AbstractRunnableDevice() {
 		this.scanId     = UUID.randomUUID().toString();
 		this.attributes = new HashMap<>(7); // TODO 

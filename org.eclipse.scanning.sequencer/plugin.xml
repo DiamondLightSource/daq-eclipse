@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.scanning.api.device">
+      <device
+            class="org.eclipse.scanning.sequencer.analysis.ProcessingRunnableDevice"
+            description="Run processing at each scan point"
+            icon="icons/processing.png"
+            id="org.eclipse.scanning.sequencer.processingDevice"
+            label="Processing"
+            model="org.eclipse.scanning.api.device.models.ProcessingModel">
+      </device>
+   </extension>
+
+</plugin>

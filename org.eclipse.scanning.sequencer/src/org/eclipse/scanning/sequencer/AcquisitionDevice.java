@@ -182,7 +182,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		        		        	
 	        	// Send an event about where we are in the scan
 	        	positionComplete(pos, count+1, size);
-//	        	record(count+1, pos);
 	        	++count;
 	        }
 	        

@@ -1,11 +1,12 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Sequencer
-Bundle-SymbolicName: org.eclipse.scanning.sequencer
+Bundle-SymbolicName: org.eclipse.scanning.sequencer;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Diamond Light Source
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: org.eclipse.scanning.sequencer,
+ org.eclipse.scanning.sequencer.analysis,
  org.eclipse.scanning.sequencer.nexus
 Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  org.eclipse.core.runtime;bundle-version="3.8.0",
