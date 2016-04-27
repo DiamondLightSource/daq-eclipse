@@ -9,7 +9,7 @@ import java.util.List;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.IEventService;
@@ -28,7 +28,7 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
@@ -41,7 +41,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class TopupTest {
 
-	protected IDeviceService                sservice;
+	protected IRunnableDeviceService                sservice;
 	protected IDeviceConnectorService       connector;
 	protected IPointGeneratorService        gservice;
 	protected IEventService                 eservice;
@@ -54,8 +54,8 @@ public class TopupTest {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		connector = new MockScannableConnector();
-		sservice  = new DeviceServiceImpl(connector);
-		DeviceServiceImpl impl = (DeviceServiceImpl)sservice;
+		sservice  = new RunnableDeviceServiceImpl(connector);
+		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)sservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
 

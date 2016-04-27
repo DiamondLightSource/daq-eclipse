@@ -96,7 +96,8 @@ class QueueReader<T extends StatusBean> {
 					TextMessage t = (TextMessage)m;
 					String json   = t.getText();
 					@SuppressWarnings("unchecked")
-					final T bean = (T)service.unmarshal(json, beanClass != null ? beanClass : StatusBean.class);
+					final Class<T> statusBeanClass = (Class<T>) StatusBean.class;
+					final T bean = (T)service.unmarshal(json, beanClass != null ? beanClass : statusBeanClass);
 					list.add(bean);
 				}
 			}

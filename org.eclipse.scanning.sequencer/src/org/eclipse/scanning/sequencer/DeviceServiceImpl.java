@@ -16,8 +16,8 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -33,7 +33,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 @SuppressWarnings("rawtypes")
-public final class DeviceServiceImpl implements IDeviceService {
+public final class DeviceServiceImpl implements IRunnableDeviceService {
 	
 	/**
 	 * The default Malcolm Hostname can be injected by spring. Otherwise
@@ -175,8 +175,8 @@ public final class DeviceServiceImpl implements IDeviceService {
 			final IRunnableDevice<T> scanner = createDevice(model);
 			if (scanner instanceof AbstractRunnableDevice) {
 				AbstractRunnableDevice<T> ascanner = (AbstractRunnableDevice<T>)scanner;
-				ascanner.setScanningService(this);
-                ascanner.setDeviceService(deviceService);
+				ascanner.setRunnableDeviceService(this);
+                ascanner.setConnectorService(deviceService);
                 ascanner.setPublisher(publisher); // May be null
                 
                 // If the model has a name for the device, we use

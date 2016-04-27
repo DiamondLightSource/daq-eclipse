@@ -14,8 +14,8 @@ import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.Services;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 
@@ -36,7 +36,7 @@ public class RequesterTest extends AbstractRequesterTest {
 		
 		// Set up stuff because we are not in OSGi with a test
 		// DO NOT COPY TESTING ONLY
-		dservice = new DeviceServiceImpl(new MockScannableConnector());
+		dservice = new RunnableDeviceServiceImpl(new MockScannableConnector());
 		MandelbrotDetector mandy = new MandelbrotDetector();
 		final DeviceInformation<MandelbrotModel> info = new DeviceInformation<MandelbrotModel>(); // This comes from extension point or spring in the real world.
 		info.setName("mandelbrot");
@@ -45,14 +45,14 @@ public class RequesterTest extends AbstractRequesterTest {
 		info.setId("org.eclipse.scanning.example.detector.mandelbrotDetector");
 		info.setIcon("org.eclipse.scanning.example/icon/mandelbrot.png");
 		mandy.setDeviceInformation(info);
-		((DeviceServiceImpl)dservice)._register("mandelbrot", mandy);
+		((RunnableDeviceServiceImpl)dservice)._register("mandelbrot", mandy);
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 
-		Services.setScanService(dservice);
+		Services.setRunnableDeviceService(dservice);
 		Services.setEventService(eservice);
 	
 		connect(eservice, dservice);

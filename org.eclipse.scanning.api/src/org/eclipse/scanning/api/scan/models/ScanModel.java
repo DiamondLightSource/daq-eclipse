@@ -1,6 +1,8 @@
 package org.eclipse.scanning.api.scan.models;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.scanning.api.IScannable;
@@ -9,7 +11,7 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
 
 public class ScanModel {
-	
+
 	/**
 	 * If you want the scan to attempt to write to a given
 	 * path, set this field. If it is set the scan will 
@@ -50,6 +52,22 @@ public class ScanModel {
 	 */
 	private List<IScannable<?>> monitors;
 	
+	/**
+	 * Scan metadata that is not produced by a particular device, e.g.
+	 * scan command, chemical formula etc., grouped by type.
+	 */
+	private List<ScanMetadata> scanMetadata;
+
+	
+	/**
+	 * A set of scannables may optionally be 'readout' just
+	 * once at the beginning of the scan.
+	 * They have setPosition(null, IPosition) called and should 
+	 * ensure that if their value is null, they do not move but
+	 * still readout position
+	 */
+	private List<IScannable<?>> metadataScannables;
+	
 	public ScanModel() {
 		this(null);
 	}
@@ -73,8 +91,13 @@ public class ScanModel {
 		result = prime
 				* result
 				+ ((positionIterable == null) ? 0 : positionIterable.hashCode());
+		result = prime * result
+				+ ((scanMetadata == null) ? 0 : scanMetadata.hashCode());
+		result = prime * result
+				+ ((metadataScannables == null) ? 0 : metadataScannables.hashCode());
 		return result;
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -104,6 +127,16 @@ public class ScanModel {
 				return false;
 		} else if (!monitors.equals(other.monitors))
 			return false;
+		if (scanMetadata == null) {
+			if (other.scanMetadata != null)
+				return false;
+		} else if (!scanMetadata.equals(other.scanMetadata))
+			return false;
+		if (metadataScannables == null) {
+			if (other.metadataScannables != null)
+				return false;
+		} else if (!metadataScannables.equals(other.metadataScannables))
+			return false;
 		if (positionIterable == null) {
 			if (other.positionIterable != null)
 				return false;
@@ -120,6 +153,10 @@ public class ScanModel {
 
 
 	public Iterable<IPosition> getPositionIterable() {
+		if (positionIterable == null) {
+			return Collections.emptyList();
+		}
+		
 		return positionIterable;
 	}
 
@@ -128,6 +165,9 @@ public class ScanModel {
 	}
 
 	public List<IRunnableDevice<?>> getDetectors() {
+		if (detectors == null) {
+			return Collections.emptyList();
+		}
 		return detectors;
 	}
 
@@ -140,6 +180,9 @@ public class ScanModel {
 	}
 	
 	public List<IScannable<?>> getMonitors() {
+		if (monitors == null) {
+			return Collections.emptyList();
+		}
 		return monitors;
 	}
 	
@@ -151,12 +194,45 @@ public class ScanModel {
 		this.monitors = Arrays.asList(monitors);
 	}
 	
+	public List<IScannable<?>> getMetadataScannables() {
+		if (metadataScannables == null) {
+			return Collections.emptyList();
+		}
+		return metadataScannables;
+	}
+	
+	public void setMetadataScannables(List<IScannable<?>> metadataScannables) {
+		this.metadataScannables = metadataScannables;
+	}
+	
+	public void setMetadataScannables(IScannable<?>... metadataScannables) {
+		this.metadataScannables = Arrays.asList(metadataScannables);
+	}
+	
 	public String getFilePath() {
 		return filePath;
 	}
 	
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
+	}
+	
+	public List<ScanMetadata> getScanMetadata() {
+		if (scanMetadata == null) {
+			return Collections.emptyList();
+		}
+		return scanMetadata;
+	}
+	
+	public void setScanMetadata(List<ScanMetadata> scanMetadata) {
+		this.scanMetadata = scanMetadata;
+	}
+	
+	public void addScanMetadata(ScanMetadata scanMetadata) {
+		if (this.scanMetadata == null) {
+			this.scanMetadata = new ArrayList<>();
+		}
+		this.scanMetadata.add(scanMetadata);
 	}
 	
 }

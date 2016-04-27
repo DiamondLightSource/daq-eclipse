@@ -51,7 +51,7 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
  *
  * @see {@link IMalcolmService}, {@link IMalcolmConnection}
  */
-public interface IDeviceService {
+public interface IRunnableDeviceService {
 	
 	/**
 	 * This method sets the value of the scannables named to this position.

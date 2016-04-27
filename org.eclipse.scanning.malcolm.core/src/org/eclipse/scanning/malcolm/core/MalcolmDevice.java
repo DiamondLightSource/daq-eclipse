@@ -7,9 +7,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
-import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
@@ -26,9 +24,7 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
-import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.ScanningException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,7 +106,7 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		final NXdetector detector = nodeFactory.createNXdetector();
 		detector.addExternalLink(NXdetector.NX_DATA, getFileName(), "/entry/data/det1");
 		
-		for (String axis : info.getAxisNames()) {
+		for (String axis : info.getScannableNames()) {
 			detector.addExternalLink(axis+"_demand", getFileName(), "/entry/data/"+axis+"_demand");
 		}
 		return detector;

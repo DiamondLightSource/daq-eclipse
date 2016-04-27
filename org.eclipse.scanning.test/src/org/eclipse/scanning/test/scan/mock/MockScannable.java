@@ -106,6 +106,10 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		setPosition(position, null);
 	}
 	
+	public void setInitialPosition(Number position) {
+		this.position = position;
+	}
+	
 	public void setPosition(Number position, IPosition loc) throws Exception {
 		
 		double value = position!=null ? position.doubleValue() : Double.NaN;
