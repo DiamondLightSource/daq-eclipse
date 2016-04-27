@@ -1,6 +1,8 @@
 package org.eclipse.scanning.api.device.models;
 
-public class ProcessingModel {
+import org.eclipse.scanning.api.ITimeoutable;
+
+public class ProcessingModel implements ITimeoutable {
 
 	private String   dataFile;
 	
@@ -13,6 +15,8 @@ public class ProcessingModel {
 	private String name;
 	private String operationsFile;
 
+	private long timeout = -1;
+	
 	public String getOperationsFile() {
 		return operationsFile;
 	}
@@ -86,5 +90,13 @@ public class ProcessingModel {
 		} else if (!operationsFile.equals(other.operationsFile))
 			return false;
 		return true;
+	}
+
+	public long getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
 	}
 }
