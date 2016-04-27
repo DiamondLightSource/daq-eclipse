@@ -33,7 +33,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  *   IEventService service = ... // OSGi
  *   final IEventSubscriber subscriber = service.createSubscriber(...);
  *   
- *   IScanListener listener = new IScanListener.Stub() { // Listen to any scan
+ *   IScanListener listener = new IScanListener() { // Listen to any scan
  *       void scanEventPerformed(ScanEvent evt) {
  *           ScanBean scan = evt.getBean();
  *           System.out.println(scan.getName()+" @ "+scan.getPercentComplete());

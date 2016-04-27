@@ -90,7 +90,7 @@ public class ScanExecutionTest {
 		IWritableDetector<?> detector = (IWritableDetector<?>) runnableDeviceService.createRunnableDevice(dmodel);
 		assertNotNull(detector);
 		
-		detector.addRunListener(new IRunListener.Stub() {
+		detector.addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException{
                 System.out.println("Ran detector @ "+evt.getPosition());
@@ -143,7 +143,7 @@ public class ScanExecutionTest {
 		IRunnableDevice<ScanModel> scanner = runnableDeviceService.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
-		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
+		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{
                 try {

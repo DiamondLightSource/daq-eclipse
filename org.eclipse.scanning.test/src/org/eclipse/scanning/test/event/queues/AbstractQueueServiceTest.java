@@ -439,7 +439,7 @@ public class AbstractQueueServiceTest {
 		IEventService evServ = qServ.getEventService();
 		ISubscriber<IHeartbeatListener> heartMonitor = evServ.createSubscriber(qServ.getURI(), qNames.getHeartbeatTopicName());
 		final List<HeartbeatBean> heartRate = new ArrayList<HeartbeatBean>();
-		heartMonitor.addListener(new IHeartbeatListener.Stub() {
+		heartMonitor.addListener(new IHeartbeatListener() {
 			@Override
 			public void heartbeatPerformed(HeartbeatEvent evt) {
 				HeartbeatBean bean = evt.getBean();

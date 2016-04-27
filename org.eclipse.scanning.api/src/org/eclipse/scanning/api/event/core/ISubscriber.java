@@ -13,7 +13,7 @@ import org.eclipse.scanning.api.event.EventException;
  * {@code
  * IEventService service = ...
  * IScanSubscriber sub = service.createSubscriber(...)
- * IScanListener listener = new IScanListener.Stub() {
+ * IScanListener listener = new IScanListener() {
  * 		{@literal @}Override
  * 		public void scanEventPerformed(ScanEvent evt) {
  * 		// Everything that happens ...
@@ -27,7 +27,7 @@ import org.eclipse.scanning.api.event.EventException;
  * 
  * <pre>
  * {@code
- * IScanListener listener2 = new IScanListener.Stub() {
+ * IScanListener listener2 = new IScanListener() {
  * 		{@literal @}Override
  * 		public void scanEventPerformed(ScanEvent evt) {
  * 		// Everything that happens ...

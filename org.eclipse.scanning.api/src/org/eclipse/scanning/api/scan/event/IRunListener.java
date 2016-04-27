@@ -19,14 +19,18 @@ public interface IRunListener extends EventListener {
 	 * @param evt
 	 * @throws scanning exception which will terminate the scan
 	 */
-	void runWillPerform(RunEvent evt) throws ScanningException;
+	default void runWillPerform(RunEvent evt) throws ScanningException {
+		// default implementation does nothing, subclasses should override as necessary
+	};
 	
 	/**
-	 * Used to notify that a given device as been run.
+	 * Used to notify that a given device has been run.
 	 * @param evt
 	 * @throws scanning exception which will terminate the scan
 	 */
-	void runPerformed(RunEvent evt) throws ScanningException;
+	default void runPerformed(RunEvent evt) throws ScanningException {
+		// default implementation does nothing, subclasses should override as necessary
+	};
 	
 	/**
 	 * Called before a run() is made on the device. Can
@@ -34,41 +38,16 @@ public interface IRunListener extends EventListener {
 	 * @param evt
 	 * @throws scanning exception which will terminate the scan
 	 */
-	void writeWillPerform(RunEvent evt) throws ScanningException;
+	default void writeWillPerform(RunEvent evt) throws ScanningException {
+		// default implementation does nothing, subclasses should override as necessary
+	};
 	
 	/**
 	 * Used to notify that a given device as been run.
 	 * @param evt
 	 * @throws scanning exception which will terminate the scan
 	 */
-	void writePerformed(RunEvent evt) throws ScanningException;
-
-	
-	public class Stub implements IRunListener {
-
-		@Override
-		public void runWillPerform(RunEvent evt) throws ScanningException{
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void runPerformed(RunEvent evt) throws ScanningException{
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void writeWillPerform(RunEvent evt) throws ScanningException {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void writePerformed(RunEvent evt) throws ScanningException {
-			// TODO Auto-generated method stub
-			
-		}
-		
-	}
+	default void writePerformed(RunEvent evt) throws ScanningException {
+		// default implementation does nothing, subclasses should override as necessary
+	};
 }

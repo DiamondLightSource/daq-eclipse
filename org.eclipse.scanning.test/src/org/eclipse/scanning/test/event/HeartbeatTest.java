@@ -78,7 +78,7 @@ public class HeartbeatTest {
 		publisher.setAlive(true);
 		
 		final List<HeartbeatBean> gotBack = new ArrayList<>(3);
-		subscriber.addListener(new IHeartbeatListener.Stub() {
+		subscriber.addListener(new IHeartbeatListener() {
 			@Override
 			public void heartbeatPerformed(HeartbeatEvent evt) {
 				gotBack.add(evt.getBean());

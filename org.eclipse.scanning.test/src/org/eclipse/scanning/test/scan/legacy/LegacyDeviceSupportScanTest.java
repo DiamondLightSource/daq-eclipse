@@ -122,7 +122,7 @@ public class LegacyDeviceSupportScanTest {
 		IRunnableDevice<ScanModel> scanner = runnableDeviceService.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
-		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
+		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{
                 try {

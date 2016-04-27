@@ -445,7 +445,7 @@ public class AbstractConsumerTest {
 		
 		ISubscriber<IHeartbeatListener> subscriber = eservice.createSubscriber(consumer.getUri(), IEventService.HEARTBEAT_TOPIC);
 		final List<HeartbeatBean> gotBack = new ArrayList<>(3);
-		subscriber.addListener(new IHeartbeatListener.Stub() {
+		subscriber.addListener(new IHeartbeatListener() {
 			@Override
 			public void heartbeatPerformed(HeartbeatEvent evt) {
 				gotBack.add(evt.getBean());

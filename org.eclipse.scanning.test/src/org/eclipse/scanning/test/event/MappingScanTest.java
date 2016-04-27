@@ -67,7 +67,7 @@ public class MappingScanTest {
 
 		// Listen to events sent
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>(3);
-		subscriber.addListener(new IScanListener.Stub() {
+		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				gotBack.add(evt.getBean());

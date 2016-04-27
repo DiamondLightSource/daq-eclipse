@@ -56,7 +56,7 @@ public class AbstractScanEventTest {
 		bean.setName("fred");
 		
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>(3);
-		subscriber.addListener(new IScanListener.Stub() {
+		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanEventPerformed(ScanEvent evt) {
 				gotBack.add(evt.getBean());
@@ -82,7 +82,7 @@ public class AbstractScanEventTest {
 		bean.setDeviceState(DeviceState.IDLE);
 		
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>(3);
-		subscriber.addListener(new IScanListener.Stub() {
+		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				gotBack.add(evt.getBean());
@@ -127,7 +127,7 @@ public class AbstractScanEventTest {
 		bean2.setDeviceState(DeviceState.IDLE);
 		
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>(3);
-		subscriber.addListener(bean.getUniqueId(), new IScanListener.Stub() {
+		subscriber.addListener(bean.getUniqueId(), new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				gotBack.add(evt.getBean());
@@ -135,7 +135,7 @@ public class AbstractScanEventTest {
 		});
 		
 		final List<ScanBean> all = new ArrayList<ScanBean>(3);
-		subscriber.addListener(new IScanListener.Stub() {
+		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				all.add(evt.getBean());
@@ -194,7 +194,7 @@ public class AbstractScanEventTest {
 		bean2.setDeviceState(DeviceState.IDLE);
 		
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>();
-		subscriber.addListener(bean.getUniqueId(), new IScanListener.Stub() {
+		subscriber.addListener(bean.getUniqueId(), new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				gotBack.add(evt.getBean());
@@ -209,7 +209,7 @@ public class AbstractScanEventTest {
 		});
 		
 		final List<ScanBean> all = new ArrayList<ScanBean>();
-		subscriber.addListener(new IScanListener.Stub() {
+		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				all.add(evt.getBean());
@@ -276,7 +276,7 @@ public class AbstractScanEventTest {
 		bean2.setDeviceState(DeviceState.IDLE);
 		
 		final List<ScanBean> gotBack = new ArrayList<ScanBean>();
-		subscriber.addListener(bean.getUniqueId(), new IScanListener.Stub() {
+		subscriber.addListener(bean.getUniqueId(), new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				gotBack.add(evt.getBean());
@@ -286,7 +286,7 @@ public class AbstractScanEventTest {
 		});
 		
 		final List<ScanBean> all = new ArrayList<ScanBean>();
-		subscriber.addListener(new IScanListener.Stub() {
+		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				all.add(evt.getBean());

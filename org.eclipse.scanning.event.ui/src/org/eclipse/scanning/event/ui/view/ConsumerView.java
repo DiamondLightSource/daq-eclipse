@@ -123,7 +123,7 @@ public class ConsumerView extends ViewPart {
 			protected IStatus run(IProgressMonitor monitor) {
 				try {					
 					heartMonitor = service.createSubscriber(uri, IEventService.HEARTBEAT_TOPIC);
-					heartMonitor.addListener(new IHeartbeatListener.Stub() {
+					heartMonitor.addListener(new IHeartbeatListener() {
 						@Override
 						public void heartbeatPerformed(HeartbeatEvent evt) {
 							

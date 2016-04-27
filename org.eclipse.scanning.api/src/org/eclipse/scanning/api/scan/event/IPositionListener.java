@@ -23,12 +23,15 @@ public interface IPositionListener extends EventListener {
 	/**
 	 * Called just before the position reaches a given value
 	 * @param event
-	 * @return false to abort the point but not the overall scan.
+	 * @return <code>false</code> to abort the point but not the overall scan.
 	 * @throws ScanningException if an exception occurred responding to this event.
 	 *   <em>Note:</em> throwing an exception will stop the scan. If this behaviour is
 	 *   not desirable the exception should be caught and logged instead 
 	 */
-	boolean positionWillPerform(PositionEvent evt) throws ScanningException;
+	default boolean positionWillPerform(PositionEvent evt) throws ScanningException {
+		// default implementation does nothing, subclasses should override as necessary
+		return true; // true indicates scan should continue as normal
+	}
 
 	/**
 	 * Called after a given move level has been reached.
@@ -37,7 +40,9 @@ public interface IPositionListener extends EventListener {
 	 *   <em>Note:</em> throwing an exception will stop the scan. If this behaviour is
 	 *   not desirable the exception should be caught and logged instead 
 	 */
-	void levelPerformed(PositionEvent evt) throws ScanningException;
+	default void levelPerformed(PositionEvent evt) throws ScanningException {
+		// default implementation does nothing, subclasses should override as necessary
+	}
 	
 	/**
 	 * Called after a given position is reached.
@@ -46,26 +51,7 @@ public interface IPositionListener extends EventListener {
 	 *   <em>Note:</em> throwing an exception will stop the scan. If this behaviour is
 	 *   not desirable the exception should be caught and logged instead 
 	 */
-	void positionPerformed(PositionEvent evt) throws ScanningException;
-	
-	public class Stub implements IPositionListener {
-
-		@Override
-		public void levelPerformed(PositionEvent evt) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void positionPerformed(PositionEvent evt) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public boolean positionWillPerform(PositionEvent evt) {
-			return true; // Means carry on
-		}
-		
+	default void positionPerformed(PositionEvent evt) throws ScanningException {
+		// default implementation does nothing, subclasses should override as necessary
 	}
 }
