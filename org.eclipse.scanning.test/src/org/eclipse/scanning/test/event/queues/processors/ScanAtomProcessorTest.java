@@ -11,19 +11,25 @@ import static org.junit.Assert.fail;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.bean.BeanEvent;
+import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.dry.DryRunCreator;
+import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
@@ -49,10 +55,11 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	
 	@Before
 	public void setup() throws Exception {
-		//Create the event service
+		//Create the event service and set in ServiceHolder
 		uri = new URI("vm://localhost?broker.persistent=false");
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller())); // <-- PointsModelMarshaller needed to serialize ScanRequests
 		evServ = new EventServiceImpl(new ActivemqConnectorService());
+		QueueServicesHolder.setEventService(evServ);
 		fakeRunner = new DryRunCreator<ScanBean>(true);
 
 		//Create the scan consumer & publisher (these are ~real)
@@ -78,9 +85,9 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		processorSetup();
 	}
 	
-	private void  processorSetup() {
+	private void processorSetup() {
 		try {
-			proc = new ScanAtomProcessor().makeProcessWithEvServ(scAt, statPub, true, evServ);
+			proc = new ScanAtomProcessor().makeProcess(scAt, statPub, true);
 		} catch (EventException e) {
 			System.out.println("Failed to create ScanAtomProcessor "+e);
 		}
@@ -96,11 +103,11 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		scanConsumer.disconnect();
 	}
 	
-	//@Test
+	@Test
 	public void testExecution() throws Exception {
 		scAt.setName("Test Execution");
 		doExecute();
-		Thread.sleep(15000);
+		executionLatch.await(30, TimeUnit.SECONDS);
 		
 		/*
 		 * After execution:
@@ -119,7 +126,6 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		checkBeanStatuses(reportedStatuses, reportedPercent);
 		checkBeanFinalStatus(Status.COMPLETE, true);
 		
-		//Thread.sleep(1000);
 		checkConsumerBeans(Status.COMPLETE);
 		
 		//Assert we have a properly structured ScanBean
@@ -142,8 +148,8 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	}
 	
 	// Attempted to fix intermittent failure on travis.
-	//@Test
-	public void testInterruptedExecution() throws Exception {
+	@Test
+	public void testTerminateFromScan() throws Exception {
 		scAt.setName("Test Interrupted Execution");
 		doExecute();
 		
@@ -155,7 +161,8 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		scanPublisher.broadcast(scan);
 		
 		//Wait to allow the house to come crashing down
-		Thread.sleep(3000);
+		pauseForStatus(Status.TERMINATED);
+		
 		checkConsumerBeans(Status.TERMINATED);
 		checkBeanFinalStatus(Status.REQUEST_TERMINATE, true);//Has to be request since using Mock
 		
@@ -171,9 +178,11 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	public void testTermination() throws Exception {
 		scAt.setName("Test Termination");
 		doExecute();
-		Thread.sleep(4000);
+		Thread.sleep(2000);
 		proc.terminate();
-		Thread.sleep(5000);
+
+		//Wait for terminate to take effect
+		pauseForStatus(Status.TERMINATED);
 		
 		/*
 		 * After execution:
@@ -187,12 +196,11 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 	}
 	
 	@Test
-	public void testErrorInScan() throws Exception {
+	public void testFailureInScan() throws Exception {
 		scAt.setName("Failed scan");
-		processorSetup();
 		doExecute();
 		
-		Thread.sleep(3000);
+		Thread.sleep(2000);
 		ScanBean scan = scanConsumer.getStatusSet().get(0);
 		scan.setStatus(Status.FAILED);
 		scan.setMessage("Error!");
@@ -201,6 +209,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		System.out.println("*     FAIL BROADCAST     *");
 		System.out.println("**************************");
 		
+		pauseForMockFinalStatus(10000);
 		/*
 		 * After execution:
 		 * - first bean in statPub should be Status.RUNNING
@@ -208,13 +217,12 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		 * - consumer should have a ScanBean with Status.FAILED & not 100%
 		 */
 		
-		Thread.sleep(3000);
 		checkBeanFinalStatus(Status.FAILED);
 		
 		//Try to end a bit more gracefully; TERMINATE before shutdown 
 		scan.setStatus(Status.REQUEST_TERMINATE);
 		scanPublisher.broadcast(scan);
-		Thread.sleep(500);
+		pauseForStatus(Status.TERMINATED);
 		
 		//Check the message was correctly set too
 		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
@@ -239,6 +247,24 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		else {
 			fail("Unknown bean final status");
 		}
+	}
+	
+	protected void pauseForStatus(Status awaitedStatus) throws Exception {
+		final CountDownLatch statusLatch = new CountDownLatch(1);
+		ISubscriber<IBeanListener<ScanBean>> statusSubsc = evServ.createSubscriber(uri, IEventService.STATUS_TOPIC);
+		statusSubsc.addListener(new IBeanListener<ScanBean>() {
+
+			@Override
+			public void beanChangePerformed(BeanEvent<ScanBean> evt) {
+				ScanBean bean = evt.getBean();
+				if (bean.getStatus() == awaitedStatus) {
+					statusLatch.countDown();
+				}
+			}
+			
+		});
+		statusLatch.await(10, TimeUnit.SECONDS);
+		return;
 	}
 
 }

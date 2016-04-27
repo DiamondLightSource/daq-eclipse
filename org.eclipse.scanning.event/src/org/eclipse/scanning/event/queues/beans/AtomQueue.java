@@ -30,7 +30,6 @@ public class AtomQueue<T extends QueueAtom> implements IAtomQueue<T> {
 	
 	private LinkedList<T> queue;
 	private long runTime = 0;
-	private String queueMessage;
 	
 	public AtomQueue() {
 		queue = new LinkedList<T>();
@@ -63,16 +62,6 @@ public class AtomQueue<T extends QueueAtom> implements IAtomQueue<T> {
 			runTime = runTime + atom.getRunTime();
 		}
 		return runTime;
-	}
-
-	@Override
-	public String getQueueMessage() {
-		return queueMessage;
-	}
-
-	@Override
-	public void setQueueMessage(String msg) {
-		this.queueMessage = msg;
 	}
 
 	@Override
@@ -222,8 +211,6 @@ public class AtomQueue<T extends QueueAtom> implements IAtomQueue<T> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((queue == null) ? 0 : queue.hashCode());
-		result = prime * result
-				+ ((queueMessage == null) ? 0 : queueMessage.hashCode());
 		result = prime * result + (int) (runTime ^ (runTime >>> 32));
 		return result;
 	}
@@ -241,11 +228,6 @@ public class AtomQueue<T extends QueueAtom> implements IAtomQueue<T> {
 			if (other.queue != null)
 				return false;
 		} else if (!queue.equals(other.queue))
-			return false;
-		if (queueMessage == null) {
-			if (other.queueMessage != null)
-				return false;
-		} else if (!queueMessage.equals(other.queueMessage))
 			return false;
 		if (runTime != other.runTime)
 			return false;
