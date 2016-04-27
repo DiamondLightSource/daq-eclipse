@@ -43,8 +43,8 @@ import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
@@ -72,7 +72,7 @@ public class ScanProcessingPluginTest {
 
 	
 	private static INexusFileFactory       fileFactory;	
-	private static IDeviceService          service;
+	private static IRunnableDeviceService  service;
 	private static IPointGeneratorService  gservice;
 	private static IDeviceConnectorService connector;
 	

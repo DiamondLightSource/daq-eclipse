@@ -63,7 +63,7 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 		this.processed = detector.initializeLazyDataset(NXdetector.NX_DATA,  info.getRank()+2, Dataset.FLOAT64);
 		this.info      = info;		
 		try {
-			org.eclipse.scanning.sequencer.util.Attributes.registerAttributes(detector, this);
+			Attributes.registerAttributes(detector, this);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -144,7 +144,7 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 				@Override
 				public void executed(OperationData result, IMonitor monitor) throws Exception {
 				    lastResult = result.getData();
-				    System.out.println("+++TODO+++"+Arrays.toString(lastResult.getShape()));
+				    System.out.println("+++++"+Arrays.toString(lastResult.getShape()));
 				}			
 			});
 
