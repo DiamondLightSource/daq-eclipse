@@ -13,12 +13,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
 import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
+import org.eclipse.scanning.api.event.bean.BeanEvent;
+import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.IQueue;
@@ -28,6 +32,7 @@ import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
@@ -198,7 +203,8 @@ public class AbstractQueueServiceTest {
 				assertEquals("Active queue state is incorrect", QueueStatus.STOPPED, qServ.getQueueStatus(aqID));
 
 				//Wait to see if the queue is still alive & check the state of the bean at the end
-				Thread.sleep(1500);//FIXME This can be optimised by using a Subscriber/listener
+				pauseForFinalStatus(7000);
+				
 				beats = activeQueue.getLatestHeartbeats();
 				final int sizeAtStop = beats.size();
 				assertTrue("Queue had no heart beat during its lifetime", livingSize < sizeAtStop);
@@ -265,7 +271,7 @@ public class AbstractQueueServiceTest {
 		Thread.sleep(1000);
 		
 		qServ.killQueue(aqID, false, false); //Need to set disconnect false to allow post-match analysis!
-		Thread.sleep(2500);//FIXME This has been optimised. Might be able to improve with a Subscriber/Listener?
+		Thread.sleep(4000);//FIXME This has been optimised. Might be able to improve with a Subscriber/Listener?
 		
 		assertTrue("queue ID not found in registry!", qServ.getAllActiveQueues().containsKey(aqID));
 		assertEquals("Job queue has wrong state", QueueStatus.KILLED, qServ.getQueueStatus(aqID));
@@ -339,7 +345,7 @@ public class AbstractQueueServiceTest {
 		//Request termination
 		bean.setStatus(Status.REQUEST_TERMINATE);
 		qServ.jobQueueTerminate(bean);
-		Thread.sleep(3000);//FIXME
+		pauseForFinalStatus(5000);
 		
 		//Check it has terminated
 		checkProcessFinalStatus(bean, jqID, Status.TERMINATED);
@@ -355,7 +361,7 @@ public class AbstractQueueServiceTest {
 		//Request termination
 		atom.setStatus(Status.REQUEST_TERMINATE);
 		qServ.activeQueueTerminate(atom, aqID);
-		Thread.sleep(3000);//FIXME
+		pauseForFinalStatus(5000);
 
 		//Check it has terminated
 		checkProcessFinalStatus(atom, aqID, Status.TERMINATED);
@@ -451,11 +457,30 @@ public class AbstractQueueServiceTest {
 		assertFalse("Consumer should not be active", queue.getConsumer().isActive());
 		
 		HeartbeatBean b1 = queue.getLastHeartbeat();
-		Thread.sleep(1000);//FIXME
+		Thread.sleep(2000);
 		HeartbeatBean b2 = queue.getLastHeartbeat();
 		
-		assertEquals("Consumer is still alive - beats 5secs apart are different.", b1, b2);
+		assertEquals("Consumer is still alive - beats 2secs apart are different.", b1, b2);
 		
+	}
+
+	protected void pauseForFinalStatus(long timeout) throws Exception {
+		final CountDownLatch statusLatch = new CountDownLatch(1);
+		IEventService evServ = qServ.getEventService();
+		ISubscriber<IBeanListener<ScanBean>> statusSubsc = evServ.createSubscriber(uri, IEventService.STATUS_TOPIC);
+		statusSubsc.addListener(new IBeanListener<ScanBean>() {
+
+			@Override
+			public void beanChangePerformed(BeanEvent<ScanBean> evt) {
+				ScanBean bean = evt.getBean();
+				if (bean.getStatus().isFinal()) {
+					statusLatch.countDown();
+				}
+			}
+
+		});
+		statusLatch.await(timeout, TimeUnit.MILLISECONDS);
+		return;
 	}
 
 }
