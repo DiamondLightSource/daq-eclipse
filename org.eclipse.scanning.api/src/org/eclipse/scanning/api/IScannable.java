@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api;
 
+import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.points.IPosition;
 
 /**
@@ -16,7 +17,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * @author Matthew Gerring
  *
  */
-public interface IScannable<T> extends ILevel, INameable {
+public interface IScannable<T> extends ILevel, INameable, ITimeoutable {
 	
 	/**
 	 * Returns the current position of the Scannable. Called by ConcurentScan at the end of the point. 
@@ -55,5 +56,6 @@ public interface IScannable<T> extends ILevel, INameable {
 	default String getUnit() {
 		return null;
 	}
+
 
 }

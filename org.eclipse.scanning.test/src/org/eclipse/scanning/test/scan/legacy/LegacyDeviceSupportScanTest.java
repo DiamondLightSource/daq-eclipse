@@ -46,12 +46,10 @@ public class LegacyDeviceSupportScanTest {
 	public void before() throws Exception {
 		fileFactory = new NexusFileFactoryHDF5();
 		ServiceHolder.setNexusFileFactory(fileFactory);
-		org.eclipse.scanning.sequencer.ServiceHolder.setFactory(new DefaultNexusBuilderFactory());
+		(new org.eclipse.scanning.sequencer.ServiceHolder()).setFactory(new DefaultNexusBuilderFactory());
 		connector = new MockLegacyScannableConnector();
 		runnableDeviceService = new RunnableDeviceServiceImpl(connector);
 		pointGeneratorService = new PointGeneratorFactory();
-		
-		
 	}
 	
 	@Test

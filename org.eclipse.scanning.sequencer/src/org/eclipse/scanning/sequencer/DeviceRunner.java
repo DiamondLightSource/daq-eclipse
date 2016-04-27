@@ -3,8 +3,11 @@ package org.eclipse.scanning.sequencer;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import org.eclipse.scanning.api.ITimeoutable;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -24,6 +27,18 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 
 	DeviceRunner(Collection<IRunnableDevice<?>> devices) {	
 		this.devices = devices;
+		
+		long time = Long.MIN_VALUE;
+		for (IRunnableDevice<?> device : devices) {
+			if (device instanceof AbstractRunnableDevice) {
+				Object model = ((AbstractRunnableDevice)device).getModel();
+				if (model instanceof ITimeoutable) {
+				    time = Math.max(time, ((ITimeoutable)model).getTimeout());
+				}
+			}
+		}
+		if (time<0) time = 10; // seconds
+		setTimeout(time);
 	}
 
 	@Override

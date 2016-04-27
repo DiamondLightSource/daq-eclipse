@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
@@ -27,6 +28,40 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 
 	ScannablePositioner(IDeviceConnectorService service) {	
 		this.connectorService = service;
+		
+		// This is setting the default but the actual value of the timeout
+		// is set by implementing ITimeoutable in your IScannable. The devices
+		// at a given level are checked for their timeout when they are run.
+		setTimeout(3*60); // Three minutes. If this needs to be increased implement getTimeout() on IScannable.
+	}
+	
+	/**
+	 * Objects at a given level are checked to find their maximum timeout.
+	 * By default those objects will return -1 so the three minute wait time is used.
+	 */
+	@Override
+	public long getTimeout(List<IScannable<?>> objects) {
+		long defaultTimeout = super.getTimeout(objects); // Three minutes (see above)
+		if (objects==null) return defaultTimeout;
+		
+		long time = Long.MIN_VALUE;
+		for (IScannable<?> device : objects) {
+			if (device instanceof AbstractRunnableDevice) {
+				time = Math.max(time, device.getTimeout());
+			}
+		}
+		if (time<0) time = defaultTimeout; // seconds
+		return time;
+	}
+
+	@Override
+	protected String toString(List<IScannable<?>> lobjects) {
+		final StringBuilder buf = new StringBuilder("[");
+		for (IScannable<?> s : lobjects) {
+			buf.append(s.getName());
+			buf.append(", ");
+		}
+		return buf.toString();
 	}
 	
 	@Override
