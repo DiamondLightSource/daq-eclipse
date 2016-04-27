@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.net.URI;
 import java.util.List;
@@ -109,17 +110,41 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable> {
 		}
 	}
 
-	protected void pauseForMockFinalStatus() throws Exception {
+	protected void pauseForMockFinalStatus(long timeOut) throws Exception {
 		boolean notFinal = true;
-		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
-		DummyQueueable lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+		DummyQueueable lastBean = getLastBean(timeOut);
+		long startTime = System.currentTimeMillis();
 		
 		while (notFinal) {
 			if (lastBean.getStatus().isFinal()) return;
 			Thread.sleep(100);
 			
-			broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
-			lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+			if (startTime-System.currentTimeMillis() >= timeOut) fail("Final state not found before timeout");
+			lastBean = getLastBean(timeOut);
 		}
+	}
+	
+	protected void pauseForMockStatus(Status expected, long timeOut) throws Exception {
+		DummyQueueable lastBean = getLastBean(timeOut);
+		long startTime = System.currentTimeMillis();
+		
+		while (lastBean.getStatus() != expected) {
+			Thread.sleep(100);
+			
+			if (startTime-System.currentTimeMillis() >= timeOut) fail(expected+" not found before timeout");
+			lastBean = getLastBean(timeOut);
+		}
+	}
+	
+	private DummyQueueable getLastBean(long timeOut) throws Exception {
+		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+		long startTime = System.currentTimeMillis();
+		while (broadcastBeans.size() == 0) {
+			Thread.sleep(100);
+			if (startTime-System.currentTimeMillis() >= timeOut) fail("No beans broadcast before timeout");
+			broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+		}
+		
+		return broadcastBeans.get(broadcastBeans.size()-1);
 	}
 }

@@ -37,7 +37,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		doExecute();
 		
 		//In the MockPositioner, it takes 4.5secs to set the position
-		Thread.sleep(5500);
+		pauseForMockStatus(Status.COMPLETE, 10000);
 		
 		/*
 		 * After execution:
@@ -58,8 +58,8 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		
 		Thread.sleep(1000);
 		proc.terminate();
-		Thread.sleep(700);
-		//There's a race condition due to the while loop checking only every 500secs
+		//Wait to allow the house to come crashing down
+		pauseForMockStatus(Status.TERMINATED, 10000);
 		/*
 		 * On terminate:
 		 * - first bean in statPub should be Status.RUNNING
@@ -79,7 +79,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		processorSetup();
 		doExecute();
 		
-		Thread.sleep(3000);
+		pauseForMockStatus(Status.FAILED, 10000);
 		
 		/*
 		 * On exception:
