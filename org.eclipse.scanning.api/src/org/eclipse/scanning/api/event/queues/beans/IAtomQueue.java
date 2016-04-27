@@ -18,7 +18,7 @@ import org.eclipse.scanning.api.event.queues.IQueueService;
  *
  */
 
-public interface IAtomQueue<T extends QueueAtom> extends IAtomWithChildQueue {
+public interface IAtomQueue<T extends QueueAtom> {
 	
 	/**
 	 * Returns list of {@link QueueAtom} which are present in this 
