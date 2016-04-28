@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.nexus;
 
 import static org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset.getDType;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_POINTS;
+import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_UNIQUE_KEYS;
 import static org.eclipse.scanning.test.nexus.ScanPointsWriterTest.ExternalFileWritingDetector.EXTERNAL_FILE_NAME;
 import static org.hamcrest.Matchers.both;
@@ -21,7 +22,9 @@ import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.api.io.ILazySaver;
 import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
+import org.eclipse.dawnsci.analysis.dataset.impl.BooleanDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.LazyDataset;
 import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NXdetector;
@@ -33,6 +36,7 @@ import org.eclipse.dawnsci.nexus.builder.AbstractNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
 import org.junit.Test;
 
@@ -152,6 +156,7 @@ public class ScanPointsWriterTest {
 		// Assert
 		assertThat(scanPointsCollection, is(notNullValue()));
 
+		// assert unique keys dataset created correctly
 		DataNode uniqueKeysDataNode = scanPointsCollection.getDataNode(FIELD_NAME_UNIQUE_KEYS);
 		assertThat(uniqueKeysDataNode, is(notNullValue()));
 		assertThat(uniqueKeysDataNode.getDataset(), both(is(notNullValue())).and(
@@ -163,6 +168,7 @@ public class ScanPointsWriterTest {
 		MockLazySaver uniqueKeysSaver = new MockLazySaver(); // TODO could use mockito instead?
 		uniqueKeysDataset.setSaver(uniqueKeysSaver);
 		
+		// assert scan points dataset created correctly
 		DataNode pointsDataNode = scanPointsCollection.getDataNode(FIELD_NAME_POINTS);
 		assertThat(pointsDataNode, is(notNullValue()));
 		assertThat(pointsDataNode.getDataset(), both(is(notNullValue())).and(
@@ -173,6 +179,17 @@ public class ScanPointsWriterTest {
 		assertThat(pointsDataset.getChunking(), is(equalTo(expectedChunking)));
 		MockLazySaver pointsSaver = new MockLazySaver();
 		pointsDataset.setSaver(pointsSaver);
+		
+		// assert scan finished dataset created correctly - value must be false
+		DataNode scanFinishedDataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
+		assertThat(scanFinishedDataNode, is(notNullValue()));
+		assertThat(scanFinishedDataNode.getDataset(), both(is(notNullValue())).and(
+				instanceOf(ILazyWriteableDataset.class)));
+		ILazyWriteableDataset scanFinishedDataset = (ILazyWriteableDataset) scanFinishedDataNode.getDataset();
+		assertThat(scanFinishedDataset.getRank(), is(1));
+		assertThat(scanFinishedDataset.getShape(), is(equalTo(new int[] { 1 })));
+		MockLazySaver scanFinishedSaver = new MockLazySaver();
+		scanFinishedDataset.setSaver(scanFinishedSaver);
 		
 		// assert links to external nodes
 		scanPointsCollection.getNumberOfNodelinks();
@@ -214,6 +231,11 @@ public class ScanPointsWriterTest {
 		MockLazySaver pointsSaver = new MockLazySaver();
 		pointsDataset.setSaver(pointsSaver);
 		
+		DataNode scanFinishedDataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
+		ILazyWriteableDataset scanFinishedDataset = (ILazyWriteableDataset) scanFinishedDataNode.getDataset();
+		MockLazySaver scanFinishedSaver = new MockLazySaver();
+		scanFinishedDataset.setSaver(scanFinishedSaver);
+		
 		// assert links to external nodes
 		scanPointsCollection.getNumberOfNodelinks();
 		assertThat(scanPointsCollection.getSymbolicNode(EXTERNAL_FILE_NAME), is(notNullValue()));
@@ -235,6 +257,7 @@ public class ScanPointsWriterTest {
 		
 		// act
 		scanPointsWriter.positionPerformed(new PositionEvent(position));
+		scanPointsWriter.runPerformed(null);
 
 		// assert
 		assertThat(pointsSaver.getNumberOfWrites(), is(1));

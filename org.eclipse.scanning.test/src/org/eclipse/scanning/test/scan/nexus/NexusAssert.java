@@ -6,6 +6,7 @@ import static org.eclipse.dawnsci.nexus.builder.NexusDataBuilder.ATTR_NAME_SIGNA
 import static org.eclipse.dawnsci.nexus.builder.NexusDataBuilder.ATTR_NAME_TARGET;
 import static org.eclipse.dawnsci.nexus.builder.NexusDataBuilder.ATTR_SUFFIX_INDICES;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_POINTS;
+import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_UNIQUE_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.GROUP_NAME_SOLSTICE_SCAN;
 import static org.hamcrest.Matchers.equalTo;
@@ -87,6 +88,7 @@ public class NexusAssert {
 		 
 		assertScanPoints("", scanPointsCollection, sizes);
 		// TODO assert links to unique keys datasets in external HDF5 files
+		assertScanFinished(entry);
 	}
 
 	public static void assertScanPoints(NXdata nxData, int... sizes) {
@@ -104,7 +106,7 @@ public class NexusAssert {
 		assertArrayEquals(sizes, dataset.getShape());
 		PositionIterator iter = new PositionIterator(dataset.getShape());
 		
-		int expectedPos = 0;
+		int expectedPos = 1;
 		while (iter.hasNext()) { // hasNext also increments the position iterator (ugh!)
 			assertThat(dataset.getInt(iter.getPos()), is(expectedPos));
 			expectedPos++;
@@ -117,6 +119,33 @@ public class NexusAssert {
 		assertThat(getDType(dataset), is(Dataset.STRING));
 		assertThat(dataset.getRank(), is(sizes.length));
 		assertArrayEquals(sizes, dataset.getShape());
+	}
+	
+	private static void assertScanFinished(NXentry entry) {
+		NXcollection scanPointsCollection = entry.getCollection(GROUP_NAME_SOLSTICE_SCAN);
+		assertNotNull(scanPointsCollection);
+		
+		// check the scan finished boolean is set to true
+		DataNode dataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
+		assertNotNull(dataNode);
+		IDataset dataset = dataNode.getDataset().getSlice();
+		assertThat(getDType(dataset), is(Dataset.INT32));
+		assertThat(dataset.getRank(), is(1));
+		assertArrayEquals(dataset.getShape(), new int[] { 1 });
+		assertThat(dataset.getBoolean(0), is(equalTo(true)));
+	}
+
+	public static void assertScanNotFinished(NXentry entry) {
+		NXcollection scanPointsCollection = entry.getCollection(GROUP_NAME_SOLSTICE_SCAN);
+		assertNotNull(scanPointsCollection);
+		
+		DataNode dataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
+		assertNotNull(dataNode);
+		IDataset dataset = dataNode.getDataset().getSlice();
+		assertThat(getDType(dataset), is(Dataset.INT32)); // HDF5 doesn't support boolean datasets
+		assertThat(dataset.getRank(), is(1));
+		assertArrayEquals(dataset.getShape(), new int[] { 1 });
+		assertThat(dataset.getBoolean(0), is(equalTo(false)));
 	}
 
 }
