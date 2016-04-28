@@ -109,6 +109,7 @@
 	              <exclude>**repository/*</exclude>
 				  <exclude>org/eclipse/richbeans/**/Suite.java</exclude>
 				  <exclude>org/eclipse/dawnsci/**/Suite.java</exclude>
+				  <!-- Not sure if command or queue tests are killing build -->
 				  <exclude>org/eclipse/scanning/test/event/queues/**/Suite.java</exclude>
 				  <exclude>org/eclipse/scanning/test/command/**/Suite.java</exclude>
 	            </excludes>
