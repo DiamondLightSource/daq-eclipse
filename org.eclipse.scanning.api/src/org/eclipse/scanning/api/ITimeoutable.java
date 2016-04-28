@@ -30,7 +30,7 @@ public interface ITimeoutable {
 	 */
 	@UiHidden
 	default void setTimeout(long time) {
-		throw new IllegalArgumentException("setExposureTime(...) is not implemented");
+		// Does nothing
 	}
 
 }
