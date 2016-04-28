@@ -3,6 +3,7 @@ package org.eclipse.scanning.sequencer.analysis;
 import java.util.Arrays;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.IDynamicDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
@@ -20,6 +21,7 @@ import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
+import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
@@ -51,23 +53,30 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 	}
 	
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		
+		DelegateNexusProvider<NXdetector> nexusProvider = new DelegateNexusProvider<NXdetector>(
+				getName(), NexusBaseClass.NX_DETECTOR, info, this);
+
+		// Add all fields for any NXdata groups that this device creates
+		nexusProvider.setDataFields(NXdetector.NX_DATA);
+		
+		// "data" is the name of the primary data field (i.e. the 'signal' field of the default NXdata)
+		nexusProvider.setPrimaryDataField(NXdetector.NX_DATA);
+
+		return nexusProvider;
 	}
 
 	@Override
-	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
+	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info)  throws NexusException {
 		
 		final NXdetector detector = nodeFactory.createNXdetector();
 		
 		// TODO Hard coded to images
 		this.processed = detector.initializeLazyDataset(NXdetector.NX_DATA,  info.getRank()+2, Dataset.FLOAT64);
 		this.info      = info;		
-		try {
-			Attributes.registerAttributes(detector, this);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
+		Attributes.registerAttributes(detector, this);
+
 		return detector;
 	}
 
@@ -96,7 +105,10 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 		}
 		try {
 			SliceND slice = NexusScanInfo.createLocation(processed, loc.getNames(), loc.getIndices(), getImageShape());
-	        context.setData(data.getSlice(slice)); // Just this frame.
+			if (data instanceof IDynamicDataset) {
+				((IDynamicDataset)data).refreshShape();
+			}
+			context.setData(data.getSlice(slice)); // Just this frame.
 	        oservice.execute(context);
 	        
 	        // TODO Write it!
