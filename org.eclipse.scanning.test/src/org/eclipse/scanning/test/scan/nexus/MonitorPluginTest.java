@@ -80,7 +80,7 @@ public class MonitorPluginTest {
 		detector = (IWritableDetector<ConstantVelocityModel>)service.createRunnableDevice(model);
 		assertNotNull(detector);
 		
-		detector.addRunListener(new IRunListener.Stub() {
+		detector.addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException{
                 System.out.println("Ran cv device detector @ "+evt.getPosition());
@@ -251,7 +251,7 @@ public class MonitorPluginTest {
 		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(scanModel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
-		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
+		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{
                 try {

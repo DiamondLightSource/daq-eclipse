@@ -86,7 +86,7 @@ public class DarkPluginTest {
 		
 		detector = (IWritableDetector<MandelbrotModel>)service.createRunnableDevice(model);
 		assertNotNull(detector);
-		detector.addRunListener(new IRunListener.Stub() {
+		detector.addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException{
                 System.out.println("Ran mandelbrot detector @ "+evt.getPosition());
@@ -96,7 +96,7 @@ public class DarkPluginTest {
 		DarkImageModel dmodel = new DarkImageModel();
 		dark =  (IWritableDetector<DarkImageModel>)service.createRunnableDevice(dmodel);
 		assertNotNull(dark);
-		dark.addRunListener(new IRunListener.Stub() {
+		dark.addRunListener(new IRunListener() {
 			@Override
 			public void writePerformed(RunEvent evt) throws ScanningException{
                 System.out.println("Wrote dark image @ "+evt.getPosition());
@@ -305,7 +305,7 @@ public class DarkPluginTest {
 		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
-		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
+		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{
                 try {

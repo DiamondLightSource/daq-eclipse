@@ -97,7 +97,7 @@ public class ARPESScanTest {
 		model.setyStep(0.02);
 		model.setExposure(0.01);
 
-		device.addRunListener(new IRunListener.Stub() {
+		device.addRunListener(new IRunListener() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException {
 				final IPosition pos = evt.getPosition();

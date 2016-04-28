@@ -18,6 +18,8 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.eclipse.scanning.api.scan.event.IRunListener;
+import org.eclipse.scanning.api.scan.event.RunEvent;
 
 /**
  * The scan points writer creates and writes to the unique keys and points
@@ -25,13 +27,15 @@ import org.eclipse.scanning.api.scan.event.IPositionListener;
  * progressed.
  * @author Matthew Dickie
  */
-public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionListener {
+public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionListener, IRunListener {
 
 	public static final String GROUP_NAME_SOLSTICE_SCAN = "solstice_scan";
 	
 	public static final String FIELD_NAME_UNIQUE_KEYS = "uniqueKeys";
 	
 	public static final String FIELD_NAME_POINTS = "points";
+	
+	public static final String FIELD_NAME_SCAN_FINISHED = "scan_finished";
 	
 	public static final String UNIQUE_KEYS_PATH_IN_EXTERNAL_FILE = "/entry/NDArrayUniqueId/NDArrayUniqueId";
 
@@ -40,6 +44,8 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	private ILazyWriteableDataset uniqueKeys = null;
 
 	private ILazyWriteableDataset points = null;
+	
+	private ILazyWriteableDataset scanFinished = null;
 	
 	public void setNexusObjectProviders(List<NexusObjectProvider<?>> nexusObjectProviders) {
 		this.nexusObjectProviders = nexusObjectProviders;
@@ -65,11 +71,11 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	@Override
 	public NXcollection createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
 		final NXcollection scanPointsCollection = nodeFactory.createNXcollection();
+		// create the unique keys and scan points datasets
 		uniqueKeys = scanPointsCollection.initializeLazyDataset(
 				FIELD_NAME_UNIQUE_KEYS, info.getRank(), Dataset.INT32);
 		points = scanPointsCollection.initializeLazyDataset(
 				FIELD_NAME_POINTS, info.getRank(), Dataset.STRING);
-		
 		// set chunking
 		final int[] chunk = new int[info.getRank()];
 		Arrays.fill(chunk, 1);
@@ -78,6 +84,12 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		
 		// add external links to the unique key datasets for each external HD5 file
 		addLinksToExternalFiles(scanPointsCollection);
+
+		// create the scan finished dataset and set the initial value to false
+		scanFinished = scanPointsCollection.initializeLazyDataset(
+				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
+		
+		scanFinished.setFillValue(0);
 		
 		return scanPointsCollection;
 	}
@@ -94,20 +106,28 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.scanning.api.scan.event.IPositionListener#positionWillPerform(org.eclipse.scanning.api.scan.PositionEvent)
-	 */
 	@Override
-	public boolean positionWillPerform(PositionEvent event) {
-		return true;
+	public void runPerformed(RunEvent evt) throws ScanningException {
+		Dataset trueDataset = DatasetFactory.createFromObject(1); // TODO hdf5 does not support boolean
+		try {
+			scanFinished.setSlice(null, trueDataset,
+					new int[] { 0 }, new int[] { 1 }, new int[] { 1 });
+		} catch (Exception e) {
+			throw new ScanningException("Could not write scanFinished to NeXus file", e);
+		}
 	}
+	
+	
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.scanning.api.scan.event.IPositionListener#levelPerformed(org.eclipse.scanning.api.scan.PositionEvent)
-	 */
 	@Override
-	public void levelPerformed(PositionEvent event) {
-		// Do nothing
+	public void runWillPerform(RunEvent evt) throws ScanningException {
+		final Dataset falseDataset = DatasetFactory.createFromObject(0);
+		try {
+			scanFinished.setSlice(null, falseDataset,
+					new int[] { 0 }, new int[] { 1 }, new int[] { 1 });
+		} catch (Exception e) {
+			throw new ScanningException("Could not write scanFinished to NeXus file", e);
+		}
 	}
 
 	/**
@@ -142,8 +162,8 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		SliceND sliceND = NexusScanInfo.createLocation(uniqueKeys,
 				position.getNames(), position.getIndices());
 		
-		final int stepIndex = position.getStepIndex();
-		final Dataset newActualPosition = DatasetFactory.createFromObject(stepIndex);
+		final int uniqueKey = position.getStepIndex() + 1;
+		final Dataset newActualPosition = DatasetFactory.createFromObject(uniqueKey);
 		uniqueKeys.setSlice(null, newActualPosition, sliceND);
 		
 		final Dataset point = DatasetFactory.createFromObject(position.toString());

@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanNotFinished;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPoints;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
@@ -35,13 +36,12 @@ import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NXinstrument;
 import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NXroot;
-import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -88,7 +88,7 @@ public class MandelbrotExamplePluginTest {
 		
 		detector = (IWritableDetector<MandelbrotModel>)service.createRunnableDevice(model);
 		assertNotNull(detector);
-		detector.addRunListener(new IRunListener.Stub() {
+		detector.addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException{
                 System.out.println("Ran mandelbrot detector @ "+evt.getPosition());
@@ -176,25 +176,31 @@ public class MandelbrotExamplePluginTest {
 		testScan(1,1,1,1,1,1,2,2);
 	}
 	
+	private NXroot getNexusRoot(IRunnableDevice<ScanModel> scanner) throws Exception {
+		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
+
+		NexusFile nf = fileFactory.newNexusFile(filePath);
+		nf.openToRead();
+		
+		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
+		return (NXroot) nexusTree.getGroupNode();
+	}
+
 	private void testScan(int... shape) throws Exception {
 		
 		IRunnableDevice<ScanModel> scanner = createGridScan(detector, shape); // Outer scan of another scannable, for instance temp.
+		assertScanNotFinished(getNexusRoot(scanner).getEntry());
 		scanner.run(null);
 	
 		// Check we reached ready (it will normally throw an exception on error)
 		checkNexusFile(scanner, shape); // Step model is +1 on the size
 	}
 
-	private void checkNexusFile(IRunnableDevice<ScanModel> scanner,
-			                    int... sizes) throws NexusException, ScanningException {
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws Exception {
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 
-		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
-		NexusFile nf = fileFactory.newNexusFile(filePath);
-		nf.openToRead();
-		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
-		NXroot rootNode = (NXroot) nexusTree.getGroupNode();
+		NXroot rootNode = getNexusRoot(scanner);
 		NXentry entry = rootNode.getEntry();
 		NXinstrument instrument = entry.getInstrument();
 		
@@ -334,7 +340,7 @@ public class MandelbrotExamplePluginTest {
 		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?,IPosition> fgen = gen;
-		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
+		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
 					public void runWillPerform(RunEvent evt)
 							throws ScanningException {

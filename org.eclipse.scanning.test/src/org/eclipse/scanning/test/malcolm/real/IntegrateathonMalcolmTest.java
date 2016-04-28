@@ -67,9 +67,6 @@ public class IntegrateathonMalcolmTest {
 				System.out.println("Scan point: "+evt.getBean().getPoint());
 				scanPoints++;
 			}
-			@Override
-			public void scanStateChanged(ScanEvent evt) {
-			}			
 		});
 		
 		// Get the objects
