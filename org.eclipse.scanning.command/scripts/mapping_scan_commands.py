@@ -58,7 +58,7 @@ from org.eclipse.scanning.server.servlet.Services import (
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
 # mscan is a free name.
 def mscan(path=None, mon=None, det=None, now=False, block=True,
-          broker_uri="tcp://localhost:61616"):
+          allow_preprocess=False, broker_uri="tcp://localhost:61616"):
     """Create a ScanRequest and submit it to the GDA server.
 
     A simple usage of this function is as follows:
@@ -95,7 +95,8 @@ def mscan(path=None, mon=None, det=None, now=False, block=True,
     >>> # Skip the queue and return straight after submission.
     >>> mscan(..., ..., now=True, block=False)
     """
-    submit(scan_request(path, mon, det), now, block, broker_uri)
+    submit(scan_request(path, mon, det, allow_preprocess),
+           now, block, broker_uri)
 
 
 def submit(request, now=False, block=True,
@@ -119,7 +120,7 @@ def submit(request, now=False, block=True,
         submitter.submit(scan_bean)
 
 
-def scan_request(path=None, mon=None, det=None):
+def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
     """Create a ScanRequest object with the given configuration.
 
     See the mscan() docstring for usage.
@@ -153,11 +154,12 @@ def scan_request(path=None, mon=None, det=None):
     detector_map = dict(detectors)
     # Equivalent to (Python 2.7) {name: model for (name, model) in detectors}.
 
-    return _instantiate(ScanRequest, {'models': scan_path_models,
-                                      'regions': roi_map,
-                                      'monitorNames': monitors,
-                                      'detectors': detector_map,
-                                      'ignorePreprocess': True})
+    return _instantiate(ScanRequest,
+                        {'models': scan_path_models,
+                         'regions': roi_map,
+                         'monitorNames': monitors,
+                         'detectors': detector_map,
+                         'ignorePreprocess': not allow_preprocess})
 
 
 # Scan paths
