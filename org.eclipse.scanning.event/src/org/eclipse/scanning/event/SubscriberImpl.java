@@ -106,7 +106,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 	    				logger.error("Internal error! - Unable to process an event!", ne);
 	   				}
     				ne.printStackTrace(); // Unit tests without log4j config show this one.
-    			}
+     			}
     		}
     	};
     	consumer.setMessageListener(listener);

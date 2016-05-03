@@ -11,7 +11,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
@@ -224,9 +223,6 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
     	try {
     		String json = publisher.getConnectorService().marshal(bean);
     		stream.write(json.getBytes("UTF-8"));
-    	}
-    	catch (Exception e) {
-    		e.printStackTrace();
     	} finally {
     		stream.close();
     	}
@@ -246,14 +242,14 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 		}
  	}
 
-	protected void dryRun() throws EventException {
+	protected void dryRun() throws EventException, InterruptedException {
 		dryRun(100);
 	}
-	protected void dryRun(int size) throws EventException {
+	protected void dryRun(int size) throws EventException, InterruptedException {
         dryRun(size, true);
 	}
 	
-	protected void dryRun(int size, boolean complete) throws EventException {
+	protected void dryRun(int size, boolean complete) throws EventException, InterruptedException {
 		
 		for (int i = 0; i < size; i++) {
 			
@@ -267,11 +263,7 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 			    bean.getStatus()==Status.TERMINATED) {
 				return;
 			}
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			Thread.sleep(100);
 			System.out.println("Dry run : "+bean.getPercentComplete());
 			bean.setPercentComplete(i);
 			broadcast(bean);

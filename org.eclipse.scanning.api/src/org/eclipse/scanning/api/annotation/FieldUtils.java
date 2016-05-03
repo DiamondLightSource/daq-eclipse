@@ -32,23 +32,17 @@ public class FieldUtils {
 		return false;
 	}
 
-	public static FieldDescriptor getAnnotation(Object model, String fieldName) {
-		
-		try {
-			Field field = getField(model, fieldName);
-	        if (field!=null) {
-	        	FieldDescriptor anot = field.getAnnotation(FieldDescriptor.class);
-	        	if (anot!=null) {
-	        		return anot;
-	        	}
-	        }
-	        return null;
-	        
-		} catch (NoSuchFieldException | SecurityException e) {
-			e.printStackTrace();
-			return null;
+	public static FieldDescriptor getAnnotation(Object model, String fieldName) throws NoSuchFieldException, SecurityException{
+
+		Field field = getField(model, fieldName);
+		if (field!=null) {
+			FieldDescriptor anot = field.getAnnotation(FieldDescriptor.class);
+			if (anot!=null) {
+				return anot;
+			}
 		}
-		
+		return null;
+
 	}
 	
 	public static Field getField(Object model, String fieldName) throws NoSuchFieldException, SecurityException {
@@ -85,21 +79,21 @@ public class FieldUtils {
 		for (Field field : allFields) {
 			
 			// If there is a getter/isser for the field we assume it is a model field.
-			try {
-				if (FieldValue.isModelField(model, field.getName())) {			
-					ret.add(new FieldValue(model, field.getName()));
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				continue;
+			if (FieldValue.isModelField(model, field.getName())) {			
+				ret.add(new FieldValue(model, field.getName()));
 			}
 		}
 		
 		Collections.sort(ret, new Comparator<FieldValue>() {
 			@Override
 			public int compare(FieldValue o1, FieldValue o2) {
-				FieldDescriptor an1 = FieldUtils.getAnnotation(o1.getModel(), o1.getName());
-				FieldDescriptor an2 = FieldUtils.getAnnotation(o2.getModel(), o2.getName());
+				FieldDescriptor an1, an2;
+				try {
+					an1 = FieldUtils.getAnnotation(o1.getModel(), o1.getName());
+					an2 = FieldUtils.getAnnotation(o2.getModel(), o2.getName());
+				} catch (NoSuchFieldException | SecurityException e) {
+					throw new RuntimeException("Cannot get field from model, "+o1.getName()+", "+o2.getName(), e);
+				}
 				if (an1!=null && an2 !=null) {
 					if (an1.fieldPosition() != Integer.MAX_VALUE && an2.fieldPosition() != Integer.MAX_VALUE) {
 						return (an1.fieldPosition() - an2.fieldPosition());

@@ -53,7 +53,12 @@ public class FieldValue {
 	
 	public String getDisplayName() {
     	
-    	FieldDescriptor anot = FieldUtils.getAnnotation(model, name);
+    	FieldDescriptor anot;
+		try {
+			anot = FieldUtils.getAnnotation(model, name);
+		} catch (NoSuchFieldException | SecurityException e) {
+			return e.getMessage();
+		}
     	if (anot!=null) {
     		String label = anot.label();
     		if (label!=null && !"".equals(label)) return label;
@@ -100,7 +105,11 @@ public class FieldValue {
 	
 
 	public FieldDescriptor getAnnotation() {
-		return FieldUtils.getAnnotation(model, name);
+		try {
+			return FieldUtils.getAnnotation(model, name);
+		} catch (NoSuchFieldException | SecurityException e) {
+			return null;
+		}
 	}
 
 	public boolean isFileProperty() {

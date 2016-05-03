@@ -31,9 +31,13 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
 public final class DeviceServiceImpl implements IRunnableDeviceService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(DeviceServiceImpl.class);
 	
 	/**
 	 * The default Malcolm Hostname can be injected by spring. Otherwise
@@ -288,8 +292,8 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 			try {
 				connections.get(uri).dispose();
 			} catch (MalcolmDeviceException e) {
-				System.out.println("Problem closing malcolm connection to "+uri);
 				e.printStackTrace();
+				logger.error("Problem closing malcolm connection to "+uri, e);
 			}
 		}
 	}

@@ -44,7 +44,7 @@ class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess<T> {
 					try {
 						DryRunProcess.this.run();
 					} catch (EventException ne) {
-						ne.printStackTrace(); // Only a test process!
+						logger.error("Cannot complete dry run", ne);
 					}
 				}
 			});
