@@ -78,10 +78,10 @@ def mscan(path=None, mon=None, det=None, now=False, block=True,
     You can embed one scan path inside another to create a compound scan path:
     >>> mscan([step(s, 0, 10, 1), step(f, 1, 5, 1)], ...)
 
-    The above invokation says "for each point from 0 to 10 on my slow axis, do
+    The above invocation says "for each point from 0 to 10 on my slow axis, do
     a scan from 1 to 5 on my fast axis". In fact, for the above case, a grid-
     type scan would be more idiomatic:
-    >>> mscan(grid(axes=(f, s), step=(1, 1), origin=(0, 0), size=(10, 4)), ...)
+    >>> mscan(grid((f, s), (1, 0), (5, 10), (1, 1)), ...)
 
     By default, this function will submit the scan request to a queue and
     return only once the scan is complete. You may override this behaviour with
@@ -197,7 +197,7 @@ def step(axis=None, start=None, stop=None, step=None):
     return model, _listify(roi)
 
 
-def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
+def grid(axes=None, start=None, stop=None, step=None, count=None, snake=True,
          roi=None):
     """Define a grid scan path to be passed to mscan().
 
@@ -206,8 +206,8 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
     * origin: a pair of numbers (x0, y0) specifying a grid corner
     * size: a pair of numbers (w, h) specifying the absolute grid dimensions
     - One of:
-      * count: a pair of integers (r, c) specifying number of grid divisions
       * step: a pair of numbers (dx, dy) specifying spacing of grid divisions
+      * count: a pair of integers (r, c) specifying number of grid divisions
 
     Optional keyword arguments:
     * snake: point order should "snake" through the grid? default True
@@ -220,16 +220,16 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
     >>> grid(..., roi=[circ((0, 1), 1.5), rect((-1, -1), (0, 0), 0)])
     """
     try:
-        assert None not in (axes, origin, size)
+        assert None not in (axes, start, stop)
     except AssertionError:
         raise ValueError(
-            '`axes`, `origin` and `size` must be provided to grid().')
+            '`axes`, `start` and `stop` must be provided to grid().')
 
     try:
         assert len(filter(lambda arg: arg is None, (count, step))) == 1
     except AssertionError:
         raise ValueError(
-            'Either `count` or `step` must be provided to to grid().')
+            'Either `step` or `count` must be provided to to grid().')
 
     try:
         (xName, yName) = map(_stringify, axes)
@@ -237,20 +237,20 @@ def grid(axes=None, origin=None, size=None, count=None, step=None, snake=True,
         raise ValueError('`axes` must be a pair of scannables (x, y).')
 
     try:
-        (xStart, yStart) = origin
+        (xStart, yStart) = start
     except (TypeError, ValueError):
-        raise ValueError('`origin` must be a pair of values (x0, y0).')
+        raise ValueError('`start` must be a pair of values (x0, y0).')
 
     try:
-        (width, height) = size
+        (xStop, yStop) = stop
     except (TypeError, ValueError):
-        raise ValueError('`size` must be a pair of values (w, h).')
+        raise ValueError('`stop` must be a pair of values (w, h).')
 
     bbox = _instantiate(BoundingBox,
                         {'fastAxisStart': xStart,
                          'slowAxisStart': yStart,
-                         'fastAxisLength': width,
-                         'slowAxisLength': height})
+                         'fastAxisLength': xStop - xStart,
+                         'slowAxisLength': yStop - yStart})
 
     if count is not None:
         try:
