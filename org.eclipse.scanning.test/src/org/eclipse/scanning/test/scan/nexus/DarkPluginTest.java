@@ -2,6 +2,8 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanNotFinished;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -104,6 +106,16 @@ public class DarkPluginTest {
 		});
 	}
 	
+	private NXroot getNexusRoot(IRunnableDevice<ScanModel> scanner) throws Exception {
+		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
+
+		NexusFile nf = fileFactory.newNexusFile(filePath);
+		nf.openToRead();
+		
+		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
+		return (NXroot) nexusTree.getGroupNode();
+	}
+
 	/**
 	 * This test fails if the chunking is not done by the detector.
 	 *  
@@ -114,6 +126,7 @@ public class DarkPluginTest {
 
 		// Tell configure detector to write 1 image into a 2D scan
 		IRunnableDevice<ScanModel> scanner = createGridScan(8, 5);
+		assertScanNotFinished(getNexusRoot(scanner).getEntry());
 		scanner.run(null);
 
 		checkNexusFile(scanner, 8, 5);
@@ -128,6 +141,9 @@ public class DarkPluginTest {
 		nf.openToRead();
 		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
 		NXroot rootNode = (NXroot) nexusTree.getGroupNode();
+		
+		// check that the scan points have been written correctly
+		assertScanPointsGroup(rootNode.getEntry(), sizes);
 
 		List<String> positionerNames = scanModel.getPositionIterable().iterator().next().getNames();
 		

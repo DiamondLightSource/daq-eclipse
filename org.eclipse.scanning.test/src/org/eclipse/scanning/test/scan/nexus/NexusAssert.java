@@ -121,7 +121,7 @@ public class NexusAssert {
 		assertArrayEquals(sizes, dataset.getShape());
 	}
 	
-	private static void assertScanFinished(NXentry entry) {
+	public static void assertScanFinished(NXentry entry) {
 		NXcollection scanPointsCollection = entry.getCollection(GROUP_NAME_SOLSTICE_SCAN);
 		assertNotNull(scanPointsCollection);
 		
@@ -129,7 +129,7 @@ public class NexusAssert {
 		DataNode dataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
 		assertNotNull(dataNode);
 		IDataset dataset = dataNode.getDataset().getSlice();
-		assertThat(getDType(dataset), is(Dataset.INT32));
+		assertThat(getDType(dataset), is(Dataset.INT32)); // HDF5 doesn't support boolean datasets
 		assertThat(dataset.getRank(), is(1));
 		assertArrayEquals(dataset.getShape(), new int[] { 1 });
 		assertThat(dataset.getBoolean(0), is(equalTo(true)));

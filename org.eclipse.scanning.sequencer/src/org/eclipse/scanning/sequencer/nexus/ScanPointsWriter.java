@@ -86,9 +86,8 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		addLinksToExternalFiles(scanPointsCollection);
 
 		// create the scan finished dataset and set the initial value to false
-		scanFinished = scanPointsCollection.initializeLazyDataset(
+		scanFinished = scanPointsCollection.initializeFixedSizeLazyDataset(
 				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
-		
 		scanFinished.setFillValue(0);
 		
 		return scanPointsCollection;
