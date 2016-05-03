@@ -424,6 +424,7 @@ public class StatusQueueView extends EventConnectionView {
 					purgeQueues();
 				} catch (EventException e) {
 					e.printStackTrace();
+					logger.error("Canot purge queues", e);
 				}
 			}
 		};

@@ -64,6 +64,7 @@ public abstract class AbstractSubscriberServlet<T> implements ISubscriberServlet
 					doObject(evt.getBean(), publisher);
 				} catch (Exception e) {
 					e.printStackTrace();
+					logger.error("Canot process bean listener event", e);
 				}
 			}
 		});

@@ -74,7 +74,6 @@ public class ModelFieldEditors {
 			try {
 				clazz = field.getType();
 			} catch (NoSuchFieldException | SecurityException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			

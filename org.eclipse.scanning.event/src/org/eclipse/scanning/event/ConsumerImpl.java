@@ -266,6 +266,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 					try {
 						ConsumerImpl.this.stop();
 					} catch (EventException e) {
+						logger.error("Cannot complete stop", ne);
 						ne.printStackTrace();
 					}
 				}
@@ -365,7 +366,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	            
         	} catch (EventException | InterruptedException ne) {
         		ne.printStackTrace();
-        		if (isDurable()) continue;
+				logger.error("Cannot consume message ", ne);
+       		    if (isDurable()) continue;
         		break;
          		
         	} catch (Throwable ne) {
@@ -381,6 +383,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
         		
         		if (ne.getClass().getSimpleName().endsWith("ClassCastException")) {
             		ne.printStackTrace();
+    				logger.error("Problem with serialization?", ne);
         		}
 
         		
@@ -464,7 +467,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		}
 	}
 
-	private void executeBean(U bean) throws EventException {
+	private void executeBean(U bean) throws EventException, InterruptedException {
 		
 		// We record the bean in the status queue
 		if (overrideMap!=null && overrideMap.containsKey(bean.getUniqueId())) {

@@ -24,7 +24,7 @@ public interface IConsumerProcess<T> extends IPublishable<T>{
 	 * 
 	 * @throws Exception
 	 */
-	void execute() throws EventException;
+	void execute() throws EventException, InterruptedException;
 	
 	/**
 	 * If the process is non-blocking this method will start a thread
@@ -35,7 +35,7 @@ public interface IConsumerProcess<T> extends IPublishable<T>{
 	 * 
 	 * @throws EventException
 	 */
-	default void start() throws EventException {
+	default void start() throws EventException, InterruptedException {
 		
 		if (isBlocking()) {
 			execute(); // Block until process has run.
@@ -45,9 +45,8 @@ public interface IConsumerProcess<T> extends IPublishable<T>{
 				public void run() {
 					try {
 						execute();
-					} catch (EventException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					} catch (EventException | InterruptedException e) {
+						throw new RuntimeException(e);
 					}
 				}
 			}, "Run "+getBean());
