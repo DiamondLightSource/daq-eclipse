@@ -85,10 +85,10 @@ public class PyExpresserTest {
 		request.setRegions(regions);
 
 		assertEquals(  // Concise.
-				"scan_request(grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 11.0), count=(3, 4), snake=False, roi=circ((0.0, 0.0), 1.0)))",
+				"scan_request(grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 12.0), count=(3, 4), snake=False, roi=circ((0.0, 0.0), 1.0)))",
 				pyExpress(request, false));
 		assertEquals(  // Verbose.
-				"scan_request(path=[grid(axes=('myFast', 'mySlow'), origin=(0.0, 1.0), size=(10.0, 11.0), count=(3, 4), snake=False, roi=[circ(origin=(0.0, 0.0), radius=1.0)])])",
+				"scan_request(path=[grid(axes=('myFast', 'mySlow'), start=(0.0, 1.0), stop=(10.0, 12.0), count=(3, 4), snake=False, roi=[circ(origin=(0.0, 0.0), radius=1.0)])])",
 				pyExpress(request, true));
 	}
 
@@ -156,10 +156,10 @@ public class PyExpresserTest {
 		gmodel.setSlowAxisPoints(4);
 
 		assertEquals(  // Concise.
-				"grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 11.0), count=(3, 4), snake=False)",
+				"grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 12.0), count=(3, 4), snake=False)",
 				pyExpress(gmodel, new ArrayList<>(), false));
 		assertEquals(  // Verbose.
-				"grid(axes=('myFast', 'mySlow'), origin=(0.0, 1.0), size=(10.0, 11.0), count=(3, 4), snake=False)",
+				"grid(axes=('myFast', 'mySlow'), start=(0.0, 1.0), stop=(10.0, 12.0), count=(3, 4), snake=False)",
 				pyExpress(gmodel, new ArrayList<>(), true));
 	}
 
@@ -182,10 +182,10 @@ public class PyExpresserTest {
 		rmodel.setSnake(true);
 
 		assertEquals(  // Concise.
-				"grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 11.0), step=(3.0, 4.0))",
+				"grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 12.0), (3.0, 4.0))",
 				pyExpress(rmodel, null, false));
 		assertEquals(  // Verbose.
-				"grid(axes=('myFast', 'mySlow'), origin=(0.0, 1.0), size=(10.0, 11.0), step=(3.0, 4.0), snake=True)",
+				"grid(axes=('myFast', 'mySlow'), start=(0.0, 1.0), stop=(10.0, 12.0), step=(3.0, 4.0), snake=True)",
 				pyExpress(rmodel, null, true));
 	}
 

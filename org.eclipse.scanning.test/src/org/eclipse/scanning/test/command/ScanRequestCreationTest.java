@@ -35,9 +35,9 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 			+	"scan_request(                    "
 			+	"    grid(                        "
 			+	"        axes=(my_scannable, 'y'),"  // Can use Scannable objects or strings.
+			+	"        start=(0, 2),            "
+			+	"        stop=(10, 11),           "
 			+	"        count=(5, 6),            "
-			+	"        origin=(0, 2),           "
-			+	"        size=(10, 9),            "
 			+	"        roi=circ((4, 6), 5)      "
 			+	"    ),                           "
 			+	"    det=mandelbrot(0.1),         "
@@ -118,9 +118,9 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 			+	"scan_request(                        "
 			+	"    grid(                            "
 			+	"        axes=('x', 'y'),             "
+			+	"        start=(1, 2),                "
+			+	"        stop=(8, 10),                "
 			+	"        step=(0.5, 0.6),             "
-			+	"        origin=(1, 2),               "
-			+	"        size=(7, 8),                 "
 			+	"        snake=True,                  "
 			+	"        roi=[                        "
 			+	"            circ((4, 4), 5),         "
@@ -272,14 +272,14 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 
 	@Test
 	public void testCompoundCommand() throws Exception {
-		pi.exec("sr =                                                                                  "
-			+	"scan_request(                                                                         "
-			+	"    path=[                                                                            "
-			+	"        grid(axes=('x', 'y'), count=(5, 5), origin=(0, 0), size=(10, 10), snake=True),"
-			+	"        step('qty', 0, 10, 1),                                                        "
-			+	"    ],                                                                                "
-			+	"    det=mandelbrot(0.1),                                                              "
-			+	")                                                                                     ");
+		pi.exec("sr =                                                                                 "
+			+	"scan_request(                                                                        "
+			+	"    path=[                                                                           "
+			+	"        grid(axes=('x', 'y'), start=(0, 0), stop=(10, 10), count=(5, 5), snake=True),"
+			+	"        step('qty', 0, 10, 1),                                                       "
+			+	"    ],                                                                               "
+			+	"    det=mandelbrot(0.1),                                                             "
+			+	")                                                                                    ");
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
@@ -318,39 +318,38 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 	@Ignore("ScanRequest<?>.equals() doesn't allow this test to work.")
 	@Test
 	public void testArgStyleInvariance() throws Exception {
-		pi.exec("sr_full =                       "
-			+	"scan_request(                   "
-			+	"    path=grid(                  "
-			+	"        axes=('x', 'y'),        "
-			+	"        origin=(1, 2),          "
-			+	"        size=(7, 8),            "
-			+	"        step=(0.5, 0.6),        "
-			+	"        roi=[                   "
-			+	"            circ(               "
-			+	"                origin=(4, 4),  "
-			+	"                radius=5        "
-			+	"            ),                  "
-			+	"            rect(               "
-			+	"                origin=(3, 4),  "
-			+	"                size=(3, 3),    "
-			+	"                angle=0.1       "
-			+	"            ),                  "
-			+	"        ]                       "
-			+	"    ),                          "
-			+	"    det=mandelbrot(0.1),        "
-			+	")                               ");
-		pi.exec("sr_minimal =                            "
-			+	"scan_request(                           "
-			+	"    grid(                               "
-			+	"        ('x', 'y'), (1, 2), (7, 8),     "
-			+	"        step=(0.5, 0.6),                "
-			+	"        roi=[                           "
-			+	"            circ((4, 4), 5),            "
-			+	"            rect((3, 4), (3, 3), 0.1),  "
-			+	"        ]                               "
-			+	"    ),                                  "
-			+	"    mandelbrot(0.1),                    "
-			+	")                                       ");
+		pi.exec("sr_full =                     "
+			+	"scan_request(                 "
+			+	"    path=grid(                "
+			+	"        axes=('x', 'y'),      "
+			+	"        start=(1, 2),         "
+			+	"        stop=(8, 10),         "
+			+	"        step=(0.5, 0.6),      "
+			+	"        roi=[                 "
+			+	"            circ(             "
+			+	"                origin=(4, 4),"
+			+	"                radius=5      "
+			+	"            ),                "
+			+	"            rect(             "
+			+	"                origin=(3, 4),"
+			+	"                size=(3, 3),  "
+			+	"                angle=0.1     "
+			+	"            ),                "
+			+	"        ]                     "
+			+	"    ),                        "
+			+	"    det=mandelbrot(0.1),      "
+			+	")                             ");
+		pi.exec("sr_minimal =                                    "
+			+	"scan_request(                                   "
+			+	"    grid(                                       "
+			+	"        ('x', 'y'), (1, 2), (8, 10), (0.5, 0.6),"
+			+	"        roi=[                                   "
+			+	"            circ((4, 4), 5),                    "
+			+	"            rect((3, 4), (3, 3), 0.1),          "
+			+	"        ]                                       "
+			+	"    ),                                          "
+			+	"    mandelbrot(0.1),                            "
+			+	")                                               ");
 
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> requestFullKeywords = pi.get("sr_full", ScanRequest.class);
