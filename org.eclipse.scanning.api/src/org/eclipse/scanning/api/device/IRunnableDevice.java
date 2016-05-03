@@ -86,4 +86,10 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	default boolean isVirtual() {
 		return false;
 	}
+	
+	/**
+	 * The model being used for the device.
+	 * @return
+	 */
+	public T getModel();
 }

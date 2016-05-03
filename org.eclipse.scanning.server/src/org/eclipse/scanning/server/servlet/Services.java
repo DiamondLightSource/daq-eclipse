@@ -26,7 +26,7 @@ public class Services {
 
 	private static IEventService           eventService;
 	private static IPointGeneratorService  generatorService;
-	private static IRunnableDeviceService          runnableDeviceService;
+	private static IRunnableDeviceService  runnableDeviceService;
 	private static IDeviceConnectorService connector;
 	private static IMalcolmService         malcService;
 	private static IFilePathService        filePathService;
