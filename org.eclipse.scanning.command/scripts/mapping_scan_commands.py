@@ -156,7 +156,8 @@ def scan_request(path=None, mon=None, det=None):
     return _instantiate(ScanRequest, {'models': scan_path_models,
                                       'regions': roi_map,
                                       'monitorNames': monitors,
-                                      'detectors': detector_map})
+                                      'detectors': detector_map,
+                                      'ignorePreprocess': True})
 
 
 # Scan paths
