@@ -4,15 +4,7 @@ import java.util.EventListener;
 
 public interface IHeartbeatListener extends EventListener {
 
-	public class Stub implements IHeartbeatListener {
-
-		@Override
-		public void heartbeatPerformed(HeartbeatEvent evt) {
-			// TODO Auto-generated method stub
-
-		}
-
+	default void heartbeatPerformed(HeartbeatEvent evt) {
+		// default implementation does nothing, subclasses should override as necessary
 	}
-
-	void heartbeatPerformed(HeartbeatEvent evt);
 }

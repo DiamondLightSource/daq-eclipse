@@ -25,6 +25,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.nexus.NexusScanFileBuilder;
+import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
 
 /**
  * This device does a standard GDA scan at each point. If a given point is a 
@@ -186,7 +187,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		NexusScanFileBuilder fileBuilder = new NexusScanFileBuilder(getConnectorService());
 		nexusScanFile = fileBuilder.createNexusFile(model);
-    	positioner.addPositionListener(fileBuilder.getScanPointsWriter());
+		ScanPointsWriter scanPointsWriter = fileBuilder.getScanPointsWriter();
+    	positioner.addPositionListener(scanPointsWriter);
+    	addRunListener(scanPointsWriter);
 		
 		nexusScanFile.openToWrite();
 		

@@ -18,7 +18,9 @@ public interface IScanListener extends EventListener {
 	 * Called by all broadcast events
 	 * @param evt
 	 */
-	void scanEventPerformed(ScanEvent evt);
+	default void scanEventPerformed(ScanEvent evt) {
+		// default implementation does nothing, subclasses should override as necessary
+	}
 	
 	/**
 	 * Called to notify that state was changed. Happens in addition to
@@ -27,24 +29,7 @@ public interface IScanListener extends EventListener {
 	 * 
 	 * @param evt
 	 */
-	void scanStateChanged(ScanEvent evt) ;
-
-	
-	/**
-	 * Convenience class for extending. For instance in the case where the UUID is null.
-	 * @author Matthew Gerring
-	 *
-	 */
-	public class Stub implements IScanListener {
-
-		@Override
-		public void scanEventPerformed(ScanEvent evt) {
-			
-		}
-
-		@Override
-		public void scanStateChanged(ScanEvent evt) {
-			
-		}
+	default void scanStateChanged(ScanEvent evt) {
+		// default implementation does nothing, subclasses should override as necessary
 	}
 }

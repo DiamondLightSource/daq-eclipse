@@ -49,7 +49,7 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 		heartbeatRecord = new SizeLimitedRecorder<HeartbeatBean>(100);
 		try {
 			//Setup the heartbeat monitor
-			heartMonitor.addListener(new IHeartbeatListener.Stub() {
+			heartMonitor.addListener(new IHeartbeatListener() {
 				@Override
 				public void heartbeatPerformed(HeartbeatEvent evt) {
 					HeartbeatBean beat = evt.getBean();

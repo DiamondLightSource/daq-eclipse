@@ -90,8 +90,6 @@ public class CommandTest {
 				} catch (InterruptedException e) { }
 			}
 
-			@Override
-			public void scanEventPerformed(ScanEvent evt) { }
 		});
 
 		// Block copied from RequesterTest.java.

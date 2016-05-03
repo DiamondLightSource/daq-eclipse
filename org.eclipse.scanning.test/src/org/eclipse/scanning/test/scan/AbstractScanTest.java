@@ -75,7 +75,7 @@ public class AbstractScanTest {
 		IPositioner     pos    = dservice.createPositioner();
 		
 		final List<String> scannablesMoved = new ArrayList<>(6);
-		pos.addPositionListener(new IPositionListener.Stub() {
+		pos.addPositionListener(new IPositionListener() {
 			@Override
 			public void levelPerformed(PositionEvent evt) {
 				System.out.println("Level complete "+evt.getLevel());
@@ -119,7 +119,7 @@ public class AbstractScanTest {
 		IPositioner positioner   = dservice.createPositioner();
 
 		final List<String> levelsMoved = new ArrayList<>(6);
-		positioner.addPositionListener(new IPositionListener.Stub() {
+		positioner.addPositionListener(new IPositionListener() {
 			@Override
 			public void levelPerformed(PositionEvent evt) {
 				System.out.println("Level complete "+evt.getLevel());
@@ -313,7 +313,7 @@ public class AbstractScanTest {
 		final ISubscriber<IScanListener> subscriber = eservice.createSubscriber(uri, IEventService.STATUS_TOPIC);
 		final List<ScanBean>    events = new ArrayList<ScanBean>(11);
 		final List<DeviceState> states = new ArrayList<DeviceState>(11);
-		subscriber.addListener(new IScanListener.Stub() {		
+		subscriber.addListener(new IScanListener() {		
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				states.add(evt.getBean().getDeviceState());

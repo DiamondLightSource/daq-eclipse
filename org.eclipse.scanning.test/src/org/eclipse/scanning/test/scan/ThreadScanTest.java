@@ -105,7 +105,7 @@ public class ThreadScanTest {
 		final List<Throwable> exceptions = new ArrayList<>(1);
 		runDeviceInThread(device, exceptions);
 		
-		subscriber.addListener(new IScanListener.Stub() {
+		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanEventPerformed(ScanEvent e) {
 			    if (e.getBean().getMessage()!=null) System.out.println(e.getBean().getMessage());
@@ -180,7 +180,7 @@ public class ThreadScanTest {
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
 		ISubscriber<IScanListener> subscriber = eservice.createSubscriber(new URI("vm://localhost?broker.persistent=false"), IEventService.SCAN_TOPIC); // Create an in memory consumer of messages.
-		subscriber.addListener(new IScanListener.Stub() {
+		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				ScanBean bean = evt.getBean();
@@ -195,7 +195,7 @@ public class ThreadScanTest {
 
 	protected void createPauseEventListener(IRunnableDevice<?> device, final List<ScanBean> beans) throws EventException, URISyntaxException {
 		
-		subscriber.addListener(new IScanListener.Stub() {
+		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
 				ScanBean bean = evt.getBean();

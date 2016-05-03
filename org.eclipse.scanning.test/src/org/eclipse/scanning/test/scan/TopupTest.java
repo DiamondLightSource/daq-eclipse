@@ -70,7 +70,7 @@ public class TopupTest {
 		detector = (IWritableDetector<MockDetectorModel>) sservice.createRunnableDevice(dmodel);
 		
 		positions = new ArrayList<>(20);
-		detector.addRunListener(new IRunListener.Stub() {
+		detector.addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException{
                 System.out.println("Ran mock detector @ "+evt.getPosition());
@@ -85,14 +85,14 @@ public class TopupTest {
 		
 		final List<String> moved   = new ArrayList<>();
 		final IScannable<Number>   topup   = connector.getScannable("topup");
-		((IPositionListenable)topup).addPositionListener(new IPositionListener.Stub() {
+		((IPositionListenable)topup).addPositionListener(new IPositionListener() {
 			@Override
 			public void positionPerformed(PositionEvent evt) {
 				moved.add(topup.getName());
 			}
 		});
 		final IScannable<Number>   x       = connector.getScannable("x");
-		((IPositionListenable)x).addPositionListener(new IPositionListener.Stub() {
+		((IPositionListenable)x).addPositionListener(new IPositionListener() {
 			@Override
 			public void positionPerformed(PositionEvent evt) {
 				moved.add(x.getName());

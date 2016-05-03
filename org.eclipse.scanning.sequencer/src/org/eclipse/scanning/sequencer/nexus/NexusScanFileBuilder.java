@@ -29,7 +29,6 @@ import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.models.ScanDataModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel.ScanFieldModel;
@@ -465,7 +464,7 @@ public class NexusScanFileBuilder {
 		}
 	}
 
-	public IPositionListener getScanPointsWriter() {
+	public ScanPointsWriter getScanPointsWriter() {
 		return scanPointsWriter;
 	}
 	

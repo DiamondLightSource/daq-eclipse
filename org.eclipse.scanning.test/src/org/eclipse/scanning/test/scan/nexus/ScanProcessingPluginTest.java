@@ -84,6 +84,7 @@ public class ScanProcessingPluginTest {
 	private void testScan(int... shape) throws Exception {
 		
 		IRunnableDevice<ScanModel> scanner = createGridScan(shape); // Outer scan of another scannable, for instance temp.
+		NexusAssert.assertScanNotFinished(getNexusRoot(scanner).getEntry());
 		scanner.run(null);
 	
 		// Check we reached ready (it will normally throw an exception on error)
@@ -136,7 +137,7 @@ public class ScanProcessingPluginTest {
 		model.setColumns(64);
 		IWritableDetector<MandelbrotModel> detector = (IWritableDetector<MandelbrotModel>)service.createRunnableDevice(model);
 		assertNotNull(detector);
-		detector.addRunListener(new IRunListener.Stub() {
+		detector.addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException{
                 System.out.println("Ran mandelbrot detector @ "+evt.getPosition());
@@ -173,7 +174,7 @@ public class ScanProcessingPluginTest {
 		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
 
 		final IPointGenerator<?,IPosition> fgen = gen;
-		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener.Stub() {
+		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException {
 				try {
@@ -187,18 +188,22 @@ public class ScanProcessingPluginTest {
 		return scanner;
 	}
 
-	
-	private void checkNexusFile(IRunnableDevice<ScanModel> scanner,
-			                    int... sizes) throws Exception {
+	private NXroot getNexusRoot(IRunnableDevice<ScanModel> scanner) throws Exception {
+		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
+
+		NexusFile nf = fileFactory.newNexusFile(filePath);
+		nf.openToRead();
+		
+		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
+		return (NXroot) nexusTree.getGroupNode();
+	}
+
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws Exception {
 		
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 
-		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
-		NexusFile nf = fileFactory.newNexusFile(filePath);
-		nf.openToRead();
-		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
-		NXroot rootNode = (NXroot) nexusTree.getGroupNode();
+		NXroot rootNode = getNexusRoot(scanner);
 		NXentry entry = rootNode.getEntry();
 		
 		// check that the scan points have been written correctly

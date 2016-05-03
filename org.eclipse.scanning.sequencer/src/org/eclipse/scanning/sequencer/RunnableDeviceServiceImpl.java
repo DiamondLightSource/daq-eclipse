@@ -209,6 +209,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	@Override
 	public <T> IRunnableDevice<T> getRunnableDevice(String name, IPublisher<ScanBean> publisher) throws ScanningException {
 		
+		@SuppressWarnings("unchecked")
 		IRunnableDevice<T> device = (IRunnableDevice<T>)namedDevices.get(name);
 		if (device!=null && publisher!=null && device instanceof AbstractRunnableDevice) {
 			AbstractRunnableDevice<T> adevice = (AbstractRunnableDevice<T>)device;
@@ -217,7 +218,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		return device;
 	}
 	
-	private <T> IRunnableDevice createDevice(T model) throws ScanningException, InstantiationException, IllegalAccessException, URISyntaxException, UnknownHostException {
+	private <T> IRunnableDevice<T> createDevice(T model) throws ScanningException, InstantiationException, IllegalAccessException, URISyntaxException, UnknownHostException {
 		
 		final IRunnableDevice<T> scanner;
 		
@@ -232,6 +233,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 			return conn.getDevice(info.getDeviceName());
 			
 		} else if (modelledDevices.containsKey(model.getClass())) {
+			@SuppressWarnings("unchecked")
 			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)modelledDevices.get(model.getClass());
 			if (clazz == null) throw new ScanningException("The model '"+model.getClass()+"' does not have a device registered for it!");
 			scanner = clazz.newInstance();
