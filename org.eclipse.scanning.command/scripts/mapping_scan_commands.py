@@ -57,7 +57,7 @@ from org.eclipse.scanning.server.servlet.Services import (
 
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
 # mscan is a free name.
-def mscan(path=None, mon=None, det=None, now=False, block=False,
+def mscan(path=None, mon=None, det=None, now=False, block=True,
           broker_uri="tcp://localhost:61616"):
     """Create a ScanRequest and submit it to the GDA server.
 
@@ -84,21 +84,21 @@ def mscan(path=None, mon=None, det=None, now=False, block=False,
     >>> mscan(grid(axes=(f, s), step=(1, 1), origin=(0, 0), size=(10, 4)), ...)
 
     By default, this function will submit the scan request to a queue and
-    return immediately. You may override this behaviour with the "now" and
-    "block" keywords:
-    >>> # Don't return until the scan is complete.
-    >>> mscan(..., ..., block=True)
+    return only once the scan is complete. You may override this behaviour with
+    the "now" and "block" keywords:
+    >>> # Return as soon as the scan request is submitted.
+    >>> mscan(..., ..., block=False)
 
-    >>> # Skip the queue and run the scan now (but don't wait for completion).
+    >>> # Skip the queue and wait for scan completion.
     >>> mscan(..., ..., now=True)
 
-    >>> # Skip the queue and return once the scan is complete.
-    >>> mscan(..., ..., now=True, block=True)
+    >>> # Skip the queue and return straight after submission.
+    >>> mscan(..., ..., now=True, block=False)
     """
     submit(scan_request(path, mon, det), now, block, broker_uri)
 
 
-def submit(request, now=False, block=False,
+def submit(request, now=False, block=True,
            broker_uri="tcp://localhost:61616"):
     """Submit an existing ScanRequest to the GDA server.
 
