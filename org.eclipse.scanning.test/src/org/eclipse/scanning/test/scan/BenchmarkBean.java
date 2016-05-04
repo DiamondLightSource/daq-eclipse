@@ -14,6 +14,7 @@ public class BenchmarkBean {
 	private IRunnableDevice<? extends IDetectorModel> detector;
 	private String scannableName;
 	private String filePath;
+	private long maxPointTime = Long.MAX_VALUE;
 	
 	public BenchmarkBean() {
 		
@@ -51,11 +52,33 @@ public class BenchmarkBean {
 		this.scannableName = "benchmark1";
 	}
 
+	public BenchmarkBean(int size, long reqTime, long max, int tries, IRunnableDevice<? extends IDetectorModel> detector) {
+		super();
+		this.size = size;
+		this.reqTime = reqTime;
+		this.maxPointTime = max;
+		this.tries = tries;
+		this.silent = false;
+		this.detector = detector;
+		this.scannableName = "benchmark1";
+	}
 	
 	public BenchmarkBean(int size, long reqTime, int tries, IRunnableDevice<? extends IDetectorModel> detector, File output) {
 		super();
 		this.size = size;
 		this.reqTime = reqTime;
+		this.tries = tries;
+		this.silent = false;
+		this.detector = detector;
+		this.scannableName = "benchmark1";
+		this.filePath = output.getAbsolutePath();
+	}
+
+	public BenchmarkBean(int size, long reqTime, long max, int tries, IRunnableDevice<? extends IDetectorModel> detector, File output) {
+		super();
+		this.size = size;
+		this.reqTime = reqTime;
+		this.maxPointTime = max;
 		this.tries = tries;
 		this.silent = false;
 		this.detector = detector;
@@ -106,6 +129,7 @@ public class BenchmarkBean {
 		int result = 1;
 		result = prime * result + ((detector == null) ? 0 : detector.hashCode());
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
+		result = prime * result + (int) (maxPointTime ^ (maxPointTime >>> 32));
 		result = prime * result + (int) (reqTime ^ (reqTime >>> 32));
 		result = prime * result + ((scannableName == null) ? 0 : scannableName.hashCode());
 		result = prime * result + (silent ? 1231 : 1237);
@@ -133,6 +157,8 @@ public class BenchmarkBean {
 				return false;
 		} else if (!filePath.equals(other.filePath))
 			return false;
+		if (maxPointTime != other.maxPointTime)
+			return false;
 		if (reqTime != other.reqTime)
 			return false;
 		if (scannableName == null) {
@@ -155,5 +181,13 @@ public class BenchmarkBean {
 
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
+	}
+
+	public long getMaxPointTime() {
+		return maxPointTime;
+	}
+
+	public void setMaxPointTime(long maxPointTime) {
+		this.maxPointTime = maxPointTime;
 	}
 }

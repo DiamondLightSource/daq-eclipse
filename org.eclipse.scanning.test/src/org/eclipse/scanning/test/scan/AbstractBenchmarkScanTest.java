@@ -62,29 +62,29 @@ public class AbstractBenchmarkScanTest {
 		long point1     = benchmarkStep(new BenchmarkBean(1,     100, 1, detector)); // should take not more than 2ms sleep + scan time
 		
 		// should take not more than 64*point1 + scan time
-		long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge,   10, detector));  
+		long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge,  10, detector));  
 		
 		// should take not more than 4*point64 sleep + scan time
-		long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge,   10, detector));  
+		long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, 10L,   10, detector));  
 		
 		// should take not more than 4*point64 sleep + scan time
-		long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10, detector));  
+		long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10L, 10, detector));  
 		
 		// should take not more than 4*point64 sleep + scan time
-		long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10, detector));  
+		long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10L, 10, detector));  
 	}
 	
 	@Test
 	public void testLinearScanNexusSmall() throws Exception {
-	    benchmarkNexus(64);
+	    benchmarkNexus(64, 25L);
 	}
 
 	@Test
 	public void testLinearScanNexusMedium() throws Exception {
-	    benchmarkNexus(256);
+	    benchmarkNexus(256, 50L);
 	}
 
-	private void benchmarkNexus(int imageSize)  throws Exception {
+	private void benchmarkNexus(int imageSize, long max)  throws Exception {
 		
 		MandelbrotModel model = new MandelbrotModel();
 		model.setName("mandelbrot");
@@ -108,10 +108,10 @@ public class AbstractBenchmarkScanTest {
 			long point1     = benchmarkStep(new BenchmarkBean(1, 100, 1, detector, output)); // should take not more than 2ms sleep + scan time
 			
 			// should take not more than 64*point1 + scan time
-			long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge,   10, detector, output));  
+			long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge, max,   10, detector, output));  
 			
 			// should take not more than 4*point64 sleep + scan time
-			long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge,   10, detector, output));  
+			long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, max,   10, detector, output));  
 			
 			// Travis does not like big things on /tmp
 			
@@ -178,15 +178,19 @@ public class AbstractBenchmarkScanTest {
 				continue;
 			}
 			
-			break;
+			break; // We got it low enough
 		}
 		
 		final IDetectorModel dmodel = bean.getDetector().getModel();
 		if (!bean.isSilent()) {
 			System.out.println(bean.getSize()+" point(s) took "+time+"ms with detector exposure set to "+dmodel.getExposureTime()+"s");
-			System.out.println("That's "+(time/bean.getSize())+"ms per point");
+			
+			long pointTime = (time/bean.getSize());
+			System.out.println("That's "+pointTime+"ms per point");
 			assertTrue("It should not take longer than "+bean.getReqTime()+"ms to scan "+bean.getSize()+" points with mock devices set to 1 ms exposure.", 
 				    time<bean.getReqTime());
+			
+			assertTrue("The average scan point time is over "+bean.getMaxPointTime()+" it's "+pointTime, pointTime<=bean.getMaxPointTime());
 		}
 		
 		if (scanModel.getFilePath()!=null) {
