@@ -65,9 +65,9 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	}
 
 	@Override
-	public <T extends IScanPathModel, R, P extends IPosition> IPointGenerator<T,P> createGenerator(T model, Collection<R> regions) throws GeneratorException {
+	public <T extends IScanPathModel, R> IPointGenerator<T> createGenerator(T model, Collection<R> regions) throws GeneratorException {
 		try {
-			IPointGenerator<T,P> gen = (IPointGenerator<T,P>)generators.get(model.getClass()).newInstance();
+			IPointGenerator<T> gen = (IPointGenerator<T>)generators.get(model.getClass()).newInstance();
 			if (regions != null) {
 				for (R region : regions) {
 					synchModel(model, (IROI) region);
@@ -177,7 +177,8 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	}
 
 	@Override
-	public IPointGenerator<?, IPosition> createCompoundGenerator(IPointGenerator<?,?>... generators) throws GeneratorException {
+	public IPointGenerator<?> createCompoundGenerator(IPointGenerator<?>... generators) throws GeneratorException {
+		if (generators.length==1) return generators[0];
 		return new CompoundGenerator(generators);
 	}
 
@@ -187,11 +188,11 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	}
 
 	@Override
-	public <T extends IScanPathModel, P extends IPosition> IPointGenerator<T, P> createGenerator(String id) throws GeneratorException {
+	public <T extends IScanPathModel> IPointGenerator<T> createGenerator(String id) throws GeneratorException {
 		try {
 			GeneratorInfo ginfo = info.get(id);
-			IPointGenerator<T, P> gen = ginfo.getGeneratorClass().newInstance();
-			T                     mod = (T)ginfo.getModelClass().newInstance();
+			IPointGenerator<T> gen = ginfo.getGeneratorClass().newInstance();
+			T                  mod = (T)ginfo.getModelClass().newInstance();
 			gen.setModel(mod);
 			if (ginfo.getLabel()!=null) gen.setLabel(ginfo.getLabel());
 			if (ginfo.getDescription()!=null) gen.setDescription(ginfo.getDescription());

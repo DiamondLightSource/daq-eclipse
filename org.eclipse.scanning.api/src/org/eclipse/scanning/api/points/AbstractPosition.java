@@ -109,4 +109,7 @@ public abstract class AbstractPosition implements IPosition {
 		return indices;
 	}
 
+	public double getValue(String name) {
+		return ((Number)get(name)).doubleValue();
+	}
 }

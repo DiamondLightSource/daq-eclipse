@@ -203,7 +203,7 @@ public class GeneratorView  extends ViewPart {
 		final IAction save = new Action("Save configured scan", IAction.AS_PUSH_BUTTON) {
 			public void run() {
 				
-				IPointGenerator<?, ?>[] gens = getGenerators();
+				IPointGenerator<?>[] gens = getGenerators();
 				
 				if (gens == null) return;
 				FileSelectionDialog dialog = new FileSelectionDialog(site.getShell());
@@ -296,7 +296,7 @@ public class GeneratorView  extends ViewPart {
 		
 	}
 	
-	private IPointGenerator<?, ?>[] getGenerators() {
+	private IPointGenerator<?>[] getGenerators() {
 		
 		final List<ISeriesItemDescriptor> desi = seriesTable.getSeriesItems();
 		
@@ -306,10 +306,10 @@ public class GeneratorView  extends ViewPart {
 		}
 		
 		if (desi==null || desi.isEmpty()) return null;
-		final IPointGenerator<?, ?>[] pipeline = new IPointGenerator<?, ?>[desi.size()];
+		final IPointGenerator<?>[] pipeline = new IPointGenerator<?>[desi.size()];
 		for (int i = 0; i < desi.size(); i++) {
 			try {
-				pipeline[i] = (IPointGenerator<?, ?>)desi.get(i).getSeriesObject();
+				pipeline[i] = (IPointGenerator<?>)desi.get(i).getSeriesObject();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
@@ -325,7 +325,7 @@ public class GeneratorView  extends ViewPart {
 		mm.add(clear);
 		mm.add(new Separator());
 		
-		IPointGenerator<?, ?> gen = null;
+		IPointGenerator<?> gen = null;
 		
 		try {
 			ISeriesItemDescriptor selected = seriesTable.getSelected();

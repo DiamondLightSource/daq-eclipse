@@ -253,7 +253,7 @@ public class ModelViewer implements ISelectionListener, ISelectionChangedListene
 	 * Specifically set the operation we would like to edit
 	 * @param des
 	 */
-	public void setGenerator(IPointGenerator<?, ?> gen) {
+	public void setGenerator(IPointGenerator<?> gen) {
 		if (viewer.getTable().isDisposed()) return;
 		viewer.setInput(gen);
 		if (gen == null) return;
@@ -285,7 +285,7 @@ public class ModelViewer implements ISelectionListener, ISelectionChangedListene
 				
 				Object model = null;
 				if (inputElement instanceof IPointGenerator) {
-					IPointGenerator<IScanPathModel,?> op = (IPointGenerator<IScanPathModel,?>)inputElement;
+					IPointGenerator<IScanPathModel> op = (IPointGenerator<IScanPathModel>)inputElement;
 					model = op.getModel();
 				} else {
 					model = inputElement;

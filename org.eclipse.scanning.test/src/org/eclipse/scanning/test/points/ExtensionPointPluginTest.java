@@ -23,7 +23,7 @@ public class ExtensionPointPluginTest {
 	public void testExtendedGenerators() throws Exception {
 		
 		TestGeneratorModel model = new TestGeneratorModel();
-		final IPointGenerator<TestGeneratorModel, Point> gen = service.createGenerator(model);
+		final IPointGenerator<TestGeneratorModel> gen = service.createGenerator(model);
 		
 		assertNotNull(gen); // Simple as that
 	}

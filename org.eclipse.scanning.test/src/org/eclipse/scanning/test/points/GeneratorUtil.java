@@ -3,8 +3,6 @@
  */
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -12,7 +10,6 @@ import java.util.List;
 
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.scan.ScanEstimator;
 
 /**
@@ -26,7 +23,7 @@ class GeneratorUtil {
 	 * @param gen
 	 * @throws Exception 
 	 */
-	public static void testGeneratorPoints(IPointGenerator<?,?> gen, int... expectedShape) throws Exception {
+	public static void testGeneratorPoints(IPointGenerator<?> gen, int... expectedShape) throws Exception {
 		
 		final List ponts = gen.createPoints();
 		final List its   = new ArrayList<>(gen.size());
@@ -45,7 +42,7 @@ class GeneratorUtil {
 		
 		// Check the estimator. In this case it is not doing anything
 		// that we don't already know, so we can test it.
-		Iterable<Point> iterable = (Iterable<Point>)gen;
+		Iterable<IPosition> iterable = (Iterable<IPosition>)gen;
 		final ScanEstimator estimator = new ScanEstimator(iterable, expectedShape!=null&&expectedShape.length>0);
 		
 		if (ponts.size()!=estimator.getSize()) throw new Exception("Different size from shape estimator!");
