@@ -32,6 +32,7 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		register(new MockScannable("x", 0d,  3));
 		register(new MockNeXusScannable("xNex", 0d,  3));
 		register(new MockNeXusScannable("yNex", 0d,  3));
+		register(new MockScannable("benchmark1",  0.0,  -1, false));
 
 		for (int i = 0; i < 10; i++) {
 			register(new MockNeXusScannable("neXusScannable"+i, 0d,  3));

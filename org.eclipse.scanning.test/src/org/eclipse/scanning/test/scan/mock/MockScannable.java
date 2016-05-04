@@ -55,6 +55,13 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		setName(name);
 		this.position = position;
 	}
+	public MockScannable(String name, Double position, int level, boolean requireSleep) {
+    	this();
+    	this.requireSleep = requireSleep;
+		setLevel(level);
+		setName(name);
+		this.position = position;
+	}
 	public MockScannable(String name, Double position, int level, String unit) {
     	this();
 		setLevel(level);

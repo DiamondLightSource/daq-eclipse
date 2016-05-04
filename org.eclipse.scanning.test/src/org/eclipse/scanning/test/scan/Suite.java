@@ -7,7 +7,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 
 	ScanTest.class,
-	TopupTest.class
+	TopupTest.class,
+	BenchmarkScanTest.class
 
 })
 public class Suite {
