@@ -162,6 +162,16 @@ public class AbstractScanTest {
 	}
 	
 	@Test
+	public void testAbortSimpleScan() throws Exception {
+				
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
+		scanner.run(null);
+		Thread.sleep(100);
+		scanner.abort();
+		assertTrue("The Device state was "+scanner.getDeviceState()+" not "+DeviceState.ABORTED, scanner.getDeviceState()==DeviceState.ABORTED);
+	}
+	
+	@Test
 	public void testThreadCount() throws Exception {
 			
 		int before = Thread.activeCount();
