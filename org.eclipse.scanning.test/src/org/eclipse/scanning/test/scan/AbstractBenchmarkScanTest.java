@@ -101,25 +101,29 @@ public class AbstractBenchmarkScanTest {
 		output.deleteOnExit();
 		bean.setFilePath(output.getAbsolutePath());
 		
+		try {
+			benchmarkStep(bean); // set things up
+			
+			// Benchmark things. A good idea to do nothing much else on your machine for this...
+			long point1     = benchmarkStep(new BenchmarkBean(1, 100, 1, detector, output)); // should take not more than 2ms sleep + scan time
+			
+			// should take not more than 64*point1 + scan time
+			long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge,   10, detector, output));  
+			
+			// should take not more than 4*point64 sleep + scan time
+			long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge,   10, detector, output));  
+			
+			// Travis does not like big things on /tmp
+			
+			// should take not more than 4*point64 sleep + scan time
+			long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10, detector, output));  
+			
+			// should take not more than 4*point64 sleep + scan time
+			//long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10, detector, output));  
 		
-		benchmarkStep(bean); // set things up
-		
-		// Benchmark things. A good idea to do nothing much else on your machine for this...
-		long point1     = benchmarkStep(new BenchmarkBean(1, 100, 1, detector, output)); // should take not more than 2ms sleep + scan time
-		
-		// should take not more than 64*point1 + scan time
-		long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge,   10, detector, output));  
-		
-		// should take not more than 4*point64 sleep + scan time
-		long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge,   10, detector, output));  
-		
-		// Travis does not like big things on /tmp
-		
-		// should take not more than 4*point64 sleep + scan time
-		long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10, detector, output));  
-		
-		// should take not more than 4*point64 sleep + scan time
-		//long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10, detector, output));  
+		} finally {
+		    output.delete();
+		}
 	}
 
 	/**
