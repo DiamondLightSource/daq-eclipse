@@ -116,7 +116,7 @@ public class AbstractBenchmarkScanTest {
 			// Travis does not like big things on /tmp
 			
 			// should take not more than 4*point64 sleep + scan time
-			long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10, detector, output));  
+			//long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10, detector, output));  
 			
 			// should take not more than 4*point64 sleep + scan time
 			//long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10, detector, output));  
