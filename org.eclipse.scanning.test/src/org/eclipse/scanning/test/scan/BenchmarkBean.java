@@ -1,5 +1,7 @@
 package org.eclipse.scanning.test.scan;
 
+import java.io.File;
+
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 
@@ -11,6 +13,8 @@ public class BenchmarkBean {
 	private boolean silent; 
 	private IRunnableDevice<? extends IDetectorModel> detector;
 	private String scannableName;
+	private String filePath;
+	private long maxPointTime = Long.MAX_VALUE;
 	
 	public BenchmarkBean() {
 		
@@ -46,6 +50,40 @@ public class BenchmarkBean {
 		this.silent = false;
 		this.detector = detector;
 		this.scannableName = "benchmark1";
+	}
+
+	public BenchmarkBean(int size, long reqTime, long max, int tries, IRunnableDevice<? extends IDetectorModel> detector) {
+		super();
+		this.size = size;
+		this.reqTime = reqTime;
+		this.maxPointTime = max;
+		this.tries = tries;
+		this.silent = false;
+		this.detector = detector;
+		this.scannableName = "benchmark1";
+	}
+	
+	public BenchmarkBean(int size, long reqTime, int tries, IRunnableDevice<? extends IDetectorModel> detector, File output) {
+		super();
+		this.size = size;
+		this.reqTime = reqTime;
+		this.tries = tries;
+		this.silent = false;
+		this.detector = detector;
+		this.scannableName = "benchmark1";
+		this.filePath = output.getAbsolutePath();
+	}
+
+	public BenchmarkBean(int size, long reqTime, long max, int tries, IRunnableDevice<? extends IDetectorModel> detector, File output) {
+		super();
+		this.size = size;
+		this.reqTime = reqTime;
+		this.maxPointTime = max;
+		this.tries = tries;
+		this.silent = false;
+		this.detector = detector;
+		this.scannableName = "benchmark1";
+		this.filePath = output.getAbsolutePath();
 	}
 
 	public int getSize() {
@@ -90,6 +128,8 @@ public class BenchmarkBean {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((detector == null) ? 0 : detector.hashCode());
+		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
+		result = prime * result + (int) (maxPointTime ^ (maxPointTime >>> 32));
 		result = prime * result + (int) (reqTime ^ (reqTime >>> 32));
 		result = prime * result + ((scannableName == null) ? 0 : scannableName.hashCode());
 		result = prime * result + (silent ? 1231 : 1237);
@@ -112,6 +152,13 @@ public class BenchmarkBean {
 				return false;
 		} else if (!detector.equals(other.detector))
 			return false;
+		if (filePath == null) {
+			if (other.filePath != null)
+				return false;
+		} else if (!filePath.equals(other.filePath))
+			return false;
+		if (maxPointTime != other.maxPointTime)
+			return false;
 		if (reqTime != other.reqTime)
 			return false;
 		if (scannableName == null) {
@@ -126,5 +173,21 @@ public class BenchmarkBean {
 		if (tries != other.tries)
 			return false;
 		return true;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
+	public long getMaxPointTime() {
+		return maxPointTime;
+	}
+
+	public void setMaxPointTime(long maxPointTime) {
+		this.maxPointTime = maxPointTime;
 	}
 }

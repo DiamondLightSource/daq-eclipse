@@ -66,7 +66,7 @@ final class GeneratorLabelProvider extends SeriesItemLabelProvider implements IS
 		StringBuilder buf = new StringBuilder(" ");
 
 		try {
-			IPointGenerator<?, ?> gen = des.getSeriesObject();
+			IPointGenerator<?> gen = des.getSeriesObject();
 			
 			buf.append(gen.getLabel());
 
@@ -88,7 +88,7 @@ final class GeneratorLabelProvider extends SeriesItemLabelProvider implements IS
 		GeneratorDescriptor des = (GeneratorDescriptor)element;
 		
 		try {
-			IPointGenerator<?, ?> gen = des.getSeriesObject();
+			IPointGenerator<?> gen = des.getSeriesObject();
 			if (!gen.isEnabled()) {
 				if (italicFont == null) {
 					final FontData shellFd = Display.getDefault().getActiveShell().getFont().getFontData()[0];

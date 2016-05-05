@@ -2,9 +2,13 @@ package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import org.eclipse.dawnsci.analysis.api.dataset.ILazyDataset;
+import org.eclipse.dawnsci.analysis.api.io.IDataHolder;
+import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
@@ -12,12 +16,12 @@ import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,6 +32,7 @@ public class AbstractBenchmarkScanTest {
 	protected IDeviceConnectorService     connector;
 	protected IPointGeneratorService      gservice;
 	protected IEventService               eservice;
+	protected ILoaderService              lservice;
 	
 	@BeforeClass
 	public static void ensureLambdasLoaded() {
@@ -43,7 +48,7 @@ public class AbstractBenchmarkScanTest {
 	private final static long fudge = 1200;
 
 	@Test
-	public void testStepScan() throws Exception {
+	public void testLinearScanNoNexus() throws Exception {
 	
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setCreateImage(false);  // Would put our times off.
@@ -57,18 +62,69 @@ public class AbstractBenchmarkScanTest {
 		long point1     = benchmarkStep(new BenchmarkBean(1,     100, 1, detector)); // should take not more than 2ms sleep + scan time
 		
 		// should take not more than 64*point1 + scan time
-		long point64    = benchmarkStep(new BenchmarkBean(64,    (64*point1)+fudge,   10, detector));  
+		long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge,  10, detector));  
 		
 		// should take not more than 4*point64 sleep + scan time
-		long point256   = benchmarkStep(new BenchmarkBean(256,   (4*point64)+fudge,   10, detector));  
+		long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, 10L,   10, detector));  
 		
 		// should take not more than 4*point64 sleep + scan time
-		long point2560  = benchmarkStep(new BenchmarkBean(2560,  (10*point256)+fudge, 10, detector));  
+		long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10L, 10, detector));  
 		
 		// should take not more than 4*point64 sleep + scan time
-		long point10240 = benchmarkStep(new BenchmarkBean(10240, (4*point2560)+fudge, 10, detector));  
+		long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10L, 10, detector));  
+	}
+	
+	@Test
+	public void testLinearScanNexusSmall() throws Exception {
+	    benchmarkNexus(64, 25L);
 	}
 
+	@Test
+	public void testLinearScanNexusMedium() throws Exception {
+	    benchmarkNexus(256, 50L);
+	}
+
+	private void benchmarkNexus(int imageSize, long max)  throws Exception {
+		
+		MandelbrotModel model = new MandelbrotModel();
+		model.setName("mandelbrot");
+		model.setRealAxisName("xNex");
+		model.setImaginaryAxisName("yNex");
+		model.setColumns(imageSize);
+		model.setRows(imageSize);
+		model.setMaxIterations(1);
+
+		IRunnableDevice<MandelbrotModel> detector = dservice.createRunnableDevice(model);
+
+		final BenchmarkBean bean = new BenchmarkBean(256, 5000l, 1, true, detector);
+		File output = File.createTempFile("test_mandel_nexus", ".nxs");
+		output.deleteOnExit();
+		bean.setFilePath(output.getAbsolutePath());
+		
+		try {
+			benchmarkStep(bean); // set things up
+			
+			// Benchmark things. A good idea to do nothing much else on your machine for this...
+			long point1     = benchmarkStep(new BenchmarkBean(1, 100, 1, detector, output)); // should take not more than 2ms sleep + scan time
+			
+			// should take not more than 64*point1 + scan time
+			long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge, max,   10, detector, output));  
+			
+			// should take not more than 4*point64 sleep + scan time
+			long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, max,   10, detector, output));  
+			
+			// Travis does not like big things on /tmp
+			
+			// should take not more than 4*point64 sleep + scan time
+			//long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10, detector, output));  
+			
+			// should take not more than 4*point64 sleep + scan time
+			//long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10, detector, output));  
+		
+		} finally {
+		    output.delete();
+		}
+	}
 
 	/**
 	 * 
@@ -85,24 +141,63 @@ public class AbstractBenchmarkScanTest {
 
 		// Before, run, after, check time.
 		final StepModel smodel = new StepModel(bean.getScannableName(), 0, bean.getSize(), 1);
-		IRunnableDevice<ScanModel> scanner = createTestScanner(smodel, bean.getDetector());
+		final GridModel gmodel = new GridModel();
+		gmodel.setFastAxisName("xNex");
+		gmodel.setSlowAxisName("yNex");
+		gmodel.setFastAxisPoints(1);
+		gmodel.setSlowAxisPoints(1);
+		
+		BoundingBox box = new BoundingBox();
+		box.setFastAxisStart(2);
+		box.setSlowAxisStart(2);
+		box.setFastAxisLength(5);
+		box.setSlowAxisLength(5);
+		gmodel.setBoundingBox(box);
+	
+		ScanModel scanModel = createTestScanner(bean.getDetector(), smodel, gmodel);
+		if (bean.getFilePath()!=null) {
+			scanModel.setFilePath(bean.getFilePath());
+			System.out.println("File writing to "+bean.getFilePath());
+		}
+		
+		// Create configured device.
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(scanModel);
 		
 		long time = 0l;
 		for (int i = 0; i < bean.getTries(); i++) {
 			long before = System.currentTimeMillis();
+			if (scanModel.getFilePath()!=null) {
+				System.out.println("Scanning to "+(new File(scanModel.getFilePath())).getName());
+			}
 			scanner.run(null);
 			long after = System.currentTimeMillis();
-			
+
 			time = (after-before);
+
+			if (time>bean.getReqTime()) {
+				continue;
+			}
 			
-			if (time>bean.getReqTime()) continue;
-			break;
+			break; // We got it low enough
 		}
 		
 		final IDetectorModel dmodel = bean.getDetector().getModel();
-		if (!bean.isSilent()) System.out.println(bean.getSize()+" point(s) took "+time+"ms with detector exposure set to "+dmodel.getExposureTime()+"s");
-		assertTrue("It should not take longer than "+bean.getReqTime()+"ms to scan "+bean.getSize()+" points with mock devices set to 1 ms exposure.", 
+		if (!bean.isSilent()) {
+			System.out.println(bean.getSize()+" point(s) took "+time+"ms with detector exposure set to "+dmodel.getExposureTime()+"s");
+			
+			long pointTime = (time/bean.getSize());
+			System.out.println("That's "+pointTime+"ms per point");
+			assertTrue("It should not take longer than "+bean.getReqTime()+"ms to scan "+bean.getSize()+" points with mock devices set to 1 ms exposure.", 
 				    time<bean.getReqTime());
+			
+			assertTrue("The average scan point time is over "+bean.getMaxPointTime()+" it's "+pointTime, pointTime<=bean.getMaxPointTime());
+		}
+		
+		if (scanModel.getFilePath()!=null) {
+			final IDataHolder   dh = lservice.getData(scanModel.getFilePath(), null);
+			final ILazyDataset  lz = dh.getLazyDataset("/entry/instrument/mandelbrot/data");	
+			System.out.println("Wrote dataset of shape: "+Arrays.toString(lz.getShape()));
+		}
 		
 		// Attempt to make the VM roughly do the same thing each run.
 		System.gc();
@@ -113,26 +208,12 @@ public class AbstractBenchmarkScanTest {
 		return time;
 	}
 
-	private IRunnableDevice<ScanModel> createTestScanner(AbstractPointsModel pmodel,
-														IRunnableDevice<?> detector) throws Exception {
-		
-		// Configure a detector with a collection time.
-		if (detector == null) {
-			MockDetectorModel dmodel = new MockDetectorModel();
-			dmodel.setExposureTime(0.1);
-			dmodel.setName("detector");
-			detector = dservice.createRunnableDevice(dmodel);
-		}
-		
-		// If none passed, create scan points for a grid.
-		if (pmodel == null) {
-			pmodel = new GridModel();
-			((GridModel) pmodel).setSlowAxisPoints(5);
-			((GridModel) pmodel).setFastAxisPoints(5);
-			((GridModel) pmodel).setBoundingBox(new BoundingBox(0,0,3,3));
-		}
-		
-		IPointGenerator<?,IPosition> gen = gservice.createGenerator(pmodel);
+	private ScanModel createTestScanner(IRunnableDevice<?> detector, IScanPathModel... models) throws Exception {
+				
+		final IPointGenerator<?>[] gens = new IPointGenerator[models.length];
+		for (int i = 0; i < models.length; i++)  gens[i] = gservice.createGenerator(models[i]);
+
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(gens);
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
@@ -140,8 +221,7 @@ public class AbstractBenchmarkScanTest {
 		smodel.setDetectors(detector);
 		
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel);
-		return scanner;
+		return smodel;
 	}
 
 }

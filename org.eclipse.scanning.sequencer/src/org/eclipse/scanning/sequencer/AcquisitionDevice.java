@@ -209,24 +209,22 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // the positions are valid before running the scan?
 	        // It was called limit checking in GDA.
 	        // Sometimes logic is needed to implement collision avoidance
-
 			
     		// Set the size and declare a count
     		int size  = 0;
     		int count = 0;
     		for (IPosition unused : model.getPositionIterable()) size++; // Fast even for large stuff
     		
-    		fireStart(size);
- 	
-    		// We allow monitors which can block a position until a setpoint is
-    		// reached or add an extra record to the NeXus file.
-    		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
-    		
+    		fireStart(size);    		
 
     		// Notify that we will do a run and provide the first position.
         	fireRunWillPerform(model.getPositionIterable().iterator().next());
 
-        	// The scan loop
+    		// We allow monitors which can block a position until a setpoint is
+    		// reached or add an extra record to the NeXus file.
+    		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
+
+    		// The scan loop
         	IPosition pos = null; // We want the last point when we are done so don't use foreach
 	        for (Iterator<IPosition> it = model.getPositionIterable().iterator(); it.hasNext();) {
 				
@@ -234,7 +232,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	pos.setStepIndex(count);
 	        	
 	        	// Check if we are paused, blocks until we are not
-	        	checkPaused();
+	        	boolean continueRunning = checkPaused();
+	        	if (!continueRunning) return; // They might have aborted it
 	        	
 	        	// TODO Some validation on each point
 	        	// perhaps replacing atPointStart(..)
@@ -310,9 +309,15 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		super.reset();
 	}
 
-	private void checkPaused() throws Exception {
+	/**
+	 * Blocks until not paused
+	 * @return true if state has not been set to a rest one, i.e. we are still scanning.
+	 * @throws Exception
+	 */
+	private boolean checkPaused() throws Exception {
 		
 		if (!getDeviceState().isRunning() && getDeviceState()!=DeviceState.READY) {
+			if (getDeviceState().isRestState()) return false;
 			throw new Exception("The scan state is "+getDeviceState());
 		}
 
@@ -332,7 +337,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     	} finally {
     		lock.unlock();
     	}
-		
+    	return true;
 	}
 
 	// TODO Abort can be interpreted different ways. As 'skip' for short exposure experiments
@@ -363,6 +368,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 				device.abort();
 			}
+			setDeviceState(DeviceState.ABORTED);
 			
 		} catch (ScanningException s) {
 			throw s;

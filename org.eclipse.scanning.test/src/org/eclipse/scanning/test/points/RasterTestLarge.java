@@ -11,6 +11,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
@@ -61,11 +62,11 @@ public class RasterTestLarge {
 		
 		
 		// Get the point list
-		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, roi);
+		IPointGenerator<RasterModel> gen = service.createGenerator(model, roi);
 		if (testAllPoints) GeneratorUtil.testGeneratorPoints(gen);
 		
 		long start = System.currentTimeMillis();		
-        Iterator<Point>       it  = gen.iterator();
+        Iterator<IPosition>       it  = gen.iterator();
 
 		long after1 = System.currentTimeMillis();
 
@@ -110,8 +111,8 @@ public class RasterTestLarge {
 		model.setSlowAxisStep(1);
 
 		// Get the point list
-		IPointGenerator<RasterModel,Point> gen = service.createGenerator(model, boundingRectangle);
-		List<Point> points = gen.createPoints();
+		IPointGenerator<RasterModel> gen = service.createGenerator(model, boundingRectangle);
+		List<IPosition> points = gen.createPoints();
 		
 		assertEquals(10011001, points.size()); // TODO Is 10011001 correct?
 

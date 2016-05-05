@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.StepModel;
 
-public class StepGenerator extends AbstractGenerator<StepModel, IPosition> {
+public class StepGenerator extends AbstractGenerator<StepModel> {
 	
 	StepGenerator() {
 		setLabel("Step Scan");

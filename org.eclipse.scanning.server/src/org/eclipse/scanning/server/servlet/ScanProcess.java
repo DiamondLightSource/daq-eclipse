@@ -199,9 +199,9 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	private Iterable<IPosition> getPositionIterable(ScanRequest<?> req) throws GeneratorException {
 		IPointGeneratorService service = Services.getGeneratorService();
 		
-		IPointGenerator<?,? extends IPosition> ret = null;
+		IPointGenerator<?> ret = null;
 		for (IScanPathModel model : req.getModels()) {
-			IPointGenerator<?,? extends IPosition> gen = service.createGenerator(model, req.getRegions(model.getUniqueKey()));
+			IPointGenerator<?> gen = service.createGenerator(model, req.getRegions(model.getUniqueKey()));
 			if (ret != null) ret = service.createCompoundGenerator(ret, gen);
 			if (ret==null) ret = gen;
 		}

@@ -30,13 +30,13 @@ public class CompoundTestLarge {
 		
 		List<IPointGenerator> gens = new ArrayList<IPointGenerator>(20);
 		for (int i = 0; i < 24; i++) {
-			IPointGenerator<StepModel, IPosition> two = service.createGenerator(new StepModel("Temperature"+i, 290,291,1));
+			IPointGenerator<StepModel> two = service.createGenerator(new StepModel("Temperature"+i, 290,291,1));
 			assertEquals(2, two.size());
 			gens.add(two);
 		}
 
 		long start = System.currentTimeMillis();
-		IPointGenerator<?,IPosition> scan = service.createCompoundGenerator(gens.toArray(new IPointGenerator[gens.size()]));
+		IPointGenerator<?> scan = service.createCompoundGenerator(gens.toArray(new IPointGenerator[gens.size()]));
 		int size = scan.size();
 		assertTrue(Math.pow(2, 24)==size);
 		

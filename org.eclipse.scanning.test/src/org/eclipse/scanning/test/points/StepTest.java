@@ -32,7 +32,7 @@ public class StepTest {
 	public void testSizes() throws Exception {
 
 		StepModel model = new StepModel("Temperature", 290,300,1);	
-		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(model);
+		IPointGenerator<StepModel> gen = service.createGenerator(model);
 		assertEquals(11, gen.size());
 		GeneratorUtil.testGeneratorPoints(gen);
 		
@@ -86,7 +86,7 @@ public class StepTest {
 	@Test
 	public void testTooLargeStep() throws Exception {
 
-		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("fred", 0, 3, 5));
+		IPointGenerator<StepModel> gen = service.createGenerator(new StepModel("fred", 0, 3, 5));
 		assertEquals(1, gen.size());
 		assertEquals(0d, gen.iterator().next().get("fred"));
 		// TODO Should this throw an exception or do this? Possible to do a size 1 step makes some tests easier to write.
@@ -95,14 +95,14 @@ public class StepTest {
 	@Test(expected = PointsValidationException.class)
 	public void testMisdirectedStepGenSize() throws Exception {
 
-		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
+		IPointGenerator<StepModel> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
 		gen.size();
 	}
 
 	@Test(expected = PointsValidationException.class)
 	public void testMisdirectedStepGenPoints() throws Exception {
 
-		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
+		IPointGenerator<StepModel> gen = service.createGenerator(new StepModel("Temperature", 290, 300, -1));
 		gen.createPoints();
 	}
 
@@ -111,7 +111,7 @@ public class StepTest {
 
 		// within the 1% of step size tolerance
 		StepModel model = new StepModel("Temperature", 0.0, 2.0, 0.667);	
-		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(model);
+		IPointGenerator<StepModel> gen = service.createGenerator(model);
 		assertEquals(4, gen.size());
 		
 		// outside the 1% of step size tolerance
@@ -125,7 +125,7 @@ public class StepTest {
 
 
 		StepModel model = new StepModel("Temperature", 290,300,1);	
-		IPointGenerator<StepModel, IPosition> gen = service.createGenerator(model);
+		IPointGenerator<StepModel> gen = service.createGenerator(model);
 		checkSequence(gen, 290.0, 291.0, 292.0, 293.0, 294.0, 295.0, 296.0, 297.0, 298.0, 299.0, 300.0);
 		GeneratorUtil.testGeneratorPoints(gen, 11);
 		
@@ -150,7 +150,7 @@ public class StepTest {
 		GeneratorUtil.testGeneratorPoints(gen, 7);
 	}
 
-	private void checkSequence(IPointGenerator<StepModel, IPosition> gen, double... positions) throws Exception {
+	private void checkSequence(IPointGenerator<StepModel> gen, double... positions) throws Exception {
 		
 		Iterator<IPosition> it = gen.iterator();
         for (int i = 0; i < positions.length; i++) {

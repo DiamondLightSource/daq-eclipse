@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -9,7 +10,6 @@ import java.util.List;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
@@ -30,13 +30,13 @@ public class CompoundTest {
 	@Test
 	public void testIteratedSize() throws Exception {
 
-		IPointGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
+		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
 		assertEquals(6, temp.size());
 
-		IPointGenerator<StepModel, IPosition> pos = service.createGenerator(new StepModel("Position", 1,4, 0.6));
+		IPointGenerator<StepModel> pos = service.createGenerator(new StepModel("Position", 1,4, 0.6));
 		assertEquals(6, pos.size());
 
-		IPointGenerator<?,IPosition> scan = service.createCompoundGenerator(temp, pos);
+		IPointGenerator<?> scan = service.createCompoundGenerator(temp, pos);
 		assertTrue(scan.iterator().next()!=null);
 		assertEquals(36, scan.size());
 		
@@ -53,13 +53,13 @@ public class CompoundTest {
 	@Test
 	public void testSimpleCompoundStep2Step() throws Exception {
 		
-		IPointGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
+		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
 		assertEquals(6, temp.size());
 
-		IPointGenerator<StepModel, IPosition> pos = service.createGenerator(new StepModel("Position", 1,4, 0.6));
+		IPointGenerator<StepModel> pos = service.createGenerator(new StepModel("Position", 1,4, 0.6));
 		assertEquals(6, pos.size());
 
-		IPointGenerator<?,IPosition> scan = service.createCompoundGenerator(temp, pos);
+		IPointGenerator<?> scan = service.createCompoundGenerator(temp, pos);
 		assertEquals(36, scan.size());
 
 		final List<IPosition> points = scan.createPoints();
@@ -94,17 +94,17 @@ public class CompoundTest {
 	@Test
 	public void testSimpleCompoundStep3Step() throws Exception {
 		
-		IPointGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
+		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
 		assertEquals(6, temp.size());
 
-		IPointGenerator<StepModel, IPosition> y = service.createGenerator(new StepModel("Y", 11, 14, 0.6));
+		IPointGenerator<StepModel> y = service.createGenerator(new StepModel("Y", 11, 14, 0.6));
 		assertEquals(6, y.size());
 
-		IPointGenerator<StepModel, IPosition> x = service.createGenerator(new StepModel("X", 1, 4, 0.6));
+		IPointGenerator<StepModel> x = service.createGenerator(new StepModel("X", 1, 4, 0.6));
 		assertEquals(6, x.size());
 	
 
-		IPointGenerator<?,IPosition> scan = service.createCompoundGenerator(temp, y, x);
+		IPointGenerator<?> scan = service.createCompoundGenerator(temp, y, x);
 		assertEquals(216, scan.size());
 
 		final List<IPosition> points = scan.createPoints();
@@ -150,7 +150,7 @@ public class CompoundTest {
 	@Test
 	public void testSimpleCompoundGrid() throws Exception {
 		
-		IPointGenerator<StepModel, IPosition> temp = service.createGenerator(new StepModel("Temperature", 290,300,1));
+		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,300,1));
 		assertEquals(11, temp.size());
 
 		BoundingBox box = new BoundingBox();
@@ -165,10 +165,10 @@ public class CompoundTest {
 		model.setBoundingBox(box);
 
 		// Get the point list
-		IPointGenerator<GridModel,Point> grid = service.createGenerator(model);
+		IPointGenerator<GridModel> grid = service.createGenerator(model);
 		assertEquals(400, grid.size());
 
-		IPointGenerator<?,IPosition> scan = service.createCompoundGenerator(temp, grid);
+		IPointGenerator<?> scan = service.createCompoundGenerator(temp, grid);
 		assertEquals(4400, scan.size());
 
 		List<IPosition> points = scan.createPoints();
@@ -224,13 +224,13 @@ public class CompoundTest {
 		gmodel.setSlowAxisPoints(size[size.length-1]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
-		IPointGenerator<?,IPosition> gen = service.createGenerator(gmodel);
+		IPointGenerator<?> gen = service.createGenerator(gmodel);
 		
 		// We add the outer scans, if any
 		if (size.length > 2) { 
 			for (int dim = size.length-3; dim>-1; dim--) {
 				final StepModel model = new StepModel("neXusScannable"+dim, 10,20,11/size[dim]);
-				final IPointGenerator<?,IPosition> step = service.createGenerator(model);
+				final IPointGenerator<?> step = service.createGenerator(model);
 				gen = service.createCompoundGenerator(step, gen);
 			}
 		}

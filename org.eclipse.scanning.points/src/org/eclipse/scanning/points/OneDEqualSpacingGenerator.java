@@ -7,11 +7,12 @@ import java.util.List;
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 
-public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacingModel,Point> {
+public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacingModel> {
 
 	OneDEqualSpacingGenerator() {
 		setLabel("Line Equal Spacing");
@@ -25,7 +26,7 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 	}
 
 	@Override
-	public Iterator<Point> iteratorFromValidModel() {
+	public Iterator<IPosition> iteratorFromValidModel() {
 		try {
 			return createPoints().iterator();
 		} catch (GeneratorException e) {
@@ -34,7 +35,7 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 	}
 
 	@Override
-	public List<Point> createPoints() throws GeneratorException {
+	public List<IPosition> createPoints() throws GeneratorException {
 		// FIXME: Make this work with just a bounding line (i.e. no ROI).
 
 		// FIXME: This code can be called without validateModel() ever having been run.
@@ -57,7 +58,7 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 		double proportionalStep = (length / model.getPoints()) / length;
 		double start = proportionalStep / 2;
 		
-		List<Point> pointsList = new ArrayList<>();
+		List<IPosition> pointsList = new ArrayList<>();
 		for (int i = 0; i < model.getPoints(); i++) {
 			// LinearROI has a helpful getPoint(double) method which returns coordinates of a point at a normalised
 			// distance along the line

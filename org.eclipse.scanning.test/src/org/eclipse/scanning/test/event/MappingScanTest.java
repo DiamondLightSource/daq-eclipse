@@ -18,7 +18,6 @@ import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.event.EventServiceImpl;
@@ -105,7 +104,7 @@ public class MappingScanTest {
 		model.setFastAxisPoints(5);
 		model.setBoundingBox(box);
 
-		IPointGenerator<GridModel, Point> gen = gservice.createGenerator(model);
+		IPointGenerator<GridModel> gen = gservice.createGenerator(model);
 
 		// Outer loop temperature, will be scan command driven when sequencer exists.
 		bean.setDeviceState(DeviceState.CONFIGURING);
@@ -131,7 +130,7 @@ public class MappingScanTest {
 		assertTrue(gotBack.get(gotBack.size() - 1).scanEnd());
 	}
 
-	private void testDeviceScan(ScanBean bean, IPointGenerator<GridModel, Point> gen) throws Exception {
+	private void testDeviceScan(ScanBean bean, IPointGenerator<GridModel> gen) throws Exception {
 
 
 		bean.setDeviceState(DeviceState.RUNNING);

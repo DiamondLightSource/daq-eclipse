@@ -10,11 +10,11 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 
-class CompoundGenerator extends AbstractGenerator<IScanPathModel, IPosition> {
+class CompoundGenerator extends AbstractGenerator<IScanPathModel> {
 	
-	private IPointGenerator<?, ? extends IPosition>[] generators;
+	private IPointGenerator<?>[] generators;
 
-	public CompoundGenerator(IPointGenerator<?,? extends IPosition>[] generators) throws GeneratorException {
+	public CompoundGenerator(IPointGenerator<?>[] generators) throws GeneratorException {
 		super(createId(generators));
         if (generators == null || generators.length<1) throw new GeneratorException("Cannot make a compound generator from a list of less than one generators!");
 	    this.generators = generators;
@@ -23,11 +23,11 @@ class CompoundGenerator extends AbstractGenerator<IScanPathModel, IPosition> {
 		setVisible(false);
 	}
 	
-	private static String createId(IPointGenerator<?, ? extends IPosition>[] gens) throws GeneratorException {
+	private static String createId(IPointGenerator<?>[] gens) throws GeneratorException {
         if (gens == null || gens.length<1) throw new GeneratorException("Cannot make a compound generator from a list of less than one generators!");
 	
         final StringBuilder buf = new StringBuilder();
-        for (IPointGenerator<?, ? extends IPosition> gen : gens) buf.append("+"+gen);
+        for (IPointGenerator<?> gen : gens) buf.append("+"+gen);
         return buf.toString();
 	}
 
@@ -72,7 +72,7 @@ class CompoundGenerator extends AbstractGenerator<IScanPathModel, IPosition> {
 	 */
 	private void createPoints(int igen, List<IPosition> points, IPosition parent) {
 		
-		IPointGenerator<?,? extends IPosition> gen = generators[igen];
+		IPointGenerator<?> gen = generators[igen];
 		Iterator<? extends IPosition>     it  = gen.iterator();
 		while(it.hasNext()) {
 			IPosition pos = it.next().composite(parent);
@@ -86,7 +86,7 @@ class CompoundGenerator extends AbstractGenerator<IScanPathModel, IPosition> {
 	
 	}
 
-	public IPointGenerator<?, ? extends IPosition>[] getGenerators() {
+	public IPointGenerator<?>[] getGenerators() {
 		return generators;
 	}
 
