@@ -5,10 +5,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.scanning.api.annotation.UiHidden;
+
 public abstract class AbstractPosition implements IPosition {
 	
 	private int stepIndex = -1;
 	
+	@UiHidden
 	public int getStepIndex() {
 		return stepIndex;
 	}
@@ -103,6 +106,7 @@ public abstract class AbstractPosition implements IPosition {
 	 * This method always creates a new map of indices 
 	 * @return the data indices mapped name:index
 	 */
+	@UiHidden
 	public Map<String, Integer> getIndices() {
 		final Map<String,Integer> indices = new LinkedHashMap<>(size());
 		for (String name : getNames()) indices.put(name, getIndex(name));
