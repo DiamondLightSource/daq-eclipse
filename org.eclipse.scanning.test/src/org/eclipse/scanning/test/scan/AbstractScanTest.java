@@ -394,7 +394,7 @@ public class AbstractScanTest {
 		ms.verify(null, new Point(2,0.3,0,1.5));
 		ms.verify(null, new Point(2,1.5,2,1.5));
 	}
-
+	
 	private void checkRun(IRunnableDevice<ScanModel> scanner) throws Exception {
 		// Bit of a hack to get the generator from the model - should this be easier?
 		// Do not copy this code
