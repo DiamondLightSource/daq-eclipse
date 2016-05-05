@@ -220,7 +220,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		
 		if (rlisteners==null) return;
 		
-		final RunEvent evt = new RunEvent(this, position);
+		final RunEvent evt = new RunEvent(this, position, getDeviceState());
 		
 		// Make array, avoid multi-threading issues.
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
@@ -231,7 +231,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		
 		if (rlisteners==null) return;
 		
-		final RunEvent evt = new RunEvent(this, position);
+		final RunEvent evt = new RunEvent(this, position, getDeviceState());
 		
 		// Make array, avoid multi-threading issues.
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
@@ -242,7 +242,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		
 		if (rlisteners==null) return;
 		
-		final RunEvent evt = new RunEvent(this, position);
+		final RunEvent evt = new RunEvent(this, position, getDeviceState());
 		
 		// Make array, avoid multi-threading issues.
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
@@ -253,7 +253,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		
 		if (rlisteners==null) return;
 		
-		final RunEvent evt = new RunEvent(this, position);
+		final RunEvent evt = new RunEvent(this, position, getDeviceState());
 		
 		// Make array, avoid multi-threading issues.
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);

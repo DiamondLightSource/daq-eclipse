@@ -122,6 +122,14 @@ public class NexusAssert {
 	}
 	
 	public static void assertScanFinished(NXentry entry) {
+		assertScanFinished(entry, true);
+	}
+
+	public static void assertScanNotFinished(NXentry entry) {
+		assertScanFinished(entry, false);
+	}
+	
+	private static void assertScanFinished(NXentry entry, boolean finished) {
 		NXcollection scanPointsCollection = entry.getCollection(GROUP_NAME_SOLSTICE_SCAN);
 		assertNotNull(scanPointsCollection);
 		
@@ -132,20 +140,7 @@ public class NexusAssert {
 		assertThat(getDType(dataset), is(Dataset.INT32)); // HDF5 doesn't support boolean datasets
 		assertThat(dataset.getRank(), is(1));
 		assertArrayEquals(dataset.getShape(), new int[] { 1 });
-		assertThat(dataset.getBoolean(0), is(equalTo(true)));
-	}
-
-	public static void assertScanNotFinished(NXentry entry) {
-		NXcollection scanPointsCollection = entry.getCollection(GROUP_NAME_SOLSTICE_SCAN);
-		assertNotNull(scanPointsCollection);
-		
-		DataNode dataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
-		assertNotNull(dataNode);
-		IDataset dataset = dataNode.getDataset().getSlice();
-		assertThat(getDType(dataset), is(Dataset.INT32)); // HDF5 doesn't support boolean datasets
-		assertThat(dataset.getRank(), is(1));
-		assertArrayEquals(dataset.getShape(), new int[] { 1 });
-		assertThat(dataset.getBoolean(0), is(equalTo(false)));
+		assertThat(dataset.getBoolean(0), is(equalTo(finished)));
 	}
 
 }

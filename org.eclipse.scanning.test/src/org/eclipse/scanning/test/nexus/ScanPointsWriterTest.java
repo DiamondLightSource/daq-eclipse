@@ -269,7 +269,7 @@ public class ScanPointsWriterTest {
 		assertThat(writtenToUniqueKeysData.getShape(), is(expectedShape));
 		assertThat(getDType(writtenToUniqueKeysData), is(Dataset.INT));
 		int[] valuePos = new int[scanRank]; // all zeros
-		assertThat(writtenToUniqueKeysData.getInt(valuePos), is(stepIndex));
+		assertThat(writtenToUniqueKeysData.getInt(valuePos), is(stepIndex+1));
 
 		SliceND uniqueKeysSlice = uniqueKeysSaver.getLastSlice();
 		assertThat(uniqueKeysSlice, is(notNullValue()));
