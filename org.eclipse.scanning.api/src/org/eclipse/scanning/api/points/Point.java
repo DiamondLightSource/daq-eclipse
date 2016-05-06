@@ -21,6 +21,8 @@ package org.eclipse.scanning.api.points;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.scanning.api.annotation.UiHidden;
+
 /**
  * An immutable class used to represent a point for use in a mapping scan.
  * 
@@ -63,6 +65,7 @@ public class Point extends AbstractPosition {
 		return 2;
 	}
 
+	@UiHidden
 	@Override
 	public List<String> getNames() {
 		return Arrays.asList(yName, xName);

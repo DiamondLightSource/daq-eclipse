@@ -1,6 +1,8 @@
 package org.eclipse.scanning.example.detector;
 
 import org.eclipse.scanning.api.annotation.FieldDescriptor;
+import org.eclipse.scanning.api.annotation.UiComesAfter;
+import org.eclipse.scanning.api.annotation.UiSection;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 
 public class MandelbrotModel implements IDetectorModel {
@@ -74,42 +76,50 @@ public class MandelbrotModel implements IDetectorModel {
 		imaginaryAxisName = "y";
 	}
 
+	@UiSection("Algorithm parameters")
 	public int getMaxIterations() {
 		return maxIterations;
 	}
 	public void setMaxIterations(int maxIterations) {
 		this.maxIterations = maxIterations;
 	}
+	@UiComesAfter("maxIterations")
 	public double getEscapeRadius() {
 		return escapeRadius;
 	}
 	public void setEscapeRadius(double escapeRadius) {
 		this.escapeRadius = escapeRadius;
 	}
+	@UiSection("Julia set size")
+	@UiComesAfter("escapeRadius")
 	public int getColumns() {
 		return columns;
 	}
 	public void setColumns(int columns) {
 		this.columns = columns;
 	}
+	@UiComesAfter("columns")
 	public int getRows() {
 		return rows;
 	}
 	public void setRows(int rows) {
 		this.rows = rows;
 	}
+	@UiComesAfter("rows")
 	public int getPoints() {
 		return points;
 	}
 	public void setPoints(int points) {
 		this.points = points;
 	}
+	@UiComesAfter("points")
 	public double getMaxRealCoordinate() {
 		return maxRealCoordinate;
 	}
 	public void setMaxRealCoordinate(double maxX) {
 		this.maxRealCoordinate = maxX;
 	}
+	@UiComesAfter("maxRealCoordinate")
 	public double getMaxImaginaryCoordinate() {
 		return maxImaginaryCoordinate;
 	}
@@ -185,25 +195,30 @@ public class MandelbrotModel implements IDetectorModel {
 		return true;
 	}
 
+	@UiSection("Device details")
+	@UiComesAfter("maxImaginaryCoordinate")
 	public String getName() {
 		return name;
 	}
 	public void setName(String name) {
 		this.name = name;
 	}
+	@UiComesAfter("name")
 	public String getRealAxisName() {
 		return realAxisName;
 	}
 	public void setRealAxisName(String xName) {
 		this.realAxisName = xName;
 	}
+	@UiComesAfter("realAxisName")
 	public String getImaginaryAxisName() {
 		return imaginaryAxisName;
 	}
 	public void setImaginaryAxisName(String yName) {
 		this.imaginaryAxisName = yName;
 	}
-	
+
+	@UiComesAfter("imaginaryAxisName")
 	public double getExposureTime() {
 		return exposureTime;
 	}

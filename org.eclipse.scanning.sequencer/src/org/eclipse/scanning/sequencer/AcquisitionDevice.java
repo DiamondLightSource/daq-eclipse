@@ -204,6 +204,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
 		
+		IPosition pos = null;
 		try {
 	        // TODO Should we validate the position iterator that all
 	        // the positions are valid before running the scan?
@@ -225,7 +226,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
 
     		// The scan loop
-        	IPosition pos = null; // We want the last point when we are done so don't use foreach
+        	pos = null; // We want the last point when we are done so don't use foreach
 	        for (Iterator<IPosition> it = model.getPositionIterable().iterator(); it.hasNext();) {
 				
 	        	pos = it.next();
@@ -233,7 +234,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	
 	        	// Check if we are paused, blocks until we are not
 	        	boolean continueRunning = checkPaused();
-	        	if (!continueRunning) return; // They might have aborted it
+	        	if (!continueRunning) {
+	        		return; // finally block performed 
+	        	}
 	        	
 	        	// TODO Some validation on each point
 	        	// perhaps replacing atPointStart(..)
@@ -254,9 +257,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        
 	        // On the last iteration we must wait for the final readout.
         	writers.await();                   // Wait for the previous read out to return, if any
-        	if (nexusScanFile!=null) nexusScanFile.close();             // close the NeXus file
-        	fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
-    		fireEnd();
         	
 		} catch (ScanningException | InterruptedException i) {
 			if (!getBean().getStatus().isFinal()) getBean().setStatus(Status.FAILED);
@@ -269,7 +269,18 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			getBean().setMessage(ne.getMessage());
 			setDeviceState(DeviceState.FAULT);
 			throw new ScanningException(ne);
-		} 
+		} finally {
+        	fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
+        	if (nexusScanFile!=null) {
+				try {
+					nexusScanFile.close();
+				} catch (NexusException e) {
+					throw new ScanningException("Could not close nexus file", e);
+				}
+        	}
+		}
+		// only fire end if finished normally
+		fireEnd();
 	}
 
 	private void fireEnd() throws ScanningException {
@@ -368,6 +379,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 				device.abort();
 			}
+
 			setDeviceState(DeviceState.ABORTED);
 			
 		} catch (ScanningException s) {
