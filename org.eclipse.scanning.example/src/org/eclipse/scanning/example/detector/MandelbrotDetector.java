@@ -69,6 +69,8 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 	@Override
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
+		int scanRank = info.getRank();
+
 		DelegateNexusProvider<NXdetector> nexusProvider = new DelegateNexusProvider<NXdetector>(
 				getName(), NexusBaseClass.NX_DETECTOR, info, this);
 
@@ -81,7 +83,12 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_SPECTRUM);
 		// An additional NXdata group with "value" as the signal to hold the Mandelbrot value
 		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_VALUE);
-
+		
+		nexusProvider.addDataField("image_x_axis", NXdetector.NX_DATA, scanRank); 
+		nexusProvider.addDataField("image_y_axis", NXdetector.NX_DATA, scanRank + 1);
+		
+		nexusProvider.addDataField("spectrum_axis", FIELD_NAME_SPECTRUM, scanRank);
+		
 		return nexusProvider;
 	}
 
