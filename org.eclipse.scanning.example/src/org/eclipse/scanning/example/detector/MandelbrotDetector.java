@@ -48,8 +48,12 @@ import org.eclipse.scanning.api.scan.ScanningException;
  */
 public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> implements IWritableDetector<MandelbrotModel>, INexusDevice<NXdetector> {
 
+	// Field names to be used in the NeXus file 
 	private static final String FIELD_NAME_VALUE = "value";
 	private static final String FIELD_NAME_SPECTRUM = "spectrum";
+	private static final String FIELD_NAME_SPECTRUM_AXIS = "spectrum_axis";
+	private static final String FIELD_NAME_IMAGINARY_AXIS = "imaginary";
+	private static final String FIELD_NAME_REAL_AXIS = "real";
 
 	// Data to be passed from run() to write()
 	private IDataset image;
@@ -69,8 +73,6 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 	@Override
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		int scanRank = info.getRank();
-
 		DelegateNexusProvider<NXdetector> nexusProvider = new DelegateNexusProvider<NXdetector>(
 				getName(), NexusBaseClass.NX_DETECTOR, info, this);
 
@@ -83,12 +85,14 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_SPECTRUM);
 		// An additional NXdata group with "value" as the signal to hold the Mandelbrot value
 		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_VALUE);
-		
-		nexusProvider.addDataField("image_x_axis", NXdetector.NX_DATA, scanRank); 
-		nexusProvider.addDataField("image_y_axis", NXdetector.NX_DATA, scanRank + 1);
-		
-		nexusProvider.addDataField("spectrum_axis", FIELD_NAME_SPECTRUM, scanRank);
-		
+
+		// Add the axes to the image and spectrum data. scanRank here corresponds to the position
+		// in the axes attribute written in the NeXus file (0 based)
+		int scanRank = info.getRank();
+		nexusProvider.addDataField(FIELD_NAME_REAL_AXIS, NXdetector.NX_DATA, scanRank); 
+		nexusProvider.addDataField(FIELD_NAME_IMAGINARY_AXIS, NXdetector.NX_DATA, scanRank + 1);
+		nexusProvider.addDataField(FIELD_NAME_SPECTRUM_AXIS, FIELD_NAME_SPECTRUM, scanRank);
+
 		return nexusProvider;
 	}
 
@@ -117,10 +121,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		detector.setField("max_iterations", model.getMaxIterations());
 
 		// The axis datasets
-		// FIXME These are not linked using an axis tag to the 4D block (Don't think thats possible yet)
-		detector.setDataset("image_x_axis", DatasetFactory.createLinearSpace(-model.getMaxRealCoordinate(), model.getMaxRealCoordinate(), model.getRows(), Dataset.FLOAT64));
-		detector.setDataset("image_y_axis", DatasetFactory.createLinearSpace(-model.getMaxImaginaryCoordinate(), model.getMaxImaginaryCoordinate(), model.getColumns(), Dataset.FLOAT64));
-		detector.setDataset("spectrum_axis", DatasetFactory.createLinearSpace(0.0, model.getMaxRealCoordinate(), model.getPoints(), Dataset.FLOAT64));
+		detector.setDataset(FIELD_NAME_REAL_AXIS, DatasetFactory.createLinearSpace(-model.getMaxRealCoordinate(), model.getMaxRealCoordinate(), model.getRows(), Dataset.FLOAT64));
+		detector.setDataset(FIELD_NAME_IMAGINARY_AXIS, DatasetFactory.createLinearSpace(-model.getMaxImaginaryCoordinate(), model.getMaxImaginaryCoordinate(), model.getColumns(), Dataset.FLOAT64));
+		detector.setDataset(FIELD_NAME_SPECTRUM_AXIS, DatasetFactory.createLinearSpace(0.0, model.getMaxRealCoordinate(), model.getPoints(), Dataset.FLOAT64));
 
 		Attributes.registerAttributes(detector, this);
 		
