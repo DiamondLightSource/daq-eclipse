@@ -88,7 +88,7 @@ public class DummyProcessor implements IQueueProcessor {
 					logger.error("Dummy process sleeping failed", e);
 				}
 				System.out.println("DummyProcessor ("+bean.getClass().getSimpleName()+" - "+bean.getName()+"): "+bean.getPercentComplete());
-				broadcast(bean, i);
+				broadcast(bean, new Double(i));
 			}
 
 
