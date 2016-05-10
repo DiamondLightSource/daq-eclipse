@@ -77,7 +77,7 @@ public class AbstractBenchmarkScanTest {
 		benchmarkStep(new BenchmarkBean(256, 2000l, 1, true, detector)); // set things up
 		
 		// Benchmark things. A good idea to do nothing much else on your machine for this...
-		long point1     = benchmarkStep(new BenchmarkBean(1,     100, 1, detector)); // should take not more than 2ms sleep + scan time
+		long point1     = benchmarkStep(new BenchmarkBean(1,     200, 1, detector)); // should take not more than 2ms sleep + scan time
 		
 		// should take not more than 64*point1 + scan time
 		long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge,  10, detector));  
