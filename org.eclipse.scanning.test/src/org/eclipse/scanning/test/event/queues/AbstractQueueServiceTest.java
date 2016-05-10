@@ -479,7 +479,7 @@ public class AbstractQueueServiceTest {
 			}
 
 		});
-		statusLatch.await(timeout, TimeUnit.MILLISECONDS);
+		statusLatch.await(timeout*1000, TimeUnit.MILLISECONDS);
 		return;
 	}
 

@@ -149,7 +149,7 @@ public class DummyProcessor implements IQueueProcessor {
 		 * @throws EventException In case broadcasting fails.
 		 */
 		protected void broadcast(T bean, Status newStatus, Double newPercent) throws EventException {
-			if (statusReporter != null && statusReporter.isAlive()) {
+//			if (statusReporter != null && statusReporter.isAlive()) {
 				if (newStatus != null) {
 					bean.setPreviousStatus(bean.getStatus());
 					bean.setStatus(newStatus);
@@ -157,7 +157,7 @@ public class DummyProcessor implements IQueueProcessor {
 				if (newPercent != null) bean.setPercentComplete(newPercent);
 				
 				statusReporter.broadcast(bean);
-			}		
+//			}		
 		}
 
 	}
