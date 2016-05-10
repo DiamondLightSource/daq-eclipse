@@ -3,7 +3,10 @@ package org.eclipse.scanning.test.scan;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyDataset;
@@ -14,6 +17,12 @@ import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.event.scan.IScanListener;
+import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.BoundingBox;
@@ -23,6 +32,7 @@ import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -38,6 +48,14 @@ public class AbstractBenchmarkScanTest {
 	public static void ensureLambdasLoaded() {
 		// This is required so that we don't benchmark lambda loading.
 		Arrays.asList(1,2,3).stream().map(x -> x+1).collect(Collectors.toList());
+	}
+	
+	private static long nexusSmall, nexusMedium, nexusSmallEvents, nexusMediumEvents;
+	
+	@AfterClass
+	public static void checkTimes() throws Exception {
+		assertTrue(nexusSmallEvents<(nexusSmall+10));
+		assertTrue(nexusMediumEvents<(nexusMedium+10));
 	}
 	
 	/**
@@ -67,24 +85,28 @@ public class AbstractBenchmarkScanTest {
 		// should take not more than 4*point64 sleep + scan time
 		long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, 10L,   10, detector));  
 		
-		// should take not more than 4*point64 sleep + scan time
-		long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10L, 10, detector));  
-		
-		// should take not more than 4*point64 sleep + scan time
-		long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10L, 10, detector));  
+//		// should take not more than 4*point64 sleep + scan time
+//		long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10L, 10, detector));  
+//		
+//		// should take not more than 4*point64 sleep + scan time
+//		long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10L, 10, detector));  
 	}
 	
 	@Test
 	public void testLinearScanNexusSmall() throws Exception {
-	    benchmarkNexus(64, 25L);
+		System.out.println(">> testLinearScanNexusSmall");
+	    nexusSmall = benchmarkNexus(64, 25L);
+		System.out.println(">> done");
 	}
 
 	@Test
 	public void testLinearScanNexusMedium() throws Exception {
-	    benchmarkNexus(256, 50L);
+		System.out.println(">> testLinearScanNexusMedium");
+	    nexusMedium = benchmarkNexus(256, 50L);
+		System.out.println(">> done");
 	}
 
-	private void benchmarkNexus(int imageSize, long max)  throws Exception {
+	private long benchmarkNexus(int imageSize, long max)  throws Exception {
 		
 		MandelbrotModel model = new MandelbrotModel();
 		model.setName("mandelbrot");
@@ -113,18 +135,85 @@ public class AbstractBenchmarkScanTest {
 			// should take not more than 4*point64 sleep + scan time
 			long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, max,   10, detector, output));  
 			
-			// Travis does not like big things on /tmp
+			return point100/100;
 			
-			// should take not more than 4*point64 sleep + scan time
-			//long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10, detector, output));  
-			
-			// should take not more than 4*point64 sleep + scan time
-			//long point10000 = benchmarkStep(new BenchmarkBean(10000, (10*point1000)+fudge, 10, detector, output));  
-		
 		} finally {
 		    output.delete();
 		}
 	}
+	
+	@Test
+	public void testLinearScanNexusSmallWithEvents() throws Exception {
+		System.out.println(">> testLinearScanNexusSmallWithEvents");
+		nexusSmallEvents = benchmarkNexusWithEvents(64, 25L);
+		System.out.println(">> done");
+	}
+
+	@Test
+	public void testLinearScanNexusMediumWithEvents() throws Exception {
+		System.out.println(">> testLinearScanNexusMediumWithEvents");
+		nexusMediumEvents = benchmarkNexusWithEvents(256, 50L);
+		System.out.println(">> done");
+	}
+
+	private long benchmarkNexusWithEvents(int imageSize, long max)  throws Exception {
+		
+		// We create a publisher and subscriber for the scan.
+		final URI uri = new URI("vm://localhost?broker.persistent=false");
+		final IPublisher<ScanBean> publisher = eservice.createPublisher(uri, IEventService.STATUS_TOPIC);
+		
+		final ISubscriber<IScanListener> subscriber = eservice.createSubscriber(uri, IEventService.STATUS_TOPIC);
+		final Set<DeviceState> states = new HashSet<DeviceState>(5);
+		subscriber.addListener(new IScanListener() {		
+			@Override
+			public void scanStateChanged(ScanEvent evt) {
+				System.out.println("State Change : "+evt.getBean().getDeviceState());
+				states.add(evt.getBean().getDeviceState());
+			}
+			@Override
+			public void scanEventPerformed(ScanEvent evt) {
+
+			}
+		});
+		
+		File output = null;
+		try {
+			MandelbrotModel model = new MandelbrotModel();
+			model.setName("mandelbrot");
+			model.setRealAxisName("xNex");
+			model.setImaginaryAxisName("yNex");
+			model.setColumns(imageSize);
+			model.setRows(imageSize);
+			model.setMaxIterations(1);
+			
+			IRunnableDevice<MandelbrotModel> detector = dservice.createRunnableDevice(model);
+	
+			final BenchmarkBean bean = new BenchmarkBean(256, 5000l, 1, true, detector);
+			output = File.createTempFile("test_mandel_nexus", ".nxs");
+			output.deleteOnExit();
+			bean.setFilePath(output.getAbsolutePath());
+			bean.setPublisher(publisher);
+		
+			benchmarkStep(bean); // set things up
+			
+			// Benchmark things. A good idea to do nothing much else on your machine for this...
+			long point1     = benchmarkStep(new BenchmarkBean(1, 100, 1, detector, output)); // should take not more than 2ms sleep + scan time
+			
+			// should take not more than 64*point1 + scan time
+			long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge, max,   10, detector, output, publisher));  
+			
+			// should take not more than 4*point64 sleep + scan time
+			long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, max,   10, detector, output, publisher));  
+			
+			assertTrue(states.size()==3); // CONFIGURING, READY, RUNNING 
+			return point100/100;
+			
+		} finally {
+			if (publisher!=null) publisher.disconnect();
+		    if (output!=null) output.delete();
+		}
+	}
+
 
 	/**
 	 * 
@@ -161,7 +250,7 @@ public class AbstractBenchmarkScanTest {
 		}
 		
 		// Create configured device.
-		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(scanModel);
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(scanModel, bean.getPublisher());
 		
 		long time = 0l;
 		for (int i = 0; i < bean.getTries(); i++) {

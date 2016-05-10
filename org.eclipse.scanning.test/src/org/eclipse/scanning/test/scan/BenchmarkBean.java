@@ -4,6 +4,8 @@ import java.io.File;
 
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 
 public class BenchmarkBean {
 	
@@ -15,6 +17,7 @@ public class BenchmarkBean {
 	private String scannableName;
 	private String filePath;
 	private long maxPointTime = Long.MAX_VALUE;
+	private IPublisher<ScanBean> publisher;
 	
 	public BenchmarkBean() {
 		
@@ -84,6 +87,19 @@ public class BenchmarkBean {
 		this.detector = detector;
 		this.scannableName = "benchmark1";
 		this.filePath = output.getAbsolutePath();
+	}
+	
+	public BenchmarkBean(int size, long reqTime, long max, int tries, IRunnableDevice<? extends IDetectorModel> detector, File output, IPublisher<ScanBean> publisher) {
+		super();
+		this.size = size;
+		this.reqTime = reqTime;
+		this.maxPointTime = max;
+		this.tries = tries;
+		this.silent = false;
+		this.detector = detector;
+		this.scannableName = "benchmark1";
+		this.filePath = output.getAbsolutePath();
+		this.publisher = publisher;
 	}
 
 	public int getSize() {
@@ -189,5 +205,13 @@ public class BenchmarkBean {
 
 	public void setMaxPointTime(long maxPointTime) {
 		this.maxPointTime = maxPointTime;
+	}
+
+	public IPublisher<ScanBean> getPublisher() {
+		return publisher;
+	}
+
+	public void setPublisher(IPublisher<ScanBean> publisher) {
+		this.publisher = publisher;
 	}
 }
