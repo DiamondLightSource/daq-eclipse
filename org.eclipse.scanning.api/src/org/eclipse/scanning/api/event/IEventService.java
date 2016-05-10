@@ -61,51 +61,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * @author Matthew Gerring
  *
  */
-public interface IEventService {
-
-    /**
-     * The default topic used for scan events
-     */
-	public static final String SCAN_TOPIC      = "org.eclipse.scanning.scan.topic";
-    /**
-     * The default topic used for scan events
-     */
-	public static final String STATUS_TOPIC      = "org.eclipse.scanning.status.topic";
-	
-	/**
-	 * The default topic used for heartbeat events.
-	 */
-	public static final String HEARTBEAT_TOPIC = "org.eclipse.scanning.alive.topic";
-	
-	/**
-	 * The default topic used for terminate events.
-	 */
-	public static final String CMD_TOPIC = "org.eclipse.scanning.command.topic";
-
-	/**
-	 * The default queue used for holding status events.
-	 */
-	public static final String SUBMISSION_QUEUE = "org.eclipse.scanning.submission.queue";
-
-	/**
-	 * The default queue used for holding status events.
-	 */
-	public static final String STATUS_SET = "org.eclipse.scanning.status.set";
-	
-	/**
-	 * Topic used to tell UI users that a give consumer will be going down.
-	 */
-	public static final String ADMIN_MESSAGE_TOPIC = "org.eclipse.scanning.consumer.administratorMessage";
-
-    /**
-     * The default topic used for requests. It is better to use your own topic rather than the default.
-     */
-	public static final String REQUEST_TOPIC      = "org.eclipse.scanning.request.topic";
-
-    /**
-     * The default topic used for responses. It is better to use your own topic rather than the default.
-     */
-	public static final String RESPONSE_TOPIC      = "org.eclipse.scanning.response.topic";
+public interface IEventService extends EventConstants {
 
 	/**
 	 * Creates an ISubscriber with the default scan event topic and default heartbeat topic.
