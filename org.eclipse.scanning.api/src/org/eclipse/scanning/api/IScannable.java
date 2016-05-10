@@ -36,7 +36,9 @@ public interface IScannable<T> extends ILevel, INameable, ITimeoutable {
 	 * @param position
 	 * @throws Exception
 	 */
-	public void setPosition(T value) throws Exception;
+	default void setPosition(T value) throws Exception {
+		setPosition(value, null);
+	}
 
 	
 	/**
