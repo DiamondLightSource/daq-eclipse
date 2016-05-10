@@ -83,7 +83,7 @@ public class AbstractBenchmarkScanTest {
 		long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge,  10, detector));  
 		
 		// should take not more than 4*point64 sleep + scan time
-		long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, 10L,   10, detector));  
+		long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, 12L,   10, detector));  
 		
 //		// should take not more than 4*point64 sleep + scan time
 //		long point1000  = benchmarkStep(new BenchmarkBean(1000,  (10*point100)+fudge, 10L, 10, detector));  
@@ -133,7 +133,7 @@ public class AbstractBenchmarkScanTest {
 			long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge, max,   10, detector, output));  
 			
 			// should take not more than 4*point64 sleep + scan time
-			long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, max,   10, detector, output));  
+			long point100   = benchmarkStep(new BenchmarkBean(100,   (10*point10)+fudge, max,  10, detector, output));  
 			
 			return point100/100;
 			
