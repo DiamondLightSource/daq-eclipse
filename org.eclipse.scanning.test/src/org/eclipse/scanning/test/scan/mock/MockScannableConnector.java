@@ -12,10 +12,10 @@ import org.eclipse.scanning.api.scan.ScanningException;
 
 public class MockScannableConnector implements IDeviceConnectorService {
 
-	private static Map<String, INameable> cache;
+	private Map<String, INameable> cache;
 	
 	// Create a few random scannables with different levels.
-	static {
+	public MockScannableConnector() {
 		System.out.println("Starting up Mock IDeviceConnectorService");
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		register(new MockTopupMonitor("topup", 10d,  -1));
@@ -48,7 +48,7 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		
 	}
 
-	private static void register(INameable mockScannable) {
+	private void register(INameable mockScannable) {
 		cache.put(mockScannable.getName(), mockScannable);
 	}
 
