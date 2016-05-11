@@ -162,6 +162,16 @@ public class AbstractScanTest {
 	}
 	
 	@Test
+	public void testAbortSimpleScan() throws Exception {
+				
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
+		scanner.start(null);
+		Thread.sleep(100);
+		scanner.abort();
+		assertTrue("The Device state was "+scanner.getDeviceState()+" not "+DeviceState.ABORTED, scanner.getDeviceState()==DeviceState.ABORTED);
+	}
+	
+	@Test
 	public void testThreadCount() throws Exception {
 			
 		int before = Thread.activeCount();
@@ -338,9 +348,9 @@ public class AbstractScanTest {
 			checkRun(scanner);
 			
 			// Bit of a hack to get the generator from the model - should this be easier?
-			IPointGenerator<?,IPosition> gen = (IPointGenerator<?,IPosition>)((ScanModel)((AbstractRunnableDevice)scanner).getModel()).getPositionIterable();
+			IPointGenerator<?> gen = (IPointGenerator<?>)((ScanModel)((AbstractRunnableDevice)scanner).getModel()).getPositionIterable();
 			assertEquals(gen.size(), events.size());
-			assertEquals(Arrays.asList(DeviceState.READY, DeviceState.RUNNING, DeviceState.READY), states);
+			assertEquals(Arrays.asList(DeviceState.CONFIGURING, DeviceState.READY, DeviceState.RUNNING, DeviceState.READY), states);
 			
 			for (ScanBean b : events) assertEquals("fred", b.getUniqueId());
 		
@@ -384,12 +394,12 @@ public class AbstractScanTest {
 		ms.verify(null, new Point(2,0.3,0,1.5));
 		ms.verify(null, new Point(2,1.5,2,1.5));
 	}
-
+	
 	private void checkRun(IRunnableDevice<ScanModel> scanner) throws Exception {
 		// Bit of a hack to get the generator from the model - should this be easier?
 		// Do not copy this code
 		ScanModel smodel = (ScanModel)((AbstractRunnableDevice)scanner).getModel();
-		IPointGenerator<?,IPosition> gen = (IPointGenerator<?,IPosition>)smodel.getPositionIterable();
+		IPointGenerator<?> gen = (IPointGenerator<?>)smodel.getPositionIterable();
 		MockDetectorModel dmodel = (MockDetectorModel)((AbstractRunnableDevice)smodel.getDetectors().get(0)).getModel();
 		assertEquals(gen.size(), dmodel.getRan());
 		assertEquals(gen.size(), dmodel.getWritten());
@@ -417,7 +427,7 @@ public class AbstractScanTest {
 			((GridModel) pmodel).setBoundingBox(new BoundingBox(0,0,3,3));
 		}
 		
-		IPointGenerator<?,IPosition> gen = gservice.createGenerator(pmodel);
+		IPointGenerator<?> gen = gservice.createGenerator(pmodel);
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();

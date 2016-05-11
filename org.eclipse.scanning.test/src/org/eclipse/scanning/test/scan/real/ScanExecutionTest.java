@@ -112,7 +112,7 @@ public class ScanExecutionTest {
 		gmodel.setSlowAxisPoints(size[size.length-1]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,2,2));
 		
-		IPointGenerator<?,IPosition> gen = generatorService.createGenerator(gmodel);
+		IPointGenerator<?> gen = generatorService.createGenerator(gmodel);
 		
 		// We add the outer scans, if any
 		if (size.length > 2) { 
@@ -123,7 +123,7 @@ public class ScanExecutionTest {
 				} else {
 					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 				}
-				final IPointGenerator<?,IPosition> step = generatorService.createGenerator(model);
+				final IPointGenerator<?> step = generatorService.createGenerator(model);
 				gen = generatorService.createCompoundGenerator(step, gen);
 			}
 		}
@@ -142,7 +142,7 @@ public class ScanExecutionTest {
 		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = runnableDeviceService.createRunnableDevice(smodel, null);
 		
-		final IPointGenerator<?,IPosition> fgen = gen;
+		final IPointGenerator<?> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{

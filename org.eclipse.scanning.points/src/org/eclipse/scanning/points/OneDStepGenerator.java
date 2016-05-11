@@ -7,11 +7,12 @@ import java.util.List;
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 
-class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
+class OneDStepGenerator extends AbstractGenerator<OneDStepModel> {
 
 	OneDStepGenerator() {
 		setLabel("Point");
@@ -24,7 +25,7 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 	}
 
 	@Override
-	protected Iterator<Point> iteratorFromValidModel() {
+	protected Iterator<IPosition> iteratorFromValidModel() {
 		try {
 			return createPoints().iterator();
 		} catch (GeneratorException e) {
@@ -33,7 +34,7 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 	}
 
 	@Override
-	public List<Point> createPoints() throws GeneratorException {
+	public List<IPosition> createPoints() throws GeneratorException {
 		// FIXME: Make this work with just a bounding line (i.e. no ROI).
 
 		// FIXME: This code can be called without validateModel() ever having been run.
@@ -56,7 +57,7 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel,Point> {
 		double length = line.getLength();
 		double proportionalStep = model.getStep() / length;
 		int steps = (int) Math.floor(length / model.getStep());
-		List<Point> points = new ArrayList<>();
+		List<IPosition> points = new ArrayList<>();
 		for (int i = 0; i <= steps; i++) {
 			// LinearROI has a helpful getPoint(double) method which returns coordinates of a point at a normalised
 			// distance along the line

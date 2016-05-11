@@ -47,7 +47,7 @@ public enum DeviceState {
 		return this==RUNNING || this==CONFIGURING || this==ABORTING || this==PAUSING;
 	}
 
-	public boolean isPostRun() {
-		return this==IDLE||this==READY||this==FAULT;
+	public boolean isRestState() {
+		return this==IDLE||this==READY||this==FAULT||this==ABORTED;
 	}
 }

@@ -110,45 +110,6 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		setDeviceState(DeviceState.IDLE);
 	}
 	
-	public void start(final IPosition pos) throws ScanningException, InterruptedException {
-		
-		final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>(1));
-		final Thread thread = new Thread(new Runnable() {
-			public void run() {
-				try {
-					AbstractRunnableDevice.this.run(pos);
-				} catch (ScanningException|InterruptedException e) {
-					// If you add an exception type to this catch clause,
-					// you must also add an "else if" clause for it inside
-					// the "if (!exceptions.isEmpty())" conditional below.
-					e.printStackTrace();
-					exceptions.add(e);
-				}
-			}
-		}, "Scan Runner Thread "+getName());
-		thread.start();
-		
-		// We delay by 500ms just so that we can 
-		// immediately throw any connection exceptions
-		Thread.sleep(500);
-		
-		// Re-throw any exception from the thread.
-		if (!exceptions.isEmpty()) {
-			Throwable ex = exceptions.get(0);
-
-			// We must manually match the possible exception types because Java
-			// doesn't let us do List<Either<ScanningException, InterruptedException>>.
-			if (ex.getClass() == ScanningException.class) {
-				throw (ScanningException) ex;
-
-			} else if (ex.getClass() == InterruptedException.class) {
-				throw (InterruptedException) ex;
-
-			} else {
-				throw new IllegalStateException();
-			}
-		}
-	}
 
 	/**
 	 * 
@@ -220,7 +181,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		
 		if (rlisteners==null) return;
 		
-		final RunEvent evt = new RunEvent(this, position);
+		final RunEvent evt = new RunEvent(this, position, getDeviceState());
 		
 		// Make array, avoid multi-threading issues.
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
@@ -231,7 +192,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		
 		if (rlisteners==null) return;
 		
-		final RunEvent evt = new RunEvent(this, position);
+		final RunEvent evt = new RunEvent(this, position, getDeviceState());
 		
 		// Make array, avoid multi-threading issues.
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
@@ -242,7 +203,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		
 		if (rlisteners==null) return;
 		
-		final RunEvent evt = new RunEvent(this, position);
+		final RunEvent evt = new RunEvent(this, position, getDeviceState());
 		
 		// Make array, avoid multi-threading issues.
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
@@ -253,7 +214,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		
 		if (rlisteners==null) return;
 		
-		final RunEvent evt = new RunEvent(this, position);
+		final RunEvent evt = new RunEvent(this, position, getDeviceState());
 		
 		// Make array, avoid multi-threading issues.
 		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);

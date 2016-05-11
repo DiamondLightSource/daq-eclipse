@@ -7,7 +7,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 
-public class ArrayGenerator extends AbstractGenerator<ArrayModel, IPosition> {
+public class ArrayGenerator extends AbstractGenerator<ArrayModel> {
 	
 	ArrayGenerator() {
 		setLabel("Array Scan");

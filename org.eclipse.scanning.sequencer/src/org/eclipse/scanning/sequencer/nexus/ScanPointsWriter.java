@@ -3,10 +3,13 @@ package org.eclipse.scanning.sequencer.nexus;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.dawnsci.analysis.api.dataset.Dtype;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
+import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
@@ -86,9 +89,13 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		addLinksToExternalFiles(scanPointsCollection);
 
 		// create the scan finished dataset and set the initial value to false
-		scanFinished = scanPointsCollection.initializeFixedSizeLazyDataset(
-				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
+//		scanFinished = scanPointsCollection.initializeFixedSizeLazyDataset(
+//				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
+		// TODO: workaround for bug in HD5 loader, do not set size limit 
+		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, Dtype.INT32, new int[] { 1 },
+				new int[] { -1 }, null, null);
 		scanFinished.setFillValue(0);
+		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);
 		
 		return scanPointsCollection;
 	}
@@ -106,23 +113,20 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	}
 	
 	@Override
-	public void runPerformed(RunEvent evt) throws ScanningException {
-		Dataset trueDataset = DatasetFactory.createFromObject(1); // TODO hdf5 does not support boolean
-		try {
-			scanFinished.setSlice(null, trueDataset,
-					new int[] { 0 }, new int[] { 1 }, new int[] { 1 });
-		} catch (Exception e) {
-			throw new ScanningException("Could not write scanFinished to NeXus file", e);
-		}
+	public void runWillPerform(RunEvent evt) throws ScanningException {
+		writeScanFinished(false);
 	}
-	
-	
 
 	@Override
-	public void runWillPerform(RunEvent evt) throws ScanningException {
-		final Dataset falseDataset = DatasetFactory.createFromObject(0);
+	public void runPerformed(RunEvent evt) throws ScanningException {
+		writeScanFinished(true);
+	}
+
+	private void writeScanFinished(boolean scanFinished) throws ScanningException {
+		final int intValue = scanFinished ? 1 : 0;
+		final Dataset dataset = IntegerDataset.createFromObject(intValue);
 		try {
-			scanFinished.setSlice(null, falseDataset,
+			this.scanFinished.setSlice(null, dataset,
 					new int[] { 0 }, new int[] { 1 }, new int[] { 1 });
 		} catch (Exception e) {
 			throw new ScanningException("Could not write scanFinished to NeXus file", e);

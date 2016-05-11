@@ -17,6 +17,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
@@ -207,10 +209,11 @@ public class MandelbrotExamplePluginTest {
 		// check that the scan points have been written correctly
 		assertScanPointsGroup(entry, sizes);
 		
-		LinkedHashMap<String, Integer> detectorDataFields = new LinkedHashMap<>();
-		detectorDataFields.put(NXdetector.NX_DATA, 2); // num additional dimensions
-		detectorDataFields.put("spectrum", 1);
-		detectorDataFields.put("value", 0);
+		LinkedHashMap<String, List<String>> detectorDataFields = new LinkedHashMap<>();
+		// axis for additional dimensions of a datafield, e.g. image
+		detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("real", "imaginary"));
+		detectorDataFields.put("spectrum", Arrays.asList("spectrum_axis"));
+		detectorDataFields.put("value", Collections.emptyList());
 		
 		String detectorName = scanModel.getDetectors().get(0).getName();
 		NXdetector detector = instrument.getDetector(detectorName);
@@ -252,12 +255,10 @@ public class MandelbrotExamplePluginTest {
 			final IPosition pos = scanModel.getPositionIterable().iterator().next();
 			final List<String> scannableNames = pos.getNames();
 
-			// Append _value_demand to each name in list
-			List<String> expectedAxesNames = scannableNames.stream().map(
-					x -> x + "_value_demand").collect(Collectors.toList());
-			// add placeholder value "." for each additional dimension of dataset
-			int valueRank = detectorDataFields.get(sourceFieldName);
-			expectedAxesNames.addAll(Collections.nCopies(valueRank, "."));
+			// Append _value_demand to each name in list, then add detector axis fields to result
+			List<String> expectedAxesNames = Stream.concat(
+					scannableNames.stream().map(x -> x + "_value_demand"),
+					detectorDataFields.get(sourceFieldName).stream()).collect(Collectors.toList());
 			assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 
 			// assert that the uniqueKeys and points datasets have been written correctly
@@ -309,7 +310,7 @@ public class MandelbrotExamplePluginTest {
 		gmodel.setSlowAxisPoints(size[size.length-2]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
-		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+		IPointGenerator<?> gen = gservice.createGenerator(gmodel);
 		
 		// We add the outer scans, if any
 		if (size.length > 2) { 
@@ -320,7 +321,7 @@ public class MandelbrotExamplePluginTest {
 				} else {
 					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 				}
-				final IPointGenerator<?,IPosition> step = gservice.createGenerator(model);
+				final IPointGenerator<?> step = gservice.createGenerator(model);
 				gen = gservice.createCompoundGenerator(step, gen);
 			}
 		}
@@ -339,13 +340,12 @@ public class MandelbrotExamplePluginTest {
 		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
 		
-		final IPointGenerator<?,IPosition> fgen = gen;
+		final IPointGenerator<?> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
-					public void runWillPerform(RunEvent evt)
-							throws ScanningException {
-						try {
-							System.out.println("Running acquisition scan of size "+fgen.size());
+			public void runWillPerform(RunEvent evt) throws ScanningException {
+				try {
+					System.out.println("Running acquisition scan of size "+fgen.size());
 				} catch (GeneratorException e) {
 					throw new ScanningException(e);
 				}

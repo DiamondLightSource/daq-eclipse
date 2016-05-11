@@ -224,7 +224,7 @@ public class BasicScanPluginTest {
 	private IRunnableDevice<ScanModel> createStepScan(IScannable<?> monitor,
 			IScannable<?> metadataScannable, int... size) throws Exception {
 		
-		IPointGenerator<?,IPosition> gen = null;
+		IPointGenerator<?> gen = null;
 		
 		// We add the outer scans, if any
 		for (int dim = size.length-1; dim>-1; dim--) {
@@ -234,7 +234,7 @@ public class BasicScanPluginTest {
 			} else {
 				model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 			}
-			final IPointGenerator<?,IPosition> step = gservice.createGenerator(model);
+			final IPointGenerator<?> step = gservice.createGenerator(model);
 			if (gen!=null) {
 				gen = gservice.createCompoundGenerator(step, gen);
 			} else {
@@ -257,7 +257,7 @@ public class BasicScanPluginTest {
 		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
 		
-		final IPointGenerator<?,IPosition> fgen = gen;
+		final IPointGenerator<?> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{

@@ -47,5 +47,15 @@ public class ServiceHolder {
 	public void setLoaderService(ILoaderService loaderService) {
 		ServiceHolder.loaderService = loaderService;
 	}
+
+	/**
+	 * Used to provide servcices when tests running in non-OSGi mode.
+	 * @param ls
+	 * @param defaultNexusBuilderFactory
+	 */
+	public static void setTestServices(ILoaderService ls, NexusBuilderFactory defaultNexusBuilderFactory) {
+		loaderService = ls;
+		factory = defaultNexusBuilderFactory;
+	}
 	
 }

@@ -3,14 +3,15 @@ package org.eclipse.scanning.points;
 import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 
-class GridIterator implements Iterator<Point> {
+class GridIterator implements Iterator<IPosition> {
 
-	private final AbstractGenerator<? extends AbstractBoundingBoxModel, Point> gen;
+	private final AbstractGenerator<? extends AbstractBoundingBoxModel> gen;
 	private final int columns;
 	private final int rows;
 	private final boolean snake;

@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.scan.mock;
 
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -32,7 +31,11 @@ public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorMod
 	@Override
 	public boolean write(IPosition position) throws ScanningException {
 		
-		IDataset next = Random.rand(new int[]{1024, 1024});
+		// Grab some memory for a given image size to simulate a CPU detector.
+		if (model.isCreateImage()) {
+			Random.rand(new int[]{1024, 1024});
+		}
+		
 		getModel().setWritten(getModel().getWritten()+1);
 		if (getModel().getAbortCount()>-1 && getModel().getAbortCount()<=getModel().getWritten()) {
 			throw new ScanningException("The detector had a problem writing! This exception should stop the scan running!");

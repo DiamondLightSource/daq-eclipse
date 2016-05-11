@@ -50,6 +50,13 @@ public interface IPosition {
 	 */
 	Object get(String name);
 	
+	/**
+	 * Same as ((Number)get(name)).doubleValue();
+	 * @param name
+	 * @return
+	 */
+	double getValue(String name);
+	
 	/** 
 	 * Get the index of the data for instance in a scan of temperature from 290 to 300 step 1,
 	 * the indices will be 0-10.

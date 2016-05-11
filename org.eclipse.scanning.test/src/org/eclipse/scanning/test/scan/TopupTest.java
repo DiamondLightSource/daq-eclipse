@@ -143,7 +143,7 @@ public class TopupTest {
 		gmodel.setSlowAxisPoints(5);
 		gmodel.setFastAxisPoints(5);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
-		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+		IPointGenerator<?> gen = gservice.createGenerator(gmodel);
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();

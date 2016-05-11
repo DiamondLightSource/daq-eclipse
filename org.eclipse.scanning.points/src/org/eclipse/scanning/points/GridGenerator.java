@@ -3,11 +3,12 @@ package org.eclipse.scanning.points;
 import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.GridModel;
 
-class GridGenerator extends AbstractGenerator<GridModel,Point> {
+class GridGenerator extends AbstractGenerator<GridModel> {
 	
 	GridGenerator() {
 		setLabel("Grid");
@@ -25,7 +26,7 @@ class GridGenerator extends AbstractGenerator<GridModel,Point> {
 	}
 
 	@Override
-	public Iterator<Point> iteratorFromValidModel() {
+	public Iterator<IPosition> iteratorFromValidModel() {
 		return new GridIterator(this);
 	}
 

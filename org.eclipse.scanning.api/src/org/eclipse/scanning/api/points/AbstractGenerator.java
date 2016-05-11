@@ -13,7 +13,7 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * @param <T>
  * @param <P>
  */
-public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPosition> implements IPointGenerator<T, P>, Iterable<P> {
+public abstract class AbstractGenerator<T extends IScanPathModel> implements IPointGenerator<T>, Iterable<IPosition> {
 
 	protected T model;
 	protected List<IPointContainer<?>> containers;
@@ -44,12 +44,12 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 	}
 	
 	@Override
-	final public Iterator<P> iterator() {
+	final public Iterator<IPosition> iterator() {
 		validateModel();
 		return iteratorFromValidModel();
 	};
 
-	protected abstract Iterator<P> iteratorFromValidModel();
+	protected abstract Iterator<IPosition> iteratorFromValidModel();
 
 	/**
 	 * If the given model is considered "invalid", this method throws a 
@@ -75,7 +75,7 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 		// For those generators which implement an iterator,
 		// doing this loop is *much* faster for large arrays
 		// because memory does not have to be allocated.
-		Iterator<P> it = iterator();
+		Iterator<IPosition> it = iterator();
 		int index = -1;
 		while(it.hasNext()) {
 			it.next();
@@ -85,9 +85,9 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 	}
 	
 	@Override
-	public List<P> createPoints() throws GeneratorException {
-		final List<P> points = new ArrayList<P>(89);
-		Iterator<P> it = iterator();
+	public List<IPosition> createPoints() throws GeneratorException {
+		final List<IPosition> points = new ArrayList<IPosition>(89);
+		Iterator<IPosition> it = iterator();
 		while(it.hasNext()) points.add(it.next());
 		return points;
 	}
@@ -188,7 +188,7 @@ public abstract class AbstractGenerator<T extends IScanPathModel, P extends IPos
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		AbstractGenerator<?, ?> other = (AbstractGenerator<?, ?>) obj;
+		AbstractGenerator<?> other = (AbstractGenerator<?>) obj;
 		if (containers == null) {
 			if (other.containers != null)
 				return false;

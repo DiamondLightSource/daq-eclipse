@@ -17,7 +17,7 @@ import org.osgi.framework.Bundle;
 
 public class GeneratorDescriptor implements ISeriesItemDescriptor {
 	
-	private IPointGenerator<?, ?> generator;
+	private IPointGenerator<?> generator;
 	private String id;
 	private IPointGeneratorService pservice;
 
@@ -33,7 +33,7 @@ public class GeneratorDescriptor implements ISeriesItemDescriptor {
 	}
 
 	@Override
-	public IPointGenerator<?, ?> getSeriesObject() throws GeneratorException {
+	public IPointGenerator<?> getSeriesObject() throws GeneratorException {
 		if (generator==null) generator = pservice.createGenerator(id);
 		return generator;
 	}

@@ -5,9 +5,10 @@ import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.EmptyPosition;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.EmptyModel;
 
-public class EmptyGenerator extends AbstractGenerator<EmptyModel,EmptyPosition> {
+public class EmptyGenerator extends AbstractGenerator<EmptyModel> {
 
 	EmptyGenerator() {
 		setLabel("Empty");
@@ -21,8 +22,8 @@ public class EmptyGenerator extends AbstractGenerator<EmptyModel,EmptyPosition> 
 	}
 
 	@Override
-	protected Iterator<EmptyPosition> iteratorFromValidModel() {
-		return Arrays.asList(new EmptyPosition()).iterator();
+	protected Iterator<IPosition> iteratorFromValidModel() {
+		return Arrays.asList((IPosition)new EmptyPosition()).iterator();
 	}
 	
 	// Users to not edit the EmptyGenerator

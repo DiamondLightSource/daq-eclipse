@@ -219,7 +219,7 @@ public class ThreadScanTest {
 		gmodel.setSlowAxisPoints(rows);
 		gmodel.setFastAxisPoints(columns);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
-		IPointGenerator<?,IPosition> gen = gservice.createGenerator(gmodel);
+		IPointGenerator<?> gen = gservice.createGenerator(gmodel);
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();

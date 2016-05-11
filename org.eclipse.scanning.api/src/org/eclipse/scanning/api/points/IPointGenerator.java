@@ -17,7 +17,7 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  *
  * @param <T>
  */
-public interface IPointGenerator<T extends IScanPathModel, P extends IPosition> extends Iterable<P> {
+public interface IPointGenerator<T extends IScanPathModel> extends Iterable<IPosition> {
 	
 	/**
 	 * The model for the generator.
@@ -46,7 +46,7 @@ public interface IPointGenerator<T extends IScanPathModel, P extends IPosition> 
 	 * 
 	 * @return
 	 */
-	Iterator<P> iterator();
+	Iterator<IPosition> iterator();
 	
 	/**
 	 * Relatively slow because all the points have to exist in memory.
@@ -55,7 +55,7 @@ public interface IPointGenerator<T extends IScanPathModel, P extends IPosition> 
 	 * 
 	 * @return
 	 */
-	List<P> createPoints() throws GeneratorException;
+	List<IPosition> createPoints() throws GeneratorException;
 	
 	/**
 	 * The id for this generator. Generators defined by extension must set an it.

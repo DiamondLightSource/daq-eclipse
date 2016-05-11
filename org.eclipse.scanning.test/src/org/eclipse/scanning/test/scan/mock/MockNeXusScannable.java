@@ -73,6 +73,8 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	}
 
 	private void write(Number demand, Number actual, IPosition loc) throws Exception {
+		
+		if (lzValue==null) return;
 		if (actual!=null) {
 			// write actual position
 			final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
@@ -80,6 +82,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			lzValue.setSlice(null, newActualPositionData, sliceND);
 		}
 
+		if (lzDemand==null) return;
 		if (demand!=null) {
 			int index = loc.getIndex(getName());
 			if (index<0) {

@@ -11,6 +11,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
@@ -60,8 +61,8 @@ public class GridTestLarge {
 		long start = System.currentTimeMillis();
 		
 		// Get the point list
-		IPointGenerator<GridModel,Point> gen = service.createGenerator(model, roi);
-        Iterator<Point>       it  = gen.iterator();
+		IPointGenerator<GridModel> gen = service.createGenerator(model, roi);
+        Iterator<IPosition>       it  = gen.iterator();
 
 		long after1 = System.currentTimeMillis();
 
@@ -105,8 +106,8 @@ public class GridTestLarge {
 		gridScanPath.setFastAxisPoints(10000);
 
 		// Get the point list
-		IPointGenerator<GridModel,Point> gen = service.createGenerator(gridScanPath, boundingRectangle);
-		List<Point> points = gen.createPoints();
+		IPointGenerator<GridModel> gen = service.createGenerator(gridScanPath, boundingRectangle);
+		List<IPosition> points = gen.createPoints();
 		
 		assertEquals(10000000, points.size());
 
