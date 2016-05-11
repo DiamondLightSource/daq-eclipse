@@ -81,19 +81,19 @@ public abstract class AbstractSubmissionTest extends AbstractJythonTest {
 		pi.exec("submit(sr, broker_uri='"+brokerUri+"')");
 		testLog.put("Jython command returned.");
 
-		// Jython returns *before* scan is complete.
-		assertEquals("Jython command returned.", testLog.take());
-		assertEquals("Scan complete.", testLog.take());
-	}
-
-	@Test
-	public void testBlockingSubmission() throws InterruptedException {
-		pi.exec("submit(sr, block=True, broker_uri='"+brokerUri+"')");
-		testLog.put("Jython command returned.");
-
 		// Jython returns *after* scan is complete.
 		assertEquals("Scan complete.", testLog.take());
 		assertEquals("Jython command returned.", testLog.take());
+	}
+
+	@Test
+	public void testNonBlockingSubmission() throws InterruptedException {
+		pi.exec("submit(sr, block=False, broker_uri='"+brokerUri+"')");
+		testLog.put("Jython command returned.");
+
+		// Jython returns *before* scan is complete.
+		assertEquals("Jython command returned.", testLog.take());
+		assertEquals("Scan complete.", testLog.take());
 	}
 
 }
