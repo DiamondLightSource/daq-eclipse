@@ -165,7 +165,7 @@ public class AbstractScanTest {
 	public void testAbortSimpleScan() throws Exception {
 				
 		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
-		scanner.run(null);
+		scanner.start(null);
 		Thread.sleep(100);
 		scanner.abort();
 		assertTrue("The Device state was "+scanner.getDeviceState()+" not "+DeviceState.ABORTED, scanner.getDeviceState()==DeviceState.ABORTED);
