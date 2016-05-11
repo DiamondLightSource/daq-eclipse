@@ -78,6 +78,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	@Override
 	public void configure(ScanModel model) throws ScanningException {
 		
+		setDeviceState(DeviceState.CONFIGURING);
 		setModel(model);
 		setBean(model.getBean()!=null?model.getBean():new ScanBean());
 		getBean().setPreviousStatus(getBean().getStatus());
