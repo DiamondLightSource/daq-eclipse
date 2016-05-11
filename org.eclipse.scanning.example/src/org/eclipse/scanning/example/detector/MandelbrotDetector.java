@@ -76,15 +76,12 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		DelegateNexusProvider<NXdetector> nexusProvider = new DelegateNexusProvider<NXdetector>(
 				getName(), NexusBaseClass.NX_DETECTOR, info, this);
 
-		// Add all fields for any NXdata groups that this device creates
-		nexusProvider.setDataFields(NXdetector.NX_DATA, FIELD_NAME_SPECTRUM, FIELD_NAME_VALUE);
-		
 		// "data" is the name of the primary data field (i.e. the 'signal' field of the default NXdata)
-		nexusProvider.setPrimaryDataField(NXdetector.NX_DATA);
+		nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
 		// An additional NXdata group with "spectrum" as the signal to hold the 1D spectrum data
-		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_SPECTRUM);
+		nexusProvider.addAdditionalPrimaryDataFieldName(FIELD_NAME_SPECTRUM);
 		// An additional NXdata group with "value" as the signal to hold the Mandelbrot value
-		nexusProvider.addAdditionalPrimaryDataField(FIELD_NAME_VALUE);
+		nexusProvider.addAdditionalPrimaryDataFieldName(FIELD_NAME_VALUE);
 
 		// Add the axes to the image and spectrum data. scanRank here corresponds to the position
 		// in the axes attribute written in the NeXus file (0 based)

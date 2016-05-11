@@ -32,7 +32,7 @@ import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.AbstractNexusProvider;
+import org.eclipse.dawnsci.nexus.builder.AbstractNexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
@@ -95,7 +95,7 @@ public class ScanPointsWriterTest {
 		
 	}
 	
-	public static class ExternalFileWritingPositioner extends AbstractNexusProvider<NXpositioner> {
+	public static class ExternalFileWritingPositioner extends AbstractNexusObjectProvider<NXpositioner> {
 		
 		public ExternalFileWritingPositioner(String name) {
 			super(name, NexusBaseClass.NX_POSITIONER, NXpositioner.NX_VALUE);
@@ -111,7 +111,7 @@ public class ScanPointsWriterTest {
 		}
 	}
 	
-	public static class ExternalFileWritingDetector extends AbstractNexusProvider<NXdetector> {
+	public static class ExternalFileWritingDetector extends AbstractNexusObjectProvider<NXdetector> {
 		
 		public static final String EXTERNAL_FILE_NAME = "detector.nxs";
 		

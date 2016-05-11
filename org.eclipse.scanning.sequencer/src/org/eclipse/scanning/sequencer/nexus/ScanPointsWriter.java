@@ -49,6 +49,8 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	private ILazyWriteableDataset points = null;
 	
 	private ILazyWriteableDataset scanFinished = null;
+
+	private DelegateNexusProvider<NXcollection> nexusProvider = null;
 	
 	public void setNexusObjectProviders(List<NexusObjectProvider<?>> nexusObjectProviders) {
 		this.nexusObjectProviders = nexusObjectProviders;
@@ -59,11 +61,14 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	 */
 	@Override
 	public NexusObjectProvider<NXcollection> getNexusProvider(NexusScanInfo info) {
-		DelegateNexusProvider<NXcollection> nexusProvider = new DelegateNexusProvider<NXcollection>(
-				GROUP_NAME_SOLSTICE_SCAN, NexusBaseClass.NX_COLLECTION,
-				info, this);
-		nexusProvider.setPrimaryDataField(FIELD_NAME_UNIQUE_KEYS);
-		nexusProvider.setDataFields(FIELD_NAME_UNIQUE_KEYS, FIELD_NAME_POINTS);
+		// Note: NexusScanFileBuilder relies on this method returning the same object each time
+		if (nexusProvider == null) {
+			nexusProvider = new DelegateNexusProvider<NXcollection>(
+					GROUP_NAME_SOLSTICE_SCAN, NexusBaseClass.NX_COLLECTION,
+					info, this);
+			nexusProvider.setPrimaryDataFieldName(FIELD_NAME_UNIQUE_KEYS);
+			nexusProvider.setDataFieldNames(FIELD_NAME_UNIQUE_KEYS, FIELD_NAME_POINTS);
+		}
 		
 		return nexusProvider;
 	}

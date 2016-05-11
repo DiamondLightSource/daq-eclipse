@@ -12,6 +12,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -236,8 +237,14 @@ public class MandelbrotExamplePluginTest {
 			// check the nxData's signal field is a link to the appropriate source data node of the detector
 			DataNode dataNode = detector.getDataNode(sourceFieldName);
 			IDataset dataset = dataNode.getDataset().getSlice();
-
 			assertSame(dataNode, nxData.getDataNode(sourceFieldName));
+			
+			// check that the other primary data fields of the detector haven't been added to this NXdata
+			detectorDataFields.keySet().stream().
+				filter(fieldName -> !fieldName.equals(sourceFieldName)).
+				forEach(fieldName -> {
+					assertNull(nxData.getDataNode(fieldName));
+				});
 
 			int[] shape = dataset.getShape();
 			for (int i = 0; i < sizes.length; i++)
@@ -268,8 +275,7 @@ public class MandelbrotExamplePluginTest {
 			for (int i = 0; i < scannableNames.size(); i++) {
 				// Demand values should be 1D
 				String scannableName = scannableNames.get(i);
-				NXpositioner positioner = instrument
-						.getPositioner(scannableName);
+				NXpositioner positioner = instrument.getPositioner(scannableName);
 				assertNotNull(positioner);
 
 				dataNode = positioner.getDataNode("value_demand");
