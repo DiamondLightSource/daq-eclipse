@@ -378,7 +378,7 @@ public class ScanServletPluginTest {
 		// We will run this test without real GDA devices. Therefore we
 		// override the connector
 		// DO NOT COPY TESTING ONLY
-		RunnableDeviceServiceImpl.setDeviceConnectorService(new MockScannableConnector()); 
+		(new RunnableDeviceServiceImpl()).setDeviceConnectorService(new MockScannableConnector()); 
 		
 		
 		// Put a connection in the DeviceServiceImpl which is used for the test
@@ -389,7 +389,8 @@ public class ScanServletPluginTest {
 		((RunnableDeviceServiceImpl)Services.getRunnableDeviceService())._registerConnection(URI.create("tcp://standard"), connection);
 		
 		// DO NOT COPY TESTING ONLY
-		Services.setConnector(new MockScannableConnector());
+		Services services = new Services();
+		services.setConnector(new MockScannableConnector());
 		
 		// We double check that the services injected into the servlet bundle are there.
 		assertNotNull(Services.getConnector());
