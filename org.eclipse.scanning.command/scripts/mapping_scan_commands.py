@@ -106,7 +106,8 @@ def submit(request, now=False, block=True,
 
     See the mscan() docstring for details of `now` and `block`.
     """
-    scan_bean = _instantiate(ScanBean, {'scanRequest': request})
+    scan_bean = _instantiate(ScanBean, {'scanRequest': request,
+                                        'name': '(Jython scan request)'})
 
     if now:
         raise NotImplementedError()  # TODO: Raise priority.
