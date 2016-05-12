@@ -41,6 +41,7 @@ interest (ROI) when using grid(). They are: circ(), rect(), poly().
 #
 #   mscan() will send your updated detector model as part of the ScanRequest.
 
+from java.util import HashMap
 from java.net import URI
 from org.eclipse.dawnsci.analysis.dataset.roi import (
     CircularROI, RectangularROI, PolygonalROI, PolylineROI, PointROI)
@@ -105,7 +106,8 @@ def submit(request, now=False, block=True,
 
     See the mscan() docstring for details of `now` and `block`.
     """
-    scan_bean = _instantiate(ScanBean, {'scanRequest': request})
+    scan_bean = _instantiate(ScanBean, {'scanRequest': request,
+                                        'name': '(Jython scan request)'})
 
     if now:
         raise NotImplementedError()  # TODO: Raise priority.
@@ -143,16 +145,17 @@ def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
 
     # ScanRequest expects ROIs to be specified as a map in the following
     # (bizarre?) format:
-    roi_map = {}  # No dict comprehensions in Python 2.5!
+    # (Use a HashMap here (not a plain Python dict) because otherwise run-time
+    # errors occur if someone later calls scanRequest.getRegions().hashCode().)
+    roi_map = HashMap()
     for (model, rois) in scan_paths:
         if len(rois) > 0:
             roi_map[model.getUniqueKey()] = rois
-    # Nicer Python 2.7 version for if the Jython interpreter is ever upgraded:
-    # roi_map = {model.getUniqueKey(): rois
-    #            for (model, rois) in scan_paths if len(rois) > 0}
 
-    detector_map = dict(detectors)
-    # Equivalent to (Python 2.7) {name: model for (name, model) in detectors}.
+    # (Again, use a HashMap, not a Python dict.)
+    detector_map = HashMap()
+    for (name, model) in detectors:
+        detector_map[name] = model
 
     return _instantiate(ScanRequest,
                         {'models': scan_path_models,
