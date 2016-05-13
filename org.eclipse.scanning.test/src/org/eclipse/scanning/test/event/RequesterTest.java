@@ -52,8 +52,9 @@ public class RequesterTest extends AbstractRequesterTest {
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 
-		Services.setRunnableDeviceService(dservice);
-		Services.setEventService(eservice);
+		Services services = new Services();
+		services.setRunnableDeviceService(dservice);
+		services.setEventService(eservice);
 	
 		connect(eservice, dservice);
 	}

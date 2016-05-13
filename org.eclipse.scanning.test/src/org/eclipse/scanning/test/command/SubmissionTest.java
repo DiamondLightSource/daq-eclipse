@@ -13,7 +13,8 @@ public class SubmissionTest extends AbstractSubmissionTest {
 	protected void setUpEventService() {
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
-		Services.setEventService(eservice);
+		Services services = new Services();
+		services.setEventService(eservice);
 	}
 
 }

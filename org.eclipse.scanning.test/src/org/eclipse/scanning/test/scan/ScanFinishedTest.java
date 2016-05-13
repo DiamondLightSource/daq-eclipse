@@ -76,10 +76,11 @@ public class ScanFinishedTest {
 		lservice = new LoaderServiceMock();
 		
 		// Provide lots of services that OSGi would normally.
-		Services.setEventService(eservice);
-		Services.setRunnableDeviceService(dservice);
-		Services.setGeneratorService(gservice);
-		Services.setConnector(connector);
+		Services services = new Services();
+		services.setEventService(eservice);
+		services.setRunnableDeviceService(dservice);
+		services.setGeneratorService(gservice);
+		services.setConnector(connector);
 		ServiceHolder.setTestServices(lservice, new DefaultNexusBuilderFactory());
 		org.eclipse.dawnsci.nexus.ServiceHolder.setNexusFileFactory(new NexusFileFactoryHDF5());
 	}
