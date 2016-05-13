@@ -20,6 +20,9 @@ import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IDeviceDependentIterable;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
@@ -57,7 +60,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private ReentrantLock    lock;
 	private Condition        paused;
 	private volatile boolean awaitPaused;
-	
+		
 	/**
 	 * Package private constructor, devices are created by the service.
 	 */
@@ -102,7 +105,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		// add legacy metadata scannables and 
 		// tell each scannable whether or not it is a metadata scannable in this scan
-		setMetadataScannables(model);
+		List<String> scannableNames = getScannableNames(model.getPositionIterable());
+		setMetadataScannables(model, scannableNames);
 		
 		// create the nexus file, if appropriate
 		try {
@@ -123,12 +127,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	 * @throws ScanningException
 	 */
 	@SuppressWarnings("deprecation")
-	private void setMetadataScannables(ScanModel model) throws ScanningException {
+	private void setMetadataScannables(ScanModel model, List<String> scannableNames) throws ScanningException {
 		// TODO: does this belong in NexusScanFileBuilder? It's clogging up this class
 		// and only NexusScanFileBuilder needs to know about metadata scannables
-		
-		// use the first position to get the names of the scannables in the scan
-		List<String> scannableNames = model.getPositionIterable().iterator().next().getNames();
 		
 		// build up the set of all metadata scannables
 		Set<String> metadataScannableNames = new HashSet<>();
@@ -213,14 +214,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		int size  = 0;
+    		int size  = getSize(model.getPositionIterable());
     		int count = 0;
-    		for (IPosition unused : model.getPositionIterable()) size++; // Fast even for large stuff
-    		
+
     		fireStart(size);    		
 
-    		// Notify that we will do a run and provide the first position.
-        	fireRunWillPerform(model.getPositionIterable().iterator().next());
 
     		// We allow monitors which can block a position until a setpoint is
     		// reached or add an extra record to the NeXus file.
@@ -228,10 +226,17 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 
     		// The scan loop
         	pos = null; // We want the last point when we are done so don't use foreach
+        	boolean firedFirst = false;
 	        for (Iterator<IPosition> it = model.getPositionIterable().iterator(); it.hasNext();) {
 				
 	        	pos = it.next();
 	        	pos.setStepIndex(count);
+	        	
+	        	if (!firedFirst) {
+	        		// Notify that we will do a run and provide the first position.
+	            	fireRunWillPerform(pos);
+	            	firedFirst = true;
+	        	}
 	        	
 	        	// Check if we are paused, blocks until we are not
 	        	boolean continueRunning = checkPaused();
@@ -450,4 +455,34 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	public boolean isVirtual() {
 		return true;
 	}
+	
+
+	private List<String> getScannableNames(Iterable<IPosition> gen) {
+		
+		List<String> names = null;
+		if (gen instanceof IDeviceDependentIterable) {
+			names = ((IDeviceDependentIterable)gen).getScannableNames();
+			
+		}
+		if (names==null) {
+			names = model.getPositionIterable().iterator().next().getNames();
+		}
+		return names;   		
+	}
+	
+	private int getSize(Iterable<IPosition> gen) throws GeneratorException {
+		
+		int size=0;
+		if (gen instanceof IDeviceDependentIterable) {
+			size = ((IDeviceDependentIterable)gen).size();
+			
+		} else if (gen instanceof IPointGenerator<?>) {
+			size = ((IPointGenerator<?>)gen).size();
+			
+		} else {
+		    for (IPosition unused : model.getPositionIterable()) size++; // Fast even for large stuff providing they do not check hardware on the next() call.
+		}
+		return size;   		
+	}
+
 }
