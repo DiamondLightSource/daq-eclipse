@@ -274,7 +274,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		return deviceConnectorService;
 	}
 
-	public void setDeviceConnectorService(IDeviceConnectorService connectorService) {
+	public static void setDeviceConnectorService(IDeviceConnectorService connectorService) {
 		RunnableDeviceServiceImpl.deviceConnectorService = connectorService;
 	}
 	

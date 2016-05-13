@@ -38,7 +38,7 @@ public class Services {
 		return filePathService;
 	}
 
-	public void setFilePathService(IFilePathService filePathService) {
+	public static void setFilePathService(IFilePathService filePathService) {
 		Services.filePathService = filePathService;
 	}
 
@@ -46,7 +46,7 @@ public class Services {
 		return eventService;
 	}
 
-	public void setEventService(IEventService eventService) {
+	public static void setEventService(IEventService eventService) {
 		Services.eventService = eventService;
 	}
 
@@ -54,7 +54,7 @@ public class Services {
 		return generatorService;
 	}
 
-	public void setGeneratorService(IPointGeneratorService generatorService) {
+	public static void setGeneratorService(IPointGeneratorService generatorService) {
 		Services.generatorService = generatorService;
 	}
 
@@ -62,7 +62,7 @@ public class Services {
 		return runnableDeviceService;
 	}
 
-	public void setRunnableDeviceService(IRunnableDeviceService deviceService) {
+	public static void setRunnableDeviceService(IRunnableDeviceService deviceService) {
 		Services.runnableDeviceService = deviceService;
 	}
 
@@ -70,7 +70,7 @@ public class Services {
 		return connector;
 	}
 
-	public void setConnector(IDeviceConnectorService connector) {
+	public static void setConnector(IDeviceConnectorService connector) {
 		Services.connector = connector;
 	}
 
@@ -78,7 +78,7 @@ public class Services {
 		return malcService;
 	}
 
-	public void setMalcService(IMalcolmService malcService) {
+	public static void setMalcService(IMalcolmService malcService) {
 		Services.malcService = malcService;
 	}
 
@@ -86,7 +86,7 @@ public class Services {
 		return scriptService;
 	}
 
-	public void setScriptService(IScriptService scriptService) {
+	public static void setScriptService(IScriptService scriptService) {
 		Services.scriptService = scriptService;
 	}
 
