@@ -97,10 +97,10 @@ public class AtomQueueService implements IQueueService {
 		eventService = evServ;
 	}
 	
-	public synchronized void unsetEventService() {
+	public synchronized void unsetEventService(IEventService evServ) {
 		try {
-			stop(true);
-		} catch(EventException ex) {
+			if (alive) stop(true);
+		} catch (Exception ex) {
 			logger.error("Error stopping the queue service");
 		}
 		eventService = null;
@@ -144,7 +144,8 @@ public class AtomQueueService implements IQueueService {
 		//Dispose the job queue
 		disposeQueue(getJobQueueID(), true);
 	}
-		
+
+	@Override
 	public void start() throws EventException {
 		if (!jobQueue.getQueueStatus().isStartable()) {
 			throw new EventException("Job queue not startable - Status: " + jobQueue.getQueueStatus());
