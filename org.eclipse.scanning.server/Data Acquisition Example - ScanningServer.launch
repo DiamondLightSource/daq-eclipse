@@ -10,7 +10,7 @@
 <booleanAttribute key="clearConfig" value="false"/>
 <booleanAttribute key="clearws" value="false"/>
 <booleanAttribute key="clearwslog" value="false"/>
-<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/ScanningServer"/>
+<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/Data Acquisition Example - ScanningServer"/>
 <booleanAttribute key="default" value="false"/>
 <stringAttribute key="deselected_workspace_plugins" value="org.eclipse.dawnsci.nexus.test,org.eclipse.dawnsci.remotedataset.test,org.eclipse.scanning.example.xcen.test,org.eclipse.scanning.test"/>
 <booleanAttribute key="includeOptional" value="true"/>
