@@ -9,7 +9,7 @@
 <booleanAttribute key="clearConfig" value="false"/>
 <booleanAttribute key="clearws" value="false"/>
 <booleanAttribute key="clearwslog" value="false"/>
-<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/ScanningClient"/>
+<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/Data Acquisition Example - ScanningClient"/>
 <booleanAttribute key="default" value="false"/>
 <stringAttribute key="deselected_workspace_plugins" value="org.eclipse.dawnsci.hdf5.model.test,org.eclipse.dawnsci.hdf5.test,org.eclipse.dawnsci.json.test,org.eclipse.dawnsci.nexus.test,org.eclipse.dawnsci.remotedataset.test,org.eclipse.richbeans.generator.test,org.eclipse.scanning.example.xcen.test,org.eclipse.scanning.test,uk.ac.diamond.daq.activemq.connector.test"/>
 <booleanAttribute key="includeOptional" value="true"/>

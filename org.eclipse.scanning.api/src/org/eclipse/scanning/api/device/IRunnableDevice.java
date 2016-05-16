@@ -1,5 +1,9 @@
 package org.eclipse.scanning.api.device;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
@@ -66,7 +70,53 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	 * @throws ScanningException
 	 */
 	public void run(IPosition position) throws ScanningException, InterruptedException;
+	
+	/**
+	 * The default implementation of start simply executes run in a thread named using the getName() value.
+	 * @param pos
+	 * @throws ScanningException
+	 * @throws InterruptedException
+	 */
+	default void start(final IPosition pos) throws ScanningException, InterruptedException {
+		
+		final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>(1));
+		final Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					IRunnableDevice.this.run(pos);
+				} catch (ScanningException|InterruptedException e) {
+					// If you add an exception type to this catch clause,
+					// you must also add an "else if" clause for it inside
+					// the "if (!exceptions.isEmpty())" conditional below.
+					e.printStackTrace();
+					exceptions.add(e);
+				}
+			}
+		}, getName()+" execution thread");
+		thread.start();
+		
+		// We delay by 500ms just so that we can 
+		// immediately throw any connection exceptions
+		Thread.sleep(500);
+		
+		// Re-throw any exception from the thread.
+		if (!exceptions.isEmpty()) {
+			Throwable ex = exceptions.get(0);
 
+			// We must manually match the possible exception types because Java
+			// doesn't let us do List<Either<ScanningException, InterruptedException>>.
+			if (ex.getClass() == ScanningException.class) {
+				throw (ScanningException) ex;
+
+			} else if (ex.getClass() == InterruptedException.class) {
+				throw (InterruptedException) ex;
+
+			} else {
+				throw new IllegalStateException();
+			}
+		}
+	}
+	
 	/**
 	 * Call to terminate the scan before it has finished.
 	 * 
