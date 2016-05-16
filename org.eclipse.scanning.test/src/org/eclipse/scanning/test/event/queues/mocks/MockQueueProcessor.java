@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 public class MockQueueProcessor implements IQueueProcessor {
 
 	private CountDownLatch execLatch;
-	private long delay = 500;
+	private int counter = 500;
 
 	//Metrics for reporting interactions.
 	private long runTime = 0;
@@ -25,9 +25,9 @@ public class MockQueueProcessor implements IQueueProcessor {
 		executed = true;
 		
 		long startTime = System.currentTimeMillis();
-		runTime = System.currentTimeMillis() - startTime;
-		while (runTime < delay) {
+		while (counter > 0) {
 			Thread.sleep(10);
+			counter -= 10;
 			runTime = System.currentTimeMillis() - startTime;
 			if (terminated) {
 				execLatch.countDown();
@@ -44,11 +44,11 @@ public class MockQueueProcessor implements IQueueProcessor {
 	}
 
 	public long getDelay() {
-		return delay;
+		return counter;
 	}
 
-	public void setDelay(long delay) {
-		this.delay = delay;
+	public void setCounter(int counter) {
+		this.counter = counter;
 	}
 
 	public long getRunTime() {
