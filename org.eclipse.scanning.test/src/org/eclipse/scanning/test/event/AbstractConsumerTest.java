@@ -271,7 +271,7 @@ public class AbstractConsumerTest {
         bean.setStatus(Status.REQUEST_TERMINATE);
         terminator.broadcast(bean);
         
-        Thread.sleep(300);
+        Thread.sleep(1000);
 		checkTerminatedProcess(bean);
 	}
 	
