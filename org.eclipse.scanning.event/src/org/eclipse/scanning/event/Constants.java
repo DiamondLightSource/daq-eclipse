@@ -5,10 +5,14 @@ public class Constants {
 	/**
 	 * Frequency in ms, default 2000. Set org.eclipse.scanning.event.heartbeat.freq system property to change this time.
 	 */
-	private static final long NOTIFICATION_FREQUENCY = 2000;
+	private static long NOTIFICATION_FREQUENCY = 2000;
 	
 	public static long getNotificationFrequency() {
 		return getLong("org.eclipse.scanning.event.heartbeat.freq", NOTIFICATION_FREQUENCY);
+	}
+	public static void setNotificationFrequency(long freq) {
+		NOTIFICATION_FREQUENCY = freq;
+		System.setProperty("org.eclipse.scanning.event.heartbeat.freq", String.valueOf(freq));
 	}
 			                                            
 
