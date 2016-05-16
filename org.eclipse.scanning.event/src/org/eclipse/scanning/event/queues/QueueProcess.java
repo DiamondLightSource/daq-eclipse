@@ -19,14 +19,12 @@ public class QueueProcess<T extends Queueable> extends AbstractQueueProcessor<T>
 
 	@Override
 	public void execute() throws EventException, InterruptedException {
-		// TODO Auto-generated method stub
-
+		processor.execute();
 	}
 
 	@Override
 	public void terminate() throws EventException {
-		// TODO Auto-generated method stub
-
+		processor.terminate();
 	}
 
 	public boolean isBlocking() {
@@ -44,7 +42,5 @@ public class QueueProcess<T extends Queueable> extends AbstractQueueProcessor<T>
 	public void setProcessor(IQueueProcessor processor) {
 		this.processor = processor;
 	}
-	
-	
 
 }
