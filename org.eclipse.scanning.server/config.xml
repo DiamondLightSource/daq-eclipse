@@ -12,7 +12,7 @@
 	    <property name="statusTopic" value="org.eclipse.scanning.status.topic" />
 	    <property name="durable"     value="true" />
 	</bean>
-
+	
     <bean id="positioner" class="org.eclipse.scanning.server.servlet.PositionServlet" init-method="connect">
        <property name="broker"   value="${org.eclipse.scanning.broker.uri}" />
        <property name="topic" value="org.eclipse.scanning.server.servlet.position" />
@@ -28,5 +28,20 @@
         <property name="port"     value="8690" />
         <property name="bundle"   value="org.eclipse.dawnsci.remotedataset.server" />
     </bean>
+
+	<!--  Testing/example only section config do not copy to production. -->
+
+	<!--  Something to respond to xcen runs if they use the example xcen perspective -->
+	<bean id="xcenServlet"  class="org.eclipse.scanning.example.xcen.consumer.XcenServlet" init-method="connect">
+
+        <property name="bundle"      value="org.eclipse.scanning.example.xcen"/>
+        <property name="broker"      value="${org.eclipse.scanning.broker.uri}" />
+	    <property name="submitQueue" value="dataacq.xcen.SUBMISSION_QUEUE" />
+	    <property name="statusSet"   value="dataacq.xcen.STATUS_QUEUE"   />
+	    <property name="statusTopic" value="dataacq.xcen.STATUS_TOPIC" />
+	    <property name="durable"     value="true" />
+	</bean>
+	
+	<!--  End testing/example only-->
 
 </beans>

@@ -1,17 +1,14 @@
-package org.eclipse.scanning.event.dry;
+package org.eclipse.scanning.api.event.dry;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess<T> {
+public class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess<T> {
+
 	
-	private static final Logger logger = LoggerFactory.getLogger(DryRunProcess.class);
-
 	private boolean blocking;
 	private boolean terminated;
 
@@ -44,7 +41,8 @@ class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess<T> {
 					try {
 						DryRunProcess.this.run();
 					} catch (EventException ne) {
-						logger.error("Cannot complete dry run", ne);
+						System.out.println("Cannot complete dry run");
+						ne.printStackTrace();
 					}
 				}
 			});
@@ -77,7 +75,8 @@ class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess<T> {
 			try {
 				Thread.sleep(sleep);
 			} catch (InterruptedException e) {
-				logger.error("Dry run sleeping failed", e);
+				System.out.println("Cannot complete dry run");
+				e.printStackTrace();
 			}
 			System.out.println("Dry run : "+getBean().getPercentComplete()+" : "+getBean().getName());
 			getBean().setPercentComplete((Double.valueOf(i)/Double.valueOf(stop))*100d);

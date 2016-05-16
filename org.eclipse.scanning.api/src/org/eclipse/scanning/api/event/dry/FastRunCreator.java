@@ -1,4 +1,4 @@
-package org.eclipse.scanning.event.dry;
+package org.eclipse.scanning.api.event.dry;
 
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IProcessCreator;

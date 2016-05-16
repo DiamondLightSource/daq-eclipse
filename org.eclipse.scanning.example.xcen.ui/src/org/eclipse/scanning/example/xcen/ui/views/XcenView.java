@@ -224,17 +224,19 @@ public class XcenView extends ViewPart {
 		submit.setCollection(collection);
 		
 		IPlottingSystem<Composite> system = getPlottingSystem();
-		final Collection<IRegion> grids = system.getRegions(RegionType.GRID);
-		if (grids!=null && grids.size()>0) {
-			final GridROI[] rois = new GridROI[grids.size()];
-			int i = 0;
-			for (IRegion iRegion : grids) {
-				rois[i] = (GridROI)iRegion.getROI();
-				++i;
+		if (system!=null) {
+			final Collection<IRegion> grids = system.getRegions(RegionType.GRID);
+			if (grids!=null && grids.size()>0) {
+				final GridROI[] rois = new GridROI[grids.size()];
+				int i = 0;
+				for (IRegion iRegion : grids) {
+					rois[i] = (GridROI)iRegion.getROI();
+					++i;
+				}
+				setROIs(submit, rois);
 			}
-			setROIs(submit, rois);
 		}
-        
+	        
 		final ISubmitter<XcenBean> factory = service.createSubmitter(getUri(), "dataacq.xcen.SUBMISSION_QUEUE");
 		factory.submit(submit, true);
 

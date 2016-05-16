@@ -13,6 +13,10 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * for the user interface which provides naming information about the
  * type of scan.
  * 
+ * @see IDeviceDependentIterable which allows a point generator to be created
+ * which instructs the scanning never to look at the points until they are in a scan.
+ * Useful for positions that interact with hardware as they are generated.
+ * 
  * @author Matthew Gerring
  *
  * @param <T>
