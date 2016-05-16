@@ -67,7 +67,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 					GROUP_NAME_SOLSTICE_SCAN, NexusBaseClass.NX_COLLECTION,
 					info, this);
 			nexusProvider.setPrimaryDataFieldName(FIELD_NAME_UNIQUE_KEYS);
-			nexusProvider.setDataFieldNames(FIELD_NAME_UNIQUE_KEYS, FIELD_NAME_POINTS);
+			nexusProvider.setAxisDataFieldNames(FIELD_NAME_UNIQUE_KEYS, FIELD_NAME_POINTS);
 		}
 		
 		return nexusProvider;

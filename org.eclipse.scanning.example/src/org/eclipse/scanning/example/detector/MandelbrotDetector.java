@@ -86,9 +86,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		// Add the axes to the image and spectrum data. scanRank here corresponds to the position
 		// in the axes attribute written in the NeXus file (0 based)
 		int scanRank = info.getRank();
-		nexusProvider.addDataField(FIELD_NAME_REAL_AXIS, NXdetector.NX_DATA, scanRank); 
-		nexusProvider.addDataField(FIELD_NAME_IMAGINARY_AXIS, NXdetector.NX_DATA, scanRank + 1);
-		nexusProvider.addDataField(FIELD_NAME_SPECTRUM_AXIS, FIELD_NAME_SPECTRUM, scanRank);
+		nexusProvider.addAxisDataFieldForPrimaryDataField(FIELD_NAME_REAL_AXIS, NXdetector.NX_DATA, scanRank); 
+		nexusProvider.addAxisDataFieldForPrimaryDataField(FIELD_NAME_IMAGINARY_AXIS, NXdetector.NX_DATA, scanRank + 1);
+		nexusProvider.addAxisDataFieldForPrimaryDataField(FIELD_NAME_SPECTRUM_AXIS, FIELD_NAME_SPECTRUM, scanRank);
 
 		return nexusProvider;
 	}

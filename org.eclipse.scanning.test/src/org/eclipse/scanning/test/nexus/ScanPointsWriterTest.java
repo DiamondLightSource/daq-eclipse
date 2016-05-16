@@ -22,9 +22,7 @@ import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.api.io.ILazySaver;
 import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
-import org.eclipse.dawnsci.analysis.dataset.impl.BooleanDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.LazyDataset;
 import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NXdetector;
@@ -36,7 +34,6 @@ import org.eclipse.dawnsci.nexus.builder.AbstractNexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
-import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
 import org.junit.Test;
 
@@ -116,7 +113,7 @@ public class ScanPointsWriterTest {
 		public static final String EXTERNAL_FILE_NAME = "detector.nxs";
 		
 		public ExternalFileWritingDetector() {
-			super(NexusBaseClass.NX_DETECTOR);
+			super("detector", NexusBaseClass.NX_DETECTOR);
 			setExternalFileName(EXTERNAL_FILE_NAME);
 		}
 

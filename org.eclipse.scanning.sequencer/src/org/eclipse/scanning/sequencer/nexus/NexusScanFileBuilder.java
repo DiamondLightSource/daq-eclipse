@@ -15,16 +15,20 @@ import java.util.stream.Collectors;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXentry;
+import org.eclipse.dawnsci.nexus.NXobject;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.CustomNexusEntryModification;
-import org.eclipse.dawnsci.nexus.builder.DataDevice;
-import org.eclipse.dawnsci.nexus.builder.NexusDataBuilder;
 import org.eclipse.dawnsci.nexus.builder.NexusEntryBuilder;
 import org.eclipse.dawnsci.nexus.builder.NexusFileBuilder;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
+import org.eclipse.dawnsci.nexus.builder.data.AxisDataDevice;
+import org.eclipse.dawnsci.nexus.builder.data.DataDevice;
+import org.eclipse.dawnsci.nexus.builder.data.DataDeviceBuilder;
+import org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder;
+import org.eclipse.dawnsci.nexus.builder.data.PrimaryDataDevice;
 import org.eclipse.dawnsci.nexus.builder.impl.MapBasedMetadataProvider;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
@@ -84,7 +88,7 @@ public class NexusScanFileBuilder {
 	// we need to cache various things as they are used more than once
 	private Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders = null;
 	private Map<DeviceType, List<INexusDevice<?>>> nexusDevices = null;
-	private Map<NexusObjectProvider<?>, DataDevice<?>> dataDevices = new HashMap<>();
+	private Map<NexusObjectProvider<?>, AxisDataDevice<?>> dataDevices = new HashMap<>();
 	
 	public NexusScanFileBuilder(IDeviceConnectorService deviceConnectorService) {
 		this.deviceConnectorService = deviceConnectorService;
@@ -358,45 +362,44 @@ public class NexusScanFileBuilder {
 			String dataGroupName,
 			String primaryDataFieldName)
 			throws NexusException {
-        // create the data builder and add the primary device
-        if (entryBuilder.getNXentry().containsGroupNode(dataGroupName)) {
-            dataGroupName += "_data"; // append _data if the node already exists
-        }
-		// create the data builder and add the primary device
 		if (entryBuilder.getNXentry().containsNode(dataGroupName)) {
 			dataGroupName += "_data"; // append _data if the node already exists
 		}
-		NexusDataBuilder dataBuilder = entryBuilder.newData(dataGroupName);
 		
-		DataDevice<?> primaryDataDevice = createPrimaryDataDevice(primaryDevice, primaryDeviceType, primaryDataFieldName);
+		// create the data builder and add the primary device
+		final NexusDataBuilder dataBuilder = entryBuilder.newData(dataGroupName);
+		
+		PrimaryDataDevice<?> primaryDataDevice = createPrimaryDataDevice(
+				primaryDevice, primaryDeviceType, primaryDataFieldName);
 		dataBuilder.setPrimaryDevice(primaryDataDevice);
 		
 		// add the monitors (excludes the first monitor if the scan has no detectors)
 		for (NexusObjectProvider<?> monitor : monitors) {
-			dataBuilder.addDataDevice(getDataDevice(monitor, null));
+			dataBuilder.addAxisDevice(getAxisDataDevice(monitor, null));
 		}
 		
 		// add the scannables
 		int scannableIndex = 0;
 		Iterator<NexusObjectProvider<?>> scannablesIter = scannables.iterator();
 		while (scannablesIter.hasNext()) {
-			dataBuilder.addDataDevice(getDataDevice(scannablesIter.next(), scannableIndex++));
+			dataBuilder.addAxisDevice(getAxisDataDevice(scannablesIter.next(), scannableIndex++));
 		}
 	}
 	
-	private DataDevice<?> createPrimaryDataDevice(NexusObjectProvider<?> nexusObjectProvider,
-			DeviceType primaryDeviceType, String primaryDataSourceFieldName) {
-		DataDevice<?> dataDevice = new DataDevice<>(nexusObjectProvider);
-		dataDevice.setUseDeviceName(false);
-		dataDevice.setPrimaryDataSourceFieldName(primaryDataSourceFieldName);
-
+	private <N extends NXobject> PrimaryDataDevice<N> createPrimaryDataDevice(
+			NexusObjectProvider<N> nexusObjectProvider,
+			DeviceType primaryDeviceType, String signalDataFieldName) throws NexusException {
+		
 		if (primaryDeviceType == DeviceType.SCANNABLE) {
 			// using scannable as primary device as well as a scannable
 			// only use main data field (e.g. value for an NXpositioner)
-			dataDevice.setSourceFields(nexusObjectProvider.getPrimaryDataFieldName());
+			DataDeviceBuilder<N> dataDeviceBuilder = DataDeviceBuilder.newPrimaryDataDeviceBuilder(
+					nexusObjectProvider);
+			dataDeviceBuilder.setAxisFields();
+			return (PrimaryDataDevice<N>) dataDeviceBuilder.build();
 		}
 
-		return dataDevice;
+		return DataDeviceBuilder.newPrimaryDataDevice(nexusObjectProvider, signalDataFieldName);
 	}
 	
 	/**
@@ -404,16 +407,18 @@ public class NexusScanFileBuilder {
 	 * creating it if it doesn't exist.
 	 * 
 	 * @param nexusObjectProvider nexus object provider
-	 * @param scannableIndex index in scan for {@link IScannable}s
+	 * @param scannableIndex index in scan for {@link IScannable}s, or <code>null</code>
+	 *    if the scannable is being scanned (i.e. is a monitor or metadata scannable).
 	 * @param isPrimaryDevice <code>true</code> if this is the primary device for
 	 *    the scan, <code>false</code> otherwise
 	 * @return the data device
+	 * @throws NexusException 
 	 */
-	private DataDevice<?> getDataDevice(NexusObjectProvider<?> nexusObjectProvider,
-			Integer scannableIndex) {
-		DataDevice<?> dataDevice = dataDevices.get(nexusObjectProvider);
+	private AxisDataDevice<?> getAxisDataDevice(NexusObjectProvider<?> nexusObjectProvider,
+			Integer scannableIndex) throws NexusException {
+		AxisDataDevice<?> dataDevice = dataDevices.get(nexusObjectProvider);
 		if (dataDevice == null) {
-			dataDevice = createDataDevice(nexusObjectProvider, scannableIndex);
+			dataDevice = createAxisDataDevice(nexusObjectProvider, scannableIndex);
 			// cache the non-primary devices for any other NXdata groups
 			dataDevices.put(nexusObjectProvider, dataDevice);
 		}
@@ -428,64 +433,69 @@ public class NexusScanFileBuilder {
 	 *    {@link IScannable} then the index of that scannable in the list of scannables,
 	 *    otherwise <code>null</code>
 	 * @return
+	 * @throws NexusException 
 	 */
-	private DataDevice<?> createDataDevice(NexusObjectProvider<?> nexusObjectProvider,
-			Integer scannableIndex) {
-		DataDevice<?> dataDevice = new DataDevice<>(nexusObjectProvider, scannableIndex);
-		// all data fields are prefixed with the device name, except for
-		// those from the primary device
-		dataDevice.setUseDeviceName(true);
+	private <N extends NXobject> AxisDataDevice<N> createAxisDataDevice(
+			NexusObjectProvider<N> nexusObjectProvider, Integer scannableIndex) throws NexusException {
 		if (model instanceof ScanDataModel) {
 			// using a ScanDataModel allows for customization of how the data fields
 			// of the device are added to the NXdata
 			ScanDeviceModel scanDeviceModel = ((ScanDataModel) model).getScanDevice(
 					nexusObjectProvider.getName());
 			if (scanDeviceModel != null) {
-				configureDataDevice(dataDevice, scanDeviceModel);
+				createCustomAxisDataDevice(nexusObjectProvider, scanDeviceModel, scannableIndex);
 			}
 		}
 		
-		return dataDevice;
+		return DataDeviceBuilder.newAxisDataDevice(nexusObjectProvider, scannableIndex); 
 	}
 	
 	/**
 	 * Configures the {@link DataDevice} according to the given {@link ScanDeviceModel}.
-	 * @param dataDevice data device, wrapping a {@link NexusObjectProvider}
+	 * @param nexusObjectProvider
 	 * @param scanDeviceModel scan device model
 	 */
-	private void configureDataDevice(DataDevice<?> dataDevice, ScanDeviceModel scanDeviceModel) {
-		Boolean useDeviceName = scanDeviceModel.getUseDeviceName();
-		
-		// set whether the device name should be used in the destination field names
-		if (useDeviceName != null) {
-			dataDevice.setUseDeviceName(useDeviceName);
-		}
+	private <N extends NXobject> void createCustomAxisDataDevice(
+			NexusObjectProvider<N> nexusObjectProvider, ScanDeviceModel scanDeviceModel,
+			Integer scannableIndex) {
+		DataDeviceBuilder<N> builder = DataDeviceBuilder.newAxisDataDeviceBuilder(
+				nexusObjectProvider, scannableIndex);
 		
 		// add named fields only means only add fields
 		if (scanDeviceModel.getAddNamedFieldsOnly()) {
-			dataDevice.clearSourceFields();
+			builder.clearAxisFields();
 		}
 		
 		// set the default dimension mappings
-		dataDevice.setDefaultDimensionMappings(scanDeviceModel.getDefaultDimensionMappings());
-		dataDevice.setDefaultAxisDimension(scanDeviceModel.getDefaultAxisDimension());
+		builder.setDefaultDimensionMappings(scanDeviceModel.getDefaultDimensionMappings());
+		builder.setDefaultAxisDimension(scanDeviceModel.getDefaultAxisDimension());
 
 		// configure the information for any fields
 		Map<String, ScanFieldModel> fieldDimensionModels = scanDeviceModel.getFieldDimensionModels();
 		for (String sourceFieldName : fieldDimensionModels.keySet()) {
 			ScanFieldModel fieldDimensionModel = fieldDimensionModels.get(sourceFieldName);
+			builder.addAxisField(sourceFieldName);
 			if (fieldDimensionModel != null) {
-				// add the field info from the ScanModel to the DataDevice 
+				// add the field info from the ScanModel to the DataDevice
+				
+				// the name of the field in the NXdata
+				String destinationFieldName = scanDeviceModel.getDestinationFieldName(sourceFieldName);
+				if (destinationFieldName != null) {
+					builder.setDestinationFieldName(sourceFieldName, destinationFieldName);
+				}
+				
+				// the index of the dimension of the signal field that this field is a default axis for
 				Integer fieldDefaultAxisDimension = fieldDimensionModel.getDefaultAxisDimension();
+				if (fieldDefaultAxisDimension != null) {
+					builder.setDefaultAxisDimension(fieldDefaultAxisDimension);
+				}
+				
+				// the dimension mappings between this field and the signal field 
 				int[] dimensionMappings = fieldDimensionModel.getDimensionMappings();
-				dataDevice.addSourceField(sourceFieldName, fieldDefaultAxisDimension, dimensionMappings);
-			} else {
-				dataDevice.addSourceField(sourceFieldName);
-			}
-			
-			String destinationFieldName = scanDeviceModel.getDestinationFieldName(sourceFieldName);
-			if (destinationFieldName != null) {
-				dataDevice.setDestinationFieldName(sourceFieldName, destinationFieldName);
+				if (dimensionMappings != null) {
+					builder.setDimensionMappings(sourceFieldName, dimensionMappings);
+				}
+				
 			}
 		}
 	}

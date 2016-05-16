@@ -58,7 +58,7 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 				getName(), NexusBaseClass.NX_DETECTOR, info, this);
 
 		// Add all fields for any NXdata groups that this device creates
-		nexusProvider.setDataFieldNames(NXdetector.NX_DATA);
+		nexusProvider.setAxisDataFieldNames(NXdetector.NX_DATA);
 		
 		// "data" is the name of the primary data field (i.e. the 'signal' field of the default NXdata)
 		nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
