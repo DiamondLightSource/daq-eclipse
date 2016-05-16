@@ -203,7 +203,7 @@ public class AbstractQueueServiceTest {
 				assertEquals("Active queue state is incorrect", QueueStatus.STOPPED, qServ.getQueueStatus(aqID));
 
 				//Wait to see if the queue is still alive & check the state of the bean at the end
-				pauseForFinalStatus(7000);
+				pauseForFinalStatus(7000, qServ.getActiveQueue(aqID).getStatusTopicName());
 				
 				beats = activeQueue.getLatestHeartbeats();
 				final int sizeAtStop = beats.size();
@@ -340,12 +340,12 @@ public class AbstractQueueServiceTest {
 		
 		//Submit a bean to the queue and allow it to start processing
 		qServ.jobQueueSubmit(bean);
-		Thread.sleep(1500);
+		Thread.sleep(800);  //This is optimised (500 too fast)
 		
 		//Request termination
 		bean.setStatus(Status.REQUEST_TERMINATE);
 		qServ.jobQueueTerminate(bean);
-		pauseForFinalStatus(5000);
+		pauseForFinalStatus(5000, qServ.getJobQueue().getStatusTopicName());
 		
 		//Check it has terminated
 		checkProcessFinalStatus(bean, jqID, Status.TERMINATED);
@@ -356,12 +356,12 @@ public class AbstractQueueServiceTest {
 		
 		//Submit an atom to the queue and allow it to start processing
 		qServ.activeQueueSubmit(atom, aqID);
-		Thread.sleep(1500);
+		Thread.sleep(800); //This is optimised (500 too fast)
 
 		//Request termination
 		atom.setStatus(Status.REQUEST_TERMINATE);
 		qServ.activeQueueTerminate(atom, aqID);
-		pauseForFinalStatus(5000);
+		pauseForFinalStatus(5000, qServ.getActiveQueue(aqID).getStatusTopicName());
 
 		//Check it has terminated
 		checkProcessFinalStatus(atom, aqID, Status.TERMINATED);
@@ -464,15 +464,15 @@ public class AbstractQueueServiceTest {
 		
 	}
 
-	protected void pauseForFinalStatus(long timeout) throws Exception {
+	protected void pauseForFinalStatus(long timeout, String statusTopic) throws Exception {
 		final CountDownLatch statusLatch = new CountDownLatch(1);
 		IEventService evServ = qServ.getEventService();
-		ISubscriber<IBeanListener<ScanBean>> statusSubsc = evServ.createSubscriber(uri, IEventService.STATUS_TOPIC);
-		statusSubsc.addListener(new IBeanListener<ScanBean>() {
+		ISubscriber<IBeanListener<Queueable>> statusSubsc = evServ.createSubscriber(uri, statusTopic);
+		statusSubsc.addListener(new IBeanListener<Queueable>() {
 
 			@Override
-			public void beanChangePerformed(BeanEvent<ScanBean> evt) {
-				ScanBean bean = evt.getBean();
+			public void beanChangePerformed(BeanEvent<Queueable> evt) {
+				Queueable bean = evt.getBean();
 				if (bean.getStatus().isFinal()) {
 					statusLatch.countDown();
 				}
