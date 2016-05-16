@@ -21,10 +21,10 @@ import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.dry.DryRunCreator;
+import org.eclipse.scanning.api.event.dry.FastRunCreator;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
-import org.eclipse.scanning.event.dry.DryRunCreator;
-import org.eclipse.scanning.event.dry.FastRunCreator;
 import org.junit.Test;
 
 public class AbstractMConsumerTest {
