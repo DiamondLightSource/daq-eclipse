@@ -31,7 +31,7 @@ public class QueueProcessTest {
 		
 		mockProc = new MockQueueProcessor(execLatch);
 		
-		qProc = new QueueProcess(dummy, pub, blocking, mockProc);
+		qProc = new QueueProcess<DummyBean>(dummy, pub, blocking, mockProc);
 	}
 	
 	
