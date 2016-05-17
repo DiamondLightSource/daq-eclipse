@@ -4,8 +4,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.eclipse.dawnsci.json.MarshallerService;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IConsumer;
+import org.eclipse.scanning.api.event.core.IConsumerProcess;
+import org.eclipse.scanning.api.event.core.IProcessCreator;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.EventServiceImpl;
 
@@ -29,9 +33,13 @@ public class EventServiceActorMaker {
 		}
 	}
 	
-	public static <T extends StatusBean> IConsumer<T> makeConsumer(T bean) {
+	public static <T extends StatusBean> IConsumer<T> makeConsumer(T bean, 
+			boolean withRunner) {
+		IConsumer<T> cons;
 		try {
-			return evServ.createConsumer(uri);
+			cons = evServ.createConsumer(uri);
+			if (withRunner) cons.setRunner(makeEmptyRunner(bean));
+			return cons;
 		} catch (Exception ex) {
 			System.out.println("Failed to create consumer.");
 			ex.printStackTrace();
@@ -40,9 +48,12 @@ public class EventServiceActorMaker {
 	}
 	
 	public static <T extends StatusBean> IConsumer<T> makeConsumer(T bean, 
-			String submQ, String statQ, String statT) {
+			String submQ, String statQ, String statT, boolean withRunner) {
+		IConsumer<T> cons;
 		try {
-			return evServ.createConsumer(uri, submQ, statQ, statT);
+			cons =  evServ.createConsumer(uri, submQ, statQ, statT);
+			if (withRunner) cons.setRunner(makeEmptyRunner(bean));
+			return cons;
 		} catch (Exception ex) {
 			System.out.println("Failed to create consumer.");
 			ex.printStackTrace();
@@ -52,14 +63,30 @@ public class EventServiceActorMaker {
 	
 	public static <T extends StatusBean> IConsumer<T> makeConsumer(T bean,
 			String submQ, String statQ, String statT, String heartT, 
-			String cmdT) {
+			String cmdT, boolean withRunner) {
+		IConsumer<T> cons;
 		try {
-			return evServ.createConsumer(uri, submQ, statQ, statT, heartT, cmdT);
+			cons = evServ.createConsumer(uri, submQ, statQ, statT, heartT, cmdT);
+			if (withRunner) cons.setRunner(makeEmptyRunner(bean));
+			return cons;
 		} catch (Exception ex) {
 			System.out.println("Failed to create consumer.");
 			ex.printStackTrace();
 			return null;
 		}
+	}
+	
+	private static <T extends StatusBean> IProcessCreator<T> makeEmptyRunner(T bean) {
+		return new IProcessCreator<T>() {
+
+			@Override
+			public IConsumerProcess<T> createProcess(T bean,
+					IPublisher<T> statusNotifier)
+					throws EventException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		};
 	}
 
 }
