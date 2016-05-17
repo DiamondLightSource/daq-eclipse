@@ -1,11 +1,15 @@
 package org.eclipse.scanning.event.ui;
 
+import java.net.URI;
+
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionService;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.event.ui.preference.CommandConstants;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -94,5 +98,4 @@ public class ServiceHolder {
 			return null;
 		}
 	}
-
 }
