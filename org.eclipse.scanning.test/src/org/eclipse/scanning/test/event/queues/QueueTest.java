@@ -14,9 +14,6 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.core.IConsumerProcess;
-import org.eclipse.scanning.api.event.core.IProcessCreator;
-import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.IQueue;
@@ -25,6 +22,7 @@ import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.queues.Queue;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
+import org.eclipse.scanning.test.event.queues.util.EventServiceActorMaker;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -40,7 +38,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  */
 public class QueueTest {
 	
-	protected IEventService evServ;
+	protected IEventService evServ; //FIXME Remove
 	
 	protected IQueue<DummyBean> queue;
 	protected IConsumer<DummyBean> cons;
@@ -50,7 +48,7 @@ public class QueueTest {
 	protected static QueueNameMap qNames;
 	
 	private static URI uri;
-	private static String submQ, statQ, statT, heartT, killT;
+	private static String submQ, statQ, statT, heartT, cmdT;
 	
 	@BeforeClass
 	public static void createInfrastructure() throws Exception {
@@ -58,8 +56,8 @@ public class QueueTest {
 		statQ = qID + ".statusQ";
 		statT = qID + ".statusT";
 		heartT = qID + ".heartbeat";
-		killT = qID + ".kill";
-		qNames = new QueueNameMap(submQ, statQ, statT, heartT, killT);
+		cmdT = qID + ".command";
+		qNames = new QueueNameMap(submQ, statQ, statT, heartT, cmdT);
 		
 		uri = new URI("vm://localhost?broker.persistent=false");
 	}
@@ -73,9 +71,13 @@ public class QueueTest {
 	 */
 	@Before
 	public void createQueue() throws Exception {
+		//FIXME Remove next two lines
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService());
 		evServ =  new EventServiceImpl(new ActivemqConnectorService());
-		createConsumer();
+		
+		cons = EventServiceActorMaker.makeConsumer(new DummyBean(), submQ, 
+				statQ, statT, heartT, cmdT, true);
+		consID = cons.getConsumerId();
 		createHeartMonitor();
 		
 		queue = new Queue<DummyBean>(qID, qNames, cons, mon);
@@ -174,21 +176,7 @@ public class QueueTest {
 		assertFalse("Jobs found on the consumer, but all should be consumed", queue.hasSubmittedJobsPending());
 	}
 	
-	protected void createConsumer() throws Exception {
-		cons = evServ.createConsumer(uri, submQ, statQ, statT, heartT, killT);
-		cons.setRunner(new IProcessCreator<DummyBean>() {
-
-			@Override
-			public IConsumerProcess<DummyBean> createProcess(DummyBean bean,
-					IPublisher<DummyBean> statusNotifier)
-					throws EventException {
-				// TODO Auto-generated method stub
-				return null;
-			}
-		});
-		consID = cons.getConsumerId();
-	}
-	
+	//FIXME Remove
 	protected void createHeartMonitor() {
 		mon = evServ.createSubscriber(uri, heartT);
 	}
