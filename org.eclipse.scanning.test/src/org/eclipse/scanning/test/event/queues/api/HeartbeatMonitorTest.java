@@ -10,9 +10,11 @@ import java.util.UUID;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
+import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.event.queues.HeartbeatMonitor;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
+import org.eclipse.scanning.test.event.queues.mocks.MockQueue;
 import org.eclipse.scanning.test.event.queues.util.EventServiceActorMaker;
 import org.junit.After;
 import org.junit.Before;
@@ -96,11 +98,41 @@ public class HeartbeatMonitorTest {
 		consTwo.clearQueue(IEventService.CMD_SET);
 		consTwo.disconnect();
 	}
-//
-//	@Test
-//	public void testChangingQueue() {
-//		//This needs a mock queue object
-//	
+
+	@Test
+	public void testChangingQueue() throws Exception {
+		IQueue<DummyBean> mockOne = new MockQueue<>("MockQueueOne", cons);
+		UUID consID = cons.getConsumerId();
+		
+		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, mockOne);
+		assertEquals("Wrong queueID set on monitor", "MockQueueOne", hbM.getQueueID());
+		cons.start();
+		Thread.sleep(2300);
+		
+		final HeartbeatBean first = hbM.getLastHeartbeat();
+		assertEquals("Heartbeat from wrong consumer", consID, first.getConsumerId());
+		
+		IConsumer<DummyBean> consTwo = EventServiceActorMaker.makeConsumer(new DummyBean(), true);
+		UUID consTwoID = consTwo.getConsumerId();
+		IQueue<DummyBean> mockTwo = new MockQueue<>("MockQueueTwo", consTwo);
+		assertFalse("IDs of two consumers are identical", consTwoID.equals(cons.getConsumerId()));
+		
+		hbM.setQueue(mockTwo);
+		assertEquals("Wrong queueID set on monitor", "MockQueueTwo", hbM.getQueueID());
+		consTwo.start();
+		Thread.sleep(2300);
+		
+		final HeartbeatBean second = hbM.getLastHeartbeat();
+		assertEquals("Heartbeat from wrong consumer", consTwoID, second.getConsumerId());
+		assertFalse("HeartbeatBean consumerIDs identical", consID.equals(consTwoID));
+		
+		//Tear down the local consumer because someone has to!
+		consTwo.clearQueue(IEventService.SUBMISSION_QUEUE);
+		consTwo.clearQueue(IEventService.STATUS_SET);
+		consTwo.clearQueue(IEventService.CMD_SET);
+		consTwo.disconnect();
+	}
+	
 //	@Test
 //	public void testChangingQueueID() {
 //		//This needs a mock queue & queue service object
