@@ -56,6 +56,7 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 		this.heartbeatTopic = heartbeatTopic;
 		monitoredConsumerID = queue.getConsumerID();
 		setUpMonitor();
+		queueID = queue.getQueueID();
 	}
 
 	/**
