@@ -8,6 +8,7 @@ import java.util.List;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.queues.HeartbeatMonitor;
+import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
 import org.eclipse.scanning.test.event.queues.util.EventServiceActorMaker;
 import org.junit.Before;
@@ -21,6 +22,9 @@ public class HeartbeatMonitorTest {
 	@Before
 	public void setUp() {
 		cons = EventServiceActorMaker.makeConsumer(new DummyBean(), true);
+		
+		//This is not a plugin-test - need to supply the EventService
+		QueueServicesHolder.setEventService(EventServiceActorMaker.getEventService());
 	}
 	
 	@Test

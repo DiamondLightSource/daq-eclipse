@@ -33,6 +33,10 @@ public class EventServiceActorMaker {
 		}
 	}
 	
+	public static IEventService getEventService() {
+		return evServ;
+	}
+	
 	public static <T extends StatusBean> IConsumer<T> makeConsumer(T bean, 
 			boolean withRunner) {
 		IConsumer<T> cons;
