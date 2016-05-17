@@ -11,10 +11,14 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.event.queues.HeartbeatMonitor;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueue;
+import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.util.EventServiceActorMaker;
 import org.junit.After;
 import org.junit.Before;
@@ -106,6 +110,7 @@ public class HeartbeatMonitorTest {
 		
 		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, mockOne);
 		assertEquals("Wrong queueID set on monitor", "MockQueueOne", hbM.getQueueID());
+		assertEquals("Wrong consumerID set on monitor", consID, hbM.getConsumerID());
 		cons.start();
 		Thread.sleep(2300);
 		
@@ -119,6 +124,7 @@ public class HeartbeatMonitorTest {
 		
 		hbM.setQueue(mockTwo);
 		assertEquals("Wrong queueID set on monitor", "MockQueueTwo", hbM.getQueueID());
+		assertEquals("Wrong consumerID set on monitor", consTwoID, hbM.getConsumerID());
 		consTwo.start();
 		Thread.sleep(2300);
 		
@@ -133,10 +139,52 @@ public class HeartbeatMonitorTest {
 		consTwo.disconnect();
 	}
 	
-//	@Test
-//	public void testChangingQueueID() {
-//		//This needs a mock queue & queue service object
-//	}
+	@Test
+	public void testChangingQueueID() throws Exception {
+		IConsumer<QueueBean> consOne = EventServiceActorMaker.makeConsumer(new DummyBean(), true);
+		MockQueue<QueueBean> mockOne = new MockQueue<>("MockQueueOne", consOne);
+		UUID consOneID = consOne.getConsumerId();
+		
+		IConsumer<QueueAtom> consTwo = EventServiceActorMaker.makeConsumer(new DummyAtom(), true);
+		MockQueue<QueueAtom> mockTwo = new MockQueue<>("MockQueueTwo", consTwo);
+		UUID consTwoID = consTwo.getConsumerId();
+		
+		assertFalse("IDs of two consumers are identical", consTwoID.equals(consOneID));
+		
+		MockQueueService mQServ = new MockQueueService(mockOne);
+		mQServ.addActiveQueue(mockTwo);
+		mQServ.start();
+		
+		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, "MockQueueOne", mQServ);
+		assertEquals("Wrong queueID set on monitor", "MockQueueOne", hbM.getQueueID());
+		assertEquals("Wrong consumerID set on monitor", consOneID, hbM.getConsumerID());
+		cons.start();
+		Thread.sleep(2300);
+		
+		final HeartbeatBean first = hbM.getLastHeartbeat();
+		assertEquals("Heartbeat from wrong consumer", consOneID, first.getConsumerId());
+		
+		hbM.setQueueID("MockQueueTwo", mQServ);
+		assertEquals("Wrong queueID set on monitor", "MockQueueTwo", hbM.getQueueID());
+		assertEquals("Wrong consumerID set on monitor", consTwoID, hbM.getConsumerID());
+		consTwo.start();
+		Thread.sleep(2300);
+		
+		final HeartbeatBean second = hbM.getLastHeartbeat();
+		assertEquals("Heartbeat from wrong consumer", consTwoID, second.getConsumerId());
+		assertFalse("HeartbeatBean consumerIDs identical", consOneID.equals(consTwoID));
+		
+		//Tear down the local consumers because someone has to!
+		consOne.clearQueue(IEventService.SUBMISSION_QUEUE);
+		consOne.clearQueue(IEventService.STATUS_SET);
+		consOne.clearQueue(IEventService.CMD_SET);
+		consOne.disconnect();
+		
+		consTwo.clearQueue(IEventService.SUBMISSION_QUEUE);
+		consTwo.clearQueue(IEventService.STATUS_SET);
+		consTwo.clearQueue(IEventService.CMD_SET);
+		consTwo.disconnect();
+	}
 //	
 //	@Test
 //	public void testFixedQueueMonitor() {
