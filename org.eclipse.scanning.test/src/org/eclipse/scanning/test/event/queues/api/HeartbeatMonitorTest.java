@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
@@ -13,6 +14,7 @@ import org.eclipse.scanning.event.queues.HeartbeatMonitor;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
 import org.eclipse.scanning.test.event.queues.util.EventServiceActorMaker;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,6 +32,14 @@ public class HeartbeatMonitorTest {
 		
 		//This is not a plugin-test - need to supply the EventService
 		QueueServicesHolder.setEventService(EventServiceActorMaker.getEventService());
+	}
+	
+	@After
+	public void tearDown() throws Exception {
+		cons.clearQueue(IEventService.SUBMISSION_QUEUE);
+		cons.clearQueue(IEventService.STATUS_SET);
+		cons.clearQueue(IEventService.CMD_SET);
+		cons.disconnect();
 	}
 	
 	@Test
@@ -58,10 +68,34 @@ public class HeartbeatMonitorTest {
 		assertEquals("Last heartbeat in latest and lastBeat differ", second, heartbeats.get(heartbeats.size()-1));
 	}
 	
-//	@Test
-//	public void testChangingConsumerID() {
-//		
-//	}
+	@Test
+	public void testChangingConsumerID() throws Exception {
+		UUID consID = cons.getConsumerId();
+		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, consID);
+		cons.start();
+		Thread.sleep(2300);
+		
+		final HeartbeatBean first = hbM.getLastHeartbeat();
+		assertEquals("Heartbeat from wrong consumer", consID, first.getConsumerId());
+		
+		IConsumer<DummyBean> consTwo = EventServiceActorMaker.makeConsumer(new DummyBean(), true);
+		UUID consTwoID = consTwo.getConsumerId();
+		assertFalse("IDs of two consumers are identical", consTwoID.equals(cons.getConsumerId()));
+		
+		hbM.setConsumerID(consTwoID);
+		consTwo.start();
+		Thread.sleep(2300);
+		
+		final HeartbeatBean second = hbM.getLastHeartbeat();
+		assertEquals("Heartbeat from wrong consumer", consTwoID, second.getConsumerId());
+		assertFalse("HeartbeatBean consumerIDs identical", consID.equals(consTwoID));
+		
+		//Tear down the local consumer because someone has to!
+		consTwo.clearQueue(IEventService.SUBMISSION_QUEUE);
+		consTwo.clearQueue(IEventService.STATUS_SET);
+		consTwo.clearQueue(IEventService.CMD_SET);
+		consTwo.disconnect();
+	}
 //
 //	@Test
 //	public void testChangingQueue() {
