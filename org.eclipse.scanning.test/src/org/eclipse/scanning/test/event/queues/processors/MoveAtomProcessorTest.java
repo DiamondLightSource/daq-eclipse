@@ -9,9 +9,9 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
-import org.eclipse.scanning.test.event.queues.beans.util.TestAtomMaker;
 import org.eclipse.scanning.test.event.queues.mocks.MockPositioner;
 import org.eclipse.scanning.test.event.queues.mocks.MockScanService;
+import org.eclipse.scanning.test.event.queues.util.TestAtomMaker;
 import org.junit.Before;
 import org.junit.Test;
 

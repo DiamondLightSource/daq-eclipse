@@ -2,7 +2,7 @@ package org.eclipse.scanning.test.event.queues.beans;
 
 import org.eclipse.scanning.event.queues.beans.SubTaskBean;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
-import org.eclipse.scanning.test.event.queues.beans.util.TestAtomQueueBeanMaker;
+import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
 import org.junit.Before;
 
 /**
