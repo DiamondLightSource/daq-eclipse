@@ -54,8 +54,17 @@ public class HeartbeatMonitorTest {
 	}
 	
 //	@Test
-//	public void testChangingQueueID() {
+//	public void testChangingConsumerID() {
+//		
+//	}
+//
+//	@Test
+//	public void testChangingQueue() {
 //		//This needs a mock queue object
+//	
+//	@Test
+//	public void testChangingQueueID() {
+//		//This needs a mock queue & queue service object
 //	}
 //	
 //	@Test
