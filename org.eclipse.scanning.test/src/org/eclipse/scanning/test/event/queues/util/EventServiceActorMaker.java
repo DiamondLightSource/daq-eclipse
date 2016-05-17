@@ -37,6 +37,10 @@ public class EventServiceActorMaker {
 		return evServ;
 	}
 	
+	public static URI getURI() {
+		return uri;
+	}
+	
 	public static <T extends StatusBean> IConsumer<T> makeConsumer(T bean, 
 			boolean withRunner) {
 		IConsumer<T> cons;

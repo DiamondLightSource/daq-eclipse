@@ -3,8 +3,10 @@ package org.eclipse.scanning.test.event.queues.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import java.net.URI;
 import java.util.List;
 
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.event.queues.HeartbeatMonitor;
@@ -19,9 +21,12 @@ public class HeartbeatMonitorTest {
 	private IConsumer<DummyBean> cons;
 	private HeartbeatMonitor hbM;
 	
+	private URI uri;
+	
 	@Before
 	public void setUp() {
 		cons = EventServiceActorMaker.makeConsumer(new DummyBean(), true);
+		uri = EventServiceActorMaker.getURI();
 		
 		//This is not a plugin-test - need to supply the EventService
 		QueueServicesHolder.setEventService(EventServiceActorMaker.getEventService());
@@ -29,7 +34,7 @@ public class HeartbeatMonitorTest {
 	
 	@Test
 	public void testLatestHeartbeats() throws Exception {
-		hbM = new HeartbeatMonitor(cons.getConsumerId());
+		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, cons.getConsumerId());
 		cons.start();
 		Thread.sleep(4300);
 		
@@ -39,7 +44,7 @@ public class HeartbeatMonitorTest {
 	
 	@Test
 	public void testLastHeartbeat() throws Exception {
-		hbM = new HeartbeatMonitor(cons.getConsumerId());
+		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, cons.getConsumerId());
 		cons.start();
 		Thread.sleep(2300);
 		
