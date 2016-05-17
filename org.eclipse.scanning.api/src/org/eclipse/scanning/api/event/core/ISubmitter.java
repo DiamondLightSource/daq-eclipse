@@ -40,6 +40,22 @@ public interface ISubmitter<T> extends IQueueConnection<T> {
 	void blockingSubmit(T bean) throws EventException, InterruptedException, IllegalStateException;
 	
 	/**
+	 * The status topic, if any, that after submission, the consumer will publish events from.
+	 * May be left unset.
+	 * 
+	 * @return
+	 */
+	String getStatusTopicName();
+	
+	/**
+	 * The status topic, if any, that after submission, the consumer will publish events from.
+	 * May be left unset.
+     *
+	 * @param name
+	 */
+	void setStatusTopicName(String name);
+	
+	/**
 	 * Tries to reorder the bean in the submission queue if it is
 	 * still there. If the bean has been moved to the status set, 
 	 * it will not be moved 

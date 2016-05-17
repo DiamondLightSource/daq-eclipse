@@ -58,6 +58,17 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 	public void setBeanClass(Class<U> beanClass) {
 		this.beanClass = beanClass;
 	}
+	
+	@Override
+	public List<U> getQueue() throws EventException {
+					
+		QueueReader<U> reader = new QueueReader<U>(getConnectorService(), null);
+		try {
+			return reader.getBeans(uri, getSubmitQueueName(), beanClass);
+		} catch (Exception e) {
+			throw new EventException("Cannot get the beans for queue " + getSubmitQueueName(), e);
+		}
+	}
 
 	@Override
 	public List<U> getQueue(String qName, String fieldName) throws EventException {

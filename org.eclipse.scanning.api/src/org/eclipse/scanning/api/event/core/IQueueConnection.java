@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.eclipse.scanning.api.event.EventException;
 
-public interface IQueueConnection<T> extends IURIConnection {
+public interface IQueueConnection<T> extends IQueueReader<T> {
 	
 	/**
 	 * The string to define the queue for storing status of scans.
@@ -32,13 +32,6 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 * @throws EventException
 	 */
 	public void setSubmitQueueName(String queueName) throws EventException;
-	
-	/**
-	 * Call to disconnect all publishers and subscribers when the connection goes down.
-	 * @throws EventException
-	 */
-	public void disconnect() throws EventException;
-
 	/**
 	 * This method will read a queue or a set from ActiveMQ into a list.
 	 * @param queueName
@@ -58,20 +51,6 @@ public interface IQueueConnection<T> extends IURIConnection {
 	 * It removes very old runs or those which are in a final failed state.
 	 */
 	public void cleanQueue(String queueName) throws EventException;
-
-	/**
-	 * Class of bean usually extending StatusBean
-	 * 
-	 * @return class or null
-	 */
-	public Class<T> getBeanClass();
-
-	/**
-	 * Class of bean usually extending StatusBean
-	 * 
-	 * It is not compulsory to set the bean class unless trying to deserialize messages sent by older versions of the connector service.
-	 */
-	public void setBeanClass(Class<T> beanClass);
 	
 	/**
 	 * Tries to reorder the bean in the submission queue if it is

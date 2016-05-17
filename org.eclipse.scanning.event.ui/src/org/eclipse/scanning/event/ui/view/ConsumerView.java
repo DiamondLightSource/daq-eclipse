@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.MenuManager;
@@ -55,6 +56,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +106,7 @@ public class ConsumerView extends ViewPart {
 		
         createActions();
         try {
-			createTopicListener(getUri());
+			createTopicListener(new URI(Activator.getJmsUri()));
 		} catch (Exception e) {
 			logger.error("Cannot listen to topic of command server!", e);
 		}
@@ -231,7 +233,7 @@ public class ConsumerView extends ViewPart {
                 	               "Runs yet to be started will be picked up when\n"+
                 	               "'"+bean.getConsumerName()+"' restarts.");
                 	try {
-                		final IPublisher<AdministratorMessage> send = service.createPublisher(getUri(), IEventService.ADMIN_MESSAGE_TOPIC);
+                		final IPublisher<AdministratorMessage> send = service.createPublisher(new URI(Activator.getJmsUri()), IEventService.ADMIN_MESSAGE_TOPIC);
                 		send.broadcast(msg);
 					} catch (Exception e) {
 						logger.error("Cannot notify of shutdown!", e);
@@ -243,7 +245,7 @@ public class ConsumerView extends ViewPart {
 			    kbean.setConsumerId(bean.getConsumerId());
 				
  				try {
- 		       		final IPublisher<KillBean> send = service.createPublisher(getUri(), IEventService.CMD_TOPIC);
+ 		       		final IPublisher<KillBean> send = service.createPublisher(new URI(Activator.getJmsUri()), IEventService.CMD_TOPIC);
 					send.broadcast(kbean);
 				} catch (Exception e) {
 					logger.error("Cannot terminate consumer "+bean.getConsumerName(), e);
@@ -384,13 +386,4 @@ public class ConsumerView extends ViewPart {
 		}
 	}
 
-
-    protected URI getUri() throws Exception {
-		return new URI(getCommandPreference(CommandConstants.JMS_URI));
-	}
-    
-    protected String getCommandPreference(String key) {
-		final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
-    	return store.getString(key);
-    }
 }

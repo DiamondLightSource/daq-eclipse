@@ -1,6 +1,5 @@
 package org.eclipse.scanning.example.xcen.ui;
 
-import org.eclipse.scanning.event.ui.view.StatusQueueView;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 
@@ -26,11 +25,7 @@ public class XcenPerspective implements IPerspectiveFactory {
 		    -bundle org.eclipse.scanning.example.xcen
 		    -consumer org.eclipse.scanning.example.xcen.consumer.XcenConsumer
 		 */
-		String uri = System.getProperty("org.eclipse.scanning.broker");
-		if (uri==null || "".equals(uri)) uri = "tcp://sci-serv5.diamond.ac.uk:61616";
-		String queueViewId = StatusQueueView.createId(uri, "org.eclipse.scanning.example.xcen", "org.eclipse.scanning.example.xcen.beans.XcenBean", "dataacq.xcen.STATUS_QUEUE", "dataacq.xcen.STATUS_TOPIC", "dataacq.xcen.SUBMISSION_QUEUE");
-		queueViewId = queueViewId+"partName=Queue";
-		layout.addView(queueViewId, IPageLayout.BOTTOM, 0.5f, "org.eclipse.scanning.example.xcen.ui.views.XcenView");
+		layout.addView(XcenServices.getQueueViewSecondaryId(), IPageLayout.BOTTOM, 0.5f, "org.eclipse.scanning.example.xcen.ui.views.XcenView");
 	}
 
 	/**

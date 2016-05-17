@@ -46,12 +46,15 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.ConsumerConfiguration;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.IQueueReader;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.AdministratorMessage;
@@ -122,7 +125,7 @@ public class StatusQueueView extends EventConnectionView {
 	private ISubscriber<IBeanListener<AdministratorMessage>> adminMonitor;
 	private ISubmitter<StatusBean>                           queueConnection;
 
-	private Action rerun, edit, remove, up, down, pause;
+	private Action rerun, edit, remove, up, down, pause, pauseConsumer;
 	private IEventService service;
 	
 	public StatusQueueView() {
@@ -146,6 +149,7 @@ public class StatusQueueView extends EventConnectionView {
 		
         try {
     		queueConnection = service.createSubmitter(getUri(), getSubmissionQueueName());
+    		queueConnection.setStatusTopicName(getTopicName());
     		updateQueue(getUri());
     		
     		String name = getSecondaryIdAttribute("partName");
@@ -329,7 +333,7 @@ public class StatusQueueView extends EventConnectionView {
 		menuMan.add(down);
 		dropDown.add(down);
 
-		this.pause = new Action("Pause job", IAction.AS_CHECK_BOX) {
+		this.pause = new Action("Pause job.\nPauses a running job.", IAction.AS_CHECK_BOX) {
 			public void run() {
 				pauseJob();
 			}
@@ -340,6 +344,18 @@ public class StatusQueueView extends EventConnectionView {
 		toolMan.add(pause);
 		menuMan.add(pause);
 		dropDown.add(pause);
+		
+		this.pauseConsumer = new Action("Pause "+getPartName()+" Queue.\nDoes not pause running job.", IAction.AS_CHECK_BOX) {
+			public void run() {
+				pauseConsumer();
+			}
+		};
+		pauseConsumer.setImageDescriptor(Activator.getImageDescriptor("icons/control-pause-red.png"));
+		pauseConsumer.setChecked(isQueuePaused(getSubmissionQueueName()));
+		toolMan.add(pauseConsumer);
+		menuMan.add(pauseConsumer);
+		dropDown.add(pauseConsumer);
+
 		
 		this.remove = new Action("Stop job or remove if finished", Activator.getImageDescriptor("icons/control-stop-square.png")) {
 			public void run() {
@@ -437,6 +453,32 @@ public class StatusQueueView extends EventConnectionView {
 		viewer.getControl().setMenu(menuMan.createContextMenu(viewer.getControl()));
 	}
 
+	private boolean isQueuePaused(String submissionQueueName) {
+		
+		IQueueReader<PauseBean>   qr=null;
+		try {
+			qr = service.createQueueReader(getUri(), EventConstants.CMD_SET);
+		    List<PauseBean> pausedList = qr.getQueue();
+		    
+		    // The most recent bean in the queue is the latest
+		    for (PauseBean pauseBean : pausedList) {
+				if (submissionQueueName.equals(pauseBean.getQueueName())) return pauseBean.isPause();
+			}
+		    
+		} catch (Exception ne) {
+			logger.error("Cannot get queue "+EventConstants.CMD_SET, ne);
+			return false;
+			
+		} finally {
+			try {
+				qr.disconnect();
+			} catch (EventException e) {
+				logger.error("Cannot get disconnect "+EventConstants.CMD_SET, e);
+			}
+		}
+		return false;
+	}
+
 	protected void pauseJob() {
 		
 		final StatusBean bean = getSelection();
@@ -461,6 +503,22 @@ public class StatusQueueView extends EventConnectionView {
 			
 		} catch (Exception e) {
 			ErrorDialog.openError(getViewSite().getShell(), "Cannot pause "+bean.getName(), "Cannot pause "+bean.getName()+"\n\nPlease contact your support representative.",
+					new Status(IStatus.ERROR, "org.eclipse.scanning.event.ui", e.getMessage()));
+		}
+
+	}
+	
+	protected void pauseConsumer() {
+        
+		try {
+			IPublisher<PauseBean> pauser = service.createPublisher(getUri(), IEventService.CMD_TOPIC);
+			PauseBean pbean = new PauseBean();
+			pbean.setQueueName(getSubmissionQueueName());
+			pbean.setPause(pauseConsumer.isChecked());
+			pauser.broadcast(pbean);
+
+		} catch (Exception e) {
+			ErrorDialog.openError(getViewSite().getShell(), "Cannot pause queue "+getSubmissionQueueName(), "Cannot pause queue "+getSubmissionQueueName()+"\n\nPlease contact your support representative.",
 					new Status(IStatus.ERROR, "org.eclipse.scanning.event.ui", e.getMessage()));
 		}
 
@@ -675,13 +733,8 @@ public class StatusQueueView extends EventConnectionView {
 			copy.merge(bean);
 			copy.setUniqueId(UUID.randomUUID().toString());
 			copy.setMessage("Rerun of "+bean.getName());
-			
-			IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, "org.eclipse.scanning.event.ui");
-			final URI    uri       = new URI(store.getString("org.dawnsci.commandserver.URI"));
-			
-			final ISubmitter<StatusBean> factory = service.createSubmitter(uri, getSubmissionQueueName());
-			
-			factory.submit(copy, true);
+						
+			queueConnection.submit(copy, true);
 			
 			reconnect();
 

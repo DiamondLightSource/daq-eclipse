@@ -234,6 +234,7 @@ public class XcenView extends ViewPart {
 		}
 	        
 		final ISubmitter<XcenBean> factory = service.createSubmitter(new URI(Activator.getJmsUri()), "dataacq.xcen.SUBMISSION_QUEUE");
+		factory.setStatusTopicName("dataacq.xcen.STATUS_TOPIC");
 		factory.submit(submit, true);
 
 		showQueue();

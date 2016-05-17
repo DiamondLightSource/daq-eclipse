@@ -11,6 +11,7 @@ import javax.jms.Queue;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import javax.jms.Topic;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
@@ -86,6 +87,18 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 			message.setJMSPriority(getPriority());
 
 			producer.send(message);
+			
+			try {
+				if (getStatusTopicName()!=null) { // If there is a topic we tell everyone that we sent something to it in case the consumer is paused.
+					TextMessage msg = session.createTextMessage(json);
+					Topic topic = session.createTopic(getStatusTopicName());
+					MessageProducer prod = session.createProducer(topic);
+					prod.send(msg);
+					prod.close();
+				}
+			} catch (Exception ne) {
+				ne.printStackTrace();
+			}
 
 
 		} catch (Exception e) {

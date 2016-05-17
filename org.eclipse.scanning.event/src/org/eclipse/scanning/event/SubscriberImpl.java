@@ -276,6 +276,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 						return;
 					}
 				}
+				System.out.println(Thread.currentThread().getName()+" disconnecting events.");
 			}
 		}, "Submitter despatch thread "+getSubmitQueueName());
 		despachter.setDaemon(true);

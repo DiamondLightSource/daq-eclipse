@@ -101,16 +101,18 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 				
 		if (commandTName!=null) {
 			command = eservice.createSubscriber(uri, commandTName);
-			command.addListener(new IBeanListener<ConsumerCommandBean>() {
-				@Override
-				public void beanChangePerformed(BeanEvent<ConsumerCommandBean> evt) {
-					ConsumerCommandBean bean = evt.getBean();
-					if (isCommandForMe(bean)) {
-						if (bean instanceof KillBean)   terminate((KillBean)bean);
-						if (bean instanceof PauseBean)  processPause((PauseBean)bean);
-					}
-				}
-			});
+			command.addListener(new CommandListener());
+		}
+	}
+	
+	protected class CommandListener implements IBeanListener<ConsumerCommandBean> {
+		@Override
+		public void beanChangePerformed(BeanEvent<ConsumerCommandBean> evt) {
+			ConsumerCommandBean bean = evt.getBean();
+			if (isCommandForMe(bean)) {
+				if (bean instanceof KillBean)   terminate((KillBean)bean);
+				if (bean instanceof PauseBean)  processPause((PauseBean)bean);
+			}
 		}
 	}
 	
@@ -283,37 +285,39 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		
 		if (manager!=null) manager.disconnect();
 		manager = eservice.createSubscriber(uri, getStatusTopicName());
-		manager.addListener(new IBeanListener<U>() {
-			@Override
-			public void beanChangePerformed(BeanEvent<U> evt) {
-				U bean = evt.getBean();
-				if (!bean.getStatus().isRequest()) return;
-				
-				WeakReference<IConsumerProcess<U>> ref = processes.get(bean.getUniqueId());
-				try {
-					if (ref==null) { // Might be in submit queue still
-						updateQueue(bean);
+		manager.addListener(new TerminateListener());
+	}
+	
+	protected class TerminateListener implements IBeanListener<U> {
+		@Override
+		public void beanChangePerformed(BeanEvent<U> evt) {
+			U bean = evt.getBean();
+			if (!bean.getStatus().isRequest()) return;
+			
+			WeakReference<IConsumerProcess<U>> ref = processes.get(bean.getUniqueId());
+			try {
+				if (ref==null) { // Might be in submit queue still
+					updateQueue(bean);
 
-					} else {
-						IConsumerProcess<U> process = ref.get();
-						if (process!=null) {
-							process.getBean().setStatus(bean.getStatus());
-							process.getBean().setMessage(bean.getMessage());
-							if (bean.getStatus()==Status.REQUEST_TERMINATE) {
-								processes.remove(bean.getUniqueId());
-								process.terminate();
-							} else if (bean.getStatus()==Status.REQUEST_PAUSE) {
-								process.pause();
-							} else if (bean.getStatus()==Status.REQUEST_RESUME) {
-								process.resume();
-							}
+				} else {
+					IConsumerProcess<U> process = ref.get();
+					if (process!=null) {
+						process.getBean().setStatus(bean.getStatus());
+						process.getBean().setMessage(bean.getMessage());
+						if (bean.getStatus()==Status.REQUEST_TERMINATE) {
+							processes.remove(bean.getUniqueId());
+							process.terminate();
+						} else if (bean.getStatus()==Status.REQUEST_PAUSE) {
+							process.pause();
+						} else if (bean.getStatus()==Status.REQUEST_RESUME) {
+							process.resume();
 						}
 					}
-				} catch (EventException ne) {
-					logger.error("Internal error, please contact your support representative.", ne);
 				}
+			} catch (EventException ne) {
+				logger.error("Internal error, please contact your support representative.", ne);
 			}
-		});
+		}
 	}
 
 	@Override
