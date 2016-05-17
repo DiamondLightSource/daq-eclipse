@@ -116,13 +116,13 @@ public interface IHeartbeatMonitor {
 	 * 
 	 * @return Int max number of beats to be recorded.
 	 */
-	public int getRecorderSize();
+	public int getRecorderCapacity();
 	
 	/**
 	 * Change the maximum number of beats which can be recorded.
 	 * 
 	 * @param beats int number of beats to be recorded.
 	 */
-	public void setRecorderSize(int beats);
+	public void setRecorderCapacity(int beats);
 
 }
