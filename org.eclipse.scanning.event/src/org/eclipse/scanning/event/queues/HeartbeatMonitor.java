@@ -1,4 +1,4 @@
-package org.eclipse.scanning.api.event.queues;
+package org.eclipse.scanning.event.queues;
 
 import java.util.List;
 import java.util.UUID;
