@@ -18,14 +18,14 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 
 public class MockQueueService implements IQueueService {
 	
-	private MockQueue<QueueBean> jobQueue;
+	private IQueue<QueueBean> jobQueue;
 	private String jobQueueID;
 	
 	private Map<String, IQueue<QueueAtom>> activeQueues;
 	
-	public MockQueueService(MockQueue<QueueBean> jobQueue) {
-		this.jobQueue = jobQueue;
-		jobQueueID = jobQueue.getQueueID();
+	public MockQueueService(IQueue<QueueBean> mockOne) {
+		this.jobQueue = mockOne;
+		jobQueueID = mockOne.getQueueID();
 		
 		activeQueues = new HashMap<>();
 	}
@@ -228,7 +228,7 @@ public class MockQueueService implements IQueueService {
 
 	}
 	
-	public void addActiveQueue(MockQueue<QueueAtom> queue) {
+	public void addActiveQueue(IQueue<QueueAtom> queue) {
 		activeQueues.put(queue.getQueueID(), queue);
 	}
 
