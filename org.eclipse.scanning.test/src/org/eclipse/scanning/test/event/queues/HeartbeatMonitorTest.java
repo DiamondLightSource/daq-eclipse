@@ -89,7 +89,7 @@ public class HeartbeatMonitorTest {
 		waitForHeartbeat(3000);
 		
 		final HeartbeatBean first = hbM.getLastHeartbeat();
-		waitForHeartbeat(3000);
+		Thread.sleep(2300); //Heartbeat every 2000ms
 		final HeartbeatBean second = hbM.getLastHeartbeat();
 		consOne.start();
 		List<HeartbeatBean> heartbeats = hbM.getLatestHeartbeats();
