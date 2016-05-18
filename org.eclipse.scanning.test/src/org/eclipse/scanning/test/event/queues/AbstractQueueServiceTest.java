@@ -432,7 +432,9 @@ public class AbstractQueueServiceTest {
 	protected void checkForShutdownConsumer(UUID qConsID, QueueNameMap qNames) throws Exception {
 		
 		//Wait first to give consumer time to stop
-		Thread.sleep(2300);//TODO This has been optimised. Would be better with a latch, but not sure what to test for latch release
+		//This has been optimised. Expect a heartbeat every 2000ms, so this should be long 
+		//enough *not* to hear anything
+		Thread.sleep(2300);
 		
 		//Check the queue has been stopped
 		IEventService evServ = qServ.getEventService();
