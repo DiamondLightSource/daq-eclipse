@@ -72,6 +72,15 @@ public interface IQueue<T extends Queueable> {
 	}
 	
 	/**
+	 * Return the status topic name
+	 * 
+	 * @Return String submission queue name.
+	 */
+	public default String getStatusTopicName() {
+		return getQueueNames().getStatusTopicName();
+	}
+	
+	/**
 	 * Returns a class containing the queue/topic names configured for this 
 	 * queue.
 	 * 

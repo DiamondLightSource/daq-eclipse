@@ -58,7 +58,7 @@ public abstract class AbstractQueueProcessor<T extends Queueable> extends Abstra
 	 * @throws EventException In case broadcasting fails.
 	 */
 	protected void broadcast(T bean, Status newStatus, Double newPercent) throws EventException {
-		if (publisher != null && publisher.isAlive()) {
+		if (publisher != null) {
 			if (newStatus != null) {
 				bean.setPreviousStatus(bean.getStatus());
 				bean.setStatus(newStatus);
