@@ -100,7 +100,7 @@ public class AbstractQueueServiceTest {
 				assertEquals("Active queue state is incorrect", QueueStatus.STOPPED, qServ.getQueueStatus(jqID));
 				
 				//Wait to see if the queue is still alive & check the state of the bean at the end
-				pauseForFinalStatus(5000, qServ.getJobQueue().getStatusTopicName());
+				pauseForFinalStatus(10000, qServ.getJobQueue().getStatusTopicName());
 				beats = jobQueue.getLatestHeartbeats();
 				final int sizeAtStop = beats.size();
 				assertTrue("Queue had no heart beat during its lifetime", livingSize < sizeAtStop);
@@ -344,7 +344,7 @@ public class AbstractQueueServiceTest {
 		//Request termination
 		bean.setStatus(Status.REQUEST_TERMINATE);
 		qServ.jobQueueTerminate(bean);
-		pauseForFinalStatus(5000, qServ.getJobQueue().getStatusTopicName());
+		pauseForFinalStatus(10000, qServ.getJobQueue().getStatusTopicName());
 		
 		//Check it has terminated
 		checkProcessFinalStatus(bean, jqID, Status.TERMINATED);
@@ -360,7 +360,7 @@ public class AbstractQueueServiceTest {
 		//Request termination
 		atom.setStatus(Status.REQUEST_TERMINATE);
 		qServ.activeQueueTerminate(atom, aqID);
-		pauseForFinalStatus(5000, qServ.getActiveQueue(aqID).getStatusTopicName());
+		pauseForFinalStatus(10000, qServ.getActiveQueue(aqID).getStatusTopicName());
 
 		//Check it has terminated
 		checkProcessFinalStatus(atom, aqID, Status.TERMINATED);
@@ -478,8 +478,12 @@ public class AbstractQueueServiceTest {
 			}
 
 		});
-		statusLatch.await(timeout, TimeUnit.MILLISECONDS);
-		return;
+		boolean released = statusLatch.await(timeout, TimeUnit.MILLISECONDS);
+		if (released) {
+			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~\n Final state reached\n~~~~~~~~~~~~~~~~~~~~~~~~~");
+		} else {
+			System.out.println("#########################\n No final state reported\n#########################");
+		}
 	}
 
 }
