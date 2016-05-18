@@ -167,7 +167,7 @@ public class HeartbeatMonitorTest {
 	}
 	
 	@Test
-	public void testFixedQueueMonitor() {
+	public void testFixedQueueMonitor() throws Exception {
 		createQueueService();
 		
 		IHeartbeatMonitor[] hbms = new IHeartbeatMonitor[]{
