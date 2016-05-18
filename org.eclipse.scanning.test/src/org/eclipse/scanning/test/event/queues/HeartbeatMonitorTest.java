@@ -86,10 +86,10 @@ public class HeartbeatMonitorTest {
 	public void testLastHeartbeat() throws Exception {
 		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, consOne.getConsumerId());
 		consOne.start();
-		Thread.sleep(2300);
+		waitForHeartbeat(3000);
 		
 		final HeartbeatBean first = hbM.getLastHeartbeat();
-		Thread.sleep(2300);
+		waitForHeartbeat(3000);
 		final HeartbeatBean second = hbM.getLastHeartbeat();
 		consOne.start();
 		List<HeartbeatBean> heartbeats = hbM.getLatestHeartbeats();
@@ -102,7 +102,7 @@ public class HeartbeatMonitorTest {
 	public void testChangingConsumerID() throws Exception {
 		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, consOneID);
 		consOne.start();
-		Thread.sleep(2300);
+		waitForHeartbeat(3000);
 		
 		final HeartbeatBean first = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consOneID, first.getConsumerId());
@@ -112,7 +112,7 @@ public class HeartbeatMonitorTest {
 		
 		hbM.setConsumerID(consTwoID);
 		consTwo.start();
-		Thread.sleep(2300);
+		waitForHeartbeat(3000);
 		
 		final HeartbeatBean second = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consTwoID, second.getConsumerId());
@@ -127,7 +127,7 @@ public class HeartbeatMonitorTest {
 		assertEquals("Wrong queueID set on monitor", "MockQueueOne", hbM.getQueueID());
 		assertEquals("Wrong consumerID set on monitor", consOneID, hbM.getConsumerID());
 		consOne.start();
-		Thread.sleep(2300);
+		waitForHeartbeat(3000);
 		
 		final HeartbeatBean first = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consOneID, first.getConsumerId());
@@ -136,7 +136,7 @@ public class HeartbeatMonitorTest {
 		assertEquals("Wrong queueID set on monitor", "MockQueueTwo", hbM.getQueueID());
 		assertEquals("Wrong consumerID set on monitor", consTwoID, hbM.getConsumerID());
 		consTwo.start();
-		Thread.sleep(2300);
+		waitForHeartbeat(3000);
 		
 		final HeartbeatBean second = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consTwoID, second.getConsumerId());
@@ -151,7 +151,7 @@ public class HeartbeatMonitorTest {
 		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, "MockQueueOne", mQServ);
 		assertEquals("Wrong queueID set on monitor", "MockQueueOne", hbM.getQueueID());
 		assertEquals("Wrong consumerID set on monitor", consOneID, hbM.getConsumerID());
-		Thread.sleep(2300);
+		waitForHeartbeat(3000);
 		
 		final HeartbeatBean first = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consOneID, first.getConsumerId());
@@ -159,7 +159,7 @@ public class HeartbeatMonitorTest {
 		hbM.setQueueID("MockQueueTwo", mQServ);
 		assertEquals("Wrong queueID set on monitor", "MockQueueTwo", hbM.getQueueID());
 		assertEquals("Wrong consumerID set on monitor", consTwoID, hbM.getConsumerID());
-		Thread.sleep(2300);
+		waitForHeartbeat(3000);
 		
 		final HeartbeatBean second = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consTwoID, second.getConsumerId());
@@ -218,6 +218,14 @@ public class HeartbeatMonitorTest {
 		mQServ = new MockQueueService(mockOne);
 		mQServ.addActiveQueue(mockTwo);
 		mQServ.start();
+	}
+	
+	private void waitForHeartbeat(long timeout) throws Exception {
+		while (timeout > 0) {
+			if (hbM.getLatestHeartbeats().size() > 0) break;
+			timeout -= 100;
+			Thread.sleep(100);
+		}
 	}
 
 }
