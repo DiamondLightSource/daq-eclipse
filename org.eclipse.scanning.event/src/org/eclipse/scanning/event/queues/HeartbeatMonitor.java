@@ -18,24 +18,42 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 public class HeartbeatMonitor implements IHeartbeatMonitor {
 
-	private URI uri;
-	private String heartbeatTopic;
-
 	private ISubscriber<IHeartbeatListener> monitor;
 	private SizeLimitedRecorder<HeartbeatBean> heartbeatRecord;
-
+	
+	private URI uri;
+	private String heartbeatTopic;
 	private UUID monitoredConsumerID;
 	private String queueID = null;
+	
+	private final boolean locked;
 
 	/**
-	 * Set up directly from a given consumer ID.
+	 * Set up monitor directly from a given consumer ID.
 	 * 
 	 * @param uri Location of the JMS broker.
 	 * @param heartbeatTopic on which {@link HeartbeatBeans} are published.
 	 * @param consumerID UUID to listen for.
 	 * @throws EventException In case listener cannot be added correctly.
 	 */
-	public HeartbeatMonitor(URI uri, String heartbeatTopic, UUID consumerID) throws EventException {
+	public HeartbeatMonitor(URI uri, String heartbeatTopic, UUID consumerID) 
+			throws EventException {
+		this(uri, heartbeatTopic, consumerID, false);
+	}
+	
+	/**
+	 * Set up monitor directly from a given consumer ID. Can be locked to 
+	 * follow a given consumer.
+	 * 
+	 * @param uri Location of the JMS broker.
+	 * @param heartbeatTopic on which {@link HeartbeatBeans} are published.
+	 * @param consumerID UUID to listen for.
+	 * @param locked boolean true if monitor cannot be reconfigured.
+	 * @throws EventException In case listener cannot be added correctly.
+	 */
+	public HeartbeatMonitor(URI uri, String heartbeatTopic, UUID consumerID, 
+			boolean locked) throws EventException{
+		this.locked = locked;
 		this.uri = uri;
 		this.heartbeatTopic = heartbeatTopic;
 		monitoredConsumerID = consumerID;
@@ -43,7 +61,7 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	}
 
 	/**
-	 * Set up using an {@link IQueue} instance.
+	 * Set up monitor using an {@link IQueue} instance.
 	 * 
 	 * @param uri Location of the JMS broker.
 	 * @param heartbeatTopic on which {@link HeartbeatBeans} are published.
@@ -52,6 +70,23 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	 */
 	public HeartbeatMonitor(URI uri, String heartbeatTopic, 
 			IQueue<? extends Queueable> queue) throws EventException {
+		this(uri, heartbeatTopic, queue, false);
+	}
+	
+	/**
+	 * Set up monitor using an {@link IQueue} instance. Can be locked to 
+	 * follow a given consumer.
+	 * 
+	 * @param uri Location of the JMS broker.
+	 * @param heartbeatTopic on which {@link HeartbeatBeans} are published.
+	 * @param queue {@link IQueue} object to monitor
+	 * @param locked boolean true if monitor cannot be reconfigured.
+	 * @throws EventException In case listener cannot be added correctly.
+	 */
+	public HeartbeatMonitor(URI uri, String heartbeatTopic, 
+			IQueue<? extends Queueable> queue, boolean locked) 
+					throws EventException {
+		this.locked = locked;
 		this.uri = uri;
 		this.heartbeatTopic = heartbeatTopic;
 		monitoredConsumerID = queue.getConsumerID();
@@ -60,8 +95,8 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	}
 
 	/**
-	 * Set up using the queueID string name and the {@link IQueueService} which
-	 *  maintains this queue.
+	 * Set up monitor using the queueID string name and the 
+	 * {@link IQueueService} which maintains this queue.
 	 * 
 	 * @param  uri Location of the JMS broker.
 	 * @param heartbeatTopic on which {@link HeartbeatBeans} are published.
@@ -72,6 +107,25 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	 */
 	public HeartbeatMonitor(URI uri, String heartbeatTopic, String queueID, 
 			IQueueService queueService) throws EventException {
+		this(uri, heartbeatTopic, queueID, queueService, false);
+	}
+	
+	/**
+	 * Set up monitor using the queueID string name and the 
+	 * {@link IQueueService} which maintains this queue. Can be locked to 
+	 * follow a given consumer.
+	 * 
+	 * @param  uri Location of the JMS broker.
+	 * @param heartbeatTopic on which {@link HeartbeatBeans} are published.
+	 * @param queueID String name of queue in {@link IQueueService}
+	 * @param queueService {@link IQueueService} with reference to the 
+	 *                     {@link IQueue} to monitor.
+	 * @param locked boolean true if monitor cannot be reconfigured.
+	 * @throws EventException In case listener cannot be added correctly.
+	 */
+	public HeartbeatMonitor(URI uri, String heartbeatTopic, String queueID, 
+			IQueueService queueService, boolean locked) throws EventException {
+		this.locked = locked;
 		this.uri = uri;
 		this.heartbeatTopic = heartbeatTopic;
 
@@ -128,7 +182,8 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	}
 
 	@Override
-	public void setConsumerID(UUID consumerID) {
+	public void setConsumerID(UUID consumerID) throws EventException {
+		if (isLocked()) throw new EventException("Cannot change monitored QueueID; monitor is locked to another queue.");
 		monitoredConsumerID = consumerID;
 	}
 
@@ -150,6 +205,11 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	@Override
 	public void setRecorderCapacity(int beats) {
 		heartbeatRecord.setCapacity(beats);
+	}
+
+	@Override
+	public boolean isLocked() {
+		return locked;
 	}
 
 }
