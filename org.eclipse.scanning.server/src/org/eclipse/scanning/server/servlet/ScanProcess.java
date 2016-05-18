@@ -260,7 +260,7 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	}
 	
 	private void broadcast(ScanBean bean) throws EventException {
-		if (publisher!=null && publisher.isAlive()) {
+		if (publisher!=null) {
 			publisher.broadcast(bean);
 		}		
 	}

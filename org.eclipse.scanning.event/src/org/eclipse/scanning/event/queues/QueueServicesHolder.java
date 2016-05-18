@@ -26,8 +26,10 @@ public final class QueueServicesHolder {
 		QueueServicesHolder.deviceService = deviceService;
 	}
 
-	public static void unsetDeviceService() {
-		QueueServicesHolder.deviceService = null;
+	public static void unsetDeviceService(IRunnableDeviceService deviceService) {
+		if (QueueServicesHolder.deviceService == deviceService) {
+			QueueServicesHolder.deviceService = null;
+		}
 	}
 
 	public static IEventService getEventService() {
@@ -38,8 +40,10 @@ public final class QueueServicesHolder {
 		QueueServicesHolder.eventService = eventService;
 	}
 
-	public static void unsetEventService() {
-		QueueServicesHolder.eventService = null;
+	public static void unsetEventService(IEventService eventService) {
+		if (QueueServicesHolder.eventService == eventService) {
+			QueueServicesHolder.eventService = null;
+		}
 	}
 
 	public static IQueueService getQueueService() {
@@ -50,8 +54,10 @@ public final class QueueServicesHolder {
 		QueueServicesHolder.queueService = queueService;
 	}
 
-	public static void unsetQueueService() {
-		QueueServicesHolder.queueService = null;
+	public static void unsetQueueService(IQueueService queueService) {
+		if (QueueServicesHolder.queueService == queueService) {
+			QueueServicesHolder.queueService = null;
+		}
 	}
 
 }

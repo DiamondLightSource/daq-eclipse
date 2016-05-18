@@ -20,6 +20,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.alive.ConsumerStatus;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
+import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,7 +133,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 							beat.setBeamline(System.getenv("BEAMLINE"));
 							beat.setHostName(InetAddress.getLocalHost().getHostName());
 
-							send(heartbeatProducer, beat, 5000);
+							send(heartbeatProducer, beat, Math.round(Constants.getNotificationFrequency()*2.5));
 							lastBeat = beat;
 							
 							waitTime = 0; // We sent something		
@@ -167,8 +168,10 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			if (wasAlive) { // Might never have been a heartbeat publisher.
 				try {
 					Thread.sleep(Constants.getNotificationFrequency()+100); // Make sure dead			
-					lastBeat.setConsumerStatus(ConsumerStatus.STOPPED);
-				    send(heartbeatProducer, lastBeat, 5000);
+					if (lastBeat!=null) {
+						lastBeat.setConsumerStatus(ConsumerStatus.STOPPED);
+					    send(heartbeatProducer, lastBeat, Math.round(Constants.getNotificationFrequency()*2.5));
+					}
 					
 				} catch (Exception ne) {
 					throw new EventException("Cannot send termination message!", ne);
@@ -273,6 +276,18 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		}
 
 		return false;
+	}
+	
+	protected boolean isSame(Object qbean, Object bean) {
+		
+        if (qbean instanceof PauseBean && bean instanceof PauseBean) {
+        	PauseBean q = (PauseBean)qbean;
+        	PauseBean b = (PauseBean)bean;
+        	
+        	if (q.getConsumerId()!=null && q.getConsumerId().equals(b.getConsumerId())) return true;
+        	if (q.getQueueName()!=null  && q.getQueueName().equals(b.getQueueName()))   return true;
+        }
+		return super.isSame(qbean, bean);
 	}
 
 	public String getConsumerName() {

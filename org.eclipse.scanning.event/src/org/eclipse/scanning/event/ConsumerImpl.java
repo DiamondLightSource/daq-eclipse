@@ -441,6 +441,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 			awaitPaused = true;
 			if (consumer!=null) consumer.close();
 			consumer = null; // Force unpaused consumers to make a new connection.
+			logger.info(getName()+" is Paused");
 			
 		} catch (Exception ne) {
 			throw new EventException(ne);
@@ -461,6 +462,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 			awaitPaused = false;
 			// We don't have to actually start anything again because the getMessage(...) call reconnects automatically.
 			paused.signalAll();
+			logger.info(getName()+" is Resumed");
 			
 		} finally {
 			lock.unlock();

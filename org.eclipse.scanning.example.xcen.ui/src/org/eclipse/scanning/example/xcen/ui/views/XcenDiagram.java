@@ -9,7 +9,11 @@ import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
 import org.eclipse.dawnsci.plotting.api.VanillaPlottingSystemView;
 import org.eclipse.scanning.example.xcen.ui.XcenActivator;
 import org.eclipse.scanning.example.xcen.ui.XcenServices;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +32,14 @@ public class XcenDiagram extends VanillaPlottingSystemView {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		
+        if (system==null) {
+        	final Label msg = new Label(parent, SWT.WRAP);
+        	msg.setText("No plotting system found available.\nThere are probably no bundles providing plotting in the run configuration.\nThese may be obtained from dawn p2, for instance:\nhttp://opengda.org/DawnDiamond/2.0/updates/release/");
+        	return;
+        }
         super.createPartControl(parent);
+        
      
         // TODO Hard coded an x-stall, should come from current data acquisition.
         try {
