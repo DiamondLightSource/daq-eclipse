@@ -155,6 +155,11 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 			}
 		});
 	}
+	
+	@Override
+	public SizeLimitedRecorder<HeartbeatBean> getRecorder() {
+		return heartbeatRecord;
+	}
 
 	@Override
 	public HeartbeatBean getLastHeartbeat() {
@@ -185,6 +190,7 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	public void setConsumerID(UUID consumerID) throws EventException {
 		if (isLocked()) throw new EventException("Cannot change monitored QueueID; monitor is locked to another queue.");
 		monitoredConsumerID = consumerID;
+		getRecorder().clear();
 	}
 
 	@Override

@@ -26,6 +26,13 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 public interface IHeartbeatMonitor {
 	
 	/**
+	 * Get the recorder class.
+	 * 
+	 * @return SizeLimitedRecorder object holding the record of heartbeats.
+	 */
+	public SizeLimitedRecorder<HeartbeatBean> getRecorder();
+	
+	/**
 	 * Get the most recent {@link HeartbeatBean} from the record.
 	 * 
 	 * @return Last recorded {@link HeartbeatBean}.
@@ -62,7 +69,8 @@ public interface IHeartbeatMonitor {
 	public UUID getConsumerID();
 	
 	/**
-	 * Change the unique ID of the consumer to be monitored.
+	 * Change the unique ID of the consumer to be monitored. This should also 
+	 * clear the existing record.
 	 * 
 	 * @param consumerID - UUID of consumer to be monitored.
 	 */
