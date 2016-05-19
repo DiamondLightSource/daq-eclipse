@@ -323,7 +323,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 		return connected;
 	}
 
-	public void setConnected(boolean connected) {
+	private void setConnected(boolean connected) {
 		this.connected = connected;
 	}
 }

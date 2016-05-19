@@ -255,7 +255,8 @@ public class XcenView extends ViewPart {
 
 	private void showQueue() throws Exception {
 		
-		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(StatusQueueView.ID, XcenServices.getQueueViewSecondaryId(), IWorkbenchPage.VIEW_VISIBLE);
+		String secondId = XcenServices.getQueueViewSecondaryId();
+		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(StatusQueueView.ID+":"+secondId, null, IWorkbenchPage.VIEW_VISIBLE);
 		if (part !=null && part instanceof StatusQueueView) {
 			StatusQueueView view = (StatusQueueView)part;
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().bringToTop(view);

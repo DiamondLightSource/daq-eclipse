@@ -13,13 +13,12 @@ import java.util.Map;
  * @author Colin Palmer
  *
  */
-public class MalcolmDetectorModelWithMap extends MalcolmDetectorModel {
+public class MalcolmDetectorModelWithMap extends MalcolmDetectorConfiguration {
 
 	private static final String EXPOSURE_NAME = "exposure";
 
 	private Map<String, Object> parameterMap = new LinkedHashMap<>();
 
-	@Override
 	public double getExposureTime() {
 		Object exposure = parameterMap.get(EXPOSURE_NAME);
 		if (exposure instanceof Number) {

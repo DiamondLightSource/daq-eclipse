@@ -83,15 +83,21 @@ public class MockPublisher<T> implements IPublisher<T> {
 	}
 
 	@Override
-	public void setQueueName(String queueName) {
+	public void setStatusSetName(String queueName) {
 		this.queueName = queueName;
 		
 	}
 
 	@Override
-	public String getQueueName() {
+	public String getStatusSetName() {
 		return queueName;
 	}
+	
+	@Override
+	public void setStatusSetAddRequired(boolean required) {
+		throw new RuntimeException("setStatusSetAddRequired is not implemented!");
+	}
+
 
 	@Override
 	public String getConsumerName() {

@@ -21,6 +21,7 @@ import javax.jms.QueueConnectionFactory;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
@@ -34,6 +35,7 @@ import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.IQueueReader;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.Status;
@@ -91,7 +93,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		
 		mover  = eservice.createSubmitter(uri, statusQName);
 		status = eservice.createPublisher(uri, statusTName);
-		status.setQueueName(statusQName); // We also update values in a queue.
+		status.setStatusSetName(statusQName); // We also update values in a queue.
+		status.setStatusSetAddRequired(false);
 		
 		if (heartbeatTName!=null) { 
 			alive  = eservice.createPublisher(uri, heartbeatTName);
@@ -278,8 +281,35 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		consumerThread.setDaemon(true);
 		consumerThread.setPriority(Thread.NORM_PRIORITY-1);
 		consumerThread.start();
+		
 	}
 	
+	private PauseBean getPauseBean(String submissionQueueName) {
+		
+		IQueueReader<PauseBean>   qr=null;
+		try {
+			qr = eservice.createQueueReader(getUri(), EventConstants.CMD_SET);
+			qr.setBeanClass(PauseBean.class);
+		    List<PauseBean> pausedList = qr.getQueue();
+		    
+		    // The most recent bean in the queue is the latest
+		    for (PauseBean pauseBean : pausedList) {
+				if (submissionQueueName.equals(pauseBean.getQueueName())) return pauseBean;
+			}
+		    
+		} catch (Exception ne) {
+			logger.error("Cannot get queue "+EventConstants.CMD_SET, ne);
+			return null;
+			
+		} finally {
+			try {
+				if (qr!=null) qr.disconnect();
+			} catch (EventException e) {
+				logger.error("Cannot get disconnect "+EventConstants.CMD_SET, e);
+			}
+		}
+		return null;
+	}
 
 	private void startJobManager() throws EventException {
 		
@@ -344,6 +374,10 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		}
 		
 		long waitTime = 0;
+		
+		// We process the paused state
+		PauseBean pbean = getPauseBean(getSubmitQueueName());
+		if (pbean!=null) processPause(pbean); // Might set the pause lock and block on checkPaused().
 		 
 		while(isActive()) {
         	try {
@@ -445,7 +479,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 			awaitPaused = true;
 			if (consumer!=null) consumer.close();
 			consumer = null; // Force unpaused consumers to make a new connection.
-			logger.info(getName()+" is Paused");
+			logger.info(getName()+" is paused");
+			System.out.println(getName()+" is paused");
 			
 		} catch (Exception ne) {
 			throw new EventException(ne);
@@ -466,7 +501,8 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 			awaitPaused = false;
 			// We don't have to actually start anything again because the getMessage(...) call reconnects automatically.
 			paused.signalAll();
-			logger.info(getName()+" is Resumed");
+			logger.info(getName()+" running");
+			System.out.println(getName()+" running");
 			
 		} finally {
 			lock.unlock();

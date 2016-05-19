@@ -75,7 +75,7 @@ public class AbstractPauseTest {
 		Thread.sleep(200);
 
 		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
-		pauser.setQueueName(IEventService.CMD_SET);
+		pauser.setStatusSetName(IEventService.CMD_SET);
 		PauseBean pbean = new PauseBean();
 		pbean.setConsumerId(consumer.getConsumerId());
 		pauser.broadcast(pbean);
@@ -104,7 +104,7 @@ public class AbstractPauseTest {
 		Thread.sleep(200);
 
 		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
-		pauser.setQueueName(IEventService.CMD_SET);
+		pauser.setStatusSetName(IEventService.CMD_SET);
 		PauseBean pbean = new PauseBean();
 		pbean.setQueueName(consumer.getSubmitQueueName());
 		pauser.broadcast(pbean);
@@ -141,7 +141,7 @@ public class AbstractPauseTest {
 
 		Thread.sleep(100);
 		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
-		pauser.setQueueName(IEventService.CMD_SET);
+		pauser.setStatusSetName(IEventService.CMD_SET);
 		PauseBean pbean = new PauseBean();
 		pbean.setQueueName(consumer.getSubmitQueueName());
 		pauser.broadcast(pbean);

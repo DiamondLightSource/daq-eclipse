@@ -89,7 +89,9 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 			producer.send(message);
 			
 			try {
-				if (getStatusTopicName()!=null) { // If there is a topic we tell everyone that we sent something to it in case the consumer is paused.
+				// Deals with paused consumers by publishing something directly after submission.
+				// If there is a topic we tell everyone that we sent something to it in case the consumer is paused.
+				if (getStatusTopicName()!=null) { 
 					TextMessage msg = session.createTextMessage(json);
 					Topic topic = session.createTopic(getStatusTopicName());
 					MessageProducer prod = session.createProducer(topic);
@@ -97,7 +99,7 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 					prod.close();
 				}
 			} catch (Exception ne) {
-				ne.printStackTrace();
+				logger.error("Problem publishing to "+getStatusTopicName());
 			}
 
 

@@ -32,19 +32,28 @@ public interface IPublisher<T> extends ITopicConnection {
 	 */
 	public boolean isAlive();
 	
-	
+	/**
+	 * The queue name to synch with the topic updates (if any)
+	 * @return
+	 */
+	public String getStatusSetName();
+
 	/**
 	 * Set the queue name (default none) to which to echo the bean.
 	 * If doing this the bean needs a UUID so that it can be found and replaced in the queue.
 	 * @param queueName
 	 */
-	public void setQueueName(String queueName);
+	public void setStatusSetName(String queueName);
 	
 	/**
-	 * The queue name to synch with the topic updates (if any)
-	 * @return
+	 * By default the queue is added to if the item is not found.
+	 * Optionally if you are managing the queue directly, you may want
+	 * only an update, not an add. In that case set this flag to false.
+	 * 
+	 * @param isRequired
 	 */
-	public String getQueueName();
+	public void setStatusSetAddRequired(boolean isRequired);
+
 
 	
 	public String getConsumerName();
@@ -60,4 +69,5 @@ public interface IPublisher<T> extends ITopicConnection {
 	 * @param stream
 	 */
 	public void setLoggingStream(PrintStream stream);
+
 }

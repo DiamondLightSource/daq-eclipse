@@ -50,7 +50,9 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		try {
 		    if (getTopicName()!=null) if (scanProducer==null) scanProducer = createProducer(getTopicName());
 		    try {
-			    if (queueName!=null) updateSet(bean);
+			    if (queueName!=null) {
+			    	updateSet(bean);
+			    }
 		    } catch (Throwable notFatal) {
 		    	// Updating the set is not a fatal error
 		    	logger.error("Did not update the set", notFatal);
@@ -95,6 +97,8 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	}
 	
 	private volatile HeartbeatBean lastBeat;
+
+	private boolean statusSetAddRequired = true;
 
 	@Override
 	public void setAlive(boolean alive) throws EventException {
@@ -204,12 +208,15 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		}
 	}
 
-	public String getQueueName() {
+	public String getStatusSetName() {
 		return queueName;
 	}
 
-	public void setQueueName(String queueName) {
+	public void setStatusSetName(String queueName) {
 		this.queueName = queueName;
+	}
+	public void setStatusSetAddRequired(boolean isRequired) {
+		this.statusSetAddRequired  = isRequired;
 	}
 
 	/**
@@ -220,7 +227,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	private boolean updateSet(T bean) throws Exception {
 		
 		
-		Queue     queue = createQueue(getQueueName());
+		Queue     queue = createQueue(getStatusSetName());
 		QueueBrowser qb = qSession.createBrowser(queue);
 
 		@SuppressWarnings("rawtypes")
@@ -259,20 +266,42 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			consumer.close();
 			if (m!=null && m instanceof TextMessage) {
 				MessageProducer producer = qSession.createProducer(queue);
-				
-				TextMessage t = qSession.createTextMessage(service.marshal(bean));
-				t.setJMSMessageID(m.getJMSMessageID());
-				t.setJMSExpiration(m.getJMSExpiration());
-				t.setJMSTimestamp(m.getJMSTimestamp());
-				t.setJMSPriority(m.getJMSPriority());
-				t.setJMSCorrelationID(m.getJMSCorrelationID());
-	
-				producer.send(t);
-				
-				producer.close();
+				try {
+					TextMessage t = qSession.createTextMessage(service.marshal(bean));
+					t.setJMSMessageID(m.getJMSMessageID());
+					t.setJMSExpiration(m.getJMSExpiration());
+					t.setJMSTimestamp(m.getJMSTimestamp());
+					t.setJMSPriority(m.getJMSPriority());
+					t.setJMSCorrelationID(m.getJMSCorrelationID());
+		
+					producer.send(t);
+				} finally {
+				    producer.close();
+				}
 				
 				return true;
 			}
+		}
+		
+		if (statusSetAddRequired) { // It wasn't found so we will add it.
+			MessageProducer producer = session.createProducer(queue);
+			try {
+				producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+				String json = null;
+				try {
+					json = service.marshal(bean);
+				} catch (Exception neother) {
+					throw new EventException("Unable to marshall bean "+bean, neother);
+				}
+
+				TextMessage message = session.createTextMessage(json);
+				producer.send(message);
+				
+			} finally {
+				producer.close();
+			}
+
+            return true;
 		}
 
 		return false;
