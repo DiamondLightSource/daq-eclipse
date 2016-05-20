@@ -217,7 +217,7 @@ public class DarkPluginTest {
 		if (detectorName.equals("dark")) {
 			detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("."));
 		} else if (detectorName.equals("mandelbrot")) {
-			detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("image_x_axis", "image_y_axis"));
+			detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("real", "imaginary"));
 			detectorDataFields.put("spectrum", Arrays.asList("spectrum_axis"));
 			detectorDataFields.put("value", Collections.emptyList());
 		}
@@ -235,29 +235,26 @@ public class DarkPluginTest {
 
 		for (String dataFieldName : expectedDataGroupNamesForDevice.keySet()) {
 			String nxDataGroupName = expectedDataGroupNamesForDevice.get(dataFieldName); 
-			NXdata data = nxDataGroups.get(nxDataGroupName);
-			assertNotNull(data);
+			NXdata nxData = nxDataGroups.get(nxDataGroupName);
+			assertNotNull(nxData);
 
 			// check the default data field for the NXdata group
 			String sourceFieldName = nxDataGroupName.equals(detectorName) ? NXdetector.NX_DATA :
 				nxDataGroupName.substring(nxDataGroupName.indexOf('_') + 1);
-			assertSignal(data, sourceFieldName);
+			assertSignal(nxData, sourceFieldName);
 			
-			assertSame(data.getDataNode(sourceFieldName),
+			assertSame(nxData.getDataNode(sourceFieldName),
 					entry.getInstrument().getDetector(detectorName).getDataNode(sourceFieldName));
-			assertTarget(data, NXdata.NX_DATA, rootNode, "/entry/instrument/" + detectorName
-					+ "/data");
+			assertTarget(nxData, sourceFieldName, rootNode, "/entry/instrument/" + detectorName
+					+ "/" + sourceFieldName);
 
 			// append _value_demand to each name in list
-//			int rank = entry.getInstrument().getDetector(detectorName)
-//					.getDataNode(sourceFieldName).getRank();
 			List<String> expectedAxesNames = Stream.concat(
 					scannableNames.stream().map(x -> x + "_value_demand"),
 					detectorDataFields.get(sourceFieldName).stream()).collect(Collectors.toList());
 			// add placeholder value "." for each additional dimension
-//			expectedAxesNames.addAll(Collections.nCopies(rank - scannableNames.size(), "."));
 			
-			assertAxes(data, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
+			assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 			int[] defaultDimensionMappings = IntStream.range(0, scannableNames.size()).toArray();
 
 			// check the value_demand and value fields for each scannable
@@ -267,18 +264,18 @@ public class DarkPluginTest {
 
 				// check value_demand data node
 				String demandFieldName = positionerName + "_" + NXpositioner.NX_VALUE + "_demand";
-				assertSame(data.getDataNode(demandFieldName),
+				assertSame(nxData.getDataNode(demandFieldName),
 						positioner.getDataNode("value_demand"));
-				assertIndices(data, demandFieldName, i);
-				assertTarget(data, demandFieldName, rootNode, "/entry/instrument/" + positionerName
+				assertIndices(nxData, demandFieldName, i);
+				assertTarget(nxData, demandFieldName, rootNode, "/entry/instrument/" + positionerName
 						+ "/value_demand");
 
 				// check value data node
 				String valueFieldName = positionerName + "_" + NXpositioner.NX_VALUE;
-				assertSame(data.getDataNode(valueFieldName),
+				assertSame(nxData.getDataNode(valueFieldName),
 						positioner.getDataNode(NXpositioner.NX_VALUE));
-				assertIndices(data, valueFieldName, defaultDimensionMappings);
-				assertTarget(data, valueFieldName, rootNode, "/entry/instrument/" + positionerName
+				assertIndices(nxData, valueFieldName, defaultDimensionMappings);
+				assertTarget(nxData, valueFieldName, rootNode, "/entry/instrument/" + positionerName
 						+ "/" + NXpositioner.NX_VALUE);
 			}
 		}
