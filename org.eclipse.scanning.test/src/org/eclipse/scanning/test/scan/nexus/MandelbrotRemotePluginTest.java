@@ -216,7 +216,7 @@ public class MandelbrotRemotePluginTest {
 		
 		LinkedHashMap<String, List<String>> detectorDataFields = new LinkedHashMap<>();
 		// axis for additional dimensions of a datafield, e.g. image
-		detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("image_x_axis", "image_y_axis"));
+		detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("real", "imaginary"));
 		detectorDataFields.put("spectrum", Arrays.asList("spectrum_axis"));
 		detectorDataFields.put("value", Collections.emptyList());
 		
