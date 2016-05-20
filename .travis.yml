@@ -24,7 +24,7 @@ install:
  
 # Set LD_LIBRARY_PATH for the tests
 env:
-  - LD_LIBRARY_PATH=/home/travis/build/dawn-third/ncsa.hdf/lib/linux-x86_64
+  - LD_LIBRARY_PATH=/home/travis/build/dawn-hdf/hdf.hdf5lib/lib/linux-x86_64
  
 # compile and test
 script: 
