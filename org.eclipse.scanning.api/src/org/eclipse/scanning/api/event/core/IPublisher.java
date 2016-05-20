@@ -54,14 +54,6 @@ public interface IPublisher<T> extends ITopicConnection {
 	 */
 	public void setStatusSetAddRequired(boolean isRequired);
 
-
-	
-	public String getConsumerName();
-	public void setConsumerName(String cname);
-	
-	public UUID getConsumerId();
-	public void setConsumerId(UUID id);
-
 	/**
 	 * You may optionally set a logging stream on a publisher so that 
 	 * publications can be recorded to file for debugging.
@@ -69,5 +61,13 @@ public interface IPublisher<T> extends ITopicConnection {
 	 * @param stream
 	 */
 	public void setLoggingStream(PrintStream stream);
+	
+	/**
+	 * If this publisher is providing alive events for a consumer,
+	 * use this method to set the consumer and provide the consumer's
+	 * current information when the events are sent.
+	 * @param consumer
+	 */
+	public void setConsumer(IConsumer<?> consumer);
 
 }

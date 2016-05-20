@@ -505,6 +505,7 @@ public class StatusQueueView extends EventConnectionView {
 			
 			IPublisher<PauseBean> pauser = service.createPublisher(getUri(), IEventService.CMD_TOPIC);
 			pauser.setStatusSetName(IEventService.CMD_SET); // The set that other clients may check
+			pauser.setStatusSetAddRequired(true);
 			
 			PauseBean pbean = new PauseBean();
 			pbean.setQueueName(getSubmissionQueueName()); // The queue we are pausing

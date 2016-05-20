@@ -4,7 +4,6 @@ import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Enumeration;
-import java.util.UUID;
 
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
@@ -21,6 +20,7 @@ import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.alive.ConsumerStatus;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
+import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +35,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	private boolean         alive;
 	private String          queueName;
 	
-	private String          consumerName;
-	private UUID            consumerId;
+	private IConsumer<?> consumer;
 
 	private PrintStream     out;
 
@@ -98,7 +97,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	
 	private volatile HeartbeatBean lastBeat;
 
-	private boolean statusSetAddRequired = true;
+	private boolean statusSetAddRequired = false;
 
 	@Override
 	public void setAlive(boolean alive) throws EventException {
@@ -131,9 +130,11 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			                // The producer might need to be reconnected.
 							if (heartbeatProducer==null) heartbeatProducer = createProducer(getTopicName());
 							beat.setPublishTime(System.currentTimeMillis());
-							beat.setConsumerId(consumerId);
-							beat.setConsumerName(consumerName);
-							beat.setConsumerStatus(ConsumerStatus.ALIVE);
+							if (consumer!=null) {
+								beat.setConsumerId(consumer.getConsumerId());
+								beat.setConsumerName(consumer.getName());
+								beat.setConsumerStatus(consumer.getConsumerStatus());
+							}
 							beat.setBeamline(System.getenv("BEAMLINE"));
 							beat.setHostName(InetAddress.getLocalHost().getHostName());
 
@@ -196,6 +197,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			alive = false;
 			if (scanProducer!=null)      scanProducer.close();
 			if (heartbeatProducer!=null) heartbeatProducer.close();
+			consumer = null;
 			
 			super.disconnect();
 			
@@ -319,28 +321,21 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		return super.isSame(qbean, bean);
 	}
 
-	public String getConsumerName() {
-		return consumerName;
-	}
-
-	public void setConsumerName(String consumerName) {
-		this.consumerName = consumerName;
-	}
-
-	public UUID getConsumerId() {
-		return consumerId;
-	}
-
-	public void setConsumerId(UUID consumerId) {
-		this.consumerId = consumerId;
-	}
-
 	@Override
 	public void setLoggingStream(PrintStream stream) {
 		this.out = stream;
 		if (out!=null) {
-			out.println("Publisher for consumer name "+getConsumerName());
+			if (consumer!=null) out.println("Publisher for consumer name "+consumer.getName());
 		}
+	}
+
+	public IConsumer<?> getConsumer() {
+		return consumer;
+	}
+
+	@Override
+	public void setConsumer(IConsumer<?> consumer) {
+		this.consumer = consumer;
 	}
 
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.alive.ConsumerStatus;
 
 /**
  * 
@@ -105,6 +106,14 @@ public interface IConsumer<T> extends IQueueConnection<T> {
      * @return
      */
 	public UUID getConsumerId();
+	
+	/**
+	 * 
+	 * @return the current status of the consumer.
+	 */
+	default ConsumerStatus getConsumerStatus() {
+		return ConsumerStatus.ALIVE;
+	}
 	
 	public String getName();
 	public void setName(String name);

@@ -188,7 +188,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 							final StatusBean qbean = service.unmarshal(json, beanClass != null ? beanClass : statusBeanClass);
 							if (qbean==null)               continue;
 							if (qbean.getStatus()==null)   continue;
-							if (!qbean.getStatus().isStarted()) {
+							if (!qbean.getStatus().isStarted() || qbean.getStatus()==Status.PAUSED) {
 								failIds.put(t.getJMSMessageID(), qbean);
 								continue;
 							}

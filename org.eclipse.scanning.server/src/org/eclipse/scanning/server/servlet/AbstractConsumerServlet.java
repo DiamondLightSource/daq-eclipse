@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
     {@literal    <property name="durable"     value="true" />}
     {@literal </bean>}
     
+    Use: property name="purgeQueue" value="false" to stop the startup phase purging old inactive jobs.
+    
     </pre>
  * 
  * @author Matthew Gerring
@@ -49,6 +51,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 	// Property to specify if one scan at a time or more are completed.
 	private boolean         blocking = true;
 	private boolean         durable  = true;
+	private boolean         purgeQueue = true;
 	
 	// Recommended to configure these as
 	protected String        submitQueue = IEventService.SUBMISSION_QUEUE;
@@ -80,10 +83,19 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
     	consumer.setName(getName());
     	consumer.setDurable(isDurable());
     	consumer.setRunner(new DoObjectCreator<B>());
+    	
+    	// Purge old jobs, we wouldn't want those running.
+    	// This suggests that DAQ should have one
+    	// AbstractConsumerServlet for each queue or when 
+    	// another one starts, it might purge the old one.
+    	// Use setPurgeQueue(false) to stop it.
+     	if (isPurgeQueue()) consumer.cleanQueue(getStatusSet());
+    	
      	consumer.start();
      	isConnected = true;
      	logger.info("Started "+getClass().getSimpleName());
-    }
+     	
+   }
     
 	protected abstract String getName();
 
@@ -170,6 +182,18 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 
 	public boolean isConnected() {
 		return isConnected;
+	}
+
+	public boolean isPurgeQueue() {
+		return purgeQueue;
+	}
+
+	public void setPurgeQueue(boolean purgeQueue) {
+		this.purgeQueue = purgeQueue;
+	}
+
+	public void setConsumer(IConsumer<B> consumer) {
+		this.consumer = consumer;
 	}
 
 }

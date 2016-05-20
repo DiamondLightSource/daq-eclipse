@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
@@ -255,12 +256,20 @@ public class XcenView extends ViewPart {
 
 	private void showQueue() throws Exception {
 		
-		String secondId = XcenServices.getQueueViewSecondaryId();
-		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(StatusQueueView.ID+":"+secondId, null, IWorkbenchPage.VIEW_VISIBLE);
-		if (part !=null && part instanceof StatusQueueView) {
-			StatusQueueView view = (StatusQueueView)part;
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().bringToTop(view);
-			view.refresh();
+		IViewReference[] refs = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
+		
+		boolean foundStatus = false;
+		for (IViewReference vr : refs) {
+			if (StatusQueueView.ID.equals(vr.getId())) foundStatus = true;
+		}
+		if (!foundStatus) {
+			String secondId = XcenServices.getQueueViewSecondaryId();
+			IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(StatusQueueView.ID+":"+secondId, null, IWorkbenchPage.VIEW_VISIBLE);
+			if (part !=null && part instanceof StatusQueueView) {
+				StatusQueueView view = (StatusQueueView)part;
+				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().bringToTop(view);
+				view.refresh();
+			}
 		}
 	}
 	

@@ -2,6 +2,7 @@ package org.eclipse.scanning.event;
 
 import java.lang.ref.WeakReference;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
+import org.eclipse.scanning.api.event.alive.ConsumerStatus;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
@@ -43,7 +45,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U> implements IConsumer<U> {
+final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U> implements IConsumer<U> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ConsumerImpl.class);
 	private static final long   ADAY   = 24*60*60*1000; // ms
@@ -94,12 +96,10 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		mover  = eservice.createSubmitter(uri, statusQName);
 		status = eservice.createPublisher(uri, statusTName);
 		status.setStatusSetName(statusQName); // We also update values in a queue.
-		status.setStatusSetAddRequired(false);
 		
 		if (heartbeatTName!=null) { 
 			alive  = eservice.createPublisher(uri, heartbeatTName);
-			alive.setConsumerId(consumerId);
-			alive.setConsumerName(getName());
+			alive.setConsumer(this);
 		}
 				
 		if (commandTName!=null) {
@@ -410,6 +410,7 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
          		
         	} catch (Throwable ne) {
         		
+        		logger.debug("Error in consumer!", ne);
         		if (ne.getClass().getSimpleName().contains("Json")) {
             		logger.error("Fatal except deserializing object!", ne);
             		continue;
@@ -487,6 +488,22 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 		} finally {
 			lock.unlock();
 		}
+	}
+	
+	@Override
+	public ConsumerStatus getConsumerStatus() {
+		
+		if (processes!=null && processes.size()>0) {
+			List<WeakReference<IConsumerProcess<U>>> refs = new ArrayList<>(processes.values());
+			for (WeakReference<IConsumerProcess<U>> ref : refs) {
+				IConsumerProcess<U> process = ref.get();
+				if (process!=null) {
+					if (process.isBlocking() && process.isPaused()) return ConsumerStatus.PAUSED;
+				}
+			}
+		}
+
+		return awaitPaused ? ConsumerStatus.PAUSED : ConsumerStatus.RUNNING;
 	}
 
 	public void resume() throws EventException {
@@ -610,7 +627,6 @@ public class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<
 	@Override
 	public void setName(String name) {
 		this.name = name;
-		if (alive!=null) alive.setConsumerName(getName());
 	}
 
 	@Override

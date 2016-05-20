@@ -91,7 +91,7 @@ public class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess
 	}
 
 	@Override
-	public void terminate() throws EventException {
+	public void doTerminate() throws EventException {
 		if (thread!=null) thread.interrupt();
 		terminated = true;
 	}
