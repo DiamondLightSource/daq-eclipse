@@ -124,11 +124,11 @@ public class AbstractPauseTest {
     @Test
     public void testReorderingAPausedQueue() throws Exception {
     	
-		consumer.setRunner(new FastRunCreator<StatusBean>(100, true));
+		consumer.setRunner(new FastRunCreator<StatusBean>(200, true));
 		consumer.start();
 
 		// Bung ten things on there.
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 5; i++) {
 			StatusBean bean = new StatusBean();
 			bean.setName("Submission"+i);
 			bean.setStatus(Status.SUBMITTED);
@@ -142,19 +142,20 @@ public class AbstractPauseTest {
 		Thread.sleep(100);
 		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
 		pauser.setStatusSetName(IEventService.CMD_SET);
+		
 		PauseBean pbean = new PauseBean();
 		pbean.setQueueName(consumer.getSubmitQueueName());
 		pauser.broadcast(pbean);
 		
 		// Now we are paused. Read the submission queue
-		Thread.sleep(100);
+		Thread.sleep(200);
 		List<StatusBean> submitQ = consumer.getSubmissionQueue();
-		assertEquals(9, submitQ.size());
+		assertEquals(4, submitQ.size());
 	
-		Thread.sleep(2000); // Wait for 0 to run and check again that nothing else is
+		Thread.sleep(2000); // Wait for a while and check again that nothing else is
 		
 		submitQ = consumer.getSubmissionQueue();
-		assertEquals(9, submitQ.size()); // It really has paused has it?
+		assertEquals(4, submitQ.size()); // It really has paused has it?
 		
 		// Right then we will reorder it.
 		consumer.cleanQueue(consumer.getSubmitQueueName());
@@ -173,10 +174,10 @@ public class AbstractPauseTest {
 		pbean.setPause(false);
 		pauser.broadcast(pbean);
 		
-		// Resubmit in new order 9-1
+		// Resubmit in new order 4-1
 		for (StatusBean statusBean : submitQ) submitter.submit(statusBean);
 		
-		final Map<String, StatusBean> run = new LinkedHashMap<>(9); // Order important
+		final Map<String, StatusBean> run = new LinkedHashMap<>(4); // Order important
 		ISubscriber<EventListener> sub = eservice.createSubscriber(consumer.getUri(), consumer.getStatusTopicName());
 		sub.addListener(new IBeanListener<StatusBean>() {
 			@Override
@@ -189,13 +190,13 @@ public class AbstractPauseTest {
 
 		while(!consumer.getSubmissionQueue().isEmpty()) Thread.sleep(1000); // Wait for all to run
 		
-		Thread.sleep(200); // ensure last one is running or ran.
+		Thread.sleep(500); // ensure last one is in the status set
 		
 		List<StatusBean> ordered = new ArrayList<>(run.values());
-		assertEquals(9, ordered.size());
+		assertEquals(4, ordered.size());
 		for (int i = 0; i < ordered.size(); i++) {
 			int t = Integer.valueOf(ordered.get(i).getUserName());
-			if ((9-i) != t) throw new Exception("The run order was not 9-1 after reordering!");
+			if ((4-i) != t) throw new Exception("The run order was not 5-1 after reordering! Position "+i+" was "+t+" and should be "+(4-i));
 		}
     }
 
