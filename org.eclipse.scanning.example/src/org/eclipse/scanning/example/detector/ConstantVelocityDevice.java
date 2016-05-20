@@ -42,7 +42,8 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 
 	@Override
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR,
+				NXdetector.NX_DATA, info, this);
 	}
 
 	@Override

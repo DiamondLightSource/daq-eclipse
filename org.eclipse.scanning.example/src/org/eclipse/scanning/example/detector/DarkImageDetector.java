@@ -58,7 +58,7 @@ public class DarkImageDetector extends AbstractRunnableDevice<DarkImageModel> im
 	}
 	
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, NXdetector.NX_DATA, info, this);
 	}
 
 	@Override

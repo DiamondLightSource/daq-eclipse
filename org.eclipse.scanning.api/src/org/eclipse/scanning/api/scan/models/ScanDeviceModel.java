@@ -56,7 +56,7 @@ public class ScanDeviceModel {
 	
 	private int[] defaultDimensionMappings = null;
 	
-	private Boolean useDeviceName = null;
+	private Boolean isPrimary = null;
 	
 	private boolean addNamedFieldsOnly = false;
 
@@ -67,7 +67,7 @@ public class ScanDeviceModel {
 	}
 	
 	public ScanDeviceModel(boolean useDeviceName) {
-		this.useDeviceName = useDeviceName;
+		this.isPrimary = useDeviceName;
 	}
 	
 	public ScanDeviceModel(int... defaultDimensionMappings) {
@@ -75,7 +75,7 @@ public class ScanDeviceModel {
 	}
 	
 	public ScanDeviceModel(boolean useDeviceName, Integer defaultAxisDimension, int... defaultDimensionMappings) {
-		this.useDeviceName = useDeviceName;
+		this.isPrimary = useDeviceName;
 		this.defaultAxisDimension = defaultAxisDimension;
 		this.defaultDimensionMappings = defaultDimensionMappings;
 	}
@@ -184,30 +184,6 @@ public class ScanDeviceModel {
 		}
 	}
 	
-	public Boolean getUseDeviceName() {
-		return useDeviceName;
-	}
-
-	/**
-	 * Sets whether to use the device name for the data fields for this device
-	 * when adding them to the NXdata group (as links).
-	 * If set to <code>true</code>, and this device has only one data field, then
-	 * the name of the device will be used as the name of that data field within
-	 * the NXdata group; if this device has more than one data field, then
-	 * the name of the device will be prefixed to the name of each data field
-	 * for this device, with the '_' character as a separator
-	 * If set to <code>false</code> then each data field will be added to the
-	 * NXdata group with the same name as the source name.
-	 * Note that if {@link #setDestinationFieldName(String, String)} has been
-	 * set for any field, then the name set for that field by that method will
-	 * be used regardless of the value of {@link #getUseDeviceName()}. 
-	 * @param useDeviceName <code>true</code> to use the name of this device
-	 *   for the data field(s) of this device.
-	 */
-	public void setUseDeviceName(boolean useDeviceName) {
-		this.useDeviceName = useDeviceName;
-	}
-
 	public boolean getAddNamedFieldsOnly() {
 		return addNamedFieldsOnly;
 	}
