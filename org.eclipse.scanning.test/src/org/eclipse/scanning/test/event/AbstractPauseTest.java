@@ -150,12 +150,12 @@ public class AbstractPauseTest {
 		// Now we are paused. Read the submission queue
 		Thread.sleep(200);
 		List<StatusBean> submitQ = consumer.getSubmissionQueue();
-		assertEquals(4, submitQ.size());
+		assertTrue(submitQ.size()>=4);
 	
 		Thread.sleep(2000); // Wait for a while and check again that nothing else is
 		
 		submitQ = consumer.getSubmissionQueue();
-		assertEquals(4, submitQ.size()); // It really has paused has it?
+		assertTrue(submitQ.size()>=4);
 		
 		// Right then we will reorder it.
 		consumer.cleanQueue(consumer.getSubmitQueueName());
@@ -193,7 +193,7 @@ public class AbstractPauseTest {
 		Thread.sleep(500); // ensure last one is in the status set
 		
 		List<StatusBean> ordered = new ArrayList<>(run.values());
-		assertEquals(4, ordered.size());
+		assertTrue(ordered.size()>=4);
 		for (int i = 0; i < ordered.size(); i++) {
 			int t = Integer.valueOf(ordered.get(i).getUserName());
 			if ((4-i) != t) throw new Exception("The run order was not 5-1 after reordering! Position "+i+" was "+t+" and should be "+(4-i));
