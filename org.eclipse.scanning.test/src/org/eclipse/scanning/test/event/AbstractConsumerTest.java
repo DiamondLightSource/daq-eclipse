@@ -103,6 +103,7 @@ public class AbstractConsumerTest {
 	public void testSimpleConsumer() throws Exception {
     	
 		consumer.setRunner(new FastRunCreator<StatusBean>(100L, true));
+		consumer.cleanQueue(consumer.getSubmitQueueName());
 		consumer.start();
 		
 		StatusBean bean = doSubmit();
@@ -132,7 +133,8 @@ public class AbstractConsumerTest {
     	
 		IConsumer<StatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
 		try {
-			fconsumer.setRunner(new FastRunCreator<StatusBean>());
+			fconsumer.setRunner(new FastRunCreator<StatusBean>(0, 100, 50, 100L, true));
+			fconsumer.cleanQueue(consumer.getSubmitQueueName());
 			fconsumer.start(); // No bean!
 			
 	     	FredStatusBean bean = new FredStatusBean();
@@ -153,7 +155,8 @@ public class AbstractConsumerTest {
     	
 		IConsumer<StatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
 		try {
-			fconsumer.setRunner(new FastRunCreator<StatusBean>());
+			fconsumer.setRunner(new FastRunCreator<StatusBean>(0, 100, 50, 100L, true));
+			fconsumer.cleanQueue(consumer.getSubmitQueueName());
 			fconsumer.start();// It's going now, we can submit
 			
 	     	FredStatusBean fred = new FredStatusBean();
@@ -188,7 +191,7 @@ public class AbstractConsumerTest {
 
 		doSubmit(bean);
 				
-		Thread.sleep(2500);
+		Thread.sleep(500);
 		
 		List<StatusBean> stati = fconsumer.getStatusSet();
 		if (stati.size()!=statusSize) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
@@ -211,16 +214,17 @@ public class AbstractConsumerTest {
 
     @Test
 	public void testConsumerStop() throws Exception {
-        testStop(new FastRunCreator<StatusBean>(0, 100, 1, 100, true));
+        testStop(new FastRunCreator<StatusBean>(0, 100, 1, 100L, true));
     }
     @Test
 	public void testConsumerStopNonBlockingProcess() throws Exception {
-        testStop(new FastRunCreator<StatusBean>(0, 100, 1, 100, false));
+        testStop(new FastRunCreator<StatusBean>(0, 100, 1, 100L, false));
     }
 
     private void testStop(IProcessCreator<StatusBean> dryRunCreator) throws Exception {
     	
 		consumer.setRunner(dryRunCreator);
+		consumer.cleanQueue(consumer.getSubmitQueueName());
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -238,7 +242,8 @@ public class AbstractConsumerTest {
     @Test
     public void testKillingAConsumer() throws Exception {
     	
-		consumer.setRunner(new FastRunCreator<StatusBean>(0, 100, 1, 100, false));
+    	consumer.setRunner(new FastRunCreator<StatusBean>(0, 100, 1, 100L, true));
+		consumer.cleanQueue(consumer.getSubmitQueueName());
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -261,6 +266,7 @@ public class AbstractConsumerTest {
 	public void testAbortingAJobRemotely() throws Exception {
 
 		consumer.setRunner(new FastRunCreator<StatusBean>(100L, true));
+		consumer.cleanQueue(consumer.getSubmitQueueName());
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -279,6 +285,7 @@ public class AbstractConsumerTest {
 	public void testAbortingAJobRemotelyNoBeanClass() throws Exception {
 
 		consumer.setRunner(new FastRunCreator<StatusBean>(100L, true));
+		consumer.cleanQueue(consumer.getSubmitQueueName());
 		consumer.start();
 
 		StatusBean bean = doSubmit();
@@ -319,6 +326,7 @@ public class AbstractConsumerTest {
     	ISubscriber<IHeartbeatListener> subscriber=null;
     	try {
 			consumer.setRunner(new FastRunCreator<StatusBean>());
+			consumer.cleanQueue(consumer.getSubmitQueueName());
 			consumer.start();
 			
 			subscriber = eservice.createSubscriber(consumer.getUri(), IEventService.HEARTBEAT_TOPIC);
@@ -377,17 +385,18 @@ public class AbstractConsumerTest {
     @Test
     public void testMultipleSubmissions() throws Exception {
     	
-		consumer.setRunner(new FastRunCreator<StatusBean>(100L, false));
+    	consumer.setRunner(new FastRunCreator<StatusBean>(0, 100, 50, 100L, false));
+		consumer.cleanQueue(consumer.getSubmitQueueName());
 		consumer.start();
 		
 		List<StatusBean> submissions = new ArrayList<StatusBean>(10);
 		for (int i = 0; i < 10; i++) {
 			submissions.add(doSubmit("Test "+i));
 			System.out.println("Submitted: Test "+i);
-			Thread.sleep(10); // Guarantee that submission time cannot be same.
+			Thread.sleep(100); // Guarantee that submission time cannot be same.
 		}
 		 	
-		Thread.sleep(2500);
+		Thread.sleep(1000);
 		
 		checkStatus(submissions);
 		
@@ -423,6 +432,7 @@ public class AbstractConsumerTest {
     public void testMultipleSubmissionsUsingThreads() throws Exception {
 		
 		consumer.setRunner(new FastRunCreator<StatusBean>(100L, false));
+		consumer.cleanQueue(consumer.getSubmitQueueName());
 		consumer.start();
 		
 		final List<StatusBean> submissions = new ArrayList<StatusBean>(10);
