@@ -225,7 +225,7 @@ public class AbstractConsumerTest {
 
 		StatusBean bean = doSubmit();
 
-		Thread.sleep(100);
+		Thread.sleep(200);
 		
 		consumer.stop();
 		
