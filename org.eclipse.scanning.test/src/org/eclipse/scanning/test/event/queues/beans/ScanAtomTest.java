@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.points.models.EmptyModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
@@ -23,7 +22,7 @@ public class ScanAtomTest extends AbstractBeanTest<ScanAtom> {
 	
 	private String nameA = "Test scan 1", nameB = "Test scan 2";
 	private List<IScanPathModel> modelsA, modelsB;
-	private Map<String, IDetectorModel> detectorsA, detectorsB;
+	private Map<String, Object> detectorsA, detectorsB;
 	private List<String> monitors;
 	
 	@Before

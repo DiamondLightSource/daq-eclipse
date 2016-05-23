@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.scan.real;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.eclipse.dawnsci.json.MarshallerService;
@@ -9,13 +8,14 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.test.BrokerTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
-public class RunTest {
+public class RunTest extends BrokerTest{
 
 	private IEventService            eservice;
 	private IPublisher<TestScanBean> publisher;
@@ -26,7 +26,7 @@ public class RunTest {
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		publisher = eservice.createPublisher(new URI("vm://localhost?broker.persistent=false"), "org.eclipse.scanning.test.scan.real.test");
+		publisher = eservice.createPublisher(uri, "org.eclipse.scanning.test.scan.real.test");
 		
 	}
 	

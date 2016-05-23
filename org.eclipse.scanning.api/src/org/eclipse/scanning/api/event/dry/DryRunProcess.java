@@ -63,14 +63,14 @@ public class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess
 		terminated = false;
 		for (int i = start; i <= stop; i+=step) {
 			
-			checkPaused(); // Blocks if is, sends events
-			
 			if (isTerminated()) {
 				getBean().setPreviousStatus(Status.RUNNING);
 				getBean().setStatus(Status.TERMINATED);
 				getPublisher().broadcast(getBean());
 				return;
 			}
+			
+			checkPaused(); // Blocks if is, sends events
 			
 			try {
 				Thread.sleep(sleep);
@@ -91,7 +91,7 @@ public class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess
 	}
 
 	@Override
-	public void terminate() throws EventException {
+	public void doTerminate() throws EventException {
 		if (thread!=null) thread.interrupt();
 		terminated = true;
 	}

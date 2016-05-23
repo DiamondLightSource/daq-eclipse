@@ -4,7 +4,6 @@ import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Enumeration;
-import java.util.UUID;
 
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
@@ -21,6 +20,7 @@ import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.alive.ConsumerStatus;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
+import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +35,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	private boolean         alive;
 	private String          queueName;
 	
-	private String          consumerName;
-	private UUID            consumerId;
+	private IConsumer<?> consumer;
 
 	private PrintStream     out;
 
@@ -50,7 +49,9 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		try {
 		    if (getTopicName()!=null) if (scanProducer==null) scanProducer = createProducer(getTopicName());
 		    try {
-			    if (queueName!=null) updateSet(bean);
+			    if (queueName!=null) {
+			    	updateSet(bean);
+			    }
 		    } catch (Throwable notFatal) {
 		    	// Updating the set is not a fatal error
 		    	logger.error("Did not update the set", notFatal);
@@ -96,6 +97,8 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	
 	private volatile HeartbeatBean lastBeat;
 
+	private boolean statusSetAddRequired = false;
+
 	@Override
 	public void setAlive(boolean alive) throws EventException {
 		
@@ -127,9 +130,11 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			                // The producer might need to be reconnected.
 							if (heartbeatProducer==null) heartbeatProducer = createProducer(getTopicName());
 							beat.setPublishTime(System.currentTimeMillis());
-							beat.setConsumerId(consumerId);
-							beat.setConsumerName(consumerName);
-							beat.setConsumerStatus(ConsumerStatus.ALIVE);
+							if (consumer!=null) {
+								beat.setConsumerId(consumer.getConsumerId());
+								beat.setConsumerName(consumer.getName());
+								beat.setConsumerStatus(consumer.getConsumerStatus());
+							}
 							beat.setBeamline(System.getenv("BEAMLINE"));
 							beat.setHostName(InetAddress.getLocalHost().getHostName());
 
@@ -192,6 +197,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 			alive = false;
 			if (scanProducer!=null)      scanProducer.close();
 			if (heartbeatProducer!=null) heartbeatProducer.close();
+			consumer = null;
 			
 			super.disconnect();
 			
@@ -204,12 +210,15 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		}
 	}
 
-	public String getQueueName() {
+	public String getStatusSetName() {
 		return queueName;
 	}
 
-	public void setQueueName(String queueName) {
+	public void setStatusSetName(String queueName) {
 		this.queueName = queueName;
+	}
+	public void setStatusSetAddRequired(boolean isRequired) {
+		this.statusSetAddRequired  = isRequired;
 	}
 
 	/**
@@ -220,7 +229,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	private boolean updateSet(T bean) throws Exception {
 		
 		
-		Queue     queue = createQueue(getQueueName());
+		Queue     queue = createQueue(getStatusSetName());
 		QueueBrowser qb = qSession.createBrowser(queue);
 
 		@SuppressWarnings("rawtypes")
@@ -255,24 +264,46 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 
 		if (jMSMessageID!=null) {
 			MessageConsumer consumer = qSession.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
-			Message m = consumer.receive(500);
+			Message m = consumer.receive(Constants.getReceiveFrequency());
 			consumer.close();
 			if (m!=null && m instanceof TextMessage) {
 				MessageProducer producer = qSession.createProducer(queue);
-				
-				TextMessage t = qSession.createTextMessage(service.marshal(bean));
-				t.setJMSMessageID(m.getJMSMessageID());
-				t.setJMSExpiration(m.getJMSExpiration());
-				t.setJMSTimestamp(m.getJMSTimestamp());
-				t.setJMSPriority(m.getJMSPriority());
-				t.setJMSCorrelationID(m.getJMSCorrelationID());
-	
-				producer.send(t);
-				
-				producer.close();
+				try {
+					TextMessage t = qSession.createTextMessage(service.marshal(bean));
+					t.setJMSMessageID(m.getJMSMessageID());
+					t.setJMSExpiration(m.getJMSExpiration());
+					t.setJMSTimestamp(m.getJMSTimestamp());
+					t.setJMSPriority(m.getJMSPriority());
+					t.setJMSCorrelationID(m.getJMSCorrelationID());
+		
+					producer.send(t);
+				} finally {
+				    producer.close();
+				}
 				
 				return true;
 			}
+		}
+		
+		if (statusSetAddRequired) { // It wasn't found so we will add it.
+			MessageProducer producer = session.createProducer(queue);
+			try {
+				producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+				String json = null;
+				try {
+					json = service.marshal(bean);
+				} catch (Exception neother) {
+					throw new EventException("Unable to marshall bean "+bean, neother);
+				}
+
+				TextMessage message = session.createTextMessage(json);
+				producer.send(message);
+				
+			} finally {
+				producer.close();
+			}
+
+            return true;
 		}
 
 		return false;
@@ -290,28 +321,21 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		return super.isSame(qbean, bean);
 	}
 
-	public String getConsumerName() {
-		return consumerName;
-	}
-
-	public void setConsumerName(String consumerName) {
-		this.consumerName = consumerName;
-	}
-
-	public UUID getConsumerId() {
-		return consumerId;
-	}
-
-	public void setConsumerId(UUID consumerId) {
-		this.consumerId = consumerId;
-	}
-
 	@Override
 	public void setLoggingStream(PrintStream stream) {
 		this.out = stream;
 		if (out!=null) {
-			out.println("Publisher for consumer name "+getConsumerName());
+			if (consumer!=null) out.println("Publisher for consumer name "+consumer.getName());
 		}
+	}
+
+	public IConsumer<?> getConsumer() {
+		return consumer;
+	}
+
+	@Override
+	public void setConsumer(IConsumer<?> consumer) {
+		this.consumer = consumer;
 	}
 
 }

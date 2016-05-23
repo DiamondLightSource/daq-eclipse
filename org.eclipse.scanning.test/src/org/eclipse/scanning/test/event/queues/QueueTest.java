@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +23,7 @@ import org.eclipse.scanning.api.event.queues.QueueNameMap;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.queues.Queue;
+import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
 import org.junit.After;
 import org.junit.Before;
@@ -38,7 +38,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  * @author Michael Wharmby
  *
  */
-public class QueueTest {
+public class QueueTest extends BrokerTest {
 	
 	protected IEventService evServ;
 	
@@ -46,10 +46,10 @@ public class QueueTest {
 	protected IConsumer<DummyBean> cons;
 	protected ISubscriber<IHeartbeatListener> mon;
 	protected UUID consID;
+
 	protected static String qID = "uk.ac.diamond.i15-1.test";
 	protected static QueueNameMap qNames;
 	
-	private static URI uri;
 	private static String submQ, statQ, statT, heartT, killT;
 	
 	@BeforeClass
@@ -61,7 +61,6 @@ public class QueueTest {
 		killT = qID + ".kill";
 		qNames = new QueueNameMap(submQ, statQ, statT, heartT, killT);
 		
-		uri = new URI("vm://localhost?broker.persistent=false");
 	}
 	
 	/**

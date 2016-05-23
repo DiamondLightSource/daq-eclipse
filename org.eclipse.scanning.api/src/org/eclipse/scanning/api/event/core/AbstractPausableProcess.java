@@ -10,9 +10,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 public abstract class AbstractPausableProcess<T extends StatusBean> implements IConsumerProcess<T> {
 	
@@ -138,6 +141,11 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 		}
 
 	}
+	
+	@Override
+	public boolean isPaused() {
+		return awaitPaused;
+	}
 
 	/**
 	 * Override this method to do work on a resume once the pause lock has been received.
@@ -146,8 +154,44 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 		// TODO Auto-generated method stub
 		
 	}
-
 	
+	@Override
+	public void terminate() throws EventException {
+		
+		try {
+			lock.lockInterruptibly();
+		
+			try {
+				awaitPaused = false;
+				
+				doTerminate();
+				
+				bean.setPreviousStatus(bean.getStatus());
+				bean.setStatus(Status.TERMINATED);
+				publisher.broadcast(bean);
+				
+				// We don't have to actually start anything again because the getMessage(...) call reconnects automatically.
+				paused.signalAll();
+				
+			} finally {
+				lock.unlock();
+			}
+		} catch (Exception ne) {
+			bean.setPreviousStatus(bean.getStatus());
+			bean.setStatus(Status.FAILED);
+			bean.setMessage(ne.getMessage());
+			publisher.broadcast(bean);
+
+			if (!(ne instanceof EventException)) throw new EventException(ne);
+			throw (EventException)ne;
+		}
+	}
+
+	protected void doTerminate() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
 	/**
 	 * @return true if windows
 	 */

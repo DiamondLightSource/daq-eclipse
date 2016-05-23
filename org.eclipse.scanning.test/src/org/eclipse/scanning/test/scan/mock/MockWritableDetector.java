@@ -33,7 +33,7 @@ public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorMod
 		
 		// Grab some memory for a given image size to simulate a CPU detector.
 		if (model.isCreateImage()) {
-			Random.rand(new int[]{1024, 1024});
+			Random.rand(model.getImageSize());
 		}
 		
 		getModel().setWritten(getModel().getWritten()+1);

@@ -22,7 +22,7 @@ import org.eclipse.scanning.server.servlet.AbstractConsumerServlet;
     <pre>
     
     {@literal <bean id="xcenServlet" class="org.eclipse.scanning.example.xcen.consumer.XcenServlet" init-method="connect">}
-    {@literal    <property name="broker"      value="vm://localhost?broker.persistent=false" />}
+    {@literal    <property name="broker"      value="tcp://localhost:61616" />}
     {@literal    <property name="submitQueue" value="dataacq.xcen.SUBMISSION_QUEUE" />}
     {@literal    <property name="statusSet"   value="dataacq.xcen.STATUS_QUEUE"   />}
     {@literal    <property name="statusTopic" value="dataacq.xcen.STATUS_TOPIC" />}

@@ -53,9 +53,9 @@ public class Application implements IApplication {
 
 	@Override
 	public Object start(IApplicationContext context) throws Exception {
-	
-		//org.apache.log4j.Logger.getRootLogger().addAppender(new ConsoleAppender());
-		
+			
+		this.latch   = new CountDownLatch(1);
+
 		final Map<?, ?>      args    = context.getArguments();
 		final String[] configuration = (String[])args.get("application.args");
         
@@ -68,7 +68,6 @@ public class Application implements IApplication {
 		}
 		
 		this.objects = create(conf.get("xml"));
-		this.latch   = new CountDownLatch(1);
 		latch.await();
 		
 		return objects;
@@ -188,7 +187,7 @@ public class Application implements IApplication {
 
 	@Override
 	public void stop() {
-		for (Object object : objects) {
+		if (objects!=null) for (Object object : objects) {
 			try {
 				Method disconnect = object.getClass().getMethod("disconnect");
 				disconnect.invoke(object);

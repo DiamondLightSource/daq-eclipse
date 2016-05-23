@@ -23,7 +23,7 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	
 	private Collection<IScanPathModel> pathModels;
 	private Collection<String> monitors;
-	private Map<String,IDetectorModel> detectorModels;
+	private Map<String,Object> detectorModels;
 //	private IProcess perPointProcess;//TODO
 	private String queueMessage;
 	
@@ -48,7 +48,7 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	 * @param dMods Map<String,IDetectorModel> containing the detector 
 	 *              configuration for the scan.
 	 */
-	public ScanAtom(String scName, Collection<IScanPathModel> pMods, Map<String,IDetectorModel> dMods) {
+	public ScanAtom(String scName, Collection<IScanPathModel> pMods, Map<String,Object> dMods) {
 		super();
 		setName(scName);
 		pathModels = pMods;
@@ -65,7 +65,7 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	 *              configuration for the scan.
 	 * @param mons List<String> names of monitors to use during scan.
 	 */
-	public ScanAtom(String scName, Collection<IScanPathModel> pMods, Map<String,IDetectorModel> dMods, Collection<String> mons) {
+	public ScanAtom(String scName, Collection<IScanPathModel> pMods, Map<String,Object> dMods, Collection<String> mons) {
 		this(scName, pMods, dMods);
 		monitors = mons;
 	}
@@ -152,7 +152,7 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	 * @return Map<String, IDetectorModel> Key String names of detectors and 
 	 *         detector models.
 	 */
-	public Map<String, IDetectorModel> getDetectorModels() {
+	public Map<String, Object> getDetectorModels() {
 		return detectorModels;
 	}
 
@@ -163,7 +163,7 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	 * @param Map<String, IDetectorModel> Key String names of detectors and 
 	 *         detector models.
 	 */
-	public void setDetectorModels(Map<String, IDetectorModel> detModels) {
+	public void setDetectorModels(Map<String, Object> detModels) {
 		this.detectorModels = detModels;
 	}
 	
