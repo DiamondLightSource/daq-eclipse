@@ -1,18 +1,12 @@
 package org.eclipse.scanning.test.event;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.net.InetAddress;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.EventListener;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.jms.Connection;
@@ -23,6 +17,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.broker.BrokerService;
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
@@ -31,7 +26,6 @@ import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
 import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.alive.KillBean;
-import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
@@ -39,17 +33,17 @@ import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
-import org.eclipse.scanning.api.event.dry.DryRunCreator;
 import org.eclipse.scanning.api.event.dry.FastRunCreator;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.Constants;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.test.BrokerTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AbstractConsumerTest {
+public class AbstractConsumerTest extends BrokerTest {
 
 	
 	protected IEventService          eservice;
@@ -57,12 +51,15 @@ public class AbstractConsumerTest {
 	protected IConsumer<StatusBean>  consumer;
 
 	@Before
-	public void setFreq() throws EventException {
+	public void start() throws Exception {
+		
 	   	Constants.setNotificationFrequency(200); // Normally 2000
+	   	Constants.setReceiveFrequency(100);
 	}
 	
 	@After
-	public void dispose() throws EventException {
+	public void stop() throws Exception {
+		
     	Constants.setNotificationFrequency(2000); // Normally 2000
 		submitter.disconnect();
 		consumer.clearQueue(IEventService.SUBMISSION_QUEUE);
@@ -183,7 +180,7 @@ public class AbstractConsumerTest {
 			@Override
 			public void beanChangePerformed(BeanEvent<StatusBean> evt) {
 				if (!evt.getBean().getName().equals(bean.getName())) {
-					System.out.println("This is not our bean! "+bean);
+					System.out.println("This is not our bean! It's called "+evt.getBean().getName()+" and we are "+bean.getName());
 					Thread.dumpStack();
 				}
 			}
@@ -194,7 +191,7 @@ public class AbstractConsumerTest {
 		Thread.sleep(500);
 		
 		List<StatusBean> stati = fconsumer.getStatusSet();
-		if (stati.size()!=statusSize) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
+		if (stati.size()!=statusSize) throw new Exception("Unexpected status size in queue! Size "+stati.size()+" expected "+statusSize+". Might not have status or have forgotten to clear at end of test!");
 		
 		StatusBean complete = stati.get(0); // The queue is date sorted.
 		
@@ -296,7 +293,7 @@ public class AbstractConsumerTest {
         bean.setStatus(Status.REQUEST_TERMINATE);
         terminator.broadcast(bean);
         
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 		checkTerminatedProcess(bean);
 	}
 
@@ -304,7 +301,7 @@ public class AbstractConsumerTest {
 	private void checkTerminatedProcess(StatusBean bean) throws Exception {
 		
 		List<StatusBean> stati = consumer.getStatusSet();
-		if (stati.size()!=1) throw new Exception("Unexpected status size in queue! Might not have status or have forgotten to clear at end of test!");
+		if (stati.size()!=1) throw new Exception("Unexpected status size ("+stati.size()+") in queue!  Might not have status or have forgotten to clear at end of test!");	
 		
 		StatusBean complete = stati.get(0);
 		
@@ -313,7 +310,7 @@ public class AbstractConsumerTest {
        	}
         
        	if (complete.getStatus()!=Status.TERMINATED) {
-       		throw new Exception("The bean in the queue should be terminated after a stop!"+complete);
+       		throw new Exception("The bean in the queue should be terminated after a stop! It was "+complete);
        	}
        	if (complete.getPercentComplete()==100) {
        		throw new Exception("The percent complete should not be 100!"+complete);
@@ -325,7 +322,7 @@ public class AbstractConsumerTest {
     	
     	ISubscriber<IHeartbeatListener> subscriber=null;
     	try {
-			consumer.setRunner(new FastRunCreator<StatusBean>());
+			consumer.setRunner(new FastRunCreator<StatusBean>(100L, true));
 			consumer.cleanQueue(consumer.getSubmitQueueName());
 			consumer.start();
 			

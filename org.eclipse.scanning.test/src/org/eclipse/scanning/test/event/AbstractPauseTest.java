@@ -44,10 +44,11 @@ import org.eclipse.scanning.api.event.dry.FastRunCreator;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.test.BrokerTest;
 import org.junit.After;
 import org.junit.Test;
 
-public class AbstractPauseTest {
+public class AbstractPauseTest extends BrokerTest{
 
 	
 	protected IEventService          eservice;

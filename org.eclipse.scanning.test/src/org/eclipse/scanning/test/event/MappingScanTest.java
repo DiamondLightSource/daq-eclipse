@@ -23,12 +23,13 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.test.BrokerTest;
 import org.junit.Before;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
-public class MappingScanTest {
+public class MappingScanTest extends BrokerTest{
 
 	protected IEventService eservice;
 	protected IPublisher<ScanBean> publisher;
@@ -43,10 +44,6 @@ public class MappingScanTest {
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
 		gservice = new PointGeneratorFactory();
-
-		// Use in memory broker removes requirement on network and external ActiveMQ process
-		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		final URI uri = new URI("vm://localhost?broker.persistent=false");
 
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally

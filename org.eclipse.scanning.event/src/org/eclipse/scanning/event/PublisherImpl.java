@@ -264,7 +264,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 
 		if (jMSMessageID!=null) {
 			MessageConsumer consumer = qSession.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
-			Message m = consumer.receive(500);
+			Message m = consumer.receive(Constants.getReceiveFrequency());
 			consumer.close();
 			if (m!=null && m instanceof TextMessage) {
 				MessageProducer producer = qSession.createProducer(queue);

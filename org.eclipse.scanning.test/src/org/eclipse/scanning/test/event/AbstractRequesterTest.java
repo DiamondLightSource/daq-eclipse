@@ -2,8 +2,6 @@ package org.eclipse.scanning.test.event;
 
 import static org.junit.Assert.assertTrue;
 
-import java.net.URI;
-
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IRequester;
@@ -11,25 +9,40 @@ import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.event.Constants;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.server.servlet.DeviceServlet;
+import org.eclipse.scanning.test.BrokerTest;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-public class AbstractRequesterTest {
+public class AbstractRequesterTest extends BrokerTest {
 
 	protected IRunnableDeviceService            dservice;
 	protected IEventService             eservice;
 	protected IRequester<DeviceRequest> requester;
 	protected IResponder<DeviceRequest> responder;
 	
+	@Before
+	public void start() throws Exception {
+		
+	   	Constants.setNotificationFrequency(200); // Normally 2000
+	   	Constants.setReceiveFrequency(100);
+	}
+	
+	@After
+	public void stop() throws Exception {
+		
+    	Constants.setNotificationFrequency(2000); // Normally 2000
+    	requester.disconnect();
+    	responder.disconnect();
+	}
+
 	protected void connect(IEventService eservice, IRunnableDeviceService dservice) throws Exception {
 		
 		this.eservice = eservice;
 		this.dservice = dservice;
-
-		// Use in memory broker removes requirement on network and external ActiveMQ process
-		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		final URI uri = new URI("vm://localhost?broker.persistent=false");
 		
 		DeviceServlet dservlet = new DeviceServlet();
 		dservlet.setBroker(uri.toString());

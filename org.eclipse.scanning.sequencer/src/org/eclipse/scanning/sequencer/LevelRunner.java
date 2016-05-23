@@ -41,10 +41,10 @@ abstract class LevelRunner<L extends ILevel> {
 	
 	private static Logger logger = LoggerFactory.getLogger(LevelRunner.class);
 
-    protected IPosition        position;
-    private ExecutorService    eservice;
-	private ScanningException  abortException;
-	private PositionDelegate   pDelegate;
+    protected IPosition                 position;
+    private volatile ExecutorService    eservice; // Different threads may nullify the service, better to make volatile.
+	private ScanningException           abortException;
+	private PositionDelegate            pDelegate;
 	
 	protected LevelRunner() {
 		pDelegate = new PositionDelegate();

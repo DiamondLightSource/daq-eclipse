@@ -25,9 +25,10 @@ import org.eclipse.scanning.api.event.dry.DryRunCreator;
 import org.eclipse.scanning.api.event.dry.FastRunCreator;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.test.BrokerTest;
 import org.junit.Test;
 
-public class AbstractMConsumerTest {
+public class AbstractMConsumerTest extends BrokerTest{
 
 	protected IEventService          eservice;
 	protected ISubmitter<StatusBean> submitter;

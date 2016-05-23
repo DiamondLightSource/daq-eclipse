@@ -60,7 +60,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 
 	private IProcessCreator<U>            runner;
 	private boolean                       durable;
-	private MessageConsumer               consumer;
+	private MessageConsumer               mconsumer;
 	
 	private volatile boolean              active;
 	private volatile Map<String, WeakReference<IConsumerProcess<U>>>  processes;
@@ -184,10 +184,12 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				final StatusBean b = service.unmarshal(json, StatusBean.class);
 				
 				MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+msg.getJMSMessageID()+"'");
-				Message rem = consumer.receive(500);	
+				Message rem = consumer.receive(Constants.getReceiveFrequency());
+
 				consumer.close();
 				
-				if(rem == null && b.getUniqueId().equals(bean.getUniqueId())) { // Something went wrong, not sure why it does this
+				if (rem == null && b.getUniqueId().equals(bean.getUniqueId())) { 
+					// Something went wrong, not sure why it does this, TODO investigate
 					if (overrideMap == null) overrideMap = new Hashtable<>(7);
 					overrideMap.put(b.getUniqueId(), bean);
 					continue;
@@ -352,14 +354,26 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 
 	@Override
 	public void stop() throws EventException {
-        @SuppressWarnings("unchecked")
-		final WeakReference<IConsumerProcess<U>>[] wra = processes.values().toArray(new WeakReference[processes.size()]);
-        for (WeakReference<IConsumerProcess<U>> wr : wra) {
-			if (wr.get()!=null) wr.get().terminate();
+		try {
+	        alive.setAlive(false); // Broadcasts that we are being killed
+	        setActive(false);      // Stops event loop
+
+	        @SuppressWarnings("unchecked")
+			final WeakReference<IConsumerProcess<U>>[] wra = processes.values().toArray(new WeakReference[processes.size()]);
+	        for (WeakReference<IConsumerProcess<U>> wr : wra) {
+				if (wr.get()!=null) {
+					terminateProcess(wr.get());
+				}
+			}
+		} finally {
+	        processes.clear();
 		}
-        processes.clear();
-        alive.setAlive(false); // Broadcasts that we are being killed
-        setActive(false);
+	}
+
+	private void terminateProcess(IConsumerProcess<U> process) throws EventException {
+		// TODO More to terminate than call terminate? 
+		// Relies on process always setting state correctly to TERMINATED.
+		process.terminate();
 	}
 
 	@Override
@@ -382,6 +396,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		while(isActive()) {
         	try {
         		checkPaused(); // blocks until not paused.
+        		if (!isActive()) break; // Might have pasued for a long time.
         		
         		// Consumes messages from the queue.
 	        	Message m = getMessage(uri, getSubmitQueueName());
@@ -478,8 +493,8 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		
 		try {
 			awaitPaused = true;
-			if (consumer!=null) consumer.close();
-			consumer = null; // Force unpaused consumers to make a new connection.
+			if (mconsumer!=null) mconsumer.close();
+			mconsumer = null; // Force unpaused consumers to make a new connection.
 			logger.info(getName()+" is paused");
 			System.out.println(getName()+" is paused");
 			
@@ -577,13 +592,13 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	private Message getMessage(URI uri, String submitQName) throws InterruptedException, JMSException {
 		
 		try {
-			if (this.consumer == null) {
-				this.consumer = createConsumer(uri, submitQName);
+			if (this.mconsumer == null) {
+				this.mconsumer = createConsumer(uri, submitQName);
 			}
-			return consumer.receive(500);
+			return mconsumer.receive(Constants.getReceiveFrequency());
 			
 		} catch (Exception ne) {
-			consumer = null;
+			mconsumer = null;
 			try {
 				connection.close();
 			} catch (Exception expected) {
