@@ -21,8 +21,8 @@ public class CommandInitializer extends AbstractPreferenceInitializer {
 		final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
 		
 		// TODO This is not the final URI
-		store.setDefault(CommandConstants.JMS_URI,          "tcp://sci-serv5.diamond.ac.uk:61616");
-		store.setDefault(CommandConstants.DIR_CHECKING_URI, "http://cs04r-sc-vserv-45.diamond.ac.uk:8619");
+		store.setDefault(CommandConstants.JMS_URI,          CommandConstants.DEFAULT_JMS_URI);
+		store.setDefault(CommandConstants.DIR_CHECKING_URI, CommandConstants.DEFAULT_CHECKING_URI);
 
 	}
 

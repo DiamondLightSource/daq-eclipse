@@ -35,12 +35,6 @@ public class AtomQueueServiceDummyPluginTest extends AbstractQueueServiceTest {
 	public synchronized void unsetQueueService() {
 		queueService = null;
 	}
-
-	@BeforeClass
-	public static void setupClass() throws URISyntaxException {
-		qRoot = "uk.ac.diamond.i15-1";
-		uri = new URI("vm://localhost?broker.persistent=false");
-	}
 	
 	@Before
 	public void createService() throws Exception {

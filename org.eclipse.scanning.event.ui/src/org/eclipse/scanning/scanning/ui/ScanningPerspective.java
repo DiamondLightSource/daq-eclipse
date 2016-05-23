@@ -28,7 +28,7 @@ public class ScanningPerspective implements IPerspectiveFactory {
 	private String getUriString() {
 		String broker = System.getProperty("org.eclipse.scanning.broker.uri");
 		if (broker==null) broker = System.getProperty("gda.activemq.broker.uri");
-		if (broker==null) broker = "vm://localhost?broker.persistent=false";
+		if (broker==null) broker = "tcp://localhost:61616";
 		return broker;
 	}
 

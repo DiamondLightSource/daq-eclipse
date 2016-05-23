@@ -42,11 +42,12 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
 import org.junit.Test;
 
-public class AbstractScanTest {
+public class AbstractScanTest extends BrokerTest {
 
 	protected IRunnableDeviceService      dservice;
 	protected IDeviceConnectorService     connector;
@@ -319,7 +320,6 @@ public class AbstractScanTest {
 		
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		final URI uri = new URI("vm://localhost?broker.persistent=false");
 		final IPublisher<ScanBean> publisher = eservice.createPublisher(uri, IEventService.STATUS_TOPIC);
 		
 		final ISubscriber<IScanListener> subscriber = eservice.createSubscriber(uri, IEventService.STATUS_TOPIC);

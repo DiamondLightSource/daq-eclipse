@@ -126,7 +126,7 @@ class AbstractConnection {
 			if (qSession!=null)          qSession.close();
 			
 		} catch (JMSException ne) {
-			throw new EventException("Internal error - unable to close connection!", ne);
+			logger.error("Internal error - unable to close connection!", ne);
 		
 		} finally {
 			connection = null;

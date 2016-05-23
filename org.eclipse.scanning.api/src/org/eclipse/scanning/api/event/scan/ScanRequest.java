@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.scan.models.ScanMetadata;
@@ -44,7 +43,7 @@ public class ScanRequest<T> {
 	/** 
 	 * The names of the detectors to use in the scan, may be null.
 	 */
-	private Map<String, IDetectorModel> detectors;
+	private Map<String, Object> detectors;
 	
 	/**
 	 * The names of monitors in the scan, may be null.
@@ -274,15 +273,15 @@ public class ScanRequest<T> {
 				", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
 	}
 
-	public Map<String, IDetectorModel> getDetectors() {
+	public Map<String, Object> getDetectors() {
 		return detectors;
 	}
 
-	public void setDetectors(Map<String, IDetectorModel> detectors) {
+	public void setDetectors(Map<String, Object> detectors) {
 		this.detectors = detectors;
 	}
 
-	public void putDetector(String name, IDetectorModel dmodel) {
+	public void putDetector(String name, Object dmodel) {
 		if (detectors==null) detectors = new HashMap<>(3);
 		detectors.put(name, dmodel);
 	}

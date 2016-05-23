@@ -1,7 +1,9 @@
 package org.eclipse.scanning.test.points;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
@@ -46,6 +48,33 @@ public class LinearTest {
 		assertEquals(pointList.size(), 10);
         GeneratorUtil.testGeneratorPoints(gen);
 	}
+	
+	@Test
+	public void testIndicesOneDEqualSpacing() throws Exception {
+		
+		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
+
+        OneDEqualSpacingModel model = new OneDEqualSpacingModel();
+        model.setPoints(10);
+		
+		// Get the point list
+		IPointGenerator<OneDEqualSpacingModel> gen = service.createGenerator(model, roi);
+		List<IPosition> pointList = gen.createPoints();
+		
+		assertEquals(pointList.size(), gen.size());
+		assertEquals(pointList.size(), 10);
+        GeneratorUtil.testGeneratorPoints(gen);
+        
+        for (int i = 0; i < pointList.size(); i++) {
+		    IPosition pos = pointList.get(i);
+		    int xIndex = pos.getIndex("x");
+		    int yIndex = pos.getIndex("y");
+		    System.out.println("Index (x,y) = "+Arrays.asList(xIndex, yIndex));
+		    assertTrue(xIndex==i);
+		    assertTrue(yIndex==i);
+		}
+	}
+
 	
 	@Ignore("2016-02-29, waiting for better OneDEqualSpacingGenerator implementation")
 	@Test

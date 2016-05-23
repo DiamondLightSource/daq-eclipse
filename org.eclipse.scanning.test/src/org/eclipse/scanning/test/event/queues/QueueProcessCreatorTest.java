@@ -161,7 +161,7 @@ public class QueueProcessCreatorTest {
 	private ScanAtom makeScanAtom() {
 		//ScanAtomProcessor needs a ScanAtom with queue names etc.
 		ScanAtom scAt = TestAtomMaker.makeTestScanAtomA();
-		scAt.setScanConsumerURI("vm://localhost?broker.persistent=false");
+		scAt.setScanConsumerURI("tcp://localhost:8624");
 		scAt.setScanSubmitQueueName(IEventService.SUBMISSION_QUEUE);
 		scAt.setScanStatusQueueName(IEventService.STATUS_SET);
 		scAt.setScanStatusTopicName(IEventService.STATUS_TOPIC);

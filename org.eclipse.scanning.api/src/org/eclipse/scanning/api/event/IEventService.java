@@ -6,6 +6,7 @@ import java.util.EventListener;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.IQueueReader;
 import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.core.ISubmitter;
@@ -62,7 +63,19 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  *
  */
 public interface IEventService extends EventConstants {
-
+	
+	
+    /**
+     * Create an object capable of getting a queue of any objects. NOTE that
+     * an ISubmitter is an IQueueConnection but it only manages queues of
+     * StatusBeans.
+     * 
+     * @param uri
+     * @param queueName
+     * @return
+     */
+	public <T> IQueueReader<T> createQueueReader(URI uri, String queueName);
+	
 	/**
 	 * Creates an ISubscriber with the default scan event topic and default heartbeat topic.
 	 * Useful on the client for adding event listeners to be notified.

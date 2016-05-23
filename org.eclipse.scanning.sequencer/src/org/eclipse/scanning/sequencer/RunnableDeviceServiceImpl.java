@@ -25,7 +25,7 @@ import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
-import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModel;
+import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorConfiguration;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -226,8 +226,8 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		
 		final IRunnableDevice<T> scanner;
 		
-		if (model instanceof MalcolmDetectorModel) {
-			MalcolmConnectionInfo info = ((MalcolmDetectorModel) model).getConnectionInfo();
+		if (model instanceof MalcolmDetectorConfiguration) {
+			MalcolmConnectionInfo info = ((MalcolmDetectorConfiguration) model).getConnectionInfo();
 			URI            uri = createMalcolmURI(info);
 			IMalcolmConnection conn = connections.get(uri);
 			if (conn==null || !conn.isConnected()) {

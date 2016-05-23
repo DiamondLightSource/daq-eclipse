@@ -1,8 +1,8 @@
 package org.eclipse.scanning.example.xcen.ui;
 
-import org.eclipse.scanning.event.ui.view.StatusQueueView;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
+import org.eclipse.ui.IFolderLayout;
 
 public class XcenPerspective implements IPerspectiveFactory {
 
@@ -16,8 +16,8 @@ public class XcenPerspective implements IPerspectiveFactory {
 		addPerspectiveShortcuts(layout);
 		
 		layout.setEditorAreaVisible(false);
-		layout.addView("org.eclipse.scanning.example.xcen.ui.views.XcenDiagram", IPageLayout.LEFT, 0.60f, IPageLayout.ID_EDITOR_AREA);
-		layout.addView("org.eclipse.scanning.example.xcen.ui.views.XcenView", IPageLayout.RIGHT, 0.40f, IPageLayout.ID_EDITOR_AREA);
+		layout.addView("org.eclipse.scanning.example.xcen.ui.views.XcenDiagram", IPageLayout.LEFT, 0.40f, IPageLayout.ID_EDITOR_AREA);
+		layout.addView("org.eclipse.scanning.example.xcen.ui.views.XcenView", IPageLayout.RIGHT, 0.60f, IPageLayout.ID_EDITOR_AREA);
 		
 		/*
 		    -submit dataacq.xcen.SUBMISSION_QUEUE 
@@ -26,11 +26,10 @@ public class XcenPerspective implements IPerspectiveFactory {
 		    -bundle org.eclipse.scanning.example.xcen
 		    -consumer org.eclipse.scanning.example.xcen.consumer.XcenConsumer
 		 */
-		String uri = System.getProperty("org.eclipse.scanning.broker");
-		if (uri==null || "".equals(uri)) uri = "tcp://sci-serv5.diamond.ac.uk:61616";
-		String queueViewId = StatusQueueView.createId(uri, "org.eclipse.scanning.example.xcen", "org.eclipse.scanning.example.xcen.beans.XcenBean", "dataacq.xcen.STATUS_QUEUE", "dataacq.xcen.STATUS_TOPIC", "dataacq.xcen.SUBMISSION_QUEUE");
-		queueViewId = queueViewId+"partName=Queue";
-		layout.addView(queueViewId, IPageLayout.BOTTOM, 0.5f, "org.eclipse.scanning.example.xcen.ui.views.XcenView");
+		IFolderLayout folderLayout = layout.createFolder("folder", IPageLayout.BOTTOM, 0.5f, "org.eclipse.scanning.example.xcen.ui.views.XcenView");
+		folderLayout.addView(XcenServices.getQueueViewSecondaryId());
+		folderLayout.addView("org.eclipse.scanning.event.ui.consumerView");
+		
 	}
 
 	/**

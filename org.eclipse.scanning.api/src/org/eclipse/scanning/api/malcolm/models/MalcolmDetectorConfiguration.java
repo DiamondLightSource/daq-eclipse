@@ -1,16 +1,22 @@
 package org.eclipse.scanning.api.malcolm.models;
 
-import org.eclipse.scanning.api.device.models.IDetectorModel;
-
-
 /**
- * Simple abstract base class for Malcolm detector models, with a field for the Malcolm connection info.
+ * A class to provide a malcolm model and the information required to connect to the malcolm device.
  *
- * @author Colin Palmer
+ * @author Matthew Gerring
  *
  */
-public abstract class MalcolmDetectorModel implements IDetectorModel {
-
+public class MalcolmDetectorConfiguration<T> {
+	
+	/**
+	 * The model that will  be sent to the MalcolmDevice for instance
+	 * OneDetectorTestMappingModel which can be sent to the device safely.
+	 */
+	private T model;
+	
+	/**
+	 * This should not be sent to the malcolm device, it is logic to do with the connection.
+	 */
 	private MalcolmConnectionInfo connectionInfo;
 
 	public MalcolmConnectionInfo getConnectionInfo() {
@@ -37,7 +43,7 @@ public abstract class MalcolmDetectorModel implements IDetectorModel {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MalcolmDetectorModel other = (MalcolmDetectorModel) obj;
+		MalcolmDetectorConfiguration other = (MalcolmDetectorConfiguration) obj;
 		if (connectionInfo == null) {
 			if (other.connectionInfo != null)
 				return false;
@@ -45,4 +51,13 @@ public abstract class MalcolmDetectorModel implements IDetectorModel {
 			return false;
 		return true;
 	}
+
+	public T getPayload() {
+		return model;
+	}
+
+	public void setPayload(T payload) {
+		this.model = payload;
+	}
+
 }

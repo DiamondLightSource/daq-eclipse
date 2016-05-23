@@ -23,6 +23,7 @@ cachedir/
 ### JUnit testing ###
 /test-reports
 /test-scratch
+/activemq-data
 
 ### Security files ###
 *ssh.key

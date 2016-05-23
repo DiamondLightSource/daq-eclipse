@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +35,12 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
 import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
 import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -53,13 +56,18 @@ import org.junit.Test;
 
 
 
-public class AbstractQueueServiceTest {
+public class AbstractQueueServiceTest extends BrokerTest {
+	
 	protected IQueueService qServ;
 	protected static String qRoot;
-	protected static URI uri;
 	
+	@BeforeClass
+	public static void setupClass() throws URISyntaxException {
+		qRoot = "uk.ac.diamond.i15-1";
+	}
+
 	@After
-	public void cleanup() throws Exception{
+	public void stop() throws Exception{
 		qServ.disposeService();
 	}
 	

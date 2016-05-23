@@ -8,7 +8,11 @@
  */
 package org.eclipse.scanning.event.ui;
 
+import java.net.URI;
+
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.scanning.event.ui.preference.CommandConstants;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -59,5 +63,33 @@ public class Activator extends AbstractUIPlugin {
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
+
+	
+
+
+    public static final String getJmsUri() {
+    	
+    	String uri = null;
+		if (uri == null) uri = getNovelCommandPreference(CommandConstants.JMS_URI);
+	    if (uri == null) uri = System.getProperty("org.eclipse.scanning.broker.uri");
+	    if (uri == null) uri = System.getProperty("gda.activemq.broker.uri"); // GDA specific but not a compilation dependency.
+		if (uri == null) uri = CommandConstants.DEFAULT_JMS_URI;
+		
+		return uri;
+	}
+
+    
+    /**
+     * Get the command value if it has been changed by the user.
+     * @param key
+     * @return
+     */
+    private static final String getNovelCommandPreference(String key) {
+		final IPreferenceStore store = getDefault().getPreferenceStore();
+    	String val = store.getString(key);
+    	String def = store.getDefaultString(key);
+    	if (!val.equals(def)) return val;
+    	return null;
+     }
 
 }

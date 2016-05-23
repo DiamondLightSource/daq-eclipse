@@ -13,20 +13,21 @@
 	<modules>
         <module>org.eclipse.scanning.target.platform</module>
 		<module>../org.eclipse.dawnsci</module>
+		<module>../../jeromq</module>
+
 		<module>org.eclipse.scanning.api</module>
 		<module>org.eclipse.scanning.command</module>
 		<module>org.eclipse.scanning.event</module>
 		<module>org.eclipse.scanning.event.ui</module>
 		<module>org.eclipse.scanning.example</module>
-		<module>org.eclipse.scanning.malcolm.core</module>
-		<module>org.eclipse.scanning.points</module>
-		<module>org.eclipse.scanning.server</module>
-		<module>../../jeromq</module>
-		<module>org.eclipse.scanning.sequencer</module>
-		<module>org.eclipse.scanning.test</module>
 		<module>org.eclipse.scanning.example.xcen</module>
 		<module>org.eclipse.scanning.example.xcen.test</module>
 		<module>org.eclipse.scanning.example.xcen.ui</module>
+		<module>org.eclipse.scanning.malcolm.core</module>
+		<module>org.eclipse.scanning.points</module>
+		<module>org.eclipse.scanning.sequencer</module>
+		<module>org.eclipse.scanning.server</module>
+		<module>org.eclipse.scanning.test</module>
 		
 		<module>uk.ac.diamond.daq.activemq.connector</module>
 		<module>uk.ac.diamond.daq.activemq.connector.test</module>
@@ -74,16 +75,6 @@
 					<environment>
 						<os>linux</os>
 						<ws>gtk</ws>
-						<arch>x86_64</arch>
-					</environment>
-					<environment>
-						<os>win32</os>
-						<ws>win32</ws>
-						<arch>x86_64</arch>
-					</environment>
-					<environment>
-						<os>macosx</os>
-						<ws>cocoa</ws>
 						<arch>x86_64</arch>
 					</environment>
 				</environments>

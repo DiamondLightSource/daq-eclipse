@@ -20,7 +20,6 @@ import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
@@ -28,6 +27,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.junit.Test;
 
@@ -39,7 +39,7 @@ import org.junit.Test;
  * @author fri44821
  *
  */
-public class ScanExecutionTest {
+public class ScanExecutionTest extends BrokerTest {
 	
 	private static IEventService     eventService;
 	private static IPointGeneratorService generatorService;
@@ -62,7 +62,7 @@ public class ScanExecutionTest {
 	
 	/**
 	 * 
-	 * @param uri - for activemq, for instance "vm://localhost?broker.persistent=false"
+	 * @param uri - for activemq, for instance BrokerTest.uri
 	 * @throws URISyntaxException 
 	 * @throws EventException 
 	 */

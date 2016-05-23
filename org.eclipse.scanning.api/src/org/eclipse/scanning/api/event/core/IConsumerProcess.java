@@ -83,4 +83,12 @@ public interface IConsumerProcess<T> extends IPublishable<T>{
 
 	}
 
+	/**
+	 * Should be implemented to provide paused status.
+	 * If using AbstractPausibleProcess, it will be automatically.
+	 * @return
+	 */
+	default boolean isPaused() {
+		return false;
+	}
 }

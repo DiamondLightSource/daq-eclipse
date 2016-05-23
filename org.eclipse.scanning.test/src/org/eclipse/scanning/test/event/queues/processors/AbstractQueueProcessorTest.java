@@ -6,7 +6,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -15,21 +14,22 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.mocks.DummyQueueable;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
 
-public abstract class AbstractQueueProcessorTest<T extends Queueable> {
+public abstract class AbstractQueueProcessorTest<T extends Queueable>  extends BrokerTest {
 	
 	protected IConsumerProcess<T> proc;
 	
 	protected IPublisher<QueueAtom> statPub;
-	protected URI uri;
 	protected String topic = "active.queue";
 	
 	protected final CountDownLatch executionLatch = new CountDownLatch(1);
 
 	private Exception thrownException;
+
 	
 	@After
 	public void tearDown() throws Exception {
@@ -38,7 +38,6 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable> {
 	}
 	
 	protected void createStatusPublisher() throws Exception {
-		uri = new URI("vm://localhost?broker.persistent=false");
 		statPub = new MockPublisher<QueueAtom>(uri, topic);
 	}
 	

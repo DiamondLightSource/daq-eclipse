@@ -11,7 +11,6 @@ import java.util.Map;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
-import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
@@ -75,7 +74,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		assertEquals(6, cregion.getCentre()[1], 1e-8);
 		assertEquals(5, cregion.getRadius(), 1e-8);
 
-		Map<String, IDetectorModel> detectors = request.getDetectors();
+		Map<String, Object> detectors = request.getDetectors();
 		assertTrue(detectors.keySet().contains("mandelbrot"));
 
 		Object dmodel = detectors.get("mandelbrot");
@@ -231,7 +230,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		assertEquals(4, spmodel.getX(), 1e-8);
 		assertEquals(5, spmodel.getY(), 1e-8);
 
-		Map<String, IDetectorModel> detectors = request.getDetectors();
+		Map<String, Object> detectors = request.getDetectors();
 		assertTrue(detectors.keySet().contains("mandelbrot"));
 
 		Object dmodel = detectors.get("mandelbrot");
