@@ -6,9 +6,9 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
-	AtomQueueServiceDummyTest.class,
-	QueueProcessCreatorTest.class,
-	QueueTest.class
+	//AtomQueueServiceDummyTest.class,
+	//QueueProcessCreatorTest.class,
+	//QueueTest.class
 })
 public class Suite {
 
