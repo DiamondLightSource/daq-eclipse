@@ -242,7 +242,7 @@ public class BenchmarkScanTest extends BrokerTest {
 			benchmarkStep(bean); // set things up
 			
 			// Benchmark things. A good idea to do nothing much else on your machine for this...
-			long point1     = benchmarkStep(new BenchmarkBean(1, 100, 1, detector, output)); // should take not more than 2ms sleep + scan time
+			long point1     = benchmarkStep(new BenchmarkBean(1, 200, 1, detector, output)); // should take not more than 2ms sleep + scan time
 			
 			// should take not more than 64*point1 + scan time
 			long point10    = benchmarkStep(new BenchmarkBean(10,    (10*point1)+fudge, max,   10, detector, output, publisher));  

@@ -35,8 +35,8 @@ public class AbstractRequesterTest extends BrokerTest {
 	public void stop() throws Exception {
 		
     	Constants.setNotificationFrequency(2000); // Normally 2000
-    	requester.disconnect();
-    	responder.disconnect();
+    	if (requester!=null) requester.disconnect();
+    	if (responder!=null) responder.disconnect();
 	}
 
 	protected void connect(IEventService eservice, IRunnableDeviceService dservice) throws Exception {
