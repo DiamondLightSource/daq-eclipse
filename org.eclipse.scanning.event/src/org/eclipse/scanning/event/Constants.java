@@ -33,4 +33,13 @@ public class Constants {
     public static long getTimeout() {
     	return Long.getLong("org.eclipse.scanning.event.heartbeat.timeout", TIMEOUT);
     }
+    
+    /**
+     * The time for a published message like a pause or terminate to live.
+     * 
+     * @return
+     */
+	public static long getPublishLiveTime() {
+    	return Long.getLong("org.eclipse.scanning.event.publish.livetime", 2000);
+	}
 }

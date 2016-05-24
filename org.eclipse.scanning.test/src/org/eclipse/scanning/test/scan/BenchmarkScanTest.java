@@ -191,7 +191,7 @@ public class BenchmarkScanTest extends BrokerTest {
 	@Test
 	public void testLinearScanNexusSmallWithEvents() throws Exception {
 		System.out.println(">> testLinearScanNexusSmallWithEvents");
-		nexusSmallEvents = benchmarkNexusWithEvents(64, 25L);
+		nexusSmallEvents = benchmarkNexusWithEvents(64, 50L);
 		System.out.println(">> done");
 	}
 

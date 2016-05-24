@@ -17,6 +17,7 @@ import javax.jms.Topic;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.alive.ConsumerStatus;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
@@ -56,7 +57,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 		    	// Updating the set is not a fatal error
 		    	logger.error("Did not update the set", notFatal);
 		    }
-			if (getTopicName()!=null) send(scanProducer, bean, 1000);
+			if (getTopicName()!=null) send(scanProducer, bean, Constants.getPublishLiveTime());
 
 		} catch (JMSException ne) {
 			throw new EventException("Unable to start the scan producer using uri "+uri+" and topic "+getTopicName(), ne);
@@ -68,10 +69,11 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	
 	protected void send(MessageProducer producer, Object message, long messageLifetime)  throws Exception {
 
+		int priority = message instanceof ConsumerCommandBean ? 8 : 4;
 		String json = service.marshal(message);
 		
 		TextMessage msg = createTextMessage(json);
-		producer.send(msg, DeliveryMode.NON_PERSISTENT, 1, messageLifetime);	
+		producer.send(msg, DeliveryMode.NON_PERSISTENT, priority, messageLifetime);	
 		if (out!=null) out.println(json);
 	}
 	
