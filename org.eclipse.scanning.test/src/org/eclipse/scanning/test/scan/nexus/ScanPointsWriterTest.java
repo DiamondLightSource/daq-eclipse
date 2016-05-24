@@ -96,8 +96,8 @@ public class ScanPointsWriterTest {
 		}
 		
 		@Override
-		protected NXpositioner doCreateNexusObject(NexusNodeFactory nodeFactory) {
-			final NXpositioner positioner = nodeFactory.createNXpositioner();
+		protected NXpositioner createNexusObject() {
+			final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
 			addExternalLink(positioner, NXpositioner.NX_VALUE, "/entry/data", 2);
 			
 			return positioner;
@@ -114,8 +114,8 @@ public class ScanPointsWriterTest {
 		}
 
 		@Override
-		protected NXdetector doCreateNexusObject(NexusNodeFactory nodeFactory) {
-			final NXdetector detector = nodeFactory.createNXdetector();
+		protected NXdetector createNexusObject() {
+			final NXdetector detector = NexusNodeFactory.createNXdetector();
 			addExternalLink(detector, NXdetector.NX_DATA, "/entry/data", 4);
 			
 			return detector;
@@ -139,12 +139,11 @@ public class ScanPointsWriterTest {
 		final int scanRank = 2;
 		NexusScanInfo scanInfo = new NexusScanInfo();
 		scanInfo.setRank(scanRank);
-		NexusNodeFactory nodeFactory = new NexusNodeFactory();
 		int[] expectedChunking = new int[scanInfo.getRank()];
 		Arrays.fill(expectedChunking, 1);
 
 		// Act
-		NXcollection scanPointsCollection = scanPointsWriter.createNexusObject(nodeFactory, scanInfo);
+		NXcollection scanPointsCollection = scanPointsWriter.createNexusObject(scanInfo);
 		
 		// Assert
 		assertTrue(scanPointsCollection!=null);
@@ -205,11 +204,10 @@ public class ScanPointsWriterTest {
 		final int scanRank = 2;
 		NexusScanInfo scanInfo = new NexusScanInfo();
 		scanInfo.setRank(scanRank);
-		NexusNodeFactory nodeFactory = new NexusNodeFactory();
 		int[] expectedChunking = new int[scanInfo.getRank()];
 		Arrays.fill(expectedChunking, 1);
 
-		NXcollection scanPointsCollection = scanPointsWriter.createNexusObject(nodeFactory, scanInfo);
+		NXcollection scanPointsCollection = scanPointsWriter.createNexusObject(scanInfo);
 		
 		DataNode uniqueKeysDataNode = scanPointsCollection.getDataNode(FIELD_NAME_UNIQUE_KEYS);
 		ILazyWriteableDataset uniqueKeysDataset = (ILazyWriteableDataset) uniqueKeysDataNode.getDataset();

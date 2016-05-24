@@ -1,5 +1,6 @@
 package org.eclipse.scanning.sequencer.nexus;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -118,8 +119,19 @@ public class NexusScanFileBuilder {
 		
 		// convert this to a map of nexus object providers for each type
 		nexusObjectProviders = new EnumMap<>(DeviceType.class);
-		nexusDevices.forEach((k, v) -> nexusObjectProviders.put(k, v.stream().map(
-				d -> d.getNexusProvider(scanInfo)).filter(n -> n != null).collect(Collectors.toList())));
+		for (DeviceType deviceType: DeviceType.values()) {
+			Collection<INexusDevice<?>> nexusDevicesForType = nexusDevices.get(deviceType);
+			List<NexusObjectProvider<?>> nexusObjectProvidersForType =
+					new ArrayList<>(nexusDevicesForType.size());
+			for (INexusDevice<?> nexusDevice : nexusDevicesForType) {
+				NexusObjectProvider<?> nexusProvider = nexusDevice.getNexusProvider(scanInfo);
+				if (nexusProvider != null) {
+					nexusObjectProvidersForType.add(nexusProvider);
+				}
+			}
+			
+			nexusObjectProviders.put(deviceType, nexusObjectProvidersForType);
+		}
 		
 		// create the scan points writer and add it as a monitor
 		scanPointsWriter = createScanPointsWriter();
