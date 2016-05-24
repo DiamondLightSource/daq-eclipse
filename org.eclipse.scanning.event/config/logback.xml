@@ -8,6 +8,7 @@
     </encoder>
   </appender>
 
+  <logger name="org.apache.activemq" level="error" />
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>
