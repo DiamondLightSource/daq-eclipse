@@ -61,5 +61,16 @@ public abstract class Queueable extends StatusBean implements IQueueable {
 			return false;
 		return true;
 	}
+	
+	@Override
+	public String toString() {
+		String clazzName = this.getClass().getSimpleName();
+		return clazzName + "[previousStatus=" + previousStatus + ", status="
+				+ status + ", name=" + name + ", message=" + message
+				+ ", percentComplete=" + percentComplete + ", userName="
+				+ userName + ", hostName=" + hostName + ", submissionTime=" 
+				+ submissionTime + ", properties=" + getProperties()
+		        + ", id=" + getUniqueId() + "]";
+	}
 
 }
