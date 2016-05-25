@@ -14,6 +14,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	StepTest.class, 
 	CompoundTest.class, 
 	//CompoundTestLarge.class
+	RandomOffsetDecoratorTest.class
 
 })
 public class Suite {
