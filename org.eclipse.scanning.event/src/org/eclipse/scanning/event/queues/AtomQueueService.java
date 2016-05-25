@@ -81,34 +81,28 @@ public class AtomQueueService implements IQueueService {
 	
 	private boolean alive = false;
 	
+	/**
+	 * No argument constructor for OSGi
+	 */
 	public AtomQueueService() {
 		
 	}
 	
 	/**
-	 * For use in testing! 
-	 * @param evServ - class implementing IEventService
+	 * Constructor for tests
 	 */
-	public synchronized void setEventService(IEventService evServ) {
-		eventService = evServ;
-	}
-	
-	public synchronized void unsetEventService(IEventService evServ) {
-		try {
-			if (alive) stop(true);
-		} catch (Exception ex) {
-			logger.error("Error stopping the queue service");
-		}
-		eventService = null;
-	}
-	
-	public IEventService getEventService() {
-		return eventService;
+	public AtomQueueService(String queueRoot, URI uri) {
+		this.queueRoot = queueRoot;
+		this.uri = uri;
 	}
 	
 	@Override
 	public void init() throws EventException {
+		//Get the OSGi configured IEventService and check it's non-null. 
+		eventService = QueueServicesHolder.getEventService();
 		if (eventService == null) throw new IllegalStateException("EventService not set");
+		
+		//Check remaining configuration
 		if (queueRoot == null) throw new IllegalStateException("Queue root has not been specified");
 		if (uri == null) throw new IllegalStateException("URI has not been specified");
 		
@@ -397,6 +391,11 @@ public class AtomQueueService implements IQueueService {
 	@Override
 	public Map<String, IQueue<QueueAtom>> getAllActiveQueues() {
 		return activeQueues;
+	}
+
+	@Override
+	public IEventService getEventService() {
+		return eventService;
 	}
 
 	@Override
