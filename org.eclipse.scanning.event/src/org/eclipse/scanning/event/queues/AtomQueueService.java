@@ -79,7 +79,7 @@ public class AtomQueueService implements IQueueService {
 	private IQueue<QueueBean> jobQueue;
 	private Map<String, IQueue<QueueAtom>> activeQueues = new HashMap<String, IQueue<QueueAtom>>();
 	
-	private boolean alive = false;
+	private boolean active = false;
 	
 	/**
 	 * No argument constructor for OSGi
@@ -121,7 +121,7 @@ public class AtomQueueService implements IQueueService {
 	@Override
 	public void disposeService() throws EventException {
 		//Stop the job queue if service is up
-		if (alive) stop(true);
+		if (active) stop(true);
 		
 		//Remove any remaining active queues
 		for (String aqID : getAllActiveQueueIDs()) {
@@ -147,7 +147,7 @@ public class AtomQueueService implements IQueueService {
 		jobQueue.setQueueStatus(QueueStatus.STARTED);
 		
 		//Mark service as up
-		alive = true;
+		active = true;
 	}
 	
 	@Override
@@ -175,12 +175,12 @@ public class AtomQueueService implements IQueueService {
 		}
 		
 		//Mark the service as down
-		alive = false;
+		active = false;
 	}
 
 	@Override
 	public String registerNewActiveQueue() throws EventException {
-		if (!alive) throw new EventException("Queue service not started.");
+		if (!active) throw new EventException("Queue service not started.");
 		
 		//Get an ID and the queue names for new active queue
 		String aqID = generateActiveQueueID();
@@ -200,7 +200,7 @@ public class AtomQueueService implements IQueueService {
 	@Override
 	public void deRegisterActiveQueue(String queueID, boolean force)
 			throws EventException {
-		if (!alive) throw new EventException("Queue service not started.");
+		if (!active) throw new EventException("Queue service not started.");
 		
 		//Get the queue and check that it's not started
 		IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
@@ -330,7 +330,7 @@ public class AtomQueueService implements IQueueService {
 	@Override
 	public void setJobQueueProcessor(IProcessCreator<QueueBean> proCreate)
 			throws EventException {
-		if (alive) throw new EventException("Cannot change job-queue processor when service started.");
+		if (active) throw new EventException("Cannot change job-queue processor when service started.");
 		jobQueueProcessor = proCreate;
 	}
 
@@ -342,7 +342,7 @@ public class AtomQueueService implements IQueueService {
 	@Override
 	public void setActiveQueueProcessor(IProcessCreator<QueueAtom> proCreate)
 			throws EventException {
-		if (alive) throw new EventException("Cannot change active-queue processor when service started.");
+		if (active) throw new EventException("Cannot change active-queue processor when service started.");
 		activeQueueProcessor = proCreate;
 	}
 
@@ -405,7 +405,7 @@ public class AtomQueueService implements IQueueService {
 
 	@Override
 	public void setQueueRoot(String queueRoot) throws EventException {
-		if (alive) throw new UnsupportedOperationException("Cannot change queue root whilst queue service is running");
+		if (active) throw new UnsupportedOperationException("Cannot change queue root whilst queue service is running");
 		this.queueRoot = queueRoot;
 		
 		//Update the command & heartbeat topics too
@@ -430,10 +430,15 @@ public class AtomQueueService implements IQueueService {
 
 	@Override
 	public void setURI(URI uri) throws EventException {
-		if (alive) throw new UnsupportedOperationException("Cannot change URI whilst queue service is running");
+		if (active) throw new UnsupportedOperationException("Cannot change URI whilst queue service is running");
 		this.uri = uri;
 	}
 	
+	@Override
+	public boolean isActive() {
+		return active;
+	}
+
 	private String generateActiveQueueID() {
 		nrActiveQueues = activeQueues.size();
 		return queueRoot + "." + ACTIVE_QUEUE + "-" + nrActiveQueues;

@@ -396,5 +396,12 @@ public interface IQueueService {
 	 * @throws EventException If attempting to change whilst service started.
 	 */
 	public void setURI(URI uri) throws EventException;
+	
+	/**
+	 * Return whether the queue service is currently running.
+	 * 
+	 * @return true if queue service running.
+	 */
+	public boolean isActive();
 
 }
