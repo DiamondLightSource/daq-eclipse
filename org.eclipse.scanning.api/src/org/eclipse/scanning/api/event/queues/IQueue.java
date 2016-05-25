@@ -25,7 +25,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  *            this queue. 
  */
 public interface IQueue<T extends Queueable> {
-	
+
 	/**
 	 * Get the unique ID of this queue (should be same as that stored in 
 	 * {@link IQueueService} registry).
@@ -33,21 +33,21 @@ public interface IQueue<T extends Queueable> {
 	 * @return String Unique name of queue in registry.
 	 */
 	public String getQueueID();
-	
+
 	/**
 	 * Return the current operational state of this queue.
 	 * 
 	 * @return {@link QueueStatus} describing state of queue.
 	 */
 	public QueueStatus getQueueStatus();
-	
+
 	/**
 	 * Changes the current operational state of this queue.
 	 * 
 	 * @param new {@link QueueStatus} of this queue 
 	 */
 	public void setQueueStatus(QueueStatus status);
-	
+
 	/**
 	 * Returns a map containing queue/topic names configured for this queue.
 	 * 
@@ -55,35 +55,35 @@ public interface IQueue<T extends Queueable> {
 	 * 		   this queue.
 	 */
 	public Map<String, String> getQueueNames();
-	
+
 	/**
 	 * Return the submission queue name.
 	 * 
 	 * @Return String submission queue name.
 	 */
 	public String getSubmissionQueueName();
-	
+
 	/**
 	 * Return the status queue name.
 	 * 
 	 * @return String status queue name.
 	 */
 	public String getStatusQueueName();
-	
+
 	/**
 	 * Return the status topic name.
 	 * 
 	 * @Return String submission queue name.
 	 */
 	public String getStatusTopicName();
-	
+
 	/**
 	 * Return the topic name where this queue publishes heartbeats.
 	 * 
 	 * @return String heartbeat topic name.
 	 */
 	public String getHeartbeatTopicName();
-	
+
 	/**
 	 * Return the topic name where commands can be passed to this queue.
 	 * 
@@ -98,7 +98,7 @@ public interface IQueue<T extends Queueable> {
 	 * @return IConsumer Queue consumer.
 	 */
 	public IConsumer<T> getConsumer();
-	
+
 	/**
 	 * Return the unique UUID of this queue's consumer.
 	 * 
@@ -107,7 +107,7 @@ public interface IQueue<T extends Queueable> {
 	public default UUID getConsumerID() {
 		return getConsumer().getConsumerId();
 	}
-	
+
 	/**
 	 * Return the {@link IProcessCreator} currently set for use on the consumer.
 	 * 
@@ -116,7 +116,7 @@ public interface IQueue<T extends Queueable> {
 	public default IProcessCreator<T> getProcessRunner() {
 		return getConsumer().getRunner();
 	}
-	
+
 	/**
 	 * Change the {@link IProcessCreator} which the consumer will use to 
 	 * process queue beans.
@@ -127,7 +127,7 @@ public interface IQueue<T extends Queueable> {
 	public default void setProcessRunner(IProcessCreator<T> processRunner) throws EventException {
 		getConsumer().setRunner(processRunner);
 	}
-	
+
 	/**
 	 * Return the {@link IHeartbeatMonitor} configured to listen for this 
 	 * Queue's consumer.
@@ -135,7 +135,7 @@ public interface IQueue<T extends Queueable> {
 	 * @return IHeartbeatMonitor configured for this Queue.
 	 */
 	public IHeartbeatMonitor getHeartbeatMonitor();
-	
+
 	/**
 	 * Return a list of the most recent {@link HeartbeatBean}s heard by 
 	 * this queue.
@@ -145,7 +145,7 @@ public interface IQueue<T extends Queueable> {
 	public default List<HeartbeatBean> getLatestHeartbeats() {
 		return getHeartbeatMonitor().getLatestHeartbeats();
 	}
-	
+
 	/**
 	 * Return the most recent {@link HeartbeatBean} heard by the queue.
 	 * 
@@ -154,14 +154,14 @@ public interface IQueue<T extends Queueable> {
 	public default HeartbeatBean getLastHeartbeat() {
 		return getHeartbeatMonitor().getLastHeartbeat();
 	}
-	
+
 	/**
 	 * Clear both the submission and the status queues of any pending jobs
 	 * 
 	 * @throws EventException if cannot access consumer.
 	 */
 	public boolean clearQueues() throws EventException;
-	
+
 	/**
 	 * Disconnect the heartbeat monitor and the consumer.
 	 * 
