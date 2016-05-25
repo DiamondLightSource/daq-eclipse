@@ -12,10 +12,11 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
+import org.eclipse.scanning.test.BrokerTest;
 import org.junit.After;
 import org.junit.Test;
 
-public class AbstractScanEventTest {
+public class AbstractScanEventTest extends BrokerTest{
 
 	protected IEventService              eservice;
 	protected IPublisher<ScanBean>       publisher;

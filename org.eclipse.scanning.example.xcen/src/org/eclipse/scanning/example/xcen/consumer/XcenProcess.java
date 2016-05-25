@@ -106,7 +106,7 @@ public class XcenProcess extends AbstractPausableProcess<XcenBean>{
 	}
 
 	@Override
-	public void terminate() throws EventException {
+	public void doTerminate() throws EventException {
 		setCancelled(true);
 	}
 

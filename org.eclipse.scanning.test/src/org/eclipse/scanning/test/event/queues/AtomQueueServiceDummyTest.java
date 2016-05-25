@@ -23,12 +23,6 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  */
 public class AtomQueueServiceDummyTest extends AbstractQueueServiceTest {
 	
-	@BeforeClass
-	public static void setupClass() throws URISyntaxException {
-		qRoot = "uk.ac.diamond.i15-1";
-		uri = new URI("vm://localhost?broker.persistent=false");
-	}
-	
 	@Before
 	public void createService() throws Exception {
 		//Configure AtomQueueService as necessary before setting the test field

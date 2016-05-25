@@ -209,21 +209,10 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	}
 
 	@Override
-	public void terminate() throws EventException {
+	public void doTerminate() throws Exception {
+		
 		if (bean.getStatus()==Status.COMPLETE) return; // Nothing to terminate.
-		try {
-			bean.setPreviousStatus(Status.RUNNING);
-			bean.setStatus(Status.TERMINATED);
-			broadcast(bean);
-			device.abort();
-			
-		} catch (ScanningException e) {
-			bean.setPreviousStatus(Status.RUNNING);
-			bean.setStatus(Status.FAILED);
-			broadcast(bean);
-
-			throw new EventException(e);
-		}
+		device.abort();
 	}
 	
 	private List<IRunnableDevice<?>> getDetectors(ScanBean bean, Map<String, ?> detectors) throws EventException {
