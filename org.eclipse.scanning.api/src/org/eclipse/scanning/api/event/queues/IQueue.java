@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.event.queues;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -56,29 +57,46 @@ public interface IQueue<T extends Queueable> {
 	public IConsumer<T> getConsumer();
 	
 	/**
-	 * Return the unique UUID of this queue's consumer
+	 * Return the unique UUID of this queue's consumer.
 	 * 
 	 * @return UUID unique to the queue consumer
 	 */
 	public UUID getConsumerID();
 	
 	/**
-	 * Return the submission queue name
+	 * Return the submission queue name.
 	 * 
 	 * @Return String submission queue name.
 	 */
-	public default String getSubmissionQueueName() {
-		return getQueueNames().getSubmissionQueueName();
-	}
+	public String getSubmissionQueueName();
 	
 	/**
-	 * Return the status topic name
+	 * Return the status queue name.
+	 * 
+	 * @return String status queue name.
+	 */
+	public String getStatusQueueName();
+	
+	/**
+	 * Return the status topic name.
 	 * 
 	 * @Return String submission queue name.
 	 */
-	public default String getStatusTopicName() {
-		return getQueueNames().getStatusTopicName();
-	}
+	public String getStatusTopicName();
+	
+	/**
+	 * Return the topic name where this queue publishes heartbeats.
+	 * 
+	 * @return String heartbeat topic name.
+	 */
+	public String getHeartbeatTopicName();
+	
+	/**
+	 * Return the topic name where commands can be passed to this queue.
+	 * 
+	 * @return String command topic name.
+	 */
+	public String getCommandTopicName();
 	
 	/**
 	 * Returns a class containing the queue/topic names configured for this 
@@ -87,7 +105,7 @@ public interface IQueue<T extends Queueable> {
 	 * @return {@link QueueNameMap} containing the configured queue names for 
 	 * 		   this queue.
 	 */
-	public QueueNameMap getQueueNames();
+	public Map<String, String> getQueueNames();
 	
 	/**
 	 * Return the {@link IProcessCreator} currently set for use on the consumer.
