@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.GridModel;
 

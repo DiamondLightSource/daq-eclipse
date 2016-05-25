@@ -136,4 +136,7 @@ class GridIterator implements Iterator<IPosition> {
 		throw new UnsupportedOperationException("remove");
 	}
 
+	public double getXStep() {
+		return xStep;
+	}
 }
