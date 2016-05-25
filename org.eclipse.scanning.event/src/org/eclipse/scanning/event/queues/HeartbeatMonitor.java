@@ -140,6 +140,9 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	}
 
 	private void setUpMonitor() throws EventException {
+		if (monitoredConsumerID == null) {
+			throw new EventException("Consumer ID not set. Has a consumer been instantiated?");
+		}
 		heartbeatRecord = new SizeLimitedRecorder<>(100);
 		
 		IEventService evServ = QueueServicesHolder.getEventService();
@@ -188,6 +191,9 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 
 	@Override
 	public void setConsumerID(UUID consumerID) throws EventException {
+		if (consumerID == null) {
+			throw new EventException("New consumer ID is not valid. Has the consumer been instantiated?");
+		}
 		if (isLocked()) throw new EventException("Cannot change monitored QueueID; monitor is locked to another queue.");
 		monitoredConsumerID = consumerID;
 		getRecorder().clear();
