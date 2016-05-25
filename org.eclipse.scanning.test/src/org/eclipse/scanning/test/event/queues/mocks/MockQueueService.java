@@ -7,14 +7,14 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
-import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.queues.IHeartbeatMonitor;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 public class MockQueueService implements IQueueService {
 	
@@ -160,12 +160,6 @@ public class MockQueueService implements IQueueService {
 	}
 
 	@Override
-	public ISubscriber<IHeartbeatListener> getHeartMonitor(String queueID) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public IQueue<QueueBean> getJobQueue() {
 		return jobQueue;
 	}
@@ -230,6 +224,42 @@ public class MockQueueService implements IQueueService {
 	
 	public void addActiveQueue(IQueue<QueueAtom> queue) {
 		activeQueues.put(queue.getQueueID(), queue);
+	}
+
+	@Override
+	public <T extends Queueable> void submit(T atomBean, String submitQ) throws EventException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public <T extends Queueable> void terminate(T atomBean, String statusT) throws EventException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public IHeartbeatMonitor getHeartMonitor(String queueID) throws EventException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getHeartbeatTopicName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getCommandTopicName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isActive() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
