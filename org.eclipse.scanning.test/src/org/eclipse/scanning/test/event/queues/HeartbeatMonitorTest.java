@@ -172,7 +172,7 @@ public class HeartbeatMonitorTest {
 		
 		IHeartbeatMonitor[] hbms = new IHeartbeatMonitor[]{
 				new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, consOneID, true),
-				new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, mockOne, true),
+				new HeartbeatMonitor(uri, mockOne, true),
 				new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, "MockQueueOne", mQServ, true)
 		};
 		

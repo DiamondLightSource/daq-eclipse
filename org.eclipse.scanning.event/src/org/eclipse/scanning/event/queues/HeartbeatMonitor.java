@@ -70,7 +70,7 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	 */
 	public HeartbeatMonitor(URI uri, String heartbeatTopic, 
 			IQueue<? extends Queueable> queue) throws EventException {
-		this(uri, heartbeatTopic, queue, false);
+		this(uri, queue, false);
 	}
 	
 	/**
@@ -78,17 +78,15 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	 * follow a given consumer.
 	 * 
 	 * @param uri Location of the JMS broker.
-	 * @param heartbeatTopic on which {@link HeartbeatBeans} are published.
 	 * @param queue {@link IQueue} object to monitor
 	 * @param locked boolean true if monitor cannot be reconfigured.
 	 * @throws EventException In case listener cannot be added correctly.
 	 */
-	public HeartbeatMonitor(URI uri, String heartbeatTopic, 
-			IQueue<? extends Queueable> queue, boolean locked) 
-					throws EventException {
+	public HeartbeatMonitor(URI uri, IQueue<? extends Queueable> queue, 
+			boolean locked) throws EventException {
 		this.locked = locked;
 		this.uri = uri;
-		this.heartbeatTopic = heartbeatTopic;
+		this.heartbeatTopic = queue.getHeartbeatTopicName();
 		monitoredConsumerID = queue.getConsumerID();
 		setUpMonitor();
 		queueID = queue.getQueueID();
