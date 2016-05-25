@@ -224,4 +224,9 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 		return locked;
 	}
 
+	@Override
+	public void disconnect() throws EventException {
+		monitor.disconnect();
+	}
+
 }

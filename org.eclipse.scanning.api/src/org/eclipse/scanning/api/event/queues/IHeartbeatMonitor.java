@@ -144,5 +144,12 @@ public interface IHeartbeatMonitor {
 	 * @return true if locked to a queue.
 	 */
 	public boolean isLocked();
+	
+	/**
+	 * Shutdown connections monitoring the consumer.
+	 * 
+	 * @throws EventException in case connection could not be closed.
+	 */
+	public void disconnect() throws EventException;
 
 }
