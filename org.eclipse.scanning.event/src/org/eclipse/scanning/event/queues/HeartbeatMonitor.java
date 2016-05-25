@@ -68,8 +68,8 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 	 * @param queue {@link IQueue} object to monitor
 	 * @throws EventException In case listener cannot be added correctly.
 	 */
-	public HeartbeatMonitor(URI uri, String heartbeatTopic, 
-			IQueue<? extends Queueable> queue) throws EventException {
+	public HeartbeatMonitor(URI uri, IQueue<? extends Queueable> queue) 
+			throws EventException {
 		this(uri, queue, false);
 	}
 	

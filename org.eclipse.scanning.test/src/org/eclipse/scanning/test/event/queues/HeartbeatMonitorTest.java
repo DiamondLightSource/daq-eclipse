@@ -123,7 +123,7 @@ public class HeartbeatMonitorTest {
 	public void testChangingQueue() throws Exception {
 		createTwoQueues();
 		
-		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, mockOne);
+		hbM = new HeartbeatMonitor(uri, mockOne);
 		assertEquals("Wrong queueID set on monitor", "MockQueueOne", hbM.getQueueID());
 		assertEquals("Wrong consumerID set on monitor", consOneID, hbM.getConsumerID());
 		consOne.start();
