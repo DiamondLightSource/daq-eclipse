@@ -49,19 +49,12 @@ public interface IQueue<T extends Queueable> {
 	public void setQueueStatus(QueueStatus status);
 	
 	/**
-	 * The unique consumer responsible for this queue. Consumer should operate 
-	 * on objects (T) extending both {@link StatusBean} and {@link IQueueable}.
+	 * Returns a map containing queue/topic names configured for this queue.
 	 * 
-	 * @return IConsumer Queue consumer.
+	 * @return {@link QueueNameMap} containing the configured queue names for 
+	 * 		   this queue.
 	 */
-	public IConsumer<T> getConsumer();
-	
-	/**
-	 * Return the unique UUID of this queue's consumer.
-	 * 
-	 * @return UUID unique to the queue consumer
-	 */
-	public UUID getConsumerID();
+	public Map<String, String> getQueueNames();
 	
 	/**
 	 * Return the submission queue name.
@@ -97,31 +90,51 @@ public interface IQueue<T extends Queueable> {
 	 * @return String command topic name.
 	 */
 	public String getCommandTopicName();
+
+	/**
+	 * The unique consumer responsible for this queue. Consumer should operate 
+	 * on objects (T) extending both {@link StatusBean} and {@link IQueueable}.
+	 * 
+	 * @return IConsumer Queue consumer.
+	 */
+	public IConsumer<T> getConsumer();
 	
 	/**
-	 * Returns a class containing the queue/topic names configured for this 
-	 * queue.
+	 * Return the unique UUID of this queue's consumer.
 	 * 
-	 * @return {@link QueueNameMap} containing the configured queue names for 
-	 * 		   this queue.
+	 * @return UUID unique to the queue consumer
 	 */
-	public Map<String, String> getQueueNames();
+	public default UUID getConsumerID() {
+		return getConsumer().getConsumerId();
+	}
 	
 	/**
 	 * Return the {@link IProcessCreator} currently set for use on the consumer.
 	 * 
 	 * @return {@link IProcessCreator} currently set on the consumer.
 	 */
-	public IProcessCreator<T> getProcessor();
+	public default IProcessCreator<T> getProcessor() {
+		return getConsumer().getRunner();
+	}
 	
 	/**
 	 * Change the {@link IProcessCreator} which the consumer will use to 
 	 * process queue beans.
 	 * 
-	 * @param processor Instance of {@link IProcessCreator} to use.
+	 * @param processRunner Instance of {@link IProcessCreator} to use.
 	 * @throws EventException If the consumer rejects the offered processor
 	 */
-	public void setProcessor(IProcessCreator<T> processor) throws EventException;
+	public default void setProcessor(IProcessCreator<T> processRunner) throws EventException {
+		getConsumer().setRunner(processRunner);
+	}
+	
+	/**
+	 * Return the {@link IHeartbeatMonitor} configured to listen for this 
+	 * Queue's consumer.
+	 * 
+	 * @return IHeartbeatMonitor configured for this Queue.
+	 */
+	public IHeartbeatMonitor getHeartbeatMonitor();
 	
 	/**
 	 * Return a list of the most recent {@link HeartbeatBean}s heard by 
@@ -129,14 +142,18 @@ public interface IQueue<T extends Queueable> {
 	 * 
 	 * @return Size limited queue of the most recent heartbeats. 
 	 */
-	public List<HeartbeatBean> getLatestHeartbeats();
+	public default List<HeartbeatBean> getLatestHeartbeats() {
+		return getHeartbeatMonitor().getLatestHeartbeats();
+	}
 	
 	/**
 	 * Return the most recent {@link HeartbeatBean} heard by the queue.
 	 * 
 	 * @return The last heartbeat observed.
 	 */
-	public HeartbeatBean getLastHeartbeat();
+	public default HeartbeatBean getLastHeartbeat() {
+		return getHeartbeatMonitor().getLastHeartbeat();
+	}
 	
 	/**
 	 * Clear both the submission and the status queues of any pending jobs
