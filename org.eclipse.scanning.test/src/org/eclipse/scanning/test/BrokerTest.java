@@ -24,13 +24,13 @@ import org.junit.Before;
  */
 public class BrokerTest {
 
-	protected static final URI     uri = createUri();
+	protected URI uri;     
 	
 	private BrokerService service;
 
 	@Before
 	public final void startBroker() throws Exception {
-		
+		uri = createUri(); // Each test uses a new port if the port is running on another test.
         service = new BrokerService();
         service.addConnector(uri);
         service.setPersistent(false); 

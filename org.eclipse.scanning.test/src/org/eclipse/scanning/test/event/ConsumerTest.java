@@ -8,15 +8,10 @@
  */
 package org.eclipse.scanning.test.event;
 
-import java.net.URI;
-
-import org.apache.activemq.broker.BrokerFactory;
-import org.apache.activemq.broker.BrokerService;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.junit.After;
 import org.junit.Before;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
