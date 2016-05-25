@@ -4,7 +4,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -14,16 +13,13 @@ import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.alive.KillBean;
-import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
-import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.queues.IHeartbeatMonitor;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.QueueNameMap;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
@@ -75,7 +71,7 @@ public class AtomQueueService implements IQueueService {
 	private static IEventService eventService;
 	private URI uri;
 	
-	private String queueRoot, heartbeatTopic, killTopic;
+	private String queueRoot, heartbeatTopicName, commandTopicName;
 	private int nrActiveQueues = 0;
 	private IProcessCreator<QueueAtom> activeQueueProcessor = new QueueProcessCreator<QueueAtom>(true);
 	private IProcessCreator<QueueBean> jobQueueProcessor = new QueueProcessCreator<QueueBean>(true);
@@ -117,17 +113,14 @@ public class AtomQueueService implements IQueueService {
 		if (uri == null) throw new IllegalStateException("URI has not been specified");
 		
 		//Set the service heartbeat topic
-		heartbeatTopic = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
-		killTopic = queueRoot+KILL_TOPIC_SUFFIX;
+		heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
+		commandTopicName = queueRoot+COMMAND_TOPIC_SUFFIX;
 		
-		//Determine ID and queuenames of Job Queue; create the queue objects
+		//Determine ID of Job Queue
 		String jqID = queueRoot+"."+JOB_QUEUE;
-		QueueNameMap jqNames = new QueueNameMap(jqID, heartbeatTopic, killTopic);
 		
 		//Create a fully configured job queue & set the runner
-		IConsumer<QueueBean> cons = makeQueueConsumer(jqNames);
-		ISubscriber<IHeartbeatListener> mon = makeQueueSubscriber(heartbeatTopic);
-		jobQueue = new Queue<QueueBean>(jqID, jqNames, cons, mon);
+		jobQueue = new Queue<QueueBean>(jqID, heartbeatTopicName, commandTopicName, uri);
 		jobQueue.setProcessRunner(jobQueueProcessor);
 	}
 	
@@ -197,12 +190,9 @@ public class AtomQueueService implements IQueueService {
 		
 		//Get an ID and the queue names for new active queue
 		String aqID = generateActiveQueueID();
-		QueueNameMap aqNames = new QueueNameMap(aqID, heartbeatTopic, killTopic);
 		
 		//Create a fully configured active queue, purge queues for safety & set runner
-		IConsumer<QueueAtom> cons = makeQueueConsumer(aqNames);
-		ISubscriber<IHeartbeatListener> mon = makeQueueSubscriber(heartbeatTopic);
-		IQueue<QueueAtom> activeQueue = new Queue<QueueAtom>(aqID, aqNames, cons, mon);
+		IQueue<QueueAtom> activeQueue = new Queue<QueueAtom>(aqID, heartbeatTopicName, commandTopicName, uri);
 		activeQueue.clearQueues();
 		activeQueue.setProcessRunner(activeQueueProcessor);
 		
@@ -303,7 +293,7 @@ public class AtomQueueService implements IQueueService {
 		knife.setDisconnect(disconnect);
 		knife.setExitProcess(exitProcess);
 		
-		killer = eventService.createPublisher(uri, killTopic);
+		killer = eventService.createPublisher(uri, commandTopicName);
 		killer.broadcast(knife);
 		killer.disconnect();
 		
@@ -311,16 +301,7 @@ public class AtomQueueService implements IQueueService {
 	}
 	
 	@Override
-	public void jobQueueSubmit(QueueBean bean) throws EventException {
-		submit(bean, jobQueue.getSubmissionQueueName());
-	}
-	
-	@Override
-	public void activeQueueSubmit(QueueAtom atom, String queueID) throws EventException {
-		submit(atom, getActiveQueue(queueID).getSubmissionQueueName());
-	}
-	
-	private <T extends Queueable> void submit(T atomBean, String submitQ) throws EventException{
+	public <T extends Queueable> void submit(T atomBean, String submitQ) throws EventException {
 		//Prepare the atom/bean for submission
 		atomBean.setStatus(Status.SUBMITTED);
 		try {
@@ -337,16 +318,7 @@ public class AtomQueueService implements IQueueService {
 	}
 
 	@Override
-	public void jobQueueTerminate(QueueBean bean) throws EventException {
-		terminate(bean, getJobQueue().getQueueNames().getStatusTopicName());
-	}
-	
-	@Override
-	public void activeQueueTerminate(QueueAtom atom, String queueID) throws EventException {
-		terminate(atom, getActiveQueue(queueID).getQueueNames().getStatusTopicName());
-	}
-
-	private <T extends Queueable> void terminate(T atomBean, String statusT) throws EventException {
+	public <T extends Queueable> void terminate(T atomBean, String statusT) throws EventException {
 		//Set up a publisher to send terminated beans with
 		IPublisher<T> terminator = eventService.createPublisher(uri, statusT);
 
@@ -392,10 +364,8 @@ public class AtomQueueService implements IQueueService {
 	}
 
 	@Override
-	public ISubscriber<IHeartbeatListener> getHeartMonitor(String queueID) {
-		IQueue<? extends Queueable> queue = getQueueFromString(queueID);
-		//TODO Expand this to listen only for heartbeats from the given consumer
-		return makeQueueSubscriber(queue.getQueueNames().getHeartbeatTopicName());
+	public IHeartbeatMonitor getHeartMonitor(String queueID) throws EventException {
+		return new HeartbeatMonitor(uri, heartbeatTopicName, queueID, this);
 	}
 	
 	@Override
@@ -438,6 +408,20 @@ public class AtomQueueService implements IQueueService {
 	public void setQueueRoot(String queueRoot) throws EventException {
 		if (alive) throw new UnsupportedOperationException("Cannot change queue root whilst queue service is running");
 		this.queueRoot = queueRoot;
+		
+		//Update the command & heartbeat topics too
+		heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
+		commandTopicName = queueRoot+COMMAND_TOPIC_SUFFIX;
+	}
+
+	@Override
+	public String getHeartbeatTopicName() {
+		return heartbeatTopicName;
+	}
+
+	@Override
+	public String getCommandTopicName() {
+		return commandTopicName;
 	}
 
 	@Override
@@ -449,22 +433,6 @@ public class AtomQueueService implements IQueueService {
 	public void setURI(URI uri) throws EventException {
 		if (alive) throw new UnsupportedOperationException("Cannot change URI whilst queue service is running");
 		this.uri = uri;
-	}
-	
-//	private <T extends Queueable> IConsumer<T> makeQueueConsumer(QueueNameMap qNames) throws EventException {
-//		return eventService.createConsumer(uri, qNames.getSubmissionQueueName(),
-//				qNames.getStatusQueueName(), qNames.getStatusTopicName(), qNames.getHeartbeatTopicName(),
-//				qNames.getCommandTopicName());
-//	}
-	
-	private <T extends Queueable> IConsumer<T> makeQueueConsumer(QueueNameMap qNames) throws EventException {
-	return eventService.createConsumer(uri, qNames.getSubmissionQueueName(),
-			qNames.getStatusQueueName(), qNames.getStatusTopicName(), qNames.getHeartbeatTopicName(),
-			qNames.getCommandTopicName());
-}
-	
-	private <T extends EventListener> ISubscriber<T> makeQueueSubscriber(String topicName) {
-		return eventService.createSubscriber(uri, topicName);
 	}
 	
 	private String generateActiveQueueID() {
