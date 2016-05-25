@@ -5,27 +5,23 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
-import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
-import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.ISubmitter;
-import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.IQueue;
-import org.eclipse.scanning.api.event.queues.QueueNameMap;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.queues.Queue;
+import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.test.BrokerTest;
+import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
-import org.eclipse.scanning.test.event.queues.util.EventServiceActorMaker;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
@@ -38,28 +34,12 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  */
 public class QueueTest extends BrokerTest {
 	
-	protected IEventService evServ; //FIXME Remove
+	//Used in creating a submitter
+	protected IEventService evServ;
 	
 	protected IQueue<DummyBean> queue;
-	protected IConsumer<DummyBean> cons;
-	protected ISubscriber<IHeartbeatListener> mon;
-	protected UUID consID;
 
 	protected static String qID = "uk.ac.diamond.i15-1.test";
-	protected static QueueNameMap qNames;
-	
-	private static String submQ, statQ, statT, heartT, cmdT;
-	
-	@BeforeClass
-	public static void createInfrastructure() throws Exception {
-		submQ = qID + ".submitQ";
-		statQ = qID + ".statusQ";
-		statT = qID + ".statusT";
-		heartT = qID + ".heartbeat";
-		cmdT = qID + ".command";
-		qNames = new QueueNameMap(submQ, statQ, statT, heartT, cmdT);
-		
-	}
 	
 	/**
 	 * Queue creation relies on hard coded creation of EventService. This is OK:
@@ -70,23 +50,19 @@ public class QueueTest extends BrokerTest {
 	 */
 	@Before
 	public void createQueue() throws Exception {
-		//FIXME Remove next two lines
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService());
-		evServ =  new EventServiceImpl(new ActivemqConnectorService());
+		evServ = new EventServiceImpl(new ActivemqConnectorService());
+		QueueServicesHolder.setEventService(evServ);
 		
-		cons = EventServiceActorMaker.makeConsumer(new DummyBean(), submQ, 
-				statQ, statT, heartT, cmdT, true);
-		consID = cons.getConsumerId();
-		createHeartMonitor();
-		
-		queue = new Queue<DummyBean>(qID, qNames, cons, mon);
+		queue = new Queue<DummyBean>(qID, uri);
+		queue.setProcessRunner(new AllBeanQueueProcessCreator<DummyBean>(true));
 	}
 	
 	@After
 	public void cleanup() throws EventException {
 		queue.getConsumer().stop();
-		queue.getConsumer().clearQueue(submQ);
-		queue.getConsumer().clearQueue(statQ);
+		queue.getConsumer().clearQueue(queue.getSubmissionQueueName());
+		queue.getConsumer().clearQueue(queue.getStatusQueueName());
 		queue.getConsumer().disconnect();
 		queue = null;
 	}
@@ -99,6 +75,17 @@ public class QueueTest extends BrokerTest {
 		assertEquals("Initial queue state wrong", QueueStatus.INITIALISED, queue.getQueueStatus());
 	}
 	
+	@Test
+	public void testQueueNameGetterMethods() {
+		Map<String, String> queueNames = queue.getQueueNames();
+		
+		assertEquals("Submission queue names differ", queueNames.get(Queue.SUBMISSION_QUEUE_KEY), queue.getSubmissionQueueName());
+		assertEquals("Status queue names differ", queueNames.get(Queue.STATUS_QUEUE_KEY), queue.getStatusQueueName());
+		assertEquals("Status topic names differ", queueNames.get(Queue.STATUS_TOPIC_KEY), queue.getStatusTopicName());
+		assertEquals("Heartbeat topic names differ", queueNames.get(Queue.HEARTBEAT_TOPIC_KEY), queue.getHeartbeatTopicName());
+		assertEquals("Command topic names differ", queueNames.get(Queue.COMMAND_TOPIC_KEY), queue.getCommandTopicName());
+	}
+	
 	/**
 	 * Use the heartbeat monitor to record some queue heartbeats.
 	 * @throws Exception
@@ -106,24 +93,15 @@ public class QueueTest extends BrokerTest {
 	@Test
 	public void testHeartbeatMonitors() throws Exception {
 		queue.getConsumer().start();
-		Thread.sleep(5000);
+		Thread.sleep(4300);
 		
 		List<HeartbeatBean> heartbeats = queue.getLatestHeartbeats();
 		HeartbeatBean lastBeat = queue.getLastHeartbeat();
 		
 		assertEquals("Last heartbeat in latest and lastBeat differ", lastBeat, heartbeats.get(heartbeats.size()-1));
 		for (HeartbeatBean hb : heartbeats) {
-			assertEquals("Heartbeat for an unknown consumerID!", consID, hb.getConsumerId());
+			assertEquals("Heartbeat for an unknown consumerID!", queue.getConsumerID(), hb.getConsumerId());
 		}
-	}
-	
-	/**
-	 * Check the reported consumer ID is consistent with the ID of the consumer
-	 * in the queue.
-	 */
-	@Test
-	public void testConsumerID() {
-		assertEquals("Consumer ID different", consID, queue.getConsumerID());
 	}
 	
 	@Test
@@ -144,7 +122,7 @@ public class QueueTest extends BrokerTest {
 	@Test
 	public void testClear() throws Exception {
 		DummyBean beanA = new DummyBean("Yuri", 5603);
-		ISubmitter<DummyBean> subm = evServ.createSubmitter(uri, submQ);
+		ISubmitter<DummyBean> subm = evServ.createSubmitter(uri, queue.getSubmissionQueueName());
 		subm.submit(beanA);
 		subm.disconnect();
 		
@@ -165,7 +143,7 @@ public class QueueTest extends BrokerTest {
 		assertFalse("Jobs found on the consumer, but none submitted", queue.hasSubmittedJobsPending());
 		
 		DummyBean beanA = new DummyBean("Alfred", 5603);
-		ISubmitter<DummyBean> subm = evServ.createSubmitter(uri, submQ);
+		ISubmitter<DummyBean> subm = evServ.createSubmitter(uri, queue.getSubmissionQueueName());
 		subm.submit(beanA);
 		subm.disconnect();
 		
@@ -173,11 +151,6 @@ public class QueueTest extends BrokerTest {
 		queue.getConsumer().start();
 		Thread.sleep(1000);
 		assertFalse("Jobs found on the consumer, but all should be consumed", queue.hasSubmittedJobsPending());
-	}
-	
-	//FIXME Remove
-	protected void createHeartMonitor() {
-		mon = evServ.createSubscriber(uri, heartT);
 	}
 
 }
