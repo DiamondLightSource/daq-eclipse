@@ -6,10 +6,7 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
-import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
-import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
@@ -56,7 +53,7 @@ public interface IQueueService {
 	public static final String ACTIVE_QUEUE = "active-queue";
 	
 	public static final String HEARTBEAT_TOPIC_SUFFIX = ".heartbeat.topic";
-	public static final String KILL_TOPIC_SUFFIX = ".kill.topic";
+	public static final String COMMAND_TOPIC_SUFFIX = ".command.topic";
 	
 	/**
 	 * Initialise the queue service. This should ensure the service is capable
@@ -161,13 +158,25 @@ public interface IQueueService {
 	 */
 	public void killQueue(String queueID, boolean disconnect, boolean exitProcess) throws EventException;
 	
+	/** 
+	 * Submit an atom/bean for processing to a given consumer through it's 
+	 * submission queue.
+	 * 
+	 * @param atomBean T queue object to submit. 
+	 * @param submitQ String name of queue to submit queue object to.
+	 * @throws EventException In case the atom/bean is rejected.
+	 */
+	public <T extends Queueable> void submit(T atomBean, String submitQ) throws EventException;
+	
 	/**
 	 * Submit a bean extending {@link QueueBean} into the job queue. 
 	 * 
 	 * @param bean {@link QueueBean} to be submitted.
 	 * @throws EventException In case the bean is rejected.
 	 */
-	public void jobQueueSubmit(QueueBean bean) throws EventException;
+	public default void jobQueueSubmit(QueueBean bean) throws EventException {
+		submit(bean, getJobQueue().getSubmissionQueueName());
+	}
 
 	/**
 	 * Submit an atom extending {@link QueueAtom} into the given active queue. 
@@ -176,15 +185,29 @@ public interface IQueueService {
 	 * @param queueID String ID of registered queue.
 	 * @throws EventException In case the atom is rejected.
 	 */
-	public void activeQueueSubmit(QueueAtom atom, String queueID) throws EventException;
+	public default void activeQueueSubmit(QueueAtom atom, String queueID) throws EventException {
+		submit(atom, getActiveQueue(queueID).getSubmissionQueueName());
+	}
+	
+	/**
+	 * Terminate the operation of the given atom/bean using the specified 
+	 * status topic.
+	 * 
+	 * @param atomBean T queue object to stop.
+	 * @param statusT String status topic to publish termination request to.
+	 * @throws EventException In case termination is unsuccessful.
+	 */
+	public <T extends Queueable> void terminate(T atomBean, String statusT) throws EventException;
 
 	/**
-	 * Terminate the operation of a bean in the job queue.
+	 * Convenience method to terminate operation of a bean in the job queue.
 	 * 
 	 * @param bean {@link QueueBean} bean to be terminated.
 	 * @throws EventException In case the termination fails.
 	 */
-	public void jobQueueTerminate(QueueBean bean) throws EventException;
+	public default void jobQueueTerminate(QueueBean bean) throws EventException {
+		terminate(bean, getJobQueue().getStatusTopicName());
+	}
 	
 	/**
 	 * Terminate the operation of an atom in the given active queue.
@@ -193,7 +216,9 @@ public interface IQueueService {
 	 * @param queueID String ID of registered queue.
 	 * @throws EventException In case the termination fails.
 	 */
-	public void activeQueueTerminate(QueueAtom atom, String queueID) throws EventException;
+	public default void activeQueueTerminate(QueueAtom atom, String queueID) throws EventException {
+		terminate(atom, getActiveQueue(queueID).getStatusTopicName());
+	}
 
 	/**
 	 * Get the {@link IProcessCreator} used as the runner for all 
@@ -267,8 +292,9 @@ public interface IQueueService {
 	 * 
 	 * @param queueID String ID of registered queue.
 	 * @return A heartbeat monitor for this queue.
+	 * @throws EventException if the heartbeat monitor could not be created.
 	 */
-	public ISubscriber<IHeartbeatListener> getHeartMonitor(String queueID);
+	public IHeartbeatMonitor getHeartMonitor(String queueID) throws EventException;
 	
 	/**
 	 * Get the job queue managed by this IQueueService instance.
@@ -331,12 +357,29 @@ public interface IQueueService {
 	
 	/**
 	 * Change the base name used by all queues managed by this IQueueService.
-	 * Should not be possible to change this while service is started.
+	 * Should not be possible to change this while service is started. Changing
+	 * the queueRoot should also change the heartbeat and command topic names.
 	 * 
 	 * @param queueRoot String queue base name.
 	 * @throws EventException If attempting to change whilst service started.
 	 */
 	public void setQueueRoot(String queueRoot) throws EventException;
+	
+	/**
+	 * Return name of topic on which heartbeats of queues associated with this 
+	 * service will be published.
+	 * 
+	 * @return String name of heartbeat topic for this service.
+	 */
+	public String getHeartbeatTopicName();
+	
+	/**
+	 * Return name of topic to where commands to queues associated with this 
+	 * service should be published.
+	 * 
+	 * @return String name of command topic for this service.
+	 */
+	public String getCommandTopicName();
 	
 	/**
 	 * Return the URI of the server storing the queues.
@@ -353,5 +396,12 @@ public interface IQueueService {
 	 * @throws EventException If attempting to change whilst service started.
 	 */
 	public void setURI(URI uri) throws EventException;
+	
+	/**
+	 * Return whether the queue service is currently running.
+	 * 
+	 * @return true if queue service running.
+	 */
+	public boolean isActive();
 
 }

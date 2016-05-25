@@ -71,17 +71,14 @@ public class DummyProcessor implements IQueueProcessor {
 		}
 
 		private void run() throws EventException {
-			bean.setStatus(Status.RUNNING);
-			bean.setPercentComplete(0);
-			statusReporter.broadcast(bean);
+			broadcast(bean, Status.RUNNING, 0d);
 
 			terminated = false;
 
 			for (int i = 0; i < 100; i++) {
 
 				if (isTerminated()) {
-					bean.setStatus(Status.TERMINATED);
-					statusReporter.broadcast(bean);
+					broadcast(bean, Status.TERMINATED);
 					return;
 				}
 
@@ -91,14 +88,12 @@ public class DummyProcessor implements IQueueProcessor {
 					logger.error("Dummy process sleeping failed", e);
 				}
 				System.out.println("DummyProcessor ("+bean.getClass().getSimpleName()+" - "+bean.getName()+"): "+bean.getPercentComplete());
-				bean.setPercentComplete(i);
-				statusReporter.broadcast(bean);
+				broadcast(bean, new Double(i));
 			}
 
-			bean.setStatus(Status.COMPLETE);
-			bean.setPercentComplete(100);
+
 			bean.setMessage("Dummy process complete (no software run)");
-			statusReporter.broadcast(bean);
+			broadcast(bean, Status.COMPLETE, 100d);
 		}
 
 		public boolean isBlocking() {
@@ -115,6 +110,54 @@ public class DummyProcessor implements IQueueProcessor {
 
 		public void setTerminated(boolean terminated) {
 			this.terminated = terminated;
+		}
+		
+		
+		/*
+		 * Broadcast methods copied wholesale from {@link AbstractQueueProcessor}
+		 */
+		/**
+		 * Convenience method to call broadcast with only {@link Status} argument.
+		 * 
+		 * @param bean Bean to be broadcast.
+		 * @param newStatus Status the bean has just reached.
+		 * @throws EventException In case broadcasting fails.
+		 */
+		protected void broadcast(T bean, Status newStatus) throws EventException {
+			broadcast(bean, newStatus, null);
+		}
+		
+		/**
+		 * Convenience method to call broadcast with only percent complete 
+		 * argument.
+		 * 
+		 * @param bean Bean to be broadcast.
+		 * @param newPercent The value percent complete should be set to.
+		 * @throws EventException In case broadcasting fails.
+		 */
+		protected void broadcast(T bean, double newPercent) throws EventException {
+			broadcast(bean, null, newPercent);
+		}
+
+		/**
+		 * Broadcast the new status, updated previous status and percent complete 
+		 * of the given bean.
+		 * 
+		 * @param bean Bean to be broadcast.
+		 * @param newStatus Status the bean has just reached.
+		 * @param newPercent The value percent complete should be set to.
+		 * @throws EventException In case broadcasting fails.
+		 */
+		protected void broadcast(T bean, Status newStatus, Double newPercent) throws EventException {
+			if (statusReporter != null) {
+				if (newStatus != null) {
+					bean.setPreviousStatus(bean.getStatus());
+					bean.setStatus(newStatus);
+				}
+				if (newPercent != null) bean.setPercentComplete(newPercent);
+				
+				statusReporter.broadcast(bean);
+			}		
 		}
 
 	}

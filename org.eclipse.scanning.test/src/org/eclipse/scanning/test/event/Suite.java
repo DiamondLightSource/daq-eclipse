@@ -7,7 +7,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	SerializationTest.class,
 	ScanEventTest.class,
-	// ConsumerTest.class, Takes too long! TODO Make shorter
+	ConsumerTest.class,
+	PauseTest.class,
 	MappingScanTest.class,
 	AnyBeanEventTest.class,
 	HeartbeatTest.class,

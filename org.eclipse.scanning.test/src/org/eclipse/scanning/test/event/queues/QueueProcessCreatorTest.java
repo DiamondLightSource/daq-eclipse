@@ -24,13 +24,13 @@ import org.eclipse.scanning.event.queues.processors.AtomQueueProcessor;
 import org.eclipse.scanning.event.queues.processors.MonitorAtomProcessor;
 import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
-import org.eclipse.scanning.test.event.queues.beans.util.TestAtomMaker;
-import org.eclipse.scanning.test.event.queues.beans.util.TestAtomQueueBeanMaker;
 import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
 import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.DummyProcessor;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
+import org.eclipse.scanning.test.event.queues.util.TestAtomMaker;
+import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -161,7 +161,7 @@ public class QueueProcessCreatorTest {
 	private ScanAtom makeScanAtom() {
 		//ScanAtomProcessor needs a ScanAtom with queue names etc.
 		ScanAtom scAt = TestAtomMaker.makeTestScanAtomA();
-		scAt.setScanConsumerURI("vm://localhost?broker.persistent=false");
+		scAt.setScanConsumerURI("tcp://localhost:8624");
 		scAt.setScanSubmitQueueName(IEventService.SUBMISSION_QUEUE);
 		scAt.setScanStatusQueueName(IEventService.STATUS_SET);
 		scAt.setScanStatusTopicName(IEventService.STATUS_TOPIC);

@@ -2,6 +2,7 @@ package org.eclipse.scanning.api.event.queues;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * An object composed of a list which may only contain a fixed number of items
@@ -76,7 +77,12 @@ public class SizeLimitedRecorder<T extends Object> {
 	 * @return The last element added to the record.
 	 */
 	public T latest() {
-		return record.getLast();
+		try {
+			return record.getLast();
+		} catch (NoSuchElementException nse) {
+			//In cases where we've not heard a beat.
+			return null;
+		}
 	}
 	
 	/**
@@ -85,7 +91,12 @@ public class SizeLimitedRecorder<T extends Object> {
 	 * @return The oldest element in the list.
 	 */
 	public T oldest() {
-		return record.getFirst();
+		try {
+			return record.getFirst();
+		} catch (NoSuchElementException nse) {
+			//In cases where we've not heard a beat.
+			return null;
+		}
 	}
 	
 	/**

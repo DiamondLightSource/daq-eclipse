@@ -29,6 +29,7 @@ import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
+import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.After;
 import org.junit.Before;
@@ -38,7 +39,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
 //@Ignore(" We use this test to specifically talk to an I05-1 device called 'arpes'")
-public class IntegrateathonMalcolmTest {
+public class IntegrateathonMalcolmTest extends BrokerTest {
 
 	protected IMalcolmConnection         connection;
 	protected IMalcolmDevice<TwoDetectorTestMappingModel>  device;
@@ -56,8 +57,8 @@ public class IntegrateathonMalcolmTest {
 
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		IEventService eservice   = new EventServiceImpl(new ActivemqConnectorService());
-		publisher  = eservice.createPublisher(new URI("vm://localhost?broker.persistent=false"), "test.malcolm.scanEventTopic");
-		subscriber = eservice.createSubscriber(new URI("vm://localhost?broker.persistent=false"), "test.malcolm.scanEventTopic");
+		publisher  = eservice.createPublisher(uri, "test.malcolm.scanEventTopic");
+		subscriber = eservice.createSubscriber(uri, "test.malcolm.scanEventTopic");
 		
 		scanPoints = 0;
 		subscriber.addListener(new IScanListener() {

@@ -1,11 +1,10 @@
-package org.eclipse.scanning.test.event.queues.beans.util;
+package org.eclipse.scanning.test.event.queues.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
@@ -96,7 +95,7 @@ public class TestAtomMaker {
 		scanAxes.add(new StepModel("ocs", 290, 80, 10));
 		scanAxes.add(new StepModel("xMotor", 150, 100, 5));
 		
-		Map<String, IDetectorModel> detectors = new HashMap<>();
+		Map<String, Object> detectors = new HashMap<>();
 		detectors.put("pe", new MockDetectorModel(30d));
 		
 		List<String> monitors = new ArrayList<>();
@@ -111,7 +110,7 @@ public class TestAtomMaker {
 		List<IScanPathModel> scanAxes = new ArrayList<>();
 		scanAxes.add(new StepModel("mDac", 0, 50, 5));
 		
-		Map<String, IDetectorModel> detectors = new HashMap<>();
+		Map<String, Object> detectors = new HashMap<>();
 		detectors.put("pe", new MockDetectorModel(30d));
 		
 		return new ScanAtom("TestScanB", scanAxes, detectors);

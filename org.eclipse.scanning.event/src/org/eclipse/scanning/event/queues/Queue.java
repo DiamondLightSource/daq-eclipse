@@ -1,19 +1,17 @@
 package org.eclipse.scanning.event.queues;
 
-import java.util.List;
-import java.util.UUID;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.alive.HeartbeatBean;
-import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
-import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.core.IProcessCreator;
-import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.queues.IHeartbeatMonitor;
 import org.eclipse.scanning.api.event.queues.IQueue;
-import org.eclipse.scanning.api.event.queues.QueueNameMap;
+import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
-import org.eclipse.scanning.api.event.queues.SizeLimitedRecorder;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,40 +27,59 @@ import org.slf4j.LoggerFactory;
  *            {@link QueueAtom} or {@QueueBean}.
  */
 public class Queue<T extends Queueable> implements IQueue<T> {
-	
+
+	public static final String SUBMISSION_QUEUE_KEY = "submitQ";
+	public static final String SUBMISSION_QUEUE_SUFFIX = ".submission.queue";
+	public static final String STATUS_QUEUE_KEY = "statusQ";
+	public static final String STATUS_QUEUE_SUFFIX = ".status.queue";
+	public static final String STATUS_TOPIC_KEY = "statusT";
+	public static final String STATUS_TOPIC_SUFFIX = ".status.topic";
+	public static final String HEARTBEAT_TOPIC_KEY = "heartbeatT";
+	public static final String HEARTBEAT_TOPIC_SUFFIX = ".heartbeat.topic";
+	public static final String COMMAND_TOPIC_KEY = "commandT";
+	public static final String COMMAND_TOPIC_SUFFIX = ".command.topic";
+
 	private static final Logger logger = LoggerFactory.getLogger(Queue.class);
-	
+
 	private final IConsumer<T> consumer;
-	private ISubscriber<IHeartbeatListener> heartMonitor;
-	private final QueueNameMap queueNames;
+	private final IHeartbeatMonitor heartMonitor;
+	private final Map<String, String> queueNames;
 	private final String queueID;
 	private QueueStatus queueStatus;
-	
-	private final SizeLimitedRecorder<HeartbeatBean> heartbeatRecord;
-	
-	public Queue(String qID, QueueNameMap qNames, IConsumer<T> cons, ISubscriber<IHeartbeatListener> mon) {
-		this.consumer = (IConsumer<T>) cons;
-		this.heartMonitor = mon;
+
+	public Queue(String qID, URI uri) throws EventException {
+		this(qID, qID+HEARTBEAT_TOPIC_SUFFIX, qID+COMMAND_TOPIC_SUFFIX, uri);
+	}
+
+	public Queue(String qID, String heartbeatTopic, String commandTopic, URI uri) throws EventException {
 		this.queueID = qID;
-		this.queueNames = qNames;
-		
-		heartbeatRecord = new SizeLimitedRecorder<HeartbeatBean>(100);
+		queueNames = new HashMap<>(5);
+		queueNames.put(SUBMISSION_QUEUE_KEY, queueID+SUBMISSION_QUEUE_SUFFIX);
+		queueNames.put(STATUS_QUEUE_KEY, queueID+STATUS_QUEUE_SUFFIX);
+		queueNames.put(STATUS_TOPIC_KEY, queueID+STATUS_TOPIC_SUFFIX);
+		queueNames.put(HEARTBEAT_TOPIC_KEY, heartbeatTopic);
+		queueNames.put(COMMAND_TOPIC_KEY, commandTopic);
+
+		IEventService eventService = QueueServicesHolder.getEventService();
+
 		try {
-			//Setup the heartbeat monitor
-			heartMonitor.addListener(new IHeartbeatListener() {
-				@Override
-				public void heartbeatPerformed(HeartbeatEvent evt) {
-					HeartbeatBean beat = evt.getBean();
-					if (beat.getConsumerId().equals(Queue.this.getConsumerID())) {
-						//Only add beans if they are from this consumer!!
-						heartbeatRecord.add(beat);
-					}
-				}
-			});
-		} catch (EventException e) {
-			logger.error("Failed to set heart beat listener on "+qID+" heartbeat monitor.");
+			consumer = eventService.createConsumer(uri, getSubmissionQueueName(),
+					getStatusQueueName(), getStatusTopicName(), getHeartbeatTopicName(),
+					getCommandTopicName());
+			consumer.setRunner(new QueueProcessCreator<T>(true));
+		} catch (EventException eEx) {
+			logger.error("Failed to create consumer for "+queueID+".");
+			throw new EventException(eEx);
 		}
-		
+
+		//This must be called after the consumer has been created.
+		try {
+			heartMonitor = new HeartbeatMonitor(uri, this, true);
+		} catch (EventException eEx) {
+			logger.error("Failed to create HeartbeatMonitor for "+queueID+".");
+			throw new EventException(eEx);
+		}
+
 		queueStatus = QueueStatus.INITIALISED;
 	}
 
@@ -82,56 +99,60 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 	}
 
 	@Override
+	public Map<String, String> getQueueNames() {
+		return queueNames;
+	}
+
+	@Override
+	public String getSubmissionQueueName() {
+		return queueNames.get(SUBMISSION_QUEUE_KEY);
+	}
+
+	@Override
+	public String getStatusQueueName() {
+		return queueNames.get(STATUS_QUEUE_KEY);
+	}
+
+	@Override
+	public String getStatusTopicName() {
+		return queueNames.get(STATUS_TOPIC_KEY);
+	}
+
+	@Override
+	public String getHeartbeatTopicName() {
+		return queueNames.get(HEARTBEAT_TOPIC_KEY);
+	}
+
+	@Override
+	public String getCommandTopicName() {
+		return queueNames.get(COMMAND_TOPIC_KEY);
+	}
+
+	@Override
 	public IConsumer<T> getConsumer() {
 		return consumer;
 	}
 
 	@Override
-	public UUID getConsumerID() {
-		return consumer.getConsumerId();
+	public IHeartbeatMonitor getHeartbeatMonitor() {
+		return heartMonitor;
 	}
 
-	@Override
-	public QueueNameMap getQueueNames() {
-		return queueNames;
-	}
-
-	@Override
-	public IProcessCreator<T> getProcessor() {
-		return consumer.getRunner();
-	}
-
-	@Override
-	public void setProcessor(IProcessCreator<T> processor)
-			throws EventException {
-		consumer.setRunner(processor);
-	}
-
-	@Override
-	public List<HeartbeatBean> getLatestHeartbeats() {
-		return heartbeatRecord.getRecording();
-	}
-
-	@Override
-	public HeartbeatBean getLastHeartbeat() {
-		return heartbeatRecord.latest();
-	}
-	
 	@Override
 	public boolean clearQueues() throws EventException {
-		consumer.clearQueue(queueNames.getSubmissionQueueName());
-		consumer.clearQueue(queueNames.getStatusQueueName());
-		
+		consumer.clearQueue(getSubmissionQueueName());
+		consumer.clearQueue(getStatusQueueName());
+
 		if (consumer.getStatusSet().size() == 0 && consumer.getSubmissionQueue().size() == 0) return true;
 		else return false;
 	}
-	
+
 	@Override
 	public void disconnect() throws EventException {
 		heartMonitor.disconnect();
 		consumer.disconnect();
 	}
-	
+
 	@Override
 	public boolean hasSubmittedJobsPending() throws EventException {
 		return !consumer.getSubmissionQueue().isEmpty();

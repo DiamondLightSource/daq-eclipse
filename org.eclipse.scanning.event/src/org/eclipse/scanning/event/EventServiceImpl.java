@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.EventListener;
 
 import org.eclipse.scanning.api.INameable;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
@@ -11,6 +12,8 @@ import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.IQueueConnection;
+import org.eclipse.scanning.api.event.core.IQueueReader;
 import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
@@ -51,7 +54,9 @@ public class EventServiceImpl implements IEventService {
 
 	@Override
 	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName) {
-		return new SubmitterImpl<U>(uri, queueName, eventConnectorService, this);
+		SubmitterImpl<U> submitter = new SubmitterImpl<U>(uri, queueName, eventConnectorService, this);
+		submitter.setStatusTopicName(EventConstants.STATUS_TOPIC); // They may always change it later.
+		return submitter;
 	}
 
 	@Override
@@ -105,6 +110,11 @@ public class EventServiceImpl implements IEventService {
 	@Override
 	public IEventConnectorService getEventConnectorService() {
 		return eventConnectorService;
+	}
+
+	@Override
+	public <T> IQueueReader<T> createQueueReader(URI uri, String queueName) {
+	    return new QueueReaderImpl<T>(uri, queueName, this);
 	}
 
 }

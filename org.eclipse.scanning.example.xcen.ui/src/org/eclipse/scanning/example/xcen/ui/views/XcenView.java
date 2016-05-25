@@ -1,7 +1,6 @@
 package org.eclipse.scanning.example.xcen.ui.views;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -13,7 +12,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.dawnsci.analysis.dataset.roi.GridROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.json.GridROIBean;
 import org.eclipse.dawnsci.analysis.dataset.roi.json.ROIBeanFactory;
@@ -25,13 +23,13 @@ import org.eclipse.dawnsci.plotting.api.tool.IToolPage.ToolPageRole;
 import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.richbeans.widgets.scalebox.ScaleBox;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.scanning.event.ui.view.StatusQueueView;
 import org.eclipse.scanning.example.xcen.beans.XcenBean;
 import org.eclipse.scanning.example.xcen.ui.XcenActivator;
@@ -47,11 +45,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,7 +153,7 @@ public class XcenView extends ViewPart {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				try {
-					topicMonitor = service.createSubscriber(getUri(), "dataacq.xcen.STATUS_TOPIC");
+					topicMonitor = service.createSubscriber(new URI(Activator.getJmsUri()), "dataacq.xcen.STATUS_TOPIC");
 					topicMonitor.addListener(new IBeanListener<XcenBean>() {
 						@Override
 						public void beanChangePerformed(BeanEvent<XcenBean> evt) {
@@ -224,29 +221,25 @@ public class XcenView extends ViewPart {
 		submit.setCollection(collection);
 		
 		IPlottingSystem<Composite> system = getPlottingSystem();
-		final Collection<IRegion> grids = system.getRegions(RegionType.GRID);
-		if (grids!=null && grids.size()>0) {
-			final GridROI[] rois = new GridROI[grids.size()];
-			int i = 0;
-			for (IRegion iRegion : grids) {
-				rois[i] = (GridROI)iRegion.getROI();
-				++i;
+		if (system!=null) {
+			final Collection<IRegion> grids = system.getRegions(RegionType.GRID);
+			if (grids!=null && grids.size()>0) {
+				final GridROI[] rois = new GridROI[grids.size()];
+				int i = 0;
+				for (IRegion iRegion : grids) {
+					rois[i] = (GridROI)iRegion.getROI();
+					++i;
+				}
+				setROIs(submit, rois);
 			}
-			setROIs(submit, rois);
 		}
-        
-		final ISubmitter<XcenBean> factory = service.createSubmitter(getUri(), "dataacq.xcen.SUBMISSION_QUEUE");
+	        
+		final ISubmitter<XcenBean> factory = service.createSubmitter(new URI(Activator.getJmsUri()), "dataacq.xcen.SUBMISSION_QUEUE");
+		factory.setStatusTopicName("dataacq.xcen.STATUS_TOPIC");
 		factory.submit(submit, true);
 
 		showQueue();
-	}
-	
-	private URI getUri() throws URISyntaxException {
-		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, "org.eclipse.scanning.event.ui");
-		final String uri        = store.getString("org.dawnsci.commandserver.URI");
-        return uri!=null ? new URI(uri) : new URI("tcp://sci-serv5.diamond.ac.uk:61616");
-	}
-	
+	}	
 	
 	public void setROIs(XcenBean submit, GridROI... g) throws Exception {
 		if (g == null) {
@@ -261,15 +254,22 @@ public class XcenView extends ViewPart {
 	}
 
 
-	private void showQueue() throws PartInitException {
+	private void showQueue() throws Exception {
 		
-		String secondaryId = StatusQueueView.createSecondaryId("org.eclipse.scanning.example.xcen", "org.eclipse.scanning.example.xcen.beans.XcenBean", "dataacq.xcen.STATUS_QUEUE", "dataacq.xcen.STATUS_TOPIC", "dataacq.xcen.SUBMISSION_QUEUE");
-		secondaryId = secondaryId+"partName=Queue";
-		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(StatusQueueView.ID, secondaryId, IWorkbenchPage.VIEW_VISIBLE);
-		if (part !=null && part instanceof StatusQueueView) {
-			StatusQueueView view = (StatusQueueView)part;
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().bringToTop(view);
-			view.refresh();
+		IViewReference[] refs = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getViewReferences();
+		
+		boolean foundStatus = false;
+		for (IViewReference vr : refs) {
+			if (StatusQueueView.ID.equals(vr.getId())) foundStatus = true;
+		}
+		if (!foundStatus) {
+			String secondId = XcenServices.getQueueViewSecondaryId();
+			IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(StatusQueueView.ID+":"+secondId, null, IWorkbenchPage.VIEW_VISIBLE);
+			if (part !=null && part instanceof StatusQueueView) {
+				StatusQueueView view = (StatusQueueView)part;
+				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().bringToTop(view);
+				view.refresh();
+			}
 		}
 	}
 	

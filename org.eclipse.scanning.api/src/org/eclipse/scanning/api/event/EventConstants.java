@@ -26,10 +26,14 @@ public interface EventConstants {
 	public static final String HEARTBEAT_TOPIC = "org.eclipse.scanning.alive.topic";
 	
 	/**
-	 * The default topic used for terminate events. This topic is generally used internally.
-     * It is usually better to use your own topic rather than the default.
+	 * The default topic used for pause and terminate events. This topic is generally used internally.
 	 */
 	public static final String CMD_TOPIC = "org.eclipse.scanning.command.topic";
+
+	/**
+	 * The default set used for recent instructions to command the consumer. This queue is generally used internally.
+	 */
+	public static final String CMD_SET = "org.eclipse.scanning.command.set";
 
 	/**
 	 * The default queue used for submitting things (like ScanRequests) to a queue.
