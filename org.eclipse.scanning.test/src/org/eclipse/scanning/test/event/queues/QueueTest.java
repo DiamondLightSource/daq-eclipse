@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.event.queues;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 import java.util.Map;
@@ -12,9 +13,11 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.ISubmitter;
+import org.eclipse.scanning.api.event.queues.IHeartbeatMonitor;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.event.queues.HeartbeatMonitor;
 import org.eclipse.scanning.event.queues.Queue;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.test.BrokerTest;
@@ -107,12 +110,17 @@ public class QueueTest extends BrokerTest {
 	@Test
 	public void testDisconnect() throws Exception {
 		queue.getConsumer().start();
-		Thread.sleep(3000);
+		Thread.sleep(500);
+		
+		IHeartbeatMonitor hbm = new HeartbeatMonitor(uri, queue);
 		queue.getConsumer().stop();
 		
 		queue.disconnect();
-		Thread.sleep(3000);
-		assertFalse("Consumer still alive!", queue.getConsumer().isActive());
+		Thread.sleep(2300); //Need to wait for chance of hearing a beat.
+		
+		HeartbeatBean lastBeat = hbm.getLastHeartbeat();
+		final long now = System.currentTimeMillis();
+		assertTrue("Consumer still alive!", (lastBeat.getPublishTime() - now) <= 2300l);
 	}
 	
 	/**
@@ -122,11 +130,15 @@ public class QueueTest extends BrokerTest {
 	@Test
 	public void testClear() throws Exception {
 		DummyBean beanA = new DummyBean("Yuri", 5603);
+		DummyBean beanB = new DummyBean("Brian", 5603);
 		ISubmitter<DummyBean> subm = evServ.createSubmitter(uri, queue.getSubmissionQueueName());
 		subm.submit(beanA);
+		subm.submit(beanB);
 		subm.disconnect();
 		
-		assertEquals("More/less than one bean in the submission queue; one submitted", 1, queue.getConsumer().getSubmissionQueue().size());
+		waitForSubmittedBeans(3000);
+		
+		assertEquals("More than two bean in the submission queue; one submitted", 2, queue.getConsumer().getSubmissionQueue().size());
 		assertEquals("Non-zero number of beans in status set; none expected.", 0, queue.getConsumer().getStatusSet().size());
 		assertTrue("Failed to clear queues", queue.clearQueues());
 		assertEquals("Non-zero number of beans in submit queue; none expected", 0, queue.getConsumer().getSubmissionQueue().size());
@@ -147,10 +159,20 @@ public class QueueTest extends BrokerTest {
 		subm.submit(beanA);
 		subm.disconnect();
 		
+		waitForSubmittedBeans(3000);
+		
 		assertTrue("No jobs found, but one submitted", queue.hasSubmittedJobsPending());
 		queue.getConsumer().start();
 		Thread.sleep(1000);
 		assertFalse("Jobs found on the consumer, but all should be consumed", queue.hasSubmittedJobsPending());
+	}
+	
+	private void waitForSubmittedBeans(long timeout) throws Exception {
+		while (timeout > 0) {
+			if (queue.getConsumer().getSubmissionQueue().size() > 0) break;
+			if (timeout <= 0) fail("No beans in queue");
+			timeout -= 100;
+		}
 	}
 
 }
