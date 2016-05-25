@@ -56,13 +56,13 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 	}
 
 	@Override
-	public IProcessCreator<T> getProcessor() {
+	public IProcessCreator<T> getProcessRunner() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void setProcessor(IProcessCreator<T> processor) throws EventException {
+	public void setProcessRunner(IProcessCreator<T> processor) throws EventException {
 		// TODO Auto-generated method stub
 		
 	}

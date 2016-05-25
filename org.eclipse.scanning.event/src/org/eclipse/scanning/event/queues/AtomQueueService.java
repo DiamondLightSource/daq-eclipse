@@ -128,7 +128,7 @@ public class AtomQueueService implements IQueueService {
 		IConsumer<QueueBean> cons = makeQueueConsumer(jqNames);
 		ISubscriber<IHeartbeatListener> mon = makeQueueSubscriber(heartbeatTopic);
 		jobQueue = new Queue<QueueBean>(jqID, jqNames, cons, mon);
-		jobQueue.setProcessor(jobQueueProcessor);
+		jobQueue.setProcessRunner(jobQueueProcessor);
 	}
 	
 	@Override
@@ -204,7 +204,7 @@ public class AtomQueueService implements IQueueService {
 		ISubscriber<IHeartbeatListener> mon = makeQueueSubscriber(heartbeatTopic);
 		IQueue<QueueAtom> activeQueue = new Queue<QueueAtom>(aqID, aqNames, cons, mon);
 		activeQueue.clearQueues();
-		activeQueue.setProcessor(activeQueueProcessor);
+		activeQueue.setProcessRunner(activeQueueProcessor);
 		
 		//Add to registry and increment number of registered queues
 		activeQueues.put(aqID, activeQueue);
