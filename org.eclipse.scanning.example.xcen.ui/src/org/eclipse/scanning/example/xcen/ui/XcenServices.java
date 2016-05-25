@@ -1,7 +1,12 @@
 package org.eclipse.scanning.example.xcen.ui;
 
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.event.ui.Activator;
+import org.eclipse.scanning.event.ui.view.StatusQueueView;
+import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.osgi.service.component.ComponentContext;
 
 public class XcenServices {
@@ -49,6 +54,13 @@ public class XcenServices {
 
 	public void setEventService(IEventService eventService) {
 		this.eventService = eventService;
+	}
+
+	public final static String getQueueViewSecondaryId() {
+		String uri = Activator.getJmsUri();
+		String queueViewId = StatusQueueView.createId(uri, "org.eclipse.scanning.example.xcen", "org.eclipse.scanning.example.xcen.beans.XcenBean", "dataacq.xcen.STATUS_QUEUE", "dataacq.xcen.STATUS_TOPIC", "dataacq.xcen.SUBMISSION_QUEUE");
+		queueViewId = queueViewId+"partName=Centering";
+        return queueViewId;
 	}
 
 }

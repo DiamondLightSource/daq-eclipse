@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T>
  */
-class QueueReader<T extends StatusBean> {
+public final class QueueReader<T> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueueReader.class);
 	

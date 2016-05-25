@@ -1,9 +1,5 @@
 package org.eclipse.scanning.api.event.alive;
 
-import java.util.UUID;
-
-import org.eclipse.scanning.api.event.IdBean;
-
 public class HeartbeatBean extends ConsumerCommandBean {
 
 	public static final HeartbeatBean EMPTY = new HeartbeatBean();

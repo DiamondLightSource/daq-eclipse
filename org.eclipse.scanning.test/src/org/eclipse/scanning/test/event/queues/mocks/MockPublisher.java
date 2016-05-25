@@ -4,18 +4,21 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
 public class MockPublisher<T> implements IPublisher<T> {
+	
+	
 	private String topicName;
 	private final URI uri;
 	private String queueName;
+	private IConsumer<?> consumer;
 	
 	private List<DummyQueueable> broadcastBeans = new ArrayList<>();
 	
@@ -83,39 +86,21 @@ public class MockPublisher<T> implements IPublisher<T> {
 	}
 
 	@Override
-	public void setQueueName(String queueName) {
+	public void setStatusSetName(String queueName) {
 		this.queueName = queueName;
 		
 	}
 
 	@Override
-	public String getQueueName() {
+	public String getStatusSetName() {
 		return queueName;
 	}
-
+	
 	@Override
-	public String getConsumerName() {
-		// TODO Auto-generated method stub
-		return null;
+	public void setStatusSetAddRequired(boolean required) {
+		throw new RuntimeException("setStatusSetAddRequired is not implemented!");
 	}
 
-	@Override
-	public void setConsumerName(String cname) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public UUID getConsumerId() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setConsumerId(UUID id) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public void setLoggingStream(PrintStream stream) {
@@ -127,6 +112,14 @@ public class MockPublisher<T> implements IPublisher<T> {
 	public IEventConnectorService getConnectorService() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public IConsumer<?> getConsumer() {
+		return consumer;
+	}
+
+	public void setConsumer(IConsumer<?> consumer) {
+		this.consumer = consumer;
 	}
 
 }

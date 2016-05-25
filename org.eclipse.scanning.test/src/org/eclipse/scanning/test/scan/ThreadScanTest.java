@@ -34,6 +34,7 @@ import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
+import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
@@ -45,7 +46,7 @@ import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
-public class ThreadScanTest {
+public class ThreadScanTest extends BrokerTest {
 	
 	private IRunnableDeviceService           sservice;
 	private IDeviceConnectorService    connector;
@@ -72,8 +73,8 @@ public class ThreadScanTest {
 		eservice   = new EventServiceImpl(new ActivemqConnectorService());
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		subscriber = eservice.createSubscriber(new URI("vm://localhost?broker.persistent=false"), IEventService.SCAN_TOPIC); // Create an in memory consumer of messages.
-		publisher  = eservice.createPublisher(new URI("vm://localhost?broker.persistent=false"), IEventService.SCAN_TOPIC);
+		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC); // Create an in memory consumer of messages.
+		publisher  = eservice.createPublisher(uri, IEventService.SCAN_TOPIC);
 	}
 	
 	@After
@@ -179,7 +180,7 @@ public class ThreadScanTest {
 		final CountDownLatch latch = new CountDownLatch(1);
 		// Use in memory broker removes requirement on network and external ActiveMQ process
 		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		ISubscriber<IScanListener> subscriber = eservice.createSubscriber(new URI("vm://localhost?broker.persistent=false"), IEventService.SCAN_TOPIC); // Create an in memory consumer of messages.
+		ISubscriber<IScanListener> subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC); // Create an in memory consumer of messages.
 		subscriber.addListener(new IScanListener() {
 			@Override
 			public void scanStateChanged(ScanEvent evt) {

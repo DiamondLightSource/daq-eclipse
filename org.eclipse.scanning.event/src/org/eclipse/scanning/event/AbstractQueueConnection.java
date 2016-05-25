@@ -58,6 +58,17 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 	public void setBeanClass(Class<U> beanClass) {
 		this.beanClass = beanClass;
 	}
+	
+	@Override
+	public List<U> getQueue() throws EventException {
+					
+		QueueReader<U> reader = new QueueReader<U>(getConnectorService(), null);
+		try {
+			return reader.getBeans(uri, getSubmitQueueName(), beanClass);
+		} catch (Exception e) {
+			throw new EventException("Cannot get the beans for queue " + getSubmitQueueName(), e);
+		}
+	}
 
 	@Override
 	public List<U> getQueue(String qName, String fieldName) throws EventException {
@@ -84,10 +95,10 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 				@Override
 				public int compare(U o1, U o2) {
 					// Newest first!
-			        long t1 = o2.getSubmissionTime();
-			        long t2 = o1.getSubmissionTime();
-			        if (t1<t2) return -1;
-			        if (t1==t2) return o1.equals(o2) ? 0 : 1;
+			        long t1 = o1.getSubmissionTime();
+			        long t2 = o2.getSubmissionTime();
+			        if (t1>t2) return -1;
+			        if (t1==t2) return o1.equals(o2) ? 1 : 0;
 			        return 1;
 				}
 			};
@@ -177,7 +188,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 							final StatusBean qbean = service.unmarshal(json, beanClass != null ? beanClass : statusBeanClass);
 							if (qbean==null)               continue;
 							if (qbean.getStatus()==null)   continue;
-							if (!qbean.getStatus().isStarted()) {
+							if (!qbean.getStatus().isStarted() || qbean.getStatus()==Status.PAUSED) {
 								failIds.put(t.getJMSMessageID(), qbean);
 								continue;
 							}
@@ -227,7 +238,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 	
 					for (String jMSMessageID : ids) {
 						MessageConsumer consumer = qSes.createConsumer(queue, "JMSMessageID = '"+jMSMessageID+"'");
-						Message m = consumer.receive(1000);
+						Message m = consumer.receive(Constants.getReceiveFrequency());
 						consumer.close();
 						if (removeIds.contains(jMSMessageID)) continue; // We are done
 	
@@ -269,7 +280,7 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 			while(e.hasMoreElements()) {
 				Message msg = (Message)e.nextElement();
 				MessageConsumer consumer = qSes.createConsumer(queue, "JMSMessageID = '"+msg.getJMSMessageID()+"'");
-				Message rem = consumer.receive(500);	
+				Message rem = consumer.receive(Constants.getReceiveFrequency());
 				if (rem!=null) System.out.println("Removed "+rem);
 				consumer.close();
 			}

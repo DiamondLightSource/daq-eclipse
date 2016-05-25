@@ -26,11 +26,7 @@ public class ScanEventTest extends AbstractScanEventTest{
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
-		
-		// Use in memory broker removes requirement on network and external ActiveMQ process
-		// http://activemq.apache.org/how-to-unit-test-jms-code.html
-		final URI uri = new URI("vm://localhost?broker.persistent=false");
-		
+				
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
 		publisher  = eservice.createPublisher(uri, IEventService.SCAN_TOPIC);		

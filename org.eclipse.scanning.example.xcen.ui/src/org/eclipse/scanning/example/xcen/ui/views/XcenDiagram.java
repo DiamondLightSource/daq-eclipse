@@ -34,8 +34,11 @@ public class XcenDiagram extends VanillaPlottingSystemView {
 	public void createPartControl(Composite parent) {
 		
         if (system==null) {
+        	parent.setLayout(new GridLayout(1, false));
         	final Label msg = new Label(parent, SWT.WRAP);
-        	msg.setText("No plotting system found available.\nThere are probably no bundles providing plotting in the run configuration.\nThese may be obtained from dawn p2, for instance:\nhttp://opengda.org/DawnDiamond/2.0/updates/release/");
+        	msg.setText("No plotting system found available.\nThere are probably no bundles providing plotting in the run configuration.\nThese may be obtained from dawn p2, for instance:\nhttp://opengda.org/DawnDiamond/2.0/updates/release/\n\nA static image is shown for our enjoyment.");
+        	final Label img = new Label(parent, SWT.NONE);
+        	img.setImage(XcenActivator.getImageDescriptor("icons/xstall.png").createImage());
         	return;
         }
         super.createPartControl(parent);
