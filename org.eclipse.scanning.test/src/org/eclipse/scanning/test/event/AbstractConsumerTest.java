@@ -128,7 +128,7 @@ public class AbstractConsumerTest extends BrokerTest {
     	
 		IConsumer<StatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
 		try {
-			fconsumer.setRunner(new FastRunCreator<StatusBean>(0, 100, 50, 100L, true));
+			fconsumer.setRunner(new FastRunCreator<StatusBean>(0, 100, 50, 50L, true));
 			fconsumer.cleanQueue(consumer.getSubmitQueueName());
 			fconsumer.start(); // No bean!
 			
@@ -150,7 +150,7 @@ public class AbstractConsumerTest extends BrokerTest {
     	
 		IConsumer<StatusBean> fconsumer   = eservice.createConsumer(this.consumer.getUri(), IEventService.SUBMISSION_QUEUE, IEventService.STATUS_SET, IEventService.STATUS_TOPIC, IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
 		try {
-			fconsumer.setRunner(new FastRunCreator<StatusBean>(0, 100, 50, 100L, true));
+			fconsumer.setRunner(new FastRunCreator<StatusBean>(0, 100, 50, 50L, true));
 			fconsumer.cleanQueue(consumer.getSubmitQueueName());
 			fconsumer.start();// It's going now, we can submit
 			
