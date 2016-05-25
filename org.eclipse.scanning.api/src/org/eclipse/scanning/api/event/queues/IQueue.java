@@ -113,7 +113,7 @@ public interface IQueue<T extends Queueable> {
 	 * 
 	 * @return {@link IProcessCreator} currently set on the consumer.
 	 */
-	public default IProcessCreator<T> getProcessor() {
+	public default IProcessCreator<T> getProcessRunner() {
 		return getConsumer().getRunner();
 	}
 	
@@ -124,7 +124,7 @@ public interface IQueue<T extends Queueable> {
 	 * @param processRunner Instance of {@link IProcessCreator} to use.
 	 * @throws EventException If the consumer rejects the offered processor
 	 */
-	public default void setProcessor(IProcessCreator<T> processRunner) throws EventException {
+	public default void setProcessRunner(IProcessCreator<T> processRunner) throws EventException {
 		getConsumer().setRunner(processRunner);
 	}
 	
