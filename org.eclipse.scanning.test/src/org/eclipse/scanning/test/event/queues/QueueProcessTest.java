@@ -15,9 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class QueueProcessTest {
-	
-	
-	
+
 	private QueueProcess<DummyBean> qProc;
 	private MockQueueProcessor mockProc;
 	private CountDownLatch execLatch;
