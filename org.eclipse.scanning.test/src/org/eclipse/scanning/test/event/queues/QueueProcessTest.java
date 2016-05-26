@@ -1,14 +1,19 @@
 package org.eclipse.scanning.test.event.queues;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
+import org.eclipse.scanning.test.event.queues.mocks.DummyQueueable;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueProcessor;
 import org.junit.Before;
@@ -76,6 +81,34 @@ public class QueueProcessTest {
 		assertTrue("Mock processor didn't get the execute signal", processor.isExecuted());
 		assertTrue("Mock processor didn't execute to completion", processor.isComplete());
 		assertTrue("Mock processor didn't pause correctly", processor.getRunTime() < 650l);
+	}
+	
+	@Test
+	public void testBroadcasting() throws EventException {
+		dummy = new DummyBean("Vladimir", 750);
+		
+		//Test general broadcast
+		dummy.setMessage("Hello world");
+		qProc.broadcast(dummy);
+		
+		//Test setting of status, percent complete & both
+		qProc.broadcast(dummy, Status.QUEUED);
+		qProc.broadcast(dummy, 50);
+		
+		//Test setting both status & percent complete
+		qProc.broadcast(dummy, Status.COMPLETE, 100d);
+		
+		List<DummyQueueable> broadcasted = ((MockPublisher<DummyBean>) pub).getBroadcastBeans();
+		String[] messages = new String[]{"Hello world", "Hello world", "Hello world", "Hello world"};
+		Status[] statuses = new Status[]{Status.NONE, Status.QUEUED, Status.QUEUED, Status.COMPLETE};
+		double[] percents = new double[]{0d, 0d, 50d, 100d};
+		
+		for (int i = 0; i < broadcasted.size(); i++) {
+			DummyQueueable bean = broadcasted.get(i);
+			assertEquals("Bean nr. "+i+" has wrong message", messages[i], bean.getMessage());
+			assertEquals("Bean nr. "+i+" has wrong status", statuses[i], bean.getStatus());
+			assertEquals("Bean nr. "+i+" has wrong percent complete", percents[i], bean.getPercentComplete(), 0);
+		}
 	}
 	
 	private void executeThread() {
