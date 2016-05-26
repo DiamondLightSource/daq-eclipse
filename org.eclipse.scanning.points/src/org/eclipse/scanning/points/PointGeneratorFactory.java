@@ -29,6 +29,7 @@ import org.eclipse.scanning.api.points.models.IBoundingLineModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
+import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 
@@ -50,6 +51,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		gens.put(OneDStepModel.class,         OneDStepGenerator.class);
 		gens.put(RasterModel.class,           RasterGenerator.class);
 		gens.put(EmptyModel.class,            EmptyGenerator.class);
+		gens.put(RandomOffsetGridModel.class, RandomOffsetGridGenerator.class);
 		
 		Map<String,   GeneratorInfo> tinfo = new TreeMap<>();
 		fillStaticGeneratorInfo(gens, tinfo);
