@@ -7,8 +7,12 @@ import java.util.Map;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class QueueProcessorFactory {
+	
+	private static final Logger logger = LoggerFactory.getLogger(QueueProcessorFactory.class);
 	
 	private static final Map<String, Class<? extends IQueueProcessor<? extends Queueable>>> PROCESSORS;
 	private static final Map<String, String> ATOMBEANTYPES;
@@ -37,6 +41,7 @@ public class QueueProcessorFactory {
 		try {
 			PROCESSORS.put(processorClassName, clazz);
 		} catch (Exception ex) {
+			logger.error("Failed to register processor "+processorClassName+": "+ex.getMessage());
 			throw new EventException("Failed to register processor: "+ex.getMessage());
 		}
 		
@@ -49,7 +54,8 @@ public class QueueProcessorFactory {
 				ATOMBEANTYPES.put(type, processorClassName);
 			}
 		} catch (Exception ex) {
-			throw new EventException("Failed to register beantype(s): "+ex.getMessage());
+			logger.error("Failed to register atom/bean type for "+processorClassName+": "+ex.getMessage());
+			throw new EventException("Failed to register atom/bean type for "+processorClassName+": "+ex.getMessage());
 		}
 	}
 	
