@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.event.queues;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.event.queues.QueueProcessorFactory;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
@@ -16,7 +17,7 @@ import org.junit.Test;
 public class QueueProcessorFactoryTest {
 	
 	@Test
-	public void testRegisterProcessor() {
+	public void testRegisterProcessor() throws EventException {
 		assertEquals("Processors already registered!", 0, QueueProcessorFactory.getProcessors().size());
 		
 		//Register a single processor
@@ -29,7 +30,7 @@ public class QueueProcessorFactoryTest {
 	}
 	
 //	@Test
-	public void testReturnProcessorForAtom() {
+	public void testReturnProcessorForAtom() throws EventException {
 		QueueProcessorFactory.registerProcessors(MoveAtomProcessor.class, ScanAtomProcessor.class, DummyProcessor.class);//TODO add AtomQueueProcessor
 		
 		DummyAtom dAt = new DummyAtom("Bill", 750);

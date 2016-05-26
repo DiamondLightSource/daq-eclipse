@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.event.queues.mocks;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -65,6 +66,12 @@ public class MockQueueProcessor implements IQueueProcessor {
 
 	public boolean isTerminated() {
 		return terminated;
+	}
+
+	@Override
+	public List<String> getAtomBeanTypes() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
