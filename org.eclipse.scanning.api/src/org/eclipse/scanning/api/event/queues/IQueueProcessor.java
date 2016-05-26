@@ -3,8 +3,9 @@ package org.eclipse.scanning.api.event.queues;
 import java.util.List;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
-public interface IQueueProcessor {
+public interface IQueueProcessor<T extends Queueable> {
 	
 	public void execute() throws EventException, InterruptedException;
 	

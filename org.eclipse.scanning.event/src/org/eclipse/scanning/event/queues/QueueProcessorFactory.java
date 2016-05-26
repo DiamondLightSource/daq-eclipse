@@ -6,10 +6,11 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 public class QueueProcessorFactory {
 	
-	private static final Map<String, Class<? extends IQueueProcessor>> PROCESSORS;
+	private static final Map<String, Class<? extends IQueueProcessor<? extends Queueable>>> PROCESSORS;
 	private static final Map<String, String> ATOMBEANTYPES;
 	
 	static {
@@ -26,11 +27,11 @@ public class QueueProcessorFactory {
 	}
 	
 	@SafeVarargs
-	public static void registerProcessors(Class<? extends IQueueProcessor>... clazzez) {
+	public static void registerProcessors(Class<? extends IQueueProcessor<? extends Queueable>>... clazzez) {
 		//TODO
 	}
 	
-	public static void registerProcessor(Class<? extends IQueueProcessor> clazz) throws EventException {
+	public static void registerProcessor(Class<? extends IQueueProcessor<? extends Queueable>> clazz) throws EventException {
 		//Add processor to PROCESSORS map
 		String processorClassName = clazz.getName();
 		try {
@@ -42,7 +43,7 @@ public class QueueProcessorFactory {
 		
 		//Add atom/bean classnames processed by processor to ATOMBEANTYPES map
 		try {
-			IQueueProcessor proc = clazz.newInstance();
+			IQueueProcessor<? extends Queueable> proc = clazz.newInstance();
 			List<String> beanTypes = proc.getAtomBeanTypes();
 			for (String type : beanTypes) {
 				ATOMBEANTYPES.put(type, processorClassName);
@@ -52,7 +53,7 @@ public class QueueProcessorFactory {
 		}
 	}
 	
-	public static Map<String, Class<? extends IQueueProcessor>> getProcessors() {
+	public static Map<String, Class<? extends IQueueProcessor<? extends Queueable>>> getProcessors() {
 		return PROCESSORS;
 	}
 	
@@ -60,7 +61,7 @@ public class QueueProcessorFactory {
 		return ATOMBEANTYPES;
 	}
 	
-	public static IQueueProcessor getProcessor(String atomBeanClassName) throws EventException {
+	public static IQueueProcessor<? extends Queueable> getProcessor(String atomBeanClassName) throws EventException {
 		//TODO
 		return null;
 	}

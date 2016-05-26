@@ -9,13 +9,13 @@ import org.eclipse.scanning.api.event.status.Status;
 
 public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T> {
 	
-	private final IQueueProcessor processor;
+	private final IQueueProcessor<? extends Queueable> processor;
 	private boolean terminated = false, blocking = true;
 	
 //	//Number of ms processor waits in while loop before checking state of task.
 //	protected final long loopSleepTime = 100;
 	
-	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking, IQueueProcessor processor) {
+	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking, IQueueProcessor<? extends Queueable> processor) {
 		super(bean, publisher);
 		this.blocking = blocking;
 		this.processor = processor;
@@ -76,7 +76,7 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 		}		
 	}
 
-	public IQueueProcessor getProcessor() {
+	public IQueueProcessor<? extends Queueable> getProcessor() {
 		return processor;
 	}
 
