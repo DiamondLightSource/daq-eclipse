@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.beans.util;
+package org.eclipse.scanning.test.event.queues.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;

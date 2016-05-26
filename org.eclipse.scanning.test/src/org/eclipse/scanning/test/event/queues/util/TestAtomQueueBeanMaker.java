@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.beans.util;
+package org.eclipse.scanning.test.event.queues.util;
 
 import org.eclipse.scanning.api.event.queues.beans.IAtomQueue;
 import org.eclipse.scanning.event.queues.beans.SubTaskBean;

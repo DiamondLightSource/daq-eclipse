@@ -24,13 +24,13 @@ import org.eclipse.scanning.event.queues.processors.AtomQueueProcessor;
 import org.eclipse.scanning.event.queues.processors.MonitorAtomProcessor;
 import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
-import org.eclipse.scanning.test.event.queues.beans.util.TestAtomMaker;
-import org.eclipse.scanning.test.event.queues.beans.util.TestAtomQueueBeanMaker;
 import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
 import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.DummyProcessor;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
+import org.eclipse.scanning.test.event.queues.util.TestAtomMaker;
+import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
 import org.junit.Before;
 import org.junit.Test;
 
