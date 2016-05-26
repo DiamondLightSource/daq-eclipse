@@ -14,6 +14,7 @@ import org.eclipse.scanning.api.event.status.Status;
  *
  * @param <T> A bean extending the {@link Queueable} abstract class.
  */
+@Deprecated
 public abstract class AbstractQueueProcessor<T extends Queueable> extends AbstractPausableProcess<T> {
 	
 	protected boolean runComplete = false, terminated = false, blocking = true;
