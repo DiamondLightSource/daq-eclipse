@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.event.queues;
 
-import java.util.List;
-
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
@@ -12,11 +10,11 @@ public interface IQueueProcessor<T extends Queueable> {
 	public void terminate() throws EventException;
 	
 	/**
-	 * Return a list of strings of all the atom/bean class names which this 
-	 * processor can process.
+	 * Return the string name of the atom/bean class which this processor can
+	 * process.
 	 * 
-	 * @return List<String> class names of processable atom/bean types.
+	 * @return String class name of processable atom/bean type.
 	 */
-	public List<String> getAtomBeanTypes();
+	public String getAtomBeanType();
 
 }
