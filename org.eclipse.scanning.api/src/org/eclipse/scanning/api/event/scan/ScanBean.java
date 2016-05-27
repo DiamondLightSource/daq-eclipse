@@ -200,7 +200,7 @@ public final class ScanBean extends StatusBean {
 	
 	public void putPosition(String name, int index, Object val) {
 		IPosition tmp = new MapPosition(name, index, val);
-		this.position = tmp.composite(position);
+		this.position = tmp.compound(position);
 	}
 	
 	public boolean scanStart() {

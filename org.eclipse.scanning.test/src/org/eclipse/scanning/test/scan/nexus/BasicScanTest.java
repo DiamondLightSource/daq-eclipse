@@ -10,8 +10,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
-import java.io.File;
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.IntStream;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
@@ -28,41 +27,22 @@ import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
-import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
-import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
-public class BasicScanPluginTest {
+public class BasicScanTest extends NexusTest {
 
-	
-	private static INexusFileFactory   fileFactory;
-	
-	private static IRunnableDeviceService        service;
-	private static IPointGeneratorService  gservice;
-	private static IDeviceConnectorService connector;
-	
-	@BeforeClass
-	public static void before() throws Exception {
-		connector = new MockScannableConnector();	
-		service   = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();
-	}
 	
     private IScannable<?>                  monitor;
     private IScannable<?>                  metadataScannable;
@@ -110,14 +90,23 @@ public class BasicScanPluginTest {
 
 	private void test(IScannable<?> monitor, IScannable<?> metadataScannable, int... shape) throws Exception {
 
+		long before = System.currentTimeMillis();
 		// Tell configure detector to write 1 image into a 2D scan
 		IRunnableDevice<ScanModel> scanner = createStepScan(monitor, metadataScannable, shape);
 		assertScanNotFinished(getNexusRoot(scanner).getEntry());
 		scanner.run(null);
+		long after = System.currentTimeMillis();
+		System.out.println("Running "+product(shape)+" points took "+(after-before)+" ms");
 
 		checkNexusFile(scanner, shape);
 	}
 	
+	private int product(int[] shape) {
+		int total = 1;
+		for (int i : shape) total*=i;
+		return total;
+	}
+
 	private NXroot getNexusRoot(IRunnableDevice<ScanModel> scanner) throws Exception {
 		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
 
@@ -148,7 +137,7 @@ public class BasicScanPluginTest {
 		}
 		
 		final IPosition pos = scanModel.getPositionIterable().iterator().next();
-		final List<String> scannableNames = pos.getNames();
+		final Collection<String> scannableNames = pos.getNames();
 		final boolean hasMonitor = scanModel.getMonitors() != null && !scanModel.getMonitors().isEmpty();
 		
 		String dataGroupName = hasMonitor ? scanModel.getMonitors().get(0).getName() :
@@ -161,9 +150,10 @@ public class BasicScanPluginTest {
 		assertAxes(nxData, expectedAxesNames);
 
 		int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
-		for (int i = 0; i < scannableNames.size(); i++) {
-			// Demand values should be 1D
-			String scannableName = scannableNames.get(i);
+		int i = -1;
+		for (String  scannableName : scannableNames) {
+			
+		    i++;
 			
 			NXpositioner positioner = instrument.getPositioner(scannableName);
 			assertNotNull(positioner);
@@ -249,13 +239,11 @@ public class BasicScanPluginTest {
 		if (metadataScannable != null) smodel.setMetadataScannables(metadataScannable);
 		
 		// Create a file to scan into.
-		File output = File.createTempFile("test_simple_nexus", ".nxs");
-		output.deleteOnExit();
 		smodel.setFilePath(output.getAbsolutePath());
 		System.out.println("File writing to " + smodel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
@@ -277,7 +265,7 @@ public class BasicScanPluginTest {
 	}
 
 	public static void setFileFactory(INexusFileFactory fileFactory) {
-		BasicScanPluginTest.fileFactory = fileFactory;
+		BasicScanTest.fileFactory = fileFactory;
 	}
 
 }

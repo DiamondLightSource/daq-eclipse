@@ -39,6 +39,8 @@ import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.rank.IScanRankService;
+import org.eclipse.scanning.api.scan.rank.IScanSlice;
 
 /**
  * A dummy detector which must be set up with references to two Scannables representing X and Y positions. When used in a step scan, this detector generates a
@@ -168,13 +170,16 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public boolean write(IPosition pos) throws ScanningException {
 
 		try {
-			SliceND sliceND = NexusScanInfo.createLocation(imageData, pos.getNames(), pos.getIndices(), model.getRows(), model.getColumns());
+			IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(pos, model.getRows(), model.getColumns());
+			SliceND sliceND = new SliceND(imageData.getShape(), imageData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 			imageData.setSlice(null, image, sliceND);
 			
-			sliceND = NexusScanInfo.createLocation(spectrumData, pos.getNames(), pos.getIndices(), model.getPoints());
+			rslice = IScanRankService.getScanRankService().createScanSlice(pos, model.getPoints());
+			sliceND = new SliceND(spectrumData.getShape(), spectrumData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 			spectrumData.setSlice(null, spectrum, sliceND);
 
-			sliceND = NexusScanInfo.createLocation(valueData, pos.getNames(), pos.getIndices());
+			rslice = IScanRankService.getScanRankService().createScanSlice(pos);
+			sliceND = new SliceND(valueData.getShape(), valueData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 			valueData.setSlice(null, DoubleDataset.createFromObject(value), sliceND);
 
 		} catch (Exception e) {

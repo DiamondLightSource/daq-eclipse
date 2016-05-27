@@ -12,9 +12,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
-import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -32,15 +31,12 @@ import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
-import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
-import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -48,34 +44,22 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.ConstantVelocityModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
-public class ConstantVelocityPluginTest {
+public class ConstantVelocityTest extends NexusTest {
 
 	
-	private static INexusFileFactory   fileFactory;
-	
-	private static IRunnableDeviceService        service;
-	private static IPointGeneratorService       gservice;
-	private static IDeviceConnectorService connector;
 	
 	private static IWritableDetector<ConstantVelocityModel> detector;
 
-	@BeforeClass
-	public static void before() throws Exception {
-		
-		connector = new MockScannableConnector();
-		service   = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();
+	@Before
+	public void before() throws Exception {
 		
 		ConstantVelocityModel model = new ConstantVelocityModel("cv scan", 100, 200, 25);
 		model.setName("cv device");
 			
-		detector = (IWritableDetector<ConstantVelocityModel>)service.createRunnableDevice(model);
+		detector = (IWritableDetector<ConstantVelocityModel>)dservice.createRunnableDevice(model);
 		assertNotNull(detector);
 		
 		detector.addRunListener(new IRunListener() {
@@ -161,7 +145,7 @@ public class ConstantVelocityPluginTest {
 
 		// Check axes
         final IPosition      pos = scanModel.getPositionIterable().iterator().next();
-        final List<String> scannableNames = pos.getNames();
+        final Collection<String> scannableNames = pos.getNames();
         
         // Append _value_demand to each name in list, and append items ".", "." to list
         String[] expectedAxesNames = Stream.concat(scannableNames.stream().map(x -> x + "_value_demand"),
@@ -169,9 +153,10 @@ public class ConstantVelocityPluginTest {
         assertAxes(nxData, expectedAxesNames);
         
         int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
-        for (int i = 0; i < scannableNames.size(); i++) {
-			// Demand values should be 1D
-        	String scannableName = scannableNames.get(i);
+		int i = -1;
+		for (String  scannableName : scannableNames) {
+			
+		    i++;
         	NXpositioner positioner = instrument.getPositioner(scannableName);
         	assertNotNull(positioner);
         	
@@ -235,13 +220,11 @@ public class ConstantVelocityPluginTest {
 		scanModel.setDetectors(detector);
 		
 		// Create a file to scan into.
-		File output = File.createTempFile("test_mandel_nexus", ".nxs");
-		output.deleteOnExit();
 		scanModel.setFilePath(output.getAbsolutePath());
 		System.out.println("File writing to "+scanModel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(scanModel, null);
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(scanModel, null);
 		
 		final IPointGenerator<?> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
@@ -263,7 +246,7 @@ public class ConstantVelocityPluginTest {
 	}
 
 	public static void setFileFactory(INexusFileFactory fileFactory) {
-		ConstantVelocityPluginTest.fileFactory = fileFactory;
+		ConstantVelocityTest.fileFactory = fileFactory;
 	}
 
 }

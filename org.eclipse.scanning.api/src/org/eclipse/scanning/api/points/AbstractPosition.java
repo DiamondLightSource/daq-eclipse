@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,6 +12,7 @@ import org.eclipse.scanning.api.annotation.UiHidden;
 public abstract class AbstractPosition implements IPosition {
 	
 	private int stepIndex = -1;
+	protected List<Collection<String>> dimensionNames; // Dimension->Names@dimension
 	
 	@UiHidden
 	public int getStepIndex() {
@@ -20,12 +23,12 @@ public abstract class AbstractPosition implements IPosition {
 		this.stepIndex = stepIndex;
 	}
 
-	public IPosition composite(IPosition with) {
-		if (with==null) return this; // this+null = this
+	public final IPosition compound(IPosition parent) {
+		if (parent==null) return this; // this+null = this
 		final MapPosition ret = new MapPosition();
-		ret.putAll(with);
+		ret.putAll(parent);
 		ret.putAll(this);
-		ret.putAllIndices(with);
+		ret.putAllIndices(parent);
 		ret.putAllIndices(this);
 		return ret;
 	}
@@ -35,7 +38,7 @@ public abstract class AbstractPosition implements IPosition {
 		final int prime = 31;
 		int result = 1;
 		long temp;
-		final List<String> names   = getNames();
+		final Collection<String> names   = getNames();
 		for (String name : names) {
 			Object val = get(name);
 			if (val instanceof Number) {
@@ -62,8 +65,8 @@ public abstract class AbstractPosition implements IPosition {
 				return false;
 		}
 
-		final List<String> ours   = getNames();
-		final List<String> theirs = ((IPosition)obj).getNames();
+		final Collection<String> ours   = getNames();
+		final Collection<String> theirs = ((IPosition)obj).getNames();
 		if (!ours.equals(theirs)) return false;		
 		for (String name : ours) {
 			Object val1 = get(name);
@@ -86,7 +89,7 @@ public abstract class AbstractPosition implements IPosition {
 		buf.append("stepIndex=");
 		buf.append(stepIndex);
 		buf.append(", ");
-		final List<String> names   = getNames();
+		final Collection<String> names   = getNames();
         for (Iterator<String> it = names.iterator(); it.hasNext();) {
 			String name = it.next();
         	buf.append(name);
@@ -113,7 +116,30 @@ public abstract class AbstractPosition implements IPosition {
 		return indices;
 	}
 
-	public double getValue(String name) {
-		return ((Number)get(name)).doubleValue();
+	public Collection<String> getDimensionNames(int dimension) {
+		if (dimensionNames==null && dimension==0) return getNames();
+		if (dimensionNames==null)                 return null;
+		if (dimension>=dimensionNames.size())     return null;
+		return dimensionNames.get(dimension);
+	}
+
+	public List<Collection<String>> getDimensionNames() {
+		if (dimensionNames==null)  dimensionNames = Arrays.asList(getNames());
+		return dimensionNames;
+	}
+	public void setDimensionNames(List<Collection<String>> dNames) {
+		this.dimensionNames = dNames;
+	}
+	
+	@Override
+	public int getScanRank() {
+		if (dimensionNames!=null) return dimensionNames.size();
+		return 1;
+	}
+
+	@Override
+	public int getIndex(int dimension) {
+		final String name = getDimensionNames(dimension).iterator().next();
+		return getIndex(name);
 	}
 }

@@ -24,7 +24,6 @@ import org.eclipse.dawnsci.analysis.api.processing.IOperation;
 import org.eclipse.dawnsci.analysis.api.processing.IOperationService;
 import org.eclipse.dawnsci.analysis.api.processing.model.ValueModel;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
-import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXdetector;
@@ -33,17 +32,13 @@ import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
-import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
-import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
@@ -52,29 +47,11 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.DeviceServiceImpl;
 import org.eclipse.scanning.sequencer.ServiceHolder;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class ScanProcessingPluginTest {
+public class ScanProcessingTest extends NexusTest {
 
-	
-	private static INexusFileFactory       fileFactory;	
-	private static IRunnableDeviceService  service;
-	private static IPointGeneratorService  gservice;
-	private static IDeviceConnectorService connector;
-	private static ILoaderService          lservice;
-	
-	@BeforeClass
-	public static void before() throws Exception {
-		fileFactory = new NexusFileFactoryHDF5();
-		connector = new MockScannableConnector();
-		service   = new DeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();	
-	}
 	
 	@Test
 	public void testNexusScan() throws Exception {
@@ -123,19 +100,12 @@ public class ScanProcessingPluginTest {
 		smodel.setPositionIterable(gen);
 		
 		// Create a file to scan into.
-		File output = File.createTempFile("test_mandel_nexus", ".nxs");
-		output.deleteOnExit();
 		smodel.setFilePath(output.getAbsolutePath());
 		System.out.println("File writing to "+smodel.getFilePath());
 		
 		// Setup the Mandelbrot
-		MandelbrotModel model = new MandelbrotModel();
-		model.setName("mandelbrot");
-		model.setRealAxisName("xNex");
-		model.setImaginaryAxisName("yNex");
-		model.setRows(64);
-		model.setColumns(64);
-		IWritableDetector<MandelbrotModel> detector = (IWritableDetector<MandelbrotModel>)service.createRunnableDevice(model);
+		MandelbrotModel model = createMandelbrotModel();
+		IWritableDetector<MandelbrotModel> detector = (IWritableDetector<MandelbrotModel>)dservice.createRunnableDevice(model);
 		assertNotNull(detector);
 		detector.addRunListener(new IRunListener() {
 			@Override
@@ -160,18 +130,23 @@ public class ScanProcessingPluginTest {
 		// We save the file so that it is used as the processing
 		final File pfile = File.createTempFile("test_operations", ".h5");
 		pfile.deleteOnExit();
-		final IPersistentFile file = ServiceHolder.getPersistenceService().createPersistentFile(pfile);
-		file.setOperations(subtract);
-		file.close();
-		pmodel.setOperationsFile(pfile.getAbsolutePath());
 		
-		final IRunnableDevice<ProcessingModel> processor = service.createRunnableDevice(pmodel);
+		if (ServiceHolder.getPersistenceService()!=null) { // If run as plugin test, will not be null
+			final IPersistentFile file = ServiceHolder.getPersistenceService().createPersistentFile(pfile);
+			file.setOperations(subtract);
+			file.close();
+			pmodel.setOperationsFile(pfile.getAbsolutePath());
+		} else {
+			pmodel.setOperation(subtract);
+		}
+		
+		final IRunnableDevice<ProcessingModel> processor = dservice.createRunnableDevice(pmodel);
 		
 		// Assign the detectors
 		smodel.setDetectors(detector, processor);
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, null);
 
 		final IPointGenerator<?> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
@@ -234,9 +209,9 @@ public class ScanProcessingPluginTest {
 		final ILoaderService lservice = ServiceHolder.getLoaderService();
 		final IDataHolder holder = lservice.getData(pmodel.getDataFile(), null);
 		
-		final ILazyDataset mdata = holder.getDataset("/entry/instrument/mandelbrot/data");
+		final ILazyDataset mdata = holder.getLazyDataset("/entry/instrument/mandelbrot/data");
 		assertTrue(mdata!=null);
-		final ILazyDataset sdata = holder.getDataset("/entry/instrument/subtract/data");
+		final ILazyDataset sdata = holder.getLazyDataset("/entry/instrument/subtract/data");
 		assertTrue(sdata!=null);
 		
 		// Same shape
@@ -255,7 +230,7 @@ public class ScanProcessingPluginTest {
 	}
 
 	public static void setFileFactory(INexusFileFactory fileFactory) {
-		ScanProcessingPluginTest.fileFactory = fileFactory;
+		ScanProcessingTest.fileFactory = fileFactory;
 	}
 
 }

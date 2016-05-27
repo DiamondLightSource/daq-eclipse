@@ -18,6 +18,8 @@ import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.rank.IScanRankService;
+import org.eclipse.scanning.api.scan.rank.IScanSlice;
 
 /**
  * This device mimicks telling EPICS to do a constant velcity scan down a line.
@@ -78,7 +80,8 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 		try {
 			// In a real CV Scan the write step could be to either link in the HDF5 or read in its data 
 			// and write a new record. Avoiding reading in the HDF5 being preferable.
-			SliceND sliceND = NexusScanInfo.createLocation(context, pos.getNames(), pos.getIndices(), model.getLineSize(), model.getChannelCount(), model.getSpectraSize());
+			final IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(pos, model.getLineSize(), model.getChannelCount(), model.getSpectraSize());
+			SliceND sliceND = new SliceND(context.getShape(), context.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 			context.setSlice(null, data, sliceND);
 
 		} catch (Exception e) {

@@ -14,12 +14,12 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,17 +49,16 @@ import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
+import org.eclipse.dawnsci.remotedataset.client.RemoteDatasetServiceImpl;
 import org.eclipse.dawnsci.remotedataset.server.DataServer;
+import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
-import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
-import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -69,22 +68,14 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 
-public class MandelbrotRemotePluginTest {
+public class MandelbrotRemoteTest extends NexusTest {
 
 	
-	private static INexusFileFactory   fileFactory;
-	
-	private static IRunnableDeviceService        service;
-	private static IPointGeneratorService  gservice;
-	private static IDeviceConnectorService connector;
 	private static IRemoteDatasetService   dataService;
 
 
@@ -92,8 +83,11 @@ public class MandelbrotRemotePluginTest {
 
 	private static DataServer server;
 
-	@BeforeClass
-	public static void before() throws Exception {
+
+	private MandelbrotModel model;
+
+	@Before
+	public void before() throws Exception {
 		
 	
         // Start the DataServer
@@ -103,18 +97,11 @@ public class MandelbrotRemotePluginTest {
 		server.start(false);
 		
 		System.out.println("Started DataServer on port "+port);
-
 		
-		connector = new MockScannableConnector();
-		service   = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();
+		this.model = createMandelbrotModel();
+		model.setExposureTime(0.1);
 		
-		MandelbrotModel model = new MandelbrotModel();
-		model.setName("mandelbrot");
-		model.setRealAxisName("xNex");
-		model.setImaginaryAxisName("yNex");
-		
-		detector = (IWritableDetector<MandelbrotModel>)service.createRunnableDevice(model);
+		detector = (IWritableDetector<MandelbrotModel>)dservice.createRunnableDevice(model);
 		assertNotNull(detector);
 		detector.addRunListener(new IRunListener() {
 			@Override
@@ -123,10 +110,12 @@ public class MandelbrotRemotePluginTest {
 			}
 		});
 
+		dataService = new RemoteDatasetServiceImpl();
+		org.eclipse.dawnsci.remotedataset.ServiceHolder.setLoaderService(new LoaderServiceMock());
 	}
 	
-	@AfterClass
-	public static void stop() {
+	@After
+	public void stop() {
 		server.stop();
 	}
 
@@ -159,8 +148,8 @@ public class MandelbrotRemotePluginTest {
 		remote.setDataset("/entry/instrument/"+mod.getDetectors().get(0).getName()+"/data");
 		remote.setWritingExpected(true); // We know that we are writing to this file, so we declare it.
 		
-//		Thread.sleep(1000);
 		remote.connect();
+		Thread.sleep(1000);
 		try {
 			
 			final List<DataEvent> events = new ArrayList<DataEvent>(7);
@@ -179,15 +168,21 @@ public class MandelbrotRemotePluginTest {
 			((AbstractRunnableDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 				@Override
 				public void runPerformed(RunEvent evt) throws ScanningException{
+					try {
+						Thread.sleep(500);// Finish off writing nexus file. The Remomte dataset event laggs slightly while nexus flushes.
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 					latch.countDown();
 				}
 			});
 			latch.await();
 			
-			assertTrue(events.size()>20); // There won't be the full 40 but there should be a lot of them.
+			assertTrue("There should be some events, there were: "+events.size(), events.size()>0); // There won't be the full 40 but there should be a lot of them.
 			
-			int[] fshape = ArrayUtils.addAll(shape, new int[]{241, 301});
-			assertTrue(Arrays.equals(fshape, events.get(events.size()-1).getShape()));
+			int[] fshape = ArrayUtils.addAll(shape, new int[]{model.getRows(), model.getColumns()});
+			int[] eshape = events.get(events.size()-1).getShape();
+			assertTrue(Arrays.equals(fshape, eshape));
 			
 		} finally {
 			remote.disconnect();
@@ -256,7 +251,7 @@ public class MandelbrotRemotePluginTest {
 	
 			// Check axes
 			final IPosition pos = mod.getPositionIterable().iterator().next();
-			final List<String> names = pos.getNames();
+			final Collection<String> names = pos.getNames();
 	
 			// Append _value_demand to each name in list, then add detector axis fields to result
 			List<String> expectedAxesNames = Stream.concat(
@@ -265,9 +260,10 @@ public class MandelbrotRemotePluginTest {
 			assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 			
 			int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
-			for (int i = 0; i < names.size(); i++) {
-				// Demand values should be 1D
-				String positionerName = names.get(i);
+			int i = -1;
+			for (String  positionerName : names) {
+				
+			    i++;
 				NXpositioner positioner = instrument.getPositioner(positionerName);
 				assertNotNull(positioner);
 				dataNode = positioner.getDataNode("value_demand");
@@ -330,13 +326,11 @@ public class MandelbrotRemotePluginTest {
 		smodel.setDetectors(detector);
 		
 		// Create a file to scan into.
-		File output = File.createTempFile("test_mandel_nexus", ".nxs");
-		output.deleteOnExit();
 		smodel.setFilePath(output.getAbsolutePath());
 		System.out.println("File writing to "+smodel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
@@ -359,7 +353,7 @@ public class MandelbrotRemotePluginTest {
 	}
 
 	public static void setFileFactory(INexusFileFactory fileFactory) {
-		MandelbrotRemotePluginTest.fileFactory = fileFactory;
+		MandelbrotRemoteTest.fileFactory = fileFactory;
 	}
 
 	public static int getFreePort(final int startPort) {
@@ -410,7 +404,7 @@ public class MandelbrotRemotePluginTest {
 	}
 
 	public static void setDataService(IRemoteDatasetService dataService) {
-		MandelbrotRemotePluginTest.dataService = dataService;
+		MandelbrotRemoteTest.dataService = dataService;
 	}
 
 }

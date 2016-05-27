@@ -1,8 +1,8 @@
 package org.eclipse.scanning.api.points;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,25 +10,29 @@ import java.util.Map;
  * @author Matthew Gerring
  *
  */
-public class MapPosition extends AbstractPosition {
+public final class MapPosition extends AbstractPosition {
 	
-	private Map<String, Object>  values;
-	private Map<String, Integer> indices;
+	private Map<String, Object>  values;   // Name->Value
+	private Map<String, Integer> indices;  // Name->Index
 	
 	public MapPosition() {
-		values  = new LinkedHashMap<String, Object>(7);
-		indices = new LinkedHashMap<String, Integer>(7);
+		values   = new LinkedHashMap<String, Object>(7);
+		indices  = new LinkedHashMap<String, Integer>(7);
 	}
 
 	public MapPosition(Map<String, Object> map) {
-		values = map;
-		indices = new LinkedHashMap<String, Integer>(7);
+		values   = map;
+		indices  = new LinkedHashMap<String, Integer>(7);
 	}
 	
 	public MapPosition(String name, Integer index, Object value) {
 		this();
 		values.put(name, value);
 		indices.put(name, index);
+	}
+	
+	public int getScanRank() {
+		return dimensionNames.size();
 	}
 
 	/**
@@ -61,8 +65,8 @@ public class MapPosition extends AbstractPosition {
 	}
 
 	@Override
-	public List<String> getNames() {
-		return new ArrayList<String>(values.keySet());
+	public Collection<String> getNames() {
+		return Collections.unmodifiableCollection(values.keySet());
 	}
 
 	@Override
@@ -75,7 +79,7 @@ public class MapPosition extends AbstractPosition {
 	}
 	
 	public void putAll(IPosition pos) {
-		final List<String> names = pos.getNames();
+		final Collection<String> names = pos.getNames();
 		if (names==null) return; // EmptyPosition allowed.
 		for (String name : names) {
 			values.put(name, pos.get(name));
@@ -96,15 +100,16 @@ public class MapPosition extends AbstractPosition {
 	
 	public void putAllIndices(IPosition pos) {
 		if (indices==null) indices = new LinkedHashMap<String, Integer>(7);
-		final List<String> names = pos.getNames();
+		final Collection<String> names = pos.getNames();
 		if (names==null) return;
 		for (String name : names) {
 			indices.put(name, pos.getIndex(name));
 		}
 	}
-	@Override
+
 	public Map<String, Integer> getIndices() {
-		return indices;
+		return Collections.unmodifiableMap(indices);
 	}
+
 
 }

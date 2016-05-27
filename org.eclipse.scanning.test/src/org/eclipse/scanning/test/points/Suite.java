@@ -14,6 +14,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	StepTest.class, 
 	CompoundTest.class, 
 	//CompoundTestLarge.class
+	ScanRankTest.class
 
 })
 public class Suite {

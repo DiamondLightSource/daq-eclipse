@@ -15,9 +15,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,8 +33,6 @@ import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
 import org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
-import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
-import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXentry;
@@ -47,16 +45,12 @@ import org.eclipse.dawnsci.nexus.NXuser;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
-import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
-import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
-import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -68,34 +62,17 @@ import org.eclipse.scanning.api.scan.models.ScanMetadata;
 import org.eclipse.scanning.api.scan.models.ScanMetadata.MetadataType;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ScanMetadataPluginTest {
+public class ScanMetadataTest extends NexusTest {
 	
-	protected IRunnableDeviceService              dservice;
-	protected IDeviceConnectorService     connector;
-	protected IPointGeneratorService      gservice;
-	protected IEventService               eservice;
 	private IWritableDetector<MandelbrotModel> detector;
-	private INexusFileFactory             fileFactory;
 	
 	@Before
 	public void before() throws ScanningException {
-		
-		fileFactory = new NexusFileFactoryHDF5();		
-		
-		connector = new MockScannableConnector();
-		dservice  = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();
-		
-		MandelbrotModel model = new MandelbrotModel();
-		model.setName("mandelbrot");
-		model.setRealAxisName("xNex");
-		model.setImaginaryAxisName("yNex");
+	
+		MandelbrotModel model = createMandelbrotModel();
 		
 		detector = (IWritableDetector<MandelbrotModel>)dservice.createRunnableDevice(model);
 		assertNotNull(detector);
@@ -175,8 +152,6 @@ public class ScanMetadataPluginTest {
 		smodel.setScanMetadata(scanMetadata);
 		
 		// Create a file to scan into.
-		File output = File.createTempFile("test_mandel_nexus", ".nxs");
-		output.deleteOnExit();
 		smodel.setFilePath(output.getAbsolutePath());
 		System.out.println("File writing to "+smodel.getFilePath());
 
@@ -313,7 +288,7 @@ public class ScanMetadataPluginTest {
 
 			// Check axes
 			final IPosition pos = scanModel.getPositionIterable().iterator().next();
-			final List<String> scannableNames = pos.getNames();
+			final Collection<String> scannableNames = pos.getNames();
 
 			// Append _value_demand to each name in list, then add detector axis fields to result
 			List<String> expectedAxesNames = Stream.concat(
@@ -322,9 +297,10 @@ public class ScanMetadataPluginTest {
 			assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 
 			int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
-			for (int i = 0; i < scannableNames.size(); i++) {
-				// Demand values should be 1D
-				String scannableName = scannableNames.get(i);
+			int i = -1;
+			for (String  scannableName : scannableNames) {
+				
+			    i++;
 				NXpositioner positioner = instrument.getPositioner(scannableName);
 				assertNotNull(positioner);
 

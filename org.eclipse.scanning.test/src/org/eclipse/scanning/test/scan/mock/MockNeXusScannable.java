@@ -13,6 +13,8 @@ import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.rank.IScanRankService;
+import org.eclipse.scanning.api.scan.rank.IScanSlice;
 import org.eclipse.scanning.sequencer.nexus.AttributeManager;
 
 /**
@@ -68,7 +70,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	}	
 
 	public void setPosition(Number value, IPosition position) throws Exception {
-		if (value!=null) super.setPosition(value, position);	
+        //if (value!=null) super.setPosition(value, position);	
 		if (position!=null) write(value, getPosition(), position);
 	}
 
@@ -78,7 +80,8 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		if (actual!=null) {
 			// write actual position
 			final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
-			SliceND sliceND = NexusScanInfo.createLocation(lzValue, loc.getNames(), loc.getIndices()); // no varargs for scalar value
+			IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(loc);
+			SliceND sliceND = new SliceND(lzValue.getShape(), lzValue.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 			lzValue.setSlice(null, newActualPositionData, sliceND);
 		}
 

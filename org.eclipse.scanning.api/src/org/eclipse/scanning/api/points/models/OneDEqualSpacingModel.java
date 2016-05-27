@@ -15,6 +15,10 @@ import org.eclipse.scanning.api.annotation.UiHidden;
  */
 public class OneDEqualSpacingModel extends AbstractPointsModel implements IBoundingLineModel {
 
+	
+	private String xName = "x";
+	private String yName = "y";
+
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -78,5 +82,21 @@ public class OneDEqualSpacingModel extends AbstractPointsModel implements IBound
 		if (points != other.points)
 			return false;
 		return true;
+	}
+	public String getxName() {
+		return xName;
+	}
+	public void setxName(String xName) {
+		String oldValue = this.xName;
+		this.xName = xName;
+		this.pcs.firePropertyChange("xName", oldValue, xName);
+	}
+	public String getyName() {
+		return yName;
+	}
+	public void setyName(String yName) {
+		String oldValue = this.yName;
+		this.yName = yName;
+		this.pcs.firePropertyChange("yName", oldValue, yName);
 	}
 }

@@ -87,7 +87,7 @@ public class NexusScanFileBuilder {
 	
 	// we need to cache various things as they are used more than once
 	private Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders = null;
-	private Map<DeviceType, List<INexusDevice<?>>> nexusDevices = null;
+	private Map<DeviceType, Collection<INexusDevice<?>>> nexusDevices = null;
 	private Map<NexusObjectProvider<?>, AxisDataDevice<?>> dataDevices = new HashMap<>();
 	
 	public NexusScanFileBuilder(IDeviceConnectorService deviceConnectorService) {
@@ -106,13 +106,13 @@ public class NexusScanFileBuilder {
 	 * @throws NexusException
 	 * @throws ScanningException
 	 */
-	public NexusScanFile createNexusFile(ScanModel model) throws NexusException, ScanningException {
+	public NexusScanFile createNexusFile(ScanModel model, Collection<String> scannableNames, int scanRank) throws NexusException, ScanningException {
 		if (fileBuilder != null) {
 			throw new IllegalStateException("The nexus file has already been created");
 		}
 		
 		this.model = model;
-		this.scanInfo = createScanInfo(model);
+		this.scanInfo = createScanInfo(model, scannableNames, scanRank);
 		
 		nexusDevices = extractNexusDevices(model);
 		
@@ -133,11 +133,10 @@ public class NexusScanFileBuilder {
 		return fileBuilder.createFile();
 	}
 	
-	private NexusScanInfo createScanInfo(ScanModel scanModel) {
-		final List<String> scannableNames = 
-				scanModel.getPositionIterable().iterator().next().getNames();
-		
+	private NexusScanInfo createScanInfo(ScanModel scanModel, Collection<String> scannableNames, int scanRank) {
+				
 		NexusScanInfo scanInfo = new NexusScanInfo(scannableNames);
+		scanInfo.setRank(scanRank);
 		scanInfo.setMonitorNames(getDeviceNames(scanModel.getMonitors()));
 		scanInfo.setMetadataScannableNames(getDeviceNames(scanModel.getMetadataScannables()));
 		
@@ -148,11 +147,11 @@ public class NexusScanFileBuilder {
 		return devices.stream().map(d -> d.getName()).collect(Collectors.toSet());
 	}
 	
-	private Map<DeviceType, List<INexusDevice<?>>> extractNexusDevices(ScanModel model) throws ScanningException {
+	private Map<DeviceType, Collection<INexusDevice<?>>> extractNexusDevices(ScanModel model) throws ScanningException {
 		final IPosition firstPosition = model.getPositionIterable().iterator().next();
-		final List<String> scannableNames = firstPosition.getNames();
+		final Collection<String> scannableNames = firstPosition.getNames();
 		
-		Map<DeviceType, List<INexusDevice<?>>> nexusDevices = new EnumMap<>(DeviceType.class);
+		Map<DeviceType, Collection<INexusDevice<?>>> nexusDevices = new EnumMap<>(DeviceType.class);
 		nexusDevices.put(DeviceType.DETECTOR, getNexusDevices(model.getDetectors()));
 		nexusDevices.put(DeviceType.SCANNABLE, getNexusScannables(scannableNames));
 		nexusDevices.put(DeviceType.MONITOR, getNexusDevices(model.getMonitors()));
@@ -248,7 +247,7 @@ public class NexusScanFileBuilder {
 				d -> (INexusDevice<?>) d).collect(Collectors.toList());
 	}
 	
-	private List<INexusDevice<?>> getNexusScannables(List<String> scannableNames) throws ScanningException {
+	private Collection<INexusDevice<?>> getNexusScannables(Collection<String> scannableNames) throws ScanningException {
 		try {
 			return scannableNames.stream().map(name -> getNexusScannable(name)).
 					filter(s -> s != null).
@@ -284,6 +283,7 @@ public class NexusScanFileBuilder {
 	 * @throws NexusException
 	 */
 	private void createNexusDataGroups(final NexusEntryBuilder entryBuilder) throws NexusException {
+		
 		Set<DeviceType> deviceTypes = EnumSet.of(DeviceType.DETECTOR, DeviceType.SCANNABLE, DeviceType.MONITOR);
 		if (deviceTypes.stream().allMatch(t -> nexusObjectProviders.get(t).isEmpty())) {
 			throw new NexusException("The scan must include at least one device in order to write a NeXus file.");
@@ -382,7 +382,15 @@ public class NexusScanFileBuilder {
 		int scannableIndex = 0;
 		Iterator<NexusObjectProvider<?>> scannablesIter = scannables.iterator();
 		while (scannablesIter.hasNext()) {
-			dataBuilder.addAxisDevice(getAxisDataDevice(scannablesIter.next(), scannableIndex++));
+			try {
+			    dataBuilder.addAxisDevice(getAxisDataDevice(scannablesIter.next(), scannableIndex++));
+			} catch (Exception ne) {
+				// TODO FIXME It is possible for a single scan dimension to have multiple axes.
+				// Currently this class seems to deal with that possibility incorrectly.
+				// @see org.eclipse.scanning.test.scan.LinearScanTest
+				// 
+				ne.printStackTrace();
+			}
 		}
 	}
 	
