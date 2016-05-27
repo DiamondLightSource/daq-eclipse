@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
@@ -65,7 +66,7 @@ public abstract class AbstractPosition implements IPosition {
 
 		final Collection<String> ours   = getNames();
 		final Collection<String> theirs = ((IPosition)obj).getNames();
-		if (!ours.equals(theirs)) return false;		
+		if (!equals(ours, theirs)) return false;		
 		for (String name : ours) {
 			Object val1 = get(name);
 			Object val2 = ((IPosition)obj).get(name);
@@ -76,6 +77,28 @@ public abstract class AbstractPosition implements IPosition {
 		
 		return true;
 	}
+
+	/**
+	 * This equals does an equals on two collections
+	 * as if they were two lists because order matters with the names.
+	 * @param o
+	 * @param t
+	 * @return
+	 */
+    private boolean equals(Collection<?> o, Collection<?> t) {
+        if (o == t)
+            return true;
+ 
+        Iterator<?> e1 = o.iterator();
+        Iterator<?> e2 = t.iterator();
+        while (e1.hasNext() && e2.hasNext()) {
+            Object o1 = e1.next();
+            Object o2 = e2.next();
+            if (!(o1==null ? o2==null : o1.equals(o2)))
+                return false;
+        }
+        return !(e1.hasNext() || e2.hasNext());
+    }
 
 	@Override
 	public boolean equals(Object obj) {
