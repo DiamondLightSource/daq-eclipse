@@ -57,8 +57,6 @@ public abstract class AbstractPosition implements IPosition {
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
 		
 		if (checkStep) {
 			if (stepIndex != ((IPosition)obj).getStepIndex())
