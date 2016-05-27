@@ -30,10 +30,6 @@ public final class MapPosition extends AbstractPosition {
 		values.put(name, value);
 		indices.put(name, index);
 	}
-	
-	public int getScanRank() {
-		return dimensionNames.size();
-	}
 
 	/**
 	 * Define the values as a comma separate list of values of the form:

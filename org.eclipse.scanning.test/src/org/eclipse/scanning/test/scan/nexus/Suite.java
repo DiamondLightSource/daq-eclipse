@@ -15,6 +15,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	MonitorTest.class,
 	ScanMetadataTest.class,
 	ScanProcessingTest.class,
+	ScanPointsWriterTest.class,
 	LinearScanTest.class
 
 })

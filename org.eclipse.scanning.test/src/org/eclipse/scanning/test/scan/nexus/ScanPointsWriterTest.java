@@ -1,10 +1,10 @@
-package org.eclipse.scanning.test.nexus;
+package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset.getDType;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_POINTS;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_UNIQUE_KEYS;
-import static org.eclipse.scanning.test.nexus.ScanPointsWriterTest.ExternalFileWritingDetector.EXTERNAL_FILE_NAME;
+import static org.eclipse.scanning.test.scan.nexus.ScanPointsWriterTest.ExternalFileWritingDetector.EXTERNAL_FILE_NAME;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -14,6 +14,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
@@ -247,10 +248,13 @@ public class ScanPointsWriterTest {
 		int stepIndex = 23;
 		MapPosition position = new MapPosition();
 		position.setStepIndex(stepIndex);
+		List<Collection<String>> names = new ArrayList<>( positionerNames.length);
 		for (int i = 0; i < positionerNames.length; i++) {
 			position.put(positionerNames[i], pos[i]);
 			position.putIndex(positionerNames[i], indices[i]);
+			names.add(Arrays.asList(positionerNames[i]));
 		}
+		position.setDimensionNames(names);
 		
 		// act
 		scanPointsWriter.positionPerformed(new PositionEvent(position));
