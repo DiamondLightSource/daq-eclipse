@@ -70,11 +70,12 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
+@Ignore("You must have jetty in the runner path to run this and travis does not")
 public class MandelbrotRemoteTest extends NexusTest {
-
 	
 	private static IRemoteDatasetService   dataService;
 
