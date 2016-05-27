@@ -32,6 +32,8 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 		terminated = true;
 	}
 	
+	//TODO Add setMessage broadcast calls.
+	
 	/**
 	 * Convenience method to call broadcast with only {@link Status} argument.
 	 * 
@@ -39,8 +41,8 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	 * @param newStatus Status the bean has just reached.
 	 * @throws EventException In case broadcasting fails.
 	 */
-	public void broadcast(T bean, Status newStatus) throws EventException {
-		broadcast(bean, newStatus, null);
+	public void broadcast(Status newStatus) throws EventException {
+		broadcast(newStatus, null);
 	}
 	
 	/**
@@ -51,8 +53,8 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	 * @param newPercent The value percent complete should be set to.
 	 * @throws EventException In case broadcasting fails.
 	 */
-	public void broadcast(T bean, double newPercent) throws EventException {
-		broadcast(bean, null, newPercent);
+	public void broadcast(double newPercent) throws EventException {
+		broadcast(null, newPercent);
 	}
 
 	/**
@@ -64,8 +66,9 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	 * @param newPercent The value percent complete should be set to.
 	 * @throws EventException In case broadcasting fails.
 	 */
-	public void broadcast(T bean, Status newStatus, Double newPercent) throws EventException {
-		if (publisher != null) {
+	public void broadcast(Status newStatus, Double newPercent) throws EventException {
+		if (publisher != null && processor != null) {
+			
 			if (newStatus != null) {
 				bean.setPreviousStatus(bean.getStatus());
 				bean.setStatus(newStatus);
