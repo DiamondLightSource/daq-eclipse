@@ -20,7 +20,7 @@ public class MockPublisher<T> implements IPublisher<T> {
 	private String queueName;
 	private IConsumer<?> consumer;
 	
-	private List<DummyQueueable> broadcastBeans = new ArrayList<>();
+	private List<DummyHasQueue> broadcastBeans = new ArrayList<>();
 	
 	private boolean alive;
 	
@@ -56,7 +56,7 @@ public class MockPublisher<T> implements IPublisher<T> {
 	
 	@Override
 	public void broadcast(T bean) throws EventException {
-		final DummyQueueable broadBean = new DummyQueueable();
+		final DummyHasQueue broadBean = new DummyHasQueue();
 		broadBean.setMessage(((StatusBean)bean).getMessage());
 		broadBean.setPreviousStatus(((StatusBean)bean).getPreviousStatus());
 		broadBean.setStatus(((StatusBean)bean).getStatus());
@@ -71,7 +71,7 @@ public class MockPublisher<T> implements IPublisher<T> {
 		broadcastBeans.add(broadBean);
 	}
 	
-	public List<DummyQueueable> getBroadcastBeans() {
+	public List<DummyHasQueue> getBroadcastBeans() {
 		return broadcastBeans;
 	}
 

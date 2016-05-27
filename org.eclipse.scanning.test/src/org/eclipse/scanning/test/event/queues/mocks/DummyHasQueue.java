@@ -10,15 +10,15 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  * @author Michael Wharmby
  *
  */
-public class DummyQueueable extends Queueable {
+public class DummyHasQueue extends Queueable {
 	
 	private String queueMessage;
 	
-	public DummyQueueable() {
+	public DummyHasQueue() {
 		super();
 	}
 	
-	public DummyQueueable(String name, long time) {
+	public DummyHasQueue(String name, long time) {
 		super();
 		setName(name);
 		runTime = time;

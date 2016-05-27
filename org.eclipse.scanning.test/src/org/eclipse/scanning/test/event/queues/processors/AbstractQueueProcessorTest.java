@@ -15,7 +15,7 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.test.BrokerTest;
-import org.eclipse.scanning.test.event.queues.mocks.DummyQueueable;
+import org.eclipse.scanning.test.event.queues.mocks.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
 
@@ -67,9 +67,9 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable>  extends B
 			throw thrownException;
 		}
 		
-		DummyQueueable firstBean, lastButTwoBean, lastBean;
+		DummyHasQueue firstBean, lastButTwoBean, lastBean;
 		
-		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+		List<DummyHasQueue> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
 		firstBean =  broadcastBeans.get(0);
 		lastButTwoBean = broadcastBeans.get(broadcastBeans.size()-3);
 		lastBean = broadcastBeans.get(broadcastBeans.size()-1);
@@ -100,8 +100,8 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable>  extends B
 		
 		if(repStat.length != repPerc.length) throw new Exception("Different numbers of statuses & percentages given!");
 		
-		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
-		DummyQueueable bean;
+		List<DummyHasQueue> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+		DummyHasQueue bean;
 		for(int i = 0; i < repStat.length; i++) {
 			bean = broadcastBeans.get(i);
 			assertEquals("Unexpected status for bean "+(i+1), repStat[i], bean.getStatus());
@@ -111,7 +111,7 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable>  extends B
 
 	protected void pauseForMockFinalStatus(long timeOut) throws Exception {
 		boolean notFinal = true;
-		DummyQueueable lastBean = getLastBean(timeOut);
+		DummyHasQueue lastBean = getLastBean(timeOut);
 		long startTime = System.currentTimeMillis();
 		
 		while (notFinal) {
@@ -124,7 +124,7 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable>  extends B
 	}
 	
 	protected void pauseForMockStatus(Status expected, long timeOut) throws Exception {
-		DummyQueueable lastBean = getLastBean(timeOut);
+		DummyHasQueue lastBean = getLastBean(timeOut);
 		long startTime = System.currentTimeMillis();
 		
 		while (lastBean.getStatus() != expected) {
@@ -135,8 +135,8 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable>  extends B
 		}
 	}
 	
-	private DummyQueueable getLastBean(long timeOut) throws Exception {
-		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+	private DummyHasQueue getLastBean(long timeOut) throws Exception {
+		List<DummyHasQueue> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
 		long startTime = System.currentTimeMillis();
 		while (broadcastBeans.size() == 0) {
 			Thread.sleep(100);

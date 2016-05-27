@@ -32,7 +32,7 @@ import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.test.event.queues.mocks.DummyQueueable;
+import org.eclipse.scanning.test.event.queues.mocks.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.util.TestAtomMaker;
 import org.junit.After;
@@ -168,8 +168,8 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		
 		//Check the message was correctly set too
 		//(if this is after the terminate, we're also checking that no further processing is happening)
-		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
-		DummyQueueable lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+		List<DummyHasQueue> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+		DummyHasQueue lastBean = broadcastBeans.get(broadcastBeans.size()-1);
 		assertEquals("queueMessage differs to expected", "Terminate called from 'Test Interrupted Execution' with message: 'Emergency stop'"
 				, lastBean.getQueueMessage());
 	}
@@ -227,8 +227,8 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		pauseForStatus(Status.TERMINATED);
 		
 		//Check the message was correctly set too
-		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
-		DummyQueueable lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+		List<DummyHasQueue> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+		DummyHasQueue lastBean = broadcastBeans.get(broadcastBeans.size()-1);
 		assertEquals("queueMessage differs to expected", "Error in execution of 'Failed scan'. Message: 'Error!'"
 				, lastBean.getQueueMessage());
 	}

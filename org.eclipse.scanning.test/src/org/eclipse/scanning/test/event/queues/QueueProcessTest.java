@@ -13,7 +13,7 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
-import org.eclipse.scanning.test.event.queues.mocks.DummyQueueable;
+import org.eclipse.scanning.test.event.queues.mocks.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueProcessor;
 import org.junit.Before;
@@ -98,13 +98,13 @@ public class QueueProcessTest {
 		//Test setting both status & percent complete
 		qProc.broadcast(dummy, Status.COMPLETE, 100d);
 		
-		List<DummyQueueable> broadcasted = ((MockPublisher<DummyBean>) pub).getBroadcastBeans();
+		List<DummyHasQueue> broadcasted = ((MockPublisher<DummyBean>) pub).getBroadcastBeans();
 		String[] messages = new String[]{"Hello world", "Hello world", "Hello world", "Hello world"};
 		Status[] statuses = new Status[]{Status.NONE, Status.QUEUED, Status.QUEUED, Status.COMPLETE};
 		double[] percents = new double[]{0d, 0d, 50d, 100d};
 		
 		for (int i = 0; i < broadcasted.size(); i++) {
-			DummyQueueable bean = broadcasted.get(i);
+			DummyHasQueue bean = broadcasted.get(i);
 			assertEquals("Bean nr. "+i+" has wrong message", messages[i], bean.getMessage());
 			assertEquals("Bean nr. "+i+" has wrong status", statuses[i], bean.getStatus());
 			assertEquals("Bean nr. "+i+" has wrong percent complete", percents[i], bean.getPercentComplete(), 0);
