@@ -5,7 +5,7 @@ import java.util.Map;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModelWithMap;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -26,7 +26,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	}
 
 	@Override
-	public MalcolmDetectorModelWithMap validate(MalcolmDetectorModelWithMap params) throws MalcolmDeviceException {
+	public MapMalcolmDetectorModel validate(MapMalcolmDetectorModel params) throws MalcolmDeviceException {
 		throw new MalcolmDeviceException(this, "Validate is not implemented!");
 	}
 

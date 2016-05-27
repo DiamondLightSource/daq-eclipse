@@ -1,9 +1,7 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.List;
@@ -89,7 +87,7 @@ public abstract class AbstractQueueProcessorTest<T extends Queueable>  extends B
 		if (expected.equals(Status.COMPLETE)) {
 			assertEquals("Atom not 100% complete after execution", 100, lastBean.getPercentComplete(), 0);}
 		else {
-			assertThat("The percent complete is 100!", lastBean.getPercentComplete(), is(not(100)));
+			assertTrue("The percent complete is 100!", lastBean.getPercentComplete()!=100);
 		}
 	}
 	

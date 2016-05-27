@@ -24,14 +24,14 @@ import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModelWithMap;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 
 import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
-class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWithMap> {
+class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel> {
 	
 	private INexusFileFactory   factory;
 
@@ -118,7 +118,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWith
 	}
 
 	@Override
-	public MalcolmDetectorModelWithMap validate(MalcolmDetectorModelWithMap model) throws MalcolmDeviceException {
+	public MapMalcolmDetectorModel validate(MapMalcolmDetectorModel model) throws MalcolmDeviceException {
 		Map<String, Object> params = model.getParameterMap();
 		if (!params.containsKey("shape")) throw new MalcolmDeviceException(this, "shape must be set!");
 		if (!params.containsKey("nframes")) throw new MalcolmDeviceException(this, "nframes must be set!");
@@ -128,7 +128,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWith
 	}
 
 	@Override
-	public void configure(MalcolmDetectorModelWithMap model) throws ScanningException {
+	public void configure(MapMalcolmDetectorModel model) throws ScanningException {
 		validate(model);
 		setDeviceState(DeviceState.CONFIGURING);
 		this.model = model;

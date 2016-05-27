@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +100,7 @@ public abstract class AbstractMalcolmTest {
 		final Thread runner = new Thread(new Runnable() {
 			public void run() {
 				try {
-					device.configure(config);
+					device.configure(new MapMalcolmDetectorModel(config));
 				} catch (Exception e) {
 					e.printStackTrace();
 					exceptions.add(e);
