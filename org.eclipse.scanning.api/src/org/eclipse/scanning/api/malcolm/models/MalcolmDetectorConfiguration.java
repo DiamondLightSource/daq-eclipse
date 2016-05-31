@@ -52,11 +52,11 @@ public class MalcolmDetectorConfiguration<T> {
 		return true;
 	}
 
-	public T getPayload() {
+	public T getModel() {
 		return model;
 	}
 
-	public void setPayload(T payload) {
+	public void setModel(T payload) {
 		this.model = payload;
 	}
 
