@@ -23,14 +23,13 @@ import org.eclipse.scanning.api.event.status.Status;
  */
 public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T> implements IQueueProcess<T> {
 	
-	private final IQueueProcessor<? extends Queueable> processor;
-	private boolean blocking = true;
+	private IQueueProcessor<? extends Queueable> processor;
+	private boolean blocking = true, executed = false;
 	
-	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking, 
-			IQueueProcessor<? extends Queueable> qProcessor) throws EventException {
+	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking) 
+			throws EventException {
 		super(bean, publisher);
 		this.blocking = blocking; //TODO
-		this.processor = qProcessor;
 	}
 
 	/*
@@ -72,6 +71,22 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	@Override
 	public IQueueProcessor<? extends Queueable> getProcessor() {
 		return processor;
+	}
+
+	@Override
+	public void setProcessor(IQueueProcessor<? extends Queueable> processor) throws EventException {
+		if (isExecuted()) throw new EventException("Cannot chance processor after execution started");
+		this.processor = processor;
+	}
+	
+	@Override
+	public boolean isExecuted() {
+		return executed;
+	}
+	
+	@Override
+	public void setExecuted() {
+		executed = true;
 	}
 
 	public boolean isBlocking() {
