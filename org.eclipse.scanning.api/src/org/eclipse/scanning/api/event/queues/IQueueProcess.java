@@ -59,6 +59,14 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	public IQueueProcessor<? extends Queueable> getProcessor();
 	
 	/**
+	 * Change the configured {@link IQueueProcessor} used to process beans. This cannot be changed after execute has been called.
+	 * 
+	 * @param processor New queue processor.
+	 * @throws EventException if called after execute.
+	 */
+	public void setProcessor(IQueueProcessor<? extends Queueable> processor) throws EventException;
+	
+	/**
 	 * Convenience method to call broadcast with only {@link Status} argument.
 	 * 
 	 * @param newStatus {@link Status} the bean has just reached.
