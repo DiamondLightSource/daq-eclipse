@@ -3,8 +3,9 @@ package org.eclipse.scanning.test.event.queues.mocks;
 import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
-import org.eclipse.scanning.api.event.queues.IQueueProgressBroadcaster;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 
 public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
@@ -87,13 +88,7 @@ public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
 	}
 
 	@Override
-	public void recoverBeanData(DummyBean bean) throws EventException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setProgressBroadcaster(IQueueProgressBroadcaster broadcaster) {
+	public void setQueueProcess(IQueueProcess<? extends Queueable> process) {
 		// TODO Auto-generated method stub
 		
 	}
