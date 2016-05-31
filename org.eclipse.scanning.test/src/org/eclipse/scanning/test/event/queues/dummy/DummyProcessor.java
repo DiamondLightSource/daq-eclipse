@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
@@ -8,18 +9,16 @@ import org.eclipse.scanning.event.queues.QueueProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class DummyProcessor <Q extends Queueable> implements IQueueProcessor<Q, DummyBean> {
+public abstract class DummyProcessor <T extends Queueable, P extends Queueable> implements IQueueProcessor<T, P> {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyProcessor.class);
 	
-	private final QueueProcess<Q> queueProcess;
-	private final DummyBean bean;
+	private final QueueProcess<T> queueProcess;
 	
 	private boolean blocking, terminated;
 
-	public  DummyProcessor(QueueProcess<Q> queueProc) {
+	protected DummyProcessor(QueueProcess<T> queueProc) {
 		queueProcess = queueProc;
-		bean = (DummyBean)queueProc.getBean();
 	}
 	
 	@Override
@@ -44,6 +43,16 @@ public abstract class DummyProcessor <Q extends Queueable> implements IQueueProc
 	}
 	
 	@Override
+	public void pause() throws EventException {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void resume() throws EventException {
+		// TODO Auto-generated method stub
+	}
+	
+	@Override
 	public void terminate() throws EventException {
 		terminated = true;
 	}
@@ -65,13 +74,15 @@ public abstract class DummyProcessor <Q extends Queueable> implements IQueueProc
 			} catch (InterruptedException e) {
 				logger.error("Dummy process sleeping failed", e);
 			}
-			System.out.println("DummyProcessor ("+bean.getClass().getSimpleName()+" - "+bean.getName()+"): "+bean.getPercentComplete());
+			System.out.println("DummyProcessor ("+bean().getClass().getSimpleName()+" - "+bean().getName()+"): "+bean().getPercentComplete());
 			queueProcess.broadcast(new Double(i));
 		}
-
-
-		bean.setMessage("Dummy process complete (no software run)");
-		queueProcess.broadcast(Status.COMPLETE, 100d);
+		queueProcess.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
+	}
+	
+	@Override
+	public IQueueProcess<T> getProcess() {
+		return queueProcess;
 	}
 	
 	public boolean isBlocking() {
