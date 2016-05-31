@@ -45,7 +45,7 @@ public class MockQueueProcessor <T extends Queueable> implements IQueueProcessor
 		terminated = true;
 	}
 
-	public long getDelay() {
+	public long getCounter() {
 		return counter;
 	}
 

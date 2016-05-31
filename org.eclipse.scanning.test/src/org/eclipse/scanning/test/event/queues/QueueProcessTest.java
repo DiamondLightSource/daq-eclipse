@@ -50,6 +50,12 @@ public class QueueProcessTest {
 	}
 	
 	
+	/**
+	 * Sets a countdown (which goes in steps of 10ms whilst pausing for 10ms - 
+	 * @see org.eclipse.scanning.test.event.queues.mocks.MockQueueProcessor )
+	 * Run is complete when counter reaches 0ms.
+	 * @throws Exception
+	 */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testExecute() throws Exception {
@@ -63,6 +69,12 @@ public class QueueProcessTest {
 		assertTrue("Mock processor ran for a long time!", processor.getRunTime() < 500l);
 	}
 	
+	/**
+	 * Sets a countdown (which goes in steps of 10ms whilst pausing for 10ms - 
+	 * @see org.eclipse.scanning.test.event.queues.mocks.MockQueueProcessor )
+	 * Terminate interrupts before counter = 0ms.
+	 * @throws Exception
+	 */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTerminate() throws Exception {
@@ -80,6 +92,13 @@ public class QueueProcessTest {
 		assertFalse("Mock processor shouldn't be complete", processor.isComplete());
 	}
 	
+	/**
+	 * Sets a countdown (which goes in steps of 10ms whilst pausing for 10ms - 
+	 * @see org.eclipse.scanning.test.event.queues.mocks.MockQueueProcessor )
+	 * Run is complete when counter reaches 0ms. Pause causes process to take 
+	 * longer, which is observed in the runTime reported by the processor.
+	 * @throws Exception
+	 */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testPause() throws Exception {
@@ -102,8 +121,8 @@ public class QueueProcessTest {
 		dummy = new DummyBean("Vladimir", 750);
 		
 		//Test general broadcast
-		dummy.setMessage("Hello world");
-		qProc.broadcast(dummy);
+		String message = "Hello world";
+		qProc.broadcast(null, null, message);
 		
 		//Test setting of status, percent complete & both
 		qProc.broadcast(Status.QUEUED);
@@ -136,7 +155,7 @@ public class QueueProcessTest {
 							qProc.execute();
 						} catch (Exception e) {
 							System.out.println("***********************");
-							System.out.println("Error thrown during queue processor exection");
+							System.out.println("Error thrown during queue processor execution");
 							System.out.println("***********************");
 							e.printStackTrace();
 						}
