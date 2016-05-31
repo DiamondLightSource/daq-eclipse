@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.beans;
+package org.eclipse.scanning.test.event.queues.dummy;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -6,9 +6,6 @@ import static org.junit.Assert.fail;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
-import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
-import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,7 +15,7 @@ import org.junit.Test;
  * @author Michael Wharmby
  *
  */
-public class DummyAtomTest {
+public class DummyQueueItemTest {
 	
 	private DummyAtom beanA, beanB;
 	private DummyBean beanC, beanD;
