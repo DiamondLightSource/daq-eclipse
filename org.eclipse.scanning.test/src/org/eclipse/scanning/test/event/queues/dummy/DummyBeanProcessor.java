@@ -1,17 +1,23 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.event.queues.QueueProcess;
+import org.eclipse.scanning.api.event.EventException;
 
-public class DummyBeanProcessor <T extends Queueable> extends DummyProcessor<T, DummyBean> {
+public class DummyBeanProcessor extends DummyProcessor<DummyBean> {
 
-	protected DummyBeanProcessor(QueueProcess<T> queueProc) {
-		super(queueProc);
+	public DummyBeanProcessor() {
+		super();
 	}
 
 	@Override
 	public Class<DummyBean> getBeanClass() {
 		return DummyBean.class;
+	}
+
+	@Override
+	public void recoverBeanData(DummyBean bean) throws EventException {
+		beanName = bean.getName();
+		beanPercentComplete = bean.getPercentComplete();
+		execLatch = bean.getLatch();
 	}
 
 }
