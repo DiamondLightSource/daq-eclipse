@@ -12,11 +12,38 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  * 
  * @author Michael Wharmby
  *
- * @param <T>
- * @param <P>
+ * @param <P> The concrete bean type operated on by this processor.
  */
-public interface IQueueProcessor<T extends Queueable, P extends Queueable> {
-	
+public interface IQueueProcessor<P extends Queueable> {
+
+	/**
+	 * Configure this processor with data from the bean held by the 
+	 * {@link IQueueProcess}. This method casts a bean of class 
+	 * {@link Queueable} to type <P>, but only after performing a check that 
+	 * the bean is of the correct concrete type for this processor. Thus type 
+	 * safety is not checked by the compiler, but within the code and 
+	 * warnings can be suppressed safely.
+	 *  
+	 *  @throws EventException if the bean type found is not supported by this 
+	 *         processor.
+	 */
+	@SuppressWarnings("unchecked")
+	public default void configure(Queueable bean) throws EventException {
+		if (bean.getClass() == getBeanClass()) {
+			recoverBeanData((P)bean);
+		} else {
+			throw new EventException("Bean class "+getBeanClass()+" not supported. Expecting "+getBeanClass()); 
+		}
+	}
+
+	/**
+	 * Recover the actual data from the bean supplied to the configure method.
+	 * 
+	 * @param bean Containing data to be operated on by queue processor.
+	 * @throws EventException in case reading the data fails.
+	 */
+	public void recoverBeanData(P bean) throws EventException;
+
 	/**
 	 * Process the data from the bean provided by he {@link IQueueProcess}. 
 	 * The bean should initially have a {@link Status} of RUNNING. On 
@@ -30,7 +57,7 @@ public interface IQueueProcessor<T extends Queueable, P extends Queueable> {
 	 *         interrrupted during their wait.
 	 */
 	public void execute() throws EventException, InterruptedException;
-	
+
 	/**
 	 * Called when the the consumer has requested {@link IQueueProcess} to 
 	 * wait. Set bean {@link Status} to PAUSED.
@@ -38,7 +65,7 @@ public interface IQueueProcessor<T extends Queueable, P extends Queueable> {
 	 * @throws EventException if the pausing logic fails to execute.
 	 */
 	public void pause() throws EventException;
-	
+
 	/**
 	 * Called when the consumer has requested the {@link IQueueProcess} to 
 	 * restart processing of the bean. Set bean {@link Status} to RESUMED, 
@@ -47,7 +74,7 @@ public interface IQueueProcessor<T extends Queueable, P extends Queueable> {
 	 * @throws EventException if the un-pausing logic fails to execute.
 	 */
 	public void resume() throws EventException;
-	
+
 	/**
 	 * Called when the consumer requires the {@link IQueueProcess} to abort 
 	 * processing the current bean.
@@ -55,41 +82,21 @@ public interface IQueueProcessor<T extends Queueable, P extends Queueable> {
 	 * @throws EventException if it was not possible to abort cleanly.
 	 */
 	public void terminate() throws EventException;
-	
-	/**
-	 * Convenience method to return the {@link IQueueProcess} bean cast to the
-	 * expected type for this IQueueProcessor (<P>). The method tests the 
-	 * correctness of the bean type for casting before performing the cast. 
-	 * Warnings for cast checking have thus (safely) been suppressed.
-	 * 
-	 * @return P bean cast to the type for this IQueueProcessor.
-	 * @throws EventException if the bean type found is not supported by this 
-	 *         processor.
-	 */
-	@SuppressWarnings("unchecked")
-	public default P bean() throws EventException{
-		T bean = getProcess().getBean();
-		
-		if (bean.getClass() == getBeanClass()) {
-			return (P) bean;
-		} else {
-			throw new EventException("Bean class "+getBeanClass()+" not supported. Expecting "+getBeanClass()); 
-		}
-	}
-	
-	/**
-	 * Return the {@link IQueueProcess} with which this IQueueProcessor 
-	 * instance is associated.
-	 * 
-	 * @return IQueueProcess controlling this instance.
-	 */
-	public IQueueProcess<T> getProcess();
-	
+
 	/**
 	 * Return the class of the bean which this IQueueProcessor can process.
 	 * 
 	 * @return Class of bean which can be processed.
 	 */
 	public Class<P> getBeanClass();
+
+	/**
+	 * Configures the broadcaster which this processor will use to inform of 
+	 * state changes of the process.
+	 * 
+	 * @param broadcaster IQueueProgressBroadcaster to use for broadcasting 
+	 *                    updates.
+	 */
+	public void setProgressBroadcaster(IQueueProgressBroadcaster broadcaster);
 
 }
