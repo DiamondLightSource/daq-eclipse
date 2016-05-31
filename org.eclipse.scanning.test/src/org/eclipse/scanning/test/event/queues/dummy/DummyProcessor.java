@@ -16,16 +16,11 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 	
 	private IQueueProcess<? extends Queueable> process;
 	private boolean terminated;
-	
-	private final P dummy;
 
-	//Bean data to be specified for processing
-	protected final CountDownLatch execLatch;
-	
-	protected DummyProcessor(P dummy, CountDownLatch latch) {
-		this.dummy = dummy;
-		execLatch = latch;
-	}
+	//Bean data for processing
+	protected String beanName;
+	protected Double beanPercentComplete;
+	protected CountDownLatch execLatch;
 	
 	@Override
 	public void execute() throws EventException {
@@ -75,7 +70,7 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 			} catch (InterruptedException e) {
 				logger.error("Dummy process sleeping failed", e);
 			}
-			System.out.println("DummyProcessor ("+getBeanClass().getSimpleName()+" - "+dummy.getName()+"): "+dummy.getPercentComplete());
+			System.out.println("DummyProcessor ("+getBeanClass().getSimpleName()+" - "+beanName+"): "+getBeanPercent());
 			process.broadcast(new Double(i));
 		}
 		process.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");

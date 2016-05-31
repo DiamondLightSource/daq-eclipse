@@ -33,7 +33,7 @@ public class DummyProcessingTest {
 	@Test
 	public void testDummyAtomRunning() throws Exception {
 		dAt.setLatch(execLatch);
-		DummyAtomProcessor dAtProc= new DummyAtomProcessor();
+		DummyAtomProcessor dAtProc= new DummyAtomProcessor(dAt);
 		qProc = new QueueProcess<Queueable>(dAt, pub, true, dAtProc);
 		
 		assertEquals("Wrong initial status", Status.NONE, dAt.getStatus());
