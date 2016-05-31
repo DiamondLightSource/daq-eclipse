@@ -60,7 +60,7 @@ public interface IQueueProcessor<P extends Queueable> {
 	 * 
 	 * @return Class of bean which can be processed.
 	 */
-	public Class<P> getBeanClass();
+	public Class<P> getBeanClass(); //TODO
 
 	/**
 	 * Configures the queue process which this processor will use to inform of 
@@ -70,5 +70,15 @@ public interface IQueueProcessor<P extends Queueable> {
 	 *                    updates.
 	 */
 	public void setQueueProcess(IQueueProcess<? extends Queueable> process);
+	
+	/**
+	 * TODO
+	 */
+	public IQueueProcess<? extends Queueable> getQueueProcess();
+	
+	/**
+	 * TODO
+	 */
+	public P getBean();
 
 }
