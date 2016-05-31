@@ -3,70 +3,59 @@ package org.eclipse.scanning.event.queues;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 
-public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T> {
+/**
+ * Generic class for processing a queue item, irrespective of its concrete 
+ * type. The concrete type should be identified by the 
+ * {@link QueueProcessCreator} and  this class then instantiated with the 
+ * {@link IQueueProcessor} associated with that type. This class uses 
+ * {@link AbstractPausableProcess} to provide generic pause, resume & terminate
+ * functions, with bean specific methods called on the processors.
+ * 
+ * @author Michael Wharmby
+ *
+ * @param <T> Type acted on by queue consumer (this will probably be a 
+ * super-type of the actual bean class). 
+ */
+public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T> implements IQueueProcess<T> {
 	
-	private final IQueueProcessor<? extends Queueable> processor;
-	private boolean terminated = false, blocking = true;
+	private final IQueueProcessor<T, ? extends Queueable> processor;
+	private boolean blocking = true;
 	
-//	//Number of ms processor waits in while loop before checking state of task.
-//	protected final long loopSleepTime = 100;
-	
-	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking, IQueueProcessor<? extends Queueable> processor) {
+	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking, 
+			IQueueProcessor<T, ? extends Queueable> processor) {
 		super(bean, publisher);
-		this.blocking = blocking;
+		this.blocking = blocking; //TODO
 		this.processor = processor;
 	}
 
+	/*
+	 * The following methods (doPause, doResume and doTerminate) are called by 
+	 * the pause, resume and terminate methods of AbstractPausableProcess 
+	 * (which override the default methods of IQueueProcess API). 
+	 * e.g. @see org.eclipse.scanning.api.event.core.AbstractPausableProcess#doTerminate()
+	 */
 	@Override
-	public void execute() throws EventException, InterruptedException {
-		processor.execute();
+	public void doPause() throws EventException {
+		processor.pause();
 	}
-
+	
 	@Override
-	public void terminate() throws EventException {
+	public void doResume() throws Exception {
+		processor.resume();
+	}
+	
+	@Override
+	public void doTerminate() throws EventException {
 		processor.terminate();
-		terminated = true;
 	}
 	
-	//TODO Add setMessage broadcast calls.
-	
-	/**
-	 * Convenience method to call broadcast with only {@link Status} argument.
-	 * 
-	 * @param bean Bean to be broadcast.
-	 * @param newStatus Status the bean has just reached.
-	 * @throws EventException In case broadcasting fails.
-	 */
-	public void broadcast(Status newStatus) throws EventException {
-		broadcast(newStatus, null);
-	}
-	
-	/**
-	 * Convenience method to call broadcast with only percent complete 
-	 * argument.
-	 * 
-	 * @param bean Bean to be broadcast.
-	 * @param newPercent The value percent complete should be set to.
-	 * @throws EventException In case broadcasting fails.
-	 */
-	public void broadcast(double newPercent) throws EventException {
-		broadcast(null, newPercent);
-	}
-
-	/**
-	 * Broadcast the new status, updated previous status and percent complete 
-	 * of the given bean.
-	 * 
-	 * @param bean Bean to be broadcast.
-	 * @param newStatus Status the bean has just reached.
-	 * @param newPercent The value percent complete should be set to.
-	 * @throws EventException In case broadcasting fails.
-	 */
-	public void broadcast(Status newStatus, Double newPercent) throws EventException {
+	@Override
+	public void broadcast(Status newStatus, Double newPercent, String newMessage) throws EventException {
 		if (publisher != null && processor != null) {
 			
 			if (newStatus != null) {
@@ -74,21 +63,15 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 				bean.setStatus(newStatus);
 			}
 			if (newPercent != null) bean.setPercentComplete(newPercent);
+			if (newMessage != null) bean.setMessage(newMessage);
 			
 			publisher.broadcast(bean);
 		}		
 	}
 
-	public IQueueProcessor<? extends Queueable> getProcessor() {
+	@Override
+	public IQueueProcessor<T, ? extends Queueable> getProcessor() {
 		return processor;
-	}
-
-	public boolean isTerminated() {
-		return terminated;
-	}
-
-	public void setTerminated(boolean terminated) {
-		this.terminated = terminated;
 	}
 
 	public boolean isBlocking() {
