@@ -70,6 +70,18 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	public default void broadcast(double newPercent) throws EventException {
 		broadcast(null, newPercent, null);
 	}
+	
+	/**
+	 * Convenience method to call broadcast with percent complete and 
+	 * {@link Status} arguments.
+	 * 
+	 * @param newStatus Status the bean has just reached.
+	 * @param newPercent The value percent complete should be set to.
+	 * @throws EventException In case broadcasting fails.
+	 */
+	public default void broadcast(Status newStatus, Double newPercent) throws EventException {
+		broadcast(newStatus, newPercent);
+	}
 
 	/**
 	 * Broadcast the new status, update previous status, percent complete and 
