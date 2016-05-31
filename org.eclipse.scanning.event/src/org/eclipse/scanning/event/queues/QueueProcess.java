@@ -32,9 +32,7 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 		this.blocking = blocking; //TODO
 		this.processor = qProcessor;
 		
-		processor.configure(bean);
-		processor.setProgressBroadcaster(this);
-
+		processor.setQueueProcess(this);
 	}
 
 	/*

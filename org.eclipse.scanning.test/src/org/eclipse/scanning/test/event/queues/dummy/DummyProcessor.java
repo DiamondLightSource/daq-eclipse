@@ -3,8 +3,8 @@ package org.eclipse.scanning.test.event.queues.dummy;
 import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
-import org.eclipse.scanning.api.event.queues.IQueueProgressBroadcaster;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.slf4j.Logger;
@@ -14,13 +14,18 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyProcessor.class);
 	
-	private IQueueProgressBroadcaster progressBroadcaster;
+	private IQueueProcess<? extends Queueable> process;
 	private boolean terminated;
+	
+	private final P dummy;
 
-	//Bean data for processing
-	protected String beanName;
-	protected Double beanPercentComplete;
-	protected CountDownLatch execLatch;
+	//Bean data to be specified for processing
+	protected final CountDownLatch execLatch;
+	
+	protected DummyProcessor(P dummy, CountDownLatch latch) {
+		this.dummy = dummy;
+		execLatch = latch;
+	}
 	
 	@Override
 	public void execute() throws EventException {
@@ -54,14 +59,14 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 	}
 
 	private void run() throws EventException {
-		progressBroadcaster.broadcast(Status.RUNNING, 0d);
+		process.broadcast(Status.RUNNING, 0d);
 
 		terminated = false;
 
 		for (int i = 0; i < 100; i++) {
 
 			if (isTerminated()) {
-				progressBroadcaster.broadcast(Status.TERMINATED);
+				process.broadcast(Status.TERMINATED);
 				return;
 			}
 
@@ -70,20 +75,18 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 			} catch (InterruptedException e) {
 				logger.error("Dummy process sleeping failed", e);
 			}
-			System.out.println("DummyProcessor ("+getBeanClass().getSimpleName()+" - "+beanName+"): "+getBeanPercent());
-			progressBroadcaster.broadcast(new Double(i));
+			System.out.println("DummyProcessor ("+getBeanClass().getSimpleName()+" - "+dummy.getName()+"): "+dummy.getPercentComplete());
+			process.broadcast(new Double(i));
 		}
-		progressBroadcaster.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
+		process.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
 		if (execLatch != null) execLatch.countDown();
 	}
 	
 	@Override
-	public void setProgressBroadcaster(IQueueProgressBroadcaster broadcaster) {
-		progressBroadcaster = broadcaster;
+	public void setQueueProcess(IQueueProcess<? extends Queueable> process) {
+		this.process = process;
 	}
 	
-	protected abstract void getBeanPercent();
-
 	public boolean isTerminated() {
 		return terminated;
 	}

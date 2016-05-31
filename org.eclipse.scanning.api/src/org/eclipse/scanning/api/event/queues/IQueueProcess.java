@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.event.queues;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.status.Status;
 
 /**
  * Process used in the queue service to run the instructions provided by a 
@@ -15,7 +16,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  * @param <T> Bean type passed by consumer (this might be a super-type of the 
  *            bean to be processed in the case of heterogenous queues).
  */
-public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>, IQueueProgressBroadcaster {
+public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T> {
 
 	/**
 	 * Default method, implementing method of {@link IConsumerProcess}. 
@@ -56,5 +57,48 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	 * @return {@link IQueueProcessor} to process the bean.
 	 */
 	public IQueueProcessor<? extends Queueable> getProcessor();
+	
+	/**
+	 * Convenience method to call broadcast with only {@link Status} argument.
+	 * 
+	 * @param newStatus {@link Status} the bean has just reached.
+	 * @throws EventException In case broadcasting fails.
+	 */
+	public default void broadcast(Status newStatus) throws EventException {
+		broadcast(newStatus, null, null);
+	}
+
+	/**
+	 * Convenience method to call broadcast with only percent complete 
+	 * argument.
+	 * 
+	 * @param newPercent The value percent complete should be set to.
+	 * @throws EventException In case broadcasting fails.
+	 */
+	public default void broadcast(double newPercent) throws EventException {
+		broadcast(null, newPercent, null);
+	}
+	
+	/**
+	 * Convenience method to call broadcast with percent complete and 
+	 * {@link Status} arguments.
+	 * 
+	 * @param newStatus Status the bean has just reached.
+	 * @param newPercent The value percent complete should be set to.
+	 * @throws EventException In case broadcasting fails.
+	 */
+	public default void broadcast(Status newStatus, Double newPercent) throws EventException {
+		broadcast(newStatus, newPercent, null);
+	}
+
+	/**
+	 * Broadcast the new status, update previous status, percent complete and 
+	 * message of the bean associated with this process.
+	 * 
+	 * @param newStatus {@link Status} the bean has just reached.
+	 * @param newPercent The value percent complete should be set to.
+	 * @throws EventException In case broadcasting fails.
+	 */
+	public void broadcast(Status newStatus, Double newPercent, String message) throws EventException;
 
 }

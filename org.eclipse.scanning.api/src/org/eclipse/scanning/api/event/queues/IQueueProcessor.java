@@ -17,34 +17,6 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 public interface IQueueProcessor<P extends Queueable> {
 
 	/**
-	 * Configure this processor with data from the bean held by the 
-	 * {@link IQueueProcess}. This method casts a bean of class 
-	 * {@link Queueable} to type <P>, but only after performing a check that 
-	 * the bean is of the correct concrete type for this processor. Thus type 
-	 * safety is not checked by the compiler, but within the code and 
-	 * warnings can be suppressed safely.
-	 *  
-	 *  @throws EventException if the bean type found is not supported by this 
-	 *         processor.
-	 */
-	@SuppressWarnings("unchecked")
-	public default void configure(Queueable bean) throws EventException {
-		if (bean.getClass() == getBeanClass()) {
-			recoverBeanData((P)bean);
-		} else {
-			throw new EventException("Bean class "+getBeanClass()+" not supported. Expecting "+getBeanClass()); 
-		}
-	}
-
-	/**
-	 * Recover the actual data from the bean supplied to the configure method.
-	 * 
-	 * @param bean Containing data to be operated on by queue processor.
-	 * @throws EventException in case reading the data fails.
-	 */
-	public void recoverBeanData(P bean) throws EventException;
-
-	/**
 	 * Process the data from the bean provided by he {@link IQueueProcess}. 
 	 * The bean should initially have a {@link Status} of RUNNING. On 
 	 * completion, the bean {@link Status} should be COMPLETE and the percent 
@@ -91,12 +63,12 @@ public interface IQueueProcessor<P extends Queueable> {
 	public Class<P> getBeanClass();
 
 	/**
-	 * Configures the broadcaster which this processor will use to inform of 
+	 * Configures the queue process which this processor will use to inform of 
 	 * state changes of the process.
 	 * 
 	 * @param broadcaster IQueueProgressBroadcaster to use for broadcasting 
 	 *                    updates.
 	 */
-	public void setProgressBroadcaster(IQueueProgressBroadcaster broadcaster);
+	public void setQueueProcess(IQueueProcess<? extends Queueable> process);
 
 }
