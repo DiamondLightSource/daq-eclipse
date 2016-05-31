@@ -60,25 +60,47 @@ public interface IQueueProcessor<P extends Queueable> {
 	 * 
 	 * @return Class of bean which can be processed.
 	 */
-	public Class<P> getBeanClass(); //TODO
+	public Class<P> getBeanClass();
 
-	/**
-	 * Configures the queue process which this processor will use to inform of 
-	 * state changes of the process.
-	 * 
-	 * @param broadcaster IQueueProgressBroadcaster to use for broadcasting 
-	 *                    updates.
-	 */
-	public void setQueueProcess(IQueueProcess<? extends Queueable> process);
 	
 	/**
-	 * TODO
+	 * Return the currently configured {@link IQueueProcess} managing this 
+	 * IQueueProcessor.
+	 * 
+	 * @return IQueueProcess responsible for this IQueueProcessor.
 	 */
 	public IQueueProcess<? extends Queueable> getQueueProcess();
 	
 	/**
-	 * TODO
+	 * Configures the queue process which this processor will use to inform of 
+	 * state changes of the process. Bean should be set as part or soon 
+	 * after this call, to ensure correct bean is being accessed. Queue process
+	 * cannot be changed after execution has begun.
+	 * 
+	 * @param broadcaster IQueueProgressBroadcaster to use for broadcasting 
+	 *                    updates.
+	 * @throws EventException if attempt to change queue process after 
+	 *         execution has started.
 	 */
-	public P getBean();
-
+	public void setQueueProcess(IQueueProcess<? extends Queueable> process) throws EventException ;
+	
+	/**
+	 * Default method to cast and get the bean held by the current 
+	 * {@link IQueueProcess} to the type operated on by this IQueueProcessor. 
+	 * Type safety is maintained by comparing the classes of the bean from the 
+	 * {@link IQueueProcess} and the class for which this IQueueProcessor is 
+	 * configured.
+	 * 
+	 * @return P Instance of {@link QueueProcess} bean cast for this 
+	 *         IQueueProcessor.
+	 * @throws EventException if the configured and found classes differ.
+	 */
+	@SuppressWarnings("unchecked")
+	public default P getProcessBean() throws EventException {
+		if (getQueueProcess().getBean().getClass().equals(getBeanClass())) {
+			return (P) getQueueProcess().getBean();
+		} else {
+			throw new EventException();
+		}
+	}
 }

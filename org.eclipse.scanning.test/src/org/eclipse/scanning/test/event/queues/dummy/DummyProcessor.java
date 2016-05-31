@@ -17,17 +17,13 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 	private IQueueProcess<? extends Queueable> process;
 	private boolean terminated;
 	
-	private final P dummy;
-	private final CountDownLatch execLatch;
-
-	//Bean data for processing
-	protected DummyProcessor(P dummy, CountDownLatch latch) {
-		this.dummy = dummy;
-		execLatch = latch;
-	}
+	protected P dummy;
+	protected CountDownLatch execLatch;
 	
 	@Override
 	public void execute() throws EventException {
+		execLatch = getLatch();
+		
 		final Thread thread = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -57,6 +53,18 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 		terminated = true;
 	}
 
+	@Override
+	public void setQueueProcess(IQueueProcess<? extends Queueable> process) {
+		this.process = process;
+	}
+	
+	@Override
+	public IQueueProcess<? extends Queueable> getQueueProcess() {
+		return process;
+	}
+	
+	protected abstract CountDownLatch getLatch();
+	
 	private void run() throws EventException {
 		process.broadcast(Status.RUNNING, 0d);
 
@@ -79,11 +87,6 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 		}
 		process.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
 		if (execLatch != null) execLatch.countDown();
-	}
-	
-	@Override
-	public void setQueueProcess(IQueueProcess<? extends Queueable> process) {
-		this.process = process;
 	}
 	
 	public boolean isTerminated() {
