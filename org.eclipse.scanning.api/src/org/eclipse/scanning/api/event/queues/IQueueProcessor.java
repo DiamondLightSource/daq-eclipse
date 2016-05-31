@@ -84,4 +84,15 @@ public interface IQueueProcessor<P extends Queueable> {
 	 */
 	public void setQueueProcess(IQueueProcess<? extends Queueable> process) throws EventException;
 
+	/**
+	 * Set boolean executed to indicate start of execution.
+	 */
+	public void setExecuted();
+
+	/**
+	 * Return whether execution has begun.
+	 * 
+	 * @return true if execution begun.
+	 */
+	public boolean isExecuted();
 }

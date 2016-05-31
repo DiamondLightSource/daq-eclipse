@@ -23,6 +23,7 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	 * Instructs the {@link IQueueProcessor} to start processing. 
 	 */
 	public default void execute() throws EventException, InterruptedException {
+		setExecuted();
 		getProcessor().execute();
 	}
 	
@@ -108,5 +109,17 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	 * @throws EventException In case broadcasting fails.
 	 */
 	public void broadcast(Status newStatus, Double newPercent, String message) throws EventException;
+	
+	/**
+	 * Set boolean executed to indicate start of execution.
+	 */
+	public void setExecuted();
+	
+	/**
+	 * Return whether execution has begun.
+	 * 
+	 * @return true if execution begun.
+	 */
+	public boolean isExecuted();
 
 }
