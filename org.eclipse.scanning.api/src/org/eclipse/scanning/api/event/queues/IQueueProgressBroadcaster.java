@@ -45,7 +45,7 @@ public interface IQueueProgressBroadcaster {
 	 * @throws EventException In case broadcasting fails.
 	 */
 	public default void broadcast(Status newStatus, Double newPercent) throws EventException {
-		broadcast(newStatus, newPercent);
+		broadcast(newStatus, newPercent, null);
 	}
 
 	/**
