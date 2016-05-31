@@ -1,6 +1,6 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
-import org.eclipse.scanning.api.event.EventException;
+import java.util.concurrent.CountDownLatch;
 
 public class DummyBeanProcessor extends DummyProcessor<DummyBean> {
 
@@ -14,10 +14,8 @@ public class DummyBeanProcessor extends DummyProcessor<DummyBean> {
 	}
 
 	@Override
-	public void recoverBeanData(DummyBean bean) throws EventException {
-		beanName = bean.getName();
-		beanPercentComplete = bean.getPercentComplete();
-		execLatch = bean.getLatch();
+	protected CountDownLatch getLatch() {
+		return dummy.getLatch();
 	}
 
 }
