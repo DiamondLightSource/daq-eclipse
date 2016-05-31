@@ -93,4 +93,16 @@ public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
 		
 	}
 
+	@Override
+	public <T extends Queueable> void setProcessBean(T bean) throws EventException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setExecuted() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
