@@ -23,14 +23,18 @@ import org.eclipse.scanning.api.event.status.Status;
  */
 public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T> implements IQueueProcess<T> {
 	
-	private final IQueueProcessor<T, ? extends Queueable> processor;
+	private final IQueueProcessor<? extends Queueable> processor;
 	private boolean blocking = true;
 	
 	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking, 
-			IQueueProcessor<T, ? extends Queueable> processor) {
+			IQueueProcessor<? extends Queueable> qProcessor) throws EventException {
 		super(bean, publisher);
 		this.blocking = blocking; //TODO
-		this.processor = processor;
+		this.processor = qProcessor;
+		
+		processor.configure(bean);
+		processor.setProgressBroadcaster(this);
+
 	}
 
 	/*
@@ -70,7 +74,7 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	}
 
 	@Override
-	public IQueueProcessor<T, ? extends Queueable> getProcessor() {
+	public IQueueProcessor<? extends Queueable> getProcessor() {
 		return processor;
 	}
 
