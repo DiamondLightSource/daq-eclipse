@@ -15,13 +15,14 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 	private static final Logger logger = LoggerFactory.getLogger(DummyProcessor.class);
 	
 	private IQueueProcess<? extends Queueable> process;
-	private boolean terminated;
+	private boolean terminated, executed = false;
 	
 	protected P dummy;
 	protected CountDownLatch execLatch;
 	
 	@Override
 	public void execute() throws EventException {
+		setExecuted();
 		execLatch = getLatch();
 		
 		final Thread thread = new Thread(new Runnable() {
@@ -52,15 +53,22 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 	public void terminate() throws EventException {
 		terminated = true;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Queueable> void setProcessBean(T bean) throws EventException {
+		if (isExecuted()) throw new EventException("Cannot change queueProcess after execution started.");
+		if (bean.getClass().equals(getBeanClass())) {
+			dummy = (P)bean;
+		} else {
+			throw new EventException("Unsupported bean type");
+		}
+	}
 
 	@Override
-	public void setQueueProcess(IQueueProcess<? extends Queueable> process) {
+	public void setQueueProcess(IQueueProcess<? extends Queueable> process) throws EventException {
+		if (isExecuted()) throw new EventException("Cannot change queueProcess after execution started.");
 		this.process = process;
-	}
-	
-	@Override
-	public IQueueProcess<? extends Queueable> getQueueProcess() {
-		return process;
 	}
 	
 	protected abstract CountDownLatch getLatch();
@@ -95,6 +103,16 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 
 	public void setTerminated(boolean terminated) {
 		this.terminated = terminated;
+	}
+	
+	@Override
+	public boolean isExecuted() {
+		return executed;
+	}
+	
+	@Override
+	public void setExecuted() {
+		executed = true;
 	}
 	
 
