@@ -1,12 +1,13 @@
 package org.eclipse.scanning.test.event.queues.mocks;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
-public class MockQueueProcessor implements IQueueProcessor {
+public class MockQueueProcessor <T extends Queueable> implements IQueueProcessor<T, DummyBean> {
 
 	private CountDownLatch execLatch;
 	private int counter = 500;
@@ -69,7 +70,24 @@ public class MockQueueProcessor implements IQueueProcessor {
 	}
 
 	@Override
-	public List<String> getAtomBeanTypes() {
+	public Class<DummyBean> getBeanClass() {
+		return DummyBean.class;
+	}
+
+	@Override
+	public void pause() throws EventException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void resume() throws EventException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public IQueueProcess<T> getProcess() {
 		// TODO Auto-generated method stub
 		return null;
 	}

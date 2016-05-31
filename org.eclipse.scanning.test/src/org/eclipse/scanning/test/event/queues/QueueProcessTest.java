@@ -19,10 +19,21 @@ import org.eclipse.scanning.test.event.queues.mocks.MockQueueProcessor;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Testing calls of QueueProcess down to a Mock IQueueProcess,
+ * to check execution, termination & pausing happen as expected.
+ * 
+ * SuppressWarnings annotations are valid, since:
+ *  a) this is a test.
+ *  b) we know the generic types in use.
+ * 
+ * @author Michael Wharmby
+ *
+ */
 public class QueueProcessTest {
 
 	private QueueProcess<DummyBean> qProc;
-	private MockQueueProcessor mockProc;
+	private MockQueueProcessor<DummyBean> mockProc;
 	private CountDownLatch execLatch;
 	
 	//Settings for QueueProcess
@@ -33,24 +44,26 @@ public class QueueProcessTest {
 	@Before
 	public void setUp() {
 		execLatch = new CountDownLatch(1);
-		mockProc = new MockQueueProcessor(execLatch);
+		mockProc = new MockQueueProcessor<DummyBean>(execLatch);
 		
 		qProc = new QueueProcess<DummyBean>(dummy, pub, blocking, mockProc);
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testExecute() throws Exception {
 		mockProc.setCounter(150);
 		executeThread();
 		
 		execLatch.await(5, TimeUnit.SECONDS);
-		MockQueueProcessor processor= (MockQueueProcessor)qProc.getProcessor();
+		MockQueueProcessor<DummyBean> processor= (MockQueueProcessor<DummyBean>)qProc.getProcessor();
 		assertTrue("Mock processor didn't get the execute signal", processor.isExecuted());
 		assertTrue("Mock processor didn't execute to completion", processor.isComplete());
 		assertTrue("Mock processor ran for a long time!", processor.getRunTime() < 500l);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testTerminate() throws Exception {
 		mockProc.setCounter(1500);
@@ -60,13 +73,14 @@ public class QueueProcessTest {
 		qProc.terminate();
 		
 		execLatch.await(5, TimeUnit.SECONDS);
-		MockQueueProcessor processor= (MockQueueProcessor)qProc.getProcessor();
+		MockQueueProcessor<DummyBean> processor= (MockQueueProcessor<DummyBean>)qProc.getProcessor();
 		assertTrue("Mock processor didn't get the execute signal", processor.isExecuted());
 		assertTrue("Mock processor never got a terminated signal", processor.isTerminated());
 		assertTrue("Mock processor didn't run for long", processor.getRunTime() > 50l);
 		assertFalse("Mock processor shouldn't be complete", processor.isComplete());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testPause() throws Exception {
 		mockProc.setCounter(300);
@@ -77,7 +91,7 @@ public class QueueProcessTest {
 		qProc.resume();
 		
 		execLatch.await(5, TimeUnit.SECONDS);
-		MockQueueProcessor processor= (MockQueueProcessor)qProc.getProcessor();
+		MockQueueProcessor<DummyBean> processor= (MockQueueProcessor<DummyBean>)qProc.getProcessor();
 		assertTrue("Mock processor didn't get the execute signal", processor.isExecuted());
 		assertTrue("Mock processor didn't execute to completion", processor.isComplete());
 		assertTrue("Mock processor didn't pause correctly", processor.getRunTime() < 650l);
@@ -92,11 +106,11 @@ public class QueueProcessTest {
 		qProc.broadcast(dummy);
 		
 		//Test setting of status, percent complete & both
-		qProc.broadcast(dummy, Status.QUEUED);
-		qProc.broadcast(dummy, 50);
+		qProc.broadcast(Status.QUEUED);
+		qProc.broadcast(50);
 		
 		//Test setting both status & percent complete
-		qProc.broadcast(dummy, Status.COMPLETE, 100d);
+		qProc.broadcast(Status.COMPLETE, 100d, null);
 		
 		List<DummyHasQueue> broadcasted = ((MockPublisher<DummyBean>) pub).getBroadcastBeans();
 		String[] messages = new String[]{"Hello world", "Hello world", "Hello world", "Hello world"};
