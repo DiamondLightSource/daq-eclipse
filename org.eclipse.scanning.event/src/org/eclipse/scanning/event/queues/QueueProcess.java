@@ -26,8 +26,7 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	private IQueueProcessor<? extends Queueable> processor;
 	private boolean blocking = true, executed = false;
 	
-	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking) 
-			throws EventException {
+	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking) {
 		super(bean, publisher);
 		this.blocking = blocking; //TODO
 	}
