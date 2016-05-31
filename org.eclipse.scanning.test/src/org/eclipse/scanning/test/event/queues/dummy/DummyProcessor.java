@@ -1,5 +1,7 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.IQueueProgressBroadcaster;
@@ -16,8 +18,9 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 	private boolean terminated;
 
 	//Bean data for processing
-	private String beanName;
-	private Double beanPercentComplete;
+	protected String beanName;
+	protected Double beanPercentComplete;
+	protected CountDownLatch execLatch;
 	
 	@Override
 	public void execute() throws EventException {
@@ -67,16 +70,19 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 			} catch (InterruptedException e) {
 				logger.error("Dummy process sleeping failed", e);
 			}
-			System.out.println("DummyProcessor ("+getBeanClass().getSimpleName()+" - "+beanName+"): "+beanPercentComplete);
+			System.out.println("DummyProcessor ("+getBeanClass().getSimpleName()+" - "+beanName+"): "+getBeanPercent());
 			progressBroadcaster.broadcast(new Double(i));
 		}
 		progressBroadcaster.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
+		if (execLatch != null) execLatch.countDown();
 	}
 	
 	@Override
 	public void setProgressBroadcaster(IQueueProgressBroadcaster broadcaster) {
 		progressBroadcaster = broadcaster;
 	}
+	
+	protected abstract void getBeanPercent();
 
 	public boolean isTerminated() {
 		return terminated;
