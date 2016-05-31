@@ -1,45 +1,38 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.IQueueProgressBroadcaster;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.QueueProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class DummyProcessor <T extends Queueable, P extends Queueable> implements IQueueProcessor<T, P> {
+public abstract class DummyProcessor <P extends Queueable> implements IQueueProcessor<P> {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyProcessor.class);
 	
-	private final QueueProcess<T> queueProcess;
-	
-	private boolean blocking, terminated;
+	private IQueueProgressBroadcaster progressBroadcaster;
+	private boolean terminated;
 
-	protected DummyProcessor(QueueProcess<T> queueProc) {
-		queueProcess = queueProc;
-	}
+	//Bean data for processing
+	private String beanName;
+	private Double beanPercentComplete;
 	
 	@Override
 	public void execute() throws EventException {
-		if (isBlocking()) {
-			run(); // Block until process has run.
-		} else {
-			final Thread thread = new Thread(new Runnable() {
-				public void run() {
-					try {
-						DummyProcessor.this.run();
-					} catch (EventException ne) {
-						ne.printStackTrace(); // Only a test process!
-					}
+		final Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					DummyProcessor.this.run();
+				} catch (EventException ne) {
+					ne.printStackTrace(); // Only a test process!
 				}
-			});
-			thread.setDaemon(true);
-			thread.setPriority(Thread.MAX_PRIORITY);
-			thread.start();
-		}
-
+			}
+		});
+		thread.setDaemon(true);
+		thread.setPriority(Thread.MAX_PRIORITY);
+		thread.start();
 	}
 	
 	@Override
@@ -58,14 +51,14 @@ public abstract class DummyProcessor <T extends Queueable, P extends Queueable> 
 	}
 
 	private void run() throws EventException {
-		queueProcess.broadcast(Status.RUNNING, 0d);
+		progressBroadcaster.broadcast(Status.RUNNING, 0d);
 
 		terminated = false;
 
 		for (int i = 0; i < 100; i++) {
 
 			if (isTerminated()) {
-				queueProcess.broadcast(Status.TERMINATED);
+				progressBroadcaster.broadcast(Status.TERMINATED);
 				return;
 			}
 
@@ -74,23 +67,15 @@ public abstract class DummyProcessor <T extends Queueable, P extends Queueable> 
 			} catch (InterruptedException e) {
 				logger.error("Dummy process sleeping failed", e);
 			}
-			System.out.println("DummyProcessor ("+bean().getClass().getSimpleName()+" - "+bean().getName()+"): "+bean().getPercentComplete());
-			queueProcess.broadcast(new Double(i));
+			System.out.println("DummyProcessor ("+getBeanClass().getSimpleName()+" - "+beanName+"): "+beanPercentComplete);
+			progressBroadcaster.broadcast(new Double(i));
 		}
-		queueProcess.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
+		progressBroadcaster.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
 	}
 	
 	@Override
-	public IQueueProcess<T> getProcess() {
-		return queueProcess;
-	}
-	
-	public boolean isBlocking() {
-		return blocking;
-	}
-
-	public void setBlocking(boolean blocking) {
-		this.blocking = blocking;
+	public void setProgressBroadcaster(IQueueProgressBroadcaster broadcaster) {
+		progressBroadcaster = broadcaster;
 	}
 
 	public boolean isTerminated() {
