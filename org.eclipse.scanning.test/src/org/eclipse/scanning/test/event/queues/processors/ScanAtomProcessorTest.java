@@ -32,7 +32,7 @@ import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.test.event.queues.mocks.DummyHasQueue;
+import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.util.TestAtomMaker;
 import org.junit.After;

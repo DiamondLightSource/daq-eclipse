@@ -15,7 +15,7 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.test.BrokerTest;
-import org.eclipse.scanning.test.event.queues.mocks.DummyHasQueue;
+import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
 

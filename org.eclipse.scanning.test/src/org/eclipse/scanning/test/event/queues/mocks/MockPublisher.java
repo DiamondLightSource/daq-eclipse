@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 
 public class MockPublisher<T> implements IPublisher<T> {
 	

@@ -9,9 +9,9 @@ import org.eclipse.scanning.event.queues.QueueProcessorFactory;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
-import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
-import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
-import org.eclipse.scanning.test.event.queues.mocks.DummyProcessor;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
+import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
+import org.eclipse.scanning.test.event.queues.dummy.DummyProcessor;
 import org.junit.Test;
 
 public class QueueProcessorFactoryTest {

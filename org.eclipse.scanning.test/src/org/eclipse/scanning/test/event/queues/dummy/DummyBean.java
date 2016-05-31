@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.mocks;
+package org.eclipse.scanning.test.event.queues.dummy;
 
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 

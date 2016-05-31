@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.mocks;
+package org.eclipse.scanning.test.event.queues.dummy;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
@@ -8,7 +8,7 @@ import org.eclipse.scanning.event.queues.QueueProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class DummyProcessor <Q extends Queueable> implements IQueueProcessor<DummyBean> {
+public abstract class DummyProcessor <Q extends Queueable> implements IQueueProcessor<Q, DummyBean> {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyProcessor.class);
 	

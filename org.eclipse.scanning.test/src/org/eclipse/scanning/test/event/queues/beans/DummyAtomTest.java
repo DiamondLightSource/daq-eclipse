@@ -6,9 +6,9 @@ import static org.junit.Assert.fail;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
-import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
-import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
-import org.eclipse.scanning.test.event.queues.mocks.DummyHasQueue;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
+import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
+import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.junit.Before;
 import org.junit.Test;
 
