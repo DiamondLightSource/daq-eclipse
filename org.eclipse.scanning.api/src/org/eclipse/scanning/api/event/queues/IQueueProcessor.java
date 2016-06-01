@@ -17,11 +17,11 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 public interface IQueueProcessor<P extends Queueable> {
 
 	/**
-	 * Process the data from the bean provided by he {@link IQueueProcess}. 
-	 * The bean should initially have a {@link Status} of RUNNING. On 
-	 * completion, the bean {@link Status} should be COMPLETE and the percent 
-	 * complete = 100%. If an exception occurs, set the bean {@link Status} to 
-	 * FAILED.
+	 * Process the configured bean. Bean should be same as that on 
+	 * {@link IQueueProcess}. The bean should initially have a {@link Status} 
+	 * of RUNNING. On completion, the bean {@link Status} should be COMPLETE 
+	 * and the percent complete = 100%. If an exception occurs, set the bean 
+	 * {@link Status} to FAILED.
 	 * 
 	 * @throws EventException when exceptions arise, caused by the 
 	 *         {@link IEventService}/{@link IQueueService} systems

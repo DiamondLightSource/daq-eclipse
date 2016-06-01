@@ -22,6 +22,7 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 	
 	@Override
 	public void execute() throws EventException {
+//		if (!(dummy.equals(process.getBean()))) throw new EventException("Beans on QueueProcess and QueueProcessor differ");
 		setExecuted();
 		execLatch = getLatch();
 		
