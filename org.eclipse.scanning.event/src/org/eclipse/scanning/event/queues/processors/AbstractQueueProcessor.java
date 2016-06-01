@@ -1,97 +1,52 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
-import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.queues.IQueueProcess;
+import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.api.event.status.Status;
 
-/**
- * Helper abstract class, providing a broadcast method a several common fields 
- * used by all queue processors.
- * 
- * @author Michael Wharmby
- *
- * @param <T> A bean extending the {@link Queueable} abstract class.
- */
-@Deprecated
-public abstract class AbstractQueueProcessor<T extends Queueable> extends AbstractPausableProcess<T> {
+public abstract class AbstractQueueProcessor <P extends Queueable> implements IQueueProcessor<P> {
 	
-	protected boolean runComplete = false, terminated = false, blocking = true;
+	private boolean terminated = false, executed = false;
 	
-	//Number of ms processor waits in while loop before checking state of task.
-	protected final long loopSleepTime = 100;
+	protected P bean;
+	protected IQueueProcess<? extends Queueable> process;
 
-	protected AbstractQueueProcessor(T bean, IPublisher<T> publisher) {
-		super(bean, publisher);
-	}
-	
-	/**
-	 * Convenience method to call broadcast with only {@link Status} argument.
-	 * 
-	 * @param bean Bean to be broadcast.
-	 * @param newStatus Status the bean has just reached.
-	 * @throws EventException In case broadcasting fails.
-	 */
-	protected void broadcast(T bean, Status newStatus) throws EventException {
-		broadcast(bean, newStatus, null);
-	}
-	
-	/**
-	 * Convenience method to call broadcast with only percent complete 
-	 * argument.
-	 * 
-	 * @param bean Bean to be broadcast.
-	 * @param newPercent The value percent complete should be set to.
-	 * @throws EventException In case broadcasting fails.
-	 */
-	protected void broadcast(T bean, double newPercent) throws EventException {
-		broadcast(bean, null, newPercent);
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Queueable> void setProcessBean(T bean) throws EventException {
+		if (isExecuted()) throw new EventException("Cannot change queueProcess after execution started.");
+		if (bean.getClass().equals(getBeanClass())) {
+			this.bean = (P)bean;
+		} else {
+			throw new EventException("Unsupported bean type");
+		}
 	}
 
-	/**
-	 * Broadcast the new status, updated previous status and percent complete 
-	 * of the given bean.
-	 * 
-	 * @param bean Bean to be broadcast.
-	 * @param newStatus Status the bean has just reached.
-	 * @param newPercent The value percent complete should be set to.
-	 * @throws EventException In case broadcasting fails.
-	 */
-	protected void broadcast(T bean, Status newStatus, Double newPercent) throws EventException {
-		if (publisher != null) {
-			if (newStatus != null) {
-				bean.setPreviousStatus(bean.getStatus());
-				bean.setStatus(newStatus);
-			}
-			if (newPercent != null) bean.setPercentComplete(newPercent);
-			
-			publisher.broadcast(bean);
-		}		
+	@Override
+	public void setQueueProcess(IQueueProcess<? extends Queueable> process) throws EventException {
+		if (isExecuted()) throw new EventException("Cannot change queueProcess after execution started.");
+		this.process = process;
 	}
 
-	public boolean isRunComplete() {
-		return runComplete;
+	@Override
+	public boolean isExecuted() {
+		return executed;
 	}
 
-	public void setRunComplete(boolean runComplete) {
-		this.runComplete = runComplete;
+	@Override
+	public void setExecuted() {
+		executed = true;
 	}
 
+	@Override
 	public boolean isTerminated() {
 		return terminated;
 	}
 
-	public void setTerminated(boolean terminated) {
-		this.terminated = terminated;
-	}
-
-	public boolean isBlocking() {
-		return blocking;
-	}
-
-	public void setBlocking(boolean blocking) {
-		this.blocking = blocking;
+	@Override
+	public void setTerminated() {
+		terminated = true;
 	}
 
 }
