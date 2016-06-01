@@ -133,13 +133,13 @@ public class QueueProcessTest {
 		//Test setting both status & percent complete
 		qProc.broadcast(Status.COMPLETE, 100d, null);
 		
-		List<DummyHasQueue> broadcasted = ((MockPublisher<DummyBean>) pub).getBroadcastBeans();
+		List<Queueable> broadcasted = ((MockPublisher<DummyBean>) pub).getBroadcastBeans();
 		String[] messages = new String[]{"Hello world", "Hello world", "Hello world", "Hello world"};
 		Status[] statuses = new Status[]{Status.NONE, Status.QUEUED, Status.QUEUED, Status.COMPLETE};
 		double[] percents = new double[]{0d, 0d, 50d, 100d};
 		
 		for (int i = 0; i < broadcasted.size(); i++) {
-			DummyHasQueue bean = broadcasted.get(i);
+			Queueable bean = broadcasted.get(i);
 			assertEquals("Bean nr. "+i+" has wrong message", messages[i], bean.getMessage());
 			assertEquals("Bean nr. "+i+" has wrong status", statuses[i], bean.getStatus());
 			assertEquals("Bean nr. "+i+" has wrong percent complete", percents[i], bean.getPercentComplete(), 0);
