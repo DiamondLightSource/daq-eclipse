@@ -25,8 +25,6 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 	private Thread moveThread;
 	private CountDownLatch moveLatch = new CountDownLatch(1);
 	
-	private boolean complete = true;
-	
 	public MoveAtomProcessor() {
 		//Get the deviceService from the OSGi configured holder.
 		deviceService = QueueServicesHolder.getDeviceService();
@@ -62,15 +60,23 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 					positioner.setPosition(target);
 					
 					//Completed cleanly
-					complete = true;
+					setComplete();
 					moveLatch.countDown();
-				} catch(Exception e) {
-					logger.error("Moving device(s) in '"+bean.getName()+"' failed with: "+e.getMessage());
-					try{
-						process.broadcast(Status.FAILED, "Moving device(s) in '"+bean.getName()+"' failed: "+e.getMessage());
-					} catch(EventException evEx) {
-						logger.error("Broadcasting bean failed with: "+evEx.getMessage());
+				} catch (InterruptedException inEx) {
+					if (!isTerminated()) {
+						reportFail(inEx);
 					}
+				} catch(Exception ex) {
+					reportFail(ex);
+				}
+			}
+			
+			private void reportFail(Exception ex) {
+				logger.error("Moving device(s) in '"+bean.getName()+"' failed with: "+ex.getMessage());
+				try{
+					process.broadcast(Status.FAILED, "Moving device(s) in '"+bean.getName()+"' failed: "+ex.getMessage());
+				} catch(EventException evEx) {
+					logger.error("Broadcasting bean failed with: "+evEx.getMessage());
 				}
 			}
 		});
@@ -86,10 +92,14 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 			positioner.abort();
 			return;
 		}
-		if (complete) System.out.println("Woop woop");
 		
 		//Clean finish
-		process.broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
+		if (isComplete()) {
+			process.broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
+		} else {
+			process.broadcast(Status.FAILED, "Processing ended unexpectedly.");
+			logger.warn("Processing of '"+bean.getName()+"' ended unexpectedly.");
+		}
 	}
 
 	@Override
