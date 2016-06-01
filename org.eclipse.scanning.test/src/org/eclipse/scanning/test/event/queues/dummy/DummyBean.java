@@ -1,7 +1,5 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
-import java.util.concurrent.CountDownLatch;
-
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 
 /**
@@ -13,8 +11,6 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
  */
 public class DummyBean extends QueueBean {
 	
-	private CountDownLatch latch;
-	
 	public DummyBean() {
 		super();
 	}
@@ -24,13 +20,5 @@ public class DummyBean extends QueueBean {
 		setName(name);
 		runTime = time;
 	}
-
-	public CountDownLatch getLatch() {
-		return latch;
-	}
-
-	public void setLatch(CountDownLatch latch) {
-		this.latch = latch;
-	}
-
+	
 }

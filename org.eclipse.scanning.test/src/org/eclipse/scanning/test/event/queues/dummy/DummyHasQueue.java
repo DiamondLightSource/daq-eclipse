@@ -1,8 +1,7 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
-import java.util.concurrent.CountDownLatch;
-
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.test.event.queues.processors.ScanAtomProcessorTest;
 
 /**
  * Generic class to mock behaviour of a POJO in a Queue. Has an additional 
@@ -15,7 +14,6 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 public class DummyHasQueue extends Queueable {
 	
 	private String queueMessage;
-	private CountDownLatch latch;
 	
 	public DummyHasQueue() {
 		super();
@@ -33,14 +31,6 @@ public class DummyHasQueue extends Queueable {
 
 	public void setQueueMessage(String queueMessage) {
 		this.queueMessage = queueMessage;
-	}
-
-	public CountDownLatch getLatch() {
-		return latch;
-	}
-
-	public void setLatch(CountDownLatch latch) {
-		this.latch = latch;
 	}
 
 }
