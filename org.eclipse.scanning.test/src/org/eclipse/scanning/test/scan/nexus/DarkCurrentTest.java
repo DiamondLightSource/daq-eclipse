@@ -6,15 +6,13 @@ import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanNotFini
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,7 +27,6 @@ import java.util.stream.Stream;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
 import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
-import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXentry;
@@ -55,9 +52,6 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.DarkImageModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -219,8 +213,8 @@ public class DarkCurrentTest extends NexusTest {
 		List<String> dataGroupNamesForDevice = nxDataGroups.keySet().stream()
 				.filter(name -> name.startsWith(detectorName)).collect(Collectors.toList());
 		assertEquals(detectorDataFields.size(), dataGroupNamesForDevice.size());
-		assertThat(dataGroupNamesForDevice, containsInAnyOrder(
-				expectedDataGroupNamesForDevice.values().toArray()));
+		assertTrue(dataGroupNamesForDevice.containsAll(
+				expectedDataGroupNamesForDevice.values()));
 
 		for (String dataFieldName : expectedDataGroupNamesForDevice.keySet()) {
 			String nxDataGroupName = expectedDataGroupNamesForDevice.get(dataFieldName); 
