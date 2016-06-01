@@ -11,6 +11,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.queues.IQueueProcess;
+import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
@@ -145,12 +148,25 @@ public class QueueProcessTest {
 	
 	@Test
 	public void testChangingProcessAfterExecution() throws Exception {
+		IQueueProcessor<? extends Queueable> fakeProcr = new MockQueueProcessor(new CountDownLatch(1));
+		IQueueProcess<DummyBean> pProc = new QueueProcess<DummyBean>(dummy, pub, blocking);
+		
+		//Mimic process execution
+		pProc.setExecuted();
+		try {
+			pProc.setProcessor(fakeProcr);
+			fail("Should not be able to change processor after execution start");
+		} catch (EventException eEx) {
+			//Expected
+		}
+		
+		//Try for real
 		mockProc.setCounter(300);
 		executeThread();
 		Thread.sleep(200);
 		try {
-			qProc.setProcessor(new MockQueueProcessor(new CountDownLatch(1)));
-			fail("Should not be able to change processor after execution started");
+			qProc.setProcessor(fakeProcr);
+			fail("Should not be able to change processor after execution start");
 		} catch (EventException eEx) {
 			//Expected
 		}
