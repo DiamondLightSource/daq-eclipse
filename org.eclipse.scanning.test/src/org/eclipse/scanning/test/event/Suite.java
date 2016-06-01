@@ -7,7 +7,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	SerializationTest.class,
 	ScanEventTest.class,
-	ConsumerTest.class,
+	// ConsumerTest.class,
 	PauseTest.class,
 	MappingScanTest.class,
 	AnyBeanEventTest.class,

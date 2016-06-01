@@ -23,6 +23,8 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
+import org.eclipse.scanning.api.scan.rank.IScanRankService;
+import org.eclipse.scanning.api.scan.rank.IScanSlice;
 
 /**
  * The scan points writer creates and writes to the unique keys and points
@@ -167,8 +169,8 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	 * @throws Exception
 	 */
 	private void writePosition(IPosition position) throws Exception {
-		SliceND sliceND = NexusScanInfo.createLocation(uniqueKeys,
-				position.getNames(), position.getIndices());
+		IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(position);
+		SliceND sliceND = new SliceND(uniqueKeys.getShape(), uniqueKeys.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 		
 		final int uniqueKey = position.getStepIndex() + 1;
 		final Dataset newActualPosition = DatasetFactory.createFromObject(uniqueKey);

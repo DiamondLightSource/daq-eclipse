@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="Services for Example Dark Image Detector Plugin Test">
-   <implementation class="org.eclipse.scanning.test.scan.nexus.DarkPluginTest"/>
-    <reference bind="setFileFactory" cardinality="1..1" interface="org.eclipse.dawnsci.nexus.INexusFileFactory" name="INexusFileFactory" policy="static"/>
-</scr:component>

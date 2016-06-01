@@ -24,14 +24,14 @@ import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModelWithMap;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 
 import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
-class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWithMap> {
+class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel> {
 	
 	private INexusFileFactory   factory;
 
@@ -79,6 +79,12 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWith
 		return state;
 	}
 
+	@Override
+	protected void setDeviceState(DeviceState nstate, IPosition position) throws ScanningException {
+		this.state = nstate;
+		super.setDeviceState(nstate, null);
+	}
+
 	protected void setState(DeviceState state, String message) throws MalcolmDeviceException {
 
 		DeviceState old = this.state;
@@ -118,7 +124,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWith
 	}
 
 	@Override
-	public MalcolmDetectorModelWithMap validate(MalcolmDetectorModelWithMap model) throws MalcolmDeviceException {
+	public MapMalcolmDetectorModel validate(MapMalcolmDetectorModel model) throws MalcolmDeviceException {
 		Map<String, Object> params = model.getParameterMap();
 		if (!params.containsKey("shape")) throw new MalcolmDeviceException(this, "shape must be set!");
 		if (!params.containsKey("nframes")) throw new MalcolmDeviceException(this, "nframes must be set!");
@@ -128,7 +134,8 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWith
 	}
 
 	@Override
-	public void configure(MalcolmDetectorModelWithMap model) throws ScanningException {
+	public void configure(MapMalcolmDetectorModel model) throws ScanningException {
+		
 		validate(model);
 		setDeviceState(DeviceState.CONFIGURING);
 		this.model = model;
@@ -221,7 +228,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWith
     			GroupNode par = file.getGroup("/entry/data", true); // DO NOT COPY!
     			
 				int[] ishape = (int[])params.get("shape");
-				if (ishape==null) ishape = new int[]{1024,1024};
+				if (ishape==null) ishape = new int[]{64,64};
 
 				final int[] shape = new int[]{1,  ishape[0], ishape[1]};
     			final int[] max   = new int[]{-1, ishape[0], ishape[1]};
@@ -236,7 +243,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MalcolmDetectorModelWith
 						acquireRunLock(); // Blocks if paused.
 	
 	    				int[] start = {index, 0, 0};
-	    				int[] stop  = {index+1, 1024, 1024};
+	    				int[] stop  = {index+1, 64, 64};
 	    				index++;
 	    				if (index>23) index = 23; // Stall on the last image to avoid writing massive stacks
 	    				

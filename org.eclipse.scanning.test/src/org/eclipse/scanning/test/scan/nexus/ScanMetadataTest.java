@@ -6,18 +6,17 @@ import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanNotFini
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,26 +29,27 @@ import java.util.stream.Stream;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
+import org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
-import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NXinstrument;
+import org.eclipse.dawnsci.nexus.NXobject;
 import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NXroot;
+import org.eclipse.dawnsci.nexus.NXsample;
+import org.eclipse.dawnsci.nexus.NXuser;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
-import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
-import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -57,38 +57,23 @@ import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
+import org.eclipse.scanning.api.scan.models.ScanMetadata;
+import org.eclipse.scanning.api.scan.models.ScanMetadata.MetadataType;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
-import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
-public class MandelbrotExamplePluginTest {
-
+public class ScanMetadataTest extends NexusTest {
 	
-	private static INexusFileFactory   fileFactory;
+	private IWritableDetector<MandelbrotModel> detector;
 	
-	private static IRunnableDeviceService        service;
-	private static IPointGeneratorService       gservice;
-	private static IDeviceConnectorService connector;
+	@Before
+	public void before() throws ScanningException {
 	
-	private static IWritableDetector<MandelbrotModel> detector;
-
-	@BeforeClass
-	public static void before() throws Exception {
+		MandelbrotModel model = createMandelbrotModel();
 		
-		connector = new MockScannableConnector();
-		service   = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
-		gservice  = new PointGeneratorFactory();
-		
-		MandelbrotModel model = new MandelbrotModel();
-		model.setName("mandelbrot");
-		model.setRealAxisName("xNex");
-		model.setImaginaryAxisName("yNex");
-		
-		detector = (IWritableDetector<MandelbrotModel>)service.createRunnableDevice(model);
+		detector = (IWritableDetector<MandelbrotModel>)dservice.createRunnableDevice(model);
 		assertNotNull(detector);
 		detector.addRunListener(new IRunListener() {
 			@Override
@@ -98,213 +83,42 @@ public class MandelbrotExamplePluginTest {
 		});
 
 	}
-	
+
 	@Test
-	public void test2ConsecutiveSmallScans() throws Exception {	
+	public void testScanMetadata() throws Exception {
+		List<ScanMetadata> scanMetadata = new ArrayList<>();
+		ScanMetadata entryMetadata = new ScanMetadata(MetadataType.ENTRY);
+		entryMetadata.addMetadataField(NXentry.NX_TITLE, "Scan Metadata Test Entry");
+		entryMetadata.addMetadataField(NXentry.NX_EXPERIMENT_IDENTIFIER, "i05-1");
+		entryMetadata.addMetadataField(NXentry.NX_START_TIME, "2016-03-21T16:41:27Z");
+		scanMetadata.add(entryMetadata);
 		
-		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 2, 2);
-		scanner.run(null);
-
-		scanner = createGridScan(detector, 2, 2);
-		scanner.run(null);
-	}
-	
-	/**
-	 * This test fails if the chunking is not done by the detector.
-	 *  
-	 * @throws Exception
-	 */
-	@Test
-	public void testWriteTime2Dvs3D() throws Exception {
-
-		// Tell configure detector to write 1 image into a 2D scan
-		IRunnableDevice<ScanModel> scanner = createGridScan(detector, 8, 5);
-		ScanModel mod = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
-		IPosition first = mod.getPositionIterable().iterator().next();
-		detector.run(first);
+		ScanMetadata instrumentMetadata = new ScanMetadata(MetadataType.INSTRUMENT);
+		instrumentMetadata.addMetadataField(NXinstrument.NX_NAME, "i05-1");
+		scanMetadata.add(instrumentMetadata);
 		
-		long before = System.currentTimeMillis();
-		detector.write(first);
-		long after = System.currentTimeMillis();
-		long diff2 = (after-before);
-		System.out.println("Writing 1 image in 3D stack took: "+diff2+" ms");
+		ScanMetadata sampleMetadata = new ScanMetadata(MetadataType.SAMPLE);
+		sampleMetadata.addMetadataField(NXsample.NX_CHEMICAL_FORMULA, "H2O");
+		sampleMetadata.addMetadataField(NXsample.NX_TEMPERATURE, 22.0);
+		sampleMetadata.addMetadataField(NXsample.NX_DESCRIPTION, "Test sample");
+		scanMetadata.add(sampleMetadata);
 		
-		scanner = createGridScan(detector, 10, 8, 5);
-		mod = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
-		first = mod.getPositionIterable().iterator().next();
-		detector.run(first);
+		ScanMetadata userMetadata = new ScanMetadata(MetadataType.USER);
+		userMetadata.addMetadataField(NXuser.NX_NAME, "testuser");
+		userMetadata.addMetadataField(NXuser.NX_ADDRESS, "Diamond Light Source, Diamond House, Harwell Science & Innovation Campus, Didcot, Oxfordshire, OX11 0DE");
+		userMetadata.addMetadataField(NXuser.NX_EMAIL, "user@diamond.ac.uk");
+		userMetadata.addMetadataField(NXuser.NX_TELEPHONE_NUMBER, "01");
+		scanMetadata.add(userMetadata);
 		
-		before = System.currentTimeMillis();
-		detector.write(first);
-		after = System.currentTimeMillis();
-		long diff3 = (after-before);
-		System.out.println("Writing 1 image in 4D stack took: "+diff3+" ms");
-
-		assertTrue(diff3<Math.max(20, diff2*1.5));
-	}
-
-	@Test
-	public void test2DNexusScan() throws Exception {
-		testScan(8,5);
-	}
-	
-	@Test
-	public void test3DNexusScan() throws Exception {
-		testScan(3,2,5);
-	}
-	
-	// TODO Why does this not pass?
-	//@Test
-	public void test3DNexusScanLarge() throws Exception {
-		long before = System.currentTimeMillis();
-		testScan(300,2,5);
-		long after = System.currentTimeMillis();
-		long diff  = after-before;
-		assertTrue(diff<20000);
-	}
-
-	@Test
-	public void test4DNexusScan() throws Exception {
-		testScan(3,3,2,2);
-	}
-	
-	@Test
-	public void test5DNexusScan() throws Exception {
-		testScan(1,1,1,2,2);
-	}
-	
-	@Test
-	public void test8DNexusScan() throws Exception {
-		testScan(1,1,1,1,1,1,2,2);
-	}
-	
-	private NXroot getNexusRoot(IRunnableDevice<ScanModel> scanner) throws Exception {
-		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
-
-		NexusFile nf = fileFactory.newNexusFile(filePath);
-		nf.openToRead();
-		
-		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
-		return (NXroot) nexusTree.getGroupNode();
-	}
-
-	private void testScan(int... shape) throws Exception {
-		
-		IRunnableDevice<ScanModel> scanner = createGridScan(detector, shape); // Outer scan of another scannable, for instance temp.
+		IRunnableDevice<ScanModel> scanner = createGridScan(detector, scanMetadata, 2, 2);
 		assertScanNotFinished(getNexusRoot(scanner).getEntry());
 		scanner.run(null);
-	
-		// Check we reached ready (it will normally throw an exception on error)
-		checkNexusFile(scanner, shape); // Step model is +1 on the size
-	}
-
-	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws Exception {
-		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
-		assertEquals(DeviceState.READY, scanner.getDeviceState());
-
-		NXroot rootNode = getNexusRoot(scanner);
-		NXentry entry = rootNode.getEntry();
-		NXinstrument instrument = entry.getInstrument();
 		
-		// check that the scan points have been written correctly
-		assertScanPointsGroup(entry, sizes);
-		
-		LinkedHashMap<String, List<String>> signalFieldAxes = new LinkedHashMap<>();
-		// axis for additional dimensions of a datafield, e.g. image
-		signalFieldAxes.put(NXdetector.NX_DATA, Arrays.asList("real", "imaginary"));
-		signalFieldAxes.put("spectrum", Arrays.asList("spectrum_axis"));
-		signalFieldAxes.put("value", Collections.emptyList());
-		
-		String detectorName = scanModel.getDetectors().get(0).getName();
-		NXdetector detector = instrument.getDetector(detectorName);
-		// map of detector data field to name of nxData group where that field is the @signal field
-		Map<String, String> expectedDataGroupNames =
-				signalFieldAxes.keySet().stream().collect(Collectors.toMap(Function.identity(),
-				x -> detectorName + (x.equals(NXdetector.NX_DATA) ? "" : "_" + x)));
-
-		// validate the main NXdata generated by the NexusDataBuilder
-		Map<String, NXdata> nxDataGroups = entry.getChildren(NXdata.class);
-		assertEquals(signalFieldAxes.size(), nxDataGroups.size());
-		assertThat(nxDataGroups.keySet(), containsInAnyOrder(
-				expectedDataGroupNames.values().toArray()));
-		for (String nxDataGroupName : nxDataGroups.keySet()) {
-			NXdata nxData = entry.getData(nxDataGroupName);
-
-			String sourceFieldName = nxDataGroupName.equals(detectorName) ? NXdetector.NX_DATA :
-				nxDataGroupName.substring(nxDataGroupName.indexOf('_') + 1);
-			assertSignal(nxData, sourceFieldName);
-			// check the nxData's signal field is a link to the appropriate source data node of the detector
-			DataNode dataNode = detector.getDataNode(sourceFieldName);
-			IDataset dataset = dataNode.getDataset().getSlice();
-			assertSame(dataNode, nxData.getDataNode(sourceFieldName));
-			assertTarget(nxData, sourceFieldName, rootNode, "/entry/instrument/" + detectorName
-					+ "/" + sourceFieldName);
-
-			// check that the other primary data fields of the detector haven't been added to this NXdata
-			for (String primaryDataFieldName : signalFieldAxes.keySet()) {
-				if (!primaryDataFieldName.equals(sourceFieldName)) {
-					assertNull(nxData.getDataNode(primaryDataFieldName));
-				}
-			}
-
-			int[] shape = dataset.getShape();
-			for (int i = 0; i < sizes.length; i++)
-				assertEquals(sizes[i], shape[i]);
-
-			// Make sure none of the numbers are NaNs. The detector
-			// is expected to fill this scan with non-nulls.
-			final PositionIterator it = new PositionIterator(shape);
-			while (it.hasNext()) {
-				int[] next = it.getPos();
-				assertFalse(Double.isNaN(dataset.getDouble(next)));
-			}
-
-			// Check axes
-			final IPosition pos = scanModel.getPositionIterable().iterator().next();
-			final List<String> scannableNames = pos.getNames();
-
-			// Append _value_demand to each name in list, then add detector axis fields to result
-			List<String> expectedAxesNames = Stream.concat(
-					scannableNames.stream().map(x -> x + "_value_demand"),
-					signalFieldAxes.get(sourceFieldName).stream()).collect(Collectors.toList());
-			assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
-
-			int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
-			for (int i = 0; i < scannableNames.size(); i++) {
-				// Demand values should be 1D
-				String scannableName = scannableNames.get(i);
-				NXpositioner positioner = instrument.getPositioner(scannableName);
-				assertNotNull(positioner);
-
-				dataNode = positioner.getDataNode("value_demand");
-				dataset = dataNode.getDataset().getSlice();
-				shape = dataset.getShape();
-				assertEquals(1, shape.length);
-				assertEquals(sizes[i], shape[0]);
-
-				String nxDataFieldName = scannableName + "_value_demand";
-				assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
-				assertIndices(nxData, nxDataFieldName, i);
-				assertTarget(nxData, nxDataFieldName, rootNode,
-						"/entry/instrument/" + scannableName + "/value_demand");
-
-				// Actual values should be scanD
-				dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
-				dataset = dataNode.getDataset().getSlice();
-				shape = dataset.getShape();
-				assertArrayEquals(sizes, shape);
-
-				nxDataFieldName = scannableName + "_" + NXpositioner.NX_VALUE;
-				assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
-				assertIndices(nxData, nxDataFieldName, defaultDimensionMappings);
-				assertTarget(nxData, nxDataFieldName, rootNode,
-						"/entry/instrument/" + scannableName + "/"
-								+ NXpositioner.NX_VALUE);
-			}
-		}
+		checkNexusFile(scanner, scanMetadata, 2, 2);
 	}
 	
-	private IRunnableDevice<ScanModel> createGridScan(final IRunnableDevice<?> detector, int... size) throws Exception {
+	private IRunnableDevice<ScanModel> createGridScan(final IRunnableDevice<?> detector,
+			List<ScanMetadata> scanMetadata, int... size) throws Exception {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
@@ -334,15 +148,14 @@ public class MandelbrotExamplePluginTest {
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
 		smodel.setDetectors(detector);
+		smodel.setScanMetadata(scanMetadata);
 		
 		// Create a file to scan into.
-		File output = File.createTempFile("test_mandel_nexus", ".nxs");
-		output.deleteOnExit();
 		smodel.setFilePath(output.getAbsolutePath());
 		System.out.println("File writing to "+smodel.getFilePath());
 
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = service.createRunnableDevice(smodel, null);
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, null);
 		
 		final IPointGenerator<?> fgen = gen;
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
@@ -358,13 +171,162 @@ public class MandelbrotExamplePluginTest {
 
 		return scanner;
 	}
+	
+	private void checkMetadata(NXentry entry, List<ScanMetadata> scanMetadataList) {
+		for (ScanMetadata scanMetadata : scanMetadataList) {
+			MetadataType type = scanMetadata.getType();
+			NXobject object = getNexusObjectForMetadataType(entry, type);
+			
+			for (String metadataFieldName : scanMetadata.getMetadataFieldNames()) {
+				Object expectedValue = scanMetadata.getMetadataFieldValue(metadataFieldName);
 
-	public static INexusFileFactory getFileFactory() {
-		return fileFactory;
+				Dataset dataset = (Dataset) object.getDataset(metadataFieldName);
+				assertNotNull(dataset);
+				assertEquals(1, dataset.getRank());
+				assertEquals(1, dataset.getSize());
+				assertEquals(AbstractDataset.getDTypeFromObject(expectedValue),
+						dataset.getDtype());
+				assertEquals(expectedValue, dataset.getObject(0));
+			}
+		}
+	}
+	
+	private NXobject getNexusObjectForMetadataType(NXentry entry, MetadataType type) {
+		if (type == null) {
+			return entry;
+		}
+		
+		switch (type) {
+			case ENTRY: 
+				return entry;
+			case INSTRUMENT:
+				return entry.getInstrument();
+			case SAMPLE:
+				return entry.getSample();
+			case USER:
+				return entry.getUser();
+			default:
+				throw new IllegalArgumentException("Unknown metadata type " + type);
+		}
+	}
+	
+	private NXroot getNexusRoot(IRunnableDevice<ScanModel> scanner) throws Exception {
+		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
+
+		NexusFile nf = fileFactory.newNexusFile(filePath);
+		nf.openToRead();
+		
+		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
+		return (NXroot) nexusTree.getGroupNode();
 	}
 
-	public static void setFileFactory(INexusFileFactory fileFactory) {
-		MandelbrotExamplePluginTest.fileFactory = fileFactory;
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner,
+			List<ScanMetadata> scanMetadata, int... sizes) throws Exception {
+
+		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
+		assertEquals(DeviceState.READY, scanner.getDeviceState());
+
+		NXroot rootNode = getNexusRoot(scanner);
+		NXentry entry = rootNode.getEntry();
+		checkMetadata(entry, scanMetadata);
+		// check that the scan points have been written correctly
+		assertScanPointsGroup(entry, sizes);
+		
+		NXinstrument instrument = entry.getInstrument();
+
+		LinkedHashMap<String, List<String>> signalFieldAxes = new LinkedHashMap<>();
+		// axis for additional dimensions of a datafield, e.g. image
+		signalFieldAxes.put(NXdetector.NX_DATA, Arrays.asList("real", "imaginary"));
+		signalFieldAxes.put("spectrum", Arrays.asList("spectrum_axis"));
+		signalFieldAxes.put("value", Collections.emptyList());
+
+		String detectorName = scanModel.getDetectors().get(0).getName();
+		NXdetector detector = instrument.getDetector(detectorName);
+		// map of detector data field to name of nxData group where that field
+		// is the @signal field
+		Map<String, String> expectedDataGroupNames =
+				signalFieldAxes.keySet().stream().collect(Collectors.toMap(Function.identity(),
+				x -> detectorName + (x.equals(NXdetector.NX_DATA) ? "" : "_" + x)));
+
+		// validate the main NXdata generated by the NexusDataBuilder
+		Map<String, NXdata> nxDataGroups = entry.getChildren(NXdata.class);
+		assertEquals(signalFieldAxes.size(), nxDataGroups.size());
+		assertTrue(nxDataGroups.keySet().containsAll(expectedDataGroupNames.values()));
+		for (String nxDataGroupName : nxDataGroups.keySet()) {
+			NXdata nxData = entry.getData(nxDataGroupName);
+
+			String sourceFieldName = nxDataGroupName.equals(detectorName) ? NXdetector.NX_DATA
+					: nxDataGroupName.substring(nxDataGroupName.indexOf('_') + 1);
+			assertSignal(nxData, sourceFieldName);
+			// check the nxData's signal field is a link to the appropriate source data node of the detector
+			DataNode dataNode = detector.getDataNode(sourceFieldName);
+			IDataset dataset = dataNode.getDataset().getSlice();
+			assertSame(dataNode, nxData.getDataNode(sourceFieldName));
+			assertTarget(nxData, sourceFieldName, rootNode, "/entry/instrument/" + detectorName
+					+ "/" + sourceFieldName);
+			
+			// check that the other primary data fields of the detector haven't been added to this NXdata
+			for (String primaryDataFieldName : signalFieldAxes.keySet()) {
+				if (!primaryDataFieldName.equals(sourceFieldName)) {
+					assertNull(nxData.getDataNode(primaryDataFieldName));
+				}
+			}
+
+			int[] shape = dataset.getShape();
+			for (int i = 0; i < sizes.length; i++)
+				assertEquals(sizes[i], shape[i]);
+
+			// Make sure none of the numbers are NaNs. The detector
+			// is expected to fill this scan with non-nulls.
+			final PositionIterator it = new PositionIterator(shape);
+			while (it.hasNext()) {
+				int[] next = it.getPos();
+				assertFalse(Double.isNaN(dataset.getDouble(next)));
+			}
+
+			// Check axes
+			final IPosition pos = scanModel.getPositionIterable().iterator().next();
+			final Collection<String> scannableNames = pos.getNames();
+
+			// Append _value_demand to each name in list, then add detector axis fields to result
+			List<String> expectedAxesNames = Stream.concat(
+					scannableNames.stream().map(x -> x + "_value_demand"),
+					signalFieldAxes.get(sourceFieldName).stream()).collect(Collectors.toList());
+			assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
+
+			int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
+			int i = -1;
+			for (String  scannableName : scannableNames) {
+				
+			    i++;
+				NXpositioner positioner = instrument.getPositioner(scannableName);
+				assertNotNull(positioner);
+
+				dataNode = positioner.getDataNode("value_demand");
+				dataset = dataNode.getDataset().getSlice();
+				shape = dataset.getShape();
+				assertEquals(1, shape.length);
+				assertEquals(sizes[i], shape[0]);
+
+				String nxDataFieldName = scannableName + "_value_demand";
+				assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
+				assertIndices(nxData, nxDataFieldName, i);
+				assertTarget(nxData, nxDataFieldName, rootNode,
+						"/entry/instrument/" + scannableName + "/value_demand");
+
+				// Actual values should be scanD
+				dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
+				dataset = dataNode.getDataset().getSlice();
+				shape = dataset.getShape();
+				assertArrayEquals(sizes, shape);
+
+				nxDataFieldName = scannableName + "_" + NXpositioner.NX_VALUE;
+				assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
+				assertIndices(nxData, nxDataFieldName, defaultDimensionMappings);
+				assertTarget(nxData, nxDataFieldName, rootNode,
+						"/entry/instrument/" + scannableName + "/" + NXpositioner.NX_VALUE);
+			}
+		}
 	}
 
 }

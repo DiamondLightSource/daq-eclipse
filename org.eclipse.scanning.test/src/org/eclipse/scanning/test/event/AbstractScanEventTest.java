@@ -202,7 +202,7 @@ public class AbstractScanEventTest extends BrokerTest{
 				try {
 					// Should go here 4 times, taking ~2 secs
 					// Make this handler slow so events are missed
-					Thread.sleep(500);
+					Thread.sleep(50);
 				} catch (InterruptedException e) {
 					// Do nothing in a test
 				}
@@ -250,8 +250,8 @@ public class AbstractScanEventTest extends BrokerTest{
 		bean2.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean2);
 		
-		// Wait for 10 secs >> 2 secs
-		Thread.sleep(10000); // The bean should go back and forth in ms anyway
+		// Wait for 1 secs > 0.2 secs
+		Thread.sleep(1000); // The bean should go back and forth in ms anyway
 
 		if (gotBack.size()!=4) throw new Exception("The wrong number of state changes happened during the fake scan! Number found "+gotBack.size());
  	
@@ -327,8 +327,7 @@ public class AbstractScanEventTest extends BrokerTest{
 		bean2.setDeviceState(DeviceState.IDLE);
 		publisher.broadcast(bean2);
 		
-		// Wait for 10 secs >> 2 secs
-		Thread.sleep(10000); // The bean should go back and forth in ms anyway
+		Thread.sleep(100); // The bean should go back and forth in ms anyway
 
 		if (gotBack.size()!=4) throw new Exception("The wrong number of state changes happened during the fake scan! Number found "+gotBack.size());
  	

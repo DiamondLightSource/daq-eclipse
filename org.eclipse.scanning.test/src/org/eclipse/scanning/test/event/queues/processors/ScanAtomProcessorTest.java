@@ -1,10 +1,7 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -244,7 +241,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		} else if (lastStatus.equals(Status.TERMINATED)) {
 			//Last bean should be TERMINATED & not 100%
 			assertEquals("Unexpected last ScanBean final status", lastStatus, lastBean.getStatus());
-			assertThat("ScanBean percentComplete is 100%", lastBean.getPercentComplete(), is(not(100d)));
+			assertTrue("ScanBean percentComplete is 100%", lastBean.getPercentComplete()!=100d);
 		}
 		else {
 			fail("Unknown bean final status");

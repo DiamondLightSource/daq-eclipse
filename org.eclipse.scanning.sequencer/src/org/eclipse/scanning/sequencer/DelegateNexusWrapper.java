@@ -15,6 +15,8 @@ import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.rank.IScanRankService;
+import org.eclipse.scanning.api.scan.rank.IScanSlice;
 
 /**
  * Class provides aq default implementation which will write any
@@ -98,7 +100,8 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 		if (actual!=null) {
 			// write actual position
 			final IDataset newActualPositionData = DatasetFactory.createFromObject(actual);
-			SliceND sliceND = NexusScanInfo.createLocation(lzValue, loc.getNames(), loc.getIndices());
+			IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(loc);
+			SliceND sliceND = new SliceND(lzValue.getShape(), lzValue.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 			lzValue.setSlice(null, newActualPositionData, sliceND);
 		}
 

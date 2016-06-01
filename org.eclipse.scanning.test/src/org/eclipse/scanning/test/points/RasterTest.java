@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.points;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import java.util.Iterator;
@@ -263,13 +262,13 @@ public class RasterTest {
 		IPointGenerator<RasterModel> gen = service.createGenerator(model, roi);
 		List<IPosition> pointList = gen.createPoints();
 
-		assertThat(pointList.size(), is(equalTo(12)));
+		assertTrue(pointList.size()==12);
 
 		// Check some points
-		assertThat(pointList.get(0), is(equalTo(new Point(0, -10.0, 0, 5.0))));
-		assertThat(pointList.get(1), is(equalTo(new Point(1, -9.0, 0, 5.0))));
-		assertThat(pointList.get(3), is(equalTo(new Point(0, -10.0, 1, 6.0))));
-		assertThat(pointList.get(7), is(equalTo(new Point(1, -9.0, 2, 7.0))));
+		assertTrue(pointList.get(0).equals(new Point(0, -10.0, 0, 5.0)));
+		assertTrue(pointList.get(1).equals(new Point(1, -9.0, 0, 5.0)));
+		assertTrue(pointList.get(3).equals(new Point(0, -10.0, 1, 6.0)));
+		assertTrue(pointList.get(7).equals(new Point(1, -9.0, 2, 7.0)));
 	}
 
 	@Test
@@ -288,13 +287,13 @@ public class RasterTest {
 		IPointGenerator<RasterModel> gen = service.createGenerator(model, roi);
 		List<IPosition> pointList = gen.createPoints();
 
-		assertThat(pointList.size(), is(equalTo(9)));
+		assertTrue(pointList.size()==9);
 
 		// Check some points
-		assertThat(pointList.get(0), is(equalTo(new Point(0, 1.0, 0, 1.0))));
-		assertThat(pointList.get(1), is(equalTo(new Point(1, 2.0, 0, 1.0))));
-		assertThat(pointList.get(3), is(equalTo(new Point(2, 3.0, 1, 2.0))));
-		assertThat(pointList.get(7), is(equalTo(new Point(1, 2.0, 2, 3.0))));
+		assertTrue(pointList.get(0).equals(new Point(0, 1.0, 0, 1.0)));
+		assertTrue(pointList.get(1).equals(new Point(1, 2.0, 0, 1.0)));
+		assertTrue(pointList.get(3).equals(new Point(2, 3.0, 1, 2.0)));
+		assertTrue(pointList.get(7).equals(new Point(1, 2.0, 2, 3.0)));
 	}
 
 }

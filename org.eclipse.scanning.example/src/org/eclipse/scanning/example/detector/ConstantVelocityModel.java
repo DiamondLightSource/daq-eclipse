@@ -1,12 +1,15 @@
 package org.eclipse.scanning.example.detector;
 
-public class ConstantVelocityModel {
+import org.eclipse.scanning.api.ITimeoutable;
+
+public class ConstantVelocityModel implements ITimeoutable {
 
 	private double start,stop,step;
 	private String name      = "cvDevice";
-	private int lineSize     = -1;
+	private int lineSize     = 1;
 	private int channelCount = 64;
-	private int spectraSize  = 4096;
+	private int spectraSize  = 46;
+	private long timeout  = 100;
 
 	public ConstantVelocityModel() {
 
@@ -102,6 +105,14 @@ public class ConstantVelocityModel {
 
 	public void setStep(double step) {
 		this.step = step;
+	}
+
+	public long getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
 	}
 
 

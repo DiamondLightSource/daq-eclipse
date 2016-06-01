@@ -62,7 +62,7 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel> {
 			// LinearROI has a helpful getPoint(double) method which returns coordinates of a point at a normalised
 			// distance along the line
 			double[] pointArray = line.getPoint(i * proportionalStep);
-			points.add(new Point(i, pointArray[0], i, pointArray[1])); // TODO Indices might be wrong
+			points.add(new Point(i, pointArray[0], i, pointArray[1], false)); // TODO Indices might be wrong
 		}
 		return points;
 	}

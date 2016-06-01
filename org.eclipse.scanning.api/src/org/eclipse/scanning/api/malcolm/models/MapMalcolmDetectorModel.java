@@ -13,14 +13,20 @@ import java.util.Map;
  * @author Colin Palmer
  *
  */
-public class MalcolmDetectorModelWithMap extends MalcolmDetectorConfiguration {
+public class MapMalcolmDetectorModel extends MalcolmDetectorConfiguration<Map<String, Object>> {
 
 	private static final String EXPOSURE_NAME = "exposure";
 
-	private Map<String, Object> parameterMap = new LinkedHashMap<>();
+
+	public MapMalcolmDetectorModel() {
+		setModel(new LinkedHashMap<>());
+	}
+	public MapMalcolmDetectorModel(Map<String, Object> config) {
+		setModel(config);
+	}
 
 	public double getExposureTime() {
-		Object exposure = parameterMap.get(EXPOSURE_NAME);
+		Object exposure = getModel().get(EXPOSURE_NAME);
 		if (exposure instanceof Number) {
 			return ((Number) exposure).doubleValue();
 		} else {
@@ -29,22 +35,22 @@ public class MalcolmDetectorModelWithMap extends MalcolmDetectorConfiguration {
 	}
 
 	public void setExposureTime(double exposureTime) {
-		parameterMap.put(EXPOSURE_NAME, Double.valueOf(exposureTime));
+		getModel().put(EXPOSURE_NAME, Double.valueOf(exposureTime));
 	}
 
 	public Map<String, Object> getParameterMap() {
-		return parameterMap;
+		return getModel();
 	}
 
 	public void setParameterMap(Map<String, Object> parameterMap) {
-		this.parameterMap = parameterMap;
+		setModel(parameterMap);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((parameterMap == null) ? 0 : parameterMap.hashCode());
+		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		return result;
 	}
 
@@ -56,11 +62,12 @@ public class MalcolmDetectorModelWithMap extends MalcolmDetectorConfiguration {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MalcolmDetectorModelWithMap other = (MalcolmDetectorModelWithMap) obj;
-		if (parameterMap == null) {
-			if (other.parameterMap != null)
+		MapMalcolmDetectorModel other = (MapMalcolmDetectorModel) obj;
+		if (model == null) {
+			if (other.model != null)
 				return false;
-		} else if (!parameterMap.equals(other.parameterMap))
+		} else if (!model.equals(other.model))
+
 			return false;
 		return true;
 	}

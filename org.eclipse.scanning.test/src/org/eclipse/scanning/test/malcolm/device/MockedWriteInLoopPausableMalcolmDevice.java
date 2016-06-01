@@ -1,28 +1,54 @@
 package org.eclipse.scanning.test.malcolm.device;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
+import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
+import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
+import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
+import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
-import org.eclipse.dawnsci.hdf.object.HierarchicalDataFactory;
-import org.eclipse.dawnsci.hdf.object.IHierarchicalDataFile;
+import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
+import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModelWithMap;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 
 /**
- * Device which pretends to write a 1024x1024 file a number of times
+ * Device which pretends to write a 64x64 file a number of times
  * @author fri44821
  *
  */
 public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolmDevice {
 
-	public MockedWriteInLoopPausableMalcolmDevice(final String name, final LatchDelegate latcher) throws ScanningException {		
+	private NexusFileFactoryHDF5 factory;
+	private NexusFile file;
+	private ILazyWriteableDataset writer;
+
+	public MockedWriteInLoopPausableMalcolmDevice(final String name, final LatchDelegate latcher) throws Exception {		
+		
 		super(name, latcher);
+		
+		factory = new NexusFileFactoryHDF5();
+		final File ret = File.createTempFile("temp_transient_file", ".h5");
+		ret.deleteOnExit();
+		
+		this.file = factory.newNexusFile(ret.getAbsolutePath(), false);
+		file.openToWrite(true);
+		GroupNode par = file.getGroup("/entry/data", true); // DO NOT COPY!
+
+		final int[] shape = new int[] { 1, 64, 64 };
+		final int[] max = new int[] { -1, 64, 64 };
+		writer = new LazyWriteableDataset("image", Dataset.FLOAT, shape, max, shape, null); // DO NOT COPY!
+		file.createData(par, writer);
+		
 		/**
 		 * The task to be executed repeatably
 		 */
@@ -32,46 +58,39 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 			public Long call() throws Exception {
 
 				int[] shape = (int[])model.getParameterMap().get("shape");
-				if (shape==null) shape = new int[]{1024,1024};
+				if (shape==null) shape = new int[]{64,64};
 				IDataset       rimage   = Random.rand(shape);
 				rimage.setName("image");
 				
+				int[] start = { count, 0, 0 };
+				int[] stop = { count + 1, 64, 64 };
+				count++;
 				
-				// TODO FIXME Have to remove this is order for device to work @see MockedMalcolmDevice
- 				IHierarchicalDataFile file=null;
- 				try {
-        			file = HierarchicalDataFactory.getWriter((String)model.getParameterMap().get("file"));
- 					
-					file.group("/entry");
-					file.group("/entry/data");
-					file.appendDataset(rimage.getName(), rimage, "/entry/data");
-					
-					count++;
+				writer.setSlice(new IMonitor.Stub(), rimage, start, stop, null);
+				file.flush(); // remove explicit flush
 
-					// We mimic and event coming in from Malcolm
-					// In reality these will come in from ZeroMQ but
-					// will call sendEvent(...) in the same way.
-					final MalcolmEventBean bean = new MalcolmEventBean(getState());
-					bean.setPercentComplete((count/amount)*100d);	
-					bean.setFilePath((String)model.getParameterMap().get("file"));
-					bean.setDatasetPath("/entry/data");
-					
-					// Hardcoded shape change of dataset, in reality it will not be so simple.
-					bean.setOldShape(new int[]{count-1, shape[0], shape[1]});
-					bean.setNewShape(new int[]{count, shape[0], shape[1]});
-					sendEvent(bean);
-					
-					return null;
+				final MalcolmEventBean bean = new MalcolmEventBean(getState());
+				bean.setPercentComplete((count/amount)*100d);	
+				bean.setFilePath((String)model.getParameterMap().get("file"));
+				bean.setDatasetPath("/entry/data");
+				
+				// Hardcoded shape change of dataset, in reality it will not be so simple.
+				bean.setOldShape(new int[]{count-1, shape[0], shape[1]});
+				bean.setNewShape(new int[]{count, shape[0], shape[1]});
+				bean.setPreviousState(getDeviceState());
+				bean.setDeviceState(getDeviceState());
+				sendEvent(bean);
 
-				} finally {
-					if (file!=null) file.close();
-        		}
+				System.err.println("> HDF5 wrote image to " + ret);
+				System.err.println("> New shape " + Arrays.toString(writer.getShape()));
+				
+				return null;
 			}
 		};
 	}
 
 	@Override
-	public MalcolmDetectorModelWithMap validate(MalcolmDetectorModelWithMap model) throws MalcolmDeviceException {
+	public MapMalcolmDetectorModel validate(MapMalcolmDetectorModel model) throws MalcolmDeviceException {
 		Map<String, Object> params = model.getParameterMap();
 		if (!params.containsKey("shape")) throw new MalcolmDeviceException(this, "shape must be set!");
 		if (!params.containsKey("nframes")) throw new MalcolmDeviceException(this, "nframes must be set!");
@@ -81,7 +100,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 	}
 
 	@Override
-	public void configure(MalcolmDetectorModelWithMap params) throws ScanningException {
+	public void configure(MapMalcolmDetectorModel params) throws ScanningException {
 		
 		validate(params);
 		setState(DeviceState.CONFIGURING);

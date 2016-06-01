@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +68,7 @@ public abstract class AbstractMalcolmTest {
 				
 		// Params for driving mock mode
 		config.put("nframes", imageCount); // IMAGE_COUNT images to write
-		config.put("shape", new int[]{1024,1024});
+		config.put("shape", new int[]{64,64});
 		
 		final File temp = File.createTempFile("testingFile", ".hdf5");
 		temp.deleteOnExit();
@@ -87,7 +88,7 @@ public abstract class AbstractMalcolmTest {
 	    
 		// Test params for starting the device 		
 	    createParameters(config, -1, imageCount);
-		device.configure(config);
+		device.configure(new MapMalcolmDetectorModel(config));
 	    return device;	
 	}
 	
@@ -99,7 +100,7 @@ public abstract class AbstractMalcolmTest {
 		final Thread runner = new Thread(new Runnable() {
 			public void run() {
 				try {
-					device.configure(config);
+					device.configure(new MapMalcolmDetectorModel(config));
 				} catch (Exception e) {
 					e.printStackTrace();
 					exceptions.add(e);
@@ -278,7 +279,7 @@ public abstract class AbstractMalcolmTest {
 		}
 		
 		DeviceState state = device.getDeviceState();
-		if (state!=DeviceState.PAUSED) throw new Exception("The state is not paused!");
+		if (state!=DeviceState.PAUSED) throw new Exception("The state is not paused! It is "+state);
 
 		try {
 			device.resume();  // start it going again, non-blocking

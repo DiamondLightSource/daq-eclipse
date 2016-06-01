@@ -12,7 +12,7 @@ public class MalcolmDetectorConfiguration<T> {
 	 * The model that will  be sent to the MalcolmDevice for instance
 	 * OneDetectorTestMappingModel which can be sent to the device safely.
 	 */
-	private T model;
+	protected T model;
 	
 	/**
 	 * This should not be sent to the malcolm device, it is logic to do with the connection.
@@ -52,11 +52,11 @@ public class MalcolmDetectorConfiguration<T> {
 		return true;
 	}
 
-	public T getPayload() {
+	public T getModel() {
 		return model;
 	}
 
-	public void setPayload(T payload) {
+	public void setModel(T payload) {
 		this.model = payload;
 	}
 

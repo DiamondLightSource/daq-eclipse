@@ -1,6 +1,7 @@
 package org.eclipse.scanning.sequencer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,8 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.nexus.NexusScanFileBuilder;
 import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This device does a standard GDA scan at each point. If a given point is a 
@@ -43,6 +46,8 @@ import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
  * @param <T>
  */
 final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AcquisitionDevice.class);
 
 	// Scanning stuff
 	private IPositioner                          positioner;
@@ -105,12 +110,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		// add legacy metadata scannables and 
 		// tell each scannable whether or not it is a metadata scannable in this scan
-		List<String> scannableNames = getScannableNames(model.getPositionIterable());
+		Collection<String> scannableNames = getScannableNames(model.getPositionIterable());
 		setMetadataScannables(model, scannableNames);
 		
 		// create the nexus file, if appropriate
 		try {
-			createNexusFile(model);
+			int scanRank = getScanRank(model.getPositionIterable());
+			createNexusFile(model, scannableNames, scanRank);
 		} catch (NexusException e) {
 			throw new ScanningException(e);
 		}
@@ -127,7 +133,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	 * @throws ScanningException
 	 */
 	@SuppressWarnings("deprecation")
-	private void setMetadataScannables(ScanModel model, List<String> scannableNames) throws ScanningException {
+	private void setMetadataScannables(ScanModel model, Collection<String> scannableNames) throws ScanningException {
 		// TODO: does this belong in NexusScanFileBuilder? It's clogging up this class
 		// and only NexusScanFileBuilder needs to know about metadata scannables
 		
@@ -182,13 +188,17 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	 * @throws NexusException if a nexus file should be created
 	 * @throws ScanningException 
 	 */
-	private boolean createNexusFile(ScanModel model) throws NexusException, ScanningException {
+	private boolean createNexusFile(ScanModel model, Collection<String> scannableNames, int scanRank) throws NexusException, ScanningException {
+		
 		if (model.getFilePath() == null || ServiceHolder.getFactory() == null) {
 			return false; // nothing wired, don't write a nexus file 
 		}
 		
 		NexusScanFileBuilder fileBuilder = new NexusScanFileBuilder(getConnectorService());
-		nexusScanFile = fileBuilder.createNexusFile(model);
+		nexusScanFile = fileBuilder.createNexusFile(model, scannableNames, scanRank);
+		
+		// TODO FIXME MD Does this not cause a memory leak as run listeners are added
+		// but never removed?
 		ScanPointsWriter scanPointsWriter = fileBuilder.getScanPointsWriter();
     	positioner.addPositionListener(scanPointsWriter);
     	addRunListener(scanPointsWriter);
@@ -252,7 +262,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
 	        	writers.await();               // Wait for the previous read out to return, if any
-	        	if (nexusScanFile!=null) nexusScanFile.flush();         // flush the nexus file
+	        	if (nexusScanFile!=null) {
+	        		int code = nexusScanFile.flush();         // flush the nexus file
+	        		if (code<0) logger.warn("Problem flushing during scan! Flush code is "+code);
+	        	}
 	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
@@ -276,7 +289,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			setDeviceState(DeviceState.FAULT);
 			throw new ScanningException(ne);
 		} finally {
-        	fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
         	if (nexusScanFile!=null) {
 				try {
 					nexusScanFile.close();
@@ -284,6 +296,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 					throw new ScanningException("Could not close nexus file", e);
 				}
         	}
+        	// We should not fire the run performed until the nexus file is closed.
+        	// Tests wait for this step and reread the file.
+       	    fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
 		}
 		// only fire end if finished normally
 		fireEnd();
@@ -457,9 +472,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	}
 	
 
-	private List<String> getScannableNames(Iterable<IPosition> gen) {
+	private Collection<String> getScannableNames(Iterable<IPosition> gen) {
 		
-		List<String> names = null;
+		Collection<String> names = null;
 		if (gen instanceof IDeviceDependentIterable) {
 			names = ((IDeviceDependentIterable)gen).getScannableNames();
 			
@@ -469,6 +484,21 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		}
 		return names;   		
 	}
+	
+	private int getScanRank(Iterable<IPosition> gen) {
+		
+		int scanRank = -1;
+		if (gen instanceof IDeviceDependentIterable) {
+			scanRank = ((IDeviceDependentIterable)gen).getScanRank();
+			
+		}
+		if (scanRank < 0) {
+			scanRank = model.getPositionIterable().iterator().next().getScanRank();
+		}
+		if (scanRank<0) scanRank = 1;
+		return scanRank;   		
+	}
+
 	
 	private int getSize(Iterable<IPosition> gen) throws GeneratorException {
 		

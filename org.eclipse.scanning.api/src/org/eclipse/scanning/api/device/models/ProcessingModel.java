@@ -14,6 +14,12 @@ public class ProcessingModel implements ITimeoutable {
 	private String detectorName;
 	private String name;
 	private String operationsFile;
+	
+	/**
+	 * Just for testing, set an operation directly
+	 * to be run by the device.
+	 */
+	private Object operation;
 
 	private long timeout = -1;
 	
@@ -98,5 +104,13 @@ public class ProcessingModel implements ITimeoutable {
 
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;
+	}
+
+	public Object getOperation() {
+		return operation;
+	}
+
+	public void setOperation(Object operation) {
+		this.operation = operation;
 	}
 }

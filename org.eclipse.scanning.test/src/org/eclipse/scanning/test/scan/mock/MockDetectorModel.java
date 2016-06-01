@@ -21,7 +21,7 @@ public class MockDetectorModel implements IDetectorModel {
 	private int abortCount=-1;
 	private String name;
     private boolean createImage = true;
-    private int[] imageSize = new int[]{1024, 1024};
+    private int[] imageSize = new int[]{64, 64};
 	
 	public double getExposureTime() {
 		return exposureTime;

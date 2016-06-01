@@ -1,9 +1,6 @@
 package org.eclipse.scanning.sequencer.analysis;
 
-import java.util.Arrays;
-
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.IDynamicDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
@@ -31,6 +28,8 @@ import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.rank.IScanRankService;
+import org.eclipse.scanning.api.scan.rank.IScanSlice;
 import org.eclipse.scanning.sequencer.ServiceHolder;
 
 /**
@@ -94,21 +93,29 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 		// run in this method...
 	}
 	
-	private IDataset lastResult;
+	private IScanSlice rslice;
 	
 	@Override
 	public boolean write(IPosition loc) throws ScanningException {
 
-		if (data==null) {
-			createOperationService(loc);
-			processed.setChunking(info.createChunk(getImageShape()));
-		}
 		try {
-			SliceND slice = NexusScanInfo.createLocation(processed, loc.getNames(), loc.getIndices(), getImageShape());
-			if (data instanceof IDynamicDataset) {
-				((IDynamicDataset)data).refreshShape();
+			// Get the frame
+			ILoaderService lservice = ServiceHolder.getLoaderService();
+			IDataHolder    holder   = lservice.getData(model.getDataFile(), new IMonitor.Stub());
+
+			// TODO Might not be correct place to find the detector. Ideally
+			// An object in INexusDevice interface should provide where the node is.
+			this.data = holder.getLazyDataset("/entry/instrument/"+model.getDetectorName()+"/data");
+
+			if (context==null) {
+				createOperationService();
+				processed.setChunking(info.createChunk(getImageShape()));
 			}
-			context.setData(data.getSlice(slice)); // Just this frame.
+			
+			this.rslice = IScanRankService.getScanRankService().createScanSlice(loc, getImageShape());
+			SliceND slice = new SliceND(processed.getShape(), processed.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
+			IDataset set = data.getSlice(slice);
+			context.setData(set); // Just this frame.
 	        oservice.execute(context);
 	        
 	        // TODO Write it!
@@ -124,7 +131,7 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 		return new int[]{data.getShape()[data.getShape().length-2], data.getShape()[data.getShape().length-1]};
 	}
 
-	private void createOperationService(IPosition loc) throws ScanningException {
+	private void createOperationService() throws ScanningException {
 		
 		try {
 			IOperation<?,?>[]         operations;
@@ -143,6 +150,9 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 				final IPersistenceService pservice   = ServiceHolder.getPersistenceService();
 				IPersistentFile           file       = pservice.createPersistentFile(getModel().getOperationsFile());
 				operations = file.getOperations();
+				
+			} else if (getModel().getOperation()!=null) {
+				operations = new IOperation<?,?>[]{(IOperation<?,?>)getModel().getOperation()};
 			} else {
 				throw new ScanningException("No persisted operations file supplied!");
 			}
@@ -155,17 +165,12 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 			context.setVisitor(new IExecutionVisitor.Stub() {
 				@Override
 				public void executed(OperationData result, IMonitor monitor) throws Exception {
-				    lastResult = result.getData();
-				    System.out.println("+++++"+Arrays.toString(lastResult.getShape()));
+					IDataset lastResult = result.getData();
+					SliceND slice = new SliceND(processed.getShape(), processed.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
+					processed.setSlice(null, lastResult, slice);
 				}			
 			});
 
-	        ILoaderService lservice = ServiceHolder.getLoaderService();
-	        IDataHolder    holder   = lservice.getData(model.getDataFile(), new IMonitor.Stub());
-	        
-	        // TODO Might not be correct place to find the detector. Ideally
-	        // An object in INexusDevice interface should provide where the node is.
-	        this.data = holder.getLazyDataset("/entry/instrument/"+model.getDetectorName()+"/data");
 	        
 	        // The data dimensions are the scan dimensions.
 			// TODO Hard coded to images

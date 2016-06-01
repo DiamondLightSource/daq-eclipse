@@ -1,10 +1,7 @@
 package org.eclipse.scanning.test.event.queues;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -439,16 +436,16 @@ public class AbstractQueueServiceTest extends BrokerTest {
 		if (expected.equals(Status.SUBMITTED)) {
 			assertEquals("Submitted and completed beans are different!", bean, complete);
 		} else {
-		assertThat("Submitted bean and complete bean are identical!", bean, is(not(complete)));
+			assertTrue("Submitted bean and complete bean are identical!", !bean.equals(complete));
 		}
 		assertEquals("The bean in the queue has the wrong final state!", expected, complete.getStatus());
 		if (expected.equals(Status.COMPLETE)) {
-			assertThat("The percent complete is not 100!", complete.getPercentComplete(), is(100));
+			assertTrue("The percent complete is not 100!", complete.getPercentComplete()==100);
 		} else {
-			assertThat("The percent complete is 100!", complete.getPercentComplete(), is(not(100)));
+			assertTrue("The percent complete is 100!", complete.getPercentComplete()!=100);
 		}
 	}
-	
+
 	protected void checkForShutdownConsumer(UUID qConsID, String heartbeatTopicName) throws Exception {
 		
 		//Wait first to give consumer time to stop

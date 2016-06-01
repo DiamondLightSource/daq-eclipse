@@ -53,9 +53,10 @@ public class ServiceHolder {
 	 * @param ls
 	 * @param defaultNexusBuilderFactory
 	 */
-	public static void setTestServices(ILoaderService ls, NexusBuilderFactory defaultNexusBuilderFactory) {
+	public static void setTestServices(ILoaderService ls, NexusBuilderFactory defaultNexusBuilderFactory, IOperationService oservice) {
 		loaderService = ls;
 		factory = defaultNexusBuilderFactory;
+		operationService = oservice;
 	}
 	
 }

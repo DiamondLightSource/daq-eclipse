@@ -1,16 +1,12 @@
 package org.eclipse.scanning.test.scan;
 
-import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IParser;
 import org.eclipse.scanning.api.scan.IParserService;
 import org.eclipse.scanning.command.ParserServiceImpl;
+import org.eclipse.scanning.test.util.DoubleUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,15 +24,15 @@ public class ParserTest {
 
 	@Test
 	public void testParserService() {
-		assertThat(parserService, is(notNullValue()));
+		assertTrue(parserService!=null);
 	}
 
 	private void assertStepModel(StepModel stepModel, String name, double start, double stop, double step) {
-		assertThat(stepModel, is(notNullValue()));
-		assertThat(stepModel.getName(), is(equalTo(name)));
-		assertThat(stepModel.getStart(), closeTo(start, PRECISION));
-		assertThat(stepModel.getStop(), closeTo(stop, PRECISION));
-		assertThat(stepModel.getStep(), closeTo(step, PRECISION));
+		assertTrue(parserService!=null);
+		assertTrue(stepModel.getName().equals(name));
+		assertTrue(DoubleUtils.equalsWithinTolerance(stepModel.getStart(), start, PRECISION));
+		assertTrue(DoubleUtils.equalsWithinTolerance(stepModel.getStop(), stop, PRECISION));
+		assertTrue(DoubleUtils.equalsWithinTolerance(stepModel.getStep(), step, PRECISION));
 	}
 
 	@Test
@@ -44,13 +40,13 @@ public class ParserTest {
 		final String scanCommand = "scan x 0 10 0.5 detector 0.1";
 		// TODO how do we know what kind of parser this is?
 		final IParser<?> parser = parserService.createParser(scanCommand);
-		assertThat(parser.getCommand(), is(equalTo(scanCommand)));
-		assertThat(parser.getScannableNames(), contains("x"));
+		assertTrue(parser.getCommand().equals(scanCommand));
+		assertTrue(parser.getScannableNames().contains("x"));
 		final StepModel xModel = (StepModel) parser.getModel("x");
 		assertStepModel(xModel, "x", 0, 10, 0.5);
-		assertThat(parser.getDetectorNames(), contains("detector"));
-		assertThat(parser.getExposures().keySet(), contains("detector"));
-		assertThat((Double) parser.getExposures().get("detector"), closeTo(0.1, PRECISION));
+		assertTrue(parser.getDetectorNames().contains("detector"));
+		assertTrue(parser.getExposures().keySet().contains("detector"));
+		assertTrue(DoubleUtils.equalsWithinTolerance((Double) parser.getExposures().get("detector"), 0.1, PRECISION));
 	}
 
 }

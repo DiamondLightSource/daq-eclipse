@@ -1,19 +1,15 @@
-package org.eclipse.scanning.test.nexus;
+package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset.getDType;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_POINTS;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_UNIQUE_KEYS;
-import static org.eclipse.scanning.test.nexus.ScanPointsWriterTest.ExternalFileWritingDetector.EXTERNAL_FILE_NAME;
-import static org.hamcrest.Matchers.both;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.eclipse.scanning.test.scan.nexus.ScanPointsWriterTest.ExternalFileWritingDetector.EXTERNAL_FILE_NAME;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
@@ -151,48 +147,45 @@ public class ScanPointsWriterTest {
 		NXcollection scanPointsCollection = scanPointsWriter.createNexusObject(nodeFactory, scanInfo);
 		
 		// Assert
-		assertThat(scanPointsCollection, is(notNullValue()));
+		assertTrue(scanPointsCollection!=null);
 
 		// assert unique keys dataset created correctly
 		DataNode uniqueKeysDataNode = scanPointsCollection.getDataNode(FIELD_NAME_UNIQUE_KEYS);
-		assertThat(uniqueKeysDataNode, is(notNullValue()));
-		assertThat(uniqueKeysDataNode.getDataset(), both(is(notNullValue())).and(
-				instanceOf(ILazyWriteableDataset.class)));
+		assertTrue(uniqueKeysDataNode!=null);
+		assertTrue(uniqueKeysDataNode.getDataset()!=null && uniqueKeysDataNode.getDataset() instanceof ILazyWriteableDataset);
 		ILazyWriteableDataset uniqueKeysDataset = (ILazyWriteableDataset) uniqueKeysDataNode.getDataset();
-		assertThat(uniqueKeysDataset.getRank(), is(equalTo(scanRank)));
-		assertThat(((LazyDataset) uniqueKeysDataset).getDtype(), is(Dataset.INT32));
-		assertThat(uniqueKeysDataset.getChunking(), is(equalTo(expectedChunking)));
-		MockLazySaver uniqueKeysSaver = new MockLazySaver(); // TODO could use mockito instead?
+		assertTrue(uniqueKeysDataset.getRank()==scanRank);
+		assertTrue(((LazyDataset) uniqueKeysDataset).getDtype()==Dataset.INT32);
+		assertTrue(Arrays.equals(uniqueKeysDataset.getChunking(), expectedChunking));
+		MockLazySaver uniqueKeysSaver = new MockLazySaver();
 		uniqueKeysDataset.setSaver(uniqueKeysSaver);
 		
 		// assert scan points dataset created correctly
 		DataNode pointsDataNode = scanPointsCollection.getDataNode(FIELD_NAME_POINTS);
-		assertThat(pointsDataNode, is(notNullValue()));
-		assertThat(pointsDataNode.getDataset(), both(is(notNullValue())).and(
-				instanceOf(ILazyWriteableDataset.class)));
+		assertTrue(pointsDataNode!=null);
+		assertTrue(pointsDataNode.getDataset()!=null && pointsDataNode.getDataset() instanceof ILazyWriteableDataset);
 		ILazyWriteableDataset pointsDataset = (ILazyWriteableDataset) pointsDataNode.getDataset();
-		assertThat(pointsDataset.getRank(), is(equalTo(scanRank)));
-		assertThat(((LazyDataset) pointsDataset).getDtype(), is(Dataset.STRING));
-		assertThat(pointsDataset.getChunking(), is(equalTo(expectedChunking)));
+		assertTrue(pointsDataset.getRank()==scanRank);
+		assertTrue(((LazyDataset) pointsDataset).getDtype()==Dataset.STRING);
+		assertTrue(Arrays.equals(pointsDataset.getChunking(), expectedChunking));
 		MockLazySaver pointsSaver = new MockLazySaver();
 		pointsDataset.setSaver(pointsSaver);
 		
 		// assert scan finished dataset created correctly - value must be false
 		DataNode scanFinishedDataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
-		assertThat(scanFinishedDataNode, is(notNullValue()));
-		assertThat(scanFinishedDataNode.getDataset(), both(is(notNullValue())).and(
-				instanceOf(ILazyWriteableDataset.class)));
+		assertTrue(scanFinishedDataNode!=null);
+		assertTrue(scanFinishedDataNode.getDataset()!=null && scanFinishedDataNode.getDataset() instanceof ILazyWriteableDataset);
 		ILazyWriteableDataset scanFinishedDataset = (ILazyWriteableDataset) scanFinishedDataNode.getDataset();
-		assertThat(scanFinishedDataset.getRank(), is(1));
-		assertThat(scanFinishedDataset.getShape(), is(equalTo(new int[] { 1 })));
+		assertTrue(scanFinishedDataset.getRank()==1);
+		assertTrue(Arrays.equals(scanFinishedDataset.getShape(), new int[] { 1 }));
 		MockLazySaver scanFinishedSaver = new MockLazySaver();
 		scanFinishedDataset.setSaver(scanFinishedSaver);
 		
 		// assert links to external nodes
 		scanPointsCollection.getNumberOfNodelinks();
-		assertThat(scanPointsCollection.getSymbolicNode(EXTERNAL_FILE_NAME), is(notNullValue()));
+		assertTrue(scanPointsCollection.getSymbolicNode(EXTERNAL_FILE_NAME)!=null);
 		for (String positionerName : positionerNames) {
-			assertThat(scanPointsCollection.getSymbolicNode(positionerName + ".nxs"), is(notNullValue()));
+			assertTrue(scanPointsCollection.getSymbolicNode(positionerName + ".nxs")!=null);
 		}
 	}
 	
@@ -235,9 +228,9 @@ public class ScanPointsWriterTest {
 		
 		// assert links to external nodes
 		scanPointsCollection.getNumberOfNodelinks();
-		assertThat(scanPointsCollection.getSymbolicNode(EXTERNAL_FILE_NAME), is(notNullValue()));
+		assertTrue(scanPointsCollection.getSymbolicNode(EXTERNAL_FILE_NAME)!=null);
 		for (String positionerName : positionerNames) {
-			assertThat(scanPointsCollection.getSymbolicNode(positionerName + ".nxs"), is(notNullValue()));
+			assertTrue(scanPointsCollection.getSymbolicNode(positionerName + ".nxs")!=null);
 		}
 		
 		// test calling positionPerformed
@@ -247,47 +240,50 @@ public class ScanPointsWriterTest {
 		int stepIndex = 23;
 		MapPosition position = new MapPosition();
 		position.setStepIndex(stepIndex);
+		List<Collection<String>> names = new ArrayList<>( positionerNames.length);
 		for (int i = 0; i < positionerNames.length; i++) {
 			position.put(positionerNames[i], pos[i]);
 			position.putIndex(positionerNames[i], indices[i]);
+			names.add(Arrays.asList(positionerNames[i]));
 		}
+		position.setDimensionNames(names);
 		
 		// act
 		scanPointsWriter.positionPerformed(new PositionEvent(position));
 		scanPointsWriter.runPerformed(null);
 
 		// assert
-		assertThat(pointsSaver.getNumberOfWrites(), is(1));
+		assertTrue(pointsSaver.getNumberOfWrites()==1);
 
 		IDataset writtenToUniqueKeysData = uniqueKeysSaver.getLastWrittenData();
-		assertThat(writtenToUniqueKeysData, is(notNullValue()));
+		assertTrue(writtenToUniqueKeysData!=null);
 		int[] expectedShape = new int[scanInfo.getRank()];
 		Arrays.fill(expectedShape, 1);
-		assertThat(writtenToUniqueKeysData.getShape(), is(expectedShape));
-		assertThat(getDType(writtenToUniqueKeysData), is(Dataset.INT));
+		assertTrue(Arrays.equals(writtenToUniqueKeysData.getShape(), expectedShape));
+		assertTrue(getDType(writtenToUniqueKeysData)==Dataset.INT);
 		int[] valuePos = new int[scanRank]; // all zeros
-		assertThat(writtenToUniqueKeysData.getInt(valuePos), is(stepIndex+1));
+		assertTrue(writtenToUniqueKeysData.getInt(valuePos)==(stepIndex+1));
 
 		SliceND uniqueKeysSlice = uniqueKeysSaver.getLastSlice();
-		assertThat(uniqueKeysSlice, is(notNullValue()));
-		assertThat(uniqueKeysSlice.getShape(), is(expectedShape));
-		assertThat(uniqueKeysSlice.getStart(), is(indices));
-		assertThat(uniqueKeysSlice.getStep(), is(expectedShape)); // all ones
+		assertTrue(uniqueKeysSlice!=null);
+		assertTrue(Arrays.equals(uniqueKeysSlice.getShape(), expectedShape));
+		assertTrue(Arrays.equals(uniqueKeysSlice.getStart(), indices));
+		assertTrue(Arrays.equals(uniqueKeysSlice.getStep(), expectedShape)); // all ones
 		int[] stopIndices = Arrays.stream(indices).map(x -> x + 1).toArray(); 
-		assertThat(uniqueKeysSlice.getStop(), is(stopIndices));
+		assertTrue(Arrays.equals(uniqueKeysSlice.getStop(), stopIndices));
 		
 		IDataset writtenToPointsData = pointsSaver.getLastWrittenData();
-		assertThat(writtenToPointsData, is(notNullValue()));
-		assertThat(writtenToPointsData.getShape(), is(expectedShape));
-		assertThat(getDType(writtenToPointsData), is(Dataset.STRING));
-		assertThat(writtenToPointsData.getString(valuePos), is(equalTo(position.toString())));
+		assertTrue(writtenToPointsData!=null);
+		assertTrue(Arrays.equals(writtenToPointsData.getShape(), expectedShape));
+		assertTrue(getDType(writtenToPointsData)==Dataset.STRING);
+		assertTrue(writtenToPointsData.getString(valuePos).equals(position.toString()));
 		
 		SliceND pointsSlice = pointsSaver.getLastSlice();
-		assertThat(pointsSlice, is(notNullValue()));
-		assertThat(pointsSlice.getShape(), is(expectedShape));
-		assertThat(pointsSlice.getStart(), is(indices));
-		assertThat(pointsSlice.getStep(), is(expectedShape));
-		assertThat(pointsSlice.getStop(), is(stopIndices));
+		assertTrue(pointsSlice!=null);
+		assertTrue(Arrays.equals(pointsSlice.getShape(), expectedShape));
+		assertTrue(Arrays.equals(pointsSlice.getStart(), indices));
+		assertTrue(Arrays.equals(pointsSlice.getStep(), expectedShape));
+		assertTrue(Arrays.equals(pointsSlice.getStop(), stopIndices));
 	}
 	
 }
