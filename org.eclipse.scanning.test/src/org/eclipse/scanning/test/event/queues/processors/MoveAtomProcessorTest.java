@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -90,16 +91,23 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		 * - last bean in statPub should Status.TERMINATED and not be 100% complete
 		 * - status publisher should have a TERMINATED bean
 		 * - IPositioner should have received an abort command
+		 * 
+		 * (setPosition in MockPositioner pauses for 400ms, does something then pauses 
+		 * for 450ms. If we sleep for 400ms, do some checking and then sleep for another 
+		 * 600ms, any running setPosition calls should be done.)
 		 */
 		checkInitialBeanState(mvAt);
 		doExecute(mvProcr, mvAt);
-		Thread.sleep(120);
+		Thread.sleep(400);
 		qProc.terminate();
 		waitForBeanFinalStatus(mvAt, 10000l);
 		
 		checkBroadcastBeanStatuses(mvAt, Status.TERMINATED, false);
 		
+		//Wait until any running 
+		Thread.sleep(600);
 		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());
+		assertFalse("Move should have been terminated", ((MockPositioner)mss.createPositioner()).isMoveComplete());
 	}
 	
 
