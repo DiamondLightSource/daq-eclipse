@@ -79,6 +79,12 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 		return state;
 	}
 
+	@Override
+	protected void setDeviceState(DeviceState nstate, IPosition position) throws ScanningException {
+		this.state = nstate;
+		super.setDeviceState(nstate, null);
+	}
+
 	protected void setState(DeviceState state, String message) throws MalcolmDeviceException {
 
 		DeviceState old = this.state;
@@ -129,6 +135,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 
 	@Override
 	public void configure(MapMalcolmDetectorModel model) throws ScanningException {
+		
 		validate(model);
 		setDeviceState(DeviceState.CONFIGURING);
 		this.model = model;
@@ -221,7 +228,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
     			GroupNode par = file.getGroup("/entry/data", true); // DO NOT COPY!
     			
 				int[] ishape = (int[])params.get("shape");
-				if (ishape==null) ishape = new int[]{1024,1024};
+				if (ishape==null) ishape = new int[]{64,64};
 
 				final int[] shape = new int[]{1,  ishape[0], ishape[1]};
     			final int[] max   = new int[]{-1, ishape[0], ishape[1]};
@@ -236,7 +243,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 						acquireRunLock(); // Blocks if paused.
 	
 	    				int[] start = {index, 0, 0};
-	    				int[] stop  = {index+1, 1024, 1024};
+	    				int[] stop  = {index+1, 64, 64};
 	    				index++;
 	    				if (index>23) index = 23; // Stall on the last image to avoid writing massive stacks
 	    				

@@ -47,7 +47,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 			for (int i = 0; i < 10; i++) {
 				System.out.println("Device state is "+zebra.getDeviceState());
 				if (zebra.getDeviceState() == DeviceState.IDLE) {
-					throw new Exception("The device should not be IDLE!");
+					throw new Exception("The device should not be IDLE! It was "+zebra.getDeviceState());
 				}
 				Thread.sleep(1000);
 			}

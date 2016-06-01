@@ -143,16 +143,15 @@ public abstract class PausableMockedMalcolmDevice extends MockedMalcolmDevice {
 		setState(DeviceState.PAUSING);
 		try {
 			taskPauseLock.lockInterruptibly();					// Attempt to start task-pause request allowing for abort							
-		} 
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			throw new MalcolmDeviceException(this, "Paused lock has been interrupted trying to acquire lock!", e);
 		}
 		
 		try {
 			taskPauseRequested = true;							// Trigger a pause [await()] when next in beforeExecute
 			pauseThread = Thread.currentThread();			
-		}		
-		finally {
+			setState(DeviceState.PAUSED);
+		} finally {
 			releaseStateChangeInterlock("pause", pauseThread.getId());
 	    }
 	}

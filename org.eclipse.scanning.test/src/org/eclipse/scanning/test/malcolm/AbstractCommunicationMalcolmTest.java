@@ -54,6 +54,8 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 			@Override
 			public void eventPerformed(MalcolmEvent<MalcolmEventBean> e) {
 				MalcolmEventBean bean = e.getBean();
+				System.out.println(bean.isScanStart());
+				System.out.println(bean.isScanEnd());
 	   			if (bean.isScanEnd() || bean.isScanStart()) {
 				    beans.add(bean);
     			}

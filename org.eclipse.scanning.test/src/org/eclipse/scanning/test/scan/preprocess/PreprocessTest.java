@@ -200,7 +200,7 @@ public class PreprocessTest {
 		
 		// Params for driving mock mode
 		config.put("nframes", imageCount); // IMAGE_COUNT images to write
-		config.put("shape", new int[]{1024,1024});
+		config.put("shape", new int[]{64,64});
 		
 		final File temp = File.createTempFile("testingFile", ".hdf5");
 		temp.deleteOnExit();
