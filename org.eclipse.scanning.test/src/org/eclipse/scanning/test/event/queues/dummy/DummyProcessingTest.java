@@ -56,7 +56,7 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		checkInitialBeanState(dAt);
 		
 		doExecute(dAtProcr, dAt);
-		waitForExecutionEnd(10000);
+		waitForExecutionEnd(10000l);
 		
 		checkBroadcastBeanStatuses(dAt, Status.COMPLETE, false);
 	}
@@ -69,7 +69,7 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		checkInitialBeanState(dBe);
 		
 		doExecute(dBeProcr, dBe);
-		waitForExecutionEnd(10000);
+		waitForExecutionEnd(10000l);
 		
 		checkBroadcastBeanStatuses(dBe, Status.COMPLETE, false);
 	}
@@ -82,7 +82,7 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		checkInitialBeanState(dHQ);
 		
 		doExecute(dHQProcr, dHQ);
-		waitForExecutionEnd(10000);
+		waitForExecutionEnd(10000l);
 		
 		checkBroadcastBeanStatuses(dHQ, Status.COMPLETE, false);
 	}

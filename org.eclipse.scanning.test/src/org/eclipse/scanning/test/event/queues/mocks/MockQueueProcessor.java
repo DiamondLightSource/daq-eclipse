@@ -105,4 +105,10 @@ public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
 		
 	}
 
+	@Override
+	public void setTerminated() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

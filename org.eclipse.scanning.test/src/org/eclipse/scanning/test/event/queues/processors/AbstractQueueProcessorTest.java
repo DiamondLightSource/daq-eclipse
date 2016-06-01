@@ -259,7 +259,7 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 		}
 	}
 	
-	protected void waitForExecutionEnd(long timeoutMS) throws Exception {
+	protected void waitForExecutionEnd(Long timeoutMS) throws Exception {
 		boolean unLatched = execLatch.await(timeoutMS, TimeUnit.MILLISECONDS);
 		if (!unLatched) fail("Execution did not complete before timeout");
 	}

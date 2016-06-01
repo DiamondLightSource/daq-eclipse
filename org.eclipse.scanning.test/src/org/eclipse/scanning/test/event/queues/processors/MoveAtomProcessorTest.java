@@ -68,7 +68,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		 */
 		checkInitialBeanState(mvAt);
 		doExecute(mvProcr, mvAt);
-		waitForExecutionEnd(10000);
+		waitForExecutionEnd(10000l);
 		
 		checkBroadcastBeanStatuses(mvAt, Status.COMPLETE, false);
 		
