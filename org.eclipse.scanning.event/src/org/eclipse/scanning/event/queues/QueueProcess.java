@@ -75,6 +75,8 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	@Override
 	public void setProcessor(IQueueProcessor<? extends Queueable> processor) throws EventException {
 		if (isExecuted()) throw new EventException("Cannot chance processor after execution started");
+		//This should stop bean type mismatches. A second catch should be included in the execute() of the IQueueProcessor
+		if (!(bean.getClass().equals(processor.getBeanClass()))) throw new EventException("Cannot set processor - incorrect bean type");
 		this.processor = processor;
 	}
 	
