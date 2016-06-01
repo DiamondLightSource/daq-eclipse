@@ -52,7 +52,7 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 	@After
 	public void tearDown() throws Exception {
 		localTearDown();
-		if ((qProc != null) && (qProc.getProcessor() != null)) qProc.terminate();
+		if ((qProc != null) && (qProc.getProcessor() != null) && !qProc.isTerminated()) qProc.terminate();
 		statPub = null;
 		qProc = null;
 		
