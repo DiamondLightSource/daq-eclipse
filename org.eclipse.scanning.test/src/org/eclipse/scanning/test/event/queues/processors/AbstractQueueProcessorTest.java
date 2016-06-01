@@ -16,13 +16,11 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
-import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
 import org.junit.Before;
@@ -231,6 +229,14 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 	}
 	
 	protected void waitForBeanStatus(Queueable bean, Status state, Long timeout) throws Exception {
+		waitForBeanState(bean, state, false, timeout);
+	}
+	
+	protected void waitForBeanFinalStatus(Queueable bean, Long timeout) throws Exception {
+		waitForBeanState(bean, null, true, timeout);
+	}
+	
+	private void waitForBeanState(Queueable bean, Status state, boolean isFinal, Long timeout) throws Exception {
 		Queueable lastBean;
 		long startTime = System.currentTimeMillis();
 		long runTime;
@@ -238,7 +244,7 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 		while (true) {
 			lastBean = ((MockPublisher<Queueable>)statPub).getLastBean();
 			if ((lastBean != null) && (lastBean.getUniqueId().equals(bean.getUniqueId()))) { 
-				if (lastBean.getStatus().equals(state)) {
+				if ((lastBean.getStatus().equals(state)) || (lastBean.getStatus().isFinal() && isFinal)) {
 					break;
 				}
 			}
@@ -263,7 +269,7 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 		assertEquals("Should not be non-zero percent complete", 0d, bean.getPercentComplete(), 0);
 	}
 	
-	protected void checkBroadcastBeanStatus(Queueable bean, Status state, boolean prevBean) throws EventException {
+	protected void checkBroadcastBeanStatuses(Queueable bean, Status state, boolean prevBean) throws EventException {
 		Double percentComplete = -1d;
 		Status previousBeanState = null;
 		if (state.equals(Status.NONE)) {
@@ -275,11 +281,20 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 			previousBeanState = Status.REQUEST_TERMINATE;
 		}
 		
-		Queueable lastBean, penultimateBean;
+		Queueable lastBean, penultimateBean, firstBean;
 		List<Queueable> broadcastBeans  = ((MockPublisher<Queueable>)statPub).getBroadcastBeans();
 		if (broadcastBeans.size() == 0) {
 			fail("No beans broadcast to Publisher");
 		}
+		
+		//First bean should be RUNNING.
+		firstBean = broadcastBeans.get(0);
+		if (!firstBean.getUniqueId().equals(bean.getUniqueId())){
+			throw new EventException("First bean is not the bean we were looking for");
+		}
+		assertEquals("First bean should be running", Status.RUNNING, firstBean.getStatus());
+		
+		//Penultimate bean should have status depending on the above if/else block
 		if (prevBean) {
 			penultimateBean = broadcastBeans.get(broadcastBeans.size()-2);
 			if (!penultimateBean.getUniqueId().equals(bean.getUniqueId())){
@@ -290,10 +305,12 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 			assertTrue("The percent complete is not between 0% & 100%", ((penuBPercComp > 0d) && (penuBPercComp < 100d))); 
 		}
 		
+		//Last bean should be 
 		lastBean = broadcastBeans.get(broadcastBeans.size()-1);
 		if (!lastBean.getUniqueId().equals(bean.getUniqueId())){
 			throw new EventException("Last bean is not the bean we were looking for");
 		}
+		assertTrue("Last bean is not final", lastBean.getStatus().isFinal());
 		assertEquals("Last bean has wrong status", state, lastBean.getStatus());
 		if (percentComplete > 0) {
 			assertEquals("Last bean has wrong percent complete", percentComplete, lastBean.getPercentComplete(), 0);

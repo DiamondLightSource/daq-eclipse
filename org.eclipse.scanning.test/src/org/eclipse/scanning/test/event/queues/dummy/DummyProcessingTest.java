@@ -49,7 +49,7 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 	}
 	
 	@Test
-	public void testDummyAtomRunning() throws Exception {
+	public void testDummyAtomExecution() throws Exception {
 		dAt = new DummyAtom("Clotho", 100);
 		dAtProcr= new DummyAtomProcessor();
 		
@@ -58,11 +58,11 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		doExecute(dAtProcr, dAt);
 		waitForExecutionEnd(10000);
 		
-		checkBroadcastBeanStatus(dAt, Status.COMPLETE, false);
+		checkBroadcastBeanStatuses(dAt, Status.COMPLETE, false);
 	}
 	
 	@Test
-	public void testDummyBeanRunning() throws Exception {
+	public void testDummyBeanExecution() throws Exception {
 		dBe = new DummyBean("Lachesis", 200);
 		dBeProcr = new DummyBeanProcessor();
 		
@@ -71,11 +71,11 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		doExecute(dBeProcr, dBe);
 		waitForExecutionEnd(10000);
 		
-		checkBroadcastBeanStatus(dBe, Status.COMPLETE, false);
+		checkBroadcastBeanStatuses(dBe, Status.COMPLETE, false);
 	}
 	
 	@Test
-	public void testDummyHasQueueRunning() throws Exception {
+	public void testDummyHasQueueExecution() throws Exception {
 		dHQ = new DummyHasQueue("Atropos", 300);
 		dHQProcr = new DummyHasQueueProcessor();
 		
@@ -84,7 +84,7 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		doExecute(dHQProcr, dHQ);
 		waitForExecutionEnd(10000);
 		
-		checkBroadcastBeanStatus(dHQ, Status.COMPLETE, false);
+		checkBroadcastBeanStatuses(dHQ, Status.COMPLETE, false);
 	}
 
 }
