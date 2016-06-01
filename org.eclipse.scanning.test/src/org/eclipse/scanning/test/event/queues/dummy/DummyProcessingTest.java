@@ -1,18 +1,10 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
-import static org.junit.Assert.assertEquals;
-
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.test.event.queues.processors.AbstractQueueProcessorTest;
 import org.junit.Test;
-
-/*
- * TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!
- * Merge the generic tests in this with AbstractQueueProcessorTest 
- * (or replace & re-use as necessary)
- */
 
 /**
  * Tests ability of DummyProcessor to handle all three Dummy bean types.
@@ -38,6 +30,10 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 	
 	@Override
 	protected void localTearDown() {
+		dAt = null;
+		dBe = null;
+		dHQ = null;
+		
 		dAtProcr = null;
 		dBeProcr = null;
 		dHQProcr = null;
@@ -57,14 +53,12 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		dAt = new DummyAtom("Clotho", 100);
 		dAtProcr= new DummyAtomProcessor();
 		
-		assertEquals("Wrong initial status", Status.NONE, dAt.getStatus());
-		assertEquals("Should not be non-zero percent complete", 0d, dAt.getPercentComplete(), 0);
+		checkInitialBeanState(dAt);
 		
 		doExecute(dAtProcr, dAt);
-		execLatch.await();
+		waitForExecutionEnd(10000);
 		
-		assertEquals("Wrong final status", Status.COMPLETE, dAt.getStatus());
-		assertEquals("Should be 100 percent complete at end", 100d, dAt.getPercentComplete(), 0);
+		checkBroadcastBeanStatus(dAt, Status.COMPLETE, false);
 	}
 	
 	@Test
@@ -72,14 +66,12 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		dBe = new DummyBean("Lachesis", 200);
 		dBeProcr = new DummyBeanProcessor();
 		
-		assertEquals("Wrong initial status", Status.NONE, dBe.getStatus());
-		assertEquals("Should not be non-zero percent complete", 0d, dBe.getPercentComplete(), 0);
+		checkInitialBeanState(dBe);
 		
 		doExecute(dBeProcr, dBe);
-		execLatch.await();
+		waitForExecutionEnd(10000);
 		
-		assertEquals("Wrong final status", Status.COMPLETE, dBe.getStatus());
-		assertEquals("Should be 100 percent complete at end", 100d, dBe.getPercentComplete(), 0);
+		checkBroadcastBeanStatus(dBe, Status.COMPLETE, false);
 	}
 	
 	@Test
@@ -87,14 +79,12 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		dHQ = new DummyHasQueue("Atropos", 300);
 		dHQProcr = new DummyHasQueueProcessor();
 		
-		assertEquals("Wrong initial status", Status.NONE, dHQ.getStatus());
-		assertEquals("Should not be non-zero percent complete", 0d, dHQ.getPercentComplete(), 0);
+		checkInitialBeanState(dHQ);
 		
 		doExecute(dHQProcr, dHQ);
-		execLatch.await();
+		waitForExecutionEnd(10000);
 		
-		assertEquals("Wrong final status", Status.COMPLETE, dHQ.getStatus());
-		assertEquals("Should be 100 percent complete at end", 100d, dHQ.getPercentComplete(), 0);
+		checkBroadcastBeanStatus(dHQ, Status.COMPLETE, false);
 	}
 
 }

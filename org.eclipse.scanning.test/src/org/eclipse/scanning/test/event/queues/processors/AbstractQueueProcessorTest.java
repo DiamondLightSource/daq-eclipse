@@ -1,23 +1,27 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.test.BrokerTest;
-import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
-import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.dummy.DummyBeanProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
@@ -163,7 +167,7 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 	}
 	
 	/**
-	 * 
+	 * These methods provide the queue bean & processor pair to test.
 	 */
 	protected abstract IQueueProcessor<? extends Queueable> getTestProcessor();
 	protected abstract Queueable getTestBean();
@@ -174,7 +178,7 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 	
 	/**
 	 * Generic method for running a queue processor. When complete, it releases the execLatch.
-	 * execLatch.await() should be placed directly after this call.
+	 * waitForExecutionEnd(timeoutMS) should be placed directly after this call.
 	 * @param qProcr
 	 * @param procBean
 	 * @param procrBean
@@ -227,7 +231,7 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 	}
 	
 	protected void waitForBeanStatus(Queueable bean, Status state, Long timeout) throws Exception {
-		DummyHasQueue lastBean;
+		Queueable lastBean;
 		long startTime = System.currentTimeMillis();
 		long runTime;
 		
@@ -248,13 +252,57 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 			}
 		}
 	}
+	
+	protected void waitForExecutionEnd(long timeoutMS) throws Exception {
+		boolean unLatched = execLatch.await(timeoutMS, TimeUnit.MILLISECONDS);
+		if (!unLatched) fail("Execution did not complete before timeout");
+	}
+	
+	protected void checkInitialBeanState(Queueable bean) {
+		assertEquals("Wrong initial status", Status.NONE, bean.getStatus());
+		assertEquals("Should not be non-zero percent complete", 0d, bean.getPercentComplete(), 0);
+	}
+	
+	protected void checkBroadcastBeanStatus(Queueable bean, Status state, boolean prevBean) throws EventException {
+		Double percentComplete = -1d;
+		Status previousBeanState = null;
+		if (state.equals(Status.NONE)) {
+			percentComplete = 0d;
+		} else if (state.equals(Status.COMPLETE)) {
+			percentComplete = 100d;
+			previousBeanState = Status.TERMINATED;
+		} else if (state.equals(Status.TERMINATED)) {
+			previousBeanState = Status.REQUEST_TERMINATE;
+		}
+		
+		Queueable lastBean, penultimateBean;
+		List<Queueable> broadcastBeans  = ((MockPublisher<Queueable>)statPub).getBroadcastBeans();
+		if (broadcastBeans.size() == 0) {
+			fail("No beans broadcast to Publisher");
+		}
+		if (prevBean) {
+			penultimateBean = broadcastBeans.get(broadcastBeans.size()-2);
+			if (!penultimateBean.getUniqueId().equals(bean.getUniqueId())){
+				throw new EventException("Penultimate bean is not the bean we were looking for");
+			}
+			assertEquals("Second to last bean has wrong status", previousBeanState, penultimateBean.getStatus());
+			double penuBPercComp = penultimateBean.getPercentComplete();
+			assertTrue("The percent complete is not between 0% & 100%", ((penuBPercComp > 0d) && (penuBPercComp < 100d))); 
+		}
+		
+		lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+		if (!lastBean.getUniqueId().equals(bean.getUniqueId())){
+			throw new EventException("Last bean is not the bean we were looking for");
+		}
+		assertEquals("Last bean has wrong status", state, lastBean.getStatus());
+		if (percentComplete > 0) {
+			assertEquals("Last bean has wrong percent complete", percentComplete, lastBean.getPercentComplete(), 0);
+		} else {
+			assertThat("The percent complete is not between 0% & 100%", lastBean.getPercentComplete(), is(not(100)));
+		}
+		
+	}
 
-
-//	
-//	protected void checkBeanFinalStatus(Status expected) throws Exception {
-//		checkBeanFinalStatus(expected, false);
-//	}
-//	
 //	protected void checkBeanFinalStatus(Status expected, boolean testLastButTwoPerc) throws Exception {
 //		if (thrownException != null) { //I think this is a bit ugly, but it's only a test.
 //			throw thrownException;
@@ -262,7 +310,7 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 //		
 //		DummyHasQueue firstBean, lastButTwoBean, lastBean;
 //		
-//		List<DummyHasQueue> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
+//		List<Queueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
 //		firstBean =  broadcastBeans.get(0);
 //		lastButTwoBean = broadcastBeans.get(broadcastBeans.size()-3);
 //		lastBean = broadcastBeans.get(broadcastBeans.size()-1);
@@ -285,6 +333,11 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 //			assertThat("The percent complete is 100!", lastBean.getPercentComplete(), is(not(100)));
 //		}
 //	}
+//	
+//	protected void checkBeanFinalStatus(Status expected) throws Exception {
+//		checkBeanFinalStatus(expected, false);
+//	}
+//	
 //	
 //	protected void checkBeanStatuses(Status[] repStat, Double[] repPerc) throws Exception {
 //		if (thrownException != null) { //I think this is a bit ugly, but it's only a test.
