@@ -75,6 +75,14 @@ public class MockPublisher<T> implements IPublisher<T> {
 	public List<DummyHasQueue> getBroadcastBeans() {
 		return broadcastBeans;
 	}
+	
+	public DummyHasQueue getLastBean() {
+		if (broadcastBeans.size() > 0) {
+			return broadcastBeans.get(broadcastBeans.size()-1);
+		} else {
+			return null;
+		}
+	}
 
 	@Override
 	public void setAlive(boolean alive) throws EventException {
