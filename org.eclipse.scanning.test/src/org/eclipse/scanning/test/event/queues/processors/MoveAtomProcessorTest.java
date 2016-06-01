@@ -129,39 +129,5 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) in '"+mvAt.getName()+
 				"' failed: \"The badger apocalypse cometh! (EXPECTED - we pressed the button...)\"", mvAt.getMessage());
 	}
-	
-
-//	@Before
-//	public void setup() throws Exception {
-//		createStatusPublisher();
-//		mvAt = TestAtomMaker.makeTestMoveAtomA();
-//		processorSetup();
-//	}
-//	
-//	private void processorSetup() throws Exception {
-//		proc = new MoveAtomProcessor().makeProcessWithScanServ(mvAt, statPub, true, mss);
-//	}
-//	
-
-
-//	
-//	@Test
-//	public void testErrorInMove() throws Exception {
-//		//Redefine the move atom so it will cause an exception in the Mock
-//		mvAt = new MoveAtom("Error Causer", "BadgerApocalypseButton", "pushed", 1);
-//		processorSetup();
-//		doExecute();
-//		
-//		pauseForMockFinalStatus(10000);
-//		
-//		/*
-//		 * On exception:
-//		 * - first bean in statPub should be Status.RUNNING
-//		 * - last bean in statPub should be marked FAILED and not be 100% complete
-//		 */
-//		checkBeanFinalStatus(Status.FAILED);
-//		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) failed: The badger apocalypse cometh!", mvAt.getMessage());
-//		
-//	}
 
 }
