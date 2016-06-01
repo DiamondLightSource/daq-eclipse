@@ -1,7 +1,5 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
-import java.util.concurrent.CountDownLatch;
-
 public class DummyBeanProcessor extends DummyProcessor<DummyBean> {
 
 	public DummyBeanProcessor() {
@@ -11,11 +9,6 @@ public class DummyBeanProcessor extends DummyProcessor<DummyBean> {
 	@Override
 	public Class<DummyBean> getBeanClass() {
 		return DummyBean.class;
-	}
-
-	@Override
-	protected CountDownLatch getLatch() {
-		return dummy.getLatch();
 	}
 
 }
