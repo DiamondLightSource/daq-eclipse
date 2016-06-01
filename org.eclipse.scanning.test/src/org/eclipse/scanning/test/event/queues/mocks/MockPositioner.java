@@ -28,23 +28,17 @@ public class MockPositioner implements IPositioner {
 	@Override
 	public boolean setPosition(IPosition position) throws ScanningException,
 			InterruptedException {
-		try {
-			Thread.sleep(2000);
-		} catch(InterruptedException ex) {
-			//This might well happen...
-		}
+		
+		Thread.sleep(400);
 		
 		//This is to test positioning failing.
-		if(position.getNames().contains("BadgerApocalypseButton") && position.get("BadgerApocalypseButton").equals("pushed")) {
+		if (position.getNames().contains("BadgerApocalypseButton") && position.get("BadgerApocalypseButton").equals("pushed")) {
 			throw new ScanningException("The badger apocalypse cometh!");
 		}
 		
 		pos = position;
-		try {
-			Thread.sleep(2500);
-		} catch(InterruptedException ex) {
-			//This might well happen...
-		}
+		Thread.sleep(450);
+
 		return true;
 	}
 
