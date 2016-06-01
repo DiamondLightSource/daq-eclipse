@@ -43,7 +43,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 		try {
 			positioner = deviceService.createPositioner();
 		} catch (ScanningException se) {
-			logger.error("Failed to get device positioner in "+bean.getName()+": "+se.getMessage());
+			logger.error("Failed to get device positioner in "+bean.getName()+": \""+se.getMessage()+"\"");
 			process.broadcast(Status.FAILED, "Failed to get device positioner");
 			throw new EventException(se);
 		}
@@ -72,11 +72,11 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 			}
 			
 			private void reportFail(Exception ex) {
-				logger.error("Moving device(s) in '"+bean.getName()+"' failed with: "+ex.getMessage());
+				logger.error("Moving device(s) in '"+bean.getName()+"' failed with: \""+ex.getMessage()+"\"");
 				try{
-					process.broadcast(Status.FAILED, "Moving device(s) in '"+bean.getName()+"' failed: "+ex.getMessage());
+					process.broadcast(Status.FAILED, "Moving device(s) in '"+bean.getName()+"' failed: \""+ex.getMessage()+"\"");
 				} catch(EventException evEx) {
-					logger.error("Broadcasting bean failed with: "+evEx.getMessage());
+					logger.error("Broadcasting bean failed with: \""+evEx.getMessage()+"\"");
 				}
 			}
 		});

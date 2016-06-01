@@ -35,7 +35,7 @@ public class MockPositioner implements IPositioner {
 		
 		//This is to test positioning failing.
 		if (position.getNames().contains("BadgerApocalypseButton") && position.get("BadgerApocalypseButton").equals("pushed")) {
-			throw new ScanningException("The badger apocalypse cometh!");
+			throw new ScanningException("The badger apocalypse cometh! (EXPECTED - we pressed the button...)");
 		}
 		
 		pos = position;

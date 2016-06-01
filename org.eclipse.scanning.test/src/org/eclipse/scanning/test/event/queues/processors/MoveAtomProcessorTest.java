@@ -110,6 +110,26 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		assertFalse("Move should have been terminated", ((MockPositioner)mss.createPositioner()).isMoveComplete());
 	}
 	
+	@Test
+	public void testErrorInMove() throws Exception {
+		//Define the move atom so it will cause an exception in the Mock (there's a trigger)
+		mvAt = new MoveAtom("Error Causer", "BadgerApocalypseButton", "pushed", 1);
+		mvProcr = new MoveAtomProcessor();
+		
+		/*
+		 * On exception:
+		 * - first bean in statPub should be Status.RUNNING
+		 * - last bean in statPub should be marked FAILED and not be 100% complete
+		 */
+		checkInitialBeanState(mvAt);
+		doExecute(mvProcr, mvAt);
+		waitForBeanFinalStatus(mvAt, 10000l);
+		
+		checkBroadcastBeanStatuses(mvAt, Status.FAILED, false);
+		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) in '"+mvAt.getName()+
+				"' failed: \"The badger apocalypse cometh! (EXPECTED - we pressed the button...)\"", mvAt.getMessage());
+	}
+	
 
 //	@Before
 //	public void setup() throws Exception {
@@ -122,45 +142,8 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 //		proc = new MoveAtomProcessor().makeProcessWithScanServ(mvAt, statPub, true, mss);
 //	}
 //	
-//	@Test
-//	public void testExecution() throws Exception {
-//		doExecute();
-//		
-//		//In the MockPositioner, it takes 4.5secs to set the position
-//		pauseForMockFinalStatus(10000);
-//		
-//		/*
-//		 * After execution:
-//		 * - first bean in statPub should be Status.RUNNING
-//		 * - last bean in statPub should be Status.COMPLETE and 100%
-//		 * - status publisher should have: 1 RUNNING bean and 1 COMPLETE bean
-//		 * - the IPosition should be a MapPosition with map based on atom's map
-//		 */
-//		checkBeanFinalStatus(Status.COMPLETE);
-//		
-//		IPosition expected = new MapPosition(mvAt.getPositionConfig());
-//		assertEquals("Position reported by scan service different from expected", expected, mss.createPositioner().getPosition());
-//	}
-//	
-//	@Test
-//	public void testTerminate() throws Exception {
-//		doExecute();
-//		
-//		Thread.sleep(1000);
-//		proc.terminate();
-//		//Wait to allow the house to come crashing down
-//		pauseForMockFinalStatus(10000);
-//		/*
-//		 * On terminate:
-//		 * - first bean in statPub should be Status.RUNNING
-//		 * - last bean in statPub should Status.TERMINATED and not be 100% complete
-//		 * - status publisher should have a TERMINATED bean
-//		 * - IPositioner should have received an abort command
-//		 */
-//		checkBeanFinalStatus(Status.TERMINATED);
-//		
-//		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());
-//	}
+
+
 //	
 //	@Test
 //	public void testErrorInMove() throws Exception {
