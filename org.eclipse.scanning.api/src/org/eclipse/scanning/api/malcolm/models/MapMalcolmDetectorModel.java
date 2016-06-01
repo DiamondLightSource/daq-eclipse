@@ -67,6 +67,7 @@ public class MapMalcolmDetectorModel extends MalcolmDetectorConfiguration<Map<St
 			if (other.model != null)
 				return false;
 		} else if (!model.equals(other.model))
+
 			return false;
 		return true;
 	}
