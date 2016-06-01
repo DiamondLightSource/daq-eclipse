@@ -28,11 +28,14 @@ public class Constants {
     /**
       * The timeout in ms, default 1 day. Set org.eclipse.scanning.event.heartbeat.timeout to change (in ms)
 	 */
-	private static final long TIMEOUT = 24*60*60*1000; //  a day!
+	public static final long TIMEOUT = 24*60*60*1000; //  a day!
 
     public static long getTimeout() {
     	return Long.getLong("org.eclipse.scanning.event.heartbeat.timeout", TIMEOUT);
     }
+	public static void setTimeout(long t) {
+		System.setProperty("org.eclipse.scanning.event.heartbeat.timeout", String.valueOf(t));
+	}
     
     /**
      * The time for a published message like a pause or terminate to live.
