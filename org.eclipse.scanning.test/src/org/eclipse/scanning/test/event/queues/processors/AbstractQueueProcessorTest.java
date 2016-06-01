@@ -1,5 +1,9 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -10,21 +14,26 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.test.BrokerTest;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcessor;
+import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
+import org.eclipse.scanning.test.event.queues.dummy.DummyBeanProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 
 public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T extends Queueable> 
 	
-	protected IQueueProcess<Queueable> qProc;
+	protected IQueueProcess<Queueable> qProc;	
 	
 	protected IPublisher<Queueable> statPub;
 	protected String topic = "active.queue";
 	
 	protected CountDownLatch execLatch = new CountDownLatch(1);
 
-	private Exception thrownException;
+	private Exception thrownException = null;
 
 	@Before
 	public void setUp() {
@@ -41,14 +50,123 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 	@After
 	public void tearDown() throws Exception {
 		localTearDown();
-		if (qProc != null) qProc.terminate();
+		if ((qProc != null) && (qProc.getProcessor() != null)) qProc.terminate();
 		statPub = null;
 		qProc = null;
 		
 		execLatch = null;
+		thrownException = null;
 	}
 	
 	protected abstract void localTearDown();
+	
+	/**
+	 * Test that type checking of the setProcessBean method prevents the wrong 
+	 * bean being accepted by the processor.
+	 * @throws Exception
+	 */
+	@Test
+	public void testWrongBeanType() throws Exception {
+		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
+		Queueable qBean = getTestBean();
+		
+		//This bean should be of a different type to the one acted on by the 
+		//processor under test
+		DummyBean absDBe = new DummyBean("Hephaestus", 600);
+		if (absDBe.getClass().equals(qBean.getClass())) {
+			throw new Exception("Bean received is of same type as 'wrong type' bean");
+		}
+		
+		//Configure the processor
+		try {
+			qProcr.setProcessBean(absDBe);
+			fail("Should not be able to supply wrong bean type");
+		} catch (EventException eEx) {
+			//Expected
+		}
+	}
+
+	/**
+	 * Tests that once setExecuted or execute called, configuration of 
+	 * processor cannot be changed.
+	 * @throws Exception
+	 */
+	@Test
+	public void testChangingProcessorAfterExecution() throws Exception {
+		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
+		Queueable qBean = getTestBean();
+		try {
+			changeBeanAfterExecution(qProcr, qBean);
+			fail("Should not be able to change bean after execution start");
+		} catch (EventException eEx) {
+			//Expected
+		}
+		try {
+			changeProcessAfterExecution(qProcr);
+			fail("Should not be able to change bean after execution start");
+		} catch (EventException eEx) {
+			//Expected
+		}
+		
+		//Try for real (create fresh Atom processor first)
+		qProcr = getTestProcessor();
+		assertFalse("Executed should initially be false", qProcr.isExecuted());
+		
+		//Execute, but don't wait for completion (no point)
+		doExecute(qProcr, qBean);
+		waitForBeanStatus(qBean, Status.RUNNING, 1000l);
+		
+		//Thread.sleep(100); //Because it takes time for the thread to start
+		assertTrue("Executed should false after start", qProcr.isExecuted());
+		
+
+		try {
+			qProcr.setProcessBean(qBean);
+			fail("Should not be able to set bean after execution start");
+		} catch (EventException eEx) {
+			//Expected
+		}
+		try {
+			qProcr.setQueueProcess(qProc);
+			fail("Should not be able to set process after execution start");
+		} catch (EventException eEx) {
+			//Expected
+		}
+	}
+	
+	/**
+	 * Prevents a processor with bean type A set on it being passed to a 
+	 * process with bean type B. I think this only comes about when beans are 
+	 * passed as Queueables. 
+	 * @throws Exception
+	 */
+	@Test
+	public void testDifferentBeanTypes() throws Exception {
+		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
+		Queueable qBean = getTestBean();
+		
+		//This bean should be of a different type to the one acted on by the 
+		//processor under test
+		DummyBean absDBe = new DummyBean("Hephaestus", 600);
+		if (absDBe.getClass().equals(qBean.getClass())) {
+			throw new Exception("Bean received is of same type as 'wrong type' bean");
+		}
+		
+		try {
+			doExecute(qProcr, absDBe, qBean);//(dBeProcr, dBeA, dAtA, true);
+			//Need to allow thread to start before failing (otherwise, no error thrown)
+			waitForBeanStatus(absDBe, Status.RUNNING, 10000l);
+			fail("Should not be able to execute with different bean types on processor & process");
+		} catch (EventException eEx) {
+			//Expected
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	protected abstract IQueueProcessor<? extends Queueable> getTestProcessor();
+	protected abstract Queueable getTestBean();
 	
 	protected void doExecute(IQueueProcessor<? extends Queueable> qProcr, Queueable bean) throws Exception {
 		doExecute(qProcr, bean, bean);
@@ -115,13 +233,18 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 		
 		while (true) {
 			lastBean = ((MockPublisher<Queueable>)statPub).getLastBean();
-			if ((lastBean != null) && (lastBean.getStatus().equals(state))) {
-				break;
+			if ((lastBean != null) && (lastBean.getUniqueId().equals(bean.getUniqueId()))) { 
+				if (lastBean.getStatus().equals(state)) {
+					break;
+				}
 			}
 			Thread.sleep(10);
 			runTime = System.currentTimeMillis() - startTime;
 			if ((timeout != null) && (runTime >= timeout)) {
 				throw new Exception("Bean state not reached before timeout");
+			}
+			if (thrownException != null) {
+				throw new EventException(thrownException);
 			}
 		}
 	}
