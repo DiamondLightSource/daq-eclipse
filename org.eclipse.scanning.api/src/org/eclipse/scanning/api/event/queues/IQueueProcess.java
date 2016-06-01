@@ -26,7 +26,7 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 		setExecuted();
 		getProcessor().execute();
 	}
-	
+
 	/**
 	 * Default method, implementing method of {@link IConsumerProcess}. 
 	 * Instructs the {@link IQueueProcessor} to temporarily halt processing.
@@ -34,7 +34,7 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	public default void pause() throws EventException {
 		getProcessor().pause();
 	}
-	
+
 	/**
 	 * Default method, implementing method of {@link IConsumerProcess}.
 	 * Instructs {@link IQueueProcessor} to restart processing after a pause.
@@ -48,6 +48,7 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	 * Instructs the {@link IQueueProcessor} to abort processing.
 	 */
 	public default void terminate() throws EventException {
+		setTerminated();
 		getProcessor().terminate();
 	}
 
@@ -58,7 +59,7 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	 * @return {@link IQueueProcessor} to process the bean.
 	 */
 	public IQueueProcessor<? extends Queueable> getProcessor();
-	
+
 	/**
 	 * Change the configured {@link IQueueProcessor} used to process beans. This cannot be changed after execute has been called.
 	 * 
@@ -66,7 +67,7 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	 * @throws EventException if called after execute.
 	 */
 	public void setProcessor(IQueueProcessor<? extends Queueable> processor) throws EventException;
-	
+
 	/**
 	 * Convenience method to call broadcast with only {@link Status} argument.
 	 * 
@@ -87,7 +88,7 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	public default void broadcast(double newPercent) throws EventException {
 		broadcast(null, newPercent, null);
 	}
-	
+
 	/**
 	 * Convenience method to call broadcast with percent complete and 
 	 * {@link Status} arguments.
@@ -109,17 +110,30 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	 * @throws EventException In case broadcasting fails.
 	 */
 	public void broadcast(Status newStatus, Double newPercent, String message) throws EventException;
-	
-	/**
-	 * Set boolean executed to indicate start of execution.
-	 */
-	public void setExecuted();
-	
+
 	/**
 	 * Return whether execution has begun.
 	 * 
 	 * @return true if execution begun.
 	 */
 	public boolean isExecuted();
+
+	/**
+	 * Set boolean executed to indicate start of execution.
+	 */
+	public void setExecuted();
+
+	/**
+	 * Return whether the process has been terminated.
+	 * 
+	 * @return true if has been terminated.
+	 */
+	public boolean isTerminated();
+
+	/**
+	 * Set boolean terminated to indicate that a terminated call has been 
+	 * received & action should be taken.
+	 */
+	public void setTerminated();
 
 }

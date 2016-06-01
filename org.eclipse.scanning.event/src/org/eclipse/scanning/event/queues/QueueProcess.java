@@ -24,7 +24,7 @@ import org.eclipse.scanning.api.event.status.Status;
 public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T> implements IQueueProcess<T> {
 	
 	private IQueueProcessor<? extends Queueable> processor;
-	private boolean blocking = true, executed = false;
+	private boolean blocking = true, executed = false, terminated = false;
 	
 	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking) {
 		super(bean, publisher);
@@ -88,6 +88,16 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	@Override
 	public void setExecuted() {
 		executed = true;
+	}
+
+	@Override
+	public boolean isTerminated() {
+		return terminated;
+	}
+
+	@Override
+	public void setTerminated() {
+		terminated = true;
 	}
 
 	public boolean isBlocking() {

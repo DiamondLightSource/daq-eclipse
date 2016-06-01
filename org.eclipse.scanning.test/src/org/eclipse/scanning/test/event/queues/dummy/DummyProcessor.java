@@ -11,17 +11,17 @@ import org.slf4j.LoggerFactory;
 public abstract class DummyProcessor <P extends Queueable> implements IQueueProcessor<P> {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyProcessor.class);
-	
+
 	private IQueueProcess<? extends Queueable> process;
 	private boolean terminated = false, executed = false;
-	
+
 	protected P dummy;
-	
+
 	@Override
 	public void execute() throws EventException {
 		setExecuted();
 		if (!(dummy.equals(process.getBean()))) throw new EventException("Beans on QueueProcess and QueueProcessor differ");
-		
+
 		process.broadcast(Status.RUNNING, 0d);
 
 		for (int i = 0; i < 100; i++) {
@@ -41,7 +41,7 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 		}
 		process.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
 	}
-	
+
 	@Override
 	public void pause() throws EventException {
 		// TODO Auto-generated method stub
@@ -51,12 +51,12 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 	public void resume() throws EventException {
 		// TODO Auto-generated method stub
 	}
-	
+
 	@Override
 	public void terminate() throws EventException {
 		terminated = true;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Queueable> void setProcessBean(T bean) throws EventException {
@@ -73,23 +73,25 @@ public abstract class DummyProcessor <P extends Queueable> implements IQueueProc
 		if (isExecuted()) throw new EventException("Cannot change queueProcess after execution started.");
 		this.process = process;
 	}
-	
-	public boolean isTerminated() {
-		return terminated;
-	}
 
-	public void setTerminated() {
-		terminated = true;
-	}
-	
 	@Override
 	public boolean isExecuted() {
 		return executed;
 	}
-	
+
 	@Override
 	public void setExecuted() {
 		executed = true;
+	}
+
+	@Override
+	public boolean isTerminated() {
+		return terminated;
+	}
+
+	@Override
+	public void setTerminated() {
+		terminated = true;
 	}
 
 }

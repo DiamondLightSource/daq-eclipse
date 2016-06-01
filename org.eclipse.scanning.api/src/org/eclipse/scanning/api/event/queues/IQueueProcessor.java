@@ -85,14 +85,28 @@ public interface IQueueProcessor<P extends Queueable> {
 	public void setQueueProcess(IQueueProcess<? extends Queueable> process) throws EventException;
 
 	/**
-	 * Set boolean executed to indicate start of execution.
-	 */
-	public void setExecuted();
-
-	/**
 	 * Return whether execution has begun.
 	 * 
 	 * @return true if execution begun.
 	 */
 	public boolean isExecuted();
+
+	/**
+	 * Set boolean executed to indicate start of execution.
+	 */
+	public void setExecuted();
+
+	/**
+	 * Return whether the processor has been terminated.
+	 * 
+	 * @return true if has been terminated.
+	 */
+	public boolean isTerminated();
+
+	/**
+	 * Set boolean terminated to indicate that a terminated call has been 
+	 * received & action should be taken.
+	 */
+	public void setTerminated();
+
 }
