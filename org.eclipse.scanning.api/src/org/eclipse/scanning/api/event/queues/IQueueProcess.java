@@ -67,6 +67,18 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	 * @throws EventException if called after execute.
 	 */
 	public void setProcessor(IQueueProcessor<? extends Queueable> processor) throws EventException;
+	
+	/**
+	 * Convenience method to call broadcast with both {@link Status} and 
+	 * message arguments.
+	 * 
+	 * @param newStatus {@link Status} the bean has just reached.
+	 * @param message String to message to publish on the bean.
+	 * @throws EventException In case broadcasting fails.
+	 */
+	public default void broadcast(Status newStatus, String message) throws EventException {
+		broadcast(newStatus, null, message);
+	}
 
 	/**
 	 * Convenience method to call broadcast with only {@link Status} argument.
@@ -107,6 +119,7 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	 * 
 	 * @param newStatus {@link Status} the bean has just reached.
 	 * @param newPercent The value percent complete should be set to.
+	 * @param message String to message to publish on the bean.
 	 * @throws EventException In case broadcasting fails.
 	 */
 	public void broadcast(Status newStatus, Double newPercent, String message) throws EventException;

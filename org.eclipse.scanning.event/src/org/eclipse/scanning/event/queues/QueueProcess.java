@@ -49,6 +49,7 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	
 	@Override
 	public void doTerminate() throws EventException {
+		setTerminated();
 		processor.terminate();
 	}
 	
