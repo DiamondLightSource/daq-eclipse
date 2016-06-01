@@ -93,11 +93,11 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		 */
 		checkInitialBeanState(mvAt);
 		doExecute(mvProcr, mvAt);
-		Thread.sleep(1000);
+		Thread.sleep(120);
 		qProc.terminate();
 		waitForBeanFinalStatus(mvAt, 10000l);
 		
-		checkBroadcastBeanStatuses(mvAt, Status.TERMINATED, true);
+		checkBroadcastBeanStatuses(mvAt, Status.TERMINATED, false);
 		
 		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());
 	}

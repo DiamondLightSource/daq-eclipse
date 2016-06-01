@@ -25,6 +25,8 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 	private Thread moveThread;
 	private CountDownLatch moveLatch = new CountDownLatch(1);
 	
+	private boolean complete = true;
+	
 	public MoveAtomProcessor() {
 		//Get the deviceService from the OSGi configured holder.
 		deviceService = QueueServicesHolder.getDeviceService();
@@ -60,11 +62,12 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 					positioner.setPosition(target);
 					
 					//Completed cleanly
+					complete = true;
 					moveLatch.countDown();
 				} catch(Exception e) {
-					logger.error("Moving device(s) in "+bean.getName()+" failed with: "+e.getMessage());
+					logger.error("Moving device(s) in '"+bean.getName()+"' failed with: "+e.getMessage());
 					try{
-						process.broadcast(Status.FAILED, "Moving device(s) in "+bean.getName()+" failed: "+e.getMessage());
+						process.broadcast(Status.FAILED, "Moving device(s) in '"+bean.getName()+"' failed: "+e.getMessage());
 					} catch(EventException evEx) {
 						logger.error("Broadcasting bean failed with: "+evEx.getMessage());
 					}
@@ -83,9 +86,10 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 			positioner.abort();
 			return;
 		}
+		if (complete) System.out.println("Woop woop");
 		
 		//Clean finish
-		process.broadcast(Status.COMPLETE, "Device move(s) completed.");
+		process.broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
 	}
 
 	@Override
