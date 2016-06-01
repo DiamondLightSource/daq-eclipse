@@ -19,14 +19,13 @@ import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
-import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T extends Queueable> 
+public abstract class AbstractQueueProcessorTest {
 	
 	protected IQueueProcess<Queueable> qProc;	
 	
@@ -41,7 +40,7 @@ public abstract class AbstractQueueProcessorTest extends BrokerTest { //<T exten
 	public void setUp() {
 		execLatch = new CountDownLatch(1);
 		
-		statPub = new MockPublisher<Queueable>(uri, topic);
+		statPub = new MockPublisher<Queueable>(null, topic);
 		
 		localSetup();
 	}
