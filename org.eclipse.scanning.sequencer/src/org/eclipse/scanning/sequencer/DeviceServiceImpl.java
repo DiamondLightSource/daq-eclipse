@@ -178,7 +178,7 @@ public final class DeviceServiceImpl implements IRunnableDeviceService {
 			
 			final IRunnableDevice<T> scanner = createDevice(model);
 			
-			if (model instanceof MalcolmDetectorConfiguration) model = ((MalcolmDetectorConfiguration<T>)model).getPayload();
+			if (model instanceof MalcolmDetectorConfiguration) model = ((MalcolmDetectorConfiguration<T>)model).getModel();
 			if (scanner instanceof AbstractRunnableDevice) {
 				AbstractRunnableDevice<T> ascanner = (AbstractRunnableDevice<T>)scanner;
 				ascanner.setRunnableDeviceService(this);
