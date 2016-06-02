@@ -140,12 +140,20 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		return bean.getDeviceState();
 	}
 
+	/**
+	 * 
+	 * @param pos
+	 * @param count 0-based position count (1 is added to caculate % complete)
+	 * @param size
+	 * @throws EventException
+	 * @throws ScanningException
+	 */
 	protected void positionComplete(IPosition pos, int count, int size) throws EventException, ScanningException {
 		final ScanBean bean = getBean();
 		bean.setPoint(count);
 		bean.setPosition(pos);
 		bean.setPreviousDeviceState(bean.getDeviceState());
-		if (size>-1) bean.setPercentComplete(((double)count/size)*100);
+		if (size>-1) bean.setPercentComplete(((double)(count+1)/size)*100);
 
 		if (publisher != null) {
 			publisher.broadcast(bean);

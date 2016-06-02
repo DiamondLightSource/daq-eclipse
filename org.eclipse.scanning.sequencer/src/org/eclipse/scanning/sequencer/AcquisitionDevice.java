@@ -270,7 +270,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
 	        	// Send an event about where we are in the scan
-	        	positionComplete(pos, count+1, size);
+	        	positionComplete(pos, count, size);
 	        	++count;
 	        }
 	        

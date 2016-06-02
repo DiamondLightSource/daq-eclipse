@@ -87,6 +87,9 @@ public final class MapPosition extends AbstractPosition {
 		for (String name : names) {
 			values.put(name, pos.get(name));
 		}
+		for (String name : names) {
+			indices.put(name, pos.getIndex(name));
+		}
 	}
 
 	@Override
