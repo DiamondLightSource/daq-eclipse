@@ -47,8 +47,8 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 			positioner = deviceService.createPositioner();
 		} catch (ScanningException se) {
 			logger.error("Failed to get device positioner in "+queueBean.getName()+": \""+se.getMessage()+"\"");
-			broadcaster.broadcast(Status.FAILED, "Failed to get device positioner");
-			throw new EventException(se);
+			broadcaster.broadcast(Status.FAILED, "Failed to get device positioner \""+se.getMessage()+"\"");
+			throw new EventException("Failed to get device positioner", se);
 		}
 		broadcaster.broadcast(20d);
 		
