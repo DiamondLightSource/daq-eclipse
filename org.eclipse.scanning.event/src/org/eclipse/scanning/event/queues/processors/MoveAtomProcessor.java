@@ -19,9 +19,11 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 	
 	private static Logger logger = LoggerFactory.getLogger(MoveAtomProcessor.class);
 	
-	private IRunnableDeviceService deviceService;
+	//Scanning infrastructure
+	private final IRunnableDeviceService deviceService;
 	private IPositioner positioner;
 	
+	//Processor operation
 	private Thread moveThread;
 	private CountDownLatch moveLatch = new CountDownLatch(1);
 	
@@ -35,7 +37,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 		setExecuted();
 		process.broadcast(Status.RUNNING,"Creating position from configured values");
 		
-		final IPosition target = new MapPosition(bean.getPositionConfig());
+		final IPosition target = new MapPosition(queueBean.getPositionConfig());
 		process.broadcast(10d);
 		
 		//Get the positioner
@@ -43,7 +45,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 		try {
 			positioner = deviceService.createPositioner();
 		} catch (ScanningException se) {
-			logger.error("Failed to get device positioner in "+bean.getName()+": \""+se.getMessage()+"\"");
+			logger.error("Failed to get device positioner in "+queueBean.getName()+": \""+se.getMessage()+"\"");
 			process.broadcast(Status.FAILED, "Failed to get device positioner");
 			throw new EventException(se);
 		}
@@ -72,9 +74,9 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 			}
 			
 			private void reportFail(Exception ex) {
-				logger.error("Moving device(s) in '"+bean.getName()+"' failed with: \""+ex.getMessage()+"\"");
+				logger.error("Moving device(s) in '"+queueBean.getName()+"' failed with: \""+ex.getMessage()+"\"");
 				try{
-					process.broadcast(Status.FAILED, "Moving device(s) in '"+bean.getName()+"' failed: \""+ex.getMessage()+"\"");
+					process.broadcast(Status.FAILED, "Moving device(s) in '"+queueBean.getName()+"' failed: \""+ex.getMessage()+"\"");
 				} catch(EventException evEx) {
 					logger.error("Broadcasting bean failed with: \""+evEx.getMessage()+"\"");
 				}
@@ -98,7 +100,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implemen
 			process.broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
 		} else {
 			process.broadcast(Status.FAILED, "Processing ended unexpectedly.");
-			logger.warn("Processing of '"+bean.getName()+"' ended unexpectedly.");
+			logger.warn("Processing of '"+queueBean.getName()+"' ended unexpectedly.");
 		}
 	}
 

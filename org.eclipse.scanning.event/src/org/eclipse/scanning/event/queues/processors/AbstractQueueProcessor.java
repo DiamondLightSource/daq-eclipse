@@ -13,7 +13,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	
 	private boolean terminated = false, executed = false, complete = false;
 	
-	protected P bean;
+	protected P queueBean;
 	protected IQueueProcess<? extends Queueable> process;
 
 	@SuppressWarnings("unchecked")
@@ -24,7 +24,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 			throw new EventException("Cannot change bean to be processed after execution has started");
 		}
 		if (bean.getClass().equals(getBeanClass())) {
-			this.bean = (P)bean;
+			this.queueBean = (P)bean;
 		} else {
 			logger.error("Cannot set bean: Bean type "+bean.getClass().getSimpleName()+" not supported by "+getClass().getSimpleName()+".");
 			throw new EventException("Unsupported bean type");

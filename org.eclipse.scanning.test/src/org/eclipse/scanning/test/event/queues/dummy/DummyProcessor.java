@@ -14,7 +14,7 @@ public abstract class DummyProcessor <P extends Queueable> extends AbstractQueue
 	@Override
 	public void execute() throws EventException {
 		setExecuted();
-		if (!(bean.equals(process.getBean()))) throw new EventException("Beans on QueueProcess and QueueProcessor differ");
+		if (!(queueBean.equals(process.getBean()))) throw new EventException("Beans on QueueProcess and QueueProcessor differ");
 
 		process.broadcast(Status.RUNNING, 0d);
 
@@ -30,7 +30,7 @@ public abstract class DummyProcessor <P extends Queueable> extends AbstractQueue
 				logger.error("Dummy process sleeping failed", e);
 				throw new EventException(e);
 			}
-			System.out.println("DummyProcessor ("+bean.getClass().getSimpleName()+" - "+bean.getName()+"): "+bean.getPercentComplete());
+			System.out.println("DummyProcessor ("+queueBean.getClass().getSimpleName()+" - "+queueBean.getName()+"): "+queueBean.getPercentComplete());
 			process.broadcast(new Double(i));
 		}
 		process.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
