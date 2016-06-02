@@ -82,7 +82,7 @@ public interface IQueueProcessor<P extends Queueable> {
 	 * @throws EventException if attempt to change queue process after 
 	 *         execution has started.
 	 */
-	public void setQueueProcess(IQueueProcess<? extends Queueable> process) throws EventException;
+	public void setQueueBroadcaster(IQueueBroadcaster<? extends Queueable> broadcaster) throws EventException;
 
 	/**
 	 * Return whether execution has begun.
