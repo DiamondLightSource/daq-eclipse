@@ -4,7 +4,6 @@ import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
@@ -15,7 +14,7 @@ import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> implements IQueueProcessor<MoveAtom> {
+public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 	
 	private static Logger logger = LoggerFactory.getLogger(MoveAtomProcessor.class);
 	

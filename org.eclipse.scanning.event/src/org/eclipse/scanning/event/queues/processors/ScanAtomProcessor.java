@@ -96,13 +96,13 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 				"Submitting bean to scanning service.");
 		scanPublisher = eventService.createPublisher(scanBrokerURI, scanStatusTopicName);
 		scanSubscriber = eventService.createSubscriber(scanBrokerURI, scanStatusTopicName);
-		try {
-		scanSubscriber.addListener(new QueueListener<ScanBean, T>(bean, this, beanID, configPercent)); //TODO
-		} catch (EventException evEx) {
-			broadcaster.broadcast(Status.FAILED, "Failed to add QueueListener to scan subscriber; unable to monitor queue. Cannot continue: \""+evEx.getMessage()+"\".");
-			logger.error("Failed to add QueueListener to scan subscriber for '"+queueBean.getName()+"'; unable to monitor queue. Cannot continue: \""+evEx.getMessage()+"\".");
-			throw new EventException("Failed to add QueueListener to scan subscriber", evEx);
-		}
+//		try {
+//		scanSubscriber.addListener(new QueueListener<ScanBean, T>(bean, this, beanID, configPercent)); //TODO
+//		} catch (EventException evEx) {
+//			broadcaster.broadcast(Status.FAILED, "Failed to add QueueListener to scan subscriber; unable to monitor queue. Cannot continue: \""+evEx.getMessage()+"\".");
+//			logger.error("Failed to add QueueListener to scan subscriber for '"+queueBean.getName()+"'; unable to monitor queue. Cannot continue: \""+evEx.getMessage()+"\".");
+//			throw new EventException("Failed to add QueueListener to scan subscriber", evEx);
+//		}
 		scanSubmitter = eventService.createSubmitter(scanBrokerURI, scanSubmitQueueName);
 		scanBean.setStatus(Status.SUBMITTED);
 		try {
