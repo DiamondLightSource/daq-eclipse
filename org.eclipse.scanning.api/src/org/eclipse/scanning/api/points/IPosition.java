@@ -1,7 +1,10 @@
 package org.eclipse.scanning.api.points;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 
@@ -133,5 +136,19 @@ public interface IPosition {
 	 */
 	default int getScanRank() {
 		return 1;
+	}
+	
+	/**
+	 * It is not required of an IPosition to provide getIndices() but it
+	 * may do so to avoid a new map being built up. Implement this method
+	 * to ensure that your position runs faster.
+	 * @see org.eclipse.scanning.api.points.MapPosition.getIndices()
+	 * @ses org.eclipse.scanning.api.points.Point.getIndices()
+	 * @return
+	 */
+	default Map<String, Integer> getIndices() {
+		final Map<String,Integer> indices = new LinkedHashMap<>(size());
+		for (String name : getNames()) indices.put(name, getIndex(name));
+		return indices;
 	}
 }
