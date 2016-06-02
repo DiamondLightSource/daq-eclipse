@@ -29,7 +29,7 @@ import org.junit.Test;
 
 public class HeartbeatMonitorTest {
 	
-	private EventInfrastructureFactoryService brokerServ;
+	private EventInfrastructureFactoryService infrastructureServ;
 	
 	private IConsumer<QueueBean> consOne;
 	private IConsumer<QueueAtom >consTwo;
@@ -43,15 +43,15 @@ public class HeartbeatMonitorTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		brokerServ = new EventInfrastructureFactoryService();
-		brokerServ.start(true);
+		infrastructureServ = new EventInfrastructureFactoryService();
+		infrastructureServ.start(true);
 		
-		consOne = brokerServ.makeConsumer(new DummyBean(), true);
+		consOne = infrastructureServ.makeConsumer(new DummyBean(), true);
 		consOneID = consOne.getConsumerId();
-		uri = brokerServ.getURI();
+		uri = infrastructureServ.getURI();
 		
 		//This is not a plugin-test - need to supply the EventService
-		QueueServicesHolder.setEventService(brokerServ.getEventService());
+		QueueServicesHolder.setEventService(infrastructureServ.getEventService());
 	}
 	
 	@After
@@ -206,7 +206,7 @@ public class HeartbeatMonitorTest {
 	}
 	
 	private void createSecondConsumer() throws Exception {
-		consTwo = brokerServ.makeConsumer(new DummyAtom(), true);
+		consTwo = infrastructureServ.makeConsumer(new DummyAtom(), true);
 		consTwoID = consTwo.getConsumerId();
 		assertFalse("IDs of two consumers are identical", consTwoID.equals(consOneID));
 	}
