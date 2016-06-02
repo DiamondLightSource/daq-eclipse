@@ -15,6 +15,7 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
@@ -74,13 +75,34 @@ public class SerializationTest {
 	}
 	
 	@Test
-	public void testSerializePosition() throws Exception {
+	public void testSerializeBasicPosition1() throws Exception {
 		// Create a simple bounding rectangle
-		IPosition roi = new MapPosition("Fred:1:0");
-		String   json = connectorService.marshal(roi);
-		IPosition ior = connectorService.unmarshal(json, IPosition.class);
-		assertEquals(roi, ior);
+		IPosition pos = new MapPosition("x", 0, 1.0);
+		String   json = connectorService.marshal(pos);
+		IPosition sop = connectorService.unmarshal(json, IPosition.class);
+		assertEquals(pos, sop);
 	}
+	
+	@Test
+	public void testSerializeBasicPosition2() throws Exception {
+		// Create a simple bounding rectangle
+		IPosition pos = new MapPosition("Fred:1:0");
+		pos.setStepIndex(100);
+		String   json = connectorService.marshal(pos);
+		IPosition sop = connectorService.unmarshal(json, IPosition.class);
+		assertEquals(pos, sop);
+	}
+	
+	@Test
+	public void testSerializePositionWithIndices() throws Exception {
+		// Create a simple bounding rectangle
+		Point point = new Point("x", 100, 0.02, "y", 150, 0.03); 
+		point.setStepIndex(100);
+		String   json = connectorService.marshal(point);
+		IPosition tniop = connectorService.unmarshal(json, IPosition.class);
+		assertEquals(point, tniop);
+	}
+
 
 	@Test
 	public void testSerializeRegion() throws Exception {

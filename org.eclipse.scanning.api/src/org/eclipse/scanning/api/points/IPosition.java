@@ -139,9 +139,27 @@ public interface IPosition {
 	}
 	
 	/**
+	 * It is not required of an IPosition to provide getValues() but it
+	 * may do so to avoid a new map being built up. Implement this method
+	 * to ensure that your position runs faster. The default implementation
+	 * works.
+	 * 
+	 * @see org.eclipse.scanning.api.points.MapPosition.getValues()
+	 * @ses org.eclipse.scanning.api.points.Point.getValues()
+	 * @return
+	 */
+	default Map<String, Object> getValues() {
+		final Map<String,Object> values = new LinkedHashMap<>(size());
+		for (String name : getNames()) values.put(name, getValue(name));
+		return values;
+	}
+
+	/**
 	 * It is not required of an IPosition to provide getIndices() but it
 	 * may do so to avoid a new map being built up. Implement this method
-	 * to ensure that your position runs faster.
+	 * to ensure that your position runs faster. The default implementation
+	 * works.
+	 * 
 	 * @see org.eclipse.scanning.api.points.MapPosition.getIndices()
 	 * @ses org.eclipse.scanning.api.points.Point.getIndices()
 	 * @return

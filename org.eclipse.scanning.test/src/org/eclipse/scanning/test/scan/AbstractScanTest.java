@@ -374,8 +374,8 @@ public class AbstractScanTest extends BrokerTest {
 		// NOTE Did with Mockito but caused dependency issues.
 		MockScannable ms = (MockScannable)x;
 		ms.verify(0.3, new Point(0,0.3,0,0.3));
-		ms.verify(1.5, new Point(0,1.5,2,0.3));
-		ms.verify(0.3, new Point(2,0.3,0,1.5));
+		ms.verify(0.3, new Point(0,0.3,2,1.5));
+		ms.verify(1.5, new Point(2,1.5,0,0.3));
 		ms.verify(1.5, new Point(2,1.5,2,1.5));
 	}
 	
@@ -392,8 +392,8 @@ public class AbstractScanTest extends BrokerTest {
 		// NOTE Did with Mockito but caused dependency issues.
 		MockScannable ms = (MockScannable)monitor;
 		ms.verify(null, new Point(0,0.3,0,0.3));
-		ms.verify(null, new Point(0,1.5,2,0.3));
-		ms.verify(null, new Point(2,0.3,0,1.5));
+		ms.verify(null, new Point(0,0.3,2,1.5));
+		ms.verify(null, new Point(2,1.5,0,0.3));
 		ms.verify(null, new Point(2,1.5,2,1.5));
 	}
 	
