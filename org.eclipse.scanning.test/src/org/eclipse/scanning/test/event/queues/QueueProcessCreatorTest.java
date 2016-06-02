@@ -83,8 +83,8 @@ public class QueueProcessCreatorTest {
 		//Atoms to test
 		IConsumerProcess<QueueAtom> atomProc;
 		List<QueueAtom> testAtoms = new ArrayList<QueueAtom>();
-		testAtoms.add(new MonitorAtom("Read bpm3", "bpm3", 10000);
-		testAtoms.add(new MoveAtom("Move robot arm", "robot_arm", "1250", 12000);
+		testAtoms.add(new MonitorAtom("Read bpm3", "bpm3", 10000));
+		testAtoms.add(new MoveAtom("Move robot arm", "robot_arm", "1250", 12000));
 		testAtoms.add(makeScanAtom());
 		testAtoms.add(TestAtomQueueBeanMaker.makeDummySubTaskBeanA());
 		
@@ -130,8 +130,8 @@ public class QueueProcessCreatorTest {
 		IConsumerProcess<QueueAtom> atomProc;
 		List<QueueAtom> testAtoms = new ArrayList<QueueAtom>();
 		testAtoms.add(new DummyAtom("Charles", 1500));
-		testAtoms.add(TestAtomMaker.makeTestMonitorAtomA());
-		testAtoms.add(TestAtomMaker.makeTestMoveAtomA());
+		testAtoms.add(new MoveAtom("Move robot arm", "robot_arm", "1250", 12000));
+		testAtoms.add(new MonitorAtom("Read bpm3", "bpm3", 10000));
 		testAtoms.add(makeScanAtom());
 		testAtoms.add(TestAtomQueueBeanMaker.makeDummySubTaskBeanA());
 		
