@@ -80,7 +80,7 @@ public abstract class AbstractPosition implements IPosition {
 		final Map<String, Integer> itheirs = getIndices((IPosition)obj);
 		if (!iours.equals(itheirs)) return false;		
 	
-		if (!equals(dimensionNames, getDimensionNames((IPosition)obj))) return false;		
+		if (!equals(getDimensionNames(), getDimensionNames((IPosition)obj))) return false;		
 
 		return true;
 	}
@@ -103,6 +103,10 @@ public abstract class AbstractPosition implements IPosition {
         
     	if (o == t)
             return true;
+    	if (o == null && t == null)
+            return true;
+    	if (o == null || t == null)
+            return false;
  
         Iterator<?> e1 = o.iterator();
         Iterator<?> e2 = t.iterator();
