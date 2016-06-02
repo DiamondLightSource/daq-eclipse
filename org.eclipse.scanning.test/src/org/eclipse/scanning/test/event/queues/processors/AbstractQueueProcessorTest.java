@@ -37,7 +37,7 @@ public abstract class AbstractQueueProcessorTest {
 	private Exception thrownException = null;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
 		execLatch = new CountDownLatch(1);
 		
 		statPub = new MockPublisher<Queueable>(null, topic);
@@ -45,7 +45,7 @@ public abstract class AbstractQueueProcessorTest {
 		localSetup();
 	}
 	
-	protected abstract void localSetup();
+	protected abstract void localSetup() throws Exception;
 	
 	
 	@After
@@ -59,7 +59,7 @@ public abstract class AbstractQueueProcessorTest {
 		thrownException = null;
 	}
 	
-	protected abstract void localTearDown();
+	protected abstract void localTearDown() throws Exception;
 	
 	/**
 	 * Test that type checking of the setProcessBean method prevents the wrong 
