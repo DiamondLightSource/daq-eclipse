@@ -14,13 +14,13 @@ public abstract class DummyProcessor <P extends Queueable> extends AbstractQueue
 	@Override
 	public void execute() throws EventException {
 		setExecuted();
-		if (!(queueBean.equals(process.getBean()))) throw new EventException("Beans on QueueProcess and QueueProcessor differ");
+		if (!(queueBean.equals(broadcaster.getBean()))) throw new EventException("Beans on broadcaster and processor differ");
 
-		process.broadcast(Status.RUNNING, 0d);
+		broadcaster.broadcast(Status.RUNNING, 0d);
 
 		for (int i = 0; i < 100; i++) {
 			if (isTerminated()) {
-				process.broadcast(Status.TERMINATED);
+				broadcaster.broadcast(Status.TERMINATED);
 				return;
 			}
 
@@ -31,9 +31,9 @@ public abstract class DummyProcessor <P extends Queueable> extends AbstractQueue
 				throw new EventException(e);
 			}
 			System.out.println("DummyProcessor ("+queueBean.getClass().getSimpleName()+" - "+queueBean.getName()+"): "+queueBean.getPercentComplete());
-			process.broadcast(new Double(i));
+			broadcaster.broadcast(new Double(i));
 		}
-		process.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
+		broadcaster.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
 	}
 
 	@Override

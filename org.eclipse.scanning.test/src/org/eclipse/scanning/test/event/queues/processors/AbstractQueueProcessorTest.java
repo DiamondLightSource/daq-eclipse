@@ -1,10 +1,10 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -128,7 +128,7 @@ public abstract class AbstractQueueProcessorTest {
 			//Expected
 		}
 		try {
-			qProcr.setQueueProcess(qProc);
+			qProcr.setQueueBroadcaster(qProc);
 			fail("Should not be able to set process after execution start");
 		} catch (EventException eEx) {
 			//Expected
@@ -185,7 +185,7 @@ public abstract class AbstractQueueProcessorTest {
 		qProc = new QueueProcess<Queueable>(procBean, statPub, true);
 		
 		//Configure the QueueProcess & QueueProcessor
-		qProcr.setQueueProcess(qProc);
+		qProcr.setQueueBroadcaster(qProc);
 		qProcr.setProcessBean(procrBean);
 		qProc.setProcessor(qProcr);
 		
@@ -224,7 +224,7 @@ public abstract class AbstractQueueProcessorTest {
 	 */
 	protected void changeProcessAfterExecution(IQueueProcessor<? extends Queueable> qProcr) throws EventException {
 		qProcr.setExecuted();
-		qProcr.setQueueProcess(qProc);
+		qProcr.setQueueBroadcaster(qProc);
 	}
 	
 	protected void waitForBeanStatus(Queueable bean, Status state, Long timeout) throws Exception {
@@ -314,7 +314,7 @@ public abstract class AbstractQueueProcessorTest {
 		if (percentComplete > 0) {
 			assertEquals("Last bean has wrong percent complete", percentComplete, lastBean.getPercentComplete(), 0);
 		} else {
-			assertThat("The percent complete is not between 0% & 100%", lastBean.getPercentComplete(), is(not(100)));
+			assertThat("The percent complete is not between 0% & 100%", lastBean.getPercentComplete(), not(equalTo(100)));
 		}
 		
 	}

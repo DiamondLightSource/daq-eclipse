@@ -15,7 +15,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  * @param <T> Bean type passed by consumer (this might be a super-type of the 
  *            bean to be processed in the case of heterogenous queues).
  */
-public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T> {
+public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>, IQueueBroadcaster<T> {
 
 	/**
 	 * Default method, implementing method of {@link IConsumerProcess}. 

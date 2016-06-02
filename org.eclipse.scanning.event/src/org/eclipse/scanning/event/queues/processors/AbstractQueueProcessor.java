@@ -1,7 +1,7 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.queues.IQueueProcess;
+import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	private boolean terminated = false, executed = false, complete = false;
 	
 	protected P queueBean;
-	protected IQueueProcess<? extends Queueable> process;
+	protected IQueueBroadcaster<? extends Queueable> broadcaster;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -32,12 +32,12 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	}
 
 	@Override
-	public void setQueueProcess(IQueueProcess<? extends Queueable> process) throws EventException {
+	public void setQueueBroadcaster(IQueueBroadcaster<? extends Queueable> broadcaster) throws EventException {
 		if (isExecuted()) {
-			logger.error("Cannot change IQueueProcess after execution has started.");
-			throw new EventException("Cannot change IQueueProcess after execution has started");
+			logger.error("Cannot change broadcaster after execution has started.");
+			throw new EventException("Cannot change broadcaster after execution has started");
 		}
-		this.process = process;
+		this.broadcaster = broadcaster;
 	}
 
 	@Override

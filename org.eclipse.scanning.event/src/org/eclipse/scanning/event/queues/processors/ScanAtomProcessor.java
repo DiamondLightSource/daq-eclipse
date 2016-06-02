@@ -34,19 +34,20 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	@Override
 	public void execute() throws EventException, InterruptedException {
 		setExecuted();
+		if (!(queueBean.equals(broadcaster.getBean()))) throw new EventException("Beans on broadcaster and processor differ");
 		
 		//Percentage alloted to scan configuration
 		final Double configPercent = 5d;
 		
 		//Get scanning service configuration
-		process.broadcast(Status.RUNNING, "Reading scanning service configuration");
+		broadcaster.broadcast(Status.RUNNING, "Reading scanning service configuration");
 		final URI scanBrokerURI;
 		final String scanSubmitQueueName, scanStatusTopicName; 
 		if (queueBean.getScanBrokerURI() != null) {
 			try {
 				scanBrokerURI = new URI(queueBean.getScanBrokerURI());
 			} catch (URISyntaxException usEx) {
-				process.broadcast(Status.FAILED, "Failed to set broker URI: "+usEx.getMessage()+" - "+usEx.getReason());
+				broadcaster.broadcast(Status.FAILED, "Failed to set broker URI: "+usEx.getMessage()+" - "+usEx.getReason());
 				logger.error("Failed to set scanning service broker URI for "+queueBean.getName()+": "+usEx.getMessage()+" - "+usEx.getReason());
 				throw new EventException("Failed to set broker URI: "+usEx.getMessage()+" - "+usEx.getReason());
 			}
@@ -66,18 +67,18 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		}
 
 		//Create the ScanRequest
-		process.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.1,
+		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.1,
 				"Creating scan request from configured values");
 
 		//Configure the ScanBean & set the ScanRequest
-		process.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.3);
+		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.3);
 		
 		//Create the scanning service infrastructure & submit ScanBean
-		process.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.3,
+		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.3,
 				"Submitting bean to scanning service");
 		
 		//Allow scan to run
-		process.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.1,
+		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.1,
 				"Waiting for scan to complete");
 		
 
