@@ -46,6 +46,10 @@ public class EventInfrastructureFactoryService extends BrokerTest {
 		active = true;
 	}
 	
+	/**
+	 * Stop the current BrokerService instance.
+	 * @throws Exception
+	 */
 	public void stop() throws Exception {
 		if (unitTest) {
 			evServ = null;
@@ -55,10 +59,19 @@ public class EventInfrastructureFactoryService extends BrokerTest {
 		active = false;
 	}
 	
+	/**
+	 * Is this service started?
+	 * @return
+	 */
 	public boolean isActive() {
 		return active;
 	}
 	
+	/**
+	 * The URI of the currently active BrokerService
+	 * @return
+	 * @throws Exception
+	 */
 	public URI getURI() throws Exception {
 		if (!isActive()) {
 			System.out.println("TestBroker not started; starting (is unit test?: "+unitTest+")...");
@@ -67,10 +80,22 @@ public class EventInfrastructureFactoryService extends BrokerTest {
 		return uri;
 	}
 	
+	/**
+	 * EventService configured for the currently active BrokerService.
+	 * @return
+	 */
 	public IEventService getEventService() {
 		return evServ;
 	}
 	
+	/**
+	 * Create a consumer with generic configuration
+	 * 
+	 * @param bean only needed if creating a runner.
+	 * @param withRunner true for a non-functional fake/
+	 * @return
+	 * @throws Exception
+	 */
 	public <T extends StatusBean> IConsumer<T> makeConsumer(T bean, 
 			boolean withRunner) throws Exception {
 		if (!isActive()) {
@@ -90,6 +115,11 @@ public class EventInfrastructureFactoryService extends BrokerTest {
 		}
 	}
 	
+	/**
+	 * Create a fake, non-functional runner.
+	 * @param bean
+	 * @return
+	 */
 	private static <T extends StatusBean> IProcessCreator<T> makeEmptyRunner(T bean) {
 		return new IProcessCreator<T>() {
 
