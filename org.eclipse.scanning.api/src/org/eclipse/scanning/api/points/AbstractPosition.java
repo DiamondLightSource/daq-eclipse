@@ -1,11 +1,10 @@
 package org.eclipse.scanning.api.points;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
@@ -31,6 +30,7 @@ public abstract class AbstractPosition implements IPosition {
 		ret.putAll(this);
 		ret.putAllIndices(parent);
 		ret.putAllIndices(this);
+		ret.setStepIndex(getStepIndex());
 		return ret;
 	}
 
@@ -56,6 +56,7 @@ public abstract class AbstractPosition implements IPosition {
 		
 		if (this == obj)
 			return true;
+		
 		if (obj == null)
 			return false;
 		
@@ -75,7 +76,20 @@ public abstract class AbstractPosition implements IPosition {
 			if (!val1.equals(val2)) return false;
 		}
 		
+		final Map<String, Integer> iours   = getIndices();
+		final Map<String, Integer> itheirs = getIndices((IPosition)obj);
+		if (!iours.equals(itheirs)) return false;		
+	
+		if (!equals(dimensionNames, getDimensionNames((IPosition)obj))) return false;		
+
 		return true;
+	}
+
+	private Map<String, Integer> getIndices(IPosition pos) {
+		if (pos instanceof AbstractPosition) return ((AbstractPosition)pos).getIndices(); // Might be null
+		Map<String, Integer> ret = new LinkedHashMap<String, Integer>(pos.getNames().size());
+		for (String name : pos.getNames()) ret.put(name,  pos.getIndex(name));
+		return ret;
 	}
 
 	/**
@@ -86,7 +100,8 @@ public abstract class AbstractPosition implements IPosition {
 	 * @return
 	 */
     private boolean equals(Collection<?> o, Collection<?> t) {
-        if (o == t)
+        
+    	if (o == t)
             return true;
  
         Iterator<?> e1 = o.iterator();
@@ -94,6 +109,18 @@ public abstract class AbstractPosition implements IPosition {
         while (e1.hasNext() && e2.hasNext()) {
             Object o1 = e1.next();
             Object o2 = e2.next();
+            
+            // Collections go down to the same equals.
+            if (o1 instanceof Collection && o2 instanceof Collection) {
+            	boolean collectionsEqual = equals((Collection<?>)o1,(Collection<?>)o2);
+            	if (!collectionsEqual) {
+            		return false;
+            	} else {
+            		continue;
+            	}
+            }
+            
+            // Otherwise we use object equals.
             if (!(o1==null ? o2==null : o1.equals(o2)))
                 return false;
         }
@@ -125,27 +152,22 @@ public abstract class AbstractPosition implements IPosition {
     	return buf.toString();
 	}
 	
-
-	/**
-	 * This method always creates a new map of indices 
-	 * @return the data indices mapped name:index
-	 */
-	@UiHidden
-	public Map<String, Integer> getIndices() {
-		final Map<String,Integer> indices = new LinkedHashMap<>(size());
-		for (String name : getNames()) indices.put(name, getIndex(name));
-		return indices;
-	}
-
 	public Collection<String> getDimensionNames(int dimension) {
 		if (dimensionNames==null && dimension==0) return getNames();
 		if (dimensionNames==null)                 return null;
 		if (dimension>=dimensionNames.size())     return null;
 		return dimensionNames.get(dimension);
 	}
+	private List<Collection<String>> getDimensionNames(IPosition pos) {
+		if (pos instanceof AbstractPosition) return ((AbstractPosition)pos).getDimensionNames();
+		return null; // Do not have to support dimension names
+	}
 
 	public List<Collection<String>> getDimensionNames() {
-		if (dimensionNames==null)  dimensionNames = Arrays.asList(getNames());
+		if (dimensionNames==null)  {
+			dimensionNames = new ArrayList<>();
+			dimensionNames.add(new ArrayList<>(getNames())); // List adding a collection, we copy the keys here run SerializationTest to see why
+		}
 		return dimensionNames;
 	}
 	public void setDimensionNames(List<Collection<String>> dNames) {

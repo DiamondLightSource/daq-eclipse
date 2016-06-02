@@ -20,9 +20,16 @@ public final class MapPosition extends AbstractPosition {
 		indices  = new LinkedHashMap<String, Integer>(7);
 	}
 
-	public MapPosition(Map<String, Object> map) {
-		values   = map;
-		indices  = new LinkedHashMap<String, Integer>(7);
+	public MapPosition(Map<String, Object> vals) {
+		this(vals, new LinkedHashMap<String, Integer>(7));
+	}
+
+	public MapPosition(Map<String, Object> vals, Map<String, Integer> inds) {
+		values   = vals;
+		if (values.containsKey("stepIndex")) {
+			setStepIndex((Integer)values.remove("stepIndex"));
+		}
+		indices  = inds;
 	}
 	
 	public MapPosition(String name, Integer index, Object value) {
@@ -62,7 +69,7 @@ public final class MapPosition extends AbstractPosition {
 
 	@Override
 	public Collection<String> getNames() {
-		return Collections.unmodifiableCollection(values.keySet());
+		return values.keySet();
 	}
 
 	@Override
@@ -103,9 +110,14 @@ public final class MapPosition extends AbstractPosition {
 		}
 	}
 
+	@Override
 	public Map<String, Integer> getIndices() {
-		return Collections.unmodifiableMap(indices);
+		return indices;
 	}
-
+	
+	@Override
+	public Map<String, Object> getValues() {
+		return values;
+	}
 
 }

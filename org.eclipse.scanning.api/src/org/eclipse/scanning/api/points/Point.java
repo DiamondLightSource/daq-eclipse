@@ -21,6 +21,8 @@ package org.eclipse.scanning.api.points;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
 
@@ -32,6 +34,9 @@ import org.eclipse.scanning.api.annotation.UiHidden;
  * By default Points are 2D values used in things like GridScans. If used in a
  * LineScan or a Spiral scan where one dimension has two motors, the
  * constructor with is2D=false should be used.
+ * 
+ * The Point location is immutable: you may not change the values of x and y after it
+ * is created.
  *
  * @author James Mudd
  */
@@ -104,4 +109,28 @@ public final class Point extends AbstractPosition {
 		return -1;
 	}
 	
+	private Map<String, Object>  values;
+
+	@Override
+	public Map<String, Object> getValues() {
+		if (values == null) {
+			values = new LinkedHashMap<>(2);
+			values.put(yName, y);
+			values.put(xName, x);
+		}
+		return values;
+	}
+
+	
+	private Map<String, Integer>  indices;
+
+	@Override
+	public Map<String, Integer> getIndices() {
+		if (indices == null) {
+			indices = new LinkedHashMap<>(2);
+			indices.put(yName, yIndex);
+			indices.put(xName, xIndex);
+		}
+		return indices;
+	}
 }

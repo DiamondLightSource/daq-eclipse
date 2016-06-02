@@ -12,8 +12,6 @@
 package org.eclipse.scanning.points.serialization;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.eclipse.scanning.api.points.IPosition;
 
@@ -28,9 +26,8 @@ public class PositionSerializer extends JsonSerializer<IPosition> {
 	@Override
 	public void serialize(IPosition pos, JsonGenerator gen, SerializerProvider prov) throws IOException, JsonProcessingException {
 
-		final Map<String,Object> values = new LinkedHashMap<String, Object>(pos.size());
-		for (String name : pos.getNames()) values.put(name, pos.get(name));
-		gen.writeObject(values);
+		final PositionBean bean = new PositionBean(pos);
+		gen.writeObject(bean);
 	}
 
 	@Override

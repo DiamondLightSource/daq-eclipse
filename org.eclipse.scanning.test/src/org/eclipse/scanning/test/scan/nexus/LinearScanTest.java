@@ -144,13 +144,13 @@ public class LinearScanTest extends BrokerTest{
 		subscriber.addListener(new IScanListener() {
 			public void scanEventPerformed(ScanEvent evt) {
 				final IPosition pos = evt.getBean().getPosition();
-				System.out.println(pos);
+				System.out.println(pos.getStepIndex());
 				positions.add(pos);
 			}
 		});
 
 		scanner.run(null);
-		
+
 		int size = ((IPointGenerator)scanner.getModel().getPositionIterable()).size();
 		assertEquals(size, positions.size());
 		
