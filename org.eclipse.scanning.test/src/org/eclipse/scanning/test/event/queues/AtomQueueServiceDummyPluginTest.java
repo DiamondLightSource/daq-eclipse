@@ -1,15 +1,8 @@
 package org.eclipse.scanning.test.event.queues;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
-import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.event.queues.AtomQueueService;
-import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 /**
  * Test of the concrete implementation {@link AtomQueueService} of the {@link IQueueService}.
@@ -29,7 +22,7 @@ public class AtomQueueServiceDummyPluginTest extends AbstractQueueServiceTest {
 	}
 
 	public synchronized void setQueueService(IQueueService queueService) {
-		AtomQueueServiceDummyPluginTest.queueService = queueService;
+		AtomQueueServiceDummyPluginTest.queueService = queueService; //TODO This should be using QueueServiceHolder!
 	}
 	
 	public synchronized void unsetQueueService() {
@@ -43,11 +36,6 @@ public class AtomQueueServiceDummyPluginTest extends AbstractQueueServiceTest {
 		//Configure IQueueService as necessary using OSGi
 		qServ.setQueueRoot(qRoot);
 		qServ.setURI(uri);
-//		qServ.setEventService(AtomQueueServiceDummyPluginTest.eventService);
-		
-		//Reset the IQueueService generic process creator
-		qServ.setJobQueueProcessor(new AllBeanQueueProcessCreator<QueueBean>(true));
-		qServ.setActiveQueueProcessor(new AllBeanQueueProcessCreator<QueueAtom>(true));
 		
 		//All set? Let's go!
 		qServ.init();

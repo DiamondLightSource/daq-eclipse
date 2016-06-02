@@ -33,10 +33,10 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.queues.HeartbeatMonitor;
+import org.eclipse.scanning.event.queues.QueueProcessCreator;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -393,13 +393,13 @@ public class AbstractQueueServiceTest extends BrokerTest {
 		
 		//Change the jobQueueProcessor or the activeQueueProcessor
 		try {
-			qServ.setJobQueueProcessor(new AllBeanQueueProcessCreator<QueueBean>(false));
+			qServ.setJobQueueProcessor(new QueueProcessCreator<QueueBean>(false));
 			fail("Shouldn't be able to change the queue processor whilst service is started.");
 		} catch (EventException e) {
 			//expected
 		}
 		try {
-			qServ.setActiveQueueProcessor(new AllBeanQueueProcessCreator<QueueAtom>(false));
+			qServ.setActiveQueueProcessor(new QueueProcessCreator<QueueAtom>(false));
 			fail("Shouldn't be able to change the queue processor whilst service is started.");
 		} catch (EventException e) {
 			//expected

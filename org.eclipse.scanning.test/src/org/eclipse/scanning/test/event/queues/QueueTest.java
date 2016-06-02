@@ -19,10 +19,10 @@ import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.queues.HeartbeatMonitor;
 import org.eclipse.scanning.event.queues.Queue;
+import org.eclipse.scanning.event.queues.QueueProcessCreator;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.mocks.AllBeanQueueProcessCreator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,7 +58,7 @@ public class QueueTest extends BrokerTest {
 		QueueServicesHolder.setEventService(evServ);
 		
 		queue = new Queue<DummyBean>(qID, uri);
-		queue.setProcessRunner(new AllBeanQueueProcessCreator<DummyBean>(true));
+		queue.setProcessRunner(new QueueProcessCreator<DummyBean>(true));
 	}
 	
 	@After
