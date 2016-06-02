@@ -14,6 +14,8 @@ import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.event.queues.QueueProcessCreator;
 import org.eclipse.scanning.event.queues.beans.MonitorAtom;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
@@ -31,6 +33,7 @@ import org.eclipse.scanning.test.event.queues.mocks.DummyProcessor;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.util.TestAtomMaker;
 import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
+import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -80,8 +83,8 @@ public class QueueProcessCreatorTest {
 		//Atoms to test
 		IConsumerProcess<QueueAtom> atomProc;
 		List<QueueAtom> testAtoms = new ArrayList<QueueAtom>();
-		testAtoms.add(TestAtomMaker.makeTestMonitorAtomA());
-		testAtoms.add(TestAtomMaker.makeTestMoveAtomA());
+		testAtoms.add(new MonitorAtom("Read bpm3", "bpm3", 10000);
+		testAtoms.add(new MoveAtom("Move robot arm", "robot_arm", "1250", 12000);
 		testAtoms.add(makeScanAtom());
 		testAtoms.add(TestAtomQueueBeanMaker.makeDummySubTaskBeanA());
 		
@@ -160,7 +163,20 @@ public class QueueProcessCreatorTest {
 	
 	private ScanAtom makeScanAtom() {
 		//ScanAtomProcessor needs a ScanAtom with queue names etc.
-		ScanAtom scAt = TestAtomMaker.makeTestScanAtomA();
+		List<IScanPathModel> scanAxes = new ArrayList<>();
+		scanAxes.add(new StepModel("ocs", 290, 80, 10));
+		scanAxes.add(new StepModel("xMotor", 150, 100, 5));
+		
+		Map<String, Object> detectors = new HashMap<>();
+		detectors.put("pe", new MockDetectorModel(30d));
+		
+		List<String> monitors = new ArrayList<>();
+		monitors.add("bpm3");
+		monitors.add("i0");
+		
+		ScanAtom scAt = new ScanAtom("VT scan across sample", scanAxes, detectors);
+
+		
 		scAt.setScanConsumerURI("tcp://localhost:8624");
 		scAt.setScanSubmitQueueName(IEventService.SUBMISSION_QUEUE);
 		scAt.setScanStatusQueueName(IEventService.STATUS_SET);
