@@ -118,6 +118,7 @@ public class BasicScanTest extends NexusTest {
 	}
 
 	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws Exception {
+		
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 
 		NXroot rootNode = getNexusRoot(scanner);

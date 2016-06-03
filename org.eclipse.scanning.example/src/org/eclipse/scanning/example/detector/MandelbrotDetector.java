@@ -94,7 +94,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		return nexusProvider;
 	}
 
-	public NXdetector createNexusObject(NexusScanInfo info) throws NexusException {
+	private NXdetector createNexusObject(NexusScanInfo info) throws NexusException {
 		final NXdetector detector = NexusNodeFactory.createNXdetector();
 
 		int scanRank = info.getRank();
