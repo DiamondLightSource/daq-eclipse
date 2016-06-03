@@ -22,6 +22,11 @@ import org.eclipse.scanning.api.event.IdBean;
  */
 public class StatusBean extends IdBean {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7753482435874684328L;
+
 	public static final StatusBean EMPTY = new StatusBean(Status.NONE,"", "", Double.NaN, "", "EMPTY", System.currentTimeMillis());
 
 	protected Status previousStatus;

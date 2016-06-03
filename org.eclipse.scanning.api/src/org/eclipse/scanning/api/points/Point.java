@@ -27,7 +27,6 @@ import java.util.Map;
 import org.eclipse.scanning.api.annotation.UiHidden;
 
 /**
- * An immutable class used to represent a point for use in a mapping scan.
  * 
  * This class represents an x,y position for a mapping scan.
  * 
@@ -38,10 +37,16 @@ import org.eclipse.scanning.api.annotation.UiHidden;
  * The Point location is immutable: you may not change the values of x and y after it
  * is created.
  *
- * @author James Mudd
+ * @authors James Mudd, Matthew Gerring
  */
 public final class Point extends AbstractPosition {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2946649777289185552L;
+	
+	
 	private final Double  x;
 	private final Double  y;
 	private final Integer xIndex;

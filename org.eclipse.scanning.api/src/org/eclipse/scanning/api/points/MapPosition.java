@@ -1,7 +1,6 @@
 package org.eclipse.scanning.api.points;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,6 +10,11 @@ import java.util.Map;
  *
  */
 public final class MapPosition extends AbstractPosition {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3161176012921556875L;
 	
 	private Map<String, Object>  values;   // Name->Value
 	private Map<String, Integer> indices;  // Name->Index
