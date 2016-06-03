@@ -26,8 +26,13 @@ public class PositionSerializer extends JsonSerializer<IPosition> {
 	@Override
 	public void serialize(IPosition pos, JsonGenerator gen, SerializerProvider prov) throws IOException, JsonProcessingException {
 
-		final PositionBean bean = new PositionBean(pos);
-		gen.writeObject(bean);
+		try {
+			final PositionBean bean = new PositionBean(pos);
+			gen.writeObject(bean);
+		} catch (Throwable ne) {
+			ne.printStackTrace();
+			throw ne;
+		}
 	}
 
 	@Override

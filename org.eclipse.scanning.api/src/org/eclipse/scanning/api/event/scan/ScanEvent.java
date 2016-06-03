@@ -17,4 +17,8 @@ public class ScanEvent extends EventObject {
 	public ScanBean getBean() {
 		return (ScanBean)getSource();
 	}
+	
+	public String toString() {
+		return getBean().toString();
+	}
 }

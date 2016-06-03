@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.event.scan;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,7 +25,12 @@ import org.eclipse.scanning.api.script.ScriptResponse;
  * @param T must be type of region that the regions correspond to. For instance IROI for any region type or IRectangularROI is all known to be rectangular.
  *
  */
-public class ScanRequest<T> {
+public class ScanRequest<T> implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 456095444930240261L;
 
 	/**
 	 * The models for generating the points for a scan 

@@ -79,9 +79,9 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 	}
 
 	@Override
-	protected void setDeviceState(DeviceState nstate, IPosition position) throws ScanningException {
+	protected void setDeviceState(DeviceState nstate) throws ScanningException {
 		this.state = nstate;
-		super.setDeviceState(nstate, null);
+		super.setDeviceState(nstate);
 	}
 
 	protected void setState(DeviceState state, String message) throws MalcolmDeviceException {

@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -9,7 +10,12 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
 
-public abstract class AbstractPosition implements IPosition {
+public abstract class AbstractPosition implements IPosition, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8555957478192358365L;
 	
 	private int stepIndex = -1;
 	protected List<Collection<String>> dimensionNames; // Dimension->Names@dimension
@@ -52,7 +58,17 @@ public abstract class AbstractPosition implements IPosition {
   	    return result+stepIndex;
 	}
 
-	public boolean equals(Object obj, boolean checkStep) {
+	/**
+	 * Do not override equals. 
+	 * 
+	 * MapPostion("x:1,y:1") should equal Point("x", 1, "y",1)
+	 * because they represent the same motor values.
+	 * 
+	 * @param obj
+	 * @param checkStep
+	 * @return
+	 */
+	public final boolean equals(Object obj, boolean checkStep) {
 		
 		if (this == obj)
 			return true;
@@ -138,6 +154,8 @@ public abstract class AbstractPosition implements IPosition {
 	
 	public String toString() {
 		StringBuilder buf = new StringBuilder("[");
+		buf.append(getClass().getSimpleName());
+		buf.append(": ");
 		buf.append("stepIndex=");
 		buf.append(stepIndex);
 		buf.append(", ");

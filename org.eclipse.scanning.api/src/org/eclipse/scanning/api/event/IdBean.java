@@ -1,9 +1,15 @@
 package org.eclipse.scanning.api.event;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 
-public class IdBean {
+public class IdBean implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2967954413159475128L;
 	
 	private String    uniqueId;         // Unique id for each object.
 	private boolean   explicitlySetId;

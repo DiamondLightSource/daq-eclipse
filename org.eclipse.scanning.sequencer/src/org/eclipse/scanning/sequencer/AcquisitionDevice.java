@@ -74,6 +74,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		this.lock      = new ReentrantLock();
 		this.paused    = lock.newCondition();
 		setName("solstice_scan");
+		setPrimaryScanDevice(true);
 	}
 	
 	/**
@@ -98,7 +99,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			// Make sure all devices report the same scan id
 			for (IRunnableDevice<?> device : model.getDetectors()) {
 				if (device instanceof AbstractRunnableDevice<?>) {
-					((AbstractRunnableDevice<?>)device).setBean(getBean());
+					AbstractRunnableDevice<?> adevice = (AbstractRunnableDevice<?>)device;
+					adevice.setBean(getBean());
+					adevice.setPrimaryScanDevice(false);
 				}
 			}
 			runners = new DeviceRunner(model.getDetectors());
@@ -224,7 +227,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		int size  = getSize(model.getPositionIterable());
+    		final int size  = getSize(model.getPositionIterable());
     		int count = 0;
 
     		fireStart(size);    		
@@ -261,7 +264,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	// Run to the position
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
-	        	writers.await();               // Wait for the previous read out to return, if any
+	        	writers.await();               // Wait for the previous write out to return, if any
 	        	if (nexusScanFile!=null) {
 	        		int code = nexusScanFile.flush();         // flush the nexus file
 	        		if (code<0) logger.warn("Problem flushing during scan! Flush code is "+code);
