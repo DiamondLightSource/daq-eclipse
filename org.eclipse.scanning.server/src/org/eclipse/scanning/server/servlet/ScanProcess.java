@@ -136,14 +136,14 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 
 	private ScriptResponse<?> runScript(ScriptRequest req) throws EventException, UnsupportedLanguageException, ScriptExecutionException {
 		if (req==null) return null; // Nothing to do
-		if (scriptService==null) throw new EventException("Not script service is available, cannot run script request "+req);
+		if (scriptService==null) throw new EventException("No script service is available, cannot run script request "+req);
 		return scriptService.execute(req);		
 	}
 
 	private IPausableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws ScanningException, EventException {
 
 		ScanRequest<?> req = bean.getScanRequest();
-		if (req==null) throw new ScanningException("There must be a scan request to run a new scan!");
+		if (req==null) throw new ScanningException("There must be a scan request to run a scan!");
 		
 		try {
 			final ScanModel scanModel = new ScanModel();
@@ -199,12 +199,13 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	private Iterable<IPosition> getPositionIterable(ScanRequest<?> req) throws GeneratorException {
 		IPointGeneratorService service = Services.getGeneratorService();
 		
-		IPointGenerator<?> ret = null;
+		IPointGenerator<?>[] gens = new IPointGenerator<?>[req.getModels().size()];
+		int index = 0;
 		for (IScanPathModel model : req.getModels()) {
-			IPointGenerator<?> gen = service.createGenerator(model, req.getRegions(model.getUniqueKey()));
-			if (ret != null) ret = service.createCompoundGenerator(ret, gen);
-			if (ret==null) ret = gen;
+			gens[index] = service.createGenerator(model, req.getRegions(model.getUniqueKey()));
+			index++;
 		}
+		IPointGenerator<?> ret = service.createCompoundGenerator(gens);
 		return (Iterable<IPosition>)ret;
 	}
 
