@@ -12,11 +12,10 @@ import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXcollection;
-import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -52,7 +51,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	
 	private ILazyWriteableDataset scanFinished = null;
 
-	private DelegateNexusProvider<NXcollection> nexusProvider = null;
+	private NexusObjectWrapper<NXcollection> nexusProvider = null;
 	
 	public void setNexusObjectProviders(List<NexusObjectProvider<?>> nexusObjectProviders) {
 		this.nexusObjectProviders = nexusObjectProviders;
@@ -65,9 +64,9 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	public NexusObjectProvider<NXcollection> getNexusProvider(NexusScanInfo info) {
 		// Note: NexusScanFileBuilder relies on this method returning the same object each time
 		if (nexusProvider == null) {
-			nexusProvider = new DelegateNexusProvider<NXcollection>(
-					GROUP_NAME_SOLSTICE_SCAN, NexusBaseClass.NX_COLLECTION,
-					info, this);
+			NXcollection scanPointsCollection = createNexusObject(info);
+			nexusProvider = new NexusObjectWrapper<NXcollection>(
+					GROUP_NAME_SOLSTICE_SCAN, scanPointsCollection);
 			nexusProvider.setPrimaryDataFieldName(FIELD_NAME_UNIQUE_KEYS);
 			nexusProvider.setAxisDataFieldNames(FIELD_NAME_UNIQUE_KEYS, FIELD_NAME_POINTS);
 		}
@@ -75,12 +74,8 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		return nexusProvider;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.dawnsci.nexus.INexusDevice#createNexusObject(org.eclipse.dawnsci.nexus.NexusNodeFactory, org.eclipse.dawnsci.nexus.NexusScanInfo)
-	 */
-	@Override
-	public NXcollection createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
-		final NXcollection scanPointsCollection = nodeFactory.createNXcollection();
+	public NXcollection createNexusObject(NexusScanInfo info) {
+		final NXcollection scanPointsCollection = NexusNodeFactory.createNXcollection();
 		// create the unique keys and scan points datasets
 		uniqueKeys = scanPointsCollection.initializeLazyDataset(
 				FIELD_NAME_UNIQUE_KEYS, info.getRank(), Dataset.INT32);

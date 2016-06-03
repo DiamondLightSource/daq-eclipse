@@ -15,12 +15,11 @@ import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdetector;
-import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
@@ -186,20 +185,15 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 
 	@Override
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		DelegateNexusProvider<NXdetector> prov = new DelegateNexusProvider<>(
-				getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		
+		final NXdetector detector = NexusNodeFactory.createNXdetector();
+		detector.addExternalLink(NXdetector.NX_DATA, getFileName(), "/entry/data");
+		
+		NexusObjectWrapper<NXdetector> prov = new NexusObjectWrapper<>(
+				getName(), detector);
 		prov.setExternalDatasetRank(NXdetector.NX_DATA, 3);
 		return prov;
 	}
-
-	@Override
-	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
-		
-		final NXdetector detector = nodeFactory.createNXdetector();
-		detector.addExternalLink(NXdetector.NX_DATA, getFileName(), "/entry/data");
-		return detector;
-	}
-
 
 	/**
 	 * Writes an HDF5 file with an image stack in.

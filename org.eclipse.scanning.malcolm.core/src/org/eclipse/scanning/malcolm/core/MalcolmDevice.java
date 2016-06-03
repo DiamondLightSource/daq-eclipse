@@ -8,11 +8,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.dawnsci.nexus.NXdetector;
-import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -93,17 +92,17 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 	@Override
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		DelegateNexusProvider prov = new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR, info, this);
+		NXdetector detector = createNexusObject(info);
+		NexusObjectWrapper<NXdetector> prov = new NexusObjectWrapper<NXdetector>(getName(), detector);
 		// TODO Find this out from the attributes of the device?
 		prov.setExternalDatasetRank(NXdetector.NX_DATA, 4); // FIXME Malcolm1 can only to x and y scanning of a 2D detector.
 		return prov;
 	}
 
-	@Override
-	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
+	public NXdetector createNexusObject(NexusScanInfo info) {
 		
 		// TODO Malcolm1 hard codes where the axes and detector write to. We do the same.
-		final NXdetector detector = nodeFactory.createNXdetector();
+		final NXdetector detector = NexusNodeFactory.createNXdetector();
 		detector.addExternalLink(NXdetector.NX_DATA, getFileName(), "/entry/data/det1");
 		
 		for (String axis : info.getScannableNames()) {

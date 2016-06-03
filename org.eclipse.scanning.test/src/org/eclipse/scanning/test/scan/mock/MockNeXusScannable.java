@@ -6,12 +6,11 @@ import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXpositioner;
-import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
@@ -40,17 +39,8 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		super(name, d, level);
 	}
 
-	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) {
-		DelegateNexusProvider<NXpositioner> nexusDelegate = new DelegateNexusProvider<>(
-				getName(), NexusBaseClass.NX_POSITIONER, NXpositioner.NX_VALUE, info, this);
-		nexusDelegate.setDefaultAxisDataFieldName(FIELD_NAME_DEMAND_VALUE);
-		return nexusDelegate;
-	}
-
-	@Override
-	public NXpositioner createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) throws NexusException {
-		
-		final NXpositioner positioner = nodeFactory.createNXpositioner();
+	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) throws NexusException {
+		final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
 		if (info.isMetadataScannable(getName())) {
@@ -66,7 +56,10 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 
 		AttributeManager.registerAttributes(positioner, this);
 		
-		return positioner;
+		NexusObjectWrapper<NXpositioner> nexusDelegate = new NexusObjectWrapper<>(
+				getName(), positioner, NXpositioner.NX_VALUE);
+		nexusDelegate.setDefaultAxisDataFieldName(FIELD_NAME_DEMAND_VALUE);
+		return nexusDelegate;
 	}	
 
 	public void setPosition(Number value, IPosition position) throws Exception {

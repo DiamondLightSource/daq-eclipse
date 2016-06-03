@@ -7,11 +7,10 @@ import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXpositioner;
-import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.points.IPosition;
@@ -38,17 +37,10 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 		
 	}
 
-	@SuppressWarnings("unchecked")
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXpositioner>(scannable.getName(), NexusBaseClass.NX_POSITIONER, NXpositioner.NX_VALUE, info, this);
-	}
-
-	@Override
-	public NXpositioner createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) {
-		
 		// FIXME the AxisModel should be used here to work out axes if it is non-null
 		
-		final NXpositioner positioner = nodeFactory.createNXpositioner();
+		final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
 		positioner.setNameScalar(scannable.getName());
 
 		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Dtype.FLOAT64);
@@ -57,7 +49,7 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dtype.FLOAT64);
 		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 
-		return positioner;
+		return new NexusObjectWrapper<NXpositioner>(scannable.getName(), positioner, NXpositioner.NX_VALUE);
 	}
 
 	@Override

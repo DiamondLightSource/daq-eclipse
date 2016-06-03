@@ -7,12 +7,11 @@ import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
-import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -43,15 +42,13 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 	}
 
 	@Override
-	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR,
-				NXdetector.NX_DATA, info, this);
+	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) throws NexusException {
+		NXdetector detector = createNexusObject(info);
+		return new NexusObjectWrapper<NXdetector>(getName(), detector, NXdetector.NX_DATA);
 	}
 
-	@Override
-	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) throws NexusException {
-		
-		final NXdetector detector = nodeFactory.createNXdetector();
+	public NXdetector createNexusObject(NexusScanInfo info) throws NexusException {
+		final NXdetector detector = NexusNodeFactory.createNXdetector();
 		// We add 2 to the scan rank to include the image
 		int rank = info.getRank()+3; // scan rank plus three dimensions for the CV scan.
 		
