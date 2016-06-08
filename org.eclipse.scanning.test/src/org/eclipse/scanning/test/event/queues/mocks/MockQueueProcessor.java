@@ -111,4 +111,16 @@ public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
 		
 	}
 
+	@Override
+	public DummyBean getProcessBean() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IQueueBroadcaster<? extends Queueable> getQueueBroadcaster() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
