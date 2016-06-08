@@ -17,7 +17,6 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueProcessor;
 import org.junit.Before;
