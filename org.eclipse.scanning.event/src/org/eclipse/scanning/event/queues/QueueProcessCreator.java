@@ -8,6 +8,8 @@ import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * QueueProcessCreator creates the class which processes a given atom/bean. 
@@ -19,6 +21,8 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  *            {@link QueueAtom} or {@QueueBean}.
  */
 public class QueueProcessCreator<T extends Queueable> implements IProcessCreator<T> {
+	
+	private static final Logger logger = LoggerFactory.getLogger(QueueProcessCreator.class);
 
 	private boolean blocking;
 	private IQueueProcess<T> queueProcess;
@@ -35,8 +39,18 @@ public class QueueProcessCreator<T extends Queueable> implements IProcessCreator
 		queueProcess = new QueueProcess<>(atomBean, statusNotifier, blocking);
 		
 		//Create & configure the processor
-		processor = QueueProcessorFactory.getProcessor(atomBean.getClass().getName());
-		processor.setProcessBean(atomBean);
+		try {
+			processor = QueueProcessorFactory.getProcessor(atomBean.getClass().getName());
+		} catch (EventException evEx) {
+			logger.error("Cannot create process for bean '"+atomBean.getName()+"': No processor registered for the bean class '"+atomBean.getClass().getName()+"'");
+			throw evEx;
+		}
+		try {
+			processor.setProcessBean(atomBean);
+		} catch (EventException evEx) {
+			logger.error("Cannot create process for bean '"+atomBean.getName()+"': given bean class does not match processor bean class");
+			throw evEx;
+		}
 		processor.setQueueBroadcaster(queueProcess);
 		
 		//Finish process configuration & return
