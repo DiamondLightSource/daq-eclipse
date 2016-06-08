@@ -63,6 +63,13 @@ public interface IQueueProcessor<P extends Queueable> {
 	public Class<P> getBeanClass();
 
 	/**
+	 * Returns the bean which will be operated on by this process.
+	 * 
+	 * @return P bean to be processed.
+	 */
+	public P getProcessBean();
+	
+	/**
 	 * Set bean containing the data for this IQueueProcessor. Bean will be cast 
 	 * from type <T> to type <P>; the bean type is tested before making this 
 	 * cast & an error returned if the given bean is not an instance of <P>.
@@ -72,6 +79,13 @@ public interface IQueueProcessor<P extends Queueable> {
 	 */
 	public <T extends Queueable> void setProcessBean(T bean) throws EventException;
 
+	/**
+	 * Return the object providing broadcasting methods for this processor.
+	 * 
+	 * @return IQueueBroadcaster to broadcast status of process.
+	 */
+	public IQueueBroadcaster<? extends Queueable> getQueueBroadcaster();
+	
 	/**
 	 * Configures the queue process which this processor will use to inform of 
 	 * state changes of the process. Bean should be set at the same time, to 
