@@ -1,7 +1,5 @@
 package org.eclipse.scanning.event.queues.processors;
 
-import java.util.concurrent.CountDownLatch;
-
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.status.Status;
@@ -24,8 +22,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 	
 	//Processor operation
 	private Thread moveThread;
-	private CountDownLatch moveLatch = new CountDownLatch(1);
-	
+		
 	public MoveAtomProcessor() {
 		//Get the deviceService from the OSGi configured holder.
 		deviceService = QueueServicesHolder.getDeviceService();
@@ -63,7 +60,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 					
 					//Completed cleanly
 					setComplete();
-					moveLatch.countDown();
+					processorLatch.countDown();
 				} catch (InterruptedException inEx) {
 					if (!isTerminated()) {
 						reportFail(inEx);
@@ -86,7 +83,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 		moveThread.setPriority(Thread.MAX_PRIORITY);
 		moveThread.start();
 		
-		moveLatch.await();
+		processorLatch.await();
 		
 		//Post-match analysis
 		if (isTerminated()) {
@@ -117,8 +114,6 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 	@Override
 	public void terminate() throws EventException {
 		setTerminated();
-		//Early stop
-		moveLatch.countDown();
 	}
 
 	@Override

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.event.queues.processors;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
@@ -15,6 +17,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 
 	protected P queueBean;
 	protected IQueueBroadcaster<? extends Queueable> broadcaster;
+	protected CountDownLatch processorLatch = new CountDownLatch(1);
 
 	@Override
 	public P getProcessBean(){
@@ -68,6 +71,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	@Override
 	public void setTerminated() {
 		terminated = true;
+		processorLatch.countDown();
 	}
 
 	public boolean isComplete() {
@@ -75,6 +79,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	}
 	public void setComplete() {
 		complete = true;
+		processorLatch.countDown();
 	}
 
 }

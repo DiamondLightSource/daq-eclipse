@@ -29,7 +29,6 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	private ISubscriber<QueueListener> scanSubscriber; //TODO
 	
 	//Processor operation
-	private CountDownLatch scanLatch = new CountDownLatch(1);
 	private final ScanBean scanBean;
 	
 	public ScanAtomProcessor() {
@@ -118,7 +117,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		//Allow scan to run
 		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.1,
 				"Waiting for scan to complete.");
-		scanLatch.await();
+		processorLatch.await();
 
 		//Post-match analysis
 		if (isTerminated()) {
@@ -152,7 +151,6 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	@Override
 	public void terminate() throws EventException {
 		setTerminated();
-		scanLatch.countDown();
 	}
 
 	@Override
