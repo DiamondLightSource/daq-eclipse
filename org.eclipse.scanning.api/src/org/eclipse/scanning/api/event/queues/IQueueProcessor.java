@@ -97,6 +97,19 @@ public interface IQueueProcessor<P extends Queueable> {
 	 *         execution has started.
 	 */
 	public void setQueueBroadcaster(IQueueBroadcaster<? extends Queueable> broadcaster) throws EventException;
+	
+	/**
+	 * Return whether processor execution has finished successfully.
+	 * 
+	 * @return true is processing completed.
+	 */
+	public boolean isComplete();
+	
+	/**
+	 * Set completed boolean true indicating successful end to execution & 
+	 * that tear-down action should be taken.
+	 */
+	public void setComplete();
 
 	/**
 	 * Return whether execution has begun.
@@ -106,7 +119,7 @@ public interface IQueueProcessor<P extends Queueable> {
 	public boolean isExecuted();
 
 	/**
-	 * Set boolean executed to indicate start of execution.
+	 * Set executed boolean true to indicate start of execution.
 	 */
 	public void setExecuted();
 
@@ -118,7 +131,7 @@ public interface IQueueProcessor<P extends Queueable> {
 	public boolean isTerminated();
 
 	/**
-	 * Set boolean terminated to indicate that a terminated call has been 
+	 * Set boolean terminated true to indicate that a terminated call has been 
 	 * received & action should be taken.
 	 */
 	public void setTerminated();

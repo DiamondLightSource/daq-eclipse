@@ -74,9 +74,12 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 		processorLatch.countDown();
 	}
 
+	@Override
 	public boolean isComplete() {
 		return complete;
 	}
+
+	@Override
 	public void setComplete() {
 		complete = true;
 		processorLatch.countDown();
