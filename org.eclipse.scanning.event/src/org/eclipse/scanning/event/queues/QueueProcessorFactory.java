@@ -6,6 +6,8 @@ import java.util.Map;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
+import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +19,7 @@ public class QueueProcessorFactory {
 	
 	static {
 		PROCESSORS = new HashMap<>();
+		initialize();
 	}
 	
 	/**
@@ -25,6 +28,24 @@ public class QueueProcessorFactory {
 	 */
 	public QueueProcessorFactory() {
 		
+	}
+	
+	/**
+	 * This registers the default processors within the map. It removes any 
+	 * entries in the map before doing this (useful for tests).
+	 */
+	public static void initialize() {
+		if (PROCESSORS.size() > 0) {
+			PROCESSORS.clear();
+		}
+		
+		//Register default processors
+		try {
+			QueueProcessorFactory.registerProcessors(MoveAtomProcessor.class,
+					ScanAtomProcessor.class);//AtomQueueProcessor.class, MonitorAtomProcessor.class,
+		} catch (EventException evEx) {
+			logger.error("Initial configuration of QueueProcessorFactory failed. Could not register processor(s): "+evEx.getMessage());
+		}
 	}
 	
 	/**
