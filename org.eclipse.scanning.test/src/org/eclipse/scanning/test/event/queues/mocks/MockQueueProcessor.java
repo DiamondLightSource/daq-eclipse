@@ -6,12 +6,13 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 
-public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
+public class MockQueueProcessor <T extends Queueable> implements IQueueProcessor<T> {
 
-	private CountDownLatch execLatch;
+	private final CountDownLatch execLatch;
 	private int counter = 500;
+	
+	private final T bean;
 
 	//Metrics for reporting interactions.
 	private long runTime = 0;
@@ -19,8 +20,9 @@ public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
 	private boolean complete;
 	private boolean terminated;
 
-	public MockQueueProcessor(CountDownLatch latch) {
+	public MockQueueProcessor(T bean, CountDownLatch latch) {
 		execLatch = latch;
+		this.bean = bean;
 	}
 
 	@Override
@@ -37,8 +39,7 @@ public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
 				return;
 			}
 		}
-		complete = true;
-		execLatch.countDown();
+		setComplete();
 	}
 
 	@Override
@@ -70,9 +71,10 @@ public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
 		return terminated;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Class<DummyBean> getBeanClass() {
-		return DummyBean.class;
+	public Class<T> getBeanClass() {
+		return (Class<T>) bean.getClass();
 	}
 
 	@Override
@@ -93,6 +95,7 @@ public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
 		
 	}
 
+	@SuppressWarnings("hiding")
 	@Override
 	public <T extends Queueable> void setProcessBean(T bean) throws EventException {
 		// TODO Auto-generated method stub
@@ -112,15 +115,20 @@ public class MockQueueProcessor implements IQueueProcessor<DummyBean> {
 	}
 
 	@Override
-	public DummyBean getProcessBean() {
-		// TODO Auto-generated method stub
-		return null;
+	public T getProcessBean() {
+		return bean;
 	}
 
 	@Override
 	public IQueueBroadcaster<? extends Queueable> getQueueBroadcaster() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void setComplete() {
+		complete = true;
+		execLatch.countDown();
 	}
 
 }

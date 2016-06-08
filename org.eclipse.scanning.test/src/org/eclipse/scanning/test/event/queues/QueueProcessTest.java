@@ -36,7 +36,7 @@ import org.junit.Test;
 public class QueueProcessTest {
 
 	private QueueProcess<DummyBean> qProc;
-	private MockQueueProcessor mockProc;
+	private MockQueueProcessor<DummyBean> mockProc;
 	private CountDownLatch execLatch;
 	
 	//Settings for QueueProcess
@@ -47,7 +47,7 @@ public class QueueProcessTest {
 	@Before
 	public void setUp() throws Exception {
 		execLatch = new CountDownLatch(1);
-		mockProc = new MockQueueProcessor(execLatch);
+		mockProc = new MockQueueProcessor<DummyBean>(dummy, execLatch);
 		
 		qProc = new QueueProcess<DummyBean>(dummy, pub, blocking);
 		qProc.setProcessor(mockProc);
@@ -60,13 +60,14 @@ public class QueueProcessTest {
 	 * Run is complete when counter reaches 0ms.
 	 * @throws Exception
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testExecute() throws Exception {
 		mockProc.setCounter(150);
 		executeThread();
 		
 		execLatch.await(5, TimeUnit.SECONDS);
-		MockQueueProcessor processor= (MockQueueProcessor)qProc.getProcessor();
+		MockQueueProcessor<DummyBean> processor= (MockQueueProcessor<DummyBean>)qProc.getProcessor();
 		assertTrue("Mock processor didn't get the execute signal", processor.isExecuted());
 		assertTrue("Mock processor didn't execute to completion", processor.isComplete());
 		assertTrue("Mock processor ran for a long time!", processor.getRunTime() < 500l);
@@ -78,6 +79,7 @@ public class QueueProcessTest {
 	 * Terminate interrupts before counter = 0ms.
 	 * @throws Exception
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testTerminate() throws Exception {
 		mockProc.setCounter(1500);
@@ -87,7 +89,7 @@ public class QueueProcessTest {
 		qProc.terminate();
 		
 		execLatch.await(5, TimeUnit.SECONDS);
-		MockQueueProcessor processor= (MockQueueProcessor)qProc.getProcessor();
+		MockQueueProcessor<DummyBean> processor= (MockQueueProcessor<DummyBean>)qProc.getProcessor();
 		assertTrue("Mock processor didn't get the execute signal", processor.isExecuted());
 		assertTrue("Mock processor never got a terminated signal", processor.isTerminated());
 		assertTrue("Mock processor didn't run for long", processor.getRunTime() > 50l);
@@ -101,6 +103,7 @@ public class QueueProcessTest {
 	 * longer, which is observed in the runTime reported by the processor.
 	 * @throws Exception
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testPause() throws Exception {
 		mockProc.setCounter(300);
@@ -111,7 +114,7 @@ public class QueueProcessTest {
 		qProc.resume();
 		
 		execLatch.await(5, TimeUnit.SECONDS);
-		MockQueueProcessor processor= (MockQueueProcessor)qProc.getProcessor();
+		MockQueueProcessor<DummyBean> processor= (MockQueueProcessor<DummyBean>)qProc.getProcessor();
 		assertTrue("Mock processor didn't get the execute signal", processor.isExecuted());
 		assertTrue("Mock processor didn't execute to completion", processor.isComplete());
 		assertTrue("Mock processor didn't pause correctly", processor.getRunTime() < 650l);
@@ -145,9 +148,10 @@ public class QueueProcessTest {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testChangingProcessAfterExecution() throws Exception {
-		IQueueProcessor<? extends Queueable> fakeProcr = new MockQueueProcessor(new CountDownLatch(1));
+		IQueueProcessor<? extends Queueable> fakeProcr = new MockQueueProcessor<DummyBean>(dummy, new CountDownLatch(1));
 		IQueueProcess<DummyBean> pProc = new QueueProcess<DummyBean>(dummy, pub, blocking);
 		
 		//Mimic process execution
@@ -171,7 +175,7 @@ public class QueueProcessTest {
 		}
 		
 		execLatch.await(5, TimeUnit.SECONDS);
-		MockQueueProcessor processor= (MockQueueProcessor)qProc.getProcessor();
+		MockQueueProcessor<DummyBean> processor= (MockQueueProcessor<DummyBean>)qProc.getProcessor();
 		assertTrue("Mock processor didn't get the execute signal", processor.isExecuted());
 		assertTrue("Mock processor didn't execute to completion", processor.isComplete());
 		assertTrue("Mock processor didn't pause correctly", processor.getRunTime() < 650l);
