@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.eclipse.dawnsci.analysis.api.dataset.DataEvent;
+import org.eclipse.dawnsci.analysis.api.dataset.DatasetException;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataListener;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.IRemoteDataset;
@@ -191,7 +192,7 @@ public class MandelbrotRemoteTest extends NexusTest {
 		checkNexusFile(scanner, shape); // Step model is +1 on the size
 	}
 
-	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException, DatasetException {
 		
 		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());

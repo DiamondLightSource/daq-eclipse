@@ -13,6 +13,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.eclipse.dawnsci.analysis.api.dataset.DatasetException;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.Attribute;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
@@ -95,7 +96,12 @@ public class NexusAssert {
 		// check the unique keys field - contains the step number for each scan points
 		DataNode dataNode = parentGroup.getDataNode(fieldNamePrefix + FIELD_NAME_UNIQUE_KEYS);
 		assertNotNull(dataNode);
-		IDataset dataset = dataNode.getDataset().getSlice();
+		IDataset dataset;
+		try {
+			dataset = dataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
 		assertTrue(getDType(dataset)==Dataset.INT32);
 		assertTrue(dataset.getRank()==sizes.length);
 		assertArrayEquals(sizes, dataset.getShape());
@@ -110,7 +116,11 @@ public class NexusAssert {
 		// check the scan points field - contains the scan points as strings
 		dataNode = parentGroup.getDataNode(fieldNamePrefix + FIELD_NAME_POINTS);
 		assertNotNull(dataNode);
-		dataset = dataNode.getDataset().getSlice();
+		try {
+			dataset = dataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
 		assertTrue(getDType(dataset)==Dataset.STRING);
 		assertTrue(dataset.getRank()==sizes.length);
 		assertArrayEquals(sizes, dataset.getShape());
@@ -131,7 +141,12 @@ public class NexusAssert {
 		// check the scan finished boolean is set to true
 		DataNode dataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
 		assertNotNull(dataNode);
-		IDataset dataset = dataNode.getDataset().getSlice();
+		IDataset dataset;
+		try {
+			dataset = dataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
 		assertTrue(getDType(dataset)==Dataset.INT32); // HDF5 doesn't support boolean datasets
 		assertTrue(dataset.getRank()==1);
 		assertArrayEquals(dataset.getShape(), new int[] { 1 });

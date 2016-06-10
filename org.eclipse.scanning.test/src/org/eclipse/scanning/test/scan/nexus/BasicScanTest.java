@@ -13,6 +13,7 @@ import static org.junit.Assert.assertSame;
 import java.util.Collection;
 import java.util.stream.IntStream;
 
+import org.eclipse.dawnsci.analysis.api.dataset.DatasetException;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
@@ -38,7 +39,6 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class BasicScanTest extends NexusTest {
@@ -185,7 +185,7 @@ public class BasicScanTest extends NexusTest {
 		}
 	}
 
-	private void checkMetadataScannables(final ScanModel scanModel, NXinstrument instrument) {
+	private void checkMetadataScannables(final ScanModel scanModel, NXinstrument instrument) throws DatasetException {
 		DataNode dataNode;
 		IDataset dataset;
 		int[] shape;

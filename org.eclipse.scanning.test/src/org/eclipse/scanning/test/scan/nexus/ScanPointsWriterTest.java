@@ -7,6 +7,7 @@ import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_U
 import static org.eclipse.scanning.test.scan.nexus.ScanPointsWriterTest.ExternalFileWritingDetector.EXTERNAL_FILE_NAME;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,12 +53,12 @@ public class ScanPointsWriterTest {
 		}
 
 		@Override
-		public IDataset getDataset(IMonitor mon, SliceND slice) throws Exception {
+		public IDataset getDataset(IMonitor mon, SliceND slice) throws IOException {
 			return null;
 		}
 
 		@Override
-		public void initialize() throws Exception {
+		public void initialize() throws IOException {
 			// do nothing
 		}
 
@@ -67,7 +68,7 @@ public class ScanPointsWriterTest {
 		}
 
 		@Override
-		public void setSlice(IMonitor mon, IDataset data, SliceND slice) throws Exception {
+		public void setSlice(IMonitor mon, IDataset data, SliceND slice) throws IOException {
 			// TODO could write to a dataset? SliceIterator may be useful here
 			lastWrittenData = data;
 			lastSlice = slice;

@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.eclipse.dawnsci.analysis.api.dataset.DatasetException;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
@@ -186,7 +187,7 @@ public class AttributeTest extends NexusTest{
 	}
 
 	private void checkNexusFile(IRunnableDevice<ScanModel> scanner,
-			                    int... sizes) throws NexusException, ScanningException {
+			                    int... sizes) throws NexusException, ScanningException, DatasetException {
 
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
