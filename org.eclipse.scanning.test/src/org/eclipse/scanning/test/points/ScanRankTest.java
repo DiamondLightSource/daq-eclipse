@@ -13,6 +13,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
+import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
@@ -87,8 +88,75 @@ public class ScanRankTest {
 			IPointGenerator<StepModel>             temp = service.createGenerator(new StepModel("T"+i, 290, 300, 1)); 
 			gen = service.createCompoundGenerator(temp, gen);
 		}
+		
+        checkOneGenerator(nestCount, gen);
+	}
+
+	@Test
+	public void testRankSpiral1D() throws Exception {
+		spiralTest(0);
+	}
+
+	@Test
+	public void testRankSpiral2D() throws Exception {
+		spiralTest(1);
+	}
+	
+	@Test
+	public void testRankSpiral3D() throws Exception {
+		spiralTest(2);
+	}
+	
+	@Test
+	public void testRankSpiral4D() throws Exception {
+		spiralTest(3);
+	}
+	@Test
+	public void testRankSpiral5D() throws Exception {
+		spiralTest(4);
+	}
+	@Test
+	public void testRankSpiral6D() throws Exception {
+		spiralTest(5);
+	}
+	@Test
+	public void testRankSpiral7D() throws Exception {
+		spiralTest(6);
+	}
+	@Test
+	public void testRankSpiral8D() throws Exception {
+		spiralTest(7);
+	}
+	@Test
+	public void testRankSpiral9D() throws Exception {
+		spiralTest(8);
+	}
+
+	private void spiralTest(int nestCount) throws Exception {
+		
+		BoundingBox box = new BoundingBox();
+		box.setFastAxisStart(0);
+		box.setSlowAxisStart(0);
+		box.setFastAxisLength(3);
+		box.setSlowAxisLength(3);
+
+		SpiralModel model = new SpiralModel();
+		model.setBoundingBox(box);
+		
+		// Get the point list
+		IPointGenerator<?> gen = service.createGenerator(model);
+		
+		for (int i = 0; i < nestCount; i++) {
+			IPointGenerator<StepModel>             temp = service.createGenerator(new StepModel("T"+i, 290, 300, 1)); 
+			gen = service.createCompoundGenerator(temp, gen);
+		}
         
-        
+        checkOneGenerator(nestCount, gen);
+
+	}
+
+	private void checkOneGenerator(int nestCount, IPointGenerator<?> gen)  throws Exception {
+		
 		System.out.println("The number of points will be: "+gen.size());
 		
 		int scanRank = nestCount+1;
@@ -108,10 +176,8 @@ public class ScanRankTest {
 		    ++count;
 		    if (count>100) break; // We just check the first few.
         }
-
 	}
 
-	
 	@Test
 	public void testRankGrid1D() throws Exception {
 		gridTest(0);
