@@ -7,15 +7,19 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 
 	GridTest.class, 
-	//GridTestLarge.class, 
 	LinearTest.class, 
 	RasterTest.class, 
-	//RasterTestLarge.class, 
 	StepTest.class, 
 	CompoundTest.class, 
-	//CompoundTestLarge.class
 	RandomOffsetDecoratorTest.class,
-	ScanRankTest.class
+	ScanRankTest.class,
+	SpiralTest.class
+
+
+	// TODO Smoke tests?
+	//GridTestLarge.class, 
+	//RasterTestLarge.class, 
+	//CompoundTestLarge.class
 
 })
 public class Suite {

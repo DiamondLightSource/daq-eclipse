@@ -18,7 +18,6 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
@@ -31,6 +30,7 @@ import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
+import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 
 public class PointGeneratorFactory implements IPointGeneratorService {
@@ -52,6 +52,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		gens.put(RasterModel.class,           RasterGenerator.class);
 		gens.put(EmptyModel.class,            EmptyGenerator.class);
 		gens.put(RandomOffsetGridModel.class, RandomOffsetGridGenerator.class);
+		gens.put(SpiralModel.class,           SpiralGenerator.class);
 		
 		Map<String,   GeneratorInfo> tinfo = new TreeMap<>();
 		fillStaticGeneratorInfo(gens, tinfo);
