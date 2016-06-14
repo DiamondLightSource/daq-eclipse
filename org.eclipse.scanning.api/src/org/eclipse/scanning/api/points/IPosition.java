@@ -144,8 +144,8 @@ public interface IPosition {
 	 * to ensure that your position runs faster. The default implementation
 	 * works.
 	 * 
-	 * @see org.eclipse.scanning.api.points.MapPosition.getValues()
-	 * @ses org.eclipse.scanning.api.points.Point.getValues()
+	 * @see org.eclipse.scanning.api.points.MapPosition#getValues()
+	 * @see org.eclipse.scanning.api.points.Point#getValues()
 	 * @return
 	 */
 	default Map<String, Object> getValues() {
@@ -160,8 +160,8 @@ public interface IPosition {
 	 * to ensure that your position runs faster. The default implementation
 	 * works.
 	 * 
-	 * @see org.eclipse.scanning.api.points.MapPosition.getIndices()
-	 * @ses org.eclipse.scanning.api.points.Point.getIndices()
+	 * @see org.eclipse.scanning.api.points.MapPosition#getIndices()
+	 * @see org.eclipse.scanning.api.points.Point#getIndices()
 	 * @return
 	 */
 	default Map<String, Integer> getIndices() {
