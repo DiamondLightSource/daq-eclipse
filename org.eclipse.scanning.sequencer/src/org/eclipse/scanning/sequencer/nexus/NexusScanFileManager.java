@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,10 +32,15 @@ import org.eclipse.dawnsci.nexus.builder.data.DataDeviceBuilder;
 import org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder;
 import org.eclipse.dawnsci.nexus.builder.data.PrimaryDataDevice;
 import org.eclipse.dawnsci.nexus.builder.impl.MapBasedMetadataProvider;
+import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.points.AbstractPosition;
+import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanDataModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel.ScanFieldModel;
@@ -42,11 +48,13 @@ import org.eclipse.scanning.api.scan.models.ScanMetadata;
 import org.eclipse.scanning.api.scan.models.ScanMetadata.MetadataType;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.ServiceHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Builds the NeXus file for a scan given a {@link ScanModel}.
+ * Builds and manages the NeXus file for a scan given a {@link ScanModel}.
  */
-public class NexusScanFileBuilder {
+public class NexusScanFileManager implements IConfigurable<ScanModel> {
 	
 	/**
 	 * Enum of types of device that can be added to a Nexus File.
@@ -80,20 +88,43 @@ public class NexusScanFileBuilder {
 		MONITOR,
 	}
 	
-	private IDeviceConnectorService deviceConnectorService;
+	private static final Logger logger = LoggerFactory.getLogger(NexusScanFileManager.class);
+
+	private final AbstractRunnableDevice<ScanModel> scanDevice;
+	private final IPositioner positioner;
+	private ScanPointsWriter scanPointsWriter;
 	private ScanModel model;
 	private NexusScanInfo scanInfo;
-	private ScanPointsWriter scanPointsWriter;
 	private NexusFileBuilder fileBuilder;
+	private NexusScanFile nexusScanFile;
 	
 	// we need to cache various things as they are used more than once
-	private Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders = null;
+	/**
+	 * A list of the nexus devices for each category of device. 
+	 */
 	private Map<DeviceType, Collection<INexusDevice<?>>> nexusDevices = null;
+	
+	/**
+	 * A list of the nexus object providers for each category of device.
+	 */
+	private Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders = null;
+	
+	/**
+	 * A map from nexus object provider to the axis data device for that.
+	 * This is used for devices added to an NXdata group other than the primary device
+	 * (the one that supplies the signal field.) 
+	 */
 	private Map<NexusObjectProvider<?>, AxisDataDevice<?>> dataDevices = new HashMap<>();
 	
-	public NexusScanFileBuilder(IDeviceConnectorService deviceConnectorService) {
-		this.deviceConnectorService = deviceConnectorService;
-		this.scanPointsWriter = new ScanPointsWriter();
+	/**
+	 * A map from scannable name to the index of the scan for that scannable,
+	 * or <code>null</code> if none
+	 */
+	private Map<String, Integer> defaultAxisIndexForScannable = null;
+	
+	public NexusScanFileManager(AbstractRunnableDevice<ScanModel> scanDevice, IPositioner positioner) {
+		this.scanDevice = scanDevice;
+		this.positioner = positioner;
 	}
 	
 	/**
@@ -103,18 +134,19 @@ public class NexusScanFileBuilder {
 	 * {@link IDeviceConnectorService}.
 	 * 
 	 * @param model model of scan
-	 * @return the nexus scan file  
-	 * @throws NexusException
 	 * @throws ScanningException
 	 */
-	public NexusScanFile createNexusFile(ScanModel model, Collection<String> scannableNames, int scanRank) throws NexusException, ScanningException {
+	public void configure(ScanModel model) throws ScanningException {
 		if (fileBuilder != null) {
 			throw new IllegalStateException("The nexus file has already been created");
 		}
 		
 		this.model = model;
-		this.scanInfo = createScanInfo(model, scannableNames, scanRank);
 		
+		Collection<String> scannableNames = getScannableNames(model.getPositionIterable());
+		setMetadataScannables(model, scannableNames);
+
+		this.scanInfo = createScanInfo(model, scannableNames);
 		nexusDevices = extractNexusDevices(model);
 		
 		// convert this to a map of nexus object providers for each type
@@ -124,30 +156,130 @@ public class NexusScanFileBuilder {
 			List<NexusObjectProvider<?>> nexusObjectProvidersForType =
 					new ArrayList<>(nexusDevicesForType.size());
 			for (INexusDevice<?> nexusDevice : nexusDevicesForType) {
-				NexusObjectProvider<?> nexusProvider = nexusDevice.getNexusProvider(scanInfo);
-				if (nexusProvider != null) {
-					nexusObjectProvidersForType.add(nexusProvider);
+				try {
+					NexusObjectProvider<?> nexusProvider = nexusDevice.getNexusProvider(scanInfo);
+					if (nexusProvider != null) {
+						nexusObjectProvidersForType.add(nexusProvider);
+					}
+				} catch (NexusException e) {
+					throw new ScanningException("Cannot create device: " + e);
 				}
 			}
 			
 			nexusObjectProviders.put(deviceType, nexusObjectProvidersForType);
 		}
 		
-		// create the scan points writer and add it as a monitor
+		// create the scan points writer and add it as a monitor and run listener
 		scanPointsWriter = createScanPointsWriter();
 		nexusObjectProviders.get(DeviceType.MONITOR).add(scanPointsWriter.getNexusProvider(scanInfo));
+		scanDevice.addRunListener(scanPointsWriter);
+		positioner.addPositionListener(scanPointsWriter);
 		
 		// We use the new nexus framework to join everything up into the scan
 		// Create a builder
 		fileBuilder = ServiceHolder.getFactory().newNexusFileBuilder(model.getFilePath());
-		createEntry(fileBuilder);
-		
-		return fileBuilder.createFile();
+		try {
+			createEntry(fileBuilder);
+			// create the file from the builder and open it
+			nexusScanFile = fileBuilder.createFile();
+			nexusScanFile.openToWrite();
+		} catch (NexusException e) {
+			throw new ScanningException("Cannot create nexus file", e);
+		}
 	}
 	
-	private NexusScanInfo createScanInfo(ScanModel scanModel, Collection<String> scannableNames, int scanRank) {
-				
+	/**
+	 * Flushes the wrapped nexus file
+	 * @throws NexusException
+	 */
+	public void flushNexusFile() throws NexusException {
+		int code = nexusScanFile.flush();
+		if (code < 0) {
+			logger.warn("Problem flushing during scan! Flush code is "+code);
+		}
+	}
+	
+	/**
+	 * Closes the wrapped nexus file
+	 * @throws ScanningException
+	 */
+	public void closeNexusFile() throws ScanningException {
+		try {
+			nexusScanFile.close();
+		} catch (NexusException e) {
+			throw new ScanningException("Could not close nexus file", e);
+		}
+	}
+	
+	/**
+	 * Augments the set of metadata scannables in the model with: <ul>
+	 * <li>any scannables from the legacy spring configuration;</li>
+	 * <li>the required scannables of any scannables in the scan;</li>
+	 * </ul> 
+	 * @param model
+	 * @throws ScanningException
+	 */
+	@SuppressWarnings("deprecation")
+	private void setMetadataScannables(ScanModel model, Collection<String> scannableNames) throws ScanningException {
+		IDeviceConnectorService deviceConnectorService = scanDevice.getConnectorService();
+		
+		// build up the set of all metadata scannables
+		Set<String> metadataScannableNames = new HashSet<>();
+		
+		// add the metadata scannables in the model
+		metadataScannableNames.addAll(model.getMetadataScannables().stream().
+				map(m -> m.getName()).collect(Collectors.toSet()));
+		
+		// add the global metadata scannables, and the required metadata scannables for
+		// each scannable in the scan
+		metadataScannableNames.addAll(deviceConnectorService.getGlobalMetadataScannableNames());
+		
+		// the set of scannable names to check for dependencies
+		Set<String> scannableNamesToCheck = new HashSet<>();
+		scannableNamesToCheck.addAll(metadataScannableNames);
+		scannableNamesToCheck.addAll(scannableNames);
+		do {
+			// check the given set of scannable names for dependencies
+			// each iteration checks the scannable names added in the previous one
+			Set<String> requiredScannables = scannableNamesToCheck.stream().flatMap(
+					name -> deviceConnectorService.getRequiredMetadataScannableNames(name).stream())
+					.filter(name -> !metadataScannableNames.contains(name))
+					.collect(Collectors.toSet());
+			
+			metadataScannableNames.addAll(requiredScannables);
+			scannableNamesToCheck = requiredScannables;
+		} while (!scannableNamesToCheck.isEmpty());
+		
+		// remove any scannable names in the scan from the list of metadata scannables
+		metadataScannableNames.removeAll(scannableNames);
+		
+		// get the metadata scannables for the given names
+		List<IScannable<?>> metadataScannables = new ArrayList<>(metadataScannableNames.size());
+		for (String scannableName : metadataScannableNames) {
+			IScannable<?> metadataScannable = deviceConnectorService.getScannable(scannableName);
+			metadataScannables.add(metadataScannable);
+		}
+		
+		model.setMetadataScannables(metadataScannables);
+	}
+
+	private Collection<String> getScannableNames(Iterable<IPosition> gen) {
+		
+		Collection<String> names = null;
+		if (gen instanceof IDeviceDependentIterable) {
+			names = ((IDeviceDependentIterable)gen).getScannableNames();
+			
+		}
+		if (names==null) {
+			names = model.getPositionIterable().iterator().next().getNames();
+		}
+		return names;   		
+	}
+	
+	private NexusScanInfo createScanInfo(ScanModel scanModel, Collection<String> scannableNames) {
 		NexusScanInfo scanInfo = new NexusScanInfo(scannableNames);
+		int scanRank = getScanRank(model.getPositionIterable());
+
 		scanInfo.setRank(scanRank);
 		scanInfo.setMonitorNames(getDeviceNames(scanModel.getMonitors()));
 		scanInfo.setMetadataScannableNames(getDeviceNames(scanModel.getMetadataScannables()));
@@ -155,6 +287,22 @@ public class NexusScanFileBuilder {
 		return scanInfo;
 	}
 	
+	private int getScanRank(Iterable<IPosition> gen) {
+		int scanRank = -1;
+		if (gen instanceof IDeviceDependentIterable) {
+			scanRank = ((IDeviceDependentIterable)gen).getScanRank();
+			
+		}
+		if (scanRank < 0) {
+			scanRank = model.getPositionIterable().iterator().next().getScanRank();
+		}
+		if (scanRank < 0) {
+			scanRank = 1;
+		}
+		
+		return scanRank;   		
+	}
+
 	private Set<String> getDeviceNames(Collection<IScannable<?>> devices) {
 		return devices.stream().map(d -> d.getName()).collect(Collectors.toSet());
 	}
@@ -275,7 +423,7 @@ public class NexusScanFileBuilder {
 	
 	private INexusDevice<?> getNexusScannable(String scannableName) {
 		try {
-			IScannable<?> scannable = deviceConnectorService.getScannable(scannableName);
+			IScannable<?> scannable = scanDevice.getConnectorService().getScannable(scannableName);
 			if (scannable == null) {
 				throw new IllegalArgumentException("No such scannable: " + scannableName);
 			}
@@ -390,20 +538,59 @@ public class NexusScanFileBuilder {
 			dataBuilder.addAxisDevice(getAxisDataDevice(monitor, null));
 		}
 		
+		// Create the map
+		if (defaultAxisIndexForScannable == null) {
+			defaultAxisIndexForScannable = createDefaultAxisMap(scannables);
+		}
+		
 		// add the scannables
-		int scannableIndex = 0;
 		Iterator<NexusObjectProvider<?>> scannablesIter = scannables.iterator();
 		while (scannablesIter.hasNext()) {
-			try {
-			    dataBuilder.addAxisDevice(getAxisDataDevice(scannablesIter.next(), scannableIndex++));
-			} catch (Exception ne) {
-				// TODO FIXME It is possible for a single scan dimension to have multiple axes.
-				// Currently this class seems to deal with that possibility incorrectly.
-				// @see org.eclipse.scanning.test.scan.LinearScanTest
-				// 
-				ne.printStackTrace();
-			}
+			final NexusObjectProvider<?> scannable = scannablesIter.next(); 
+			final Integer defaultAxisForDimensionIndex =
+					defaultAxisIndexForScannable.get(scannable.getName());
+			dataBuilder.addAxisDevice(getAxisDataDevice(scannable, defaultAxisForDimensionIndex));
 		}
+	}
+	
+	/**
+	 * Creates a map from scannable names to the index of the scan
+	 * (and therefore the index of the signal dataset of each NXdata) that this
+	 * scannable is the default axis for.
+	 * 
+	 * @param scannables list of scannables
+	 * @return map from scannable name to index that this scannable is the index for
+	 */
+	private Map<String, Integer> createDefaultAxisMap(List<NexusObjectProvider<?>> scannables) {
+		final Map<String, Integer> defaultAxisIndexForScannableMap = new HashMap<>();
+		
+		AbstractPosition firstPosition = (AbstractPosition) model.getPositionIterable().iterator().next();
+		// A collection of dimension (scannable) names for each index of the scan
+		List<Collection<String>> dimensionNames = firstPosition.getDimensionNames();
+		
+		// Convert the list into a map from scannable name to index in scan, only including
+		// scannable names which are the dimension name for exactly one index of the scan
+		int dimensionIndex = 0;
+		Iterator<Collection<String>> dimensionNamesIter = dimensionNames.iterator();
+		while (dimensionNamesIter.hasNext()) {
+			Collection<String> dimensionNamesForIndex = dimensionNamesIter.next();
+			if (dimensionNamesForIndex.size() == 1) {
+				final String scannableName = dimensionNamesForIndex.iterator().next();
+				if (defaultAxisIndexForScannableMap.containsKey(scannableName)) {
+					// already seen this scannable name for another index,
+					// so this scannable should not be the default axis for any index
+					// note: we put null instead of removing the entry in case there 
+					// so that we still have null if this name appears a third time
+					defaultAxisIndexForScannableMap.put(scannableName, null);
+				} else {
+					defaultAxisIndexForScannableMap.put(scannableName, dimensionIndex);
+				}
+			}
+			
+			dimensionIndex++;
+		}
+		
+		return defaultAxisIndexForScannableMap;
 	}
 	
 	private <N extends NXobject> PrimaryDataDevice<N> createPrimaryDataDevice(
