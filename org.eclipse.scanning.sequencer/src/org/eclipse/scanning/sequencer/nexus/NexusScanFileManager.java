@@ -36,6 +36,7 @@ import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -98,9 +99,28 @@ public class NexusScanFileManager implements IConfigurable<ScanModel> {
 	private NexusScanFile nexusScanFile;
 	
 	// we need to cache various things as they are used more than once
-	private Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders = null;
+	/**
+	 * A list of the nexus devices for each category of device. 
+	 */
 	private Map<DeviceType, Collection<INexusDevice<?>>> nexusDevices = null;
+	
+	/**
+	 * A list of the nexus object providers for each category of device.
+	 */
+	private Map<DeviceType, List<NexusObjectProvider<?>>> nexusObjectProviders = null;
+	
+	/**
+	 * A map from nexus object provider to the axis data device for that.
+	 * This is used for devices added to an NXdata group other than the primary device
+	 * (the one that supplies the signal field.) 
+	 */
 	private Map<NexusObjectProvider<?>, AxisDataDevice<?>> dataDevices = new HashMap<>();
+	
+	/**
+	 * A map from scannable name to the index of the scan for that scannable,
+	 * or <code>null</code> if none
+	 */
+	private Map<String, Integer> defaultAxisIndexForScannable = null;
 	
 	public NexusScanFileManager(AbstractRunnableDevice<ScanModel> scanDevice, IPositioner positioner) {
 		this.scanDevice = scanDevice;
@@ -518,20 +538,59 @@ public class NexusScanFileManager implements IConfigurable<ScanModel> {
 			dataBuilder.addAxisDevice(getAxisDataDevice(monitor, null));
 		}
 		
+		// Create the map
+		if (defaultAxisIndexForScannable == null) {
+			defaultAxisIndexForScannable = createDefaultAxisMap(scannables);
+		}
+		
 		// add the scannables
-		int scannableIndex = 0;
 		Iterator<NexusObjectProvider<?>> scannablesIter = scannables.iterator();
 		while (scannablesIter.hasNext()) {
-			try {
-			    dataBuilder.addAxisDevice(getAxisDataDevice(scannablesIter.next(), scannableIndex++));
-			} catch (Exception ne) {
-				// TODO FIXME It is possible for a single scan dimension to have multiple axes.
-				// Currently this class seems to deal with that possibility incorrectly.
-				// @see org.eclipse.scanning.test.scan.LinearScanTest
-				// 
-				ne.printStackTrace();
-			}
+			final NexusObjectProvider<?> scannable = scannablesIter.next(); 
+			final Integer defaultAxisForDimensionIndex =
+					defaultAxisIndexForScannable.get(scannable.getName());
+			dataBuilder.addAxisDevice(getAxisDataDevice(scannable, defaultAxisForDimensionIndex));
 		}
+	}
+	
+	/**
+	 * Creates a map from scannable names to the index of the scan
+	 * (and therefore the index of the signal dataset of each NXdata) that this
+	 * scannable is the default axis for.
+	 * 
+	 * @param scannables list of scannables
+	 * @return map from scannable name to index that this scannable is the index for
+	 */
+	private Map<String, Integer> createDefaultAxisMap(List<NexusObjectProvider<?>> scannables) {
+		final Map<String, Integer> defaultAxisIndexForScannableMap = new HashMap<>();
+		
+		AbstractPosition firstPosition = (AbstractPosition) model.getPositionIterable().iterator().next();
+		// A collection of dimension (scannable) names for each index of the scan
+		List<Collection<String>> dimensionNames = firstPosition.getDimensionNames();
+		
+		// Convert the list into a map from scannable name to index in scan, only including
+		// scannable names which are the dimension name for exactly one index of the scan
+		int dimensionIndex = 0;
+		Iterator<Collection<String>> dimensionNamesIter = dimensionNames.iterator();
+		while (dimensionNamesIter.hasNext()) {
+			Collection<String> dimensionNamesForIndex = dimensionNamesIter.next();
+			if (dimensionNamesForIndex.size() == 1) {
+				final String scannableName = dimensionNamesForIndex.iterator().next();
+				if (defaultAxisIndexForScannableMap.containsKey(scannableName)) {
+					// already seen this scannable name for another index,
+					// so this scannable should not be the default axis for any index
+					// note: we put null instead of removing the entry in case there 
+					// so that we still have null if this name appears a third time
+					defaultAxisIndexForScannableMap.put(scannableName, null);
+				} else {
+					defaultAxisIndexForScannableMap.put(scannableName, dimensionIndex);
+				}
+			}
+			
+			dimensionIndex++;
+		}
+		
+		return defaultAxisIndexForScannableMap;
 	}
 	
 	private <N extends NXobject> PrimaryDataDevice<N> createPrimaryDataDevice(
