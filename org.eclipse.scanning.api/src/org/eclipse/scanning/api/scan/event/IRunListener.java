@@ -17,7 +17,7 @@ public interface IRunListener extends EventListener {
 	 * Called before a run() is made on the device. Can
 	 * be used to modify the model before a given run of the device.
 	 * @param evt
-	 * @throws scanning exception which will terminate the scan
+	 * @throws ScanningException which will terminate the scan
 	 */
 	default void runWillPerform(RunEvent evt) throws ScanningException {
 		// default implementation does nothing, subclasses should override as necessary
@@ -26,7 +26,7 @@ public interface IRunListener extends EventListener {
 	/**
 	 * Used to notify that a given device has been run.
 	 * @param evt
-	 * @throws scanning exception which will terminate the scan
+	 * @throws ScanningException which will terminate the scan
 	 */
 	default void runPerformed(RunEvent evt) throws ScanningException {
 		// default implementation does nothing, subclasses should override as necessary
