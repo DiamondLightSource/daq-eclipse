@@ -1,6 +1,8 @@
 package org.eclipse.scanning.api.points.models;
 
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * A model which defines the movement parameters for one or more dimensions of a scan.
@@ -17,15 +19,13 @@ public interface IScanPathModel {
 	 */
 	public String getName();
 	
-	/**
-	 * A non-user interface value for the name of this model.
-	 */
-	public String getUniqueKey();
-	
-	/**
-	 * A non-user interface value for the name of this model.
-	 */
-	public void setUniqueKey(String key);
+    /**
+     * The names of the axes which will be scanned by this model.
+     * @return
+     */
+	default List<String> getScannableNames() {
+		return Arrays.asList(getName()); 
+	}
 
 	/**
 	 * Property change support
@@ -38,4 +38,5 @@ public interface IScanPathModel {
 	 * @param listener
 	 */
 	public void removePropertyChangeListener(PropertyChangeListener listener);
+
 }

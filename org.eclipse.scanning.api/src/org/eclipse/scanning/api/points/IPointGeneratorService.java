@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 /**
@@ -72,6 +73,24 @@ public interface IPointGeneratorService {
 	 * @throws GeneratorException
 	 */
 	IPointGenerator<?> createCompoundGenerator(IPointGenerator<?>... generators) throws GeneratorException;
+	
+	/**
+	 * Create a nested or compound generator from a list of models.
+	 * 
+	 * @param cmodel
+	 * @return
+	 * @throws GeneratorException
+	 */
+	IPointGenerator<?> createCompoundGenerator(CompoundModel cmodel) throws GeneratorException;
+
+	/**
+	 * 
+	 * @param cmodel
+	 * @param models
+	 * @return
+	 * @throws GeneratorException
+	 */
+	<R> Collection<R> findRegions(CompoundModel cmodel, IScanPathModel models) throws GeneratorException;
 
 	/**
 	 * Each IPointGenerator must have a unique id which is used to refer to it in the user interface.

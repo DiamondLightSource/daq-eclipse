@@ -2,6 +2,8 @@ package org.eclipse.scanning.api.points.models;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.scanning.api.annotation.MinimumValue;
 import org.eclipse.scanning.api.annotation.UiHidden;
@@ -99,4 +101,9 @@ public class OneDEqualSpacingModel extends AbstractPointsModel implements IBound
 		this.yName = yName;
 		this.pcs.firePropertyChange("yName", oldValue, yName);
 	}
+	@Override
+	public List<String> getScannableNames() {
+		return Arrays.asList(xName, yName);
+	}
+	
 }

@@ -11,7 +11,9 @@ import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.util.UUID;
 
+import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -22,7 +24,10 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
@@ -30,17 +35,14 @@ import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-
 public class SerializationTest {
 
-	private ActivemqConnectorService connectorService;
+	private IMarshallerService service;
 
 	@Before
 	public void create() throws Exception {
 		// Non-OSGi for test - do not copy!
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
-		connectorService = new ActivemqConnectorService();
+		service = new MarshallerService(new PointsModelMarshaller());
 	}
 	
 	@Test
@@ -54,9 +56,9 @@ public class SerializationTest {
 		sent.setUniqueId(UUID.randomUUID().toString());
 		sent.setHostName(InetAddress.getLocalHost().getHostName());
 		
-        String json = connectorService.marshal(sent);
+        String json = service.marshal(sent);
         
-        ScanBean ret = connectorService.unmarshal(json, ScanBean.class);
+        ScanBean ret = service.unmarshal(json, ScanBean.class);
         
         if (!ret.equals(sent)) throw new Exception("Cannot deserialize "+ScanBean.class.getName());
         if (!ret.getPosition().equals(sent.getPosition())) throw new Exception("Cannot deserialize "+ScanBean.class.getName());
@@ -81,9 +83,9 @@ public class SerializationTest {
 		sent.setPercentComplete(52);
 		sent.setHostName(InetAddress.getLocalHost().getHostName());
 
-        String json = connectorService.marshal(sent);
+        String json = service.marshal(sent);
       
-        ScanBean ret = (ScanBean)connectorService.unmarshal(json, Object.class);
+        ScanBean ret = (ScanBean)service.unmarshal(json, Object.class);
         if (!ret.equals(sent)) throw new Exception("Cannot deserialize "+ScanBean.class.getName());
         if (!ret.getPosition().equals(sent.getPosition())) throw new Exception("Cannot deserialize "+ScanBean.class.getName());
 
@@ -104,9 +106,9 @@ public class SerializationTest {
 		} 
 
         // Check that this bean goes to and from json
-        String json = connectorService.marshal(sent);
+        String json = service.marshal(sent);
       
-        ScanBean ret = (ScanBean)connectorService.unmarshal(json, Object.class);
+        ScanBean ret = (ScanBean)service.unmarshal(json, Object.class);
         if (!ret.equals(sent)) throw new Exception("Cannot deserialize "+ScanBean.class.getName());
 
 	}
@@ -114,16 +116,16 @@ public class SerializationTest {
 	@Test
 	public void testStepSerialize() throws Exception {
 		ScanBean bean = createStepScan();
-        String   json = connectorService.marshal(bean);
-        ScanBean naeb = connectorService.unmarshal(json, null);
+        String   json = service.marshal(bean);
+        ScanBean naeb = service.unmarshal(json, null);
         assertEquals(bean, naeb);
 	}
 	
 	@Test
 	public void testGridSerialize() throws Exception {
 		ScanBean bean = createGridScanWithRegion();
-        String   json = connectorService.marshal(bean);
-        ScanBean naeb = connectorService.unmarshal(json, null);
+        String   json = service.marshal(bean);
+        ScanBean naeb = service.unmarshal(json, null);
         assertEquals(bean, naeb);
 	}
 	
@@ -131,8 +133,8 @@ public class SerializationTest {
 	public void testSerializeBasicPosition1() throws Exception {
 		// Create a simple bounding rectangle
 		IPosition pos = new MapPosition("x", 0, 1.0);
-		String   json = connectorService.marshal(pos);
-		IPosition sop = connectorService.unmarshal(json, IPosition.class);
+		String   json = service.marshal(pos);
+		IPosition sop = service.unmarshal(json, IPosition.class);
 		assertEquals(pos, sop);
 	}
 	
@@ -141,8 +143,8 @@ public class SerializationTest {
 		// Create a simple bounding rectangle
 		IPosition pos = new MapPosition("Fred:1:0");
 		pos.setStepIndex(100);
-		String   json = connectorService.marshal(pos);
-		IPosition sop = connectorService.unmarshal(json, IPosition.class);
+		String   json = service.marshal(pos);
+		IPosition sop = service.unmarshal(json, IPosition.class);
 		assertEquals(pos, sop);
 	}
 	
@@ -151,8 +153,8 @@ public class SerializationTest {
 		// Create a simple bounding rectangle
 		Point point = new Point("x", 100, 0.02, "y", 150, 0.03); 
 		point.setStepIndex(100);
-		String   json = connectorService.marshal(point);
-		IPosition tniop = connectorService.unmarshal(json, IPosition.class);
+		String   json = service.marshal(point);
+		IPosition tniop = service.unmarshal(json, IPosition.class);
 		assertEquals(point, tniop);
 	}
 
@@ -161,8 +163,8 @@ public class SerializationTest {
 	public void testSerializeRegion() throws Exception {
 		// Create a simple bounding rectangle
 		IROI roi = new RectangularROI(0, 0, 3, 3, 0);
-		String   json = connectorService.marshal(roi);
-		IROI ior  = connectorService.unmarshal(json, IROI.class);
+		String   json = service.marshal(roi);
+		IROI ior  = service.unmarshal(json, IROI.class);
 		assertEquals(roi, ior);
 	}
 
@@ -174,7 +176,7 @@ public class SerializationTest {
 		bean.setName("Hello Scanning World");
 		
 		final ScanRequest<?> req = new ScanRequest<IROI>();
-		req.setModels(new StepModel("fred", 0, 9, 1));
+		req.setCompoundModel(new CompoundModel(new StepModel("fred", 0, 9, 1)));
 		req.setMonitorNames("monitor");
 		req.setMetadataScannableNames("metadata");
 
@@ -208,10 +210,9 @@ public class SerializationTest {
 		gmodel.setFastAxisName("xNex");
 		gmodel.setSlowAxisName("yNex");
 
-		req.setModels(gmodel);
-		req.setMonitorNames("monitor");
 		IROI roi = new RectangularROI(0, 0, 3, 3, 0);
-		req.putRegion(gmodel.getUniqueKey(), roi);
+		req.setCompoundModel(new CompoundModel(gmodel, roi));
+		req.setMonitorNames("monitor");
 		
 		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
 		tmp.deleteOnExit();
@@ -225,6 +226,41 @@ public class SerializationTest {
 		
 		bean.setScanRequest(req);
 		return bean;
+	}
+
+	@Test
+	public void testCompoundModel1() throws Exception {
+
+		CompoundModel model = new CompoundModel();
+		model.setData(new SpiralModel("x", "y", 1, new BoundingBox(0, -5, 10, 5)), new CircularROI(2, 0, 0));
+		
+		String   json = service.marshal(model, true); // TODO Should work with false here but does not, see below.
+
+		// TODO This json uses the @bundle_and_class
+		// It is required to have a type: field in the model refering to the simple name of the class
+		// and replacing @bundle_and_class which is a java specific thing.
+		CompoundModel ledom = service.unmarshal(json, CompoundModel.class);
+		
+		assertEquals(model, ledom);
+	}
+	
+
+	@Test
+	public void testCompoundModel2() throws Exception {
+
+		CompoundModel model = new CompoundModel();
+		
+		model.setModelsVarArgs(new StepModel("T", 290, 300, 1), new SpiralModel("x", "y", 1, new BoundingBox(0, -5, 10, 5)), new GridModel("fast", "slow"));
+		model.setRegionsVarArgs(new ScanRegion(new CircularROI(2, 0, 0), "x", "y"), new ScanRegion(new RectangularROI(1,2,0), "fast", "slow"));
+		
+		String   json = service.marshal(model, true); // TODO Should work with false here but does not, see below.
+
+		// TODO This json uses the @bundle_and_class
+		// It is required to have a type: field in the model refering to the simple name of the class
+		// and replacing @bundle_and_class which is a java specific thing.
+		CompoundModel ledom = service.unmarshal(json, CompoundModel.class);
+		
+		assertEquals(model, ledom);
 	}
 
 }

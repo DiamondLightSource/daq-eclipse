@@ -25,6 +25,13 @@ public class SpiralModel extends AbstractBoundingBoxModel {
 	private String name = "Fermat Spiral";
 	private double scale = 1;
 
+	public SpiralModel() {
+		
+	}
+	public SpiralModel(String fastName, String slowName, double scale, BoundingBox box) {
+		super(fastName, slowName, box);
+		this.scale = scale;
+	}
 	@Override
 	public String getName() {
 		return name;

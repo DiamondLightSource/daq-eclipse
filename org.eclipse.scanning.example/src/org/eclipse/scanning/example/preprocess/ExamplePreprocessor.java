@@ -28,7 +28,7 @@ public class ExamplePreprocessor implements IPreprocessor {
 	@Override
 	public <T> ScanRequest<T> preprocess(ScanRequest<T> req) throws ProcessingException {
 	
-		for (IScanPathModel model : req.getModels()) {
+		for (IScanPathModel model : req.getCompoundModel().getModels()) {
 			if (model instanceof StepModel) {
 				((StepModel)model).setName("xfred");
 			} if (model instanceof AbstractBoundingBoxModel) {
