@@ -248,7 +248,7 @@ public class ScanPointsWriterTest {
 		
 		// act
 		scanPointsWriter.positionPerformed(new PositionEvent(position));
-		scanPointsWriter.runPerformed(null);
+		scanPointsWriter.scanFinished();
 
 		// assert
 		assertTrue(pointsSaver.getNumberOfWrites()==1);

@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -19,6 +18,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.sequencer.nexus.INexusScanFileManager;
 import org.eclipse.scanning.sequencer.nexus.NexusScanFileManager;
 
 /**
@@ -41,7 +41,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private LevelRunner<IRunnableDevice<?>>      writers;
 	
 	// the nexus file
-	private NexusScanFileManager nexusScanFileManager = null;
+	private INexusScanFileManager nexusScanFileManager = null;
 	
 	/*
 	 * Concurrency design recommended by Keith Ralphs after investigating
@@ -99,35 +99,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		
 		// create the nexus file, if appropriate
-		try {
-			// add legacy metadata scannables and 
-			// tell each scannable whether or not it is a metadata scannable in this scan
-			createNexusFile(model);
-		} catch (NexusException e) {
-			throw new ScanningException(e);
-		}
+		nexusScanFileManager = NexusScanFileManager.createNexusScanFile(this, model);
 		
 		setDeviceState(DeviceState.READY); // Notify 
-	}
-
-	/**
-	 * Creates the NeXus file for the scan, if the scan is configured to
-	 * create one.
-	 * 
-	 * @param model scan model
-	 * @return <code>true</code> if a nexus file was successfully created, <code>false</code> otherwise
-	 * @throws NexusException if a nexus file should be created
-	 * @throws ScanningException 
-	 */
-	private boolean createNexusFile(ScanModel model) throws NexusException, ScanningException {
-		if (model.getFilePath() == null || ServiceHolder.getFactory() == null) {
-			return false; // nothing wired, don't write a nexus file 
-		}
-		
-		nexusScanFileManager = new NexusScanFileManager(this, positioner);
-		nexusScanFileManager.configure(model);
-		
-		return true; // successfully created file
 	}
 
 	@Override
@@ -186,9 +160,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	
 	        	writers.await();               // Wait for the previous write out to return, if any
 	        	
-	        	if (nexusScanFileManager != null) {
-	        		nexusScanFileManager.flushNexusFile(); // flush the nexus file
-	        	}
+        		nexusScanFileManager.flushNexusFile(); // flush the nexus file
 	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
@@ -212,9 +184,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			setDeviceState(DeviceState.FAULT);
 			throw new ScanningException(ne);
 		} finally {
-        	if (nexusScanFileManager!=null) {
-				nexusScanFileManager.closeNexusFile();
-        	}
+			nexusScanFileManager.scanFinished(); // writes scanFinished and closes nexus file
         	// We should not fire the run performed until the nexus file is closed.
         	// Tests wait for this step and reread the file.
        	    fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.

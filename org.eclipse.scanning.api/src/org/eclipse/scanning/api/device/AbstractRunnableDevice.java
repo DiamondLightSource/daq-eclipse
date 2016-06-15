@@ -17,7 +17,10 @@ import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListenable;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 
@@ -27,7 +30,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
  *
  * @param <T>
  */
-public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IScanAttributeContainer {
+public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IScanAttributeContainer, IPositionListenable {
 
 	// Data
 	protected T                          model;
@@ -50,6 +53,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	// Listeners
 	private   Collection<IRunListener>   rlisteners;
+	private   Collection<IPositionListener> posListeners;
 	
 	// Attributes
 	private Map<String, Object>          scanAttributes;
@@ -145,6 +149,8 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		return bean.getDeviceState();
 	}
 
+	
+	
 	/**
 	 * 
 	 * @param pos
@@ -154,6 +160,8 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * @throws ScanningException
 	 */
 	protected void positionComplete(IPosition pos, int count, int size) throws EventException, ScanningException {
+		firePositionComplete(pos);
+		
 		final ScanBean bean = getBean();
 		bean.setPoint(count);
 		bean.setPosition(pos);
@@ -179,17 +187,42 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		this.publisher = publisher;
 	}
 
-
+	@Override
 	public void addRunListener(IRunListener l) {
-		if (rlisteners==null) rlisteners = Collections.synchronizedCollection(new LinkedHashSet<IRunListener>());
+		if (rlisteners==null) rlisteners = Collections.synchronizedCollection(new LinkedHashSet<>());
 		rlisteners.add(l);
 	}
 	
+	@Override
 	public void removeRunListener(IRunListener l) {
 		if (rlisteners==null) return;
 		rlisteners.remove(l);
 	}
 	
+	@Override
+	public void addPositionListener(IPositionListener l) {
+		if (posListeners == null) {
+			posListeners = Collections.synchronizedCollection(new LinkedHashSet<>());
+		}
+		posListeners.add(l);
+	}
+	
+	@Override
+	public void removePositionListener(IPositionListener l) {
+		if (posListeners == null) return;
+		posListeners.remove(l);
+	}
+
+	public void firePositionComplete(IPosition position) throws ScanningException {
+		if (posListeners == null) return;
+		
+		final PositionEvent evt = new PositionEvent(position);
+		
+		// Make array, avoid multi-threading issues
+		final IPositionListener[] la = posListeners.toArray(new IPositionListener[posListeners.size()]);
+		for (IPositionListener l : la) l.positionPerformed(evt);
+	}
+
 	public void fireRunWillPerform(IPosition position) throws ScanningException {
 		
 		if (rlisteners==null) return;
