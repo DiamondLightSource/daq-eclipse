@@ -62,7 +62,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	 */
 	@Override
 	public NexusObjectProvider<NXcollection> getNexusProvider(NexusScanInfo info) {
-		// Note: NexusScanFileBuilder relies on this method returning the same object each time
+		// Note: NexusScanFileManager relies on this method returning the same object each time
 		if (nexusProvider == null) {
 			NXcollection scanPointsCollection = createNexusObject(info);
 			nexusProvider = new NexusObjectWrapper<NXcollection>(
