@@ -20,8 +20,6 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
-import org.eclipse.scanning.api.scan.event.IRunListener;
-import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
 
@@ -31,7 +29,7 @@ import org.eclipse.scanning.api.scan.rank.IScanSlice;
  * progressed.
  * @author Matthew Dickie
  */
-public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionListener, IRunListener {
+public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionListener {
 
 	public static final String GROUP_NAME_SOLSTICE_SCAN = "solstice_scan";
 	
@@ -113,20 +111,15 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 			throw new ScanningException("Could not write position to NeXus file", e);
 		}
 	}
-	
-	@Override
-	public void runWillPerform(RunEvent evt) throws ScanningException {
-		writeScanFinished(false);
-	}
 
-	@Override
-	public void runPerformed(RunEvent evt) throws ScanningException {
-		writeScanFinished(true);
-	}
-
-	private void writeScanFinished(boolean scanFinished) throws ScanningException {
-		final int intValue = scanFinished ? 1 : 0;
-		final Dataset dataset = IntegerDataset.createFromObject(intValue);
+	/**
+	 * Called when the scan completes to write '1' to the scan finished dataset.
+	 * @throws ScanningException
+	 */
+	public void scanFinished() throws ScanningException {
+		// Note: we don't use IRunListener.runPerformed as other run listeners expect the
+		// file to be closed when that method is called
+		final Dataset dataset = IntegerDataset.createFromObject(1);
 		try {
 			this.scanFinished.setSlice(null, dataset,
 					new int[] { 0 }, new int[] { 1 }, new int[] { 1 });
