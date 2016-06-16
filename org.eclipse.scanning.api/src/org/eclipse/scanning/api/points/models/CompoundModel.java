@@ -1,8 +1,11 @@
 package org.eclipse.scanning.api.points.models;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -63,18 +66,65 @@ public class CompoundModel {
 		models = ms;
 	}
 	public <T> CompoundModel(IScanPathModel model, T region) {
-		setData(model, region, model.getScannableNames());
+		if (region instanceof IScanPathModel) { // It's not a region
+			models = Arrays.asList(new IScanPathModel[]{model, (IScanPathModel)region});
+		} else {
+		    setData(model, region, model.getScannableNames());
+		}
 	}
 	
 	public <T> void setData(IScanPathModel model, T region) {
-		setData(model, region, model.getScannableNames());
+		if (region instanceof IScanPathModel) { // It's not a region
+			models = Arrays.asList(new IScanPathModel[]{model, (IScanPathModel)region});
+		} else {
+			setData(model, region, model.getScannableNames());
+		}
 	}
-
+	
 	public <T> void setData(IScanPathModel model, T region, List<String> names) {
+		if (region instanceof IScanPathModel) throw new IllegalArgumentException("The region must not be a generator model!");
+		
+		// We do it this way to make setData(...) fast. This means addData(...) has to deal with unmodifiable lists.
 		this.models  = Arrays.asList(model);
 	    this.regions = Arrays.asList(new ScanRegion<T>(region, names)); 
 	}
 
+	/**
+	 * Method to add a model and regions which are assumed to act on the
+	 * model provided and are assigned to it using its scannable names.
+	 * 
+	 * @param model
+	 * @param rois
+	 */
+	public void addData(IScanPathModel model, Collection<?> rois) {
+		
+		if (models==null) models = new ArrayList<IScanPathModel>(7);
+		try {
+			models.add(model);
+		} catch(Exception ne) {
+			// Models is allowed to be non-null and unmodifiable	
+			// If it is, we make it modifiable and add the model.
+			List<IScanPathModel> tmp = new ArrayList<IScanPathModel>(7);
+			tmp.addAll(models);
+			tmp.add(model);
+			models = tmp;
+		}
+		
+		// They are not really ordered but for now we maintain order.
+		if (regions==null) regions = new LinkedHashSet<ScanRegion<?>>(7);
+		for (Object roi : rois) {
+			ScanRegion<?> region = new ScanRegion<>(roi, model.getScannableNames());
+			try {
+				this.regions.add(region);
+			} catch(Exception ne) {
+				// It might be unmodifiable
+				Collection<ScanRegion<?>> tmp = new LinkedHashSet<ScanRegion<?>>(7);
+				tmp.addAll(this.regions);
+				tmp.add(region);
+				regions = tmp;
+			}
+		}
+	}
 	
 	public List<IScanPathModel> getModels() {
 		return models;

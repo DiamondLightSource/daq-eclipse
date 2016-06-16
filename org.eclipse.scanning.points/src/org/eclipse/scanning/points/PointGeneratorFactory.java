@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -226,10 +226,14 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	@Override
 	public <R> Collection<R> findRegions(CompoundModel cmodel, IScanPathModel model) throws GeneratorException {
 		
-        final Collection<R> regions = new HashSet<R>();
+		if (cmodel.getRegions()==null) return null;
+		
+        final Collection<R> regions = new LinkedHashSet<R>(); // Order should not be important but some tests assume it
 		final Collection<String> names = model.getScannableNames();
 		for (ScanRegion<?> region : cmodel.getRegions()) {
-			if (region.getScannables().containsAll(names)) regions.add((R)region.getRoi());
+			if (region.getScannables().containsAll(names)) {
+				regions.add((R)region.getRoi());
+			}
 		}
 		return regions;
 	}

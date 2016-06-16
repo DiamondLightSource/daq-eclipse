@@ -15,11 +15,19 @@ import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.command.PyExpresser;
 import org.eclipse.scanning.command.PyExpressionNotImplementedException;
+import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.junit.Before;
 import org.junit.Test;
 
 
 public class PyExpresserTest {
+	
+	@Before
+	public void services() {
+		PyExpresser.setPointGeneratorService(new PointGeneratorFactory());
+	}
 
 	@Test
 	public void testScanRequestWithMonitor()
@@ -64,14 +72,11 @@ public class PyExpresserTest {
 		gmodel.setFastAxisPoints(3);
 		gmodel.setSlowAxisPoints(4);
 
-		Collection<IROI> roisForGmodel = new ArrayList<>();
 		CircularROI croi = new CircularROI();
-		roisForGmodel.add(croi);
-
 		ScanRequest<IROI> request = new ScanRequest<>();
 
 		CompoundModel cmodel = new CompoundModel();
-		cmodel.setData(gmodel, roisForGmodel);
+		cmodel.setData(gmodel, croi);
 		request.setCompoundModel(cmodel);
 
 		assertEquals(  // Concise.
