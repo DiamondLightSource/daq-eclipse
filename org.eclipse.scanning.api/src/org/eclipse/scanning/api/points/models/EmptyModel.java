@@ -12,9 +12,8 @@ package org.eclipse.scanning.api.points.models;
  */
 public class EmptyModel extends AbstractPointsModel {
 
-	@Override
-	public String getName() {
-		return "Empty";
+	public EmptyModel() {
+		setName("Empty");
 	}
 
 }

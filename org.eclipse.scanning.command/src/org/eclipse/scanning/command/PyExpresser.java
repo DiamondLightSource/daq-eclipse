@@ -8,6 +8,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.PointROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
@@ -25,31 +26,33 @@ import org.eclipse.scanning.api.points.models.StepModel;
  * directory of this package).
  */
 public class PyExpresser {
+	
+	private static IPointGeneratorService pointGeneratorService;
 
 	final public static String pyExpress(
 			ScanRequest<IROI> request,
 			boolean verbose)
-					throws PyExpressionNotImplementedException {
+					throws Exception {
 
 		String fragment = "scan_request(";
 		boolean scanRequestPartiallyWritten = false;
 
-		if (request.getModels() != null
-				&& request.getModels().size() > 0) {
+		if (request.getCompoundModel().getModels() != null
+				&& request.getCompoundModel().getModels().size() > 0) {
 
 			if (verbose) { fragment += "path="; }
 
-			if (verbose || request.getModels().size() > 1) fragment += "[";
+			if (verbose || request.getCompoundModel().getModels().size() > 1) fragment += "[";
 			boolean listPartiallyWritten = false;
 
-			for (IScanPathModel model : request.getModels()) {  // Order is important.
+			for (IScanPathModel model : request.getCompoundModel().getModels()) {  // Order is important.
 				if (listPartiallyWritten) fragment += ", ";
-				Collection<IROI> rois = request.getRegions(model.getUniqueKey());
+				Collection<IROI> rois = pointGeneratorService.findRegions(request.getCompoundModel(), model);
 				fragment += pyExpress(model, rois, verbose);
 				listPartiallyWritten |= true;
 			}
 
-			if (verbose || request.getModels().size() > 1) fragment += "]";
+			if (verbose || request.getCompoundModel().getModels().size() > 1) fragment += "]";
 			scanRequestPartiallyWritten |= true;
 		}
 
@@ -272,6 +275,14 @@ public class PyExpresser {
 
 		fragment += ")";
 		return fragment;
+	}
+
+	public static IPointGeneratorService getPointGeneratorService() {
+		return pointGeneratorService;
+	}
+
+	public static void setPointGeneratorService(IPointGeneratorService pointGeneratorService) {
+		PyExpresser.pointGeneratorService = pointGeneratorService;
 	}
 
 }

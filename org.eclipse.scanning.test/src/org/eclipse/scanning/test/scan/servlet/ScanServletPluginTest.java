@@ -27,6 +27,7 @@ import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
 import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
@@ -111,7 +112,7 @@ public class ScanServletPluginTest {
 			for (ScanBean scanBean : beans) {
 				ScanRequest<?> req = scanBean.getScanRequest();
 				
-				StepModel step = (StepModel)req.getModels().toArray()[0];
+				StepModel step = (StepModel)req.getCompoundModel().getModels().toArray()[0];
 				assertTrue(step.getName().equals("xfred"));
 			}
 		} finally {
@@ -159,7 +160,7 @@ public class ScanServletPluginTest {
 		bean.setName("Hello Scanning World");
 		
 		final ScanRequest<?> req = new ScanRequest<IROI>();
-		req.setModels(new StepModel("fred", 0, 9, 1));
+		req.setCompoundModel(new CompoundModel(new StepModel("fred", 0, 9, 1)));
 		req.setMonitorNames("monitor");
 
 		final MockDetectorModel dmodel = new MockDetectorModel();
@@ -198,7 +199,7 @@ public class ScanServletPluginTest {
 			models.add(new StepModel("neXusScannable"+i, 1, 2, 1));
 		}
 		models.add(gmodel);
-		req.setModels(models.toArray(new IScanPathModel[models.size()]));
+		req.setCompoundModel(new CompoundModel(models.toArray(new IScanPathModel[models.size()])));
 		req.setMonitorNames("monitor");
 		
 		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
@@ -244,7 +245,7 @@ public class ScanServletPluginTest {
 		gmodel.setFastAxisName("xNex");
 		gmodel.setSlowAxisName("yNex");
 
-		req.setModels(gmodel);
+		req.setCompoundModel(new CompoundModel(gmodel));
 		req.setMonitorNames("monitor");
 		
 		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
@@ -269,7 +270,7 @@ public class ScanServletPluginTest {
 		bean.setName("Hello Scanning World");
 		
 		final ScanRequest<?> req = new ScanRequest<IROI>();
-		req.setModels(new StepModel("temperature", 0, 9, 1));
+		req.setCompoundModel(new CompoundModel(new StepModel("temperature", 0, 9, 1)));
 		req.setMonitorNames("monitor");
 		
 		final File tmp = File.createTempFile("scan_servlet_test_malc", ".nxs");

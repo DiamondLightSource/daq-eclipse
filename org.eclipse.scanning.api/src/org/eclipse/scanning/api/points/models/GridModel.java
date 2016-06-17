@@ -27,6 +27,15 @@ public class GridModel extends AbstractBoundingBoxModel {
 	
 	@FieldDescriptor(label="Snake")
 	private boolean snake = false;
+	
+	public GridModel() {
+		// We are a bean
+	}
+	
+	public GridModel(String fastName, String slowName) {
+		setFastAxisName(fastName);
+		setSlowAxisName(slowName);
+	}
 
 	@Override
 	public String getName() {

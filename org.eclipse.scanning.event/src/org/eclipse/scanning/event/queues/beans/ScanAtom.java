@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event.queues.beans;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.device.models.IDetectorModel;
@@ -21,7 +22,7 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  */
 public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	
-	private Collection<IScanPathModel> pathModels;
+	private List<IScanPathModel> pathModels;
 	private Collection<String> monitors;
 	private Map<String,Object> detectorModels;
 //	private IProcess perPointProcess;//TODO
@@ -48,7 +49,7 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	 * @param dMods Map<String,IDetectorModel> containing the detector 
 	 *              configuration for the scan.
 	 */
-	public ScanAtom(String scName, Collection<IScanPathModel> pMods, Map<String,Object> dMods) {
+	public ScanAtom(String scName, List<IScanPathModel> pMods, Map<String,Object> dMods) {
 		super();
 		setName(scName);
 		pathModels = pMods;
@@ -65,7 +66,7 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	 *              configuration for the scan.
 	 * @param mons List<String> names of monitors to use during scan.
 	 */
-	public ScanAtom(String scName, Collection<IScanPathModel> pMods, Map<String,Object> dMods, Collection<String> mons) {
+	public ScanAtom(String scName, List<IScanPathModel> pMods, Map<String,Object> dMods, Collection<String> mons) {
 		this(scName, pMods, dMods);
 		monitors = mons;
 	}
@@ -75,7 +76,7 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	 * 
 	 * @return Collection<IScanPathModel> models of motor moves.
 	 */
-	public Collection<IScanPathModel> getPathModels() {
+	public List<IScanPathModel> getPathModels() {
 		return pathModels;
 	}
 
@@ -84,7 +85,7 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	 * 
 	 * @param pathModels Collection<IScanPathModel> models of motor moves.
 	 */
-	public void setPathModels(Collection<IScanPathModel> pathModels) {
+	public void setPathModels(List<IScanPathModel> pathModels) {
 		this.pathModels = pathModels;
 	}
 	

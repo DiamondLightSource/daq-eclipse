@@ -16,6 +16,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.slf4j.Logger;
@@ -91,7 +92,7 @@ public class ScanAtomProcessor implements IQueueProcessor {
 			bean.setMessage("Creating scan request from configured values");
 			broadcast(bean, Status.RUNNING);
 			ScanRequest<?> scanReq = new ScanRequest<>();
-			scanReq.setModels(atom.getPathModels());
+			scanReq.setCompoundModel(new CompoundModel(atom.getPathModels()));
 			scanReq.setDetectors(atom.getDetectorModels());
 			scanReq.setMonitorNames(atom.getMonitors());
 			broadcast(bean, beanConfigPercent/4);

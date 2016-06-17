@@ -12,6 +12,7 @@ import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -22,11 +23,20 @@ import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
+import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 
 public class ScanRequestCreationTest extends AbstractJythonTest {
+	
+	private IPointGeneratorService service;
+	
+	@Before
+	public void before() throws Exception {
+		service = new PointGeneratorFactory();
+	}
 
 	@Test
 	public void testGridCommandWithROI() throws Exception {
@@ -44,7 +54,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
-		Collection<IScanPathModel> models = request.getModels();
+		Collection<IScanPathModel> models = request.getCompoundModel().getModels();
 		assertEquals(1, models.size());  // I.e. this is not a compound scan.
 
 		IScanPathModel model = models.iterator().next();
@@ -63,7 +73,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		assertEquals(10, bbox.getFastAxisLength(), 1e-8);
 		assertEquals(9, bbox.getSlowAxisLength(), 1e-8);
 
-		Collection<IROI> regions = request.getRegions(gmodel.getUniqueKey());
+		Collection<IROI> regions = service.findRegions(request.getCompoundModel(), gmodel);
 		assertEquals(1, regions.size());
 
 		IROI region = regions.iterator().next();
@@ -95,7 +105,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
-		IScanPathModel model = ((List<IScanPathModel>) request.getModels()).get(0);
+		IScanPathModel model = ((List<IScanPathModel>) request.getCompoundModel().getModels()).get(0);
 		assertEquals(StepModel.class, model.getClass());
 
 		StepModel smodel = (StepModel) model;
@@ -131,13 +141,13 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
-		IScanPathModel model = request.getModels().iterator().next();
+		IScanPathModel model = request.getCompoundModel().getModels().iterator().next();
 		assertEquals(RasterModel.class, model.getClass());
 
 		RasterModel rmodel = (RasterModel) model;
 		assertEquals(0.5, rmodel.getFastAxisStep(), 1e-8);
 
-		Collection<IROI> regions = request.getRegions(rmodel.getUniqueKey());
+		Collection<IROI> regions = service.findRegions(request.getCompoundModel(), rmodel);
 		assertEquals(2, regions.size());
 
 		Iterator<IROI> regionIterator = regions.iterator();
@@ -164,7 +174,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
-		IScanPathModel model = request.getModels().iterator().next();
+		IScanPathModel model = request.getCompoundModel().getModels().iterator().next();
 		assertEquals(ArrayModel.class, model.getClass());
 
 		ArrayModel amodel = (ArrayModel) model;
@@ -185,7 +195,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
-		IScanPathModel model = request.getModels().iterator().next();
+		IScanPathModel model = request.getCompoundModel().getModels().iterator().next();
 		assertEquals(OneDEqualSpacingModel.class, model.getClass());
 
 		OneDEqualSpacingModel omodel = (OneDEqualSpacingModel) model;
@@ -206,7 +216,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
-		IScanPathModel model = request.getModels().iterator().next();
+		IScanPathModel model = request.getCompoundModel().getModels().iterator().next();
 		assertEquals(OneDStepModel.class, model.getClass());
 
 		OneDStepModel omodel = (OneDStepModel) model;
@@ -223,7 +233,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
-		IScanPathModel model = request.getModels().iterator().next();
+		IScanPathModel model = request.getCompoundModel().getModels().iterator().next();
 		assertEquals(SinglePointModel.class, model.getClass());
 
 		SinglePointModel spmodel = (SinglePointModel) model;
@@ -256,16 +266,16 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request4 = pi.get("sr3", ScanRequest.class);
 
-		assertEquals(4, ((SinglePointModel) request1.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request1.getCompoundModel().getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request1.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
-		assertEquals(4, ((SinglePointModel) request2.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request2.getCompoundModel().getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request2.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
-		assertEquals(4, ((SinglePointModel) request3.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request3.getCompoundModel().getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request3.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 
-		assertEquals(4, ((SinglePointModel) request4.getModels().iterator().next()).getX(), 1e-8);
+		assertEquals(4, ((SinglePointModel) request4.getCompoundModel().getModels().iterator().next()).getX(), 1e-8);
 		assertEquals(0.1, ((MandelbrotModel) request4.getDetectors().get("mandelbrot")).getExposureTime(), 1e-8);
 	}
 
@@ -282,7 +292,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
-		Collection<IScanPathModel> models = request.getModels();
+		Collection<IScanPathModel> models = request.getCompoundModel().getModels();
 		assertEquals(2, models.size());  // I.e. this is a compound scan with two components.
 
 		Iterator<IScanPathModel> modelIterator = models.iterator();
@@ -303,7 +313,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		@SuppressWarnings("unchecked")
 		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
 
-		Collection<IScanPathModel> models = request.getModels();
+		Collection<IScanPathModel> models = request.getCompoundModel().getModels();
 		assertEquals(2, models.size());
 
 		Iterator<IScanPathModel> modelIterator = models.iterator();

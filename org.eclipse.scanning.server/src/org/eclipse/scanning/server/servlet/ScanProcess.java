@@ -17,10 +17,8 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -198,15 +196,7 @@ class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	@SuppressWarnings("unchecked")
 	private Iterable<IPosition> getPositionIterable(ScanRequest<?> req) throws GeneratorException {
 		IPointGeneratorService service = Services.getGeneratorService();
-		
-		IPointGenerator<?>[] gens = new IPointGenerator<?>[req.getModels().size()];
-		int index = 0;
-		for (IScanPathModel model : req.getModels()) {
-			gens[index] = service.createGenerator(model, req.getRegions(model.getUniqueKey()));
-			index++;
-		}
-		IPointGenerator<?> ret = service.createCompoundGenerator(gens);
-		return (Iterable<IPosition>)ret;
+		return service.createCompoundGenerator(req.getCompoundModel());
 	}
 
 	@Override
