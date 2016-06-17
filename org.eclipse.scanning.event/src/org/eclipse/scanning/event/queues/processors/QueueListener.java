@@ -3,11 +3,10 @@ package org.eclipse.scanning.event.queues.processors;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
+import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
-import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -32,20 +31,20 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 	
 	private static Logger logger = LoggerFactory.getLogger(QueueListener.class);
 	
-	private P parent;
 	private IQueueProcessor<P> processor;
+	private IQueueBroadcaster<? extends Queueable> broadcaster;
 	private List<Q> children;
 	
-	public QueueListener(IQueueProcessor<P> processor, P parent, Q child) {
-		this.parent = parent;
+	public QueueListener(IQueueProcessor<P> processor, Q child) {
 		this.processor = processor;
+		broadcaster = processor.getQueueBroadcaster();
 		children = new ArrayList<>();
 		children.add(child);
 	}
 	
-	public QueueListener(IQueueProcessor<P> processor, P parent, List<Q> children) {
-		this.parent = parent;
+	public QueueListener(IQueueProcessor<P> processor, List<Q> children) {
 		this.processor = processor;
+		broadcaster = processor.getQueueBroadcaster();
 		this.children = children;
 	}
 
