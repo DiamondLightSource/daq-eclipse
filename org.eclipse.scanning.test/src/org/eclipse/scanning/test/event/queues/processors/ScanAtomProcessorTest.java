@@ -33,6 +33,8 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.event.EventServiceImpl;
@@ -52,6 +54,9 @@ import org.junit.Test;
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
+	
+	private ScanAtom scAt;
+	private ScanAtomProcessor scProcr;
 	
 	private EventInfrastructureFactoryService infrastructureServ;
 	private IConsumer<ScanBean> scanConsumer;
@@ -116,6 +121,68 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		
 		return scAt;
 	}
+	
+	@Test
+	public void testScanProcessorExecution() throws Exception {
+		List<IScanPathModel> scanAxes = new ArrayList<>();
+		scanAxes.add(new StepModel("mDAC", 0, 70, 1));
+		scanAxes.add(new StepModel("yMotor", 100, 120, 2));
+		
+		Map<String, Object> detectors = new HashMap<>();
+		detectors.put("mar345", new MockDetectorModel(30d));
+		
+		List<String> monitors = new ArrayList<>();
+		monitors.add("i0");
+		
+		scAt = new ScanAtom("mDAC Scan", scanAxes, detectors); 
+		scProcr = new ScanAtomProcessor();
+		/*
+		 * After execution:
+		 * - first bean in statPub should be Status.RUNNING & 0%
+		 * - second bean in statPub should have Status.RUNNING & 5%
+		 * - last bean in statPub should be Status.COMPLETE & 100%
+		 * - consumer should have a ScanBean configured as the ScanAtom
+		 *   - should be Status.COMPLETE and 100%
+		 */
+		checkInitialBeanState(scAt);
+		doExecute(scProcr, scAt);
+		waitForExecutionEnd(10000l);
+		
+		checkBroadcastBeanStatuses(scAt, Status.COMPLETE, false);
+		
+		IPosition expected = new MapPosition(scAt.getPositionConfig());
+		assertEquals("Position reported by scan service different from expected", expected, mss.createPositioner().getPosition());
+		
+		
+//		Status[] reportedStatuses = new Status[]{Status.RUNNING, Status.RUNNING,
+//				Status.RUNNING, Status.RUNNING, Status.RUNNING};
+//		Double[] reportedPercent = new Double[]{0d, 0d, 
+//				1.25d, 2.5d, 5d};
+//		
+//		checkBeanStatuses(reportedStatuses, reportedPercent);
+//		checkBeanFinalStatus(Status.COMPLETE, true);
+//		
+//		checkConsumerBeans(Status.COMPLETE);
+//		
+//		//Assert we have a properly structured ScanBean
+//		List<ScanBean> statusSet = scanConsumer.getStatusSet();
+//		ScanBean scan = statusSet.get(statusSet.size()-1);
+//		//Check the properties of the ScanAtom have been correctly passed down
+//		assertFalse("No beamline set", scan.getBeamline() == null);
+//		assertEquals("Incorrect beamline", scAt.getBeamline(), scan.getBeamline());
+//		assertFalse("No hostname set", scan.getHostName() == null);
+//		assertEquals("Incorrect hostname", scAt.getHostName(), scan.getHostName());
+//		assertFalse("No name set", scan.getName() == null);
+//		assertEquals("Incorrect name", scAt.getName(), scan.getName());
+//		assertFalse("No username set", scan.getUserName() == null);
+//		assertEquals("Incorrect username", scAt.getUserName(), scan.getUserName());
+//		//Check the ScanRequest itself has been correctly interpreted
+//		ScanRequest<?> req = scan.getScanRequest(); 
+//		assertEquals("Scan path definitions differ", scAt.getPathModels(), req.getModels());
+//		assertEquals("Detector definitions differ", scAt.getDetectorModels(), req.getDetectors());
+//		assertEquals("Monitor definitions differ", scAt.getMonitors(), req.getMonitorNames());
+	}
+	
 	
 //	private ScanAtom scAt;
 //	

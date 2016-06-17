@@ -23,7 +23,6 @@ import org.junit.Test;
 public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 	
 	private MoveAtom mvAt;
-	
 	private MoveAtomProcessor mvProcr;
 	
 	//Infrastructure
