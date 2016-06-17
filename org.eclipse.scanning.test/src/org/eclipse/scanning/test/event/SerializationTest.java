@@ -263,4 +263,36 @@ public class SerializationTest {
 		assertEquals(model, ledom);
 	}
 
+	@Test
+	public void createScanCompoundModel() throws Exception {
+		
+		// We write some pojos together to define the scan
+		final ScanBean bean = new ScanBean();
+		bean.setName("Hello Scanning World");
+		
+		final ScanRequest<IROI> req = new ScanRequest<IROI>();
+		// Create a grid scan model
+		CompoundModel model = new CompoundModel();
+		model.setModelsVarArgs(new StepModel("T", 290, 300, 1), new SpiralModel("x", "y", 1, new BoundingBox(0, -5, 10, 5)), new GridModel("fast", "slow"));
+		model.setRegionsVarArgs(new ScanRegion(new CircularROI(2, 0, 0), "x", "y"), new ScanRegion(new RectangularROI(1,2,0), "fast", "slow"));
+		req.setCompoundModel(model);
+		
+		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
+		tmp.deleteOnExit();
+		req.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
+		
+		final MandelbrotModel mandyModel = new MandelbrotModel();
+		mandyModel.setName("mandelbrot");
+		mandyModel.setRealAxisName("xNex");
+		mandyModel.setImaginaryAxisName("yNex");
+		req.putDetector("mandelbrot", mandyModel);
+		
+		bean.setScanRequest(req);
+		
+        String   json = service.marshal(bean, true);
+        ScanBean naeb = service.unmarshal(json, null);
+        assertEquals(bean, naeb);
+	}
+
+	
 }
