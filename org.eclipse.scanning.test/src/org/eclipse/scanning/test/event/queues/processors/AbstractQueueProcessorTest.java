@@ -163,6 +163,56 @@ public abstract class AbstractQueueProcessorTest {
 		}
 	}
 	
+	@Test
+	public void testExecution() throws Exception {
+		Queueable testBean = getTestBean();
+		IQueueProcessor<? extends Queueable> testProcr = getTestProcessor();
+		/*
+		 * After execution:
+		 * - first bean in statPub should be Status.RUNNING
+		 * - last bean in statPub should be Status.COMPLETE and 100%
+		 * - status publisher should have: 1 RUNNING bean and 1 COMPLETE bean
+		 * - the IPosition should be a MapPosition with map based on atom's map
+		 */
+		checkInitialBeanState(testBean);
+		doExecute(testProcr, testBean);
+		waitForExecutionEnd(10000l);
+		
+		checkBroadcastBeanStatuses(testBean, Status.COMPLETE, false);
+		
+		processorSpecificExecTests();
+	}
+	
+	protected abstract void processorSpecificExecTests();
+	
+	@Test
+	public void testTermination() throws Exception {
+		Queueable testBean = getTestBean();
+		IQueueProcessor<? extends Queueable> testProcr = getTestProcessor();
+		/*
+		 * On terminate:
+		 * - first bean in statPub should be Status.RUNNING
+		 * - last bean in statPub should Status.TERMINATED and not be 100% complete
+		 * - status publisher should have a TERMINATED bean
+		 * - IPositioner should have received an abort command
+		 * 
+		 * (setPosition in MockPositioner pauses for 400ms, does something then pauses 
+		 * for 450ms. If we sleep for 400ms, do some checking and then sleep for another 
+		 * 600ms, any running setPosition calls should be done.)
+		 */
+		checkInitialBeanState(testBean);
+		doExecute(testProcr, testBean);
+		Thread.sleep(400);
+		qProc.terminate();
+		waitForBeanFinalStatus(testBean, 10000l);
+		
+		checkBroadcastBeanStatuses(testBean, Status.TERMINATED, false);
+		
+		processorSpecificTermTests();
+	}
+	
+	protected abstract void processorSpecificTermTests();
+	
 	/**
 	 * These methods provide the queue bean & processor pair to test.
 	 */
