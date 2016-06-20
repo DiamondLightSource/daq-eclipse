@@ -133,9 +133,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		// The scan loop
         	pos = null; // We want the last point when we are done so don't use foreach
         	boolean firedFirst = false;
-	        for (Iterator<IPosition> it = model.getPositionIterable().iterator(); it.hasNext();) {
+	        for (IPosition position : model.getPositionIterable()) {
 				
-	        	pos = it.next();
+	        	pos = position;
 	        	pos.setStepIndex(count);
 	        	
 	        	if (!firedFirst) {

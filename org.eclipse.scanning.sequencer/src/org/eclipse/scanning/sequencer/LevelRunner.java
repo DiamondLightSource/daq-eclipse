@@ -261,7 +261,8 @@ abstract class LevelRunner<L extends ILevel> {
 
 	protected ExecutorService createService() {
 		// TODO Need spring config for this.
-		int processors = Runtime.getRuntime().availableProcessors();
+		Integer processors = Integer.getInteger("org.eclipse.scanning.level.runner.pool.count");
+		if (processors==null || processors<0) processors = Runtime.getRuntime().availableProcessors();
 		return new ThreadPoolExecutor(processors,                                   /* number of motors to move at the same time. */
 						              processors*2,                                 /* max size current tasks. */
 						              1, TimeUnit.SECONDS,                          /* timeout after - does this need spring config? */
