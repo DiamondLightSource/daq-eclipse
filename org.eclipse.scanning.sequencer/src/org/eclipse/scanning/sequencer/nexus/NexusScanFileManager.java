@@ -294,13 +294,17 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		do {
 			// check the given set of scannable names for dependencies
 			// each iteration checks the scannable names added in the previous one
-			Set<String> requiredScannables = scannableNamesToCheck.stream().flatMap(
-					name -> deviceConnectorService.getRequiredMetadataScannableNames(name).stream())
-					.filter(name -> !metadataScannableNames.contains(name))
-					.collect(Collectors.toSet());
+			Set<String> requiredScannableNames = new HashSet<>();
+			for (String scannableName : scannableNamesToCheck) {
+				for (String requiredScannableName : deviceConnectorService.getRequiredMetadataScannableNames(scannableName)) {
+					if (!metadataScannableNames.contains(requiredScannableName)) {
+						requiredScannableNames.add(requiredScannableName);
+					}
+				}
+			}
 			
-			metadataScannableNames.addAll(requiredScannables);
-			scannableNamesToCheck = requiredScannables;
+			metadataScannableNames.addAll(requiredScannableNames);
+			scannableNamesToCheck = requiredScannableNames;
 		} while (!scannableNamesToCheck.isEmpty());
 		
 		// remove any scannable names in the scan from the list of metadata scannables
