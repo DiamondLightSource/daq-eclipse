@@ -1,5 +1,6 @@
 package org.eclipse.scanning.sequencer;
 
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -7,12 +8,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.ILevel;
@@ -45,6 +45,7 @@ abstract class LevelRunner<L extends ILevel> {
     private volatile ExecutorService    eservice; // Different threads may nullify the service, better to make volatile.
 	private ScanningException           abortException;
 	private PositionDelegate            pDelegate;
+	private boolean                     levelCachingAllowed=true;
 	
 	protected LevelRunner() {
 		pDelegate = new PositionDelegate();
@@ -131,7 +132,7 @@ abstract class LevelRunner<L extends ILevel> {
 				    for (Future<IPosition> future : pos) {
 						if (!future.isDone()) throw new ScanningException("The timeout of "+timeout+"s has been reached waiting for level "+level+" objects "+toString(lobjects));
 					}
-				    pDelegate.fireLevelPerformed(level, lobjects, getPosition(pos));
+				    pDelegate.fireLevelPerformed(level, lobjects, getPosition(position, pos));
 				}
 			}
 			
@@ -237,6 +238,7 @@ abstract class LevelRunner<L extends ILevel> {
 		abortException = null;
 	}
 
+	private SoftReference<Map> sortedObjects;
 	/**
 	 * Get the scannables, ordered by level, lowest first
 	 * @param position
@@ -247,7 +249,8 @@ abstract class LevelRunner<L extends ILevel> {
 		
 		if (objects==null) return Collections.emptyMap();
 		
-		// TODO It is necessary to cache this map for speed?
+		if (sortedObjects!=null && sortedObjects.get()!=null) return sortedObjects.get();
+		
 		final Map<Integer, List<L>> ret = new TreeMap<>();
 		for (L object : objects) {
 			final int level = object.getLevel();
@@ -255,6 +258,7 @@ abstract class LevelRunner<L extends ILevel> {
 			if (!ret.containsKey(level)) ret.put(level, new ArrayList<L>(7));
 			ret.get(level).add(object);
 		}
+		if (isLevelCachingAllowed()) sortedObjects = new SoftReference<Map>(ret);
 		
 		return ret;
 	}
@@ -263,12 +267,8 @@ abstract class LevelRunner<L extends ILevel> {
 		// TODO Need spring config for this.
 		Integer processors = Integer.getInteger("org.eclipse.scanning.level.runner.pool.count");
 		if (processors==null || processors<0) processors = Runtime.getRuntime().availableProcessors();
-		return new ThreadPoolExecutor(processors,                                   /* number of motors to move at the same time. */
-						              processors*2,                                 /* max size current tasks. */
-						              1, TimeUnit.SECONDS,                          /* timeout after - does this need spring config? */
-						              new ArrayBlockingQueue<Runnable>(1000, true), /* max 1000+ncores motors to a level */
-						              new ThreadPoolExecutor.AbortPolicy());
-
+		return new ForkJoinPool(processors);
+        // Slightly faster than thread pool executor @see ScanAlgorithmBenchMarkTest
 	}
 
 	public void addPositionListener(IPositionListener listener) {
@@ -283,14 +283,16 @@ abstract class LevelRunner<L extends ILevel> {
 		return position;
 	}
 
-	private IPosition getPosition(List<Future<IPosition>> futures) throws InterruptedException, ExecutionException {
+	private IPosition getPosition(IPosition position, List<Future<IPosition>> futures) throws InterruptedException, ExecutionException {
 		MapPosition ret = new MapPosition();
 	    for (Future<IPosition> future : futures) {
 	    	// Faster than using composite
 	    	IPosition pos = future.get();
+	    	if (pos==null) continue;
 	    	ret.putAll(pos);
 	    	ret.putAllIndices(pos);
 		}
+	    if (ret.size()<1) return position;
 	    return ret;
 	}
 
@@ -334,6 +336,14 @@ abstract class LevelRunner<L extends ILevel> {
 	 */
 	public void setTimeout(long time) {
 		this.timeout = time;
+	}
+
+	public boolean isLevelCachingAllowed() {
+		return levelCachingAllowed;
+	}
+
+	public void setLevelCachingAllowed(boolean levelCachingAllowed) {
+		this.levelCachingAllowed = levelCachingAllowed;
 	}
 
 }

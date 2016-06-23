@@ -90,8 +90,6 @@ public final class MapPosition extends AbstractPosition {
 		if (names==null) return; // EmptyPosition allowed.
 		for (String name : names) {
 			values.put(name, pos.get(name));
-		}
-		for (String name : names) {
 			indices.put(name, pos.getIndex(name));
 		}
 	}

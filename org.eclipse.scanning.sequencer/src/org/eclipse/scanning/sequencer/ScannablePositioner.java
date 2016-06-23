@@ -27,6 +27,8 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 	private List<IScannable<?>>         monitors;
 
 	ScannablePositioner(IDeviceConnectorService service) {	
+		
+		setLevelCachingAllowed(false);
 		this.connectorService = service;
 		
 		// This is setting the default but the actual value of the timeout
