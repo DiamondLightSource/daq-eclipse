@@ -110,7 +110,7 @@ public abstract class AbstractQueueProcessorTest {
 		}
 		
 		//Try for real (create fresh Atom processor first)
-		qProcr = getTestProcessor();
+		qProcr = getTestProcessor(true);
 		assertFalse("Executed should initially be false", qProcr.isExecuted());
 		
 		//Execute, but don't wait for completion (no point)
@@ -163,6 +163,11 @@ public abstract class AbstractQueueProcessorTest {
 		}
 	}
 	
+	/**
+	 * Check processor execution changes bean in such that it has executed 
+	 * completely & successfully.
+	 * @throws Exception
+	 */
 	@Test
 	public void testExecution() throws Exception {
 		Queueable testBean = getTestBean();
@@ -183,8 +188,17 @@ public abstract class AbstractQueueProcessorTest {
 		processorSpecificExecTests();
 	}
 	
-	protected abstract void processorSpecificExecTests();
+	/**
+	 * Processor specific execution tests (e.g. local to MoveAtomProcessor, 
+	 * has motor move been communicated?)
+	 * @throws Exception
+	 */
+	protected abstract void processorSpecificExecTests() throws Exception;
 	
+	/**
+	 * Check processor termination kills bean such that it appears terminated.
+	 * @throws Exception
+	 */
 	@Test
 	public void testTermination() throws Exception {
 		Queueable testBean = getTestBean();
@@ -211,12 +225,19 @@ public abstract class AbstractQueueProcessorTest {
 		processorSpecificTermTests();
 	}
 	
-	protected abstract void processorSpecificTermTests();
+	/**
+	 * Processor specific termination tests, e.g. that it cleans up safely.
+	 * @throws Exception
+	 */
+	protected abstract void processorSpecificTermTests() throws Exception;
 	
 	/**
 	 * These methods provide the queue bean & processor pair to test.
 	 */
-	protected abstract IQueueProcessor<? extends Queueable> getTestProcessor();
+	protected IQueueProcessor<? extends Queueable> getTestProcessor() {
+		return getTestProcessor(false);
+	};
+	protected abstract IQueueProcessor<? extends Queueable> getTestProcessor(boolean makeNew);
 	protected abstract Queueable getTestBean();
 	
 	protected void doExecute(IQueueProcessor<? extends Queueable> qProcr, Queueable bean) throws Exception {
