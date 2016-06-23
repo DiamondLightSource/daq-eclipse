@@ -75,7 +75,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		doExecute(mvProcr, mvAt);
 		waitForBeanFinalStatus(mvAt, 10000l);
 		
-		checkBroadcastBeanStatuses(mvAt, Status.FAILED, false);
+		checkLastBroadcastBeanStatuses(mvAt, Status.FAILED, false);
 		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) in '"+mvAt.getName()+
 				"' failed: \"The badger apocalypse cometh! (EXPECTED - we pressed the button...)\".", mvAt.getMessage());
 	}

@@ -183,7 +183,7 @@ public abstract class AbstractQueueProcessorTest {
 		doExecute(testProcr, testBean);
 		waitForExecutionEnd(10000l);
 		
-		checkBroadcastBeanStatuses(testBean, Status.COMPLETE, false);
+		checkLastBroadcastBeanStatuses(testBean, Status.COMPLETE, false);
 		
 		processorSpecificExecTests();
 	}
@@ -220,7 +220,7 @@ public abstract class AbstractQueueProcessorTest {
 		qProc.terminate();
 		waitForBeanFinalStatus(testBean, 10000l);
 		
-		checkBroadcastBeanStatuses(testBean, Status.TERMINATED, false);
+		checkLastBroadcastBeanStatuses(testBean, Status.TERMINATED, false);
 		
 		processorSpecificTermTests();
 	}
@@ -339,7 +339,15 @@ public abstract class AbstractQueueProcessorTest {
 		assertEquals("Should not be non-zero percent complete", 0d, bean.getPercentComplete(), 0);
 	}
 	
-	protected void checkBroadcastBeanStatuses(Queueable bean, Status state, boolean prevBean) throws EventException {
+	/**
+	 * Check the statuses of the last bean and optionally the penultimate bean, 
+	 * for any processor outcome, depending on the supplied state.
+	 * @param bean
+	 * @param state
+	 * @param prevBean
+	 * @throws EventException
+	 */
+	protected void checkLastBroadcastBeanStatuses(Queueable bean, Status state, boolean prevBean) throws EventException {
 		Double percentComplete = -1d;
 		Status previousBeanState = null;
 		if (state.equals(Status.NONE)) {
