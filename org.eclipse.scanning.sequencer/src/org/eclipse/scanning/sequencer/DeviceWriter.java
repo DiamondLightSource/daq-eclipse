@@ -63,7 +63,7 @@ final class DeviceWriter extends DeviceRunner {
 						((IRunnableEventDevice)detector).fireWritePerformed(position);
 					}
 				}
-				return position;
+				return null; // faster if not adding new information
 				
 			} catch (Exception ne) {
 				abort(detector, null, position, ne);

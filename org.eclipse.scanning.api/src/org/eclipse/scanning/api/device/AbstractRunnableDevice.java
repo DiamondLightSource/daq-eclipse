@@ -154,7 +154,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	/**
 	 * 
 	 * @param pos
-	 * @param count 0-based position count (1 is added to caculate % complete)
+	 * @param count 0-based position count (1 is added to calculate % complete)
 	 * @param size
 	 * @throws EventException
 	 * @throws ScanningException

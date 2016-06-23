@@ -49,7 +49,7 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		
 	}
 
-	private void register(INameable mockScannable) {
+	public void register(INameable mockScannable) {
 		cache.put(mockScannable.getName(), mockScannable);
 	}
 

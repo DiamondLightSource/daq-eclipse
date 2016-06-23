@@ -1,6 +1,5 @@
 package org.eclipse.scanning.sequencer;
 
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -147,13 +146,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	
 	        	// Check if we are paused, blocks until we are not
 	        	boolean continueRunning = checkPaused();
-	        	if (!continueRunning) {
-	        		return; // finally block performed 
-	        	}
-	        	
-	        	// TODO Some validation on each point
-	        	// perhaps replacing atPointStart(..)
-	        	// Whether to deal with atLineStart() and atPointStart()
+	        	if (!continueRunning) return; // finally block performed 
+
+	        	// TODO Some validation on each point perhaps replacing atPointStart(..)
+	        	// TODO Whether to deal with atLineStart() and atPointStart()
 	        	
 	        	// Run to the position
 	        	positioner.setPosition(pos);   // moveTo in GDA8

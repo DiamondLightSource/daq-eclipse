@@ -75,7 +75,7 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 			if (detector instanceof IRunnableEventDevice) {
 				((IRunnableEventDevice)detector).fireRunPerformed(position);
 			}
-			return position;
+			return null; // Faster if we are not adding new information.
 		}
 
 	}
