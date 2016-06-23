@@ -128,6 +128,6 @@ public class ScanAlgorithmBenchMarkTest extends BrokerTest {
 		double single = (after-before)/1000d;
 		System.out.println("Time for one point was: "+Math.round(single)+"ms");
 		
-		assertTrue(Math.round(single)<20);
+		assertTrue(Math.round(single)<18);
 	}
 }
