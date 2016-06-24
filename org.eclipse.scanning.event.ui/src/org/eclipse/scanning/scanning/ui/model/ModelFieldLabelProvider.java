@@ -1,9 +1,9 @@
 package org.eclipse.scanning.scanning.ui.model;
 
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.annotation.FieldDescriptor;
-import org.eclipse.scanning.api.annotation.FieldUtils;
-import org.eclipse.scanning.api.annotation.FieldValue;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
+import org.eclipse.scanning.api.annotation.ui.FieldUtils;
+import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 import org.eclipse.scanning.scanning.ui.util.StringUtils;

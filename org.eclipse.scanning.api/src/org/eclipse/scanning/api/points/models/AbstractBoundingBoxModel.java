@@ -3,8 +3,8 @@ package org.eclipse.scanning.api.points.models;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.UiHidden;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 
 /**
