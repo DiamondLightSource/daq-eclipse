@@ -1,11 +1,10 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.InetAddress;
@@ -14,44 +13,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.bean.BeanEvent;
-import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.dry.DryRunCreator;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
-import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
-import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
-import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.util.EventInfrastructureFactoryService;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	
@@ -88,100 +66,102 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	}
 
 	@Override
-	protected IQueueProcessor<? extends Queueable> getTestProcessor() {
-		return new ScanAtomProcessor();
+	protected IQueueProcessor<? extends Queueable> getTestProcessor(boolean makeNew) {
+		if (scProcr == null || makeNew) scProcr = new ScanAtomProcessor();
+		return scProcr;
 	}
 
 	@Override
 	protected Queueable getTestBean() {
-		List<IScanPathModel> scanAxes = new ArrayList<>();
-		scanAxes.add(new StepModel("ocs", 290, 80, 10));
-		scanAxes.add(new StepModel("xMotor", 150, 100, 5));
-		
-		Map<String, Object> detectors = new HashMap<>();
-		detectors.put("pe", new MockDetectorModel(30d));
-		
-		List<String> monitors = new ArrayList<>();
-		monitors.add("bpm3");
-		monitors.add("i0");
-		
-		ScanAtom scAt = new ScanAtom("VT scan across sample", scanAxes, detectors); 
-			
-		try {
-			scAt.setHostName(InetAddress.getLocalHost().getHostName());
-		} catch (UnknownHostException ex) {
-			System.out.println("WARNING: Failed to set hostname on bean. Continuing...");
+		if (scAt == null) {
+			List<IScanPathModel> scanAxes = new ArrayList<>();
+			scanAxes.add(new StepModel("ocs", 290, 80, 10));
+			scanAxes.add(new StepModel("xMotor", 150, 100, 5));
+
+			Map<String, Object> detectors = new HashMap<>();
+			detectors.put("pe", new MockDetectorModel(30d));
+
+			List<String> monitors = new ArrayList<>();
+			monitors.add("bpm3");
+			monitors.add("i0");
+
+			ScanAtom scAt = new ScanAtom("VT scan across sample", scanAxes, detectors); 
+
+			try {
+				scAt.setHostName(InetAddress.getLocalHost().getHostName());
+			} catch (UnknownHostException ex) {
+				System.out.println("WARNING: Failed to set hostname on bean. Continuing...");
+			}
+			scAt.setUserName("abc12345");
+			scAt.setBeamline("I15-1");
+			//		scAt.setScanConsumerURI(uri.toString());
+			//		scAt.setScanSubmitQueueName(IEventService.SUBMISSION_QUEUE);
+			//		scAt.setScanStatusQueueName(IEventService.STATUS_SET);
+			//		scAt.setScanStatusTopicName(IEventService.STATUS_TOPIC);
 		}
-		scAt.setUserName("abc12345");
-		scAt.setBeamline("I15-1");
-//		scAt.setScanConsumerURI(uri.toString());
-//		scAt.setScanSubmitQueueName(IEventService.SUBMISSION_QUEUE);
-//		scAt.setScanStatusQueueName(IEventService.STATUS_SET);
-//		scAt.setScanStatusTopicName(IEventService.STATUS_TOPIC);
-		
 		return scAt;
 	}
 	
-	@Test
-	public void testScanProcessorExecution() throws Exception {
-		List<IScanPathModel> scanAxes = new ArrayList<>();
-		scanAxes.add(new StepModel("mDAC", 0, 70, 1));
-		scanAxes.add(new StepModel("yMotor", 100, 120, 2));
-		
-		Map<String, Object> detectors = new HashMap<>();
-		detectors.put("mar345", new MockDetectorModel(30d));
-		
-		List<String> monitors = new ArrayList<>();
-		monitors.add("i0");
-		
-		scAt = new ScanAtom("mDAC Scan", scanAxes, detectors); 
-		scProcr = new ScanAtomProcessor();
-		/*
-		 * After execution:
-		 * - first bean in statPub should be Status.RUNNING & 0%
-		 * - second bean in statPub should have Status.RUNNING & 5%
-		 * - last bean in statPub should be Status.COMPLETE & 100%
-		 * - consumer should have a ScanBean configured as the ScanAtom
-		 *   - should be Status.COMPLETE and 100%
-		 */
-		checkInitialBeanState(scAt);
-		doExecute(scProcr, scAt);
-		waitForExecutionEnd(10000l);
-		
-		checkBroadcastBeanStatuses(scAt, Status.COMPLETE, false);
-		
-		IPosition expected = new MapPosition(scAt.getPositionConfig());
-		assertEquals("Position reported by scan service different from expected", expected, mss.createPositioner().getPosition());
-		
-		
-//		Status[] reportedStatuses = new Status[]{Status.RUNNING, Status.RUNNING,
-//				Status.RUNNING, Status.RUNNING, Status.RUNNING};
-//		Double[] reportedPercent = new Double[]{0d, 0d, 
-//				1.25d, 2.5d, 5d};
-//		
-//		checkBeanStatuses(reportedStatuses, reportedPercent);
-//		checkBeanFinalStatus(Status.COMPLETE, true);
-//		
-//		checkConsumerBeans(Status.COMPLETE);
-//		
-//		//Assert we have a properly structured ScanBean
-//		List<ScanBean> statusSet = scanConsumer.getStatusSet();
-//		ScanBean scan = statusSet.get(statusSet.size()-1);
-//		//Check the properties of the ScanAtom have been correctly passed down
-//		assertFalse("No beamline set", scan.getBeamline() == null);
-//		assertEquals("Incorrect beamline", scAt.getBeamline(), scan.getBeamline());
-//		assertFalse("No hostname set", scan.getHostName() == null);
-//		assertEquals("Incorrect hostname", scAt.getHostName(), scan.getHostName());
-//		assertFalse("No name set", scan.getName() == null);
-//		assertEquals("Incorrect name", scAt.getName(), scan.getName());
-//		assertFalse("No username set", scan.getUserName() == null);
-//		assertEquals("Incorrect username", scAt.getUserName(), scan.getUserName());
-//		//Check the ScanRequest itself has been correctly interpreted
-//		ScanRequest<?> req = scan.getScanRequest(); 
-//		assertEquals("Scan path definitions differ", scAt.getPathModels(), req.getModels());
-//		assertEquals("Detector definitions differ", scAt.getDetectorModels(), req.getDetectors());
-//		assertEquals("Monitor definitions differ", scAt.getMonitors(), req.getMonitorNames());
+	@Override
+	protected void processorSpecificExecTests() throws Exception {
+		Status[] reportedStatuses = new Status[]{Status.RUNNING, Status.RUNNING,
+				Status.RUNNING, Status.RUNNING, Status.RUNNING};
+		Double[] reportedPercent = new Double[]{0d, 0d, 
+				1.25d, 2.5d, 5d};
+
+		checkFirstBroadcastBeanStatuses(scAt, reportedStatuses, reportedPercent);
+		checkLastBroadcastBeanStatuses(scAt, Status.COMPLETE, true);
+
+		checkConsumerBeans(Status.COMPLETE);
+
+		//Assert we have a properly structured ScanBean
+		List<ScanBean> statusSet = scanConsumer.getStatusSet();
+		ScanBean scan = statusSet.get(statusSet.size()-1);
+		//Check the properties of the ScanAtom have been correctly passed down
+		assertFalse("No beamline set", scan.getBeamline() == null);
+		assertEquals("Incorrect beamline", scAt.getBeamline(), scan.getBeamline());
+		assertFalse("No hostname set", scan.getHostName() == null);
+		assertEquals("Incorrect hostname", scAt.getHostName(), scan.getHostName());
+		assertFalse("No name set", scan.getName() == null);
+		assertEquals("Incorrect name", scAt.getName(), scan.getName());
+		assertFalse("No username set", scan.getUserName() == null);
+		assertEquals("Incorrect username", scAt.getUserName(), scan.getUserName());
+		//Check the ScanRequest itself has been correctly interpreted
+		ScanRequest<?> req = scan.getScanRequest(); 
+		assertEquals("Scan path definitions differ", scAt.getPathModels(), req.getModels());
+		assertEquals("Detector definitions differ", scAt.getDetectorModels(), req.getDetectors());
+		assertEquals("Monitor definitions differ", scAt.getMonitors(), req.getMonitorNames());
 	}
+
+	@Override
+	protected void processorSpecificTermTests() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	/**
+	 * Interrogate the statusSet of the scan consumer to check it had the 
+	 * given final status.
+	 * @param lastStatus
+	 * @throws EventException
+	 */
+	private void checkConsumerBeans(Status lastStatus) throws EventException {
+	List<ScanBean> statusSet = scanConsumer.getStatusSet();
+	assertEquals("More than one bean in the status queue. Was it cleared?", statusSet.size(), 1);
+	ScanBean lastBean = statusSet.get(statusSet.size()-1);
+	
+	if (lastStatus.equals(Status.COMPLETE)) {
+		assertEquals("Unexpected ScanBean final status", lastStatus, lastBean.getStatus());
+		assertEquals("ScanBean percentcomplete wrong", 100d, lastBean.getPercentComplete(), 0);
+	} else if (lastStatus.equals(Status.TERMINATED)) {
+		//Last bean should be TERMINATED & not 100%
+		assertEquals("Unexpected last ScanBean final status", lastStatus, lastBean.getStatus());
+		assertThat("ScanBean percentComplete is 100%", lastBean.getPercentComplete(), is(not(100d)));
+	}
+	else {
+		fail("Unknown bean final status");
+	}
+}
 	
 	
 //	private ScanAtom scAt;

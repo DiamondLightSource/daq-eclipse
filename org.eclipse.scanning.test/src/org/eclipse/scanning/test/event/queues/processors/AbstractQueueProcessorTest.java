@@ -338,10 +338,36 @@ public abstract class AbstractQueueProcessorTest {
 		assertEquals("Wrong initial status", Status.NONE, bean.getStatus());
 		assertEquals("Should not be non-zero percent complete", 0d, bean.getPercentComplete(), 0);
 	}
+
+	/**
+	 * Check the statuses of the first n beans depending on the number of 
+	 * statuses and percentages supplied.
+	 * @param beanStatuses
+	 * @param beanPercent
+	 */
+	protected void checkFirstBroadcastBeanStatuses(Queueable bean, Status[] beanStatuses, Double[] beanPercent) throws Exception {
+		assert(beanStatuses.length == beanPercent.length);
+		
+		List<Queueable> broadcastBeans  = ((MockPublisher<Queueable>)statPub).getBroadcastBeans();
+		if (broadcastBeans.size() == 0) fail("No beans broadcast to Publisher");
+		
+		for (int i = 0; i < beanStatuses.length; i++) {
+			Queueable broadBean = broadcastBeans.get(i);
+			
+			if (!broadBean.getUniqueId().equals(bean.getUniqueId())){
+				throw new EventException(i+"th bean is not the bean we were looking for");
+			}
+			assertEquals(i+"th bean has wrong status", beanStatuses[i], broadBean.getStatus());
+			assertEquals(i+"th bean has wrong percent", beanPercent[i], broadBean.getPercentComplete(), 0);
+			if (i > 0){
+				assertEquals(i+"th bean has wrong previous status", beanStatuses[i-1], broadBean.getPreviousStatus());
+			}
+		}
+	}
 	
 	/**
-	 * Check the statuses of the last bean and optionally the penultimate bean, 
-	 * for any processor outcome, depending on the supplied state.
+	 * Check the statuses of the first last and (optionally) the penultimate 
+	 * bean,  for any processor outcome, depending on the supplied state.
 	 * @param bean
 	 * @param state
 	 * @param prevBean
@@ -361,9 +387,7 @@ public abstract class AbstractQueueProcessorTest {
 		
 		Queueable lastBean, penultimateBean, firstBean;
 		List<Queueable> broadcastBeans  = ((MockPublisher<Queueable>)statPub).getBroadcastBeans();
-		if (broadcastBeans.size() == 0) {
-			fail("No beans broadcast to Publisher");
-		}
+		if (broadcastBeans.size() == 0) fail("No beans broadcast to Publisher");
 		
 		//First bean should be RUNNING.
 		firstBean = broadcastBeans.get(0);
