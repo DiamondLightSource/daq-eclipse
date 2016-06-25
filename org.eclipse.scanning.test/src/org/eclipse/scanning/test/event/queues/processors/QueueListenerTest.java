@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.event.queues.processors.QueueListener;
@@ -68,24 +69,24 @@ public class QueueListenerTest {
 	
 	@Test
 	public void testNothingHappened() {
-		qList = new QueueListener<DummyHasQueue, DummyAtom>(processor, childA);
+		qList = new QueueListener<>(processor, childA);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
-		assertEquals("Parent has been updated, even thogh no changes happened on child", originalParent, parent);
+		assertEquals("Parent has been updated, even though no changes happened on child", originalParent, parent);
 	}
 	
 	@Test
 	public void testIgnoreNonChildren() {
 		DummyAtom friend = new DummyAtom("Bilbo", 10);
 		
-		qList = new QueueListener<DummyHasQueue, DummyAtom>(processor, childA);
+		qList = new QueueListener<>(processor, childA);
 		
 		friend.setPercentComplete(50d);
 		friend.setStatus(Status.RUNNING);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(friend));
 		
 		assertEquals("Percentage incremented even though non-child in event", parent.getPercentComplete(), originalParent.getPercentComplete(), 0d);
-		assertEquals("Status should not have changed as event was non-child", originalParent.getStatus(), broadcaster.getBean().getStatus());
+		assertEquals("Status should not have changed as event was non-child", originalParent.getStatus(), getLastBroadcast().getStatus());
 		
 	}
 	
@@ -96,23 +97,23 @@ public class QueueListenerTest {
 		childA.setPercentComplete(50d);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
-		assertEquals("Percentage incremented even though child not active", broadcaster.getBean().getPercentComplete(), originalParent.getPercentComplete(), 0d);
-		assertEquals("Status changed even though child not active", originalParent.getStatus(), broadcaster.getBean().getStatus());
+		assertEquals("Percentage incremented even though child not active", getLastBroadcast().getPercentComplete(), originalParent.getPercentComplete(), 0d);
+		assertEquals("Status changed even though child not active", originalParent.getStatus(), getLastBroadcast().getStatus());
 		
 		//Now with the status actually set...
 		childA.setStatus(Status.RUNNING);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
-		assertEquals("Percentage incorrectly incremented", 28.75d, broadcaster.getBean().getPercentComplete(), 0d);
-		assertEquals("Status should not have changed", originalParent.getStatus(), broadcaster.getBean().getStatus());
+		assertEquals("Percentage incorrectly incremented", 28.75d, getLastBroadcast().getPercentComplete(), 0d);
+		assertEquals("Status should not have changed", originalParent.getStatus(), getLastBroadcast().getStatus());
 		
 		//Complete childA percentage & Status
 		childA.setPercentComplete(100d);
 		childA.setStatus(Status.COMPLETE);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
-		assertEquals("Percentage incorrectly incremented", 52.5d, broadcaster.getBean().getPercentComplete(), 0d);
-		assertEquals("Status should not have changed", originalParent.getStatus(), broadcaster.getBean().getStatus());
+		assertEquals("Percentage incorrectly incremented", 52.5d, getLastBroadcast().getPercentComplete(), 0d);
+		assertEquals("Status should not have changed", originalParent.getStatus(), getLastBroadcast().getStatus());
 		
 		//Complete childB percentage & Status
 		childB.setPercentComplete(100d);
@@ -122,4 +123,8 @@ public class QueueListenerTest {
 		assertTrue("Processor not marked complete on completion of all children", processor.isComplete());
 	}
 
+	private Queueable getLastBroadcast() {
+		List<Queueable> broadBeans = ((MockPublisher<?>)statPub).getBroadcastBeans();
+		return broadBeans.get(broadBeans.size()-1);
+	}
 }
