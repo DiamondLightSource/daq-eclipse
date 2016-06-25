@@ -15,7 +15,6 @@ import org.junit.Test;
  */
 public class DummyProcessingTest extends AbstractQueueProcessorTest {
 
-	private DummyAtom dAt;
 	private DummyBean dBe;
 	private DummyHasQueue dHQ;
 	
@@ -30,7 +29,6 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 	
 	@Override
 	protected void localTearDown() {
-		dAt = null;
 		dBe = null;
 		dHQ = null;
 		
@@ -44,23 +42,15 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		return new DummyAtom("Hera", 400);
 	}
 	@Override
-	protected IQueueProcessor<DummyAtom> getTestProcessor() {
-		return new DummyAtomProcessor();
+	protected IQueueProcessor<DummyAtom> getTestProcessor(boolean makeNew) {
+		if (dAtProcr == null || makeNew) dAtProcr = new DummyAtomProcessor();
+		return dAtProcr;
 	}
 	
-	@Test
-	public void testDummyAtomExecution() throws Exception {
-		dAt = new DummyAtom("Clotho", 100);
-		dAtProcr= new DummyAtomProcessor();
-		
-		checkInitialBeanState(dAt);
-		
-		doExecute(dAtProcr, dAt);
-		waitForExecutionEnd(10000l);
-		
-		checkLastBroadcastBeanStatuses(dAt, Status.COMPLETE, false);
-	}
-	
+	/**
+	 * Extra test to check processing of other Dummy type
+	 * @throws Exception
+	 */
 	@Test
 	public void testDummyBeanExecution() throws Exception {
 		dBe = new DummyBean("Lachesis", 200);
@@ -74,6 +64,10 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		checkLastBroadcastBeanStatuses(dBe, Status.COMPLETE, false);
 	}
 	
+	/**
+	 * Extra test to check processing of other Dummy type
+	 * @throws Exception
+	 */
 	@Test
 	public void testDummyHasQueueExecution() throws Exception {
 		dHQ = new DummyHasQueue("Atropos", 300);
@@ -85,6 +79,16 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		waitForExecutionEnd(10000l);
 		
 		checkLastBroadcastBeanStatuses(dHQ, Status.COMPLETE, false);
+	}
+
+	@Override
+	protected void processorSpecificExecTests() throws Exception {
+		//None	
+	}
+
+	@Override
+	protected void processorSpecificTermTests() throws Exception {
+		//None
 	}
 
 }
