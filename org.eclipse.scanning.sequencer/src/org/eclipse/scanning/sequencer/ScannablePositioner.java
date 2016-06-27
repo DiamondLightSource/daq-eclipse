@@ -89,7 +89,7 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
   
 
 	@Override
-	protected Collection<IScannable<?>> getObjects() throws ScanningException {
+	protected Collection<IScannable<?>> getDevices() throws ScanningException {
 		Collection<String> names = position.getNames();
 		if (names==null) return null;
 		final List<IScannable<?>> ret = new ArrayList<>(names.size());

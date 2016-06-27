@@ -1,7 +1,7 @@
 package org.eclipse.scanning.api.points.models;
 
-import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.MinimumValue;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 
 /**

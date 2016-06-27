@@ -55,7 +55,7 @@ abstract class LevelRunner<L extends ILevel> {
 	 * Get a list of the objects which we would like to order by level.
 	 * @return
 	 */
-	protected abstract Collection<L> getObjects() throws ScanningException ;
+	protected abstract Collection<L> getDevices() throws ScanningException ;
 
 	/**
 	 * Implement this method to create a callable which willbe run by the executor service.
@@ -99,7 +99,7 @@ abstract class LevelRunner<L extends ILevel> {
 		boolean ok = pDelegate.firePositionWillPerform(position);
         if (!ok) return false;
 		
-		Map<Integer, List<L>> positionMap = getLevelOrderedObjects(getObjects());
+		Map<Integer, List<L>> positionMap = getLevelOrderedDevices(getDevices());
 		
 		try {
 			// TODO Should we actually create the service size to the size
@@ -245,7 +245,7 @@ abstract class LevelRunner<L extends ILevel> {
 	 * @return
 	 * @throws ScanningException 
 	 */
-	protected Map<Integer, List<L>> getLevelOrderedObjects(final Collection<L> objects) throws ScanningException {
+	protected Map<Integer, List<L>> getLevelOrderedDevices(final Collection<L> objects) throws ScanningException {
 		
 		if (objects==null) return Collections.emptyMap();
 		
@@ -309,7 +309,7 @@ abstract class LevelRunner<L extends ILevel> {
 			}
 
 			@Override
-			protected Collection<T> getObjects() throws ScanningException {
+			protected Collection<T> getDevices() throws ScanningException {
 				return null;
 			}
 

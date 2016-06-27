@@ -47,7 +47,7 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 	}
 	
 	@Override
-	protected Collection<IRunnableDevice<?>> getObjects() {
+	protected Collection<IRunnableDevice<?>> getDevices() {
 		return devices;
 	}
 
