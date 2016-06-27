@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.eclipse.scanning.api.annotation.scan.DeviceAnnotations;
 import org.eclipse.scanning.api.points.IPosition;
@@ -90,7 +91,7 @@ public class AnnotationManager {
 						ms = new ArrayList<>(31);
 						annotationMap.put(clazz, ms);
 					}
-					ms.add(new MethodWrapper(object, methods[i]));
+					ms.add(new MethodWrapper(clazz, object, methods[i]));
 				}
 			}
 		}
@@ -120,12 +121,19 @@ public class AnnotationManager {
 		private List<Class<?>>  argClasses;
 		private Object[]        arguments; // Must be object[] for speed and is not variable
 		
-		MethodWrapper(Object instance, Method method) {
+		MethodWrapper(final Class<? extends Annotation> aclass, Object instance, Method method) {
 			this.instance = instance;
 			this.method   = method;
 			
 			final Class<?>[] args = method.getParameterTypes();
 			this.argClasses = args!=null?Arrays.asList(args):null;
+			
+			if (argClasses!=null) {
+				final Set<?> unique = new HashSet<>(argClasses);
+			    if (unique.size()!=argClasses.size()) throw new IllegalArgumentException("Duplicated types are not allowed in injected methods!\n"
+			    		+ "Your annotation of @"+aclass.getSimpleName()+" sits over a method '"+method.getName()+"' on class '"+instance.getClass().getSimpleName()+"' with duplicated types!\n"
+			    	    + "More than one of any given type is not allowed. Have you seen '"+ScanInformation.class.getSimpleName()+"' class, which can be used to provide various metrics about the scan?");
+			}
 			
 			if (args!=null) {
 				this.arguments= new Object[args.length];

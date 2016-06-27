@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.annot;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.annotation.scan.PointStart;
@@ -18,7 +19,7 @@ import org.eclipse.scanning.api.points.IPosition;
  */
 public class InjectionDevice extends CountingDevice {
 	
-	private Map<String, Collection<Object[]>> calls = new HashMap<>();
+	private Map<String, List<Object[]>> calls = new HashMap<>();
 	
     @PointStart
     public void method1(IRunnableDeviceService rservice) throws Exception {
@@ -47,7 +48,7 @@ public class InjectionDevice extends CountingDevice {
     
 	protected void count(StackTraceElement[] ste, Object[] oa) {
 		String methodName = getMethodName(ste);
-		Collection<Object[]> count = calls.get(methodName);
+		List<Object[]> count = calls.get(methodName);
 		if (count==null) {
 			count = new ArrayList<>(3);
 			calls.put(methodName, count);
@@ -62,7 +63,7 @@ public class InjectionDevice extends CountingDevice {
        calls.clear();
     }
     
-    public Collection<Object[]> getArguments(String methodName) {
+    public List<Object[]> getArguments(String methodName) {
     	return calls.get(methodName);
     }
 }

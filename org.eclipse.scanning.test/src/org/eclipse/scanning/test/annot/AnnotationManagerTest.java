@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.annotation.scan.LevelEnd;
@@ -33,7 +34,7 @@ import org.junit.Test;
  * Test
  * 1. Basic counts
  * 2. Inheritance
- * 3. Injected arguments
+ * 3. Injected arguments, including services, ScanInformation and IPosition instances.
  * 4. Large call size performance per call cycle.
  * 
  * @author Matthew Gerring
@@ -46,6 +47,7 @@ public class AnnotationManagerTest {
 	private CountingDevice         cdevice;
 	private ExtendedCountingDevice edevice;
 	private InjectionDevice        idevice;
+	private InvalidInjectionDevice invDevice;
 	
 	@Before
 	public void before() {
@@ -60,7 +62,8 @@ public class AnnotationManagerTest {
 		cdevice = new CountingDevice();
 		edevice = new ExtendedCountingDevice();
 		idevice = new InjectionDevice();
-		manager.addDevices(sdevice, cdevice, edevice, idevice);
+		invDevice = new InvalidInjectionDevice();
+		manager.addDevices(sdevice, cdevice, edevice, idevice, invDevice);
 	}
 	
 	@After
@@ -168,6 +171,17 @@ public class AnnotationManagerTest {
 		checkCalls(0, idevice, "method1");
 
 	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void checkRepeatedTypes() throws Exception {
+		try {
+			AnnotationManager m = new AnnotationManager();
+	        m.addDevices(new RepeatedTypeDevice());
+		} catch(Exception ne) {
+			System.out.println(ne.getMessage());
+			throw ne;
+		}
+	}
 
 
 	private void checkCalls(int size, InjectionDevice device, String methodName) {
@@ -188,6 +202,52 @@ public class AnnotationManagerTest {
 		}
 		
 	}
+	
+	
+	@Test
+	public void invalidComplexInject() throws Exception {
+		
+		manager.invoke(PointStart.class, new Point(0, 10, 0, 20));
+		
+		checkCalls(1, invDevice, "validMethod1");
+		checkCalls(1, invDevice, "validMethod2");
+		
+		List<Object[]> oa = invDevice.getArguments("invalidMethod1");
+		assertTrue(oa.get(0)[0]==null); // Couldn't find that
+		
+		oa = invDevice.getArguments("invalidMethod2");
+		assertTrue(oa.get(0)[0]==null); // Couldn't find that
+		assertTrue(oa.get(0)[1]==null); // Couldn't find that
+		assertTrue(oa.get(0)[2]==null); // Couldn't find that
+
+		oa = invDevice.getArguments("invalidMethod3");
+		assertTrue(oa.get(0)[0]!=null); 
+		assertTrue(oa.get(0)[1]==null); // Couldn't find that
+
+		oa = invDevice.getArguments("invalidMethod4");
+		assertTrue(oa.get(0)[0]!=null); 
+		assertTrue(oa.get(0)[1]!=null); 
+		assertTrue(oa.get(0)[2]==null); // Couldn't find that
+
+		oa = invDevice.getArguments("invalidMethod5");
+		assertTrue(oa.get(0)[0]!=null); 
+		assertTrue(oa.get(0)[1]==null); // Couldn't find that
+		assertTrue(oa.get(0)[2]!=null);
+		
+		oa = invDevice.getArguments("invalidMethod6");
+		assertTrue(oa.get(0)[0]!=null); 
+		assertTrue(oa.get(0)[1]!=null); 
+		assertTrue(oa.get(0)[2]!=null); 
+		assertTrue(oa.get(0)[3]==null); // Couldn't find that
+		assertTrue(oa.get(0)[4]==null); // Couldn't find that
+		assertTrue(oa.get(0)[5]==null); // Couldn't find that
+	
+		manager.invoke(ScanEnd.class); 
+		checkCalls(0, invDevice, "validMethod1");
+
+	}
+
+
 
 	private Class<?>[] getFirstMethodArgs(InjectionDevice device, String methodName) {
 		for (Method method : device.getClass().getMethods()) {
