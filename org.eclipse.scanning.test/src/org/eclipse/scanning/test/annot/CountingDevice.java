@@ -63,7 +63,7 @@ public class CountingDevice extends AbstractScannable<Double> {
 		return counts.get(method);
 	}
 	
-	private static final String getMethodName ( StackTraceElement ste[] ) {  
+	protected static final String getMethodName ( StackTraceElement ste[] ) {  
 		   
 	    String methodName = "";  
 	    boolean flag = false;  

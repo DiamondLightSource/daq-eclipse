@@ -6,12 +6,13 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.scanning.api.annotation.scan.DeviceAnnotations;
-import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.slf4j.Logger;
@@ -20,14 +21,20 @@ import org.slf4j.LoggerFactory;
 /**
  * 
  * The device manager parses annotations and allows methods to be 
- * efficiently called during a scan to notify of progress.
+ * efficiently called during a scan to notify of progress. This replaces
+ * the need to override an atScanStart() method as well as allowing resources
+ * to be injected into the method. 
  * 
  * If attemps to parse all the reflection stuff up-front so that a call
  * to invoke(...) during the scan can be as efficiently despatched using
  * method.invoke(...) as possible.
  * 
  * This class could be made into a general purpose annotation parsing
- * and method valling class once tested.
+ * and method calling class once tested.
+ * 
+ * NOTE: If you find yourself debugging this class to view despatched events,
+ * consider adding a test to @see AnnotationManagerTest to reproduce the problem.
+ * Trying to debug annotation parsing in a live scanning system is not desirable.
  * 
  * @author Matthew Gerring
  *
@@ -37,9 +44,29 @@ public class AnnotationManager {
 	private static final Logger logger = LoggerFactory.getLogger(AnnotationManager.class);
 
 	private Map<Class<? extends Annotation>, Collection<MethodWrapper>> annotationMap;
+	private Map<Class<?>, Collection<Class<?>>>                         cachedClasses;
+	private Map<Class<?>, Object>                                       _services;
+	
 	public AnnotationManager() {
-		annotationMap = new Hashtable<>(31);
+		annotationMap = new Hashtable<>(31); // Intentionally synch
+		cachedClasses = new Hashtable<>(31); // Intentionally synch
 	}
+	
+	/**
+	 * Generally uses for testing where the services
+	 * are provided by the test
+	 * 
+	 * If used in OSGi this constructor will be ignored even if you use it
+	 * In OSGi all services which AnnotationManager injects must be provided
+	 * by OSGi and cannot be overridden.
+	 * 
+	 * @param services
+	 */
+	public AnnotationManager(Map<Class<?>, Object> services) {
+		this();
+		this._services = services;
+	}
+
 	
 	public void addDevices(Object... ds) {
 		for (Object object : ds) processAnnotations(object);
@@ -107,7 +134,7 @@ public class AnnotationManager {
 					if (args[i] == ScanInformation.class) continue;
 				    // Find OSGi service for it, if any.
 					try {
-						arguments[i] = SequencerActivator.getService(args[i]);
+						arguments[i] = getService(args[i]);
 					} catch (Exception ne) {
 						logger.warn("Unable to find OSGi service for "+args[i]);
 					}
@@ -120,15 +147,59 @@ public class AnnotationManager {
 			if (arguments!=null) { // Put the context into the args (if there are any)
 				
 				if (context!=null) for (int i = 0; i < context.length; i++) {
-                   if (argClasses.contains(context[i].getClass())) {
-                	   final int index = argClasses.indexOf(context[i].getClass());
-                	   arguments[index] = context[i];
-                   }
+					
+				    final Collection<Class<?>> classes = getCachedClasses(context[i]);
+				    
+				    // Find the first class in classes which is in argClasses
+                	Optional<Class<?>> contained = classes.stream().filter(x -> argClasses.contains(x)).findFirst();
+                	if (contained.isPresent()) {
+                	    final int index = argClasses.indexOf(contained.get());
+                	    arguments[index] = context[i];
+                    }
 				}
 				method.invoke(instance, arguments);
 			} else {
 				method.invoke(instance);
 			}
 		}
+	}
+
+	/**
+	 * TODO Cache for speed?
+	 * @param object
+	 * @return
+	 */
+	private Collection<Class<?>> getCachedClasses(Object object) {
+		
+		final Class<?> clazz = object.getClass();
+		if (cachedClasses.containsKey(clazz)) return cachedClasses.get(clazz);
+		
+		final Collection<Class<?>> classes = new HashSet<>();
+		classes.add(clazz);
+		Class<?>[] interfaces = clazz.getInterfaces();
+		for (Class<?> class1 : interfaces)  classes.add(class1);
+		
+		// TODO Currently only support one level deep
+		classes.add(clazz.getSuperclass());
+		interfaces = clazz.getSuperclass().getInterfaces();
+		for (Class<?> class1 : interfaces)  classes.add(class1);
+		
+		cachedClasses.put(clazz, classes);
+		
+		return classes;
+	}
+	
+	private Object getService(Class<?> class1) {
+		if (SequencerActivator.isStarted()) {
+			return SequencerActivator.getService(class1);
+			
+		} else { // Might be in non-osgi mode
+			return _services.get(class1);
+		}
+	}
+
+	public void dispose() {
+		annotationMap.clear();
+		cachedClasses.clear();
 	}
 }

@@ -9,13 +9,13 @@ public class SequencerActivator implements BundleActivator {
 	private static BundleContext context;
 
 	@Override
-	public void start(BundleContext context) throws Exception {
-		this.context = context;
+	public void start(BundleContext c) throws Exception {
+		context = c;
 	}
 
 	@Override
-	public void stop(BundleContext context) throws Exception {
-		this.context = null;
+	public void stop(BundleContext c) throws Exception {
+		context = null;
 	}
 
 	public static <T> T getService(Class<T> serviceClass) {
@@ -26,6 +26,10 @@ public class SequencerActivator implements BundleActivator {
 	public static Object getService(String serviceClass) {
 		ServiceReference<?> ref = context.getServiceReference(serviceClass);
 		return context.getService(ref);
+	}
+
+	public static boolean isStarted() {
+		return context!=null;
 	}
 
 }
