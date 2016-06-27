@@ -49,8 +49,10 @@ public class AnnotationManager {
 	}
 	
 	private void processAnnotations(Object object) {
+		
 		if (object==null) return;
-		final Method[] methods = object.getClass().getDeclaredMethods();
+		
+		final Method[] methods = object.getClass().getMethods();
 		for (int i = 0; i < methods.length; i++) {
 			final Annotation[] annotations = methods[i].getAnnotations();
 			if (annotations!=null) for (Annotation annotation : annotations) {

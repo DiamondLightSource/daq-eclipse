@@ -39,7 +39,7 @@ import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
-public class ScanAlgorithmBenchMarkTest extends BrokerTest {
+public class ScanAlgorithmTest extends BrokerTest {
 
 	private IRunnableDeviceService      dservice;
 	private IDeviceConnectorService     connector;

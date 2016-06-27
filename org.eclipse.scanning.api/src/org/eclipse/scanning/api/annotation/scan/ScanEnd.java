@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  * <p>
  * Examples:<p>
  * <code><pre>
- * public class Fred implements IScannable {
+ * public class Fred implements IScannnable {
  *     &#64;ScanStart
  *     public final void prepareVoltages() throws Exception {
  *        ...
@@ -66,6 +66,6 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ScanStart {
+public @interface ScanEnd {
 
 }
