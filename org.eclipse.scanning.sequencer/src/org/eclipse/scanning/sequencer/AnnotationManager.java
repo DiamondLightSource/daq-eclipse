@@ -121,7 +121,7 @@ public class AnnotationManager {
 		private List<Class<?>>  argClasses;
 		private Object[]        arguments; // Must be object[] for speed and is not variable
 		
-		MethodWrapper(final Class<? extends Annotation> aclass, Object instance, Method method) {
+		MethodWrapper(final Class<? extends Annotation> aclass, Object instance, Method method) throws IllegalArgumentException {
 			this.instance = instance;
 			this.method   = method;
 			
@@ -130,6 +130,12 @@ public class AnnotationManager {
 			
 			if (argClasses!=null) {
 				final Set<?> unique = new HashSet<>(argClasses);
+				
+				/**
+				 * We do not allow duplications in the classes list because a given service or
+				 * information object should be required once. Type is used to determine argument 
+				 * position as well, therefore duplicates do not work with the current alg.
+				 */
 			    if (unique.size()!=argClasses.size()) throw new IllegalArgumentException("Duplicated types are not allowed in injected methods!\n"
 			    		+ "Your annotation of @"+aclass.getSimpleName()+" sits over a method '"+method.getName()+"' on class '"+instance.getClass().getSimpleName()+"' with duplicated types!\n"
 			    	    + "More than one of any given type is not allowed. Have you seen '"+ScanInformation.class.getSimpleName()+"' class, which can be used to provide various metrics about the scan?");
@@ -159,6 +165,7 @@ public class AnnotationManager {
 				    final Collection<Class<?>> classes = getCachedClasses(context[i]);
 				    
 				    // Find the first class in classes which is in argClasses
+				    // NOTE this is why duplicates are not supported, type of argument used to map to injected class.
                 	Optional<Class<?>> contained = classes.stream().filter(x -> argClasses.contains(x)).findFirst();
                 	if (contained.isPresent()) {
                 	    final int index = argClasses.indexOf(contained.get());
