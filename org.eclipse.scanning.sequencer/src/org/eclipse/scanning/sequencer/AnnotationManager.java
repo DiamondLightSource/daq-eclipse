@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AnnotationManager {
 	
+
 	private static final Logger logger = LoggerFactory.getLogger(AnnotationManager.class);
 
 	private Map<Class<? extends Annotation>, Collection<MethodWrapper>> annotationMap;
@@ -68,19 +70,72 @@ public class AnnotationManager {
 		this._services = services;
 	}
 
-	
+	/**
+	 * Add a group of devices. As the devices are added if they implement ILevel,
+	 * they are sorted by level and added in that order. If another call to add
+	 * devices is made the new collection of devices will be sorted by level and
+	 * added to the end of the main list of devices.
+	 * 
+	 * So for:
+	 * <code>
+	 * manager.add(devices1[])
+	 * manager.add(devices2[])
+	 * </code>
+	 * The notification order will be all the devices1, by level then all the devices2
+	 * by level. So the overall order is by add order followed by level. This allows
+	 * for instance all devices of a given type to be notified by level before another
+	 * group of objects of another type. If no distinction of type is required, simply
+	 * add all devices in one go and they will be sorted by level.
+	 * 
+	 * If a device does not implement ILevel its level is assumed to be ILevel.MAXIMUM 
+	 * 
+	 * @param ds
+	 */
 	public void addDevices(Object... ds) {
-		for (Object object : ds) processAnnotations(object);
-	}
-	public void addDevices(Collection<?> ds) {
-		for (Object object : ds) processAnnotations(object);
+		if (ds == null)  throw new IllegalArgumentException("No devices specified!");
+		if (ds.length<1) throw new IllegalArgumentException("No devices specified!");
+		addDevices(Arrays.asList(ds));
 	}
 	
-	private void processAnnotations(Object object) {
+	/**
+	 * Add a group of devices. As the devices are added if they implement ILevel,
+	 * they are sorted by level and added in that order. If another call to add
+	 * devices is made the new collection of devices will be sorted by level and
+	 * added to the end of the main list of devices.
+	 * 
+	 * So for:
+	 * <code>
+	 * manager.add(devices1[])
+	 * manager.add(devices2[])
+	 * </code>
+	 * The notification order will be all the devices1, by level then all the devices2
+	 * by level. So the overall order is by add order followed by level. This allows
+	 * for instance all devices of a given type to be notified by level before another
+	 * group of objects of another type. If no distinction of type is required, simply
+	 * add all devices in one go and they will be sorted by level.
+	 * 
+	 * If a device does not implement ILevel its level is assumed to be ILevel.MAXIMUM 
+	 * 
+	 * @param ds
+	 */
+	public void addDevices(Collection<?> ds) {
 		
-		if (object==null) return;
+		if (ds == null)  throw new IllegalArgumentException("No devices specified!");
+		if (ds.size()<1) throw new IllegalArgumentException("No devices specified!");
+		// Make a copy of it and sort it
+		List<Object> devices = new ArrayList<>(ds);
+		Collections.sort(devices, new LevelComparitor());
+		addOrderedDevices(devices);
+	}
+	private void addOrderedDevices(Collection<Object> ds) {
+		for (Object object : ds) processAnnotations(object);
+	}
+
+	private void processAnnotations(Object device) {
 		
-		final Method[] methods = object.getClass().getMethods();
+		if (device==null) return;
+		
+		final Method[] methods = device.getClass().getMethods();
 		for (int i = 0; i < methods.length; i++) {
 			final Annotation[] annotations = methods[i].getAnnotations();
 			if (annotations!=null) for (Annotation annotation : annotations) {
@@ -91,7 +146,7 @@ public class AnnotationManager {
 						ms = new ArrayList<>(31);
 						annotationMap.put(clazz, ms);
 					}
-					ms.add(new MethodWrapper(clazz, object, methods[i]));
+					ms.add(new MethodWrapper(clazz, device, methods[i]));
 				}
 			}
 		}
