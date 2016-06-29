@@ -19,6 +19,7 @@ public abstract class Queueable extends StatusBean implements IQueueable {
 	protected Queueable() {
 		super();
 		setStatus(Status.NONE);
+		setPreviousStatus(Status.NONE);
 	}
 	
 	@Override
