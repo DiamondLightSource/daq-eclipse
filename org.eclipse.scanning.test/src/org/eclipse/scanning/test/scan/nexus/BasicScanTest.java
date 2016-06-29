@@ -199,7 +199,7 @@ public class BasicScanTest extends NexusTest {
 			dataset = dataNode.getDataset().getSlice();
 			shape = dataset.getShape();
 			assertArrayEquals(new int[] { 1 }, shape);
-			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDtype());
+			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDType());
 			assertEquals(10.0, dataset.getDouble(0), 1e-15);
 			
 			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
@@ -207,7 +207,7 @@ public class BasicScanTest extends NexusTest {
 			dataset = dataNode.getDataset().getSlice();
 			shape = dataset.getShape();
 			assertArrayEquals(new int[] { 1 }, shape);
-			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDtype());
+			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDType());
 			assertEquals(10.0, dataset.getDouble(0), 1e-15);
 		}
 	}

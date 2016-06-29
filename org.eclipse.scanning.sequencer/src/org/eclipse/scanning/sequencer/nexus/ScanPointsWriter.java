@@ -3,7 +3,7 @@ package org.eclipse.scanning.sequencer.nexus;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.dawnsci.analysis.api.dataset.Dtype;
+import org.eclipse.dawnsci.analysis.api.dataset.DType;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
@@ -92,7 +92,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 //		scanFinished = scanPointsCollection.initializeFixedSizeLazyDataset(
 //				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
 		// TODO: workaround for bug in HD5 loader, do not set size limit 
-		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, Dtype.INT32, new int[] { 1 },
+		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, DType.INT32, new int[] { 1 },
 				new int[] { -1 }, null, null);
 		scanFinished.setFillValue(0);
 		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);

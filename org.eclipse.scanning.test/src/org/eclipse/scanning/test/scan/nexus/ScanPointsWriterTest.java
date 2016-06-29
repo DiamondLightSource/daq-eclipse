@@ -155,7 +155,7 @@ public class ScanPointsWriterTest {
 		assertTrue(uniqueKeysDataNode.getDataset()!=null && uniqueKeysDataNode.getDataset() instanceof ILazyWriteableDataset);
 		ILazyWriteableDataset uniqueKeysDataset = (ILazyWriteableDataset) uniqueKeysDataNode.getDataset();
 		assertTrue(uniqueKeysDataset.getRank()==scanRank);
-		assertTrue(((LazyDataset) uniqueKeysDataset).getDtype()==Dataset.INT32);
+		assertTrue(((LazyDataset) uniqueKeysDataset).getDType()==Dataset.INT32);
 		assertTrue(Arrays.equals(uniqueKeysDataset.getChunking(), expectedChunking));
 		MockLazySaver uniqueKeysSaver = new MockLazySaver();
 		uniqueKeysDataset.setSaver(uniqueKeysSaver);
@@ -166,7 +166,7 @@ public class ScanPointsWriterTest {
 		assertTrue(pointsDataNode.getDataset()!=null && pointsDataNode.getDataset() instanceof ILazyWriteableDataset);
 		ILazyWriteableDataset pointsDataset = (ILazyWriteableDataset) pointsDataNode.getDataset();
 		assertTrue(pointsDataset.getRank()==scanRank);
-		assertTrue(((LazyDataset) pointsDataset).getDtype()==Dataset.STRING);
+		assertTrue(((LazyDataset) pointsDataset).getDType()==Dataset.STRING);
 		assertTrue(Arrays.equals(pointsDataset.getChunking(), expectedChunking));
 		MockLazySaver pointsSaver = new MockLazySaver();
 		pointsDataset.setSaver(pointsSaver);

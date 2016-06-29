@@ -185,7 +185,7 @@ public class ScanMetadataTest extends NexusTest {
 				assertEquals(1, dataset.getRank());
 				assertEquals(1, dataset.getSize());
 				assertEquals(AbstractDataset.getDTypeFromObject(expectedValue),
-						dataset.getDtype());
+						dataset.getDType());
 				assertEquals(expectedValue, dataset.getObject(0));
 			}
 		}
