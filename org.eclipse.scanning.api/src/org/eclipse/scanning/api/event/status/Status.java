@@ -41,6 +41,10 @@ public enum Status { // TODO Should this be called QueueStatus or JobStatus to a
 	public boolean isPaused() {
 		return this==REQUEST_PAUSE || this==PAUSED;
 	}
+	
+	public boolean isResumed() {
+		return this==REQUEST_RESUME || this==RESUMED;
+	}
 
 	/**
 	 * Being actively run, including pause.
