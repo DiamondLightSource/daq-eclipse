@@ -87,6 +87,8 @@ public class QueueListenerTest {
 	
 	@Test
 	public void testNothingHappened() {
+		//This is set before Listener creation so the bean status doesn't appear to change
+		childA.setStatus(Status.RUNNING);
 		qList = new QueueListener<>(processor, latch, childA);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
@@ -133,12 +135,16 @@ public class QueueListenerTest {
 		
 		assertEquals("Percentage incorrectly incremented", 52.5d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Status should not have changed", originalParent.getStatus(), getLastBroadcast().getStatus());
+		assertEquals("Processor latch released before all children complete", 1, latch.getCount(), 0);
 		
 		//Complete childB percentage & Status
+		childB.setStatus(Status.RUNNING);
+		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childB));
 		childB.setPercentComplete(100d);
 		childB.setStatus(Status.COMPLETE);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childB));
 		
+		//All beans now complete, so latch should have been released
 		assertEquals("Processor latch not released on completion of all children", 0, latch.getCount(), 0);
 	}
 
