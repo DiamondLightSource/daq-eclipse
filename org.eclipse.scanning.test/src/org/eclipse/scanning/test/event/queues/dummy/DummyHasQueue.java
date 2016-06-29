@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
+import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.test.event.queues.processors.ScanAtomProcessorTest;
 
@@ -11,7 +12,7 @@ import org.eclipse.scanning.test.event.queues.processors.ScanAtomProcessorTest;
  * @author Michael Wharmby
  *
  */
-public class DummyHasQueue extends Queueable {
+public class DummyHasQueue extends Queueable implements IAtomWithChildQueue {
 	
 	private String queueMessage;
 	
