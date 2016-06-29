@@ -106,16 +106,19 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 
 	@Override
 	public void beanChangePerformed(BeanEvent<Q> evt) {
-		boolean broadcastUpdate = false, beanFinished = false;//TODO
+		boolean broadcastUpdate = false, beanFinished = false;
 		Q bean = evt.getBean();
 		String beanID = bean.getUniqueId();
 		//If this bean is not from the parent ignore it.
 		if (!children.containsKey(beanID)) return;
 		
-		//If the bean is in a pre-running state, warn the user but don't 
-		//do anything to stop it
-		if (!children.get(beanID).isOperating() && !bean.getStatus().isRunning()) {
-			logger.warn("Bean '"+bean.getName()+"' is not marked operating, but is running (Status = "+bean.getStatus()+").");
+		if (!children.get(beanID).isOperating()) { 
+			if (bean.getStatus().isRunning()) {
+				children.get(beanID).setOperating(true);
+			} else {
+				//The bean should be running if it's operating. Something's wrong.
+				logger.warn("'"+bean.getName()+"' is not set to operating, but is running (Status = "+bean.getStatus()+").");	
+			}
 		}
 		
 		//The percent complete changed, update the parent
@@ -140,23 +143,21 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 			//Update the status of the process
 			children.get(beanID).setStatus(bean.getStatus());
 			
-			if (bean.getStatus().isRunning()) {
+			if ((bean.getStatus().isRunning() || bean.getStatus().isResumed()) && parent.getStatus().isPaused()) {
 				//RESUMED/RUNNING
-				// -if this is the first time we've seen the bean, mark it as active
-				if (!children.get(beanID).isOperating()) {
-					children.get(beanID).setOperating(true);
-					broadcastUpdate = true;
-				}
 				// -if the parent is paused, unpause
-				if (parent.getStatus().isPaused()) {
-					parent.setStatus(Status.REQUEST_RESUME);
-					((IAtomWithChildQueue)parent).setQueueMessage("Resume requested from "+bean.getName());
-				}
+				parent.setStatus(Status.REQUEST_RESUME);
+				((IAtomWithChildQueue)parent).setQueueMessage("Resume requested from '"+bean.getName()+"'");
+				broadcastUpdate = true;
+			} else if (bean.getStatus().isPaused()) {
+				parent.setStatus(Status.REQUEST_PAUSE);
+				((IAtomWithChildQueue)parent).setQueueMessage("Pause requested from '"+bean.getName()+"'");
+				broadcastUpdate = true;
 			} else if (bean.getStatus().isFinal()) {
 				children.get(beanID).setOperating(false); //TODO Remove me to test
 				beanFinished = true;
 				if (bean.getStatus().equals(Status.COMPLETE)) {
-					((IAtomWithChildQueue)parent).setQueueMessage(bean.getName()+" completed successfully.");
+					((IAtomWithChildQueue)parent).setQueueMessage("'"+bean.getName()+"' completed successfully.");
 					broadcastUpdate = true;
 				}
 			}
@@ -167,7 +168,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 			try {
 				broadcaster.broadcast(null, null, null);
 			} catch (EventException evEx) {
-				logger.error("Broadcasting bean failed with: "+evEx.getMessage());
+				logger.error("Broadcasting '"+bean.getName()+"' failed with: "+evEx.getMessage());
 			}
 		}
 		

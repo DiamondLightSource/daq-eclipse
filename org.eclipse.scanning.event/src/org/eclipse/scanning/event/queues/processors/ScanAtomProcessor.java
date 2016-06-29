@@ -121,7 +121,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 
 		//Post-match analysis
 		if (isTerminated()) {
-			commandScanBean(Status.REQUEST_TERMINATE);
+			commandScanBean(Status.REQUEST_TERMINATE);//TODO Do this only if termination comes from above
 			//TODO Await confirmation of termination from QueueListener?
 			return;
 		}
