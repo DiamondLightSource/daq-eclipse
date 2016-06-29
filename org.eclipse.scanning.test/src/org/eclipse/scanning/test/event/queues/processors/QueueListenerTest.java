@@ -10,6 +10,7 @@ import java.util.concurrent.CountDownLatch;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
+import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
@@ -19,6 +20,7 @@ import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueProcessor;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,7 +44,7 @@ public class QueueListenerTest {
 	private IQueueBroadcaster<DummyHasQueue> broadcaster;
 	
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
 		//Set initial state on parent
 		parent = new DummyHasQueue("Big momma", 60);
 		parent.setStatus(Status.RUNNING);
@@ -63,8 +65,22 @@ public class QueueListenerTest {
 		queue.add(childB);
 		
 		statPub = new MockPublisher<>(null, "test.topic");
-		broadcaster = new QueueProcess<>(parent, statPub, false);//
-		processor = new MockQueueProcessor<>(parent, new CountDownLatch(1));//TODO Update to allow broadcaster to be set
+		broadcaster = new QueueProcess<>(parent, statPub, false);
+		processor = new MockQueueProcessor<>(broadcaster, parent, new CountDownLatch(1));//TODO Update to allow broadcaster to be set
+		((IQueueProcess<?>)broadcaster).setProcessor(processor);
+	}
+	
+	@After
+	public void tearDown() {
+		parent = null;
+		originalParent = null;
+		childA = null;
+		childB = null;
+		queue = null;
+
+		statPub = null;
+		broadcaster = null;
+		processor = null;
 	}
 	
 	@Test
@@ -85,9 +101,10 @@ public class QueueListenerTest {
 		friend.setStatus(Status.RUNNING);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(friend));
 		
-		assertEquals("Percentage incremented even though non-child in event", parent.getPercentComplete(), originalParent.getPercentComplete(), 0d);
-		assertEquals("Status should not have changed as event was non-child", originalParent.getStatus(), getLastBroadcast().getStatus());
-		
+		if (getLastBroadcast() != null) {
+			assertEquals("Percentage incremented even though non-child in event", getLastBroadcast().getPercentComplete(), originalParent.getPercentComplete(), 0d);
+			assertEquals("Status should not have changed as event was non-child", originalParent.getStatus(), getLastBroadcast().getStatus());
+		}
 	}
 	
 	@Test
@@ -97,7 +114,7 @@ public class QueueListenerTest {
 		childA.setPercentComplete(50d);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
-		assertEquals("Percentage incremented even though child not active", getLastBroadcast().getPercentComplete(), originalParent.getPercentComplete(), 0d);
+		assertEquals("Percentage incorrectly incremented", 28.75d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Status changed even though child not active", originalParent.getStatus(), getLastBroadcast().getStatus());
 		
 		//Now with the status actually set...
@@ -125,6 +142,10 @@ public class QueueListenerTest {
 
 	private Queueable getLastBroadcast() {
 		List<Queueable> broadBeans = ((MockPublisher<?>)statPub).getBroadcastBeans();
-		return broadBeans.get(broadBeans.size()-1);
+		if (broadBeans.size() == 0) {
+			return null;
+		} else {
+			return broadBeans.get(broadBeans.size()-1);
+		}
 	}
 }

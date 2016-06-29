@@ -13,6 +13,8 @@ public class MockQueueProcessor <T extends Queueable> implements IQueueProcessor
 	private int counter = 500;
 	
 	private final T bean;
+	
+	private IQueueBroadcaster<? extends Queueable> broadcaster;
 
 	//Metrics for reporting interactions.
 	private long runTime = 0;
@@ -23,6 +25,11 @@ public class MockQueueProcessor <T extends Queueable> implements IQueueProcessor
 	public MockQueueProcessor(T bean, CountDownLatch latch) {
 		execLatch = latch;
 		this.bean = bean;
+	}
+	
+	public MockQueueProcessor(IQueueBroadcaster<? extends Queueable> broadcaster, T bean, CountDownLatch latch) {
+		this(bean, latch);
+		this.broadcaster = broadcaster;
 	}
 
 	@Override
@@ -121,8 +128,7 @@ public class MockQueueProcessor <T extends Queueable> implements IQueueProcessor
 
 	@Override
 	public IQueueBroadcaster<? extends Queueable> getQueueBroadcaster() {
-		// TODO Auto-generated method stub
-		return null;
+		return broadcaster;
 	}
 
 	@Override
