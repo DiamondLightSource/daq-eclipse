@@ -24,6 +24,7 @@ import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.sequencer.AnnotationManager;
 import org.eclipse.scanning.sequencer.LevelComparitor;
@@ -65,10 +66,10 @@ public class AnnotationManagerTest {
 		testServices.put(IRunnableDeviceService.class,  new RunnableDeviceServiceImpl((IDeviceConnectorService)testServices.get(IDeviceConnectorService.class)));
 		manager = new AnnotationManager(testServices);
 
-		sdevice = new SimpleDevice();
-		cdevice = new CountingDevice();
-		edevice = new ExtendedCountingDevice();
-		idevice = new InjectionDevice();
+		sdevice   = new SimpleDevice();
+		cdevice   = new CountingDevice();
+		edevice   = new ExtendedCountingDevice();
+		idevice   = new InjectionDevice();
 		invDevice = new InvalidInjectionDevice();
 		manager.addDevices(sdevice, cdevice, edevice, idevice, invDevice);
 	}
@@ -124,6 +125,18 @@ public class AnnotationManagerTest {
 		if (firstPoint==null) throw new Exception("The manager failed to inject a position!");
 		assertTrue(firstPoint.equals(new Point(0, 10, 0, 20)));
 	}
+	
+	@Test
+	public void scanInfoInject() throws Exception {
+		
+		manager.invoke(ScanStart.class); 
+		assertEquals(null, edevice.getScanInformation());
+		
+		manager.addContext(new ScanInformation());
+		manager.invoke(ScanStart.class); 
+		assertTrue(edevice.getScanInformation()!=null);
+	}
+
 	
 	@Test
 	public void somePointsInject() throws Exception {

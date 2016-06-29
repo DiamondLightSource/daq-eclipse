@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.scan;
 
-import java.util.Arrays;
+import java.util.Collection;
 
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -19,7 +19,9 @@ public class ScanInformation {
 	private IRunnableDevice<?> parent;
 	private ScanModel          model;
 	private int                size;
-	private int[]              shape;
+	private int                rank;
+	private Collection<String> scannableNames;
+
 	public IRunnableDevice<?> getParent() {
 		return parent;
 	}
@@ -38,19 +40,14 @@ public class ScanInformation {
 	public void setSize(int size) {
 		this.size = size;
 	}
-	public int[] getShape() {
-		return shape;
-	}
-	public void setShape(int[] shape) {
-		this.shape = shape;
-	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
-		result = prime * result + Arrays.hashCode(shape);
+		result = prime * result + rank;
+		result = prime * result + ((scannableNames == null) ? 0 : scannableNames.hashCode());
 		result = prime * result + size;
 		return result;
 	}
@@ -73,10 +70,27 @@ public class ScanInformation {
 				return false;
 		} else if (!parent.equals(other.parent))
 			return false;
-		if (!Arrays.equals(shape, other.shape))
+		if (rank != other.rank)
+			return false;
+		if (scannableNames == null) {
+			if (other.scannableNames != null)
+				return false;
+		} else if (!scannableNames.equals(other.scannableNames))
 			return false;
 		if (size != other.size)
 			return false;
 		return true;
+	}
+	public int getRank() {
+		return rank;
+	}
+	public void setRank(int rank) {
+		this.rank = rank;
+	}
+	public Collection<String> getScannableNames() {
+		return scannableNames;
+	}
+	public void setScannableNames(Collection<String> scannableNames) {
+		this.scannableNames = scannableNames;
 	}
 }

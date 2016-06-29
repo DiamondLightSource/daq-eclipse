@@ -1,25 +1,36 @@
 package org.eclipse.scanning.api.annotation.scan;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DeviceAnnotations {
 	
-	private static Set<Class<? extends Annotation>> annotations;
+	private static final Set<Class<? extends Annotation>> annotations;
 	static {
-		annotations = new HashSet<>();
-		annotations.add(ScanStart.class);
-		annotations.add(ScanEnd.class);
-		annotations.add(LevelStart.class);
-		annotations.add(LevelEnd.class);
-		annotations.add(PointStart.class);
-		annotations.add(PointEnd.class);
+		Set<Class<? extends Annotation>> tmp = new HashSet<>();
+		
+		// Alphabetic order
+		tmp.add(LevelEnd.class);
+		tmp.add(LevelStart.class);
+		tmp.add(PointEnd.class);
+		tmp.add(PointStart.class);
+		tmp.add(ScanAbort.class);
+		tmp.add(ScanEnd.class);
+		tmp.add(ScanFault.class);
+		tmp.add(ScanPause.class);
+		tmp.add(ScanResume.class);
+		tmp.add(ScanStart.class);
+		
+		annotations = Collections.unmodifiableSet(tmp);
+		
 		// NOTE There is no line start/end because the 9 scanning
 		// does not really have a concept of a line.
 	}
 
-	public static boolean isDeviceAnnotation(Annotation annotation) {
-		return annotations.contains(annotation.annotationType());
+	public static Collection<Class<? extends Annotation>> getAllAnnotations() {
+		return annotations;
 	}
 }
