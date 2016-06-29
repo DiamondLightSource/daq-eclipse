@@ -1,7 +1,6 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +41,7 @@ public class QueueListenerTest {
 	private IPublisher<DummyHasQueue> statPub;
 	private IQueueProcessor<DummyHasQueue> processor;
 	private IQueueBroadcaster<DummyHasQueue> broadcaster;
+	private CountDownLatch latch;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -68,6 +68,8 @@ public class QueueListenerTest {
 		broadcaster = new QueueProcess<>(parent, statPub, false);
 		processor = new MockQueueProcessor<>(broadcaster, parent, new CountDownLatch(1));//TODO Update to allow broadcaster to be set
 		((IQueueProcess<?>)broadcaster).setProcessor(processor);
+		
+		latch = new CountDownLatch(1);
 	}
 	
 	@After
@@ -85,7 +87,7 @@ public class QueueListenerTest {
 	
 	@Test
 	public void testNothingHappened() {
-		qList = new QueueListener<>(processor, childA);
+		qList = new QueueListener<>(processor, latch, childA);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
 		assertEquals("Parent has been updated, even though no changes happened on child", originalParent, parent);
@@ -95,7 +97,7 @@ public class QueueListenerTest {
 	public void testIgnoreNonChildren() {
 		DummyAtom friend = new DummyAtom("Bilbo", 10);
 		
-		qList = new QueueListener<>(processor, childA);
+		qList = new QueueListener<>(processor, latch, childA);
 		
 		friend.setPercentComplete(50d);
 		friend.setStatus(Status.RUNNING);
@@ -109,7 +111,7 @@ public class QueueListenerTest {
 	
 	@Test
 	public void testNormalRunUpdate() {
-		qList = new QueueListener<>(processor, queue);
+		qList = new QueueListener<>(processor, latch, queue);
 		//Change childA percentage only (not active)
 		childA.setPercentComplete(50d);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
@@ -135,9 +137,9 @@ public class QueueListenerTest {
 		//Complete childB percentage & Status
 		childB.setPercentComplete(100d);
 		childB.setStatus(Status.COMPLETE);
-		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
+		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childB));
 		
-		assertTrue("Processor not marked complete on completion of all children", processor.isComplete());
+		assertEquals("Processor latch not released on completion of all children", 0, latch.getCount(), 0);
 	}
 
 	private Queueable getLastBroadcast() {
