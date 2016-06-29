@@ -170,6 +170,9 @@ public class QueueListenerTest {
 
 			assertEquals("Percentage incorrectly incremented", 28.75d, getLastBroadcast().getPercentComplete(), 0d);
 			assertEquals("Parent status not changed", Status.REQUEST_TERMINATE, getLastBroadcast().getStatus());
+			
+			//Termination of the parent is handled within the parent processor NOT by the Listener
+			assertEquals("Latch has been released when it shouldn't have been.", 1, latch.getCount(), 0);
 		}
 	}
 	
