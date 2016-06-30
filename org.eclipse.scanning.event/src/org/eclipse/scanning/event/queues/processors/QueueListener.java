@@ -43,6 +43,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 	private P parent;
 	private double initPercent;
 	private Map<String, ProcessStatus> children = new HashMap<>();
+	private boolean childCommand;
 	
 	private QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, boolean fakeArg) {
 		this.broadcaster = broadcaster;
@@ -117,10 +118,11 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 		
 		//The percent complete changed, update the parent
 		if (bean.getPercentComplete() != children.get(beanID).getPercentComplete()) {
-			double latestPercent = bean.getPercentComplete();
-			double newPercent = (100 - initPercent) * (latestPercent / 100) * children.get(beanID).getWorkFraction();
-			parent.setPercentComplete(initPercent + newPercent);
-			children.get(beanID).setPercentComplete(latestPercent);
+			double childPercent = bean.getPercentComplete();
+			double childContribution = (100 - initPercent) * children.get(beanID).getWorkFraction();
+			double parentPercent = parent.getPercentComplete() + childContribution / 100 * (childPercent - children.get(beanID).getPercentComplete());
+			parent.setPercentComplete(parentPercent);
+			children.get(beanID).setPercentComplete(childPercent);
 			broadcastUpdate = true;
 		}
 		
@@ -137,17 +139,26 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 			//Update the status of the process
 			children.get(beanID).setStatus(bean.getStatus());
 			
-			if ((bean.getStatus().isRunning() || bean.getStatus().isResumed()) && parent.getStatus().isPaused()) {
+			if (bean.getStatus().isRunning() || bean.getStatus().isResumed()) {
 				//RESUMED/RUNNING
-				// -if the parent is paused, unpause
-				parent.setStatus(Status.REQUEST_RESUME);
-				((IAtomWithChildQueue)parent).setQueueMessage("Resume requested from '"+bean.getName()+"'");
-				broadcastUpdate = true;
+				if (parent.getStatus().isPaused()) {
+					// -parent is paused => unpause it
+					parent.setStatus(Status.REQUEST_RESUME);
+					((IAtomWithChildQueue)parent).setQueueMessage("Resume requested from '"+bean.getName()+"'");
+					childCommand = true;
+					broadcastUpdate = true;
+				} else {
+					// -DEFAULT for normal running
+					childCommand = false;
+				}
 			} else if (bean.getStatus().isPaused()) {
+				//PAUSE
 				parent.setStatus(Status.REQUEST_PAUSE);
 				((IAtomWithChildQueue)parent).setQueueMessage("Pause requested from '"+bean.getName()+"'");
+				childCommand = true;
 				broadcastUpdate = true;
 			} else if (bean.getStatus().isFinal()) {
+				//FINAL states
 				children.get(beanID).setOperating(false); //TODO Remove me to test
 				beanFinished = true;
 				if (bean.getStatus().equals(Status.COMPLETE)) {
@@ -174,10 +185,20 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 			boolean concluded = true, operating = false;
 			for (String childID : children.keySet()) {
 				concluded = concluded && children.get(childID).isConcluded();
-				operating = operating && children.get(childID).isOperating();
+				operating = operating || children.get(childID).isOperating();
 			}
 			if (concluded && !operating) processorLatch.countDown();
 		}
+	}
+	
+	/**
+	 * Mark the last command status change of parent as resulting from a 
+	 * command from  a child process (to prevent instruction loops).
+	 * 
+	 * @return true if last command to parent came from a child.
+	 */
+	public boolean isChildCommand() {
+		return childCommand;
 	}
 	
 //	private U bean;

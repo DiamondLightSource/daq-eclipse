@@ -1,6 +1,8 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +11,6 @@ import java.util.concurrent.CountDownLatch;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
-import org.eclipse.scanning.api.event.queues.IQueueProcess;
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
@@ -19,7 +19,6 @@ import org.eclipse.scanning.event.queues.processors.QueueListener;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
-import org.eclipse.scanning.test.event.queues.mocks.MockQueueProcessor;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +39,7 @@ public class QueueListenerTest {
 	private List<DummyAtom> queue;
 	
 	private IPublisher<DummyHasQueue> statPub;
-	private IQueueProcessor<DummyHasQueue> processor;
+//	private IQueueProcessor<DummyHasQueue> processor;
 	private IQueueBroadcaster<DummyHasQueue> broadcaster;
 	private CountDownLatch latch;
 	
@@ -67,8 +66,8 @@ public class QueueListenerTest {
 		
 		statPub = new MockPublisher<>(null, "test.topic");
 		broadcaster = new QueueProcess<>(parent, statPub, false);
-		processor = new MockQueueProcessor<>(broadcaster, parent, new CountDownLatch(1));//TODO Update to allow broadcaster to be set
-		((IQueueProcess<?>)broadcaster).setProcessor(processor);
+//		processor = new MockQueueProcessor<>(broadcaster, parent, new CountDownLatch(1));//TODO Update to allow broadcaster to be set
+//		((IQueueProcess<?>)broadcaster).setProcessor(processor);
 		
 		latch = new CountDownLatch(1);
 	}
@@ -83,7 +82,8 @@ public class QueueListenerTest {
 
 		statPub = null;
 		broadcaster = null;
-		processor = null;
+		latch = null;
+//		processor = null;
 	}
 	
 	@Test
@@ -91,7 +91,7 @@ public class QueueListenerTest {
 		//This is set before Listener creation so the bean status doesn't appear to change
 		childA.setStatus(Status.RUNNING);
 		childA.setPercentComplete(50d);
-		qList = new QueueListener<>(processor, latch, childA);
+		qList = new QueueListener<>(broadcaster, parent, latch, childA);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
 		assertEquals("Parent has been broadcast, even though no changes happened on child", null, getLastBroadcast());
@@ -101,7 +101,7 @@ public class QueueListenerTest {
 	public void testIgnoreNonChildren() {
 		DummyAtom friend = new DummyAtom("Bilbo", 10);
 		
-		qList = new QueueListener<>(processor, latch, childA);
+		qList = new QueueListener<>(broadcaster, parent, latch, childA);
 		
 		friend.setPercentComplete(50d);
 		friend.setStatus(Status.RUNNING);
@@ -115,7 +115,7 @@ public class QueueListenerTest {
 	
 	@Test
 	public void testNormalRun() {
-		qList = new QueueListener<>(processor, latch, queue);
+		qList = new QueueListener<>(broadcaster, parent, latch, queue);
 		//Change childA percentage only (not active)
 		childA.setPercentComplete(50d);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
@@ -147,6 +147,38 @@ public class QueueListenerTest {
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childB));
 		
 		//All beans now complete, so latch should have been released
+		assertEquals("Percentage incorrectly incremented", 100d, getLastBroadcast().getPercentComplete(), 0d);
+		assertEquals("Processor latch not released on completion of all children", 0, latch.getCount(), 0);
+	}
+
+	/**
+	 * Test running two beans together asynchronously
+	 */
+	@Test
+	public void testAsyncNormalRun() {
+		childA.setStatus(Status.RUNNING);
+		childB.setStatus(Status.RUNNING);
+		qList = new QueueListener<>(broadcaster, parent, latch, queue);
+		childA.setPercentComplete(50d);
+		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
+		childB.setPercentComplete(50d);
+		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childB));
+		
+		assertEquals("Percentage incorrectly incremented", 52.5d, getLastBroadcast().getPercentComplete(), 0d);
+		assertEquals("Status changed even though child not active", originalParent.getStatus(), getLastBroadcast().getStatus());
+		
+		childA.setPercentComplete(100d);
+		childA.setStatus(Status.COMPLETE);
+		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
+		
+		assertEquals("Percentage incorrectly incremented", 76.25d, getLastBroadcast().getPercentComplete(), 0d);
+		assertEquals("Status changed even though child not active", originalParent.getStatus(), getLastBroadcast().getStatus());
+		
+		childB.setPercentComplete(100d);
+		childB.setStatus(Status.COMPLETE);
+		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childB));
+		
+		//All beans now complete, so latch should have been released
 		assertEquals("Processor latch not released on completion of all children", 0, latch.getCount(), 0);
 	}
 	
@@ -159,7 +191,7 @@ public class QueueListenerTest {
 		Status[] termCalls = new Status[]{Status.REQUEST_TERMINATE, Status.TERMINATED};
 		for (int i = 0; i < 2; i++) {
 			childA.setStatus(Status.RUNNING);
-			qList = new QueueListener<>(processor, latch, queue);
+			qList = new QueueListener<>(broadcaster, parent, latch, queue);
 			childA.setPercentComplete(50d);
 			qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 
@@ -168,6 +200,7 @@ public class QueueListenerTest {
 			childA.setStatus(termCalls[i]);
 			qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 
+			assertTrue("Child queue instruction not indicated", qList.isChildCommand());
 			assertEquals("Percentage incorrectly incremented", 28.75d, getLastBroadcast().getPercentComplete(), 0d);
 			assertEquals("Parent status not changed", Status.REQUEST_TERMINATE, getLastBroadcast().getStatus());
 			
@@ -184,7 +217,7 @@ public class QueueListenerTest {
 	@Test
 	public void testRunExternalPause() {
 		childA.setStatus(Status.RUNNING);
-		qList = new QueueListener<>(processor, latch, queue);
+		qList = new QueueListener<>(broadcaster, parent, latch, queue);
 		childA.setPercentComplete(50d);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 
@@ -193,6 +226,7 @@ public class QueueListenerTest {
 		childA.setStatus(Status.REQUEST_PAUSE);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 
+		assertTrue("Child queue instruction not indicated", qList.isChildCommand());
 		assertEquals("Percentage incorrectly incremented", 28.75d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent status not changed", Status.REQUEST_PAUSE, getLastBroadcast().getStatus());
 		assertEquals("Parent has wrong queue message", "Pause requested from '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
@@ -203,15 +237,18 @@ public class QueueListenerTest {
 		childA.setStatus(Status.REQUEST_RESUME);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
+		assertTrue("Child queue instruction not indicated", qList.isChildCommand());
 		assertEquals("Percentage incorrectly incremented", 28.75d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent status not changed", Status.REQUEST_RESUME, getLastBroadcast().getStatus());
 		assertEquals("Parent has wrong queue message", "Resume requested from '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		//Mimic effect of processor
 		parent.setStatus(Status.RESUMED);
+		childA.setStatus(Status.RUNNING);
 		childA.setPercentComplete(80d);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		assertEquals("Percentage incorrectly incremented", 43d, getLastBroadcast().getPercentComplete(), 0d);
+		assertFalse("Child queue instruction set after RUNNING", qList.isChildCommand());//Child queue should be reset false after a normal pass
 		
 		//Mimic effect of processor
 		parent.setStatus(Status.RUNNING);
@@ -219,6 +256,7 @@ public class QueueListenerTest {
 		childA.setStatus(Status.PAUSED);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 
+		assertTrue("Child queue instruction not indicated", qList.isChildCommand());
 		assertEquals("Percentage incorrectly incremented", 43d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent status not changed", Status.REQUEST_PAUSE, getLastBroadcast().getStatus());
 		assertEquals("Parent has wrong queue message", "Pause requested from '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
@@ -228,6 +266,7 @@ public class QueueListenerTest {
 		childA.setStatus(Status.RESUMED);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
+		assertTrue("Child queue instruction not indicated", qList.isChildCommand());
 		assertEquals("Percentage incorrectly incremented", 43d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent status not changed", Status.REQUEST_RESUME, getLastBroadcast().getStatus());
 		assertEquals("Parent has wrong queue message", "Resume requested from '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
