@@ -1,10 +1,13 @@
 language: java
 
+services:
+  - docker
+
 # whitelist
 branches:
  only:
   - master
- 
+
 jdk:
  - oraclejdk8
 
