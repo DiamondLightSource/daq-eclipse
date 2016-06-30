@@ -331,7 +331,12 @@ public abstract class AbstractQueueProcessorTest {
 	
 	protected void waitForExecutionEnd(Long timeoutMS) throws Exception {
 		boolean unLatched = execLatch.await(timeoutMS, TimeUnit.MILLISECONDS);
-		if (!unLatched) fail("Execution did not complete before timeout");
+		if (!unLatched) {
+			if (thrownException == null)
+				fail("Execution did not complete before timeout");
+		} else {
+			throw new Exception(thrownException);
+		}
 	}
 	
 	protected void checkInitialBeanState(Queueable bean) {

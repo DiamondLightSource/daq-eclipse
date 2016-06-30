@@ -85,7 +85,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 			monitors.add("bpm3");
 			monitors.add("i0");
 
-			ScanAtom scAt = new ScanAtom("VT scan across sample", scanAxes, detectors); 
+			scAt = new ScanAtom("VT scan across sample", scanAxes, detectors); 
 
 			try {
 				scAt.setHostName(InetAddress.getLocalHost().getHostName());
@@ -94,6 +94,11 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 			}
 			scAt.setUserName("abc12345");
 			scAt.setBeamline("I15-1");
+			try {
+				scAt.setScanBrokerURI(infrastructureServ.getURI().toString());
+			} catch (Exception ex) {
+				System.out.println("Failed to set broker URI"+ex.getMessage());
+			}
 			//		scAt.setScanConsumerURI(uri.toString());
 			//		scAt.setScanSubmitQueueName(IEventService.SUBMISSION_QUEUE);
 			//		scAt.setScanStatusQueueName(IEventService.STATUS_SET);
