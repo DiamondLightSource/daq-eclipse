@@ -101,7 +101,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 
 	@Override
 	public void beanChangePerformed(BeanEvent<Q> evt) {
-		boolean broadcastUpdate = false, beanFinished = false;
+		boolean broadcastUpdate = false, beanCompleted = false;
 		Q bean = evt.getBean();
 		String beanID = bean.getUniqueId();
 		//If this bean is not from the parent ignore it.
@@ -157,10 +157,16 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 				((IAtomWithChildQueue)parent).setQueueMessage("Pause requested from '"+bean.getName()+"'");
 				childCommand = true;
 				broadcastUpdate = true;
+			} else if (bean.getStatus().isTerminated()) {
+				//TERMINATE
+				parent.setStatus(Status.REQUEST_TERMINATE);
+				((IAtomWithChildQueue)parent).setQueueMessage("Pause requested from '"+bean.getName()+"'");
+				childCommand = true;
+				broadcastUpdate = true;
 			} else if (bean.getStatus().isFinal()) {
 				//FINAL states
-				children.get(beanID).setOperating(false); //TODO Remove me to test
-				beanFinished = true;
+				children.get(beanID).setOperating(false);
+				beanCompleted = true;
 				if (bean.getStatus().equals(Status.COMPLETE)) {
 					((IAtomWithChildQueue)parent).setQueueMessage("'"+bean.getName()+"' completed successfully.");
 					broadcastUpdate = true;
@@ -181,7 +187,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 		 * If no beans are still operating and all beans have concluded, 
 		 * release the latch.
 		 */
-		if (beanFinished) {
+		if (beanCompleted) {
 			boolean concluded = true, operating = false;
 			for (String childID : children.keySet()) {
 				concluded = concluded && children.get(childID).isConcluded();
