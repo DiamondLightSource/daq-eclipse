@@ -39,7 +39,6 @@ public class QueueListenerTest {
 	private List<DummyAtom> queue;
 	
 	private IPublisher<DummyHasQueue> statPub;
-//	private IQueueProcessor<DummyHasQueue> processor;
 	private IQueueBroadcaster<DummyHasQueue> broadcaster;
 	private CountDownLatch latch;
 	
