@@ -3,7 +3,6 @@ package org.eclipse.scanning.event.queues.processors;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -26,7 +25,8 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	private final IEventService eventService;
 	private IPublisher<ScanBean> scanPublisher;
 	private ISubmitter<ScanBean> scanSubmitter;
-	private ISubscriber<QueueListener> scanSubscriber; //TODO
+	private ISubscriber<QueueListener<ScanAtom, ScanBean>> scanSubscriber;
+	private QueueListener<ScanAtom, ScanBean> queueListener;
 	
 	//Processor operation
 	private final ScanBean scanBean;
@@ -51,15 +51,14 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		final String scanSubmitQueueName, scanStatusTopicName; 
 		if (queueBean.getScanBrokerURI() != null) {
 			try {
-				scanBrokerURI = new URI(queueBean.getScanBrokerURI());
+				scanBrokerURI = new URI(queueBean.getScanBrokerURI()); //FIXME This is idiotic
 			} catch (URISyntaxException usEx) {
 				broadcaster.broadcast(Status.FAILED, "Failed to set broker URI: \""+usEx.getMessage()+"\" (Reason: \""+usEx.getReason()+"\").");
 				logger.error("Failed to set scanning service broker URI for '"+queueBean.getName()+"': \""+usEx.getMessage()+"\" (Reason: \""+usEx.getReason()+"\").");
 				throw new EventException("Failed to set broker URI", usEx);
 			}
-
 		} else {
-			scanBrokerURI = QueueServicesHolder.getQueueService().getURI();
+			scanBrokerURI = QueueServicesHolder.getQueueService().getURI(); //TODO This should point at Matt G's config the EventService
 		}
 		if (queueBean.getScanSubmitQueueName() != null) {
 			scanSubmitQueueName = queueBean.getScanSubmitQueueName();
@@ -83,7 +82,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		//Configure the ScanBean & set the ScanRequest
 		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.3);
 		if (scanBean.getUniqueId() == null) scanBean.setUniqueId(UUID.randomUUID().toString());
-		String scanUID = scanBean.getUniqueId();
+//		String scanUID = scanBean.getUniqueId();
 		scanBean.setBeamline(queueBean.getBeamline());
 		scanBean.setName(queueBean.getName());
 		scanBean.setHostName(queueBean.getHostName());
@@ -95,13 +94,14 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 				"Submitting bean to scanning service.");
 		scanPublisher = eventService.createPublisher(scanBrokerURI, scanStatusTopicName);
 		scanSubscriber = eventService.createSubscriber(scanBrokerURI, scanStatusTopicName);
-//		try {
-//		scanSubscriber.addListener(new QueueListener<ScanBean, T>(bean, this, beanID, configPercent)); //TODO
-//		} catch (EventException evEx) {
-//			broadcaster.broadcast(Status.FAILED, "Failed to add QueueListener to scan subscriber; unable to monitor queue. Cannot continue: \""+evEx.getMessage()+"\".");
-//			logger.error("Failed to add QueueListener to scan subscriber for '"+queueBean.getName()+"'; unable to monitor queue. Cannot continue: \""+evEx.getMessage()+"\".");
-//			throw new EventException("Failed to add QueueListener to scan subscriber", evEx);
-//		}
+		queueListener = new QueueListener<>(broadcaster, queueBean, processorLatch, scanBean);
+		try {
+			scanSubscriber.addListener(queueListener);
+		} catch (EventException evEx) {
+			broadcaster.broadcast(Status.FAILED, "Failed to add QueueListener to scan subscriber; unable to monitor queue. Cannot continue: \""+evEx.getMessage()+"\".");
+			logger.error("Failed to add QueueListener to scan subscriber for '"+queueBean.getName()+"'; unable to monitor queue. Cannot continue: \""+evEx.getMessage()+"\".");
+			throw new EventException("Failed to add QueueListener to scan subscriber", evEx);
+		}
 		scanSubmitter = eventService.createSubmitter(scanBrokerURI, scanSubmitQueueName);
 		scanBean.setStatus(Status.SUBMITTED);
 		try {
@@ -121,8 +121,9 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 
 		//Post-match analysis
 		if (isTerminated()) {
-			commandScanBean(Status.REQUEST_TERMINATE);//TODO Do this only if termination comes from above
-			//TODO Await confirmation of termination from QueueListener?
+			if (!queueListener.isChildCommand()) {
+				commandScanBean(Status.REQUEST_TERMINATE);
+			}
 			return;
 		}
 
@@ -138,13 +139,17 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 
 	@Override
 	public void pause() throws EventException {
-		commandScanBean(Status.REQUEST_PAUSE);
+		if (!queueListener.isChildCommand()) {
+			commandScanBean(Status.REQUEST_PAUSE);
+		}
 		//TODO More?
 	}
 
 	@Override
 	public void resume() throws EventException {
-		commandScanBean(Status.REQUEST_RESUME);
+		if (!queueListener.isChildCommand()) {
+			commandScanBean(Status.REQUEST_RESUME);
+		}
 		//TODO More?
 	}
 
