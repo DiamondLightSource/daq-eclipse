@@ -69,6 +69,13 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	}
 
 	@Override
+	public void childQueueBroadcast() throws EventException {
+		if (publisher != null) {
+			publisher.broadcast(bean);
+		}
+	}
+
+	@Override
 	public IQueueProcessor<? extends Queueable> getProcessor() {
 		return processor;
 	}

@@ -68,6 +68,14 @@ public interface IQueueBroadcaster<T> {
 	public void broadcast(Status newStatus, Double newPercent, String message) throws EventException;
 	
 	/**
+	 * Broadcast the bean when some interaction of the child queue (e.g. from 
+	 * {@link QueueListener}) has updated its status/percent complete/message.
+	 * 
+	 * @throws EventException In case broadcasting fails.
+	 */
+	public void childQueueBroadcast() throws EventException;
+	
+	/**
 	 * Return the IPublisher instance used to broadcast the bean status.
 	 * 
 	 * @return IPublisher for bean broadcasting.

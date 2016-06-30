@@ -1,6 +1,5 @@
 package org.eclipse.scanning.event.queues.processors;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +9,6 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.IAtomBeanWithQueue;
 import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
@@ -38,28 +36,24 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 	private static Logger logger = LoggerFactory.getLogger(QueueListener.class);
 	
 	//Infrastructure
-	private final IQueueProcessor<P> processor;
 	private final IQueueBroadcaster<? extends Queueable> broadcaster;
 	private final CountDownLatch processorLatch;
 	
 	//
 	private P parent;
 	private double initPercent;
-	
-//	private List<String> childIDs = new ArrayList<>();
 	private Map<String, ProcessStatus> children = new HashMap<>();
 	
-	private QueueListener(IQueueProcessor<P> processor, CountDownLatch procLatch, boolean fakeArg) {
-		this.processor = processor;
-		broadcaster =this.processor.getQueueBroadcaster();
-		parent = this.processor.getProcessBean();
+	private QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, boolean fakeArg) {
+		this.broadcaster = broadcaster;
+		this.parent = parent;
 		initPercent = parent.getPercentComplete();
 		processorLatch = procLatch;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public QueueListener(IQueueProcessor<P> processor, CountDownLatch procLatch) throws EventException {
-		this(processor, procLatch, true);
+	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch) throws EventException {
+		this(broadcaster, parent, procLatch, true);
 		if (parent instanceof IAtomBeanWithQueue<?>) {
 			List<?> children = ((IAtomBeanWithQueue<?>)parent).getAtomQueue().getQueue();
 			initChildList((List<Q>) children);//QueueAtom extends StatusBean, so this cast is OK.
@@ -68,13 +62,13 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 		}
 	}
 	
-	public QueueListener(IQueueProcessor<P> processor, CountDownLatch procLatch, Q child) {
-		this(processor, procLatch, true);
+	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, Q child) {
+		this(broadcaster, parent, procLatch, true);
 		children.put(child.getUniqueId(), new ProcessStatus(child));
 	}
 	
-	public QueueListener(IQueueProcessor<P> processor, CountDownLatch procLatch, List<Q> children) {
-		this(processor, procLatch, true);
+	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, List<Q> children) {
+		this(broadcaster, parent, procLatch, true);
 		initChildList(children);
 	}
 	
@@ -166,7 +160,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 		//If we have an update to broadcast, do it!
 		if (broadcastUpdate) {
 			try {
-				broadcaster.broadcast(null, null, null);
+				broadcaster.childQueueBroadcast();
 			} catch (EventException evEx) {
 				logger.error("Broadcasting '"+bean.getName()+"' failed with: "+evEx.getMessage());
 			}
@@ -184,8 +178,6 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 			}
 			if (concluded && !operating) processorLatch.countDown();
 		}
-		
-		
 	}
 	
 //	private U bean;
