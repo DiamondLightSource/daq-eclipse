@@ -47,7 +47,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   boolean                    primaryScanDevice = true;
 
 	// OSGi services and intraprocess events
-	protected IRunnableDeviceService             runnableDeviceService;
+	protected IRunnableDeviceService     runnableDeviceService;
 	protected IDeviceConnectorService    connectorService;
 	private   IPublisher<ScanBean>       publisher;
 	

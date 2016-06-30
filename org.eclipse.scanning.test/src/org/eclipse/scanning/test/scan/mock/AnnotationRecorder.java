@@ -9,6 +9,7 @@ import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.annotation.scan.ScanAbort;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFault;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanPause;
 import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
@@ -75,6 +76,11 @@ public interface AnnotationRecorder {
 	@ScanFault
 	default void scanFault() {
 		record(ScanFault.class);
+	}
+	
+	@ScanFinally
+	default void scanFinally() {
+		record(ScanFinally.class);
 	}
 
 	void record(Class<? extends Annotation> method);

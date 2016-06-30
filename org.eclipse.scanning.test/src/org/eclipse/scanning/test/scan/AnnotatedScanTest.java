@@ -16,9 +16,14 @@ import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
+import org.eclipse.scanning.api.annotation.scan.ScanAbort;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
+import org.eclipse.scanning.api.annotation.scan.ScanPause;
+import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
@@ -26,6 +31,7 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CollatedStepModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
@@ -50,7 +56,7 @@ import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
-public class ScanAlgorithmTest extends BrokerTest {
+public class AnnotatedScanTest extends BrokerTest {
 
 	private IRunnableDeviceService      dservice;
 	private IDeviceConnectorService     connector;
@@ -121,7 +127,7 @@ public class ScanAlgorithmTest extends BrokerTest {
 			detectors.add(dev);
 		}
 		
-		long time = checkTimes(pointCount, scannables, detectors);
+		long time = checkTimes(pointCount, scannables, detectors, "no annotations");
 		assertTrue(time<18);
 		
 	}
@@ -129,33 +135,12 @@ public class ScanAlgorithmTest extends BrokerTest {
 	@Test
 	public void checkTimes100PointsWithAnnotations() throws Exception {
 		
-		int pointCount     = 99; // Gives 100 points because it's a step model
-		int scannableCount = 1000;
-		int detectorCount  = 1000;
+		int pointCount     = 99;   // Gives 100 points because it's a step model
 		
-		final List<IScannable<?>> scannables = new ArrayList<>();
-		MockScannableConnector mc = (MockScannableConnector)connector;
-		for (int i = 0; i < scannableCount; i++) {
-			MockScannable ms = new AnnotatedMockScannable("annotatedSpecialScannable"+i, 0d);
-			ms.setRequireSleep(false);
-			ms.setLevel(i%10);
-			mc.register(ms);
-			scannables.add(ms);
- 		}
+		final List<IScannable<?>>     scannables = createAnnotatedScannables("annotatedScannable", 1000, false);
+		final List<IRunnableDevice<?>> detectors = createAnnoatatedDetectors("annotatedDetector", 1000, false);
 		
-		final List<IRunnableDevice<?>> detectors = new ArrayList<>(detectorCount);
-		for (int i = 0; i < detectorCount; i++) {
-			MockDetectorModel mod = new AnnotatedMockDetectorModel();
-			mod.setName("annotatedDetector"+i);
-			mod.setCreateImage(false);  // Would put our times off.
-			mod.setExposureTime(0);
-			
-			IRunnableDevice<?> dev = dservice.createRunnableDevice(mod);
-			dev.setLevel(i%10);
-			detectors.add(dev);
-		}
-		
-		long time = checkTimes(pointCount, scannables, detectors);
+		long time = checkTimes(pointCount, scannables, detectors, "all annotations");
 		assertTrue(time<18);
 		
 		for (IScannable<?> s : scannables) {
@@ -180,9 +165,121 @@ public class ScanAlgorithmTest extends BrokerTest {
 
 	}
 
+	@Test
+	public void abortTest() throws Exception {
+		
+		final List<IScannable<?>>      scannables = createAnnotatedScannables("annotatedSleepingScannable", 10, true);
+		final List<IRunnableDevice<?>> detectors  = createAnnoatatedDetectors("annotatedWritingDetector", 10, true);
+
+		IRunnableDevice<?> device = createDevice(100, scannables, detectors);
+		device.start(null);
+		Thread.sleep(10);
+		device.abort();
+		Thread.sleep(100);
+
+		for (IScannable<?> s : scannables) {
+			AnnotatedMockScannable ams = (AnnotatedMockScannable)s;
+			assertEquals(1,  ams.getCount(ScanStart.class));
+			assertEquals(1,  ams.getCount(ScanAbort.class));
+			assertEquals(0,  ams.getCount(ScanEnd.class));
+		}
+		
+		for (IRunnableDevice<?> d : detectors) {
+			AnnotatedMockWritableDetector ams = (AnnotatedMockWritableDetector)d;
+			assertEquals(1,  ams.getCount(ScanStart.class));
+			assertEquals(1,  ams.getCount(ScanAbort.class));
+			assertEquals(0,  ams.getCount(ScanEnd.class));
+			assertEquals(1,  ams.getCount(ScanFinally.class));
+		}
+
+
+	}
 	
-	private long checkTimes(int pointCount, List<IScannable<?>> scannables, List<IRunnableDevice<?>> detectors) throws Exception {
+	@Test
+	public void pauseTest() throws Exception {
+		
+		final List<IScannable<?>>      scannables = createAnnotatedScannables("annotatedSleepingScannable", 10, true);
+		final List<IRunnableDevice<?>> detectors  = createAnnoatatedDetectors("annotatedWritingDetector", 10, true);
+
+		IPausableDevice<?> device = (IPausableDevice<?>)createDevice(10, scannables, detectors);
+		device.start(null);
+		Thread.sleep(10);
+		device.pause();
+		Thread.sleep(100);
+		device.resume();
+		device.latch(); // Latches until scan done.
+
+		for (IScannable<?> s : scannables) {
+			AnnotatedMockScannable ams = (AnnotatedMockScannable)s;
+			assertEquals(1,  ams.getCount(ScanStart.class));
+			assertEquals(1,  ams.getCount(ScanPause.class));
+			assertEquals(1,  ams.getCount(ScanResume.class));
+			assertEquals(0,  ams.getCount(ScanAbort.class));
+			assertEquals(1,  ams.getCount(ScanEnd.class));
+			assertEquals(1,  ams.getCount(ScanFinally.class));
+		}
+		
+		for (IRunnableDevice<?> d : detectors) {
+			AnnotatedMockWritableDetector ams = (AnnotatedMockWritableDetector)d;
+			assertEquals(1,  ams.getCount(ScanStart.class));
+			assertEquals(1,  ams.getCount(ScanPause.class));
+			assertEquals(1,  ams.getCount(ScanResume.class));
+			assertEquals(0,  ams.getCount(ScanAbort.class));
+			assertEquals(1,  ams.getCount(ScanEnd.class));
+			assertEquals(1,  ams.getCount(ScanFinally.class));
+		}
+
+
+	}
+
+
+	private List<IRunnableDevice<?>> createAnnoatatedDetectors(String namefrag, int detectorCount, boolean createImage) throws ScanningException {
+		
+		final List<IRunnableDevice<?>> detectors = new ArrayList<>(detectorCount);
+		for (int i = 0; i < detectorCount; i++) {
+			MockDetectorModel mod = new AnnotatedMockDetectorModel();
+			mod.setName(namefrag+i);
+			mod.setCreateImage(createImage);  // Would put our times off.
+			mod.setExposureTime(0);
+			
+			IRunnableDevice<?> dev = dservice.createRunnableDevice(mod);
+			dev.setLevel(i%10);
+			detectors.add(dev);
+		}
+		return detectors;
+	}
+
+	private List<IScannable<?>> createAnnotatedScannables(String namefrag, int scannableCount, boolean requireSleep) {
+		final List<IScannable<?>> scannables = new ArrayList<>();
+		MockScannableConnector mc = (MockScannableConnector)connector;
+		for (int i = 0; i < scannableCount; i++) {
+			MockScannable ms = new AnnotatedMockScannable(namefrag+i, 0d);
+			ms.setRequireSleep(requireSleep);
+			ms.setLevel(i%10);
+			mc.register(ms);
+			scannables.add(ms);
+ 		}
+		return scannables;
+	}
+
+	
+	private long checkTimes(int pointCount, List<IScannable<?>> scannables, List<IRunnableDevice<?>> detectors, String msg) throws Exception {
 				
+
+		IRunnableDevice<?> device = createDevice(pointCount, scannables, detectors);
+		
+		long before = System.currentTimeMillis();
+		device.run(null);
+		long after = System.currentTimeMillis();
+		double single = (after-before)/1000d;
+		System.out.println("Time for one point was ("+msg+"): "+Math.round(single)+"ms");
+		
+		return Math.round(single);
+
+	}
+	
+	private IRunnableDevice<?> createDevice(int pointCount, List<IScannable<?>> scannables, List<IRunnableDevice<?>> detectors) throws Exception {
+		
 		final String[] names = new String[scannables.size()];
 		for (int i = 0; i < scannables.size(); i++) {
 			names[i] = scannables.get(i).getName();
@@ -202,13 +299,6 @@ public class ScanAlgorithmTest extends BrokerTest {
 		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, null);
 
-		long before = System.currentTimeMillis();
-		scanner.run(null);
-		long after = System.currentTimeMillis();
-		double single = (after-before)/1000d;
-		System.out.println("Time for one point was: "+Math.round(single)+"ms");
-		
-		return Math.round(single);
-
+		return scanner;
 	}
 }

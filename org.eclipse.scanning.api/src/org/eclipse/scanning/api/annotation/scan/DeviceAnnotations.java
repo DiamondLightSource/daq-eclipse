@@ -20,6 +20,7 @@ public class DeviceAnnotations {
 		tmp.add(ScanAbort.class);
 		tmp.add(ScanEnd.class);
 		tmp.add(ScanFault.class);
+		tmp.add(ScanFinally.class);
 		tmp.add(ScanPause.class);
 		tmp.add(ScanResume.class);
 		tmp.add(ScanStart.class);

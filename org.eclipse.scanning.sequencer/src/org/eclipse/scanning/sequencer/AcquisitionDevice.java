@@ -3,6 +3,7 @@ package org.eclipse.scanning.sequencer;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,6 +14,7 @@ import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.annotation.scan.ScanAbort;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFault;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanPause;
 import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
@@ -64,6 +66,16 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private ReentrantLock    lock;
 	private Condition        paused;
 	private volatile boolean awaitPaused;
+	
+	/**
+	 * Used for clients that would like to wait until the run. Most useful
+	 * if the run was started with a start() call then more work is done, then
+	 * a latch() will join with the start and return once it is finished.
+	 * 
+	 * If the start hangs, so will calling latch, there is no timeout.
+	 * 
+	 */
+	private CountDownLatch latch;
 		
 	/**
 	 * Package private constructor, devices are created by the service.
@@ -132,8 +144,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
 		
+		boolean errorFound = false;
 		IPosition pos = null;
 		try {
+			if (latch!=null) latch.countDown();
+			this.latch = new CountDownLatch(1);
 	        // TODO Should we validate the position iterator that all
 	        // the positions are valid before running the scan?
 	        // It was called limit checking in GDA.
@@ -188,22 +203,49 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
         	writers.await();                   // Wait for the previous read out to return, if any
         	
 		} catch (ScanningException | InterruptedException i) {
+			errorFound=true;
 			processException(i);
 			throw i;
 			
 		} catch (Exception ne) {
+			errorFound=true;
 			processException(ne);
 			throw new ScanningException(ne);
 			
 		} finally {
-			nexusScanFileManager.scanFinished(); // writes scanFinished and closes nexus file
-        	// We should not fire the run performed until the nexus file is closed.
-        	// Tests wait for this step and reread the file.
-       	    fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
-       	    
+			close(errorFound, pos);
 		}
-		// only fire end if finished normally
-		fireEnd();
+	}
+	
+	private void close(boolean errorFound, IPosition last) throws ScanningException {
+		try {
+			try {
+				nexusScanFileManager.scanFinished(); // writes scanFinished and closes nexus file
+	        	
+				// We should not fire the run performed until the nexus file is closed.
+	        	// Tests wait for this step and reread the file.
+	       	    fireRunPerformed(last);              // Say that we did the overall run using the position we stopped at.
+			
+			} finally {
+	       	    try {
+					manager.invoke(ScanFinally.class, last);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
+					throw new ScanningException(e);
+				}
+	       	    
+	    		// only fire end if finished normally
+	    		if (!errorFound) fireEnd();
+			}
+			
+		} finally {
+			if (latch!=null) latch.countDown();
+		}
+	}
+
+	@Override
+	public void latch() throws InterruptedException {
+		if (latch==null) return;
+		latch.await();
 	}
 
 	private void processException(Exception ne) throws ScanningException {

@@ -22,7 +22,9 @@ public class AnnotatedMockWritableDetector extends MockWritableDetector implemen
 	}
 	
 	public int getCount(Class<? extends Annotation> methodName) {
-		return calls.get(methodName);
+		Integer val = calls.get(methodName);
+		if (val == null) return 0;
+		return val;
 	}
 
 }
