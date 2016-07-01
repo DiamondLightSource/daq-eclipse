@@ -18,6 +18,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.dry.DryRunCreator;
+import org.eclipse.scanning.api.event.dry.FastRunCreator;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -49,7 +50,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		
 		//Set up the consumer which will work on ScanBeans made by the ScanProcessor
 		scanConsumer = infrastructureServ.makeConsumer(null, false);
-		scanConsumer.setRunner(new DryRunCreator<ScanBean>(true));
+		scanConsumer.setRunner(new FastRunCreator<ScanBean>(50, true)); 
 		scanConsumer.start();
 		
 //		//Set up publisher which will be used in certain tests FIXME Only create for tests where needed. 
@@ -111,8 +112,8 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	protected void processorSpecificExecTests() throws Exception {
 		Status[] reportedStatuses = new Status[]{Status.RUNNING, Status.RUNNING,
 				Status.RUNNING, Status.RUNNING, Status.RUNNING};
-		Double[] reportedPercent = new Double[]{0d, 0d, 
-				1.25d, 2.5d, 5d};
+		Double[] reportedPercent = new Double[]{0d, 0.75d, 
+				2.5d, 4.25d, 5d};
 
 		checkFirstBroadcastBeanStatuses(scAt, reportedStatuses, reportedPercent);
 		checkLastBroadcastBeanStatuses(scAt, Status.COMPLETE, true);

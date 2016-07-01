@@ -332,10 +332,11 @@ public abstract class AbstractQueueProcessorTest {
 	protected void waitForExecutionEnd(Long timeoutMS) throws Exception {
 		boolean unLatched = execLatch.await(timeoutMS, TimeUnit.MILLISECONDS);
 		if (!unLatched) {
-			if (thrownException == null)
+			if (thrownException == null) {
 				fail("Execution did not complete before timeout");
-		} else {
-			throw new Exception(thrownException);
+			} else {
+				throw new Exception(thrownException);
+			}
 		}
 	}
 	
@@ -385,7 +386,7 @@ public abstract class AbstractQueueProcessorTest {
 			percentComplete = 0d;
 		} else if (state.equals(Status.COMPLETE)) {
 			percentComplete = 100d;
-			previousBeanState = Status.TERMINATED;
+			previousBeanState = Status.RUNNING;
 		} else if (state.equals(Status.TERMINATED)) {
 			previousBeanState = Status.REQUEST_TERMINATE;
 		}
@@ -401,6 +402,9 @@ public abstract class AbstractQueueProcessorTest {
 		}
 		assertEquals("First bean should be running", Status.RUNNING, firstBean.getStatus());
 		
+		//Get last bean - needed for penultimate bean analysis too
+		lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+		
 		//Penultimate bean should have status depending on the above if/else block
 		if (prevBean) {
 			penultimateBean = broadcastBeans.get(broadcastBeans.size()-2);
@@ -409,11 +413,11 @@ public abstract class AbstractQueueProcessorTest {
 			}
 			assertEquals("Second to last bean has wrong status", previousBeanState, penultimateBean.getStatus());
 			double penuBPercComp = penultimateBean.getPercentComplete();
+			assertTrue("Percent complete greater than last bean's", lastBean.getPercentComplete() < penuBPercComp);
 			assertTrue("The percent complete is not between 0% & 100%", ((penuBPercComp > 0d) && (penuBPercComp < 100d))); 
 		}
 		
-		//Last bean should be 
-		lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+		//Last bean should have status in args and percent complete defined in if/else block
 		if (!lastBean.getUniqueId().equals(bean.getUniqueId())){
 			throw new EventException("Last bean is not the bean we were looking for");
 		}
