@@ -45,16 +45,17 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 	private Map<String, ProcessStatus> children = new HashMap<>();
 	private boolean childCommand;
 	
-	private QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, boolean fakeArg) {
+	private QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, Double initPercent, CountDownLatch procLatch, boolean fakeArg) {
 		this.broadcaster = broadcaster;
 		this.parent = parent;
-		initPercent = parent.getPercentComplete();
+		//FIXME Need some way of stopping this class setting 100% complete & perhaps not passing in initPercent?
+		this.initPercent = initPercent == null ? parent.getPercentComplete() : initPercent;
 		processorLatch = procLatch;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch) throws EventException {
-		this(broadcaster, parent, procLatch, true);
+	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, Double initPercent, CountDownLatch procLatch) throws EventException {
+		this(broadcaster, parent, initPercent, procLatch, true);
 		if (parent instanceof IAtomBeanWithQueue<?>) {
 			List<?> children = ((IAtomBeanWithQueue<?>)parent).getAtomQueue().getQueue();
 			initChildList((List<Q>) children);//QueueAtom extends StatusBean, so this cast is OK.
@@ -63,13 +64,13 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 		}
 	}
 	
-	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, Q child) {
-		this(broadcaster, parent, procLatch, true);
+	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, Double initPercent, CountDownLatch procLatch, Q child) {
+		this(broadcaster, parent, initPercent, procLatch, true);
 		children.put(child.getUniqueId(), new ProcessStatus(child));
 	}
 	
-	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, List<Q> children) {
-		this(broadcaster, parent, procLatch, true);
+	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, Double initPercent, CountDownLatch procLatch, List<Q> children) {
+		this(broadcaster, parent, initPercent, procLatch, true);
 		initChildList(children);
 	}
 	

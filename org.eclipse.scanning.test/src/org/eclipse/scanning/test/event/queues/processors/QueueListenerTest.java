@@ -90,7 +90,7 @@ public class QueueListenerTest {
 		//This is set before Listener creation so the bean status doesn't appear to change
 		childA.setStatus(Status.RUNNING);
 		childA.setPercentComplete(50d);
-		qList = new QueueListener<>(broadcaster, parent, latch, childA);
+		qList = new QueueListener<>(broadcaster, parent, null, latch, childA);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		
 		assertEquals("Parent has been broadcast, even though no changes happened on child", null, getLastBroadcast());
@@ -100,7 +100,7 @@ public class QueueListenerTest {
 	public void testIgnoreNonChildren() {
 		DummyAtom friend = new DummyAtom("Bilbo", 10);
 		
-		qList = new QueueListener<>(broadcaster, parent, latch, childA);
+		qList = new QueueListener<>(broadcaster, parent, null, latch, childA);
 		
 		friend.setPercentComplete(50d);
 		friend.setStatus(Status.RUNNING);
@@ -114,7 +114,7 @@ public class QueueListenerTest {
 	
 	@Test
 	public void testNormalRun() {
-		qList = new QueueListener<>(broadcaster, parent, latch, queue);
+		qList = new QueueListener<>(broadcaster, parent, null, latch, queue);
 		//Change childA percentage only (not active)
 		childA.setPercentComplete(50d);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
@@ -157,7 +157,7 @@ public class QueueListenerTest {
 	public void testAsyncNormalRun() {
 		childA.setStatus(Status.RUNNING);
 		childB.setStatus(Status.RUNNING);
-		qList = new QueueListener<>(broadcaster, parent, latch, queue);
+		qList = new QueueListener<>(broadcaster, parent, null, latch, queue);
 		childA.setPercentComplete(50d);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 		childB.setPercentComplete(50d);
@@ -190,7 +190,7 @@ public class QueueListenerTest {
 		Status[] termCalls = new Status[]{Status.REQUEST_TERMINATE, Status.TERMINATED};
 		for (int i = 0; i < 2; i++) {
 			childA.setStatus(Status.RUNNING);
-			qList = new QueueListener<>(broadcaster, parent, latch, queue);
+			qList = new QueueListener<>(broadcaster, parent, null, latch, queue);
 			childA.setPercentComplete(50d);
 			qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 
@@ -216,7 +216,7 @@ public class QueueListenerTest {
 	@Test
 	public void testRunExternalPause() {
 		childA.setStatus(Status.RUNNING);
-		qList = new QueueListener<>(broadcaster, parent, latch, queue);
+		qList = new QueueListener<>(broadcaster, parent, null, latch, queue);
 		childA.setPercentComplete(50d);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childA));
 
