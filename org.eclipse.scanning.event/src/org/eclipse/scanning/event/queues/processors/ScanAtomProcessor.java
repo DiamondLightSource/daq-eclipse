@@ -72,7 +72,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		}
 
 		//Create the ScanRequest
-		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.1,
+		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.15,
 				"Creating scan request from configured values.");
 		ScanRequest<?> scanReq = new ScanRequest<>();
 		scanReq.setModels(queueBean.getPathModels());
@@ -80,7 +80,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		scanReq.setMonitorNames(queueBean.getMonitors());
 
 		//Configure the ScanBean & set the ScanRequest
-		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.3);
+		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.35);
 		if (scanBean.getUniqueId() == null) scanBean.setUniqueId(UUID.randomUUID().toString());
 //		String scanUID = scanBean.getUniqueId();
 		scanBean.setBeamline(queueBean.getBeamline());
@@ -90,11 +90,12 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		scanBean.setScanRequest(scanReq);
 		
 		//Create the scanning service infrastructure & submit ScanBean
-		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.3,
+		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.35,
 				"Submitting bean to scanning service.");
 		scanPublisher = eventService.createPublisher(scanBrokerURI, scanStatusTopicName);
 		scanSubscriber = eventService.createSubscriber(scanBrokerURI, scanStatusTopicName);
-		queueListener = new QueueListener<>(broadcaster, queueBean, processorLatch, scanBean);
+		//configPercent+0.5 so the QueueListener won't set parent 100% complete
+		queueListener = new QueueListener<>(broadcaster, queueBean, configPercent+0.5, processorLatch, scanBean);
 		try {
 			scanSubscriber.addListener(queueListener);
 		} catch (EventException evEx) {
@@ -115,7 +116,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		}
 		
 		//Allow scan to run
-		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.1,
+		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.15,
 				"Waiting for scan to complete.");
 		processorLatch.await();
 
@@ -128,12 +129,12 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		}
 
 		//Clean finish
-		if (isComplete()) {
+//		if (isComplete()) {
 			broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
-		} else {
-			broadcaster.broadcast(Status.FAILED, "Scan ended unexpectedly.");
-			logger.warn("Processing of ScanAtom '"+queueBean.getName()+"' ended unexpectedly.");
-		}
+//		} else {
+//			broadcaster.broadcast(Status.FAILED, "Scan ended unexpectedly.");
+//			logger.warn("Processing of ScanAtom '"+queueBean.getName()+"' ended unexpectedly.");
+//		}
 
 	}
 
