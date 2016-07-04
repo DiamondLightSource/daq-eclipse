@@ -119,7 +119,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	public void scanFinished() throws ScanningException {
 		// Note: we don't use IRunListener.runPerformed as other run listeners expect the
 		// file to be closed when that method is called
-		final Dataset dataset = IntegerDataset.createFromObject(1);
+		final Dataset dataset = DatasetFactory.createFromObject(IntegerDataset.class, 1, null);
 		try {
 			this.scanFinished.setSlice(null, dataset,
 					new int[] { 0 }, new int[] { 1 }, new int[] { 1 });

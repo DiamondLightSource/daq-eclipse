@@ -210,7 +210,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		final double yStop = model.getMaxImaginaryCoordinate();
 		final double yStep = (yStop - yStart) / (rows - 1);
 		double y;
-		IDataset juliaSet = new DoubleDataset(rows,columns);
+		IDataset juliaSet = DatasetFactory.zeros(DoubleDataset.class, rows,columns);
 		for (int yIndex = 0; yIndex < rows; yIndex++) {
 			y = yStart + yIndex * yStep;
 			IDataset line = calculateJuliaSetLine(a, b, y, xStart, xStop, columns);
@@ -227,7 +227,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	private IDataset calculateJuliaSetLine(final double a, final double b, final double y, final double xStart, final double xStop, final int numPoints) {
 		final double xStep = (xStop - xStart) / (numPoints - 1);
 		double x;
-		IDataset juliaSetLine = new DoubleDataset(numPoints);
+		IDataset juliaSetLine = DatasetFactory.zeros(DoubleDataset.class, numPoints);
 		for (int xIndex = 0; xIndex < numPoints; xIndex++) {
 			x = xStart + xIndex * xStep;
 			juliaSetLine.set(julia(x, y, a, b), xIndex);
