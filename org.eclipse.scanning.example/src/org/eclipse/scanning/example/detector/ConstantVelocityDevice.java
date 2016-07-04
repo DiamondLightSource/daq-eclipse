@@ -3,7 +3,6 @@ package org.eclipse.scanning.example.detector;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
@@ -58,7 +57,7 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 		// We add 2 to the scan rank to include the image
 		int rank = info.getRank()+3; // scan rank plus three dimensions for the CV scan.
 		
-		context = detector.initializeLazyDataset(NXdetector.NX_DATA, rank, Dataset.FLOAT64);
+		context = detector.initializeLazyDataset(NXdetector.NX_DATA, rank, Double.class);
 		
 		// Setting chunking is a very good idea if speed is required.
 		int[] chunk = info.createChunk(model.getLineSize(), model.getChannelCount(), model.getSpectraSize());

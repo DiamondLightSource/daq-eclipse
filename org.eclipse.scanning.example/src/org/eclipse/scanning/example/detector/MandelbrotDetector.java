@@ -109,12 +109,12 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 		int scanRank = info.getRank();
 		// We add 2 to the scan rank to include the image
-		imageData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank + 2, Dataset.FLOAT64);
+		imageData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank + 2, Double.class);
 		// We add 1 to the scan rank to include the spectrum
-		spectrumData = detector.initializeLazyDataset(FIELD_NAME_SPECTRUM, scanRank + 1, Dataset.FLOAT64);
+		spectrumData = detector.initializeLazyDataset(FIELD_NAME_SPECTRUM, scanRank + 1, Double.class);
 		// Total is a single scalar value (i.e. zero-dimensional) for each point in the scan
 		// Dimensions match that of the scan
-		valueData = detector.initializeLazyDataset(FIELD_NAME_VALUE, scanRank, Dataset.FLOAT64);
+		valueData = detector.initializeLazyDataset(FIELD_NAME_VALUE, scanRank, Double.class);
 
 		// Setting chunking is a very good idea if speed is required.
 		imageData.setChunking(info.createChunk(model.getRows(), model.getColumns()));

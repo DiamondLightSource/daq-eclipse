@@ -47,10 +47,10 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			positioner.setField(FIELD_NAME_DEMAND_VALUE, getPosition().doubleValue());
 			positioner.setValueScalar(getPosition().doubleValue());
 		} else {
-			this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Dataset.FLOAT64);
+			this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Double.class);
 			lzDemand.setChunking(new int[]{1});
 			
-			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dataset.FLOAT64);
+			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Double.class);
 			lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 		}
 

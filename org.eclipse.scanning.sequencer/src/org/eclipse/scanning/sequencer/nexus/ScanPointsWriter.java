@@ -3,7 +3,6 @@ package org.eclipse.scanning.sequencer.nexus;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.dawnsci.analysis.api.dataset.DType;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
@@ -76,9 +75,9 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		final NXcollection scanPointsCollection = NexusNodeFactory.createNXcollection();
 		// create the unique keys and scan points datasets
 		uniqueKeys = scanPointsCollection.initializeLazyDataset(
-				FIELD_NAME_UNIQUE_KEYS, info.getRank(), Dataset.INT32);
+				FIELD_NAME_UNIQUE_KEYS, info.getRank(), Integer.class);
 		points = scanPointsCollection.initializeLazyDataset(
-				FIELD_NAME_POINTS, info.getRank(), Dataset.STRING);
+				FIELD_NAME_POINTS, info.getRank(), String.class);
 		// set chunking
 		final int[] chunk = new int[info.getRank()];
 		Arrays.fill(chunk, 1);
@@ -92,7 +91,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 //		scanFinished = scanPointsCollection.initializeFixedSizeLazyDataset(
 //				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
 		// TODO: workaround for bug in HD5 loader, do not set size limit 
-		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, DType.INT32, new int[] { 1 },
+		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, Integer.class, new int[] { 1 },
 				new int[] { -1 }, null, null);
 		scanFinished.setFillValue(0);
 		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);

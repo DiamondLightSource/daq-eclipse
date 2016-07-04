@@ -1,6 +1,5 @@
 package org.eclipse.scanning.sequencer;
 
-import org.eclipse.dawnsci.analysis.api.dataset.DType;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
@@ -50,10 +49,10 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 		final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
 		positioner.setNameScalar(scannable.getName());
 
-		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, DType.FLOAT64);
+		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Double.class);
 		lzDemand.setChunking(new int[]{1});
 		
-		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), DType.FLOAT64);
+		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Double.class);
 		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 
 		return new NexusObjectWrapper<NXpositioner>(scannable.getName(), positioner, NXpositioner.NX_VALUE);

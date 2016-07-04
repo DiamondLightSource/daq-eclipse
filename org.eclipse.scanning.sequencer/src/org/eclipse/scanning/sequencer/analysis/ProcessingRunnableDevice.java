@@ -14,7 +14,6 @@ import org.eclipse.dawnsci.analysis.api.processing.IOperation;
 import org.eclipse.dawnsci.analysis.api.processing.IOperationContext;
 import org.eclipse.dawnsci.analysis.api.processing.IOperationService;
 import org.eclipse.dawnsci.analysis.api.processing.OperationData;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusException;
@@ -69,7 +68,7 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 		final NXdetector detector = NexusNodeFactory.createNXdetector();
 		
 		// TODO Hard coded to images
-		this.processed = detector.initializeLazyDataset(NXdetector.NX_DATA,  info.getRank()+2, Dataset.FLOAT64);
+		this.processed = detector.initializeLazyDataset(NXdetector.NX_DATA, info.getRank()+2, Double.class);
 		this.info      = info;		
 		
 		Attributes.registerAttributes(detector, this);

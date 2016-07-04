@@ -23,7 +23,6 @@ import java.io.IOException;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
 import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
@@ -73,7 +72,7 @@ public class DarkImageDetector extends AbstractRunnableDevice<DarkImageModel> im
 		
 		final NXdetector detector = NexusNodeFactory.createNXdetector();
 		
-		data = detector.initializeLazyDataset(NXdetector.NX_DATA, 3, Dataset.FLOAT64);
+		data = detector.initializeLazyDataset(NXdetector.NX_DATA, 3, Double.class);
 		
 		// Setting chunking is a very good idea if speed is required.
 		data.setChunking(new int[]{1, model.getRows(), model.getColumns()});
