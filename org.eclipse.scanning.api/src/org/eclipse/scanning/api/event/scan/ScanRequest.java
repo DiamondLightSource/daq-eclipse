@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.event.scan;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -8,7 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.scan.models.ScanMetadata;
 import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.api.script.ScriptResponse;
@@ -24,7 +27,12 @@ import org.eclipse.scanning.api.script.ScriptResponse;
  * @param T must be type of region that the regions correspond to. For instance IROI for any region type or IRectangularROI is all known to be rectangular.
  *
  */
-public class ScanRequest<T> {
+public class ScanRequest<T> implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 456095444930240261L;
 
 	/**
 	 * The models for generating the points for a scan 
@@ -33,12 +41,7 @@ public class ScanRequest<T> {
 	 * 
 	 * e.g. a StepModel
 	 */
-	private Collection<IScanPathModel> models;
-	
-	/**
-	 * A map of the unique id of a model to the set of regions (if any) required by that model.
-	 */
-	private Map<String, Collection<T>> regions;
+	private CompoundModel compoundModel;
 
 	/** 
 	 * The names of the detectors to use in the scan, may be null.
@@ -104,30 +107,16 @@ public class ScanRequest<T> {
 
 	}
 	
-	public ScanRequest(IScanPathModel model, String filePath, String... monitorNames) {
+	public ScanRequest(IScanPathModel m, String filePath, String... monitorNames) {
 		super();
-		models = Arrays.asList(model);
+		this.compoundModel = new CompoundModel(m);
 		this.monitorNames = Arrays.asList(monitorNames);
 		this.filePath = filePath;
 	}
 	
-	public ScanRequest(IScanPathModel model, T region, String filePath, String... monitorNames) {
-		this(model, filePath, monitorNames);
-		putRegion(model.getUniqueKey(), region);
-	}
-
-	public Collection<IScanPathModel> getModels() {
-		return models;
-	}
-	
-	public void setModels(Collection<IScanPathModel> models) {
-		this.models = models;
-	}
-
-	// This varargs implementation has been added for convenience of users of ScanRequest objects
-	// However it requires special handling for serialization (since there are two setters) so be careful changing it!
-	public void setModels(IScanPathModel... models) {
-		setModels(Arrays.asList(models));
+	public ScanRequest(IScanPathModel m, T region, String filePath, String... monitorNames) {
+		this(m, filePath, monitorNames);
+		compoundModel.setRegions(Arrays.asList(new ScanRegion<T>(region, m.getScannableNames())));
 	}
 
 	public Collection<String> getMonitorNames() {
@@ -178,12 +167,11 @@ public class ScanRequest<T> {
 		result = prime * result + ((end == null) ? 0 : end.hashCode());
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + (ignorePreprocess ? 1231 : 1237);
-		result = prime * result + ((models == null) ? 0 : models.hashCode());
-		result = prime * result + ((monitorNames == null) ? 0 : monitorNames.hashCode());
-		result = prime * result + ((regions == null) ? 0 : regions.hashCode());
-		result = prime * result + ((start == null) ? 0 : start.hashCode());
-		result = prime * result + ((scanMetadata == null) ? 0 : scanMetadata.hashCode());
 		result = prime * result + ((metadataScannableNames == null) ? 0 : metadataScannableNames.hashCode());
+		result = prime * result + ((compoundModel == null) ? 0 : compoundModel.hashCode());
+		result = prime * result + ((monitorNames == null) ? 0 : monitorNames.hashCode());
+		result = prime * result + ((scanMetadata == null) ? 0 : scanMetadata.hashCode());
+		result = prime * result + ((start == null) ? 0 : start.hashCode());
 		return result;
 	}
 
@@ -195,7 +183,7 @@ public class ScanRequest<T> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ScanRequest<?> other = (ScanRequest<?>) obj;
+		ScanRequest other = (ScanRequest) obj;
 		if (after == null) {
 			if (other.after != null)
 				return false;
@@ -233,24 +221,20 @@ public class ScanRequest<T> {
 			return false;
 		if (ignorePreprocess != other.ignorePreprocess)
 			return false;
-		if (models == null) {
-			if (other.models != null)
+		if (metadataScannableNames == null) {
+			if (other.metadataScannableNames != null)
 				return false;
-		} else if (!models.equals(other.models))
+		} else if (!metadataScannableNames.equals(other.metadataScannableNames))
+			return false;
+		if (compoundModel == null) {
+			if (other.compoundModel != null)
+				return false;
+		} else if (!compoundModel.equals(other.compoundModel))
 			return false;
 		if (monitorNames == null) {
 			if (other.monitorNames != null)
 				return false;
 		} else if (!monitorNames.equals(other.monitorNames))
-			return false;
-		if (metadataScannableNames == null) {
-			if (other.metadataScannableNames != null)
-				return false;
-		}
-		if (regions == null) {
-			if (other.regions != null)
-				return false;
-		} else if (!regions.equals(other.regions))
 			return false;
 		if (scanMetadata == null) {
 			if (other.scanMetadata != null)
@@ -267,7 +251,7 @@ public class ScanRequest<T> {
 
 	@Override
 	public String toString() {
-		return "ScanRequest [models=" + models + ", detectors=" + detectors +
+		return "ScanRequest [model=" + compoundModel + ", detectors=" + detectors +
 				", monitorNames=" + monitorNames +
 				", metadataScannableNames=" + metadataScannableNames +
 				", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
@@ -300,24 +284,6 @@ public class ScanRequest<T> {
 
 	public void setEnd(IPosition end) {
 		this.end = end;
-	}
-
-	public Map<String, Collection<T>> getRegions() {
-		return regions;
-	}
-	public Collection<T> getRegions(String uniqueKey) {
-		if (regions==null) return null;
-		return regions.get(uniqueKey);
-	}
-
-	public void setRegions(Map<String, Collection<T>> regions) {
-		this.regions = regions;
-	}
-	
-	@SafeVarargs
-	public final void putRegion(String uniqueId, T... areas) {
-		if (this.regions==null) this.regions = new HashMap<>(3);
-		this.regions.put(uniqueId, Arrays.asList(areas));
 	}
 
 	public boolean isIgnorePreprocess() {
@@ -373,6 +339,14 @@ public class ScanRequest<T> {
 			this.scanMetadata = new ArrayList<>();
 		}
 		this.scanMetadata.add(scanMetadata);
+	}
+
+	public CompoundModel getCompoundModel() {
+		return compoundModel;
+	}
+
+	public void setCompoundModel(CompoundModel model) {
+		this.compoundModel = model;
 	}
 
 }

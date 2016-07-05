@@ -1,11 +1,9 @@
 package org.eclipse.scanning.test.malcolm.device;
 
-import java.util.Map;
-
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorModelWithMap;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -26,7 +24,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	}
 
 	@Override
-	public MalcolmDetectorModelWithMap validate(MalcolmDetectorModelWithMap params) throws MalcolmDeviceException {
+	public MapMalcolmDetectorModel validate(MapMalcolmDetectorModel params) throws MalcolmDeviceException {
 		throw new MalcolmDeviceException(this, "Validate is not implemented!");
 	}
 
@@ -47,7 +45,10 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	        amount = (int)model.getParameterMap().get("nframes");
 	        
 	        // Send scan start
-			sendEvent(new MalcolmEventBean(getState()));
+	        MalcolmEventBean bean = new MalcolmEventBean();
+	        bean.setPreviousState(DeviceState.READY);
+	        bean.setDeviceState(DeviceState.RUNNING);
+			sendEvent(bean);
 	           
 			while(getState().isRunning()) {
 				
@@ -64,7 +65,10 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 			} // End fake scanning loop.
 			
 			setState(DeviceState.IDLE); // State change
-	        sendEvent(new MalcolmEventBean(getState())); // Scan end event        
+	        bean = new MalcolmEventBean();
+	        bean.setPreviousState(DeviceState.RUNNING);
+	        bean.setDeviceState(DeviceState.IDLE);
+			sendEvent(bean);
         } 
 		catch (Exception ne) {
 			ne.printStackTrace();

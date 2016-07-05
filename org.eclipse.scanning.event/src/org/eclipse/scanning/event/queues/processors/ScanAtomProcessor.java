@@ -12,6 +12,7 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.slf4j.Logger;
@@ -75,7 +76,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.15,
 				"Creating scan request from configured values.");
 		ScanRequest<?> scanReq = new ScanRequest<>();
-		scanReq.setModels(queueBean.getPathModels());
+		scanReq.setCompoundModel(new CompoundModel(queueBean.getPathModels()));
 		scanReq.setDetectors(queueBean.getDetectorModels());
 		scanReq.setMonitorNames(queueBean.getMonitors());
 

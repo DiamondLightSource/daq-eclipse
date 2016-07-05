@@ -4,9 +4,8 @@ import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 
 public class TestGeneratorModel extends AbstractPointsModel {
 
-	@Override
-	public String getName() {
-		return "Test";
+	public TestGeneratorModel() {
+		setName("Test");
 	}
 
 }

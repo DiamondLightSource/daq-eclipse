@@ -14,6 +14,7 @@ import org.eclipse.scanning.api.event.alive.HeartbeatEvent;
 import org.eclipse.scanning.api.event.alive.IHeartbeatListener;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.event.Constants;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.test.BrokerTest;
@@ -32,6 +33,9 @@ public class HeartbeatTest extends BrokerTest {
 	@Before
 	public void createServices() throws Exception {
 		
+		Constants.setNotificationFrequency(100);
+		Constants.setTimeout(500);
+
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
@@ -49,17 +53,17 @@ public class HeartbeatTest extends BrokerTest {
 	@After
 	public void dispose() throws EventException {
 		publisher.disconnect();
+		Constants.setNotificationFrequency(2000);
+		Constants.setTimeout(Constants.TIMEOUT);
 	}
 
 
 	@Test
 	public void blindHeartbeatTest() throws Exception {
 
-		System.setProperty("org.eclipse.scanning.event.heartbeat.freq",    String.valueOf(1000));
-		System.setProperty("org.eclipse.scanning.event.heartbeat.timeout", String.valueOf(5000));
 		publisher.setAlive(true);
 
-		Thread.sleep(10000);
+		Thread.sleep(1000);
 
 		if (!publisher.isAlive()) throw new Exception("Heartbeat should still be being published!");
 
@@ -73,8 +77,6 @@ public class HeartbeatTest extends BrokerTest {
 	@Test
 	public void checkedHeartbeatTest() throws Exception {
 
-		System.setProperty("org.eclipse.scanning.event.heartbeat.freq",    String.valueOf(1000));
-		System.setProperty("org.eclipse.scanning.event.heartbeat.timeout", String.valueOf(5000));
 		publisher.setAlive(true);
 		
 		final List<HeartbeatBean> gotBack = new ArrayList<>(3);
@@ -86,7 +88,7 @@ public class HeartbeatTest extends BrokerTest {
 			}
 		});
 
-		Thread.sleep(10000);
+		Thread.sleep(2000);
 
 		if (!publisher.isAlive()) throw new Exception("Heartbeat should still be being published!");
 
@@ -101,8 +103,6 @@ public class HeartbeatTest extends BrokerTest {
 	@Test
 	public void timeoutHeartbeatTest() throws Exception {
 
-		System.setProperty("org.eclipse.scanning.event.heartbeat.freq",    String.valueOf(1000));
-		System.setProperty("org.eclipse.scanning.event.heartbeat.timeout", String.valueOf(5000));
 		try {
 			final URI uri = new URI("tcp://rubbish:5600");	
 			publisher = eservice.createPublisher(uri, IEventService.HEARTBEAT_TOPIC);

@@ -9,8 +9,8 @@ public class DarkImageModel {
 	
 	public DarkImageModel() {
 		name          = "dark";
-		columns       = 301;
-		rows          = 241;
+		columns       = 64;
+		rows          = 60;
 		frequency     = 10;
 	}
 	

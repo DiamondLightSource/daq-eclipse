@@ -28,6 +28,11 @@ import org.eclipse.scanning.api.points.MapPosition;
  */
 public final class ScanBean extends StatusBean { 
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8191863784268392626L;
+
 	// Field required to start a scan, may be null.
 	private ScanRequest<?> scanRequest;
 		
@@ -138,13 +143,13 @@ public final class ScanBean extends StatusBean {
 				+ ", beamline=" + beamline
 				+ ", point=" + point
 				+ ", size=" + size
-				+ ", value=" + position
+				+ ", position=" + position
 				+ ", deviceState=" + deviceState
 				+ ", previousDeviceState=" + previousDeviceState
 				+ ", filePath=" + filePath
 				+ ", scanNumber=" + scanNumber
 				+ ", datasetPath=" + datasetPath
-				+ super.toString()+"]";
+				+ " "+super.toString()+"]";
 	}
 
 	public DeviceState getPreviousDeviceState() {
@@ -200,7 +205,7 @@ public final class ScanBean extends StatusBean {
 	
 	public void putPosition(String name, int index, Object val) {
 		IPosition tmp = new MapPosition(name, index, val);
-		this.position = tmp.composite(position);
+		this.position = tmp.compound(position);
 	}
 	
 	public boolean scanStart() {

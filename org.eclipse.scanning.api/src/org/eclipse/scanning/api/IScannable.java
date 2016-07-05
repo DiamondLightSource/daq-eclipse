@@ -1,6 +1,5 @@
 package org.eclipse.scanning.api;
 
-import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.points.IPosition;
 
 /**

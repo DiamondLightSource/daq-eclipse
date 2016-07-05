@@ -1,5 +1,8 @@
 package org.eclipse.scanning.api.points;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -7,9 +10,15 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
 
-public abstract class AbstractPosition implements IPosition {
+public abstract class AbstractPosition implements IPosition, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8555957478192358365L;
 	
 	private int stepIndex = -1;
+	protected List<Collection<String>> dimensionNames; // Dimension->Names@dimension
 	
 	@UiHidden
 	public int getStepIndex() {
@@ -20,13 +29,14 @@ public abstract class AbstractPosition implements IPosition {
 		this.stepIndex = stepIndex;
 	}
 
-	public IPosition composite(IPosition with) {
-		if (with==null) return this; // this+null = this
+	public final IPosition compound(IPosition parent) {
+		if (parent==null) return this; // this+null = this
 		final MapPosition ret = new MapPosition();
-		ret.putAll(with);
+		ret.putAll(parent);
 		ret.putAll(this);
-		ret.putAllIndices(with);
+		ret.putAllIndices(parent);
 		ret.putAllIndices(this);
+		ret.setStepIndex(getStepIndex());
 		return ret;
 	}
 
@@ -35,7 +45,7 @@ public abstract class AbstractPosition implements IPosition {
 		final int prime = 31;
 		int result = 1;
 		long temp;
-		final List<String> names   = getNames();
+		final Collection<String> names   = getNames();
 		for (String name : names) {
 			Object val = get(name);
 			if (val instanceof Number) {
@@ -48,13 +58,22 @@ public abstract class AbstractPosition implements IPosition {
   	    return result+stepIndex;
 	}
 
-	public boolean equals(Object obj, boolean checkStep) {
+	/**
+	 * Do not override equals. 
+	 * 
+	 * MapPostion("x:1,y:1") should equal Point("x", 1, "y",1)
+	 * because they represent the same motor values.
+	 * 
+	 * @param obj
+	 * @param checkStep
+	 * @return
+	 */
+	public final boolean equals(Object obj, boolean checkStep) {
 		
 		if (this == obj)
 			return true;
+		
 		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
 			return false;
 		
 		if (checkStep) {
@@ -62,9 +81,9 @@ public abstract class AbstractPosition implements IPosition {
 				return false;
 		}
 
-		final List<String> ours   = getNames();
-		final List<String> theirs = ((IPosition)obj).getNames();
-		if (!ours.equals(theirs)) return false;		
+		final Collection<String> ours   = getNames();
+		final Collection<String> theirs = ((IPosition)obj).getNames();
+		if (!equals(ours, theirs)) return false;		
 		for (String name : ours) {
 			Object val1 = get(name);
 			Object val2 = ((IPosition)obj).get(name);
@@ -73,8 +92,60 @@ public abstract class AbstractPosition implements IPosition {
 			if (!val1.equals(val2)) return false;
 		}
 		
+		final Map<String, Integer> iours   = getIndices();
+		final Map<String, Integer> itheirs = getIndices((IPosition)obj);
+		if (!iours.equals(itheirs)) return false;		
+	
+		if (!equals(getDimensionNames(), getDimensionNames((IPosition)obj))) return false;		
+
 		return true;
 	}
+
+	private Map<String, Integer> getIndices(IPosition pos) {
+		if (pos instanceof AbstractPosition) return ((AbstractPosition)pos).getIndices(); // Might be null
+		Map<String, Integer> ret = new LinkedHashMap<String, Integer>(pos.getNames().size());
+		for (String name : pos.getNames()) ret.put(name,  pos.getIndex(name));
+		return ret;
+	}
+
+	/**
+	 * This equals does an equals on two collections
+	 * as if they were two lists because order matters with the names.
+	 * @param o
+	 * @param t
+	 * @return
+	 */
+    private boolean equals(Collection<?> o, Collection<?> t) {
+        
+    	if (o == t)
+            return true;
+    	if (o == null && t == null)
+            return true;
+    	if (o == null || t == null)
+            return false;
+ 
+        Iterator<?> e1 = o.iterator();
+        Iterator<?> e2 = t.iterator();
+        while (e1.hasNext() && e2.hasNext()) {
+            Object o1 = e1.next();
+            Object o2 = e2.next();
+            
+            // Collections go down to the same equals.
+            if (o1 instanceof Collection && o2 instanceof Collection) {
+            	boolean collectionsEqual = equals((Collection<?>)o1,(Collection<?>)o2);
+            	if (!collectionsEqual) {
+            		return false;
+            	} else {
+            		continue;
+            	}
+            }
+            
+            // Otherwise we use object equals.
+            if (!(o1==null ? o2==null : o1.equals(o2)))
+                return false;
+        }
+        return !(e1.hasNext() || e2.hasNext());
+    }
 
 	@Override
 	public boolean equals(Object obj) {
@@ -83,10 +154,12 @@ public abstract class AbstractPosition implements IPosition {
 	
 	public String toString() {
 		StringBuilder buf = new StringBuilder("[");
+		buf.append(getClass().getSimpleName());
+		buf.append(": ");
 		buf.append("stepIndex=");
 		buf.append(stepIndex);
 		buf.append(", ");
-		final List<String> names   = getNames();
+		final Collection<String> names   = getNames();
         for (Iterator<String> it = names.iterator(); it.hasNext();) {
 			String name = it.next();
         	buf.append(name);
@@ -101,19 +174,37 @@ public abstract class AbstractPosition implements IPosition {
     	return buf.toString();
 	}
 	
-
-	/**
-	 * This method always creates a new map of indices 
-	 * @return the data indices mapped name:index
-	 */
-	@UiHidden
-	public Map<String, Integer> getIndices() {
-		final Map<String,Integer> indices = new LinkedHashMap<>(size());
-		for (String name : getNames()) indices.put(name, getIndex(name));
-		return indices;
+	public Collection<String> getDimensionNames(int dimension) {
+		if (dimensionNames==null && dimension==0) return getNames();
+		if (dimensionNames==null)                 return null;
+		if (dimension>=dimensionNames.size())     return null;
+		return dimensionNames.get(dimension);
+	}
+	private List<Collection<String>> getDimensionNames(IPosition pos) {
+		if (pos instanceof AbstractPosition) return ((AbstractPosition)pos).getDimensionNames();
+		return null; // Do not have to support dimension names
 	}
 
-	public double getValue(String name) {
-		return ((Number)get(name)).doubleValue();
+	public List<Collection<String>> getDimensionNames() {
+		if (dimensionNames==null)  {
+			dimensionNames = new ArrayList<>();
+			dimensionNames.add(new ArrayList<>(getNames())); // List adding a collection, we copy the keys here run SerializationTest to see why
+		}
+		return dimensionNames;
+	}
+	public void setDimensionNames(List<Collection<String>> dNames) {
+		this.dimensionNames = dNames;
+	}
+	
+	@Override
+	public int getScanRank() {
+		if (dimensionNames!=null) return dimensionNames.size();
+		return 1;
+	}
+
+	@Override
+	public int getIndex(int dimension) {
+		final String name = getDimensionNames(dimension).iterator().next();
+		return getIndex(name);
 	}
 }

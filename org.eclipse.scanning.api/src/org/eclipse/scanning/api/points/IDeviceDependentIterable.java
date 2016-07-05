@@ -38,4 +38,13 @@ public interface IDeviceDependentIterable extends Iterable<IPosition> {
 	 */
 	List<String> getScannableNames();
 
+	/**
+	 * For scan ranks greater than one please override this
+	 * default method to return the real rank of the scan.
+	 * @return
+	 */
+	default int getScanRank() {
+		return 1;
+	}
+
 }

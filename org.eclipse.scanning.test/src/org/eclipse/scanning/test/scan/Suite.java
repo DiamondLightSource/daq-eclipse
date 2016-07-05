@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.scan;
 
+import org.eclipse.scanning.test.scan.preprocess.PreprocessTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
@@ -8,7 +9,10 @@ import org.junit.runners.Suite.SuiteClasses;
 
 	ScanTest.class,
 	TopupTest.class,
-	BenchmarkScanTest.class
+	BenchmarkScanTest.class,
+	ScanFinishedTest.class,
+	PreprocessTest.class,
+	ScanAlgorithmTest.class
 
 })
 public class Suite {

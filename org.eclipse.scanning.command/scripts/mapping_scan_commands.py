@@ -48,7 +48,7 @@ from org.eclipse.dawnsci.analysis.dataset.roi import (
 from org.eclipse.scanning.api.points.models import (
     StepModel, GridModel, RasterModel, SinglePointModel,
     OneDEqualSpacingModel, OneDStepModel, ArrayModel,
-    BoundingBox, BoundingLine)
+    BoundingBox, BoundingLine, CompoundModel)
 from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
 from org.eclipse.scanning.api.event.IEventService import (
     SUBMISSION_QUEUE, STATUS_TOPIC)
@@ -143,14 +143,10 @@ def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
 
     (scan_path_models, _) = zip(*scan_paths)  # zip(* == unzip(
 
-    # ScanRequest expects ROIs to be specified as a map in the following
-    # (bizarre?) format:
-    # (Use a HashMap here (not a plain Python dict) because otherwise run-time
-    # errors occur if someone later calls scanRequest.getRegions().hashCode().)
-    roi_map = HashMap()
+    # ScanRequest expects CompoundModel 
+    cmodel = CompoundModel()
     for (model, rois) in scan_paths:
-        if len(rois) > 0:
-            roi_map[model.getUniqueKey()] = rois
+        cmodel.addData(model, rois)
 
     # (Again, use a HashMap, not a Python dict.)
     detector_map = HashMap()
@@ -158,8 +154,7 @@ def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
         detector_map[name] = model
 
     return _instantiate(ScanRequest,
-                        {'models': scan_path_models,
-                         'regions': roi_map,
+                        {'compoundModel': cmodel,
                          'monitorNames': monitors,
                          'detectors': detector_map,
                          'ignorePreprocess': not allow_preprocess})

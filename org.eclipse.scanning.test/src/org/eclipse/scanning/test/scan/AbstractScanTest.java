@@ -180,7 +180,7 @@ public class AbstractScanTest extends BrokerTest {
 		int before = Thread.activeCount();
 		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
 		scanner.run(null);
-		Thread.sleep(2000);
+		Thread.sleep(200);
 		int after = Thread.activeCount();
 		if (after>before+1) throw new Exception("too many extra threads after scan! Expected not more than "+before+1+" got "+after);
 	}
@@ -260,7 +260,7 @@ public class AbstractScanTest extends BrokerTest {
 		
 		// 1. Set the model to make the detector throw an exception
 		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setExposureTime(0.1);
+		dmodel.setExposureTime(0.001);
 		dmodel.setAbortCount(3); // Aborts on the third write call by throwing an exception
 		IWritableDetector<MockDetectorModel> detector = (IWritableDetector<MockDetectorModel>)dservice.createRunnableDevice(dmodel);
 		
@@ -345,7 +345,7 @@ public class AbstractScanTest extends BrokerTest {
 			IRunnableDevice<ScanModel> scanner = createTestScanner(null, bean, publisher, null, null);
 			scanner.run(null);
 			
-			Thread.sleep(1000); // Wait for all events to make it over from ActiveMQ
+			Thread.sleep(100); // Wait for all events to make it over from ActiveMQ
 			
 			checkRun(scanner);
 			
@@ -374,8 +374,8 @@ public class AbstractScanTest extends BrokerTest {
 		// NOTE Did with Mockito but caused dependency issues.
 		MockScannable ms = (MockScannable)x;
 		ms.verify(0.3, new Point(0,0.3,0,0.3));
-		ms.verify(1.5, new Point(0,1.5,2,0.3));
-		ms.verify(0.3, new Point(2,0.3,0,1.5));
+		ms.verify(0.3, new Point(0,0.3,2,1.5));
+		ms.verify(1.5, new Point(2,1.5,0,0.3));
 		ms.verify(1.5, new Point(2,1.5,2,1.5));
 	}
 	
@@ -392,8 +392,8 @@ public class AbstractScanTest extends BrokerTest {
 		// NOTE Did with Mockito but caused dependency issues.
 		MockScannable ms = (MockScannable)monitor;
 		ms.verify(null, new Point(0,0.3,0,0.3));
-		ms.verify(null, new Point(0,1.5,2,0.3));
-		ms.verify(null, new Point(2,0.3,0,1.5));
+		ms.verify(null, new Point(0,0.3,2,1.5));
+		ms.verify(null, new Point(2,1.5,0,0.3));
 		ms.verify(null, new Point(2,1.5,2,1.5));
 	}
 	
@@ -416,7 +416,7 @@ public class AbstractScanTest extends BrokerTest {
 		// Configure a detector with a collection time.
 		if (detector == null) {
 			MockDetectorModel dmodel = new MockDetectorModel();
-			dmodel.setExposureTime(0.1);
+			dmodel.setExposureTime(0.001);
 			dmodel.setName("detector");
 			detector = dservice.createRunnableDevice(dmodel);
 		}
@@ -458,7 +458,7 @@ public class AbstractScanTest extends BrokerTest {
 		final PausingIterable iterable = new PausingIterable(5);
 		
 		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setExposureTime(0.1);
+		dmodel.setExposureTime(0.001);
 		dmodel.setName("detector");
 		IRunnableDevice<MockDetectorModel> detector = dservice.createRunnableDevice(dmodel);
 
@@ -506,10 +506,10 @@ public class AbstractScanTest extends BrokerTest {
 
 					System.out.println("Next position is "+next);
 					if (count%2==0) {
-						long amount = count*1000;
+						long amount = count*100;
 						System.out.println("Sleeping for "+amount+" while we get to it.");
 						try {
-							Thread.sleep(amount); // 2000, 4000
+							Thread.sleep(amount); // 200, 400
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();

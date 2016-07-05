@@ -23,8 +23,6 @@ import org.junit.Test;
 
 public class LinearTest {
 
-	// TODO FIXME Test Linear Numerically
-	
 	private IPointGeneratorService service;
 	
 	@Before
@@ -72,6 +70,7 @@ public class LinearTest {
 		    System.out.println("Index (x,y) = "+Arrays.asList(xIndex, yIndex));
 		    assertTrue(xIndex==i);
 		    assertTrue(yIndex==i);
+		    assertTrue(pos.getScanRank()==1);
 		}
 	}
 

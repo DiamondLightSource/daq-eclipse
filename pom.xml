@@ -61,7 +61,7 @@
 			<artifactId>tycho-p2-repository-plugin</artifactId>
 			<version>${tycho-version}</version>
 			<configuration>
-				<includeAllDependencies>true</includeAllDependencies>
+				<includeAllDependencies>false</includeAllDependencies>
 			</configuration>
 		</plugin>
 		
@@ -98,9 +98,8 @@
                 <testClassesDirectory>${basedir}/bin</testClassesDirectory>
 	            <excludes>
 	              <exclude>**repository/*</exclude>
-				  <exclude>org/eclipse/richbeans/**/Suite.java</exclude>
-				  <exclude>org/eclipse/dawnsci/**/Suite.java</exclude>
-				  <exclude>org/eclipse/scanning/test/command/**/Suite.java</exclude>
+				  <exclude>org/eclipse/richbeans/**</exclude>
+				  <exclude>org/eclipse/dawnsci/**</exclude>
 	            </excludes>
            		<includes>
 		          <include>${test.includes}</include>

@@ -112,7 +112,7 @@ public class MappingScanTest extends BrokerTest{
 			bean.setPoint(ipoint);
 			bean.putPosition("temperature", ++index, temp);
 			testDeviceScan(bean, gen);
-			Thread.sleep(1000); // Moving to the new temp takes non-zero time so I've heard.
+			Thread.sleep(10); // Moving to the new temp takes non-zero time so I've heard.
 			++ipoint;
 		}
 
@@ -120,7 +120,7 @@ public class MappingScanTest extends BrokerTest{
 		bean.setStatus(Status.COMPLETE);
 		publisher.broadcast(bean);
 
-		Thread.sleep(1000); // Just to make sure all the message events come in
+		Thread.sleep(100); // Just to make sure all the message events come in
 
 		assertTrue(gotBack.size() > 10);
 		assertTrue(gotBack.get(1).scanStart());

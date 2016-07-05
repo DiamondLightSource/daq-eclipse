@@ -20,8 +20,8 @@ public class MockTopupMonitor extends MockScannable {
 		
 		final int step = loc.getStepIndex();
 		if (step%10==0) { // We wait
-			System.out.println("Waiting for imaginary topup for 1000ms ");
-			Thread.sleep(1000);
+			System.out.println("Waiting for imaginary topup for 10ms ");
+			Thread.sleep(10);
 			System.out.println("Bean current is now stable again... ");
 		}
 		super.setPosition(position, loc);

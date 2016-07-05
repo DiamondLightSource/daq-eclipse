@@ -2,12 +2,9 @@ package org.eclipse.scanning.test.command;
 
 import static org.junit.Assert.assertEquals;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import org.apache.activemq.broker.BrokerService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
@@ -17,7 +14,6 @@ import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 

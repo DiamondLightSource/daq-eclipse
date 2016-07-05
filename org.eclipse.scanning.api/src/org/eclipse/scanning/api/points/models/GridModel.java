@@ -1,7 +1,7 @@
 package org.eclipse.scanning.api.points.models;
 
-import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.MinimumValue;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 
 /**
@@ -27,6 +27,15 @@ public class GridModel extends AbstractBoundingBoxModel {
 	
 	@FieldDescriptor(label="Snake")
 	private boolean snake = false;
+	
+	public GridModel() {
+		// We are a bean
+	}
+	
+	public GridModel(String fastName, String slowName) {
+		setFastAxisName(fastName);
+		setSlowAxisName(slowName);
+	}
 
 	@Override
 	public String getName() {

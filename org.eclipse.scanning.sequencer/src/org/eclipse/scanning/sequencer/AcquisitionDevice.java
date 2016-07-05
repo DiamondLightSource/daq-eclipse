@@ -1,20 +1,10 @@
 package org.eclipse.scanning.sequencer;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
-import org.eclipse.dawnsci.nexus.NexusException;
-import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
-import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -27,8 +17,8 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.eclipse.scanning.sequencer.nexus.NexusScanFileBuilder;
-import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
+import org.eclipse.scanning.sequencer.nexus.INexusScanFileManager;
+import org.eclipse.scanning.sequencer.nexus.NexusScanFileManager;
 
 /**
  * This device does a standard GDA scan at each point. If a given point is a 
@@ -43,14 +33,14 @@ import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
  * @param <T>
  */
 final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
-
+	
 	// Scanning stuff
 	private IPositioner                          positioner;
 	private LevelRunner<IRunnableDevice<?>>      runners;
 	private LevelRunner<IRunnableDevice<?>>      writers;
 	
 	// the nexus file
-	private NexusScanFile nexusScanFile = null;
+	private INexusScanFileManager nexusScanFileManager = null;
 	
 	/*
 	 * Concurrency design recommended by Keith Ralphs after investigating
@@ -69,6 +59,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		this.lock      = new ReentrantLock();
 		this.paused    = lock.newCondition();
 		setName("solstice_scan");
+		setPrimaryScanDevice(true);
 	}
 	
 	/**
@@ -93,7 +84,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			// Make sure all devices report the same scan id
 			for (IRunnableDevice<?> device : model.getDetectors()) {
 				if (device instanceof AbstractRunnableDevice<?>) {
-					((AbstractRunnableDevice<?>)device).setBean(getBean());
+					AbstractRunnableDevice<?> adevice = (AbstractRunnableDevice<?>)device;
+					adevice.setBean(getBean());
+					adevice.setPrimaryScanDevice(false);
 				}
 			}
 			runners = new DeviceRunner(model.getDetectors());
@@ -103,99 +96,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			writers = LevelRunner.createEmptyRunner();
 		}
 		
-		// add legacy metadata scannables and 
-		// tell each scannable whether or not it is a metadata scannable in this scan
-		List<String> scannableNames = getScannableNames(model.getPositionIterable());
-		setMetadataScannables(model, scannableNames);
 		
 		// create the nexus file, if appropriate
-		try {
-			createNexusFile(model);
-		} catch (NexusException e) {
-			throw new ScanningException(e);
-		}
+		nexusScanFileManager = NexusScanFileManager.createNexusScanFile(this, model);
 		
 		setDeviceState(DeviceState.READY); // Notify 
-	}
-
-	/**
-	 * Augments the set of metadata scannables in the model with: <ul>
-	 * <li>any scannables from the legacy spring configuration;</li>
-	 * <li>the required scannables of any scannables in the scan;</li>
-	 * </ul> 
-	 * @param model
-	 * @throws ScanningException
-	 */
-	@SuppressWarnings("deprecation")
-	private void setMetadataScannables(ScanModel model, List<String> scannableNames) throws ScanningException {
-		// TODO: does this belong in NexusScanFileBuilder? It's clogging up this class
-		// and only NexusScanFileBuilder needs to know about metadata scannables
-		
-		// build up the set of all metadata scannables
-		Set<String> metadataScannableNames = new HashSet<>();
-		
-		// add the metadata scannables in the model
-		metadataScannableNames.addAll(model.getMetadataScannables().stream().
-				map(m -> m.getName()).collect(Collectors.toSet()));
-		
-		// add the global metadata scannables, and the required metadata scannables for
-		// each scannable in the scan
-		final IDeviceConnectorService connectorService = getConnectorService();
-		metadataScannableNames.addAll(connectorService.getGlobalMetadataScannableNames());
-		
-		// the set of scannable names to check for dependencies
-		Set<String> scannableNamesToCheck = new HashSet<>();
-		scannableNamesToCheck.addAll(metadataScannableNames);
-		scannableNamesToCheck.addAll(scannableNames);
-		do {
-			// check the given set of scannable names for dependencies
-			// each iteration checks the scannable names added in the previous one
-			Set<String> requiredScannables = scannableNamesToCheck.stream().flatMap(
-					name -> connectorService.getRequiredMetadataScannableNames(name).stream())
-					.filter(name -> !metadataScannableNames.contains(name))
-					.collect(Collectors.toSet());
-			
-			metadataScannableNames.addAll(requiredScannables);
-			scannableNamesToCheck = requiredScannables;
-		} while (!scannableNamesToCheck.isEmpty());
-		
-		// remove any scannable names in the scan from the list of metadata scannables
-		metadataScannableNames.removeAll(scannableNames);
-		
-		// get the metadata scannables for the given names
-		IDeviceConnectorService deviceConnectorService = getConnectorService();
-		List<IScannable<?>> metadataScannables = new ArrayList<>(metadataScannableNames.size());
-		for (String scannableName : metadataScannableNames) {
-			IScannable<?> metadataScannable = deviceConnectorService.getScannable(scannableName);
-			metadataScannables.add(metadataScannable);
-		}
-		
-		model.setMetadataScannables(metadataScannables);
-	}
-
-	/**
-	 * Creates the NeXus file for the scan, if the scan is configured to
-	 * create one.
-	 * 
-	 * @param model scan model
-	 * @return <code>true</code> if a nexus file was successfully created, <code>false</code> otherwise
-	 * @throws NexusException if a nexus file should be created
-	 * @throws ScanningException 
-	 */
-	private boolean createNexusFile(ScanModel model) throws NexusException, ScanningException {
-		if (model.getFilePath() == null || ServiceHolder.getFactory() == null) {
-			return false; // nothing wired, don't write a nexus file 
-		}
-		
-		NexusScanFileBuilder fileBuilder = new NexusScanFileBuilder(getConnectorService());
-		nexusScanFile = fileBuilder.createNexusFile(model);
-		ScanPointsWriter scanPointsWriter = fileBuilder.getScanPointsWriter();
-    	positioner.addPositionListener(scanPointsWriter);
-    	addRunListener(scanPointsWriter);
-		
-		nexusScanFile.openToWrite();
-		
-		return true; // successfully created file
 	}
 
 	@Override
@@ -214,7 +119,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		int size  = getSize(model.getPositionIterable());
+    		final int size  = getSize(model.getPositionIterable());
     		int count = 0;
 
     		fireStart(size);    		
@@ -227,9 +132,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		// The scan loop
         	pos = null; // We want the last point when we are done so don't use foreach
         	boolean firedFirst = false;
-	        for (Iterator<IPosition> it = model.getPositionIterable().iterator(); it.hasNext();) {
+	        for (IPosition position : model.getPositionIterable()) {
 				
-	        	pos = it.next();
+	        	pos = position;
 	        	pos.setStepIndex(count);
 	        	
 	        	if (!firedFirst) {
@@ -238,26 +143,25 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	            	firedFirst = true;
 	        	}
 	        	
+	        	
 	        	// Check if we are paused, blocks until we are not
 	        	boolean continueRunning = checkPaused();
-	        	if (!continueRunning) {
-	        		return; // finally block performed 
-	        	}
-	        	
-	        	// TODO Some validation on each point
-	        	// perhaps replacing atPointStart(..)
-	        	// Whether to deal with atLineStart() and atPointStart()
+	        	if (!continueRunning) return; // finally block performed 
+
+	        	// TODO Some validation on each point perhaps replacing atPointStart(..)
+	        	// TODO Whether to deal with atLineStart() and atPointStart()
 	        	
 	        	// Run to the position
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
-	        	writers.await();               // Wait for the previous read out to return, if any
-	        	if (nexusScanFile!=null) nexusScanFile.flush();         // flush the nexus file
+	        	writers.await();               // Wait for the previous write out to return, if any
+	        	
+        		nexusScanFileManager.flushNexusFile(); // flush the nexus file
 	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
 	        	// Send an event about where we are in the scan
-	        	positionComplete(pos, count+1, size);
+	        	positionComplete(pos, count, size);
 	        	++count;
 	        }
 	        
@@ -276,14 +180,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			setDeviceState(DeviceState.FAULT);
 			throw new ScanningException(ne);
 		} finally {
-        	fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
-        	if (nexusScanFile!=null) {
-				try {
-					nexusScanFile.close();
-				} catch (NexusException e) {
-					throw new ScanningException("Could not close nexus file", e);
-				}
-        	}
+			nexusScanFileManager.scanFinished(); // writes scanFinished and closes nexus file
+        	// We should not fire the run performed until the nexus file is closed.
+        	// Tests wait for this step and reread the file.
+       	    fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
+       	    
 		}
 		// only fire end if finished normally
 		fireEnd();
@@ -457,19 +358,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	}
 	
 
-	private List<String> getScannableNames(Iterable<IPosition> gen) {
-		
-		List<String> names = null;
-		if (gen instanceof IDeviceDependentIterable) {
-			names = ((IDeviceDependentIterable)gen).getScannableNames();
-			
-		}
-		if (names==null) {
-			names = model.getPositionIterable().iterator().next().getNames();
-		}
-		return names;   		
-	}
-	
 	private int getSize(Iterable<IPosition> gen) throws GeneratorException {
 		
 		int size=0;

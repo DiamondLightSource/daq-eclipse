@@ -1,8 +1,5 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -404,6 +401,7 @@ public abstract class AbstractQueueProcessorTest {
 		
 		//Get last bean - needed for penultimate bean analysis too
 		lastBean = broadcastBeans.get(broadcastBeans.size()-1);
+		double lastBPercComp = lastBean.getPercentComplete();
 		
 		//Penultimate bean should have status depending on the above if/else block
 		if (prevBean) {
@@ -413,7 +411,7 @@ public abstract class AbstractQueueProcessorTest {
 			}
 			assertEquals("Second to last bean has wrong status", previousBeanState, penultimateBean.getStatus());
 			double penuBPercComp = penultimateBean.getPercentComplete();
-			assertTrue("Percent complete greater than last bean's", lastBean.getPercentComplete() >= penuBPercComp);
+			assertTrue("Percent complete greater than last bean's", lastBPercComp >= penuBPercComp);
 			assertTrue("The percent complete is not between 0% & 100%", ((penuBPercComp > 0d) && (penuBPercComp < 100d))); 
 		}
 		
@@ -424,9 +422,9 @@ public abstract class AbstractQueueProcessorTest {
 		assertTrue("Last bean is not final", lastBean.getStatus().isFinal());
 		assertEquals("Last bean has wrong status", state, lastBean.getStatus());
 		if (percentComplete > 0) {
-			assertEquals("Last bean has wrong percent complete", percentComplete, lastBean.getPercentComplete(), 0);
+			assertEquals("Last bean has wrong percent complete", percentComplete, lastBPercComp, 0);
 		} else {
-			assertThat("The percent complete is not between 0% & 100%", lastBean.getPercentComplete(), not(equalTo(100)));
+			assertTrue("The percent complete is not between 0% & 100%", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
 		}
 		
 	}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -18,10 +19,11 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
+import org.eclipse.scanning.api.points.models.CollatedStepModel;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.EmptyModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
@@ -29,7 +31,10 @@ import org.eclipse.scanning.api.points.models.IBoundingLineModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
+import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
+import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 
 public class PointGeneratorFactory implements IPointGeneratorService {
@@ -44,12 +49,15 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		System.out.println("Starting generator service");
 		Map<Class<? extends IScanPathModel>, Class<? extends IPointGenerator>> gens = new HashMap<>(7);
 		gens.put(StepModel.class,             StepGenerator.class);
+		gens.put(CollatedStepModel.class,     StepGenerator.class);
 		gens.put(ArrayModel.class,            ArrayGenerator.class);
 		gens.put(GridModel.class,             GridGenerator.class);
 		gens.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
 		gens.put(OneDStepModel.class,         OneDStepGenerator.class);
 		gens.put(RasterModel.class,           RasterGenerator.class);
 		gens.put(EmptyModel.class,            EmptyGenerator.class);
+		gens.put(RandomOffsetGridModel.class, RandomOffsetGridGenerator.class);
+		gens.put(SpiralModel.class,           SpiralGenerator.class);
 		
 		Map<String,   GeneratorInfo> tinfo = new TreeMap<>();
 		fillStaticGeneratorInfo(gens, tinfo);
@@ -201,5 +209,34 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		} catch (IllegalAccessException | InstantiationException ne) {
 			throw new GeneratorException(ne);
 		}
+	}
+
+	@Override
+	public IPointGenerator<?> createCompoundGenerator(CompoundModel cmodel) throws GeneratorException {
+		
+		IPointGenerator<?>[] gens = new IPointGenerator<?>[cmodel.getModels().size()];
+		int index = 0;
+		for (IScanPathModel model : cmodel.getModels()) {
+			Collection<?> regions = findRegions(cmodel, model);
+			gens[index] = createGenerator(model, regions);
+			index++;
+		}
+		return createCompoundGenerator(gens);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <R> Collection<R> findRegions(CompoundModel cmodel, IScanPathModel model) throws GeneratorException {
+		
+		if (cmodel.getRegions()==null) return null;
+		
+        final Collection<R> regions = new LinkedHashSet<R>(); // Order should not be important but some tests assume it
+		final Collection<String> names = model.getScannableNames();
+		for (ScanRegion<?> region : cmodel.getRegions()) {
+			if (region.getScannables().containsAll(names)) {
+				regions.add((R)region.getRoi());
+			}
+		}
+		return regions;
 	}
 }

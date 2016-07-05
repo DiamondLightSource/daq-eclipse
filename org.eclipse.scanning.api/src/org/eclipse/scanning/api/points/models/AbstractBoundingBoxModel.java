@@ -1,7 +1,10 @@
 package org.eclipse.scanning.api.points.models;
 
-import org.eclipse.scanning.api.annotation.FieldDescriptor;
+import java.util.Arrays;
+import java.util.List;
+
 import org.eclipse.scanning.api.annotation.UiHidden;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 
 /**
@@ -25,6 +28,13 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 
 	protected AbstractBoundingBoxModel() {
 		super();
+	}
+	
+	protected AbstractBoundingBoxModel(String fastName, String slowName, BoundingBox box) {
+		super();
+		this.fastAxisName = fastName;
+		this.slowAxisName = slowName;
+		this.boundingBox  = box;
 	}
 
 	@Override
@@ -69,8 +79,6 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!super.equals(obj))
-			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		AbstractBoundingBoxModel other = (AbstractBoundingBoxModel) obj;
@@ -91,4 +99,9 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 			return false;
 		return true;
 	}
+	
+	public List<String> getScannableNames() {
+		return Arrays.asList(getFastAxisName(), getSlowAxisName());
+	}
+
 }

@@ -18,11 +18,8 @@
 
 package org.eclipse.scanning.test.points;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -32,14 +29,13 @@ import java.util.List;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
-import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -442,14 +438,14 @@ public class GridTest {
 		IPointGenerator<GridModel> gen = service.createGenerator(model, roi);
 		List<IPosition> pointList = gen.createPoints();
 
-		assertThat(pointList.size(), is(equalTo(9)));
+		assertTrue(pointList.size()==9);
 
 		// Check some points
-		assertThat(pointList.get(0), is(equalTo(new Point(0, -9.5, 0, 5.5))));
-		assertThat(pointList.get(1), is(equalTo(new Point(1, -8.5, 0, 5.5))));
-		assertThat(pointList.get(3), is(equalTo(new Point(0, -9.5, 1, 6.5))));
-		assertThat(pointList.get(5), is(equalTo(new Point(2, -7.5, 1, 6.5))));
-		assertThat(pointList.get(7), is(equalTo(new Point(1, -8.5, 2, 7.5))));
+		assertTrue(pointList.get(0).equals(new Point(0, -9.5, 0, 5.5)));
+		assertTrue(pointList.get(1).equals(new Point(1, -8.5, 0, 5.5)));
+		assertTrue(pointList.get(3).equals(new Point(0, -9.5, 1, 6.5)));
+		assertTrue(pointList.get(5).equals(new Point(2, -7.5, 1, 6.5)));
+		assertTrue(pointList.get(7).equals(new Point(1, -8.5, 2, 7.5)));
 	}
 
 	@Test
@@ -468,12 +464,12 @@ public class GridTest {
 		IPointGenerator<GridModel> gen = service.createGenerator(model, roi);
 		List<IPosition> pointList = gen.createPoints();
 
-		assertThat(pointList.size(), is(equalTo(9)));
+		assertTrue(pointList.size()==9);
 
 		// Check some points
-		assertThat(pointList.get(0), is(equalTo(new Point(0, 0.5, 0, 0.5))));
-		assertThat(pointList.get(1), is(equalTo(new Point(1, 1.5, 0, 0.5))));
-		assertThat(pointList.get(3), is(equalTo(new Point(2, 2.5, 1, 1.5))));
-		assertThat(pointList.get(7), is(equalTo(new Point(1, 1.5, 2, 2.5))));
+		assertTrue(pointList.get(0).equals(new Point(0, 0.5, 0, 0.5)));
+		assertTrue(pointList.get(1).equals(new Point(1, 1.5, 0, 0.5)));
+		assertTrue(pointList.get(3).equals(new Point(2, 2.5, 1, 1.5)));
+		assertTrue(pointList.get(7).equals(new Point(1, 1.5, 2, 2.5)));
 	}
 }

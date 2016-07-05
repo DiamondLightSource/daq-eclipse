@@ -2,12 +2,10 @@ package org.eclipse.scanning.api.device;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +17,10 @@ import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListenable;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 
@@ -29,7 +30,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
  *
  * @param <T>
  */
-public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IScanAttributeContainer {
+public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IScanAttributeContainer, IPositionListenable {
 
 	// Data
 	protected T                          model;
@@ -38,6 +39,12 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   String                     scanId;
 	private   ScanBean                   bean;
 	private   DeviceInformation<T>       deviceInformation;
+	
+	// Devices can either be the top of the scan or somewhere in the
+	// scan tree. By default they are the scan but if used in a nested
+	// scan, their primaryScanDevice will be set to false. This then 
+	// stops state being written to the main scan bean
+	private   boolean                    primaryScanDevice = true;
 
 	// OSGi services and intraprocess events
 	protected IRunnableDeviceService             runnableDeviceService;
@@ -46,6 +53,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	// Listeners
 	private   Collection<IRunListener>   rlisteners;
+	private   Collection<IPositionListener> posListeners;
 	
 	// Attributes
 	private Map<String, Object>          scanAttributes;
@@ -100,16 +108,11 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	
-	public void setDeviceState(DeviceState nstate) throws ScanningException {
-		setDeviceState(nstate, null);
-	}
 	
 	public void reset() throws ScanningException {
 		setDeviceState(DeviceState.IDLE);
 	}
-	
+
 
 	/**
 	 * 
@@ -117,18 +120,24 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * @param position
 	 * @throws ScanningException 
 	 */
-	protected void setDeviceState(DeviceState nstate, IPosition position) throws ScanningException {
+	protected void setDeviceState(DeviceState nstate) throws ScanningException {
+		
+		if (!isPrimaryScanDevice()) return; // Overrall scan state is not managed by us.
 		try {
 			// The bean must be set in order to change state.
-			if (bean==null) bean = new ScanBean();
+			if (bean==null) {
+				bean = new ScanBean();
+			}
 			bean.setDeviceName(getName());
 			bean.setPreviousDeviceState(bean.getDeviceState());
 			bean.setDeviceState(nstate);
-			bean.setPosition(position);
 			
-			if (publisher!=null) publisher.broadcast(bean);
+			if (publisher!=null) {
+				publisher.broadcast(bean);
+			}
 
 		} catch (Exception ne) {
+			ne.printStackTrace();
 			if (ne instanceof ScanningException) throw (ScanningException)ne;
 			throw new ScanningException(this, ne);
 		}
@@ -140,12 +149,24 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		return bean.getDeviceState();
 	}
 
+	
+	
+	/**
+	 * 
+	 * @param pos
+	 * @param count 0-based position count (1 is added to calculate % complete)
+	 * @param size
+	 * @throws EventException
+	 * @throws ScanningException
+	 */
 	protected void positionComplete(IPosition pos, int count, int size) throws EventException, ScanningException {
+		firePositionComplete(pos);
+		
 		final ScanBean bean = getBean();
 		bean.setPoint(count);
 		bean.setPosition(pos);
 		bean.setPreviousDeviceState(bean.getDeviceState());
-		if (size>-1) bean.setPercentComplete(((double)count/size)*100);
+		if (size>-1) bean.setPercentComplete(((double)(count+1)/size)*100);
 
 		if (publisher != null) {
 			publisher.broadcast(bean);
@@ -166,17 +187,42 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		this.publisher = publisher;
 	}
 
-
+	@Override
 	public void addRunListener(IRunListener l) {
-		if (rlisteners==null) rlisteners = Collections.synchronizedCollection(new LinkedHashSet<IRunListener>());
+		if (rlisteners==null) rlisteners = Collections.synchronizedCollection(new LinkedHashSet<>());
 		rlisteners.add(l);
 	}
 	
+	@Override
 	public void removeRunListener(IRunListener l) {
 		if (rlisteners==null) return;
 		rlisteners.remove(l);
 	}
 	
+	@Override
+	public void addPositionListener(IPositionListener l) {
+		if (posListeners == null) {
+			posListeners = Collections.synchronizedCollection(new LinkedHashSet<>());
+		}
+		posListeners.add(l);
+	}
+	
+	@Override
+	public void removePositionListener(IPositionListener l) {
+		if (posListeners == null) return;
+		posListeners.remove(l);
+	}
+
+	public void firePositionComplete(IPosition position) throws ScanningException {
+		if (posListeners == null) return;
+		
+		final PositionEvent evt = new PositionEvent(position);
+		
+		// Make array, avoid multi-threading issues
+		final IPositionListener[] la = posListeners.toArray(new IPositionListener[posListeners.size()]);
+		for (IPositionListener l : la) l.positionPerformed(evt);
+	}
+
 	public void fireRunWillPerform(IPosition position) throws ScanningException {
 		
 		if (rlisteners==null) return;
@@ -300,5 +346,13 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 
 	public void setDeviceInformation(DeviceInformation<T> deviceInformation) {
 		this.deviceInformation = deviceInformation;
+	}
+
+	public boolean isPrimaryScanDevice() {
+		return primaryScanDevice;
+	}
+
+	public void setPrimaryScanDevice(boolean primaryScanDevice) {
+		this.primaryScanDevice = primaryScanDevice;
 	}
 }

@@ -1,9 +1,7 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
@@ -17,7 +15,6 @@ import java.util.Map;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.dry.DryRunCreator;
 import org.eclipse.scanning.api.event.dry.FastRunCreator;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
@@ -134,7 +131,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		assertEquals("Incorrect username", scAt.getUserName(), scan.getUserName());
 		//Check the ScanRequest itself has been correctly interpreted
 		ScanRequest<?> req = scan.getScanRequest(); 
-		assertEquals("Scan path definitions differ", scAt.getPathModels(), req.getModels());
+		assertEquals("Scan path definitions differ", scAt.getPathModels(), req.getCompoundModel().getModels());
 		assertEquals("Detector definitions differ", scAt.getDetectorModels(), req.getDetectors());
 		assertEquals("Monitor definitions differ", scAt.getMonitors(), req.getMonitorNames());
 	}
@@ -162,7 +159,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		} else if (lastStatus.equals(Status.TERMINATED)) {
 			//Last bean should be TERMINATED & not 100%
 			assertEquals("Unexpected last ScanBean final status", lastStatus, lastBean.getStatus());
-			assertThat("ScanBean percentComplete is 100%", lastBean.getPercentComplete(), is(not(100d)));
+			assertTrue("ScanBean percentComplete is 100%", lastBean.getPercentComplete()!=100d);
 		}
 		else {
 			fail("Unknown bean final status");

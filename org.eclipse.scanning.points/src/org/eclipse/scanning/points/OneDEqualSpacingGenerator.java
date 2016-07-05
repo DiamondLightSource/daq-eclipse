@@ -63,7 +63,7 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 			// LinearROI has a helpful getPoint(double) method which returns coordinates of a point at a normalised
 			// distance along the line
 			double[] pointArray = roi.getPoint(start + i * proportionalStep);
-			pointsList.add(new Point(i, pointArray[0], i, pointArray[1])); // TODO Are indices correct?
+			pointsList.add(new Point(model.getxName(), i, pointArray[0], model.getyName(), i, pointArray[1], false));
 		}
 		return pointsList;
 	}

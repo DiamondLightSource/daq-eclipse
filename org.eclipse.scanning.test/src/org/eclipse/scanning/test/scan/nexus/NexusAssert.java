@@ -9,13 +9,8 @@ import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_P
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_UNIQUE_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.GROUP_NAME_SOLSTICE_SCAN;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
@@ -41,45 +36,45 @@ public class NexusAssert {
 
 	public static void assertAxes(NXdata nxData, String... expectedValues) {
 		Attribute axesAttr = nxData.getAttribute(ATTR_NAME_AXES);
-		assertThat(axesAttr, is(notNullValue()));
-		assertThat(axesAttr.getRank(), is(1));
-		assertThat(axesAttr.getShape()[0], is(expectedValues.length));
+		assertTrue(axesAttr!=null);
+		assertTrue(axesAttr.getRank()==1);
+		assertTrue(axesAttr.getShape()[0]==expectedValues.length);
 		IDataset value = axesAttr.getValue();
 		for (int i = 0; i < expectedValues.length; i++) {
-			assertThat(value.getString(i), is(equalTo(expectedValues[i])));
+			assertTrue(value.getString(i).equals(expectedValues[i]));
 		}
 	}
 
 	public static void assertIndices(NXdata nxData, String axisName, int... indices) {
 		Attribute indicesAttr = nxData.getAttribute(axisName + ATTR_SUFFIX_INDICES);
-		assertThat(indicesAttr, is(notNullValue()));
-		assertThat(indicesAttr.getRank(), is(1));
-		assertThat(indicesAttr.getShape()[0], is(indices.length));
+		assertTrue(indicesAttr!=null);
+		assertTrue(indicesAttr.getRank()==1);
+		assertTrue(indicesAttr.getShape()[0]==indices.length);
 		IDataset value = indicesAttr.getValue();
 		for (int i = 0; i < indices.length; i++) {
-			assertThat(value.getInt(i), is(equalTo(indices[i])));
+			assertTrue(value.getInt(i)==indices[i]);
 		}
 	}
 	
 	public static void assertTarget(NXdata nxData, String destName, NXroot nxRoot, String targetPath) {
 		DataNode dataNode = nxData.getDataNode(destName);
-		assertThat(dataNode, is(notNullValue()));
+		assertTrue(dataNode!=null);
 		Attribute targetAttr = dataNode.getAttribute(ATTR_NAME_TARGET);
-		assertThat(targetAttr, is(notNullValue()));
-		assertThat(targetAttr.getSize(), is(1));
-		assertThat(targetAttr.getFirstElement(), is(equalTo(targetPath)));
+		assertTrue(targetAttr!=null);
+		assertTrue(targetAttr.getSize()==1);
+		assertTrue(targetAttr.getFirstElement().equals(targetPath));
 		
 		NodeLink nodeLink = nxRoot.findNodeLink(targetPath);
 		assertTrue(nodeLink.isDestinationData());
-		assertThat(nodeLink.getDestination(), is(sameInstance(dataNode)));
+		assertTrue(nodeLink.getDestination()==dataNode);
 	}
 	
 	public static void assertSignal(NXdata nxData, String expectedSignalFieldName) {
 		Attribute signalAttr = nxData.getAttribute(ATTR_NAME_SIGNAL);
-		assertThat(signalAttr, is(notNullValue()));
-		assertThat(signalAttr.getRank(), is(1));
-		assertThat(signalAttr.getFirstElement(), is(equalTo(expectedSignalFieldName)));
-		assertThat(nxData.getDataNode(expectedSignalFieldName), is(notNullValue()));
+		assertTrue(signalAttr!=null);
+		assertTrue(signalAttr.getRank()==1);
+		assertTrue(signalAttr.getFirstElement().equals(expectedSignalFieldName));
+		assertTrue(nxData.getDataNode(expectedSignalFieldName)!=null);
 	}
 	
 	public static void assertScanPointsGroup(NXentry entry, int... sizes) {
@@ -101,14 +96,14 @@ public class NexusAssert {
 		DataNode dataNode = parentGroup.getDataNode(fieldNamePrefix + FIELD_NAME_UNIQUE_KEYS);
 		assertNotNull(dataNode);
 		IDataset dataset = dataNode.getDataset().getSlice();
-		assertThat(getDType(dataset), is(Dataset.INT32));
-		assertThat(dataset.getRank(), is(sizes.length));
+		assertTrue(getDType(dataset)==Dataset.INT32);
+		assertTrue(dataset.getRank()==sizes.length);
 		assertArrayEquals(sizes, dataset.getShape());
 		PositionIterator iter = new PositionIterator(dataset.getShape());
 		
 		int expectedPos = 1;
 		while (iter.hasNext()) { // hasNext also increments the position iterator (ugh!)
-			assertThat(dataset.getInt(iter.getPos()), is(expectedPos));
+			assertTrue(dataset.getInt(iter.getPos())==expectedPos);
 			expectedPos++;
 		}
 		
@@ -116,8 +111,8 @@ public class NexusAssert {
 		dataNode = parentGroup.getDataNode(fieldNamePrefix + FIELD_NAME_POINTS);
 		assertNotNull(dataNode);
 		dataset = dataNode.getDataset().getSlice();
-		assertThat(getDType(dataset), is(Dataset.STRING));
-		assertThat(dataset.getRank(), is(sizes.length));
+		assertTrue(getDType(dataset)==Dataset.STRING);
+		assertTrue(dataset.getRank()==sizes.length);
 		assertArrayEquals(sizes, dataset.getShape());
 	}
 	
@@ -137,10 +132,10 @@ public class NexusAssert {
 		DataNode dataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
 		assertNotNull(dataNode);
 		IDataset dataset = dataNode.getDataset().getSlice();
-		assertThat(getDType(dataset), is(Dataset.INT32)); // HDF5 doesn't support boolean datasets
-		assertThat(dataset.getRank(), is(1));
+		assertTrue(getDType(dataset)==Dataset.INT32); // HDF5 doesn't support boolean datasets
+		assertTrue(dataset.getRank()==1);
 		assertArrayEquals(dataset.getShape(), new int[] { 1 });
-		assertThat(dataset.getBoolean(0), is(equalTo(finished)));
+		assertTrue(dataset.getBoolean(0)==finished);
 	}
 
 }

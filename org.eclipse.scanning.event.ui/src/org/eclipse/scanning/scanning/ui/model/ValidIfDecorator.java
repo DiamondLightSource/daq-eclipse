@@ -7,8 +7,8 @@ import java.util.Map;
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionEngine;
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionService;
 import org.eclipse.richbeans.widgets.decorator.IDecoratorValidator;
-import org.eclipse.scanning.api.annotation.FieldUtils;
-import org.eclipse.scanning.api.annotation.FieldValue;
+import org.eclipse.scanning.api.annotation.ui.FieldUtils;
+import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 
 public class ValidIfDecorator implements IDecoratorValidator {

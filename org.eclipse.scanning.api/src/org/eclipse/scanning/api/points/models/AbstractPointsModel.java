@@ -2,10 +2,6 @@ package org.eclipse.scanning.api.points.models;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.UUID;
-
-import org.eclipse.scanning.api.annotation.FieldDescriptor;
-import org.eclipse.scanning.api.annotation.UiHidden;
 
 /**
  * Abstract base class for scan models, which provides property change support for the convenience of subclasses.
@@ -15,14 +11,9 @@ import org.eclipse.scanning.api.annotation.UiHidden;
  */
 public abstract class AbstractPointsModel implements IScanPathModel {
 
-	@FieldDescriptor(visible=false)
-	private String      uniqueKey;
-
-	public AbstractPointsModel() {
-		uniqueKey = UUID.randomUUID().toString();
-	}
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+	
 	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
 		this.pcs.addPropertyChangeListener(listener);
@@ -31,24 +22,22 @@ public abstract class AbstractPointsModel implements IScanPathModel {
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		this.pcs.removePropertyChangeListener(listener);
 	}
+	
+	private String name;
 
-	@UiHidden
-	public String getUniqueKey() {
-		return uniqueKey;
+	public String getName() {
+		return name;
 	}
-
-	public void setUniqueKey(String uniqueKey) {
-		this.uniqueKey = uniqueKey;
+	public void setName(String name) {
+		this.name = name;
 	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((uniqueKey == null) ? 0 : uniqueKey.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
-
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -58,10 +47,10 @@ public abstract class AbstractPointsModel implements IScanPathModel {
 		if (getClass() != obj.getClass())
 			return false;
 		AbstractPointsModel other = (AbstractPointsModel) obj;
-		if (uniqueKey == null) {
-			if (other.uniqueKey != null)
+		if (name == null) {
+			if (other.name != null)
 				return false;
-		} else if (!uniqueKey.equals(other.uniqueKey))
+		} else if (!name.equals(other.name))
 			return false;
 		return true;
 	}

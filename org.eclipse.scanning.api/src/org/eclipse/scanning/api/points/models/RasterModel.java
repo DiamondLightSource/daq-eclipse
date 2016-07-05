@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
-import org.eclipse.scanning.api.annotation.FieldDescriptor;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 /**
  * A model for a raster scan within a rectangular box in a two-dimensional space, beginning at the box's start

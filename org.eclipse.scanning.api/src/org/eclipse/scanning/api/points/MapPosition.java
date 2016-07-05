@@ -1,8 +1,7 @@
 package org.eclipse.scanning.api.points;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,19 +9,31 @@ import java.util.Map;
  * @author Matthew Gerring
  *
  */
-public class MapPosition extends AbstractPosition {
+public final class MapPosition extends AbstractPosition {
 	
-	private Map<String, Object>  values;
-	private Map<String, Integer> indices;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3161176012921556875L;
+	
+	private Map<String, Object>  values;   // Name->Value
+	private Map<String, Integer> indices;  // Name->Index
 	
 	public MapPosition() {
-		values  = new LinkedHashMap<String, Object>(7);
-		indices = new LinkedHashMap<String, Integer>(7);
+		values   = new LinkedHashMap<String, Object>(7);
+		indices  = new LinkedHashMap<String, Integer>(7);
 	}
 
-	public MapPosition(Map<String, Object> map) {
-		values = map;
-		indices = new LinkedHashMap<String, Integer>(7);
+	public MapPosition(Map<String, Object> vals) {
+		this(vals, new LinkedHashMap<String, Integer>(7));
+	}
+
+	public MapPosition(Map<String, Object> vals, Map<String, Integer> inds) {
+		values   = vals;
+		if (values.containsKey("stepIndex")) {
+			setStepIndex((Integer)values.remove("stepIndex"));
+		}
+		indices  = inds;
 	}
 	
 	public MapPosition(String name, Integer index, Object value) {
@@ -61,8 +72,8 @@ public class MapPosition extends AbstractPosition {
 	}
 
 	@Override
-	public List<String> getNames() {
-		return new ArrayList<String>(values.keySet());
+	public Collection<String> getNames() {
+		return values.keySet();
 	}
 
 	@Override
@@ -75,10 +86,11 @@ public class MapPosition extends AbstractPosition {
 	}
 	
 	public void putAll(IPosition pos) {
-		final List<String> names = pos.getNames();
+		final Collection<String> names = pos.getNames();
 		if (names==null) return; // EmptyPosition allowed.
 		for (String name : names) {
 			values.put(name, pos.get(name));
+			indices.put(name, pos.getIndex(name));
 		}
 	}
 
@@ -96,15 +108,21 @@ public class MapPosition extends AbstractPosition {
 	
 	public void putAllIndices(IPosition pos) {
 		if (indices==null) indices = new LinkedHashMap<String, Integer>(7);
-		final List<String> names = pos.getNames();
+		final Collection<String> names = pos.getNames();
 		if (names==null) return;
 		for (String name : names) {
 			indices.put(name, pos.getIndex(name));
 		}
 	}
+
 	@Override
 	public Map<String, Integer> getIndices() {
 		return indices;
+	}
+	
+	@Override
+	public Map<String, Object> getValues() {
+		return values;
 	}
 
 }

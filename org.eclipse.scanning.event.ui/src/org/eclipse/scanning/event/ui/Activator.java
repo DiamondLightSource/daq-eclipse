@@ -8,8 +8,6 @@
  */
 package org.eclipse.scanning.event.ui;
 
-import java.net.URI;
-
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.scanning.event.ui.preference.CommandConstants;

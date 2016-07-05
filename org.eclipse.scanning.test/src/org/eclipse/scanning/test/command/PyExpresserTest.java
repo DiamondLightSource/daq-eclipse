@@ -1,33 +1,37 @@
 package org.eclipse.scanning.test.command;
 
-import static org.junit.Assert.*;
+import static org.eclipse.scanning.command.PyExpresser.pyExpress;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.eclipse.scanning.command.PyExpresser.pyExpress;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.command.PyExpresser;
 import org.eclipse.scanning.command.PyExpressionNotImplementedException;
+import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.junit.Before;
 import org.junit.Test;
 
 
 public class PyExpresserTest {
+	
+	@Before
+	public void services() {
+		PyExpresser.setPointGeneratorService(new PointGeneratorFactory());
+	}
 
 	@Test
 	public void testScanRequestWithMonitor()
-			throws PyExpressionNotImplementedException {
+			throws Exception {
 
 		StepModel smodel = new StepModel();
 		smodel.setStart(0);
@@ -35,14 +39,12 @@ public class PyExpresserTest {
 		smodel.setStep(1);
 		smodel.setName("fred");
 
-		List<IScanPathModel> models = new ArrayList<>();
-		models.add(smodel);
 
 		Collection<String> monitors = new ArrayList<>();
 		monitors.add("someMonitor");
 
 		ScanRequest<IROI> request = new ScanRequest<>();
-		request.setModels(models);
+		request.setCompoundModel(new CompoundModel(smodel));
 		request.setMonitorNames(monitors);
 
 		assertEquals(  // Concise.
@@ -55,7 +57,7 @@ public class PyExpresserTest {
 
 	@Test
 	public void testScanRequestWithROI()
-			throws PyExpressionNotImplementedException {
+			throws Exception {
 
 		BoundingBox bbox = new BoundingBox();
 		bbox.setFastAxisStart(0);
@@ -70,19 +72,12 @@ public class PyExpresserTest {
 		gmodel.setFastAxisPoints(3);
 		gmodel.setSlowAxisPoints(4);
 
-		Collection<IROI> roisForGmodel = new ArrayList<>();
 		CircularROI croi = new CircularROI();
-		roisForGmodel.add(croi);
-
 		ScanRequest<IROI> request = new ScanRequest<>();
 
-		List<IScanPathModel> models = new ArrayList<>();
-		models.add(gmodel);
-		request.setModels(models);
-
-		Map<String, Collection<IROI>> regions = new HashMap<>();
-		regions.put(gmodel.getUniqueKey(), roisForGmodel);
-		request.setRegions(regions);
+		CompoundModel cmodel = new CompoundModel();
+		cmodel.setData(gmodel, croi);
+		request.setCompoundModel(cmodel);
 
 		assertEquals(  // Concise.
 				"scan_request(grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 12.0), count=(3, 4), snake=False, roi=circ((0.0, 0.0), 1.0)))",
@@ -94,7 +89,7 @@ public class PyExpresserTest {
 
 	@Test
 	public void testCompoundScanRequest()
-			throws PyExpressionNotImplementedException {
+			throws Exception {
 
 		StepModel smodel = new StepModel();
 		smodel.setStart(0);
@@ -106,12 +101,8 @@ public class PyExpresserTest {
 		amodel.setName("fred");
 		amodel.setPositions(0.1);
 
-		List<IScanPathModel> models = new ArrayList<>();
-		models.add(smodel);
-		models.add(amodel);
-
 		ScanRequest<IROI> request = new ScanRequest<>();
-		request.setModels(models);
+		request.setCompoundModel(new CompoundModel(smodel, amodel));
 
 		assertEquals(  // Concise.
 				"scan_request([step('fred', 0.0, 10.0, 1.0), val('fred', 0.1)])",

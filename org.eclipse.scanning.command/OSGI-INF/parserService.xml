@@ -4,4 +4,5 @@
    <service>
       <provide interface="org.eclipse.scanning.api.scan.IParserService"/>
    </service>
+   <reference bind="setPointGeneratorService" cardinality="0..1" interface="org.eclipse.scanning.api.points.IPointGeneratorService" name="IPointGeneratorService" policy="dynamic"/>
 </scr:component>

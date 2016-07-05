@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.eclipse.scanning.example.xcen.test
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Diamond Light Source
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Require-Bundle: org.junit;bundle-version="4.10.0",
+Require-Bundle: org.junit;bundle-version="4.12.0",
  com.fasterxml.jackson.core.jackson-annotations;bundle-version="2.2.0",
  com.fasterxml.jackson.core.jackson-core;bundle-version="2.2.0",
  com.fasterxml.jackson.core.jackson-databind;bundle-version="2.2.0",

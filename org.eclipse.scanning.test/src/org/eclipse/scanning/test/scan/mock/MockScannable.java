@@ -177,7 +177,7 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 			}
 		}
 		
-		throw new Exception("Not call to setPosition had value="+value+" and position="+point);
+		throw new Exception("No call to setPosition had value="+value+" and position="+point);
 	}
 	
 	@Override

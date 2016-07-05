@@ -12,7 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public class PositionDeserializer extends JsonDeserializer<IPosition> {
+class PositionDeserializer extends JsonDeserializer<IPosition> {
 
 	@Override
 	public IPosition deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {

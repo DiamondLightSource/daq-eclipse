@@ -100,7 +100,7 @@ public class BenchmarkScanTest extends BrokerTest {
 		Services.setRunnableDeviceService(dservice);
 		Services.setGeneratorService(gservice);
 		Services.setConnector(connector);
-		ServiceHolder.setTestServices(lservice, new DefaultNexusBuilderFactory());
+		ServiceHolder.setTestServices(lservice, new DefaultNexusBuilderFactory(), null);
 		org.eclipse.dawnsci.nexus.ServiceHolder.setNexusFileFactory(new NexusFileFactoryHDF5());
 	}
 	

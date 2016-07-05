@@ -7,17 +7,18 @@ import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.Random;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
-import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.DelegateNexusProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.rank.IScanRankService;
+import org.eclipse.scanning.api.scan.rank.IScanSlice;
 
 /**
  * This device mimicks telling EPICS to do a constant velcity scan down a line.
@@ -41,15 +42,13 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 	}
 
 	@Override
-	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		return new DelegateNexusProvider<NXdetector>(getName(), NexusBaseClass.NX_DETECTOR,
-				NXdetector.NX_DATA, info, this);
+	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) throws NexusException {
+		NXdetector detector = createNexusObject(info);
+		return new NexusObjectWrapper<NXdetector>(getName(), detector, NXdetector.NX_DATA);
 	}
 
-	@Override
-	public NXdetector createNexusObject(NexusNodeFactory nodeFactory, NexusScanInfo info) throws NexusException {
-		
-		final NXdetector detector = nodeFactory.createNXdetector();
+	public NXdetector createNexusObject(NexusScanInfo info) throws NexusException {
+		final NXdetector detector = NexusNodeFactory.createNXdetector();
 		// We add 2 to the scan rank to include the image
 		int rank = info.getRank()+3; // scan rank plus three dimensions for the CV scan.
 		
@@ -78,7 +77,8 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 		try {
 			// In a real CV Scan the write step could be to either link in the HDF5 or read in its data 
 			// and write a new record. Avoiding reading in the HDF5 being preferable.
-			SliceND sliceND = NexusScanInfo.createLocation(context, pos.getNames(), pos.getIndices(), model.getLineSize(), model.getChannelCount(), model.getSpectraSize());
+			final IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(pos, model.getLineSize(), model.getChannelCount(), model.getSpectraSize());
+			SliceND sliceND = new SliceND(context.getShape(), context.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 			context.setSlice(null, data, sliceND);
 
 		} catch (Exception e) {
