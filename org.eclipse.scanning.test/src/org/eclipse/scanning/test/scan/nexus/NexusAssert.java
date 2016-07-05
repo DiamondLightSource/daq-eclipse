@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset.getDType;
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_AXES;
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_SIGNAL;
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_TARGET;
@@ -18,6 +17,7 @@ import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.Attribute;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.NodeLink;
+import org.eclipse.dawnsci.analysis.dataset.impl.DTypeUtils;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.NXcollection;
@@ -102,7 +102,7 @@ public class NexusAssert {
 		} catch (DatasetException e) {
 			throw new AssertionError("Could not get data from lazy dataset", e);
 		}
-		assertTrue(getDType(dataset)==Dataset.INT32);
+		assertTrue(DTypeUtils.getDType(dataset)==Dataset.INT32);
 		assertTrue(dataset.getRank()==sizes.length);
 		assertArrayEquals(sizes, dataset.getShape());
 		PositionIterator iter = new PositionIterator(dataset.getShape());
@@ -121,7 +121,7 @@ public class NexusAssert {
 		} catch (DatasetException e) {
 			throw new AssertionError("Could not get data from lazy dataset", e);
 		}
-		assertTrue(getDType(dataset)==Dataset.STRING);
+		assertTrue(DTypeUtils.getDType(dataset)==Dataset.STRING);
 		assertTrue(dataset.getRank()==sizes.length);
 		assertArrayEquals(sizes, dataset.getShape());
 	}
@@ -147,7 +147,7 @@ public class NexusAssert {
 		} catch (DatasetException e) {
 			throw new AssertionError("Could not get data from lazy dataset", e);
 		}
-		assertTrue(getDType(dataset)==Dataset.INT32); // HDF5 doesn't support boolean datasets
+		assertTrue(DTypeUtils.getDType(dataset)==Dataset.INT32); // HDF5 doesn't support boolean datasets
 		assertTrue(dataset.getRank()==1);
 		assertArrayEquals(dataset.getShape(), new int[] { 1 });
 		assertTrue(dataset.getBoolean(0)==finished);

@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset.getDType;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_POINTS;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_UNIQUE_KEYS;
@@ -19,6 +18,7 @@ import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
 import org.eclipse.dawnsci.analysis.api.io.ILazySaver;
 import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
+import org.eclipse.dawnsci.analysis.dataset.impl.DTypeUtils;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.LazyDataset;
 import org.eclipse.dawnsci.nexus.NXcollection;
@@ -259,7 +259,7 @@ public class ScanPointsWriterTest {
 		int[] expectedShape = new int[scanInfo.getRank()];
 		Arrays.fill(expectedShape, 1);
 		assertTrue(Arrays.equals(writtenToUniqueKeysData.getShape(), expectedShape));
-		assertTrue(getDType(writtenToUniqueKeysData)==Dataset.INT);
+		assertTrue(DTypeUtils.getDType(writtenToUniqueKeysData)==Dataset.INT);
 		int[] valuePos = new int[scanRank]; // all zeros
 		assertTrue(writtenToUniqueKeysData.getInt(valuePos)==(stepIndex+1));
 
@@ -274,7 +274,7 @@ public class ScanPointsWriterTest {
 		IDataset writtenToPointsData = pointsSaver.getLastWrittenData();
 		assertTrue(writtenToPointsData!=null);
 		assertTrue(Arrays.equals(writtenToPointsData.getShape(), expectedShape));
-		assertTrue(getDType(writtenToPointsData)==Dataset.STRING);
+		assertTrue(DTypeUtils.getDType(writtenToPointsData)==Dataset.STRING);
 		assertTrue(writtenToPointsData.getString(valuePos).equals(position.toString()));
 		
 		SliceND pointsSlice = pointsSaver.getLastSlice();

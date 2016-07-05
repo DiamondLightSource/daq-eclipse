@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
-import org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset;
+import org.eclipse.dawnsci.analysis.dataset.impl.DTypeUtils;
 import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.NXdata;
@@ -184,7 +184,7 @@ public class ScanMetadataTest extends NexusTest {
 				assertNotNull(dataset);
 				assertEquals(1, dataset.getRank());
 				assertEquals(1, dataset.getSize());
-				assertEquals(AbstractDataset.getDTypeFromObject(expectedValue),
+				assertEquals(DTypeUtils.getDTypeFromObject(expectedValue),
 						dataset.getDType());
 				assertEquals(expectedValue, dataset.getObject(0));
 			}
