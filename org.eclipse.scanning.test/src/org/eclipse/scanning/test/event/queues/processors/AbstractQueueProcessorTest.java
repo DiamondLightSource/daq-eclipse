@@ -115,7 +115,7 @@ public abstract class AbstractQueueProcessorTest {
 		waitForBeanStatus(qBean, Status.RUNNING, 1000l);
 		
 		//Thread.sleep(100); //Because it takes time for the thread to start
-		assertTrue("Executed should false after start", qProcr.isExecuted());
+		assertTrue("Executed should be false after start", qProcr.isExecuted());
 		
 
 		try {
@@ -130,6 +130,8 @@ public abstract class AbstractQueueProcessorTest {
 		} catch (EventException eEx) {
 			//Expected
 		}
+		qProc.terminate();//FIXME Add similar to other processors
+		waitForBeanFinalStatus(qBean, 10000l);
 	}
 	
 	/**
