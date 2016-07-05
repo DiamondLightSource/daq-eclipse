@@ -152,21 +152,21 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	 * @throws EventException
 	 */
 	private void checkConsumerBeans(Status lastStatus) throws EventException {
-	List<ScanBean> statusSet = scanConsumer.getStatusSet();
-	assertEquals("More than one bean in the status queue. Was it cleared?", statusSet.size(), 1);
-	ScanBean lastBean = statusSet.get(statusSet.size()-1);
-	
-	if (lastStatus.equals(Status.COMPLETE)) {
-		assertEquals("Unexpected ScanBean final status", lastStatus, lastBean.getStatus());
-		assertEquals("ScanBean percentcomplete wrong", 100d, lastBean.getPercentComplete(), 0);
-	} else if (lastStatus.equals(Status.TERMINATED)) {
-		//Last bean should be TERMINATED & not 100%
-		assertEquals("Unexpected last ScanBean final status", lastStatus, lastBean.getStatus());
-		assertThat("ScanBean percentComplete is 100%", lastBean.getPercentComplete(), is(not(100d)));
-	}
-	else {
-		fail("Unknown bean final status");
-	}
+		List<ScanBean> statusSet = scanConsumer.getStatusSet();
+		assertEquals("More than one bean in the status queue. Was it cleared?", statusSet.size(), 1);
+		ScanBean lastBean = statusSet.get(statusSet.size()-1);
+
+		if (lastStatus.equals(Status.COMPLETE)) {
+			assertEquals("Unexpected ScanBean final status", lastStatus, lastBean.getStatus());
+			assertEquals("ScanBean percentcomplete wrong", 100d, lastBean.getPercentComplete(), 0);
+		} else if (lastStatus.equals(Status.TERMINATED)) {
+			//Last bean should be TERMINATED & not 100%
+			assertEquals("Unexpected last ScanBean final status", lastStatus, lastBean.getStatus());
+			assertThat("ScanBean percentComplete is 100%", lastBean.getPercentComplete(), is(not(100d)));
+		}
+		else {
+			fail("Unknown bean final status");
+		}
 }
 	
 	

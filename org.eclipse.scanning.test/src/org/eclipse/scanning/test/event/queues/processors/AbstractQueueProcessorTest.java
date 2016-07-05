@@ -413,7 +413,7 @@ public abstract class AbstractQueueProcessorTest {
 			}
 			assertEquals("Second to last bean has wrong status", previousBeanState, penultimateBean.getStatus());
 			double penuBPercComp = penultimateBean.getPercentComplete();
-			assertTrue("Percent complete greater than last bean's", lastBean.getPercentComplete() < penuBPercComp);
+			assertTrue("Percent complete greater than last bean's", lastBean.getPercentComplete() >= penuBPercComp);
 			assertTrue("The percent complete is not between 0% & 100%", ((penuBPercComp > 0d) && (penuBPercComp < 100d))); 
 		}
 		
