@@ -1,8 +1,8 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.InetAddress;
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.dry.FastRunCreator;
@@ -58,6 +59,9 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	protected void localTearDown() throws Exception {
 		//Stop, disconnect & nullify Event infrastructure
 		scanConsumer.stop();
+		scanConsumer.clearQueue(IEventService.SUBMISSION_QUEUE);
+		scanConsumer.clearQueue(IEventService.STATUS_SET);
+		scanConsumer.clearQueue(IEventService.CMD_SET);
 		scanConsumer.disconnect();
 		if (!(scanPublisher == null)) scanPublisher.disconnect();
 		infrastructureServ.stop();
@@ -114,12 +118,11 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 
 		checkFirstBroadcastBeanStatuses(scAt, reportedStatuses, reportedPercent);
 		checkLastBroadcastBeanStatuses(scAt, Status.COMPLETE, true);
+		
+		//Get the last bean from the consumer and check its status
+		ScanBean scan = getLastBean();
+		checkConsumerBean(scan, Status.COMPLETE);
 
-		checkConsumerBeans(Status.COMPLETE);
-
-		//Assert we have a properly structured ScanBean
-		List<ScanBean> statusSet = scanConsumer.getStatusSet();
-		ScanBean scan = statusSet.get(statusSet.size()-1);
 		//Check the properties of the ScanAtom have been correctly passed down
 		assertFalse("No beamline set", scan.getBeamline() == null);
 		assertEquals("Incorrect beamline", scAt.getBeamline(), scan.getBeamline());
@@ -142,17 +145,19 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		
 	}
 	
+	private ScanBean getLastBean() throws EventException {
+		List<ScanBean> statusSet = scanConsumer.getStatusSet();
+		assertEquals("More than one bean in the status queue. Was it cleared?", statusSet.size(), 1);
+		return statusSet.get(statusSet.size()-1);
+	}
+	
 	/**
 	 * Interrogate the statusSet of the scan consumer to check it had the 
 	 * given final status.
 	 * @param lastStatus
 	 * @throws EventException
 	 */
-	private void checkConsumerBeans(Status lastStatus) throws EventException {
-		List<ScanBean> statusSet = scanConsumer.getStatusSet();
-		assertEquals("More than one bean in the status queue. Was it cleared?", statusSet.size(), 1);
-		ScanBean lastBean = statusSet.get(statusSet.size()-1);
-
+	private void checkConsumerBean(ScanBean lastBean, Status lastStatus) throws EventException {
 		if (lastStatus.equals(Status.COMPLETE)) {
 			assertEquals("Unexpected ScanBean final status", lastStatus, lastBean.getStatus());
 			assertEquals("ScanBean percentcomplete wrong", 100d, lastBean.getPercentComplete(), 0);
