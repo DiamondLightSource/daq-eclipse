@@ -126,12 +126,16 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 			if (!queueListener.isChildCommand()) {
 				commandScanBean(Status.REQUEST_TERMINATE);
 			}
+			tidyScanActors();
 			return;
 		}
 
 		//Clean finish
 //		if (isComplete()) {
 			broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
+			tidyScanActors();
+			
+			
 //		} else {
 //			broadcaster.broadcast(Status.FAILED, "Scan ended unexpectedly.");
 //			logger.warn("Processing of ScanAtom '"+queueBean.getName()+"' ended unexpectedly.");
@@ -176,6 +180,15 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		}
 		scanBean.setStatus(command);
 		scanPublisher.broadcast(scanBean);
+	}
+	
+	/**
+	 * Clean up EventService objects which interact with the scan child queue.
+	 * @throws EventException
+	 */
+	private void tidyScanActors() throws EventException {
+		scanPublisher.disconnect();
+		scanSubscriber.disconnect();
 	}
 
 }
