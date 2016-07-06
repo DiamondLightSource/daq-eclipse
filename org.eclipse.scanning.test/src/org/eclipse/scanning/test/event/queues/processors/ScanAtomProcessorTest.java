@@ -110,7 +110,24 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	}
 	
 	@Override
+	protected Queueable getFailBean() {
+		//Failure will be caused by setting status FAILED & message in causeFail()
+		return getTestBean();
+	}
+	
+	@Override
+	protected void causeFail() {
+		//Pause consumer, wait, set message on ScanBean & status FAILED
+	}
+	
+	@Override
 	protected void processorSpecificExecTests() throws Exception {
+		/*
+		 * After execution:
+		 * - expect a specific series of reports from initial beans (creating ScanBean)
+		 * - additional (repeated) check of last bean state, but with penultimate bean too
+		 * - config of parent bean should be set on ScanBean
+		 */
 		Status[] reportedStatuses = new Status[]{Status.RUNNING, Status.RUNNING,
 				Status.RUNNING, Status.RUNNING, Status.RUNNING};
 		Double[] reportedPercent = new Double[]{0d, 0.75d, 
@@ -120,7 +137,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		checkLastBroadcastBeanStatuses(scAt, Status.COMPLETE, true);
 		
 		//Get the last bean from the consumer and check its status
-		ScanBean scan = getLastBean();
+		ScanBean scan = getLastChildBean();
 		checkConsumerBean(scan, Status.COMPLETE);
 
 		//Check the properties of the ScanAtom have been correctly passed down
@@ -141,11 +158,29 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 
 	@Override
 	protected void processorSpecificTermTests() throws Exception {
-		// TODO Auto-generated method stub
+		/*
+		 * After termination:
+		 * - child bean should have been terminated
+		 */
+		ScanBean scan = getLastChildBean();
+		checkConsumerBean(scan, Status.TERMINATED);
 		
 	}
 	
-	private ScanBean getLastBean() throws EventException {
+	@Override
+	protected void processorSpecificFailTests() throws Exception {
+		/*
+		 * After fail:
+		 * - child bean should have failed status
+		 * - message from child queue should be set on parent
+		 */
+		ScanBean scan = getLastChildBean();
+		checkConsumerBean(scan, Status.FAILED);
+		
+		assertEquals("Fail message on parent bean not same as on child bean", "expmsg", "gotmsg");
+	}
+	
+	private ScanBean getLastChildBean() throws EventException {
 		List<ScanBean> statusSet = scanConsumer.getStatusSet();
 		assertEquals("More than one bean in the status queue. Was it cleared?", statusSet.size(), 1);
 		return statusSet.get(statusSet.size()-1);
@@ -158,15 +193,15 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	 * @throws EventException
 	 */
 	private void checkConsumerBean(ScanBean lastBean, Status lastStatus) throws EventException {
-		if (lastStatus.equals(Status.COMPLETE)) {
-			assertEquals("Unexpected ScanBean final status", lastStatus, lastBean.getStatus());
-			assertEquals("ScanBean percentcomplete wrong", 100d, lastBean.getPercentComplete(), 0);
-		} else if (lastStatus.equals(Status.TERMINATED)) {
+		assertEquals("Unexpected ScanBean final status", lastStatus, lastBean.getStatus());
+		double lastBPercComp = lastBean.getPercentComplete();
+		if (lastStatus == Status.COMPLETE) {
+			assertEquals("ScanBean percent complete should be 100%", 100d, lastBPercComp, 0);
+		} else if (lastStatus == Status.TERMINATED || lastStatus == Status.FAILED) {
 			//Last bean should be TERMINATED & not 100%
-			assertEquals("Unexpected last ScanBean final status", lastStatus, lastBean.getStatus());
-			assertTrue("ScanBean percentComplete is 100%", lastBean.getPercentComplete()!=100d);
-		}
-		else {
+			assertTrue("ScanBean percent Complete should not be 100%", lastBPercComp != 100d);
+			assertTrue("The percent complete is not between 0% & 100%", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
+		} else {
 			fail("Unknown bean final status");
 		}
 }
