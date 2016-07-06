@@ -1,10 +1,11 @@
 from org.eclipse.scanning.api.points import Point
 
 from scanpointgenerator import LineGenerator
+from scanpointgenerator import CompoundGenerator
 
-def create_line(name, units, start, stop, num_points, alternate_direction=False):
+def create_line(name, units, start, stop, num_points):
     
-    line = LineGenerator(name, units, start, stop, num_points, alternate_direction)
+    line = LineGenerator(name, units, start, stop, num_points)
     
     for point in line.iterator():
         index = point.indexes[0]
@@ -13,9 +14,9 @@ def create_line(name, units, start, stop, num_points, alternate_direction=False)
         
         yield java_point
 
-def create_2D_line(names, units, starts, stops, num_points, alternate_direction=False):
+def create_2D_line(names, units, start, stop, num_points):
     
-    line = LineGenerator(names, units, starts, stops, num_points, alternate_direction)
+    line = LineGenerator(names, units, start, stop, num_points)
     
     for point in line.iterator():
         index = point.indexes[0]

@@ -71,7 +71,7 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel> {
         int numPoints = steps + 1;
         double[] stop = line.getEndPoint();
         
-        List<IPosition> points = spg.create2DLinePoints(names, "'mm'", start, stop, numPoints, false);
+        List<IPosition> points = spg.create2DLinePoints(names, "'mm'", start, stop, numPoints);
 		return points;
 	}
 }
