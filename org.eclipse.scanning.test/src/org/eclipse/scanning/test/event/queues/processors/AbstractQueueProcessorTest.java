@@ -48,7 +48,7 @@ public abstract class AbstractQueueProcessorTest {
 	@After
 	public void tearDown() throws Exception {
 		localTearDown();
-		if ((qProc != null) && (qProc.getProcessor() != null) && !qProc.isTerminated()) qProc.terminate();
+//		if ((qProc != null) && (qProc.getProcessor() != null) && !qProc.isTerminated()) qProc.terminate();
 		statPub = null;
 		qProc = null;
 		
@@ -130,8 +130,8 @@ public abstract class AbstractQueueProcessorTest {
 		} catch (EventException eEx) {
 			//Expected
 		}
-		qProc.terminate();//FIXME Add similar to other processors
-		waitForBeanFinalStatus(qBean, 10000l);
+//		qProc.terminate();//FIXME Add similar to other processors
+//		waitForBeanFinalStatus(qBean, 10000l);
 	}
 	
 	/**
@@ -390,6 +390,7 @@ public abstract class AbstractQueueProcessorTest {
 	/**
 	 * Check the statuses of the first n beans depending on the number of 
 	 * statuses and percentages supplied.
+	 * @param bean with ID expected for broadcast beans
 	 * @param beanStatuses
 	 * @param beanPercent
 	 */
