@@ -6,6 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
 	MoveAtomProcessorTest.class,
+	QueueListenerTest.class,
 	ScanAtomProcessorTest.class
 })
 public class Suite {
