@@ -57,13 +57,21 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel> {
 		double length = line.getLength();
 		double proportionalStep = model.getStep() / length;
 		int steps = (int) Math.floor(length / model.getStep());
-		List<IPosition> points = new ArrayList<>();
-		for (int i = 0; i <= steps; i++) {
-			// LinearROI has a helpful getPoint(double) method which returns coordinates of a point at a normalised
-			// distance along the line
-			double[] pointArray = line.getPoint(i * proportionalStep);
-			points.add(new Point(i, pointArray[0], i, pointArray[1], false)); // TODO Indices might be wrong
-		}
+//		List<IPosition> points = new ArrayList<>();
+//		for (int i = 0; i <= steps; i++) {
+//			// LinearROI has a helpful getPoint(double) method which returns coordinates of a point at a normalised
+//			// distance along the line
+//			double[] pointArray = line.getPoint(i * proportionalStep);
+//			points.add(new Point(i, pointArray[0], i, pointArray[1], false)); // TODO Indices might be wrong
+//		}
+
+        ScanPointGenerator spg = new ScanPointGenerator();
+        String[] names = {String.format("'%s'", model.getxName()), String.format("'%s'", model.getyName())};
+        double[] start = line.getPoint();
+        int numPoints = steps + 1;
+        double[] stop = line.getEndPoint();
+        
+        List<IPosition> points = spg.create2DLinePoints(names, "'mm'", start, stop, numPoints, false);
 		return points;
 	}
 }

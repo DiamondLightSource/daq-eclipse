@@ -17,6 +17,9 @@ import org.eclipse.scanning.api.annotation.UiHidden;
  */
 public class OneDStepModel extends AbstractPointsModel implements IBoundingLineModel {
 
+    private String xName = "x";
+    private String yName = "y";
+    
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -57,6 +60,7 @@ public class OneDStepModel extends AbstractPointsModel implements IBoundingLineM
 		this.boundingLine = boundingLine;
 		this.pcs.firePropertyChange("boundingLine", oldValue, boundingLine);
 	}
+<<<<<<< HEAD
 	@UiHidden
 	public String getxName() {
 		return xName;
@@ -80,6 +84,24 @@ public class OneDStepModel extends AbstractPointsModel implements IBoundingLineM
 	public List<String> getScannableNames() {
 		return Arrays.asList(xName, yName);
 	}
+=======
+    public String getxName() {
+        return xName;
+    }
+    public void setxName(String xName) {
+        String oldValue = this.xName;
+        this.xName = xName;
+        this.pcs.firePropertyChange("xName", oldValue, xName);
+    }
+    public String getyName() {
+        return yName;
+    }
+    public void setyName(String yName) {
+        String oldValue = this.yName;
+        this.yName = yName;
+        this.pcs.firePropertyChange("yName", oldValue, yName);
+    }
+>>>>>>> Refactor OneDStepGenerator to use LineGenerator, adjust *Model
 	@Override
 	public int hashCode() {
 		final int prime = 31;
