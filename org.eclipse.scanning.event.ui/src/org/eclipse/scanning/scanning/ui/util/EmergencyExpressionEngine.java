@@ -31,7 +31,7 @@ import org.apache.commons.jexl2.Script;
 import org.eclipse.dawnsci.analysis.api.expressions.ExpressionEngineEvent;
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionEngine;
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionEngineListener;
-import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
+import org.eclipse.january.IMonitor;
 
 public class EmergencyExpressionEngine implements IExpressionEngine{
 	
