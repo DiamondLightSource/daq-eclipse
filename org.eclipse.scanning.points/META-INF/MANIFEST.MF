@@ -17,3 +17,5 @@ Export-Package: org.eclipse.scanning.points,
  org.eclipse.scanning.points.serialization
 Service-Component: OSGI-INF/*.xml
 Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: lib/jython-standalone-2.7.0.jar,
+ .
