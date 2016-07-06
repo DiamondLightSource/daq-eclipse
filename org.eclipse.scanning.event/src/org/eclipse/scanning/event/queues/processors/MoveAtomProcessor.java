@@ -51,6 +51,9 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 		//Create a new thread to call the move in
 		moveThread = new Thread(new Runnable() {
 			
+			/*
+			 * DO NOT SET FINAL STATUSES IN THIS THREAD - set them in the post-match analysis
+			 */
 			@Override
 			public void run() {
 				//Move device(s)
@@ -59,7 +62,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 					positioner.setPosition(target);
 					
 					//Completed cleanly
-					setComplete();
+					broadcaster.broadcast(99.5);
 					processorLatch.countDown();
 				} catch (InterruptedException inEx) {
 					if (!isTerminated()) {
@@ -72,10 +75,13 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 			
 			private void reportFail(Exception ex) {
 				logger.error("Moving device(s) in '"+queueBean.getName()+"' failed with: \""+ex.getMessage()+"\".");
-				try{
-					broadcaster.broadcast(Status.FAILED, "Moving device(s) in '"+queueBean.getName()+"' failed: \""+ex.getMessage()+"\".");
+				try {
+					//Bean has failed, but we don't want to set a final status here.
+					broadcaster.broadcast(Status.RUNNING, "Moving device(s) in '"+queueBean.getName()+"' failed: \""+ex.getMessage()+"\".");
 				} catch(EventException evEx) {
 					logger.error("Broadcasting bean failed with: \""+evEx.getMessage()+"\".");
+				} finally {
+					processorLatch.countDown();
 				}
 			}
 		});
@@ -85,19 +91,21 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 		
 		processorLatch.await();
 		
-		//Post-match analysis
+		//Post-match analysis - set all final statuses here!
 		if (isTerminated()) {
 			moveThread.interrupt();
 			positioner.abort();
 			return;
 		}
 		
-		//Clean finish
-		if (isComplete()) {
+		if (queueBean.getPercentComplete() >= 99.5) {
+			//Clean finish
 			broadcaster.broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
 		} else {
-			broadcaster.broadcast(Status.FAILED, "Move ended unexpectedly.");
-			logger.warn("Processing of MoveAtom '"+queueBean.getName()+"' ended unexpectedly.");
+			//Scan failed - don't set anything here as messages should have 
+			//been updated elsewhere
+			positioner.abort();
+			broadcaster.broadcast(Status.FAILED);
 		}
 	}
 

@@ -83,7 +83,6 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		//Configure the ScanBean & set the ScanRequest
 		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.35);
 		if (scanBean.getUniqueId() == null) scanBean.setUniqueId(UUID.randomUUID().toString());
-//		String scanUID = scanBean.getUniqueId();
 		scanBean.setBeamline(queueBean.getBeamline());
 		scanBean.setName(queueBean.getName());
 		scanBean.setHostName(queueBean.getHostName());
@@ -129,18 +128,16 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 			tidyScanActors();
 			return;
 		}
-
-		//Clean finish
-//		if (isComplete()) {
+		
+		if (queueBean.getPercentComplete() >= 99.5) {
+			//Completed successfully
 			broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
-			tidyScanActors();
-			
-			
-//		} else {
-//			broadcaster.broadcast(Status.FAILED, "Scan ended unexpectedly.");
-//			logger.warn("Processing of ScanAtom '"+queueBean.getName()+"' ended unexpectedly.");
-//		}
-
+		} else {
+			//Scan failed - don't set anything here as messages should have 
+			//been updated elsewhere
+			broadcaster.broadcast(Status.FAILED);
+		}
+		tidyScanActors();
 	}
 
 	@Override
@@ -169,6 +166,12 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		return ScanAtom.class;
 	}
 	
+	/**
+	 * Send instructions to the child ScanBean.
+	 * 
+	 * @param command the new State of the ScanBean.
+	 * @throws EventException In case broadcasting fails.
+	 */
 	private void commandScanBean(Status command) throws EventException {
 		if (scanPublisher == null) {
 			broadcaster.broadcast(Status.FAILED, "Scan Publisher not initialised. Cannot send commands to scanning system");

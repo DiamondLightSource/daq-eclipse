@@ -13,7 +13,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractQueueProcessor.class);
 
-	private boolean terminated = false, executed = false, complete = false;
+	private boolean executed = false, terminated = false;
 
 	protected P queueBean;
 	protected IQueueBroadcaster<? extends Queueable> broadcaster;
@@ -62,7 +62,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	public void setExecuted() {
 		executed = true;
 	}
-
+	
 	@Override
 	public boolean isTerminated() {
 		return terminated;
@@ -71,17 +71,6 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	@Override
 	public void setTerminated() {
 		terminated = true;
-		processorLatch.countDown();
-	}
-
-	@Override
-	public boolean isComplete() {
-		return complete;
-	}
-
-	@Override
-	public void setComplete() {
-		complete = true;
 		processorLatch.countDown();
 	}
 

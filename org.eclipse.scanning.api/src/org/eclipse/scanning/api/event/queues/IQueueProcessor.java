@@ -99,19 +99,6 @@ public interface IQueueProcessor<P extends Queueable> {
 	public void setQueueBroadcaster(IQueueBroadcaster<? extends Queueable> broadcaster) throws EventException;
 	
 	/**
-	 * Return whether processor execution has finished successfully.
-	 * 
-	 * @return true is processing completed.
-	 */
-	public boolean isComplete();
-	
-	/**
-	 * Set completed boolean true indicating successful end to execution & 
-	 * that tear-down action should be taken.
-	 */
-	public void setComplete();
-
-	/**
 	 * Return whether execution has begun.
 	 * 
 	 * @return true if execution begun.
