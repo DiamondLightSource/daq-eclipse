@@ -72,7 +72,7 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 //		TODO: start[0] += step/2 etc
 		double[] stop = roi.getEndPoint();
 		
-		List<IPosition> pointsList = spg.create2DLinePoints(names, "'mm'", start, stop, model.getPoints(), false);
+		List<IPosition> pointsList = spg.create2DLinePoints(names, "'mm'", start, stop, model.getPoints());
 		return pointsList;
 	}
 

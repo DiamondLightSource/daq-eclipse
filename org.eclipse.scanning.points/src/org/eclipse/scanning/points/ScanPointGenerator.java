@@ -1,6 +1,7 @@
 package org.eclipse.scanning.points;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -29,18 +30,11 @@ public class ScanPointGenerator {
         pi.exec("from jython_spg_interface import *");
     }
 	
-	public List<IPosition> createLinePoints(String name, String units, double start, double stop, int numPoints, boolean alternateDirection) {
+	public List<IPosition> createLinePoints(String name, String units, double start, double stop, int numPoints) {
 	    
 	    String strStart = String.valueOf(start);
         String strStop = String.valueOf(stop);
         String strNumPoints = String.valueOf(numPoints);
-        String strAlternateDirection;
-        if (alternateDirection) {
-            strAlternateDirection = "alternate_direction=True";
-        }
-        else {
-            strAlternateDirection = "alternate_direction=False";
-        }
 	    
 	    @SuppressWarnings("unchecked")
         List<IPosition> points = (List<IPosition>) pi.eval("list(create_line("
@@ -48,26 +42,18 @@ public class ScanPointGenerator {
                 + units + ","
                 + strStart + ","
                 + strStop + ","
-                + strNumPoints + ","
-                + strAlternateDirection
+                + strNumPoints
                 + "))");
 	    
 		return points;
 	}
     
-    public List<IPosition> create2DLinePoints(String[] names, String units, double[] start, double[] stop, int numPoints, boolean alternateDirection) {
+    public List<IPosition> create2DLinePoints(String[] names, String units, double[] start, double[] stop, int numPoints) {
         
         String strNames = Arrays.toString(names);
         String strStart = Arrays.toString(start);
         String strStop = Arrays.toString(stop);
         String strNumPoints = String.valueOf(numPoints);
-        String strAlternateDirection;
-        if (alternateDirection) {
-            strAlternateDirection = "alternate_direction=True";
-        }
-        else {
-            strAlternateDirection = "alternate_direction=False";
-        }
         
         @SuppressWarnings("unchecked")
         List<IPosition> points = (List<IPosition>) pi.eval("list(create_2D_line("
@@ -75,8 +61,7 @@ public class ScanPointGenerator {
                 + units + ","
                 + strStart + ","
                 + strStop + ","
-                + strNumPoints + ","
-                + strAlternateDirection
+                + strNumPoints
                 + "))");
         
         return points;

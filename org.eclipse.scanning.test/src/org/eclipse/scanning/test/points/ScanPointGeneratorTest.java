@@ -15,7 +15,7 @@ public class ScanPointGeneratorTest {
 	public void test1DLineGenerator() {
 	    ScanPointGenerator spg = new ScanPointGenerator();
         
-	    List<IPosition> points = spg.createLinePoints("'x'", "'mm'", 1.0, 5.0, 5, false);
+	    List<IPosition> points = spg.createLinePoints("'x'", "'mm'", 1.0, 5.0, 5);
 	    
 	    assertEquals(new Point(0, 1.0, 0, 1.0, false), points.get(0));
 	    assertEquals(new Point(1, 2.0, 1, 2.0, false), points.get(1));
@@ -32,7 +32,7 @@ public class ScanPointGeneratorTest {
         double[] start = {1.0, 2.0};
         double[] stop = {5.0, 10.0};
         
-	    List<IPosition> points = spg.create2DLinePoints(names, "'mm'", start, stop, 5, false);
+	    List<IPosition> points = spg.create2DLinePoints(names, "'mm'", start, stop, 5);
         
         assertEquals(new Point(0, 1.0, 0, 2.0, false), points.get(0));
         assertEquals(new Point(1, 2.0, 1, 4.0, false), points.get(1));
