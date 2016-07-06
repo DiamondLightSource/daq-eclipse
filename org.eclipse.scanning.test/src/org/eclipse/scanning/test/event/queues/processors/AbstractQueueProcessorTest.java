@@ -176,7 +176,7 @@ public abstract class AbstractQueueProcessorTest {
 		 * - first bean in statPub should be Status.RUNNING
 		 * - last bean in statPub should be Status.COMPLETE and 100%
 		 * - status publisher should have: 1 RUNNING bean and 1 COMPLETE bean
-		 * - the IPosition should be a MapPosition with map based on atom's map
+		 * 
 		 */
 		checkInitialBeanState(testBean);
 		doExecute(testProcr, testBean);
@@ -190,6 +190,7 @@ public abstract class AbstractQueueProcessorTest {
 	/**
 	 * Processor specific execution tests (e.g. local to MoveAtomProcessor, 
 	 * has motor move been communicated?)
+	 * @param testBean
 	 * @throws Exception
 	 */
 	protected abstract void processorSpecificExecTests() throws Exception;
@@ -207,11 +208,10 @@ public abstract class AbstractQueueProcessorTest {
 		 * - first bean in statPub should be Status.RUNNING
 		 * - last bean in statPub should Status.TERMINATED and not be 100% complete
 		 * - status publisher should have a TERMINATED bean
-		 * - IPositioner should have received an abort command
 		 * 
-		 * (setPosition in MockPositioner pauses for 400ms, does something then pauses 
-		 * for 450ms. If we sleep for 400ms, do some checking and then sleep for another 
-		 * 600ms, any running setPosition calls should be done.)
+		 * 
+		 * N.B. MoveAtomProcessorTest uses MockPostioner, which puases for 400ms 
+		 * does something then pauses for 450ms.
 		 */
 		checkInitialBeanState(testBean);
 		doExecute(testProcr, testBean);
@@ -226,9 +226,52 @@ public abstract class AbstractQueueProcessorTest {
 	
 	/**
 	 * Processor specific termination tests, e.g. that it cleans up safely.
+	 * @param testBean
 	 * @throws Exception
 	 */
 	protected abstract void processorSpecificTermTests() throws Exception;
+	
+	/**
+	 * Check a failure reported to the processor causes processing to stop 
+	 * incomplete and report bean as failed.
+	 * @throws Exception
+	 */
+	@Test
+	public void testFailure() throws Exception {
+		Queueable failBean = getFailBean();
+		IQueueProcessor<? extends Queueable> testProcr = getTestProcessor();
+		/*
+		 * On failure:
+		 * - first bean in statPub should be Status.RUNNING
+		 * - last bean in statPub should Status.FAILED and not be 100% complete
+		 */
+		checkInitialBeanState(failBean);
+		doExecute(testProcr, failBean);
+		causeFail();
+		waitForBeanFinalStatus(failBean, 100000l);
+		
+		checkLastBroadcastBeanStatuses(failBean, Status.FAILED, false);
+		
+		processorSpecificFailTests();
+	}
+	
+	/**
+	 * A bean specifically configured to cause a failure.
+	 * @return
+	 */
+	protected abstract Queueable getFailBean();
+	
+	/**
+	 * Take action during execution necessary to simulate a failure.
+	 */
+	protected abstract void causeFail();
+	
+	/**
+	 * Processor specific failure tests, e.g. aborting of processing tasks.
+	 * @param testBean
+	 * @throws Exception
+	 */
+	protected abstract void processorSpecificFailTests() throws Exception;
 	
 	/**
 	 * These methods provide the queue bean & processor pair to test.
@@ -353,8 +396,7 @@ public abstract class AbstractQueueProcessorTest {
 	protected void checkFirstBroadcastBeanStatuses(Queueable bean, Status[] beanStatuses, Double[] beanPercent) throws Exception {
 		assert(beanStatuses.length == beanPercent.length);
 		
-		List<Queueable> broadcastBeans  = ((MockPublisher<Queueable>)statPub).getBroadcastBeans();
-		if (broadcastBeans.size() == 0) fail("No beans broadcast to Publisher");
+		List<Queueable> broadcastBeans = getBroadcastBeans();
 		
 		for (int i = 0; i < beanStatuses.length; i++) {
 			Queueable broadBean = broadcastBeans.get(i);
@@ -391,8 +433,7 @@ public abstract class AbstractQueueProcessorTest {
 		}
 		
 		Queueable lastBean, penultimateBean, firstBean;
-		List<Queueable> broadcastBeans  = ((MockPublisher<Queueable>)statPub).getBroadcastBeans();
-		if (broadcastBeans.size() == 0) fail("No beans broadcast to Publisher");
+		List<Queueable> broadcastBeans = getBroadcastBeans();
 		
 		//First bean should be RUNNING.
 		firstBean = broadcastBeans.get(0);
@@ -429,6 +470,12 @@ public abstract class AbstractQueueProcessorTest {
 			assertTrue("The percent complete is not between 0% & 100%", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
 		}
 		
+	}
+	
+	protected List<Queueable> getBroadcastBeans() {
+		List<Queueable> broadcastBeans  = ((MockPublisher<Queueable>)statPub).getBroadcastBeans();
+		if (broadcastBeans.size() == 0) fail("No beans broadcast to Publisher");
+		return broadcastBeans;
 	}
 
 //	protected void checkBeanFinalStatus(Status expected, boolean testLastButTwoPerc) throws Exception {
