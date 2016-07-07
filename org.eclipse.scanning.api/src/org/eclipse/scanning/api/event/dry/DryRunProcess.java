@@ -70,8 +70,6 @@ public class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess
 				return;
 			}
 			
-			checkPaused(); // Blocks if is, sends events
-			
 			try {
 				Thread.sleep(sleep);
 			} catch (InterruptedException e) {
@@ -81,6 +79,9 @@ public class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess
 			System.out.println("Dry run : "+getBean().getPercentComplete()+" : "+getBean().getName());
 			getBean().setPercentComplete((Double.valueOf(i)/Double.valueOf(stop))*100d);
 			getPublisher().broadcast(getBean());
+			
+			//This must happen after the broadcast, otherwise we get spurious messages sent on termination.
+			checkPaused(); // Blocks if is, sends events
 		}
 
 		getBean().setPreviousStatus(Status.RUNNING);
