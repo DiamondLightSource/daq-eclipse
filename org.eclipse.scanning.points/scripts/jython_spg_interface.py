@@ -1,6 +1,7 @@
 from org.eclipse.scanning.api.points import Point
 
 from scanpointgenerator import LineGenerator
+from scanpointgenerator import SpiralGenerator
 from scanpointgenerator import CompoundGenerator
 
 def create_line(name, units, start, stop, num_points):
@@ -10,7 +11,7 @@ def create_line(name, units, start, stop, num_points):
     for point in line.iterator():
         index = point.indexes[0]
         position = point.positions[name]
-        java_point = Point(index, position, index, position, False)
+        java_point = Point(index, position, index, position, False)  # Set is2D=False
         
         yield java_point
 
@@ -22,7 +23,7 @@ def create_2D_line(names, units, start, stop, num_points):
         index = point.indexes[0]
         xPosition = point.positions[names[0]]
         yPosition = point.positions[names[1]]
-        java_point = Point(index, xPosition, index, yPosition, False)
+        java_point = Point(index, xPosition, index, yPosition, False)  # Set is2D=False
         
         yield java_point
 
@@ -50,5 +51,17 @@ def create_raster(inner_line, outer_line, alternate_direction=False):
         xPosition = point.positions[inner_name]
         yPosition = point.positions[outer_name]
         java_point = Point(xIndex, xPosition, yIndex, yPosition)
+        
+        yield java_point
+        
+def create_spiral(names, units, centre, radius, scale=1.0, alternate_direction=False):
+    
+    spiral = SpiralGenerator(names, units, centre, radius, scale, alternate_direction)
+    
+    for point in spiral.iterator():
+        index = point.indexes[0]
+        xPosition = point.positions[names[0]]
+        yPosition = point.positions[names[1]]
+        java_point = Point(index, xPosition, index, yPosition, False)  # Set is2D=False
         
         yield java_point
