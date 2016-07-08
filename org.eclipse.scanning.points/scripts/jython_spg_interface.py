@@ -25,3 +25,30 @@ def create_2D_line(names, units, start, stop, num_points):
         java_point = Point(index, xPosition, index, yPosition, False)
         
         yield java_point
+
+def create_raster(inner_line, outer_line, alternate_direction=False):
+    
+    inner_name = name = inner_line['name']
+    units = inner_line['units']
+    start = inner_line['start']
+    stop = inner_line['stop']
+    num_points = inner_line['num_points']
+    inner_line = LineGenerator(name, units, start, stop, num_points, alternate_direction)
+    
+    outer_name = name = outer_line['name']
+    units = outer_line['units']
+    start = outer_line['start']
+    stop = outer_line['stop']
+    num_points = outer_line['num_points']
+    outer_line = LineGenerator(name, units, start, stop, num_points)
+    
+    raster = CompoundGenerator([inner_line, outer_line], [], [])
+    
+    for point in raster.iterator():
+        xIndex = point.indexes[0]
+        yIndex = point.indexes[1]
+        xPosition = point.positions[inner_name]
+        yPosition = point.positions[outer_name]
+        java_point = Point(xIndex, xPosition, yIndex, yPosition)
+        
+        yield java_point

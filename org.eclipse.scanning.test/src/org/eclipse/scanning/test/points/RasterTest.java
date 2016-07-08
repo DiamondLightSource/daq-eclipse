@@ -199,21 +199,11 @@ public class RasterTest {
 		assertEquals(5, pointList.size());
 
 		// Check the points are correct and the order is maintained
-		// 0
-		assertEquals(0, pointList.get(0).getValue("X"), 1e-8);
-		assertEquals(-1, pointList.get(0).getValue("Y"), 1e-8);
-		// 1
-		assertEquals(-1, pointList.get(1).getValue("X"), 1e-8);
-		assertEquals(0, pointList.get(1).getValue("Y"), 1e-8);
-		// 2
-		assertEquals(0, pointList.get(2).getValue("X"), 1e-8);
-		assertEquals(0, pointList.get(2).getValue("Y"), 1e-8);
-		// 3
-		assertEquals(1, pointList.get(3).getValue("X"), 1e-8);
-		assertEquals(0, pointList.get(3).getValue("Y"), 1e-8);
-		// 4
-		assertEquals(0, pointList.get(4).getValue("X"), 1e-8);
-		assertEquals(1, pointList.get(4).getValue("Y"), 1e-8);
+        assertEquals(new Point(1, 0.0, 0, -1.0), pointList.get(0));
+        assertEquals(new Point(0, -1.0, 1, 0.0), pointList.get(1));
+        assertEquals(new Point(1, 0.0, 1, 0.0), pointList.get(2));
+        assertEquals(new Point(2, 1.0, 1, 0.0), pointList.get(3));
+        assertEquals(new Point(1, 0.0, 2, 1.0), pointList.get(4));
 		
         GeneratorUtil.testGeneratorPoints(gen, 3, 3);
 	}
@@ -261,14 +251,14 @@ public class RasterTest {
 		// Get the point list
 		IPointGenerator<RasterModel> gen = service.createGenerator(model, roi);
 		List<IPosition> pointList = gen.createPoints();
-
-		assertTrue(pointList.size()==12);
+        
+		assertEquals(12, pointList.size());
 
 		// Check some points
-		assertTrue(pointList.get(0).equals(new Point(0, -10.0, 0, 5.0)));
-		assertTrue(pointList.get(1).equals(new Point(1, -9.0, 0, 5.0)));
-		assertTrue(pointList.get(3).equals(new Point(0, -10.0, 1, 6.0)));
-		assertTrue(pointList.get(7).equals(new Point(1, -9.0, 2, 7.0)));
+		assertEquals(new Point(0, -10.0, 0, 5.0), pointList.get(0));
+		assertEquals(new Point(1, -9.0, 0, 5.0), pointList.get(1));
+		assertEquals(new Point(0, -10.0, 1, 6.0), pointList.get(3));
+		assertEquals(new Point(1, -9.0, 2, 7.0), pointList.get(7));
 	}
 
 	@Test
@@ -287,13 +277,13 @@ public class RasterTest {
 		IPointGenerator<RasterModel> gen = service.createGenerator(model, roi);
 		List<IPosition> pointList = gen.createPoints();
 
-		assertTrue(pointList.size()==9);
+		assertEquals(9, pointList.size());
 
 		// Check some points
-		assertTrue(pointList.get(0).equals(new Point(0, 1.0, 0, 1.0)));
-		assertTrue(pointList.get(1).equals(new Point(1, 2.0, 0, 1.0)));
-		assertTrue(pointList.get(3).equals(new Point(2, 3.0, 1, 2.0)));
-		assertTrue(pointList.get(7).equals(new Point(1, 2.0, 2, 3.0)));
+		assertEquals(new Point(0, 1.0, 0, 1.0), pointList.get(0));
+		assertEquals(new Point(1, 2.0, 0, 1.0), pointList.get(1));
+		assertEquals(new Point(2, 3.0, 1, 2.0), pointList.get(3));
+		assertEquals(new Point(1, 2.0, 2, 3.0), pointList.get(7));
 	}
 
 }
