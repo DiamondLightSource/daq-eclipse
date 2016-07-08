@@ -117,4 +117,32 @@ public class ScanPointGenerator {
         
         return points;
     }
+    
+    public List<IPosition> createSpiralPoints(String[] names, String units, double[] centre, double radius, double scale, boolean alternateDirection) {
+
+        String strAlternateDirection;
+        if (alternateDirection) {
+            strAlternateDirection = "alternate_direction=True";
+        }
+        else {
+            strAlternateDirection = "alternate_direction=False";
+        }
+        String strNames = Arrays.toString(names);
+        String strUnits = String.format("'%s'", units);
+        String strCentre = Arrays.toString(centre);
+        String strRadius = String.valueOf(radius);
+        String strScale = String.valueOf(scale);
+        
+        @SuppressWarnings("unchecked")
+        List<IPosition> points = (List<IPosition>) pi.eval("list(create_spiral("
+                + strNames + ", "
+                + strUnits + ", "
+                + strCentre + ", "
+                + strRadius + ", "
+                + strScale + ", "
+                + strAlternateDirection
+                + "))");
+        
+        return points;
+    }
 }
