@@ -42,20 +42,20 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 	//
 	private P parent;
 	private double initPercent;
+	private boolean firstTime = true;
 	private Map<String, ProcessStatus> children = new HashMap<>();
 	private boolean childCommand;
+	private final double queueCompletePercentage = 99.5;
 	
-	private QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, Double initPercent, CountDownLatch procLatch, boolean fakeArg) {
+	private QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, boolean fakeArg) {
 		this.broadcaster = broadcaster;
 		this.parent = parent;
-		//FIXME Need some way of stopping this class setting 100% complete & perhaps not passing in initPercent?
-		this.initPercent = initPercent == null ? parent.getPercentComplete() : initPercent;
 		processorLatch = procLatch;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, Double initPercent, CountDownLatch procLatch) throws EventException {
-		this(broadcaster, parent, initPercent, procLatch, true);
+	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch) throws EventException {
+		this(broadcaster, parent, procLatch, true);
 		if (parent instanceof IAtomBeanWithQueue<?>) {
 			List<?> children = ((IAtomBeanWithQueue<?>)parent).getAtomQueue().getQueue();
 			initChildList((List<Q>) children);//QueueAtom extends StatusBean, so this cast is OK.
@@ -64,13 +64,13 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 		}
 	}
 	
-	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, Double initPercent, CountDownLatch procLatch, Q child) {
-		this(broadcaster, parent, initPercent, procLatch, true);
+	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, Q child) {
+		this(broadcaster, parent, procLatch, true);
 		children.put(child.getUniqueId(), new ProcessStatus(child));
 	}
 	
-	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, Double initPercent, CountDownLatch procLatch, List<Q> children) {
-		this(broadcaster, parent, initPercent, procLatch, true);
+	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, List<Q> children) {
+		this(broadcaster, parent, procLatch, true);
 		initChildList(children);
 	}
 	
@@ -117,10 +117,18 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 			}
 		}
 		
+		//Whatever happens update the message on the parent
+		parent.setMessage("'"+bean.getName()+"': "+bean.getMessage());
+		
 		//The percent complete changed, update the parent
 		if (bean.getPercentComplete() != children.get(beanID).getPercentComplete()) {
+			//First time we need to change the parent percent, get its initial value
+			if (firstTime) {
+				initPercent = parent.getPercentComplete();
+				firstTime = false;
+			}
 			double childPercent = bean.getPercentComplete();
-			double childContribution = (100 - initPercent) * children.get(beanID).getWorkFraction();
+			double childContribution = (queueCompletePercentage - initPercent) * children.get(beanID).getWorkFraction();
 			double parentPercent = parent.getPercentComplete() + childContribution / 100 * (childPercent - children.get(beanID).getPercentComplete());
 			parent.setPercentComplete(parentPercent);
 			children.get(beanID).setPercentComplete(childPercent);
@@ -134,7 +142,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 		 * -> TERMINATED (from elsewhere): REQUEST_TERMINATE parent
 		 * -> COMPLETE
 		 * -> RESUMED/RUNNING from PAUSED: REQUEST_RESUME
-		 * -> FAILED: REQUEST_PAUSE
+		 * -> FAILED: FAILED (TODO for TaskBean, pause consumer on completion)
 		 */
 		if (bean.getStatus() != children.get(beanID).getStatus()) {
 			//Update the status of the process
@@ -150,7 +158,9 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 					broadcastUpdate = true;
 				} else {
 					// -DEFAULT for normal running
+					((IAtomWithChildQueue)parent).setQueueMessage("Running...");
 					childCommand = false;
+					broadcastUpdate = true;
 				}
 			} else if (bean.getStatus().isPaused()) {
 				//PAUSE
@@ -161,7 +171,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 			} else if (bean.getStatus().isTerminated()) {
 				//TERMINATE
 				parent.setStatus(Status.REQUEST_TERMINATE);
-				((IAtomWithChildQueue)parent).setQueueMessage("Pause requested from '"+bean.getName()+"'");
+				((IAtomWithChildQueue)parent).setQueueMessage("Termination requested from '"+bean.getName()+"'");
 				childCommand = true;
 				broadcastUpdate = true;
 			} else if (bean.getStatus().isFinal()) {
@@ -194,7 +204,16 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 				concluded = concluded && children.get(childID).isConcluded();
 				operating = operating || children.get(childID).isOperating();
 			}
-			if (concluded && !operating) processorLatch.countDown();
+			if (concluded && !operating) {
+				parent.setMessage("Running finished.");
+				((IAtomWithChildQueue)parent).setQueueMessage("All child processes complete.");
+				try {
+					broadcaster.childQueueBroadcast();
+				} catch (EventException evEx) {
+					logger.error("Broadcasting completed message failed with: "+evEx.getMessage());
+				}
+				processorLatch.countDown();
+			}
 		}
 	}
 	
