@@ -55,7 +55,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 	}
 	
 	@Override
-	protected void causeFail() {
+	protected void causeFail() throws Exception {
 		//Nothing to do, since using MockPositioner with fail simulation included.
 	}
 	

@@ -130,8 +130,6 @@ public abstract class AbstractQueueProcessorTest {
 		} catch (EventException eEx) {
 			//Expected
 		}
-//		qProc.terminate();//FIXME Add similar to other processors
-//		waitForBeanFinalStatus(qBean, 10000l);
 	}
 	
 	/**
@@ -248,7 +246,7 @@ public abstract class AbstractQueueProcessorTest {
 		checkInitialBeanState(failBean);
 		doExecute(testProcr, failBean);
 		causeFail();
-		waitForBeanFinalStatus(failBean, 100000l);
+		waitForBeanFinalStatus(failBean, 10000l);
 		
 		checkLastBroadcastBeanStatuses(failBean, Status.FAILED, false);
 		
@@ -264,7 +262,7 @@ public abstract class AbstractQueueProcessorTest {
 	/**
 	 * Take action during execution necessary to simulate a failure.
 	 */
-	protected abstract void causeFail();
+	protected abstract void causeFail() throws Exception;
 	
 	/**
 	 * Processor specific failure tests, e.g. aborting of processing tasks.
