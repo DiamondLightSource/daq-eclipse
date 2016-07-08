@@ -138,7 +138,7 @@ public class EventInfrastructureFactoryService extends BrokerTest {
 	 * @param topic
 	 * @return
 	 */
-	public <T extends StatusBean> IPublisher<T> makePublisher(String topic) {
+	public <T> IPublisher<T> makePublisher(String topic) {
 		if (topic == null) topic = IEventService.STATUS_TOPIC;
 		return evServ.createPublisher(uri, topic);
 	}
