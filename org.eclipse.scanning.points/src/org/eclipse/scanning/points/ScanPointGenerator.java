@@ -32,14 +32,16 @@ public class ScanPointGenerator {
 	
 	public List<IPosition> createLinePoints(String name, String units, double start, double stop, int numPoints) {
 	    
+	    String strName = String.format("'%s'", name);
+	    String strUnits = String.format("'%s'", units);
 	    String strStart = String.valueOf(start);
         String strStop = String.valueOf(stop);
         String strNumPoints = String.valueOf(numPoints);
 	    
 	    @SuppressWarnings("unchecked")
         List<IPosition> points = (List<IPosition>) pi.eval("list(create_line("
-                + name + ","
-                + units + ","
+                + strName + ","
+                + strUnits + ","
                 + strStart + ","
                 + strStop + ","
                 + strNumPoints
@@ -51,17 +53,66 @@ public class ScanPointGenerator {
     public List<IPosition> create2DLinePoints(String[] names, String units, double[] start, double[] stop, int numPoints) {
         
         String strNames = Arrays.toString(names);
+        String strUnits = String.format("'%s'", units);
         String strStart = Arrays.toString(start);
         String strStop = Arrays.toString(stop);
         String strNumPoints = String.valueOf(numPoints);
         
         @SuppressWarnings("unchecked")
         List<IPosition> points = (List<IPosition>) pi.eval("list(create_2D_line("
-                + strNames + ","
-                + units + ","
-                + strStart + ","
-                + strStop + ","
+                + strNames + ", "
+                + strUnits + ", "
+                + strStart + ", "
+                + strStop + ", "
                 + strNumPoints
+                + "))");
+        
+        return points;
+    }
+
+    public List<IPosition> createRasterPoints(HashMap<String, Object> inner_line, HashMap<String, Object> outer_line, boolean alternateDirection) {
+        
+        String strAlternateDirection;
+        if (alternateDirection) {
+            strAlternateDirection = "alternate_direction=True";
+        }
+        else {
+            strAlternateDirection = "alternate_direction=False";
+        }
+        
+        String units = String.format("'%s'", inner_line.get("units"));
+        String name = String.format("'%s'", inner_line.get("name"));
+        String start = String.valueOf(inner_line.get("start"));
+        String stop = String.valueOf(inner_line.get("stop"));
+        String num_points = String.valueOf(inner_line.get("num_points"));
+        
+        pi.exec("inner = dict("
+                + "name=" + name + ", "
+                + "units=" + units + ", "
+                + "start=" + start + ", "
+                + "stop=" + stop + ", "
+                + "num_points=" + num_points + ", "
+                + ")");
+
+        units = String.format("'%s'", outer_line.get("units"));
+        name = String.format("'%s'", outer_line.get("name"));
+        start = String.valueOf(outer_line.get("start"));
+        stop = String.valueOf(outer_line.get("stop"));
+        num_points = String.valueOf(outer_line.get("num_points"));
+
+        pi.exec("outer = dict("
+                + "name=" + name + ", "
+                + "units=" + units + ", "
+                + "start=" + start + ", "
+                + "stop=" + stop + ", "
+                + "num_points=" + num_points + ", "
+                + ")");
+        
+        @SuppressWarnings("unchecked")
+        List<IPosition> points = (List<IPosition>) pi.eval("list(create_raster("
+                + "inner,"
+                + "outer,"
+                + strAlternateDirection + ", "
                 + "))");
         
         return points;
