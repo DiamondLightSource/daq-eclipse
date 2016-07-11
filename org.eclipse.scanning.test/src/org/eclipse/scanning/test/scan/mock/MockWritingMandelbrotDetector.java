@@ -33,6 +33,7 @@ import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.LazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
+import org.eclipse.january.metadata.IMetadata;
 import org.eclipse.january.metadata.Metadata;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -122,9 +123,10 @@ public class MockWritingMandelbrotDetector extends AbstractRunnableDevice<MockWr
 		}
 		final Map<String, Serializable> mp = new HashMap<>(1);
 		mp.put("value", value);
-		Metadata meta = new Metadata(mp);
+		IMetadata meta = new Metadata();
+		meta.initialize(mp);
 		toWrite.addMetadata(meta);	
-  	}
+	}
 
 	@Override
 	public boolean write(IPosition pos) throws ScanningException {
