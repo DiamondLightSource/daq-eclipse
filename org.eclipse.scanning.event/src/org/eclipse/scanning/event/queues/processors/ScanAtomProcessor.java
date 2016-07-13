@@ -45,7 +45,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	
 	/**
 	 * Create a ScanAtomProcessor which can be used by a {@link QueueProcess}. 
-	 * Constructore configures the {@link IEventService} using the instance 
+	 * Constructor configures the {@link IEventService} using the instance 
 	 * specified in the {@link QueueServicesHolder}. Additionally, a new 
 	 * {@link ScanBean} is created which will be configured with the details 
 	 * of from the {@link ScanAtom}.
@@ -68,7 +68,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		broadcaster.broadcast(Status.RUNNING, "Reading scanning service configuration.");
 		final URI scanBrokerURI = getScanBrokerURI();
 		final String scanSubmitQueueName = getScanSubmitQueue();
-		final String scanStatusTopicName = getScanStatusSet(); 
+		final String scanStatusTopicName = getScanStatusTopic();
 
 		//Create the ScanRequest
 		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.15,
@@ -245,18 +245,18 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	 * @return String name of status set
 	 * @throws EventException If no status set name found in config.
 	 */
-	private String getScanStatusSet() throws EventException {
-		String statusSet = queueBean.getScanStatusTopicName();
+	private String getScanStatusTopic() throws EventException {
+		String statusTopic = queueBean.getScanStatusTopicName();
 		//TODO Add scanning centric properties
-		if (statusSet == null) statusSet = System.getProperty("org.eclipse.scanning.queueservice.scanstatus.set");
-		if (statusSet == null) statusSet = IEventService.STATUS_SET;
+		if (statusTopic == null) statusTopic = System.getProperty("org.eclipse.scanning.queueservice.scanstatus.topic");
+		if (statusTopic == null) statusTopic = IEventService.STATUS_TOPIC;
 		
-		if (statusSet == null) {
-			broadcaster.broadcast(Status.FAILED, "Failed to set scan status set name: \"No value found in config.\"");
-			logger.error("Failed to set scan status set name for '"+queueBean.getName()+"': \"No value found in config.\"");
-			throw new EventException("No status set name found in config.");
+		if (statusTopic == null) {
+			broadcaster.broadcast(Status.FAILED, "Failed to set scan status topic name: \"No value found in config.\"");
+			logger.error("Failed to set scan status topic name for '"+queueBean.getName()+"': \"No value found in config.\"");
+			throw new EventException("No status topic name found in config.");
 		}
-		return statusSet;
+		return statusTopic;
 	}
 
 }
