@@ -178,6 +178,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		assertEquals("Incorrect name", scAt.getName(), scan.getName());
 		assertFalse("No username set", scan.getUserName() == null);
 		assertEquals("Incorrect username", scAt.getUserName(), scan.getUserName());
+		
 		//Check the ScanRequest itself has been correctly interpreted
 		ScanRequest<?> req = scan.getScanRequest(); 
 		assertEquals("Scan path definitions differ", scAt.getPathModels(), req.getCompoundModel().getModels());
