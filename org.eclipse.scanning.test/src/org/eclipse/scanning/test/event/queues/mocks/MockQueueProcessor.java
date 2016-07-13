@@ -131,8 +131,12 @@ public class MockQueueProcessor <T extends Queueable> implements IQueueProcessor
 		return broadcaster;
 	}
 
-	@Override
-	public void setComplete() {
+	/**
+	 * Mark process executed & release the latch.
+	 * N.B. This was on the public API of IProcessor, but since removed,
+	 * so this is set private.
+	 */
+	private void setComplete() {
 		complete = true;
 		execLatch.countDown();
 	}
