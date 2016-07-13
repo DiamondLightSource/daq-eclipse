@@ -315,7 +315,7 @@ public class QueueListenerTest {
 	 * the percentage less than the completion percentage (99.5). Fail should 
 	 * be marked as a child command for completeness. Message from
 	 */
-//	@Test
+	@Test
 	public void testRunExternalFail() {
 		childA.setStatus(Status.RUNNING);
 		qList = new QueueListener<>(broadcaster, parent, latch, queue);
@@ -332,11 +332,11 @@ public class QueueListenerTest {
 		assertTrue("Child queue instruction not indicated", qList.isChildCommand());
 		assertEquals("Parent percentage incorrectly incremented", 28.625d, getLastBroadcast().getPercentComplete(), 0d);
 		assertFalse("Parent Status should not be final", parent.getStatus().isFinal());
-		assertEquals("Parent has wrong message", "Failed: My old man's a dustman.", parent.getMessage());
-		assertEquals("Parent has wrong queue message", "Failure caused by '"+childA.getName()+"'", parent.getQueueMessage());
+		assertEquals("Parent has wrong message", "'"+childA.getName()+"': My old man's a dustman.", getLastBroadcast().getMessage());
+		assertEquals("Parent has wrong queue message", "Failure caused by '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		//Failure setting of the parent is handled within the parent processor NOT by the Listener
-		assertEquals("Latch has been released when it shouldn't have been.", 1, latch.getCount(), 0);
+		assertEquals("Latch has not been released when it should have been.", 0, latch.getCount(), 0);
 	}
 
 	private Queueable getLastBroadcast() {

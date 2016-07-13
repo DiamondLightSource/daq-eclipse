@@ -102,7 +102,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 
 	@Override
 	public void beanChangePerformed(BeanEvent<Q> evt) {
-		boolean broadcastUpdate = false, beanCompleted = false;
+		boolean broadcastUpdate = false, beanCompleted = false, failed = false;
 		Q bean = evt.getBean();
 		String beanID = bean.getUniqueId();
 		//If this bean is not from the parent ignore it.
@@ -181,6 +181,12 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 				if (bean.getStatus().equals(Status.COMPLETE)) {
 					((IAtomWithChildQueue)parent).setQueueMessage("'"+bean.getName()+"' completed successfully.");
 					broadcastUpdate = true;
+				} else {
+					//Status.FAILED or unhandled state
+					((IAtomWithChildQueue)parent).setQueueMessage("Failure caused by '"+bean.getName()+"'");
+					broadcastUpdate = true;
+					childCommand = true;
+					failed = true;
 				}
 			}
 		}
@@ -204,9 +210,11 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 				concluded = concluded && children.get(childID).isConcluded();
 				operating = operating || children.get(childID).isOperating();
 			}
-			if (concluded && !operating) {
-				parent.setMessage("Running finished.");
-				((IAtomWithChildQueue)parent).setQueueMessage("All child processes complete.");
+			if (concluded && !operating || failed) {
+				if (!failed) {
+					parent.setMessage("Running finished.");
+					((IAtomWithChildQueue)parent).setQueueMessage("All child processes complete.");
+				}
 				try {
 					broadcaster.childQueueBroadcast();
 				} catch (EventException evEx) {
