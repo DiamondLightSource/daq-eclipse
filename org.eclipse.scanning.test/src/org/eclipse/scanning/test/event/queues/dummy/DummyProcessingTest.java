@@ -91,4 +91,22 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		//None
 	}
 
+	@Override
+	protected Queueable getFailBean() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected void causeFail() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void processorSpecificFailTests() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
