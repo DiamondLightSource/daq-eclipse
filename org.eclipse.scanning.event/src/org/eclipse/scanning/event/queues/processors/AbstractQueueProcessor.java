@@ -9,6 +9,17 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Parent queue processor class, containing implementations of broadcast 
+ * methods used by the concrete {@link IQueueProcessor} instances. Also 
+ * contains boolean getters & setters for changes of execution state of the 
+ * processor.
+ * 
+ * @author Michael Wharmby
+ *
+ * @param <P> Bean type implementing {@link Queueable} which will be processed 
+ *            by the concrete {@link IQueueProcessor} instance.
+ */
 public abstract class AbstractQueueProcessor <P extends Queueable> implements IQueueProcessor<P> {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractQueueProcessor.class);

@@ -12,6 +12,20 @@ import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * MoveAtomProcessor reads the values included in a {@link MoveAtom} and 
+ * instructs the motors detailed in the atom to move to these positions.
+ * 
+ * It uses the server's {@link IRunnableDeviceService} to create an 
+ * {@link IPositioner} which it passes the target positions to.
+ * 
+ * TODO Implement reporting back of the percent complete (when it might 
+ *      become available).
+ * TODO Implement pausing/resuming when implemented in the IPositioner system.
+ * 
+ * @author Michael Wharmby
+ *
+ */
 public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 	
 	private static Logger logger = LoggerFactory.getLogger(MoveAtomProcessor.class);
@@ -20,9 +34,15 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 	private final IRunnableDeviceService deviceService;
 	private IPositioner positioner;
 	
-	//Processor operation
+	//For processor operation
 	private Thread moveThread;
-		
+	
+	/**
+	 * Create a MoveAtomProcessor which can be used by a {@link QueueProcess}. 
+	 * Constructor configures the device service 
+	 * ({@link IRunnableDeviceService}) using the instance specified in the 
+	 * {@link QueueServicesHolder}.
+	 */
 	public MoveAtomProcessor() {
 		//Get the deviceService from the OSGi configured holder.
 		deviceService = QueueServicesHolder.getDeviceService();

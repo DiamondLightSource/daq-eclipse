@@ -13,11 +13,22 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.models.CompoundModel;
+import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * ScanAtomProcessor takes the fields of a {@link ScanAtom} and from them makes
+ * a {@link ScanBean}, which is then submitted to the scan event service.
+ * 
+ * The processor uses a {@link QueueListener} to monitor the process of the 
+ * scan and pass up messages to the rest of the queue.
+ * 
+ * @author Michael Wharmby
+ * 
+ */
 public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	
 	private static Logger logger = LoggerFactory.getLogger(ScanAtomProcessor.class);
@@ -29,9 +40,16 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	private ISubscriber<QueueListener<ScanAtom, ScanBean>> scanSubscriber;
 	private QueueListener<ScanAtom, ScanBean> queueListener;
 	
-	//Processor operation
+	//For processor operation
 	private final ScanBean scanBean;
 	
+	/**
+	 * Create a ScanAtomProcessor which can be used by a {@link QueueProcess}. 
+	 * Constructore configures the {@link IEventService} using the instance 
+	 * specified in the {@link QueueServicesHolder}. Additionally, a new 
+	 * {@link ScanBean} is created which will be configured with the details 
+	 * of from the {@link ScanAtom}.
+	 */
 	public ScanAtomProcessor() {
 		eventService = QueueServicesHolder.getEventService();
 		scanBean = new ScanBean();
