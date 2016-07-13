@@ -5,10 +5,12 @@ import java.net.URI;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
@@ -135,12 +137,22 @@ public class EventInfrastructureFactoryService extends BrokerTest {
 	
 	/**
 	 * Create a publisher configured for the running BrokerService
-	 * @param topic
+	 * @param topic to publish to
 	 * @return
 	 */
 	public <T> IPublisher<T> makePublisher(String topic) {
 		if (topic == null) topic = IEventService.STATUS_TOPIC;
 		return evServ.createPublisher(uri, topic);
+	}
+	
+	/**
+	 * Create a publisher configured for the running BrokerService
+	 * @param topic to listen on
+	 * @return
+	 */
+	public <T> ISubscriber<IBeanListener<T>> makeSubscriber(String topic) {
+		if (topic == null) topic = IEventService.STATUS_TOPIC;
+		return evServ.createSubscriber(uri, topic);
 	}
 
 }
