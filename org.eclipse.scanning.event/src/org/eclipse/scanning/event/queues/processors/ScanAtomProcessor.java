@@ -95,7 +95,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		scanPublisher = eventService.createPublisher(scanBrokerURI, scanStatusTopicName);
 		scanSubscriber = eventService.createSubscriber(scanBrokerURI, scanStatusTopicName);
 		//configPercent+0.5 so the QueueListener won't set parent 100% complete
-		queueListener = new QueueListener<>(broadcaster, queueBean, configPercent+0.5, processorLatch, scanBean);
+		queueListener = new QueueListener<>(broadcaster, queueBean, processorLatch, scanBean);
 		try {
 			scanSubscriber.addListener(queueListener);
 		} catch (EventException evEx) {
@@ -117,7 +117,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		
 		//Allow scan to run
 		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.15,
-				"Waiting for scan to complete.");
+				"Waiting for scan to complete...");
 		processorLatch.await();
 
 		//Post-match analysis
