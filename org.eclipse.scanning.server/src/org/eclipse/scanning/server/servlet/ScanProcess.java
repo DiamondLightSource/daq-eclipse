@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-class ScanProcess extends AbstractPausableProcess<ScanBean> {
+public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ScanProcess.class);
 
