@@ -66,29 +66,9 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		
 		//Get scanning service configuration
 		broadcaster.broadcast(Status.RUNNING, "Reading scanning service configuration.");
-		final URI scanBrokerURI;
-		final String scanSubmitQueueName, scanStatusTopicName; 
-		if (queueBean.getScanBrokerURI() != null) {
-			try {
-				scanBrokerURI = new URI(queueBean.getScanBrokerURI()); //FIXME This is idiotic
-			} catch (URISyntaxException usEx) {
-				broadcaster.broadcast(Status.FAILED, "Failed to set broker URI: \""+usEx.getMessage()+"\" (Reason: \""+usEx.getReason()+"\").");
-				logger.error("Failed to set scanning service broker URI for '"+queueBean.getName()+"': \""+usEx.getMessage()+"\" (Reason: \""+usEx.getReason()+"\").");
-				throw new EventException("Failed to set broker URI", usEx);
-			}
-		} else {
-			scanBrokerURI = QueueServicesHolder.getQueueService().getURI(); //TODO This should point at Matt G's config the EventService
-		}
-		if (queueBean.getScanSubmitQueueName() != null) {
-			scanSubmitQueueName = queueBean.getScanSubmitQueueName();
-		} else {
-			scanSubmitQueueName = IEventService.SUBMISSION_QUEUE;
-		}
-		if (queueBean.getScanStatusTopicName() != null) {
-			scanStatusTopicName = queueBean.getScanStatusTopicName();
-		} else {
-			scanStatusTopicName = IEventService.STATUS_TOPIC;
-		}
+		final URI scanBrokerURI = getScanBrokerURI();
+		final String scanSubmitQueueName = getScanSubmitQueue();
+		final String scanStatusTopicName = getScanStatusSet(); 
 
 		//Create the ScanRequest
 		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.15,
@@ -112,7 +92,6 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 				"Submitting bean to scanning service.");
 		scanPublisher = eventService.createPublisher(scanBrokerURI, scanStatusTopicName);
 		scanSubscriber = eventService.createSubscriber(scanBrokerURI, scanStatusTopicName);
-		//configPercent+0.5 so the QueueListener won't set parent 100% complete
 		queueListener = new QueueListener<>(broadcaster, queueBean, processorLatch, scanBean);
 		try {
 			scanSubscriber.addListener(queueListener);
@@ -210,6 +189,74 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	private void tidyScanActors() throws EventException {
 		scanPublisher.disconnect();
 		scanSubscriber.disconnect();
+	}
+	
+	/**
+	 * Get the URI of the broker from Spring properties or from other objects.
+	 * 
+	 * @return String URI for the scan broker.
+	 * @throws EventException If no URI found in config or URI syntax is wrong.
+	 */
+	private URI getScanBrokerURI() throws EventException {
+		String uri = queueBean.getScanBrokerURI();
+		if (uri == null) uri = System.getProperty("org.eclipse.scanning.broker.uri");
+		if (uri == null) uri = System.getProperty("gda.activemq.broker.uri");
+		if (uri == null) uri = System.getProperty("org.eclipse.scanning.queueservice.broker.uri");
+		if (uri == null) uri = QueueServicesHolder.getQueueService().getURIString();
+		
+		try {
+			if (uri == null) {
+				broadcaster.broadcast(Status.FAILED, "Failed to set broker URI: \"No URI found in config.\"");
+				logger.error("Failed to set scanning service broker URI for '"+queueBean.getName()+"': \"No URI found in config.\"");
+				throw new EventException("No URI found in config.");
+			}
+			return new URI(uri);	
+		} catch (URISyntaxException usEx) {
+			broadcaster.broadcast(Status.FAILED, "Failed to set broker URI: \""+usEx.getMessage()+"\" (Reason: \""+usEx.getReason()+"\").");
+			logger.error("Failed to set scanning service broker URI for '"+queueBean.getName()+"': \""+usEx.getMessage()+"\" (Reason: \""+usEx.getReason()+"\").");
+			throw new EventException("Failed to set broker URI", usEx);
+		}
+	}
+	
+	/**
+	 * Get the name of the submission queue from Spring properties or from 
+	 * other objects.
+	 * 
+	 * @return String name of submission queue.
+	 * @throws EventException If no queue name found in config.
+	 */
+	private String getScanSubmitQueue() throws EventException {
+		String submitQueue = queueBean.getScanSubmitQueueName();
+		//TODO Add scanning centric properties
+		if (submitQueue == null) submitQueue = System.getProperty("org.eclipse.scanning.queueservice.scansubmit.queue");
+		if (submitQueue == null) submitQueue = IEventService.SUBMISSION_QUEUE;
+		
+		if (submitQueue == null) {
+			broadcaster.broadcast(Status.FAILED, "Failed to set scan submission queue name: \"No value found in config.\"");
+			logger.error("Failed to set scan submission queue name for '"+queueBean.getName()+"': \"No value found in config.\"");
+			throw new EventException("No submission queue name found in config.");
+		}
+		return submitQueue;
+	}
+	
+	/**
+	 * Get name of the status set from Spring properties or from other objects.
+	 * 
+	 * @return String name of status set
+	 * @throws EventException If no status set name found in config.
+	 */
+	private String getScanStatusSet() throws EventException {
+		String statusSet = queueBean.getScanStatusTopicName();
+		//TODO Add scanning centric properties
+		if (statusSet == null) statusSet = System.getProperty("org.eclipse.scanning.queueservice.scanstatus.set");
+		if (statusSet == null) statusSet = IEventService.STATUS_SET;
+		
+		if (statusSet == null) {
+			broadcaster.broadcast(Status.FAILED, "Failed to set scan status set name: \"No value found in config.\"");
+			logger.error("Failed to set scan status set name for '"+queueBean.getName()+"': \"No value found in config.\"");
+			throw new EventException("No status set name found in config.");
+		}
+		return statusSet;
 	}
 
 }
