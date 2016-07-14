@@ -31,7 +31,7 @@ public class MockPositioner implements IPositioner {
 			InterruptedException {
 		
 		moveComplete = false;
-		Thread.sleep(400);
+		Thread.sleep(100);
 		
 		//This is to test positioning failing.
 		if (position.getNames().contains("BadgerApocalypseButton") && position.get("BadgerApocalypseButton").equals("pushed")) {
@@ -39,7 +39,7 @@ public class MockPositioner implements IPositioner {
 		}
 		
 		pos = position;
-		Thread.sleep(450);
+		Thread.sleep(150);
 		
 		moveComplete = true;
 		return true;

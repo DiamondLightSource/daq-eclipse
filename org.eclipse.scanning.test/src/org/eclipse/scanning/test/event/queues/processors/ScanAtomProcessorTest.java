@@ -54,7 +54,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		
 		//Set up the consumer which will work on ScanBeans made by the ScanProcessor
 		scanConsumer = infrastructureServ.makeConsumer(null, false);
-		scanConsumer.setRunner(new FastRunCreator<ScanBean>(50, true)); 
+		scanConsumer.setRunner(new FastRunCreator<ScanBean>(40, true)); 
 		scanConsumer.start();
 	}
 
@@ -125,14 +125,14 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	
 	@Override
 	protected void causeFail() throws Exception {
-		Thread.sleep(500);
+		waitForChildBeanState(Status.RUNNING, 1000l);
 		
 		//Pause the scan process...
 		ScanBean scan = getLastChildBean();
 		scan.setStatus(Status.REQUEST_PAUSE);
 		IPublisher<ScanBean> processCommander = infrastructureServ.makePublisher(scanConsumer.getStatusTopicName());
 		processCommander.broadcast(scan);		
-		waitForChildBeanState(Status.PAUSED, 10000l);
+		waitForChildBeanState(Status.PAUSED, 5000l);
 		
 		//...inject a FAILED
 		processCommander.setStatusSetName(scanConsumer.getStatusSetName()); //Why does this need to be set???
@@ -140,13 +140,18 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		scan.setStatus(Status.FAILED);
 		scan.setMessage("The badger apocalypse destroyed the detector");
 		processCommander.broadcast(scan);
-		waitForChildBeanState(Status.FAILED, 10000l);
+		waitForChildBeanState(Status.FAILED, 5000l);
 		
 		//Tidy up our fail causer
 		processCommander.disconnect();
 		System.out.println("\n**********************\n*** PROCESS FAILED ***\n**********************\n");
 		
 		//Pause consumer, wait, set message on ScanBean & status FAILED
+	}
+	
+	protected void waitToTerminate() throws Exception {
+		waitForChildBeanState(Status.RUNNING, 5000l);
+		Thread.sleep(120);
 	}
 	
 	@Override
@@ -166,8 +171,8 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		checkLastBroadcastBeanStatuses(scAt, Status.COMPLETE, true);
 		
 		//Get the last bean from the consumer and check its status
+		checkConsumerBean(Status.COMPLETE);
 		ScanBean scan = getLastChildBean();
-		checkConsumerBean(scan, Status.COMPLETE);
 
 		//Check the properties of the ScanAtom have been correctly passed down
 		assertFalse("No beamline set", scan.getBeamline() == null);
@@ -192,10 +197,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		 * After termination:
 		 * - child bean should have been terminated
 		 */
-		waitForChildBeanState(Status.TERMINATED, 5000l);
-		ScanBean scan = getLastChildBean();
-		checkConsumerBean(scan, Status.TERMINATED);
-		
+		checkConsumerBean(Status.TERMINATED);
 	}
 	
 	@Override
@@ -205,8 +207,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		 * - child bean should have failed status
 		 * - message from child queue should be set on parent
 		 */
-		ScanBean scan = getLastChildBean();
-		checkConsumerBean(scan, Status.FAILED);
+		checkConsumerBean(Status.FAILED);
 		
 		List<Queueable> broadBeans = getBroadcastBeans();
 		DummyHasQueue lastBean = (DummyHasQueue) broadBeans.get(broadBeans.size()-1);
@@ -223,7 +224,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		
 		long startTime = System.currentTimeMillis(), runTime;
 		while (statusSet.size() == 0) {
-			Thread.sleep(100);
+			Thread.sleep(50);
 			statusSet = scanConsumer.getStatusSet();
 			
 			runTime = System.currentTimeMillis();
@@ -240,7 +241,9 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	 * @param lastStatus
 	 * @throws EventException
 	 */
-	private void checkConsumerBean(ScanBean lastBean, Status lastStatus) throws EventException {
+	private void checkConsumerBean(Status lastStatus) throws Exception {
+		ScanBean lastBean = waitForChildBeanState(lastStatus, 5000);
+		
 		assertEquals("Unexpected ScanBean final status.", lastStatus, lastBean.getStatus());
 		double lastBPercComp = lastBean.getPercentComplete();
 		if (lastStatus == Status.COMPLETE) {
@@ -254,7 +257,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		}
 	}
 	
-	private void waitForChildBeanState(Status awaitedStatus, long timeout) throws Exception {
+	private ScanBean waitForChildBeanState(Status awaitedStatus, long timeout) throws Exception {
 		final CountDownLatch statusLatch = new CountDownLatch(1);
 		ISubscriber<IBeanListener<ScanBean>> statusSubsc = infrastructureServ.makeSubscriber(null);
 		statusSubsc.addListener(new IBeanListener<ScanBean>() {
@@ -271,8 +274,11 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		//In case the event already happened
 		if (getLastChildBean().getStatus() == awaitedStatus) statusLatch.countDown();
 		
-		statusLatch.await(timeout, TimeUnit.MILLISECONDS);
+		boolean unlatched = statusLatch.await(timeout, TimeUnit.MILLISECONDS);
+		if (!unlatched) fail("Didn't get bean status before timeout.");
 		statusSubsc.disconnect();
+		
+		return getLastChildBean();
 	}
 
 }

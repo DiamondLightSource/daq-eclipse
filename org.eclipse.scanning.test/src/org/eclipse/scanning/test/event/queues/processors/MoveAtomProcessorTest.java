@@ -60,6 +60,11 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 	}
 	
 	@Override
+	protected void waitToTerminate() throws Exception {
+		Thread.sleep(200);
+	}
+	
+	@Override
 	protected void processorSpecificExecTests() throws Exception {
 		/*
 		 * After execution:

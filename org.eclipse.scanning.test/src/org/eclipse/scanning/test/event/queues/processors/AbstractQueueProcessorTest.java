@@ -112,12 +112,9 @@ public abstract class AbstractQueueProcessorTest {
 		
 		//Execute, but don't wait for completion (no point)
 		doExecute(qProcr, qBean);
-		waitForBeanStatus(qBean, Status.RUNNING, 100000l);
-		
-		//Thread.sleep(100); //Because it takes time for the thread to start
+		waitForBeanStatus(qBean, Status.RUNNING, 1000l);
 		assertTrue("Executed should be false after start", qProcr.isExecuted());
 		
-
 		try {
 			qProcr.setProcessBean(qBean);
 			fail("Should not be able to set bean after execution start");
@@ -208,14 +205,14 @@ public abstract class AbstractQueueProcessorTest {
 		 * - status publisher should have a TERMINATED bean
 		 * 
 		 * 
-		 * N.B. MoveAtomProcessorTest uses MockPostioner, which puases for 400ms 
-		 * does something then pauses for 450ms.
+		 * N.B. MoveAtomProcessorTest uses MockPostioner, which pauses for 100ms 
+		 * does something then pauses for 150ms.
 		 */
 		checkInitialBeanState(testBean);
 		doExecute(testProcr, testBean);
-		Thread.sleep(400);
+		waitToTerminate();
 		qProc.terminate();
-		waitForBeanFinalStatus(testBean, 10000l);
+		waitForBeanFinalStatus(testBean, 5000l);
 		
 		checkLastBroadcastBeanStatuses(testBean, Status.TERMINATED, false);
 		
@@ -234,7 +231,7 @@ public abstract class AbstractQueueProcessorTest {
 	 * incomplete and report bean as failed.
 	 * @throws Exception
 	 */
-//	@Test
+	@Test
 	public void testFailure() throws Exception {
 		Queueable failBean = getFailBean();
 		IQueueProcessor<? extends Queueable> testProcr = getTestProcessor();
@@ -264,6 +261,11 @@ public abstract class AbstractQueueProcessorTest {
 	 */
 	protected abstract void causeFail() throws Exception;
 	
+	/**
+	 * Wait until a state within the processor has been reached 
+	 * when terminate can be fired.
+	 */
+	protected abstract void waitToTerminate() throws Exception;
 	/**
 	 * Processor specific failure tests, e.g. aborting of processing tasks.
 	 * @param testBean
@@ -338,11 +340,11 @@ public abstract class AbstractQueueProcessorTest {
 		qProcr.setQueueBroadcaster(qProc);
 	}
 	
-	protected void waitForBeanStatus(Queueable bean, Status state, Long timeout) throws Exception {
+	protected void waitForBeanStatus(Queueable bean, Status state, long timeout) throws Exception {
 		waitForBeanState(bean, state, false, timeout);
 	}
 	
-	protected void waitForBeanFinalStatus(Queueable bean, Long timeout) throws Exception {
+	protected void waitForBeanFinalStatus(Queueable bean, long timeout) throws Exception {
 		waitForBeanState(bean, null, true, timeout);
 	}
 	
@@ -357,7 +359,7 @@ public abstract class AbstractQueueProcessorTest {
 					return;
 				}
 			}
-			Thread.sleep(100);
+			Thread.sleep(50);
 			runTime = System.currentTimeMillis() - startTime;
 			if (thrownException != null) {
 				throw new EventException(thrownException);
@@ -470,7 +472,7 @@ public abstract class AbstractQueueProcessorTest {
 		if (percentComplete > 0) {
 			assertEquals("Last bean has wrong percent complete", percentComplete, lastBPercComp, 0);
 		} else {
-			assertTrue("The percent complete is not between 0% & 100%", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
+			assertTrue("The percent complete is not between 0% & 100% (is: "+lastBPercComp+")", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
 		}
 		
 	}
