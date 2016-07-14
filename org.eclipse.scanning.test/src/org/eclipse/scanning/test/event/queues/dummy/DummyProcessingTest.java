@@ -109,4 +109,10 @@ public class DummyProcessingTest extends AbstractQueueProcessorTest {
 		
 	}
 
+	@Override
+	protected void waitToTerminate() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
