@@ -18,11 +18,13 @@ public abstract class DummyProcessor <P extends Queueable> extends AbstractQueue
 
 		broadcaster.broadcast(Status.RUNNING, 0d);
 
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 10; i++) {
 			if (isTerminated()) {
 				broadcaster.broadcast(Status.TERMINATED);
 				return;
 			}
+			System.out.println("DummyProcessor ("+queueBean.getClass().getSimpleName()+" - "+queueBean.getName()+"): "+queueBean.getPercentComplete());
+			broadcaster.broadcast(new Double(i*10));
 
 			try {
 				Thread.sleep(50);
@@ -30,8 +32,6 @@ public abstract class DummyProcessor <P extends Queueable> extends AbstractQueue
 				logger.error("Dummy process sleeping failed", e);
 				throw new EventException(e);
 			}
-			System.out.println("DummyProcessor ("+queueBean.getClass().getSimpleName()+" - "+queueBean.getName()+"): "+queueBean.getPercentComplete());
-			broadcaster.broadcast(new Double(i));
 		}
 		broadcaster.broadcast(Status.COMPLETE, 100d, "Dummy process complete (no software run)");
 	}
