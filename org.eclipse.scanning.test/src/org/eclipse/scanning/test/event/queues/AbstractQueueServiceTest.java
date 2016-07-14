@@ -54,7 +54,7 @@ import org.junit.Test;
 
 
 
-public abstract class AbstractQueueServiceTest {// extends BrokerTest {
+public abstract class AbstractQueueServiceTest {
 	
 	protected IQueueService qServ;
 	protected static String qRoot;
