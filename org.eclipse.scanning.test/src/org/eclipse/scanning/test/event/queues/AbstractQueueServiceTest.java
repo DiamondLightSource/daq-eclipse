@@ -504,11 +504,8 @@ public abstract class AbstractQueueServiceTest {// extends BrokerTest {
 			@Override
 			public void beanChangePerformed(BeanEvent<Queueable> evt) {
 				Queueable evtBean = evt.getBean();
-				System.out.println("State: "+evtBean.getStatus()+"   Final? "+(evtBean.getStatus().isFinal() && isFinal));
 				if (evtBean.getUniqueId().equals(bean.getUniqueId())) {
-					System.out.println("Ma bean...");
 					if ((evtBean.getStatus() == state) || (evtBean.getStatus().isFinal() && isFinal)) {
-						System.out.println("Release the badgers");
 						statusLatch.countDown();
 					}
 				}
