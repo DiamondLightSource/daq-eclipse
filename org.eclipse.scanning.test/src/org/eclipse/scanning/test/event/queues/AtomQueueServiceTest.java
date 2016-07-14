@@ -1,13 +1,9 @@
 package org.eclipse.scanning.test.event.queues;
 
-import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.queues.AtomQueueService;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
-import org.junit.Before;
-
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.test.event.queues.util.EventInfrastructureFactoryService;
 
 /**
  * Test of the concrete implementation {@link AtomQueueService} of the {@link IQueueService}.
@@ -15,19 +11,24 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  * @author wnm24546
  *
  */
-public class AtomQueueServiceDummyTest extends AbstractQueueServiceTest {
+public class AtomQueueServiceTest extends AbstractQueueServiceTest {
 	
-	@Before
-	public void createService() throws Exception {
-		//Set up IEventService //TODO Use EventInfrastructure
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService());
-		QueueServicesHolder.setEventService(new EventServiceImpl(new ActivemqConnectorService()));
+	protected void localSetup() throws Exception {
+		//Set up IEventService
+		infrastructureServ = new EventInfrastructureFactoryService();
+		infrastructureServ.start(true);
+		QueueServicesHolder.setEventService(infrastructureServ.getEventService());
+		uri = infrastructureServ.getURI();
 		
 		//Create QueueService with 2 argument constructor for tests
 		qServ = new AtomQueueService(qRoot, uri);
-		
+
 		//All set? Let's go!
 		qServ.init();
 	}
-
+	
+	protected void localTearDown() throws Exception {
+		infrastructureServ.stop();
+	}
+	
 }
