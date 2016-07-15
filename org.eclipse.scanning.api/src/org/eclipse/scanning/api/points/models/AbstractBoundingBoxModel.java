@@ -99,7 +99,9 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 			return false;
 		return true;
 	}
-	
+
+	@UiHidden
+	@Override
 	public List<String> getScannableNames() {
 		return Arrays.asList(getFastAxisName(), getSlowAxisName());
 	}
