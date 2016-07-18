@@ -1,10 +1,16 @@
 package org.eclipse.scanning.points;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
+import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.PointsValidationException;
+import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 
 public class LissajousGenerator extends AbstractGenerator<LissajousModel> {
@@ -21,31 +27,39 @@ public class LissajousGenerator extends AbstractGenerator<LissajousModel> {
 
 // Original implementation of createPoints() TODO delete this
 
-//	@Override
-//	public List<Point> createPoints() throws GeneratorException {
-//
-//		// Pick A and B so we will fill the bounding rectangle
-//		double A = model.getBoundingBox().getWidth() / 2;
-//		double B = model.getBoundingBox().getHeight() / 2;
-//		double xCentre = model.getBoundingBox().getxStart() + A;
-//		double yCentre = model.getBoundingBox().getyStart() + B;
-//		// double maxRadius = Math.sqrt(radiusX * radiusX + radiusY * radiusY);
-//
-//		List<Point> pointList = new ArrayList<>();
-//
-//		// TODO work out if we should only allow closed paths?
-//		// TODO need to calculate maxTheta needed to close the path.
-//		double maxTheta = 20 * Math.PI;
-//		double theta = 0;
-//		while (theta <= maxTheta) {
-//			double x = xCentre + A * Math.sin(model.getA() * theta + model.getDelta());
-//			double y = yCentre + B * Math.cos(model.getB() * theta);
-//			if (containsPoint(x, y)) {
-//				pointList.add(new Point(-1, x, -1, y));  // TODO What are data indices?
-//			}
-//			theta += model.getThetaStep();
-//		}
-//		return pointList;
-//	}
+	@Override
+	public List<IPosition> createPoints() throws GeneratorException {
+
+        validateModel();
+        
+        ScanPointGenerator spg = new ScanPointGenerator();
+	    BoundingBox box = model.getBoundingBox();
+
+        double width = box.getFastAxisLength();
+        double height = box.getSlowAxisLength();
+        double[] centre = {box.getFastAxisStart() + width / 2, box.getSlowAxisStart() + height / 2};
+        
+        HashMap<String, Object> box_dict = new HashMap<String, Object>();
+        box_dict.put("width", String.valueOf(width));
+        box_dict.put("height", String.valueOf(height));
+        box_dict.put("centre", Arrays.toString(centre));
+        
+        String[] names = {"'x'", "'y'"};
+        int numLobes = (int) (model.getA() / model.getB());
+        int numPoints = model.getPoints();
+        boolean alternateDirection = false;
+		
+		List<IPosition> points = spg.createLissajousPoints(names, "mm", box_dict, numLobes, numPoints, alternateDirection);
+        
+        List<IPosition> filteredPoints = new ArrayList<IPosition>();
+        for (IPosition point: points) {
+            double xCoord = (Double) point.get("X");
+            double yCoord = (Double) point.get("Y");
+            if (containsPoint(xCoord, yCoord)) {
+                filteredPoints.add(point);
+            }
+        }
+        return filteredPoints;
+	}
 
 }

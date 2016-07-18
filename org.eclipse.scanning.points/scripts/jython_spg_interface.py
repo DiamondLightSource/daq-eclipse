@@ -1,7 +1,10 @@
 from org.eclipse.scanning.api.points import Point
+from org.eclipse.scanning.api.points import Scalar
 
 from scanpointgenerator import LineGenerator
+from scanpointgenerator import ArrayGenerator
 from scanpointgenerator import SpiralGenerator
+from scanpointgenerator import LissajousGenerator
 from scanpointgenerator import CompoundGenerator
 
 def create_line(name, units, start, stop, num_points):
@@ -11,7 +14,7 @@ def create_line(name, units, start, stop, num_points):
     for point in line.iterator():
         index = point.indexes[0]
         position = point.positions[name]
-        java_point = Point(index, position, index, position, False)  # Set is2D=False
+        java_point = Scalar(name, index, position)
         
         yield java_point
 
@@ -24,6 +27,17 @@ def create_2D_line(names, units, start, stop, num_points):
         xPosition = point.positions[names[0]]
         yPosition = point.positions[names[1]]
         java_point = Point(index, xPosition, index, yPosition, False)  # Set is2D=False
+        
+        yield java_point
+
+def create_array(name, units, points):
+    
+    array = ArrayGenerator(name, units, points)
+    
+    for point in array.iterator():
+        index = point.indexes[0]
+        position = point.positions[name]
+        java_point = Scalar(name, index, position)
         
         yield java_point
 
@@ -59,6 +73,18 @@ def create_spiral(names, units, centre, radius, scale=1.0, alternate_direction=F
     spiral = SpiralGenerator(names, units, centre, radius, scale, alternate_direction)
     
     for point in spiral.iterator():
+        index = point.indexes[0]
+        xPosition = point.positions[names[0]]
+        yPosition = point.positions[names[1]]
+        java_point = Point(index, xPosition, index, yPosition, False)  # Set is2D=False
+        
+        yield java_point
+        
+def create_lissajous(names, units, box, num_lobes, num_points):
+    
+    lissajous = LissajousGenerator(names, units, box, num_lobes, num_points)
+    
+    for point in lissajous.iterator():
         index = point.indexes[0]
         xPosition = point.positions[names[0]]
         yPosition = point.positions[names[1]]
