@@ -185,6 +185,7 @@ public abstract class AbstractPosition implements IPosition, Serializable {
 		return null; // Do not have to support dimension names
 	}
 
+	@UiHidden
 	public List<Collection<String>> getDimensionNames() {
 		if (dimensionNames==null)  {
 			dimensionNames = new ArrayList<>();
@@ -196,6 +197,7 @@ public abstract class AbstractPosition implements IPosition, Serializable {
 		this.dimensionNames = dNames;
 	}
 	
+	@UiHidden
 	@Override
 	public int getScanRank() {
 		if (dimensionNames!=null) return dimensionNames.size();

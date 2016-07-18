@@ -116,6 +116,7 @@ public final class Point extends AbstractPosition {
 	
 	private Map<String, Object>  values;
 
+	@UiHidden
 	@Override
 	public Map<String, Object> getValues() {
 		if (values == null) {
@@ -129,6 +130,7 @@ public final class Point extends AbstractPosition {
 	
 	private Map<String, Integer>  indices;
 
+	@UiHidden
 	@Override
 	public Map<String, Integer> getIndices() {
 		if (indices == null) {
