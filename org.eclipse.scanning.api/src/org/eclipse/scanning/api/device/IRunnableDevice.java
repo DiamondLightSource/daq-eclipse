@@ -125,6 +125,16 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	public void abort() throws ScanningException;
 	
 	/**
+	 * Latches until this run is complete if it was initiated from a start.
+	 * If a device does not have a latch, then this method always throws an exception.
+	 * 
+	 * @throws ScanningException
+	 */
+	default void latch() throws ScanningException, InterruptedException {
+		throw new ScanningException("Latch is not implemnented for "+getClass().getSimpleName());
+	}
+	
+	/**
 	 * If the device is a virtual device which like a scan device controlling other
 	 * hardware, it will return true for virtual. Normally hardware which is wrapped by
 	 * a single java class will return false. It is not virtual and one instance of the wrapping

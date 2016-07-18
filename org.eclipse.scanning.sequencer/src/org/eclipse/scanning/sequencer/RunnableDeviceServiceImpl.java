@@ -118,7 +118,9 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 				if (e.getName().equals("device")) {
 					
 					final IRunnableDevice device = (IRunnableDevice)e.createExecutableExtension("class");
-					device.setName(e.getAttribute("name"));
+					String name = e.getAttribute("name");
+					if (name == null) name = e.getAttribute("id");
+					device.setName(name);
 					devs.put(mod.getClass(), device.getClass());
 					
 					if (device instanceof AbstractRunnableDevice) {
@@ -270,7 +272,8 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		return new URI(buf.toString());
 	}
 
-	public static IDeviceConnectorService getDeviceConnectorService() {
+	@Override
+	public IDeviceConnectorService getDeviceConnectorService() {
 		return deviceConnectorService;
 	}
 

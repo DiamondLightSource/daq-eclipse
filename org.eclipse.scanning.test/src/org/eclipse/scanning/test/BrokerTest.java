@@ -7,8 +7,8 @@ import java.net.URI;
 
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.usage.SystemUsage;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 /**
  * Doing this works better than using vm:// uris.
@@ -22,14 +22,14 @@ import org.junit.Before;
  * @author Matthew Gerring.
  *
  */
-public class BrokerTest {
+public class BrokerTest extends TmpTest {
 
-	protected URI uri;     
+	protected static URI uri;     
 	
-	private BrokerService service;
+	private static BrokerService service;
 
-	@Before
-	public final void startBroker() throws Exception {
+	@BeforeClass
+	public final static void startBroker() throws Exception {
 		uri = createUri(); // Each test uses a new port if the port is running on another test.
         service = new BrokerService();
         service.addConnector(uri);
@@ -41,11 +41,12 @@ public class BrokerTest {
 		service.waitUntilStarted();
 	}
 
-	@After
-	public final void stopBroker() throws Exception {
+	@AfterClass
+	public final static void stopBroker() throws Exception {
 		
 		service.stop();
 		service.waitUntilStopped();
+		service = null;
 	}
 
 	private static URI createUri() {

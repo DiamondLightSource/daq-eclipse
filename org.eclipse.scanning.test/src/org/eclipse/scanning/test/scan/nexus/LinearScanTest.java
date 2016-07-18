@@ -204,8 +204,9 @@ public class LinearScanTest extends BrokerTest{
 
 		scanner.run(null);
 
+		Thread.sleep(100);
 		int size = ((IPointGenerator)scanner.getModel().getPositionIterable()).size();
-		assertEquals(size, positions.size());
+		assertEquals("The model size was "+size+" and the points found were "+positions.size(), size, positions.size());
 		
 		for (IPosition iPosition : positions) {
 			assertEquals(scanRank, iPosition.getScanRank());

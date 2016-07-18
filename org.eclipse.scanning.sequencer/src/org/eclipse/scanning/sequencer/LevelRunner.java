@@ -4,6 +4,7 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
+import org.eclipse.scanning.api.annotation.scan.LevelEnd;
+import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.api.scan.LevelInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.PositionDelegate;
@@ -100,6 +104,7 @@ abstract class LevelRunner<L extends ILevel> {
         if (!ok) return false;
 		
 		Map<Integer, List<L>> positionMap = getLevelOrderedDevices(getDevices());
+		Map<Integer, AnnotationManager> managerMap = getLevelOrderedManagerMap(positionMap);
 		
 		try {
 			// TODO Should we actually create the service size to the size
@@ -120,6 +125,8 @@ abstract class LevelRunner<L extends ILevel> {
 					if (c==null) continue; // legal to say that there is nothing to do for a given object.
 					tasks.add(c);
 				}
+				
+				managerMap.get(level).invoke(LevelStart.class, position, new LevelInformation(level, lobjects));
 				if (!it.hasNext() && !block) { 
 					// The last one and we are non-blocking
 					for (Callable<IPosition> callable : tasks) eservice.submit(callable);
@@ -134,6 +141,7 @@ abstract class LevelRunner<L extends ILevel> {
 					}
 				    pDelegate.fireLevelPerformed(level, lobjects, getPosition(position, pos));
 				}
+				managerMap.get(level).invoke(LevelEnd.class, position, new LevelInformation(level, lobjects));
 			}
 			
 			pDelegate.firePositionPerformed(finalLevel, position);
@@ -155,7 +163,7 @@ abstract class LevelRunner<L extends ILevel> {
 		
 		return true;
 	}
-	
+
 	protected String toString(List<L> lobjects) {
 		final  StringBuilder buf = new StringBuilder("[");
 		for (L l : lobjects) {
@@ -262,6 +270,22 @@ abstract class LevelRunner<L extends ILevel> {
 		
 		return ret;
 	}
+	
+	private SoftReference<Map> sortedManagers;
+
+	private Map<Integer, AnnotationManager> getLevelOrderedManagerMap(Map<Integer, List<L>> positionMap) {
+		
+		if (sortedManagers!=null && sortedManagers.get()!=null) return sortedManagers.get();
+
+		final Map<Integer, AnnotationManager> ret = new HashMap<>();
+		for (Integer position : positionMap.keySet()) {
+			ret.put(position, new AnnotationManager(LevelStart.class, LevelEnd.class));	// Less annotations is more efficient
+			ret.get(position).addDevices(positionMap.get(position));
+		}
+		if (isLevelCachingAllowed()) sortedManagers = new SoftReference<Map>(ret);
+		return ret;
+	}
+
 
 	protected ExecutorService createService() {
 		// TODO Need spring config for this.

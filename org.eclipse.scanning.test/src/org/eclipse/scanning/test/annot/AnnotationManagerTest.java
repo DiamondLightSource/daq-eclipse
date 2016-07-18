@@ -4,11 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
@@ -21,8 +24,10 @@ import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.sequencer.AnnotationManager;
+import org.eclipse.scanning.sequencer.LevelComparitor;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.After;
@@ -36,6 +41,7 @@ import org.junit.Test;
  * 2. Inheritance
  * 3. Injected arguments, including services, ScanInformation and IPosition instances.
  * 4. Large call size performance per call cycle.
+ * 5. Calling order test (deviceA before deviceB etc.)
  * 
  * @author Matthew Gerring
  *
@@ -43,6 +49,8 @@ import org.junit.Test;
 public class AnnotationManagerTest {
 	
 	private AnnotationManager      manager;
+	
+	// Test devices
 	private SimpleDevice           sdevice;
 	private CountingDevice         cdevice;
 	private ExtendedCountingDevice edevice;
@@ -58,10 +66,10 @@ public class AnnotationManagerTest {
 		testServices.put(IRunnableDeviceService.class,  new RunnableDeviceServiceImpl((IDeviceConnectorService)testServices.get(IDeviceConnectorService.class)));
 		manager = new AnnotationManager(testServices);
 
-		sdevice = new SimpleDevice();
-		cdevice = new CountingDevice();
-		edevice = new ExtendedCountingDevice();
-		idevice = new InjectionDevice();
+		sdevice   = new SimpleDevice();
+		cdevice   = new CountingDevice();
+		edevice   = new ExtendedCountingDevice();
+		idevice   = new InjectionDevice();
 		invDevice = new InvalidInjectionDevice();
 		manager.addDevices(sdevice, cdevice, edevice, idevice, invDevice);
 	}
@@ -119,6 +127,18 @@ public class AnnotationManagerTest {
 	}
 	
 	@Test
+	public void scanInfoInject() throws Exception {
+		
+		manager.invoke(ScanStart.class); 
+		assertEquals(null, edevice.getScanInformation());
+		
+		manager.addContext(new ScanInformation());
+		manager.invoke(ScanStart.class); 
+		assertTrue(edevice.getScanInformation()!=null);
+	}
+
+	
+	@Test
 	public void somePointsInject() throws Exception {
 		
 		manager.invoke(ScanStart.class); 
@@ -170,6 +190,12 @@ public class AnnotationManagerTest {
 		manager.invoke(ScanEnd.class); 
 		checkCalls(0, idevice, "method1");
 
+	}
+	
+	@Test(expected=Exception.class)
+	public void checkNoDevicesError() throws Exception {
+		AnnotationManager m = new AnnotationManager();
+		m.addDevices();
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
@@ -247,8 +273,116 @@ public class AnnotationManagerTest {
 
 	}
 
+	@Test
+	public void checkSimpleOrder() throws Exception {
+		
+		AnnotationManager m = new AnnotationManager();
+		
+		List<OrderedDevice> devices = new ArrayList<>();
+		for (int i = 0; i < 100; i++) devices.add(new OrderedDevice("device"+i));
+		
+		m.addDevices(devices);
+		m.invoke(PointStart.class, new Point(0, 10, 0, 20));
 
+		final List<String> orderedNames = devices.stream().map(x -> x.getName()).collect(Collectors.toList());
+		final List<String> names = OrderedDevice.getCalledNames();
+		
+		assertTrue(orderedNames.equals(names));
+		
+		m.invoke(ScanEnd.class);
+	}
 
+	@Test
+	public void checkOrderByLevel() throws Exception {
+		
+		AnnotationManager m = new AnnotationManager();
+		
+		// We add them not by level
+		List<OrderedDevice> devices = new ArrayList<>();
+		for (int i = 0; i < 100; i++) {
+			OrderedDevice d = new OrderedDevice("device"+i);
+			d.setLevel(i%10); // Devices in different level order...
+			devices.add(d);
+		}
+		
+		m.addDevices(devices);
+		
+		// We invoke them
+		m.invoke(PointStart.class, new Point(0, 10, 0, 20));
+
+		// We sort them by level
+		Collections.sort(devices, new LevelComparitor());
+		final List<String> orderedNames = devices.stream().map(x -> x.getName()).collect(Collectors.toList());
+		final List<String> names = OrderedDevice.getCalledNames();
+		
+		// The called names should have been sorted by level in the first place.
+		assertTrue(orderedNames.equals(names));
+		
+		m.invoke(ScanEnd.class);
+	}
+	
+	@Test
+	public void checkOrderByCallThenByLevel() throws Exception {
+		
+		AnnotationManager m = new AnnotationManager();
+		
+		// We add them not by level
+		List<OrderedDevice> fds = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			OrderedDevice d = new OrderedDevice("fd"+i);
+			d.setLevel(i%2); // Devices in different level order...
+			fds.add(d);
+		}
+		m.addDevices(fds);
+		
+		List<OrderedDevice> sds = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			OrderedDevice d = new OrderedDevice("sd"+i);
+			d.setLevel(i%2); // Devices in different level order...
+			sds.add(d);
+		}
+		m.addDevices(sds);
+	
+		// We invoke them
+		m.invoke(PointStart.class, new Point(0, 10, 0, 20));
+
+		final List<String> orderedNames = new ArrayList<String>(20);
+		Collections.sort(fds, new LevelComparitor());
+		orderedNames.addAll(fds.stream().map(x -> x.getName()).collect(Collectors.toList()));
+		Collections.sort(sds, new LevelComparitor());
+		orderedNames.addAll(sds.stream().map(x -> x.getName()).collect(Collectors.toList()));
+		
+		final List<String> names = OrderedDevice.getCalledNames();
+		assertTrue(orderedNames.equals(names));
+		
+		m.invoke(ScanEnd.class);
+	}
+	
+	@Test
+	public void checkPerformancePerCycle() throws Exception {
+		
+		final int size = 1000;
+		
+		AnnotationManager m = new AnnotationManager();
+		
+		// We add them not by level
+		for (int i = 0; i < size; i++) {
+			ExtendedCountingDevice d = new ExtendedCountingDevice();
+			d.setLevel(i%2); // Devices in different level order...
+			m.addDevices(d);
+		}
+
+		long start = System.currentTimeMillis();
+		manager.invoke(ScanStart.class); 
+		for (int i = 0; i < size; i++) cycle(i);
+		manager.invoke(ScanEnd.class); 
+		long end = System.currentTimeMillis();
+		
+		long time = (end-start)/size;
+		System.out.println("Each cycle took "+time+"ms. We ran '"+size+"' devices with '"+size+"' cycles.");
+		assertTrue(time<10); // These cycles must be fast
+	}
+		
 	private Class<?>[] getFirstMethodArgs(InjectionDevice device, String methodName) {
 		for (Method method : device.getClass().getMethods()) {
 			if (method.getName().equals(methodName)) return method.getParameterTypes();

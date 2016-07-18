@@ -12,7 +12,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	BenchmarkScanTest.class,
 	ScanFinishedTest.class,
 	PreprocessTest.class,
-	ScanAlgorithmTest.class
+	AnnotatedScanTest.class
 
 })
 public class Suite {

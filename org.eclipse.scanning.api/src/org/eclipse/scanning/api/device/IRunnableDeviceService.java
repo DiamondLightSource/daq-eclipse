@@ -155,4 +155,9 @@ public interface IRunnableDeviceService {
 	 */
     Collection<Class<?>> getRunnableDeviceModels() throws ScanningException;
 
+    /**
+     * Get the service being used to connect this service to the underlying hardware devices.
+     * @return
+     */
+    IDeviceConnectorService getDeviceConnectorService();
 }

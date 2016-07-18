@@ -25,6 +25,7 @@ import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.analysis.ProcessingRunnableDevice;
 import org.eclipse.scanning.server.servlet.Services;
+import org.eclipse.scanning.test.TmpTest;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockOperationService;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
@@ -45,7 +46,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  * @author Matthew Gerring
  *
  */
-public class NexusTest {
+public class NexusTest extends TmpTest {
 	
 	protected static IDeviceConnectorService connector;
 	protected static IRunnableDeviceService  dservice;
@@ -80,7 +81,10 @@ public class NexusTest {
 		Services.setConnector(connector);
 		org.eclipse.dawnsci.nexus.ServiceHolder.setNexusFileFactory(fileFactory);
 		org.eclipse.scanning.sequencer.ServiceHolder.setTestServices(new LoaderServiceMock(), new DefaultNexusBuilderFactory(), new MockOperationService());
+	
+	    clearTmp();
 	}
+
 
 	protected File output;
 	
