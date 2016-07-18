@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
 public class MockPositioner implements IPositioner {
 	
 	private IPosition pos;
-	private boolean aborted;
+	private boolean aborted = false;
 	private Boolean moveComplete;
 
 	@Override
