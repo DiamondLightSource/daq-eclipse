@@ -20,11 +20,11 @@ public class ScanPointGeneratorTest {
         
 	    List<IPosition> points = spg.createLinePoints("x", "mm", 1.0, 5.0, 5);
 	    
-	    assertEquals(new Point(0, 1.0, 0, 1.0, false), points.get(0));
-	    assertEquals(new Point(1, 2.0, 1, 2.0, false), points.get(1));
-	    assertEquals(new Point(2, 3.0, 2, 3.0, false), points.get(2));
-	    assertEquals(new Point(3, 4.0, 3, 4.0, false), points.get(3));
-	    assertEquals(new Point(4, 5.0, 4, 5.0, false), points.get(4));
+	    assertEquals(new Scalar("x", 0, 1.0), points.get(0));
+	    assertEquals(new Scalar("x", 1, 2.0), points.get(1));
+	    assertEquals(new Scalar("x", 2, 3.0), points.get(2));
+	    assertEquals(new Scalar("x", 3, 4.0), points.get(3));
+	    assertEquals(new Scalar("x", 4, 5.0), points.get(4));
 	}
 	
 	@Test
