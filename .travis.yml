@@ -25,9 +25,10 @@ install:
   - mv ../DiamondLightSource/daq-eclipse org.eclipse.scanning
   - cd org.eclipse.scanning
  
-# Set LD_LIBRARY_PATH for the tests
+# Set LD_LIBRARY_PATH for the tests. Also set a variable that attempts to clear /tmp on the travis node to avoid it getting large
 env:
   - LD_LIBRARY_PATH=/home/travis/build/dawn-hdf/hdf.hdf5lib/lib/linux-x86_64
+  - CLEAR_TMP=true
  
 # compile and test
 script: 

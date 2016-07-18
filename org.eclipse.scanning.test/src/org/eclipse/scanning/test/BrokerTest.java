@@ -22,7 +22,7 @@ import org.junit.BeforeClass;
  * @author Matthew Gerring.
  *
  */
-public class BrokerTest {
+public class BrokerTest extends TmpTest {
 
 	protected static URI uri;     
 	
