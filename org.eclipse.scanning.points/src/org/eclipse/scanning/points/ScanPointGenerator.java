@@ -69,6 +69,29 @@ public class ScanPointGenerator {
         
         return points;
     }
+    
+    public List<IPosition> createArrayPoints(String name, String units, double[][] arrayPoints) {
+        
+        String strName = String.format("'%s'", name);
+        String strUnits = String.format("'%s'", units);
+        String strPoints = "[";
+        for (int i=0; i < arrayPoints.length; i++) {
+            if (i != 0) {
+                strPoints = strPoints.concat(", ");
+            }
+            strPoints = strPoints.concat(Arrays.toString(arrayPoints[i]));
+        }
+        strPoints = strPoints.concat("]");
+        
+        @SuppressWarnings("unchecked")
+        List<IPosition> points = (List<IPosition>) pi.eval("list(create_array("
+                + strName + ","
+                + strUnits + ","
+                + strPoints
+                + "))");
+        
+        return points;
+    }
 
     public List<IPosition> createRasterPoints(HashMap<String, Object> inner_line, HashMap<String, Object> outer_line, boolean alternateDirection) {
         
@@ -141,6 +164,35 @@ public class ScanPointGenerator {
                 + strRadius + ", "
                 + strScale + ", "
                 + strAlternateDirection
+                + "))");
+        
+        return points;
+    }
+    
+    public List<IPosition> createLissajousPoints(String[] names, String units, HashMap<String, Object> box, int numLobes, int numPoints, boolean alternateDirection) {
+
+        String strNames = Arrays.toString(names);
+        String strUnits = String.format("'%s'", units);
+        String strNumLobes = String.valueOf(numLobes);
+        String strNumPoints = String.valueOf(numPoints);
+        
+        String width = (String) box.get("width");
+        String height = (String) box.get("height");
+        String centre = (String) box.get("centre");
+
+        pi.exec("box = dict("
+                + "width=" + width + ", "
+                + "height=" + height + ", "
+                + "centre=" + centre + ", "
+                + ")");
+        
+        @SuppressWarnings("unchecked")
+        List<IPosition> points = (List<IPosition>) pi.eval("list(create_lissajous("
+                + strNames + ", "
+                + strUnits + ", "
+                + "box, "
+                + strNumLobes + ", "
+                + strNumPoints + ", "
                 + "))");
         
         return points;

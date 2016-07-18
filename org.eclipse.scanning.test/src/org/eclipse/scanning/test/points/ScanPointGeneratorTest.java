@@ -3,7 +3,9 @@ package org.eclipse.scanning.test.points;
 import org.eclipse.scanning.points.ScanPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.Scalar;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,12 +37,32 @@ public class ScanPointGeneratorTest {
         
 	    List<IPosition> points = spg.create2DLinePoints(names, "mm", start, stop, 5);
         
-        assertEquals(new Point(0, 1.0, 0, 2.0), points.get(0));
-        assertEquals(new Point(1, 2.0, 1, 4.0), points.get(1));
-        assertEquals(new Point(2, 3.0, 2, 6.0), points.get(2));
-        assertEquals(new Point(3, 4.0, 3, 8.0), points.get(3));
-        assertEquals(new Point(4, 5.0, 4, 10.0), points.get(4));
+        assertEquals(new Point(0, 1.0, 0, 2.0, false), points.get(0));
+        assertEquals(new Point(1, 2.0, 1, 4.0, false), points.get(1));
+        assertEquals(new Point(2, 3.0, 2, 6.0, false), points.get(2));
+        assertEquals(new Point(3, 4.0, 3, 8.0, false), points.get(3));
+        assertEquals(new Point(4, 5.0, 4, 10.0, false), points.get(4));
 	}
+    
+    @Test
+    public void testArrayGenerator() {
+        ScanPointGenerator spg = new ScanPointGenerator();
+        
+        double[] p1 = {1.0};
+        double[] p2 = {2.0};
+        double[] p3 = {3.0};
+        double[] p4 = {4.0};
+        double[] p5 = {5.0};
+        double[][] arrayPoints = {p1, p2, p3, p4, p5};
+        
+        List<IPosition> points = spg.createArrayPoints("x", "mm", arrayPoints);
+        
+        assertEquals(new Scalar("x", 0, 1.0), points.get(0));
+        assertEquals(new Scalar("x", 1, 2.0), points.get(1));
+        assertEquals(new Scalar("x", 2, 3.0), points.get(2));
+        assertEquals(new Scalar("x", 3, 4.0), points.get(3));
+        assertEquals(new Scalar("x", 4, 5.0), points.get(4));
+    }
 	
 	@Test
 	public void testRasterGenerator() {
@@ -89,5 +111,32 @@ public class ScanPointGeneratorTest {
         assertEquals(new Point(4, 1.130650533568409, 4, 0.3924587351155914, false), points.get(4));
         assertEquals(new Point(5, 1.18586065489788, 5, -0.5868891557832875, false), points.get(5));
         assertEquals(new Point(6, 0.5428735608675326, 6, -1.332029488076613, false), points.get(6));
+    }
+    
+    @Test
+    public void testLissajousGenerator() {
+        ScanPointGenerator spg = new ScanPointGenerator();
+
+        double width = 1.5;
+        double height = 1.5;
+        double[] centre = {0.0, 0.0};
+        
+        HashMap<String, Object> box = new HashMap<String, Object>();
+        box.put("width", String.valueOf(width));
+        box.put("height", String.valueOf(height));
+        box.put("centre", Arrays.toString(centre));
+        
+        String[] names = {"'x'", "'y'"};
+        int numLobes = 2;
+        int numPoints = 500;
+        
+        List<IPosition> points = spg.createLissajousPoints(names, "mm", box, numLobes, numPoints, false);
+        
+        assertEquals(new Point(0, 0.0, 0, 0.0, false), points.get(0));
+        assertEquals(new Point(1, 0.01884757158250311, 1, 0.028267637002450906, false), points.get(1));
+        assertEquals(new Point(2, 0.03768323863482717, 2, 0.05649510414594954, false), points.get(2));
+        assertEquals(new Point(3, 0.05649510414594954, 3, 0.08464228865511125, false), points.get(3));
+        assertEquals(new Point(4, 0.07527128613841116, 4, 0.1126691918405678, false), points.get(4));
+        assertEquals(new Point(5, 0.0939999251732282, 5, 0.14053598593929348, false), points.get(5));
     }
 }
