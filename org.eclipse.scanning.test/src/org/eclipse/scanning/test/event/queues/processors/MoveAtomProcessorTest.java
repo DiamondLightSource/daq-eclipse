@@ -80,6 +80,10 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		 * After terminate:
 		 * - IPositioner should have received an abort command
 		 */
+		Queueable lastBean = ((MockPublisher<Queueable>)statPub).getLastBean();
+		System.out.println("\n\nLast bean status: "+lastBean.getStatus()+"\n\n"); //FIXME
+		
+		//TODO Would be nice to check termination message here.
 		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());
 		assertFalse("Move should have been terminated", ((MockPositioner)mss.createPositioner()).isMoveComplete());
 	}
@@ -92,6 +96,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		 * - IPositioner should have received an abort command
 		 */
 		Queueable lastBean = ((MockPublisher<Queueable>)statPub).getLastBean();
+		
 		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) in '"+lastBean.getName()+
 				"' failed: \"The badger apocalypse cometh! (EXPECTED - we pressed the button...)\".", lastBean.getMessage());
 		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());

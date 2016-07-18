@@ -79,7 +79,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 			public void run() {
 				//Move device(s)
 				try {
-					System.out.println("\n\nRUN STARTED!!!\n\n");
+					System.out.println("\n\nRUN STARTED!!!\n\n");//FIXME
 					
 					broadcaster.broadcast(Status.RUNNING, "Moving device(s) to requested position.");
 					positioner.setPosition(target);
@@ -97,6 +97,8 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 			}
 			
 			private void reportFail(Exception ex) {
+				System.out.println("\n\nFAIL REPORTED!!!\n\n");//FIXME
+				
 				logger.error("Moving device(s) in '"+queueBean.getName()+"' failed with: \""+ex.getMessage()+"\".");
 				try {
 					//Bean has failed, but we don't want to set a final status here.
