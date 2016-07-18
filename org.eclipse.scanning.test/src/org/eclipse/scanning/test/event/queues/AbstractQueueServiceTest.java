@@ -360,7 +360,7 @@ public abstract class AbstractQueueServiceTest {
 		
 		//Submit a bean to the queue and allow it to start processing
 		qServ.jobQueueSubmit(bean);
-		Thread.sleep(400);  //This is optimised (500 too fast)
+		Thread.sleep(250);  //This is optimised//TODO
 		
 		//Request termination
 		bean.setStatus(Status.REQUEST_TERMINATE);
@@ -376,7 +376,7 @@ public abstract class AbstractQueueServiceTest {
 		
 		//Submit an atom to the queue and allow it to start processing
 		qServ.activeQueueSubmit(atom, aqID);
-		Thread.sleep(400); //This is optimised (500 too fast)
+		Thread.sleep(250); //This is optimised
 
 		//Request termination
 		atom.setStatus(Status.REQUEST_TERMINATE);
@@ -447,6 +447,13 @@ public abstract class AbstractQueueServiceTest {
 	
 	protected void checkProcessFinalStatus(Queueable bean, String queueID, Status expected) throws Exception {
 		List<? extends Queueable> statusSet = qServ.getStatusSet(queueID);
+		int i = 0;
+		while (statusSet.size() == 0) {
+			Thread.sleep(50);
+			statusSet = qServ.getStatusSet(queueID);
+			i=i+50;
+			if (i >= 1000) fail("No beans reported in status set while waiting for final status.");
+		}
 		StatusBean complete = statusSet.get(0);
 		checkBeanFinalStatus(bean, complete, expected);
 	}

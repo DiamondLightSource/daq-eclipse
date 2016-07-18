@@ -130,8 +130,8 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		scan.setStatus(Status.REQUEST_PAUSE);
 		IPublisher<ScanBean> processCommander = infrastructureServ.makePublisher(scanConsumer.getStatusTopicName());
 		waitForChildBeanState(Status.RUNNING, 5000l);
-		Thread.sleep(50);
-		processCommander.broadcast(scan);		
+		Thread.sleep(30);
+		processCommander.broadcast(scan);
 		waitForChildBeanState(Status.PAUSED, 5000l);
 		
 		//...inject a FAILED
