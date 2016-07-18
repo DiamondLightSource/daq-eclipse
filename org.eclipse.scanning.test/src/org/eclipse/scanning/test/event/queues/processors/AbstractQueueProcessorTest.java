@@ -243,7 +243,8 @@ public abstract class AbstractQueueProcessorTest {
 		checkInitialBeanState(failBean);
 		doExecute(testProcr, failBean);
 		causeFail();
-		waitForBeanFinalStatus(failBean, 10000l);
+		waitForBeanState(failBean, Status.FAILED, true, 10000l);
+		//waitForBeanFinalStatus(failBean, 10000l);
 		
 		checkLastBroadcastBeanStatuses(failBean, Status.FAILED, false);
 		
@@ -460,7 +461,7 @@ public abstract class AbstractQueueProcessorTest {
 			assertEquals("Second to last bean has wrong status", previousBeanState, penultimateBean.getStatus());
 			double penuBPercComp = penultimateBean.getPercentComplete();
 			assertTrue("Percent complete greater than last bean's", lastBPercComp >= penuBPercComp);
-			assertTrue("The percent complete is not between 0% & 100%", ((penuBPercComp > 0d) && (penuBPercComp < 100d))); 
+			assertTrue("The percent complete is not between 0% & 100% (is: "+lastBPercComp+")", ((penuBPercComp > 0d) && (penuBPercComp < 100d))); 
 		}
 		
 		//Last bean should have status in args and percent complete defined in if/else block

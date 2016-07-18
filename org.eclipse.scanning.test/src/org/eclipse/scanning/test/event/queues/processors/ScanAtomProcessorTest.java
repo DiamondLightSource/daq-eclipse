@@ -125,12 +125,12 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	
 	@Override
 	protected void causeFail() throws Exception {
-		waitForChildBeanState(Status.RUNNING, 1000l);
-		
 		//Pause the scan process...
 		ScanBean scan = getLastChildBean();
 		scan.setStatus(Status.REQUEST_PAUSE);
 		IPublisher<ScanBean> processCommander = infrastructureServ.makePublisher(scanConsumer.getStatusTopicName());
+		waitForChildBeanState(Status.RUNNING, 5000l);
+		Thread.sleep(50);
 		processCommander.broadcast(scan);		
 		waitForChildBeanState(Status.PAUSED, 5000l);
 		
@@ -140,7 +140,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		scan.setStatus(Status.FAILED);
 		scan.setMessage("The badger apocalypse destroyed the detector");
 		processCommander.broadcast(scan);
-		waitForChildBeanState(Status.FAILED, 5000l);
+		waitForChildBeanState(Status.FAILED, 10000l);
 		
 		//Tidy up our fail causer
 		processCommander.disconnect();
@@ -151,7 +151,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	
 	protected void waitToTerminate() throws Exception {
 		waitForChildBeanState(Status.RUNNING, 5000l);
-		Thread.sleep(120);
+		Thread.sleep(100);
 	}
 	
 	@Override
@@ -251,7 +251,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		} else if (lastStatus == Status.TERMINATED || lastStatus == Status.FAILED) {
 			//Last bean should be TERMINATED & not 100%
 			assertTrue("ScanBean percent Complete should not be 100%", lastBPercComp != 100d);
-			assertTrue("The percent complete is not between 0% & 100%.", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
+			assertTrue("The percent complete is not between 0% & 100% (is: "+lastBPercComp+")", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
 		} else {
 			fail("Unknown bean final status");
 		}
@@ -265,6 +265,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 			@Override
 			public void beanChangePerformed(BeanEvent<ScanBean> evt) {
 				ScanBean bean = evt.getBean();
+				System.out.println(bean.getStatus());
 				if (bean.getStatus() == awaitedStatus) {
 					statusLatch.countDown();
 				}
@@ -272,6 +273,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 
 		});
 		//In case the event already happened
+		System.out.println(getLastChildBean().getStatus());
 		if (getLastChildBean().getStatus() == awaitedStatus) statusLatch.countDown();
 		
 		boolean unlatched = statusLatch.await(timeout, TimeUnit.MILLISECONDS);
