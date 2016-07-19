@@ -119,7 +119,10 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 
 		//Post-match analysis
 		if (isTerminated()) {
-			if (!queueListener.isChildCommand()) {
+			if (queueListener.isChildCommand()) {
+				broadcaster.broadcast("Scan aborted before completion (requested).");
+			} else {
+				broadcaster.broadcast("Scan aborted from scanning service.");
 				commandScanBean(Status.REQUEST_TERMINATE);
 			}
 			tidyScanActors();
@@ -156,6 +159,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	@Override
 	public void terminate() throws EventException {
 		setTerminated();
+		processorLatch.countDown();
 	}
 
 	@Override

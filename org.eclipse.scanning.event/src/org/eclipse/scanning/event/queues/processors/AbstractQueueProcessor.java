@@ -28,7 +28,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 
 	protected P queueBean;
 	protected IQueueBroadcaster<? extends Queueable> broadcaster;
-	protected CountDownLatch processorLatch = new CountDownLatch(1);
+	protected final CountDownLatch processorLatch = new CountDownLatch(1);
 
 	@Override
 	public P getProcessBean(){
@@ -82,7 +82,6 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	@Override
 	public void setTerminated() {
 		terminated = true;
-		processorLatch.countDown();
 	}
 
 }
