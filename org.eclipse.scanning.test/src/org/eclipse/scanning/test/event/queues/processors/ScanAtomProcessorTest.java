@@ -54,7 +54,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		
 		//Set up the consumer which will work on ScanBeans made by the ScanProcessor
 		scanConsumer = infrastructureServ.makeConsumer(null, false);
-		scanConsumer.setRunner(new FastRunCreator<ScanBean>(40, true)); 
+		scanConsumer.setRunner(new FastRunCreator<ScanBean>(300, true)); 
 		scanConsumer.start();
 	}
 
@@ -130,17 +130,22 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		scan.setStatus(Status.REQUEST_PAUSE);
 		IPublisher<ScanBean> processCommander = infrastructureServ.makePublisher(scanConsumer.getStatusTopicName());
 		waitForChildBeanState(Status.RUNNING, 5000l);
-		Thread.sleep(30);
-		processCommander.broadcast(scan);
-		waitForChildBeanState(Status.PAUSED, 5000l);
+		System.out.println("RUNNING");
+		Thread.sleep(10);
+//		processCommander.broadcast(scan);
+//		waitForChildBeanState(Status.PAUSED, 5000l);
+//		System.out.println("PAUSED");
 		
 		//...inject a FAILED
+		processCommander.setStatusSetAddRequired(false);
 		processCommander.setStatusSetName(scanConsumer.getStatusSetName()); //Why does this need to be set???
 		scan = getLastChildBean();
 		scan.setStatus(Status.FAILED);
 		scan.setMessage("The badger apocalypse destroyed the detector");
 		processCommander.broadcast(scan);
+//		Thread.sleep(1000);
 		waitForChildBeanState(Status.FAILED, 10000l);
+		System.out.println("FAILED");
 		
 		//Tidy up our fail causer
 		processCommander.disconnect();
@@ -260,6 +265,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	private ScanBean waitForChildBeanState(Status awaitedStatus, long timeout) throws Exception {
 		final CountDownLatch statusLatch = new CountDownLatch(1);
 		ISubscriber<IBeanListener<ScanBean>> statusSubsc = infrastructureServ.makeSubscriber(null);
+		long startTime = System.currentTimeMillis();
 		statusSubsc.addListener(new IBeanListener<ScanBean>() {
 
 			@Override
@@ -273,9 +279,10 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		});
 		//In case the event already happened
 		if (getLastChildBean().getStatus() == awaitedStatus) statusLatch.countDown();
-		
 		boolean unlatched = statusLatch.await(timeout, TimeUnit.MILLISECONDS);
-		if (!unlatched) fail("Didn't get bean status before timeout.");
+		System.out.println("Runtime = "+(System.currentTimeMillis()-startTime));//TODO
+		
+		if (!unlatched) fail("Didn't get child bean status before timeout.");
 		statusSubsc.disconnect();
 		
 		return getLastChildBean();
