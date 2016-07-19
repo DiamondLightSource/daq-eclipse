@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.scan;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanFinished;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanNotFinished;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
@@ -111,6 +112,27 @@ public class ScanFinishedTest {
 		assertScanFinished(entry);
 	}
 	
+	@Test
+	public void testScanFinally() throws Exception {
+		
+		ScanModel smodel = createStepModel(2, 2);
+		MandelbrotModel mmodel = new MandelbrotModel("neXusScannable1", "neXusScannable2");
+		smodel.setDetectors(dservice.createRunnableDevice(mmodel));
+		
+		// Create a scan and run it without publishing events
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, null);
+		scanner.run(null);
+		
+		assertEquals(DeviceState.READY, scanner.getDeviceState());
+		
+		@SuppressWarnings("rawtypes")
+		IRunnableDevice device = dservice.getRunnableDevice(mmodel.getName());
+		MandelbrotDetector detector = (MandelbrotDetector)device;
+		assertTrue(detector._isScanFinallyCalled());
+		
+	}
+
+	
 	private NXentry getNexusEntry(IRunnableDevice<ScanModel> scanner) throws Exception {
 		String filePath = ((AbstractRunnableDevice<ScanModel>) scanner).getModel().getFilePath();
 		NexusFile nf = org.eclipse.dawnsci.nexus.ServiceHolder.getNexusFileFactory().newNexusFile(filePath);
@@ -121,7 +143,7 @@ public class ScanFinishedTest {
 		return nxRoot.getEntry();
 	}
 
-	private IRunnableDevice<ScanModel> createStepScan(int... size) throws Exception {
+	private ScanModel createStepModel(int... size) throws Exception {
 		IPointGenerator<?> gen = null;
 		
 		// We add the outer scans, if any
@@ -150,10 +172,16 @@ public class ScanFinishedTest {
 		smodel.setFilePath(output.getAbsolutePath());
 		System.out.println("File writing to " + smodel.getFilePath());
 
+		return smodel;
+	}
+	private IRunnableDevice<ScanModel> createStepScan(int... size) throws Exception {
+		
+		ScanModel smodel = createStepModel(size);
+		
 		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, null);
 		
-		final IPointGenerator<?> fgen = gen;
+		final IPointGenerator<?> fgen = (IPointGenerator<?>)smodel.getPositionIterable();
 		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
 			@Override
 			public void runWillPerform(RunEvent evt) throws ScanningException{
