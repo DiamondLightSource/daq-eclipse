@@ -91,6 +91,7 @@ public abstract class AbstractQueueProcessorTest {
 	 */
 	@Test
 	public void testChangingProcessorAfterExecution() throws Exception {
+		System.out.println("\n\n***\nCHNG TEST\n***");//FIXME
 		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
 		Queueable qBean = getTestBean();
 		try {
@@ -110,9 +111,9 @@ public abstract class AbstractQueueProcessorTest {
 		qProcr = getTestProcessor(true);
 		assertFalse("Executed should initially be false", qProcr.isExecuted());
 		
-		//Execute, but don't wait for completion (no point)
+		//Execute
 		doExecute(qProcr, qBean);
-		waitForBeanStatus(qBean, Status.RUNNING, 1000l);
+		waitForBeanStatus(qBean, Status.RUNNING, 500l);
 		assertTrue("Executed should be false after start", qProcr.isExecuted());
 		
 		try {
@@ -127,6 +128,9 @@ public abstract class AbstractQueueProcessorTest {
 		} catch (EventException eEx) {
 			//Expected
 		}
+		//Terminate the process so we don't have to wait around long
+		qProc.terminate();
+		waitForBeanFinalStatus(qBean, 5000);
 	}
 	
 	/**
@@ -137,6 +141,7 @@ public abstract class AbstractQueueProcessorTest {
 	 */
 	@Test
 	public void testDifferentBeanTypes() throws Exception {
+		System.out.println("\n\n***\nDIFF TEST\n***");//FIXME
 		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
 		Queueable qBean = getTestBean();
 		
@@ -150,7 +155,7 @@ public abstract class AbstractQueueProcessorTest {
 		try {
 			doExecute(qProcr, absDBe, qBean);
 			//Need to allow thread to start before failing (otherwise, no error thrown)
-//			waitForBeanStatus(absDBe, Status.RUNNING, 100l);
+			waitForBeanStatus(absDBe, Status.RUNNING, 500l);
 			fail("Should not be able to execute with different bean types on processor & process");
 		} catch (EventException eEx) {
 			//Expected
@@ -196,6 +201,7 @@ public abstract class AbstractQueueProcessorTest {
 	 */
 	@Test
 	public void testTermination() throws Exception {
+		System.out.println("\n\n***\nTERM TEST\n***");//FIXME
 		Queueable testBean = getTestBean();
 		IQueueProcessor<? extends Queueable> testProcr = getTestProcessor();
 		/*
@@ -217,6 +223,7 @@ public abstract class AbstractQueueProcessorTest {
 		checkLastBroadcastBeanStatuses(testBean, Status.TERMINATED, false);
 		
 		processorSpecificTermTests();
+		System.out.println("***\nDONE\n***\n\n");//FIXME
 	}
 	
 	/**
@@ -243,8 +250,8 @@ public abstract class AbstractQueueProcessorTest {
 		checkInitialBeanState(failBean);
 		doExecute(testProcr, failBean);
 		causeFail();
-		waitForBeanState(failBean, Status.FAILED, true, 10000l);
-		//waitForBeanFinalStatus(failBean, 10000l);
+//		waitForBeanState(failBean, Status.FAILED, true, 10000l);
+		waitForBeanFinalStatus(failBean, 5000l);
 		
 		checkLastBroadcastBeanStatuses(failBean, Status.FAILED, false);
 		

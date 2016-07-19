@@ -35,6 +35,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		QueueServicesHolder.unsetDeviceService(mss);
 		mvProcr = null;
 		mvAt = null;
+		mss = null;
 	}
 
 	@Override
@@ -61,7 +62,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 	
 	@Override
 	protected void waitToTerminate() throws Exception {
-		Thread.sleep(200);
+		Thread.sleep(100);
 	}
 	
 	@Override
@@ -80,10 +81,8 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		 * After terminate:
 		 * - IPositioner should have received an abort command
 		 */
-		Queueable lastBean = ((MockPublisher<Queueable>)statPub).getLastBean();
-		System.out.println("\n\nLast bean status: "+lastBean.getStatus()+"\n\n"); //FIXME
-		
 		//TODO Would be nice to check termination message here.
+		Thread.sleep(100);
 		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());
 		assertFalse("Move should have been terminated", ((MockPositioner)mss.createPositioner()).isMoveComplete());
 	}
