@@ -9,6 +9,8 @@ package org.eclipse.scanning.api;
  */
 public interface ILevel extends INameable {
 
+	final int MAXIMUM = 100;
+
 	/**
 	 * Used for ordering the operations of Scannables during scans
 	 * 
