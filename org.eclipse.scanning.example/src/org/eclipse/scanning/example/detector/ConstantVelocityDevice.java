@@ -12,6 +12,7 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -39,6 +40,11 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 	public ConstantVelocityDevice() throws ScanningException {
 		this.model = new ConstantVelocityModel();
 		setDeviceState(DeviceState.IDLE);
+	}
+	@ScanFinally
+	public void clean() {
+		context = null;
+		data  = null;
 	}
 
 	@Override
