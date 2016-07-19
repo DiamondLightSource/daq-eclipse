@@ -65,7 +65,7 @@ public class AbstractRequesterTest extends BrokerTest {
         assertTrue(in.equals(back));
 	}
 
-	@Test
+	// @Test
 	public void testGetDevices() throws Exception {
 		
 		DeviceRequest req = new DeviceRequest();

@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -42,56 +43,120 @@ import org.slf4j.LoggerFactory;
  */
 public class AnnotationManager {
 	
+
 	private static final Logger logger = LoggerFactory.getLogger(AnnotationManager.class);
 
 	private Map<Class<? extends Annotation>, Collection<MethodWrapper>> annotationMap;
 	private Map<Class<?>, Collection<Class<?>>>                         cachedClasses;
-	private Map<Class<?>, Object>                                       _services;
+	private Map<Class<?>, Object>                                       services;
+	private Collection<Object>                                          extraContext;
+
+	private Collection<Class<? extends Annotation>> annotations;
 	
+	public AnnotationManager(Collection<Class<? extends Annotation>> a) {
+		this.annotationMap = new Hashtable<>(31); // Intentionally synch
+		this.cachedClasses = new Hashtable<>(31); // Intentionally synch
+		this.annotations = a;
+	}
+
 	public AnnotationManager() {
-		annotationMap = new Hashtable<>(31); // Intentionally synch
-		cachedClasses = new Hashtable<>(31); // Intentionally synch
+		this(DeviceAnnotations.getAllAnnotations());
+	}
+	
+	@SafeVarargs
+	public AnnotationManager(Class<? extends Annotation>... a) {
+		this(Arrays.asList(a));
 	}
 	
 	/**
-	 * Generally uses for testing where the services
-	 * are provided by the test
-	 * 
-	 * If used in OSGi this constructor will be ignored even if you use it
-	 * In OSGi all services which AnnotationManager injects must be provided
-	 * by OSGi and cannot be overridden.
+	 * Set some implementations of types, for instance services.
+	 * Used in addition to the OSGi services available.
+	 * In test mode replaces OSGi services.
 	 * 
 	 * @param services
 	 */
 	public AnnotationManager(Map<Class<?>, Object> services) {
 		this();
-		this._services = services;
+		this.services = services;
 	}
 
-	
+
+	/**
+	 * Add a group of devices. As the devices are added if they implement ILevel,
+	 * they are sorted by level and added in that order. If another call to add
+	 * devices is made the new collection of devices will be sorted by level and
+	 * added to the end of the main list of devices.
+	 * 
+	 * So for:
+	 * <code>
+	 * manager.add(devices1[])
+	 * manager.add(devices2[])
+	 * </code>
+	 * The notification order will be all the devices1, by level then all the devices2
+	 * by level. So the overall order is by add order followed by level. This allows
+	 * for instance all devices of a given type to be notified by level before another
+	 * group of objects of another type. If no distinction of type is required, simply
+	 * add all devices in one go and they will be sorted by level.
+	 * 
+	 * If a device does not implement ILevel its level is assumed to be ILevel.MAXIMUM 
+	 * 
+	 * @param ds
+	 */
 	public void addDevices(Object... ds) {
-		for (Object object : ds) processAnnotations(object);
-	}
-	public void addDevices(Collection<?> ds) {
-		for (Object object : ds) processAnnotations(object);
+		if (ds == null)  throw new IllegalArgumentException("No devices specified!");
+		if (ds.length<1) throw new IllegalArgumentException("No devices specified!");
+		addDevices(Arrays.asList(ds));
 	}
 	
-	private void processAnnotations(Object object) {
+	/**
+	 * Add a group of devices. As the devices are added if they implement ILevel,
+	 * they are sorted by level and added in that order. If another call to add
+	 * devices is made the new collection of devices will be sorted by level and
+	 * added to the end of the main list of devices.
+	 * 
+	 * So for:
+	 * <code>
+	 * manager.add(devices1[])
+	 * manager.add(devices2[])
+	 * </code>
+	 * The notification order will be all the devices1, by level then all the devices2
+	 * by level. So the overall order is by add order followed by level. This allows
+	 * for instance all devices of a given type to be notified by level before another
+	 * group of objects of another type. If no distinction of type is required, simply
+	 * add all devices in one go and they will be sorted by level.
+	 * 
+	 * If a device does not implement ILevel its level is assumed to be ILevel.MAXIMUM 
+	 * 
+	 * @param ds
+	 */
+	public void addDevices(Collection<?> ds) {
 		
-		if (object==null) return;
+		if (ds == null)  throw new IllegalArgumentException("No devices specified!");
+		// Make a copy of it and sort it
+		List<Object> devices = new ArrayList<>(ds);
+		Collections.sort(devices, new LevelComparitor());
+		addOrderedDevices(devices);
+	}
+	private void addOrderedDevices(Collection<Object> ds) {
+		for (Object object : ds) processAnnotations(object);
+	}
+
+	private void processAnnotations(Object device) {
 		
-		final Method[] methods = object.getClass().getMethods();
+		if (device==null) return;
+		
+		final Method[] methods = device.getClass().getMethods();
 		for (int i = 0; i < methods.length; i++) {
-			final Annotation[] annotations = methods[i].getAnnotations();
-			if (annotations!=null) for (Annotation annotation : annotations) {
-				if (DeviceAnnotations.isDeviceAnnotation(annotation)) {
-					Class<? extends Annotation> clazz = annotation.annotationType();
+			final Annotation[] as = methods[i].getAnnotations();
+			if (as!=null) for (Annotation annotation : as) {
+				Class<? extends Annotation> clazz = annotation.annotationType();
+				if (this.annotations.contains(clazz)) {
 					Collection<MethodWrapper> ms = annotationMap.get(clazz);
 					if (ms == null) {
 						ms = new ArrayList<>(31);
 						annotationMap.put(clazz, ms);
 					}
-					ms.add(new MethodWrapper(clazz, object, methods[i]));
+					ms.add(new MethodWrapper(clazz, device, methods[i]));
 				}
 			}
 		}
@@ -110,8 +175,8 @@ public class AnnotationManager {
 	 * @throws InstantiationException 
 	 */
 	public void invoke(Class<? extends Annotation> annotation, Object... context) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-		final Collection<MethodWrapper> annotations = annotationMap.get(annotation);
-		if (annotations!=null) for (MethodWrapper wrapper : annotations) wrapper.invoke(context);
+		final Collection<MethodWrapper> as = annotationMap.get(annotation);
+		if (as!=null) for (MethodWrapper wrapper : as) wrapper.invoke(context);
 	}
 	
 	private class MethodWrapper {
@@ -145,31 +210,34 @@ public class AnnotationManager {
 				this.arguments= new Object[args.length];
 				for (int i = 0; i < args.length; i++) {
 					if (args[i] == IPosition.class) continue;
-					if (args[i] == ScanInformation.class) continue;
 				    // Find OSGi service for it, if any.
 					try {
 						arguments[i] = getService(args[i]);
 					} catch (Exception ne) {
-						logger.warn("Unable to find OSGi service for "+args[i]);
+						continue;
 					}
 				}
 			}
 		}
 		
-		public void invoke(Object... context) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		public void invoke(Object... objects) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 			
 			if (arguments!=null) { // Put the context into the args (if there are any)
 				
-				if (context!=null) for (int i = 0; i < context.length; i++) {
+				List<Object> context = new ArrayList<>();
+				if (extraContext!=null) context.addAll(extraContext);
+				if (objects!=null && objects.length>0) context.addAll(Arrays.asList(objects));
+				
+				for (int i = 0; i < context.size(); i++) {
 					
-				    final Collection<Class<?>> classes = getCachedClasses(context[i]);
+				    final Collection<Class<?>> classes = getCachedClasses(context.get(i));
 				    
 				    // Find the first class in classes which is in argClasses
 				    // NOTE this is why duplicates are not supported, type of argument used to map to injected class.
                 	Optional<Class<?>> contained = classes.stream().filter(x -> argClasses.contains(x)).findFirst();
                 	if (contained.isPresent()) {
                 	    final int index = argClasses.indexOf(contained.get());
-                	    arguments[index] = context[i];
+                	    arguments[index] = context.get(i);
                     }
 				}
 				method.invoke(instance, arguments);
@@ -204,17 +272,27 @@ public class AnnotationManager {
 		return classes;
 	}
 	
+	/**
+	 * 
+	 * @param object
+	 */
+	public void addContext(Object object) {
+		if (extraContext == null) extraContext = new HashSet<>();
+		extraContext.add(object);
+	}
+	
 	private Object getService(Class<?> class1) {
+		Object object=null;
 		if (SequencerActivator.isStarted()) {
-			return SequencerActivator.getService(class1);
-			
-		} else { // Might be in non-osgi mode
-			return _services.get(class1);
-		}
+			object = SequencerActivator.getService(class1);
+		} 
+		if (object==null) object = services.get(class1);
+		return object;
 	}
 
 	public void dispose() {
 		annotationMap.clear();
 		cachedClasses.clear();
+		if (extraContext!=null) extraContext.clear();
 	}
 }

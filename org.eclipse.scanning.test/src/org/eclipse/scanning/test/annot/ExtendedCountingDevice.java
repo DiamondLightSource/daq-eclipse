@@ -9,6 +9,7 @@ import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanInformation;
 
 /**
  * 
@@ -19,6 +20,7 @@ public class ExtendedCountingDevice extends CountingDevice {
 	
 	private List<IPosition>              positions = new ArrayList<>();
 	private List<IRunnableDeviceService> services  = new ArrayList<>();
+	private ScanInformation              scanInformation;
 	
     @ScanStart
     public void moveToNonObstructingLocation(IRunnableDeviceService rservice) throws Exception {
@@ -29,7 +31,7 @@ public class ExtendedCountingDevice extends CountingDevice {
         count(Thread.currentThread().getStackTrace());
         services.add(rservice); // Normally same one each time
     }
-    
+      
     @PointStart
     public void checkNextMoveLegal(IPosition pos) throws Exception {
     	// Do a floating point op
@@ -69,5 +71,14 @@ public class ExtendedCountingDevice extends CountingDevice {
 
 	public List<IRunnableDeviceService> getServices() {
 		return services;
+	}
+
+	public ScanInformation getScanInformation() {
+		return scanInformation;
+	}
+
+	@ScanStart
+	public void setScanInformation(ScanInformation scanInformation) {
+		this.scanInformation = scanInformation;
 	}
 }

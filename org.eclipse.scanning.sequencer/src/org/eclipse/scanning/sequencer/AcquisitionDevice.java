@@ -1,9 +1,23 @@
 package org.eclipse.scanning.sequencer;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.annotation.scan.PointEnd;
+import org.eclipse.scanning.api.annotation.scan.PointStart;
+import org.eclipse.scanning.api.annotation.scan.ScanAbort;
+import org.eclipse.scanning.api.annotation.scan.ScanEnd;
+import org.eclipse.scanning.api.annotation.scan.ScanFault;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
+import org.eclipse.scanning.api.annotation.scan.ScanPause;
+import org.eclipse.scanning.api.annotation.scan.ScanResume;
+import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -14,6 +28,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -38,6 +53,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private IPositioner                          positioner;
 	private LevelRunner<IRunnableDevice<?>>      runners;
 	private LevelRunner<IRunnableDevice<?>>      writers;
+	private AnnotationManager                    manager;
 	
 	// the nexus file
 	private INexusScanFileManager nexusScanFileManager = null;
@@ -50,6 +66,16 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private ReentrantLock    lock;
 	private Condition        paused;
 	private volatile boolean awaitPaused;
+	
+	/**
+	 * Used for clients that would like to wait until the run. Most useful
+	 * if the run was started with a start() call then more work is done, then
+	 * a latch() will join with the start and return once it is finished.
+	 * 
+	 * If the start hangs, so will calling latch, there is no timeout.
+	 * 
+	 */
+	private CountDownLatch latch;
 		
 	/**
 	 * Package private constructor, devices are created by the service.
@@ -96,12 +122,19 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			writers = LevelRunner.createEmptyRunner();
 		}
 		
-		
 		// create the nexus file, if appropriate
 		nexusScanFileManager = NexusScanFileManager.createNexusScanFile(this, model);
 		
+		// Create the manager and populate it
+		if (manager!=null) manager.dispose(); // It is allowed to configure more than once.
+		manager = new AnnotationManager();
+		manager.addDevices(getScannables(model));
+		if (model.getMonitors()!=null) manager.addDevices(model.getMonitors());
+		manager.addDevices(model.getDetectors());
+		
 		setDeviceState(DeviceState.READY); // Notify 
 	}
+
 
 	@Override
 	public void run(IPosition parent) throws ScanningException, InterruptedException {
@@ -111,8 +144,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
 		
+		boolean errorFound = false;
 		IPosition pos = null;
 		try {
+			if (latch!=null) latch.countDown();
+			this.latch = new CountDownLatch(1);
 	        // TODO Should we validate the position iterator that all
 	        // the positions are valid before running the scan?
 	        // It was called limit checking in GDA.
@@ -123,7 +159,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		int count = 0;
 
     		fireStart(size);    		
-
 
     		// We allow monitors which can block a position until a setpoint is
     		// reached or add an extra record to the NeXus file.
@@ -139,19 +174,17 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	
 	        	if (!firedFirst) {
 	        		// Notify that we will do a run and provide the first position.
+	        		manager.invoke(ScanStart.class, pos);
 	            	fireRunWillPerform(pos);
 	            	firedFirst = true;
 	        	}
 	        	
-	        	
 	        	// Check if we are paused, blocks until we are not
 	        	boolean continueRunning = checkPaused();
 	        	if (!continueRunning) return; // finally block performed 
-
-	        	// TODO Some validation on each point perhaps replacing atPointStart(..)
-	        	// TODO Whether to deal with atLineStart() and atPointStart()
 	        	
 	        	// Run to the position
+        		manager.invoke(PointStart.class, pos);
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
 	        	writers.await();               // Wait for the previous write out to return, if any
@@ -161,6 +194,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 		        		        	
 	        	// Send an event about where we are in the scan
+        		manager.invoke(PointEnd.class, pos);
 	        	positionComplete(pos, count, size);
 	        	++count;
 	        }
@@ -169,25 +203,61 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
         	writers.await();                   // Wait for the previous read out to return, if any
         	
 		} catch (ScanningException | InterruptedException i) {
-			if (!getBean().getStatus().isFinal()) getBean().setStatus(Status.FAILED);
-			getBean().setMessage(i.getMessage());
-			setDeviceState(DeviceState.FAULT);
+			errorFound=true;
+			processException(i);
 			throw i;
 			
 		} catch (Exception ne) {
-			if (!getBean().getStatus().isFinal()) getBean().setStatus(Status.FAILED);
-			getBean().setMessage(ne.getMessage());
-			setDeviceState(DeviceState.FAULT);
+			errorFound=true;
+			processException(ne);
 			throw new ScanningException(ne);
+			
 		} finally {
-			nexusScanFileManager.scanFinished(); // writes scanFinished and closes nexus file
-        	// We should not fire the run performed until the nexus file is closed.
-        	// Tests wait for this step and reread the file.
-       	    fireRunPerformed(pos);             // Say that we did the overall run using the position we stopped at.
-       	    
+			close(errorFound, pos);
 		}
-		// only fire end if finished normally
-		fireEnd();
+	}
+	
+	private void close(boolean errorFound, IPosition last) throws ScanningException {
+		try {
+			try {
+				nexusScanFileManager.scanFinished(); // writes scanFinished and closes nexus file
+	        	
+				// We should not fire the run performed until the nexus file is closed.
+	        	// Tests wait for this step and reread the file.
+	       	    fireRunPerformed(last);              // Say that we did the overall run using the position we stopped at.
+			
+			} finally {
+	       	    try {
+					manager.invoke(ScanFinally.class, last);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
+					throw new ScanningException(e);
+				}
+	       	    
+	    		// only fire end if finished normally
+	    		if (!errorFound) fireEnd();
+			}
+			
+		} finally {
+			if (latch!=null) latch.countDown();
+		}
+	}
+
+	@Override
+	public void latch() throws InterruptedException {
+		if (latch==null) return;
+		latch.await();
+	}
+
+	private void processException(Exception ne) throws ScanningException {
+		
+		if (!getBean().getStatus().isFinal()) getBean().setStatus(Status.FAILED);
+		getBean().setMessage(ne.getMessage());
+		try {
+			manager.invoke(ScanFault.class, ne);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
+			throw new ScanningException(ne);
+		}
+		setDeviceState(DeviceState.FAULT);
 	}
 
 	private void fireEnd() throws ScanningException {
@@ -198,11 +268,24 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		getBean().setPercentComplete(100);
 		
 		// Will send the state of the scan off.
+		try {
+			manager.invoke(ScanEnd.class);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
+			throw new ScanningException(e);
+		}
    	    setDeviceState(DeviceState.READY); // Fires!
 				
 	}
 
-	private void fireStart(int size) throws ScanningException {
+	private void fireStart(int size) throws Exception {
+		
+		ScanInformation info = new ScanInformation();
+		info.setSize(size);
+		info.setModel(getModel());
+		info.setParent(this);
+		info.setRank(getScanRank(getModel().getPositionIterable()));
+		info.setScannableNames(getScannableNames(getModel().getPositionIterable()));
+		manager.addContext(info);
 		
 		// Setup the bean to sent
 		getBean().setSize(size);	        
@@ -249,8 +332,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		}
        	    if (awaitPaused) {
         		setDeviceState(DeviceState.PAUSED);
+        		manager.invoke(ScanPause.class);
         		paused.await();
         		setDeviceState(DeviceState.RUNNING);
+        		manager.invoke(ScanResume.class);
         	}
     	} finally {
     		lock.unlock();
@@ -288,6 +373,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			}
 
 			setDeviceState(DeviceState.ABORTED);
+    		manager.invoke(ScanAbort.class);
 			
 		} catch (ScanningException s) {
 			throw s;
@@ -371,6 +457,43 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		    for (IPosition unused : model.getPositionIterable()) size++; // Fast even for large stuff providing they do not check hardware on the next() call.
 		}
 		return size;   		
+	}
+	
+
+	private Collection<IScannable<?>> getScannables(ScanModel model) throws ScanningException {
+		final Collection<String>   names = getScannableNames(model.getPositionIterable());
+		final Collection<IScannable<?>> ret = new ArrayList<>();
+		for (String name : names) ret.add(runnableDeviceService.getDeviceConnectorService().getScannable(name));
+		return ret;
+	}
+	
+	private Collection<String> getScannableNames(Iterable<IPosition> gen) {
+		
+		Collection<String> names = null;
+		if (gen instanceof IDeviceDependentIterable) {
+			names = ((IDeviceDependentIterable)gen).getScannableNames();
+			
+		}
+		if (names==null) {
+			names = model.getPositionIterable().iterator().next().getNames();
+		}
+		return names;   		
+	}
+	
+	private int getScanRank(Iterable<IPosition> gen) {
+		int scanRank = -1;
+		if (gen instanceof IDeviceDependentIterable) {
+			scanRank = ((IDeviceDependentIterable)gen).getScanRank();
+			
+		}
+		if (scanRank < 0) {
+			scanRank = model.getPositionIterable().iterator().next().getScanRank();
+		}
+		if (scanRank < 0) {
+			scanRank = 1;
+		}
+		
+		return scanRank;   		
 	}
 
 }
