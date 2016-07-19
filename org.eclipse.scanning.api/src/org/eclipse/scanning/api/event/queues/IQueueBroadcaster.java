@@ -5,7 +5,9 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
 
 /**
- * Methods for broadcasting the status and percentage complete of a bean within a queue. It is assumed that the bean is configured already and that some method of broadcasting is  
+ * Methods for broadcasting the status and percentage complete of a bean within
+ *  a queue. It is assumed that the bean is configured already and that some 
+ *  method of broadcasting is  
  * 
  * @author Michael Wharmby
  *
@@ -42,6 +44,16 @@ public interface IQueueBroadcaster<T> {
 	 */
 	public default void broadcast(double newPercent) throws EventException {
 		broadcast(null, newPercent, null);
+	}
+	
+	/**
+	 * Convenience method to call broadcast with only a message argument.
+	 * 
+	 * @param message String to message to publish on the bean.
+	 * @throws EventException In case broadcasting fails.
+	 */
+	public default void broadcast(String message) throws EventException {
+		broadcast(null, null, message);
 	}
 
 	/**
