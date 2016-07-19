@@ -7,6 +7,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
+import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.slf4j.Logger;
@@ -36,6 +37,9 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 	
 	//For processor operation
 	private Thread moveThread;
+
+	private long latRel1 = 0, latRel2 = 0;
+	
 	
 	/**
 	 * Create a MoveAtomProcessor which can be used by a {@link QueueProcess}. 
@@ -50,6 +54,8 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 
 	@Override
 	public void execute() throws EventException, InterruptedException {
+		System.out.println("EXEC START\n*****************");//FIXME
+		
 		setExecuted();
 		if (!(queueBean.equals(broadcaster.getBean()))) throw new EventException("Beans on broadcaster and processor differ");
 		broadcaster.broadcast(Status.RUNNING,"Creating position from configured values.");
@@ -62,13 +68,12 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 		try {
 			positioner = deviceService.createPositioner();
 		} catch (ScanningException se) {
-			//TODO
-			broadcaster.broadcast(Status.RUNNING, "Failed to get device positioner: \""+se.getMessage()+"\".");
+			broadcaster.broadcast(Status.FAILED, "Failed to get device positioner: \""+se.getMessage()+"\".");
 			logger.error("Failed to get device positioner in "+queueBean.getName()+": \""+se.getMessage()+"\".");
 			throw new EventException("Failed to get device positioner", se);
 		}
 		broadcaster.broadcast(20d);
-		
+				
 		//Create a new thread to call the move in
 		moveThread = new Thread(new Runnable() {
 			
@@ -76,29 +81,30 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 			 * DO NOT SET FINAL STATUSES IN THIS THREAD - set them in the post-match analysis
 			 */
 			@Override
-			public void run() {
+			public synchronized void run() {
 				//Move device(s)
 				try {
-					System.out.println("\n\nRUN STARTED!!!\n\n");//FIXME
-					
+					System.out.println("RUN START");//FIXME
 					broadcaster.broadcast(Status.RUNNING, "Moving device(s) to requested position.");
 					positioner.setPosition(target);
 					
+					//Check whether we received an interrupt whilst setting the positioner
+					if (Thread.currentThread().isInterrupted()) throw new InterruptedException("Move interrupted.");
 					//Completed cleanly
 					broadcaster.broadcast(99.5);
 					processorLatch.countDown();
-				} catch (InterruptedException inEx) {
-					if (!isTerminated()) {
-						reportFail(inEx);
+				} catch (Exception ex) {
+					if (isTerminated()) {
+						positioner.abort();
+						latRel2 = System.currentTimeMillis();
+						processorLatch.countDown();
+					} else {
+						reportFail(ex);
 					}
-				} catch(Exception ex) {
-					reportFail(ex);
 				}
 			}
-			
+
 			private void reportFail(Exception ex) {
-				System.out.println("\n\nFAIL REPORTED!!!\n\n");//FIXME
-				
 				logger.error("Moving device(s) in '"+queueBean.getName()+"' failed with: \""+ex.getMessage()+"\".");
 				try {
 					//Bean has failed, but we don't want to set a final status here.
@@ -113,17 +119,24 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 		moveThread.setDaemon(true);
 		moveThread.setPriority(Thread.MAX_PRIORITY);
 		moveThread.start();
+		System.out.println("Latch (pre-await): "+processorLatch.getCount());//FIXME
 		
 		processorLatch.await();
+		System.out.println("Latch released. ("+processorLatch.getCount()+")");//FIXME
+		
+		System.out.println("\nisTerminated(): "+isTerminated()+"\n");//FIXME
 		
 		//Post-match analysis - set all final statuses here!
 		if (isTerminated()) {
-			moveThread.interrupt();
-			positioner.abort();
+			broadcaster.broadcast("Move aborted before completion (requested).");
+			System.out.println("\nI AM ABORTING:  "+queueBean.getPercentComplete()+"\n");//FIXME
+			System.out.println("latRel1="+latRel1);
+			System.out.println("Term latRel2="+latRel2);
 			return;
 		}
 		
 		if (queueBean.getPercentComplete() >= 99.5) {
+			System.out.println("\nI AM COMPLETE: "+queueBean.getPercentComplete()+"\n");//FIXME
 			//Clean finish
 			broadcaster.broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
 		} else {
@@ -132,6 +145,8 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 			positioner.abort();
 			broadcaster.broadcast(Status.FAILED);
 		}
+		System.out.println("latRel1="+latRel1);
+		System.out.println("Term latRel2="+latRel2);
 	}
 
 	@Override
@@ -146,6 +161,7 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 
 	@Override
 	public void terminate() throws EventException {
+		moveThread.interrupt();
 		setTerminated();
 	}
 
