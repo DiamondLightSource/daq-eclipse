@@ -519,7 +519,8 @@ public abstract class AbstractQueueServiceTest {
 			}
 			
 		});
-		if (!cons.getStatusSet().isEmpty()) {
+		if (!(cons.getStatusSet().isEmpty() || cons.getStatusSet().size() == 0)) { 
+			//Extra "size()" test seems superfluous, but the "isEmpty()" was not picked up in testing...
 			Status lastBeanState = cons.getStatusSet().get(0).getStatus();
 			if ((lastBeanState == state) || (lastBeanState.isFinal() && isFinal)) statusLatch.countDown();
 		}
