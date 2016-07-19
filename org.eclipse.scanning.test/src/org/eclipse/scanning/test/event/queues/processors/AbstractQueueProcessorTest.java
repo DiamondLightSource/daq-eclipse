@@ -91,7 +91,6 @@ public abstract class AbstractQueueProcessorTest {
 	 */
 	@Test
 	public void testChangingProcessorAfterExecution() throws Exception {
-		System.out.println("\n\n***\nCHNG TEST\n***");//FIXME
 		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
 		Queueable qBean = getTestBean();
 		try {
@@ -141,7 +140,6 @@ public abstract class AbstractQueueProcessorTest {
 	 */
 	@Test
 	public void testDifferentBeanTypes() throws Exception {
-		System.out.println("\n\n***\nDIFF TEST\n***");//FIXME
 		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
 		Queueable qBean = getTestBean();
 		
@@ -201,7 +199,6 @@ public abstract class AbstractQueueProcessorTest {
 	 */
 	@Test
 	public void testTermination() throws Exception {
-		System.out.println("\n\n***\nTERM TEST\n***");//FIXME
 		Queueable testBean = getTestBean();
 		IQueueProcessor<? extends Queueable> testProcr = getTestProcessor();
 		/*
@@ -223,7 +220,6 @@ public abstract class AbstractQueueProcessorTest {
 		checkLastBroadcastBeanStatuses(testBean, Status.TERMINATED, false);
 		
 		processorSpecificTermTests();
-		System.out.println("***\nDONE\n***\n\n");//FIXME
 	}
 	
 	/**

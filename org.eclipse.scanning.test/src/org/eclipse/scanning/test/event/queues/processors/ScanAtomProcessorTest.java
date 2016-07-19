@@ -265,7 +265,6 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 			@Override
 			public void beanChangePerformed(BeanEvent<ScanBean> evt) {
 				ScanBean bean = evt.getBean();
-				System.out.println(bean.getStatus());
 				if (bean.getStatus() == awaitedStatus) {
 					statusLatch.countDown();
 				}
@@ -273,7 +272,6 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 
 		});
 		//In case the event already happened
-		System.out.println(getLastChildBean().getStatus());
 		if (getLastChildBean().getStatus() == awaitedStatus) statusLatch.countDown();
 		
 		boolean unlatched = statusLatch.await(timeout, TimeUnit.MILLISECONDS);

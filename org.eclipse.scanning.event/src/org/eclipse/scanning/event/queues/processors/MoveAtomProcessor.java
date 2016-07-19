@@ -37,9 +37,6 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 	
 	//For processor operation
 	private Thread moveThread;
-
-	private long latRel1 = 0, latRel2 = 0;
-	
 	
 	/**
 	 * Create a MoveAtomProcessor which can be used by a {@link QueueProcess}. 
@@ -54,8 +51,6 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 
 	@Override
 	public void execute() throws EventException, InterruptedException {
-		System.out.println("EXEC START\n*****************");//FIXME
-		
 		setExecuted();
 		if (!(queueBean.equals(broadcaster.getBean()))) throw new EventException("Beans on broadcaster and processor differ");
 		broadcaster.broadcast(Status.RUNNING,"Creating position from configured values.");
@@ -84,7 +79,6 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 			public synchronized void run() {
 				//Move device(s)
 				try {
-					System.out.println("RUN START");//FIXME
 					broadcaster.broadcast(Status.RUNNING, "Moving device(s) to requested position.");
 					positioner.setPosition(target);
 					
@@ -96,7 +90,6 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 				} catch (Exception ex) {
 					if (isTerminated()) {
 						positioner.abort();
-						latRel2 = System.currentTimeMillis();
 						processorLatch.countDown();
 					} else {
 						reportFail(ex);
@@ -119,24 +112,16 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 		moveThread.setDaemon(true);
 		moveThread.setPriority(Thread.MAX_PRIORITY);
 		moveThread.start();
-		System.out.println("Latch (pre-await): "+processorLatch.getCount());//FIXME
 		
 		processorLatch.await();
-		System.out.println("Latch released. ("+processorLatch.getCount()+")");//FIXME
-		
-		System.out.println("\nisTerminated(): "+isTerminated()+"\n");//FIXME
 		
 		//Post-match analysis - set all final statuses here!
 		if (isTerminated()) {
 			broadcaster.broadcast("Move aborted before completion (requested).");
-			System.out.println("\nI AM ABORTING:  "+queueBean.getPercentComplete()+"\n");//FIXME
-			System.out.println("latRel1="+latRel1);
-			System.out.println("Term latRel2="+latRel2);
 			return;
 		}
 		
 		if (queueBean.getPercentComplete() >= 99.5) {
-			System.out.println("\nI AM COMPLETE: "+queueBean.getPercentComplete()+"\n");//FIXME
 			//Clean finish
 			broadcaster.broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
 		} else {
@@ -145,8 +130,6 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 			positioner.abort();
 			broadcaster.broadcast(Status.FAILED);
 		}
-		System.out.println("latRel1="+latRel1);
-		System.out.println("Term latRel2="+latRel2);
 	}
 
 	@Override
