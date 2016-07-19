@@ -52,13 +52,11 @@ import org.junit.Test;
  *
  */
 
-
-
 public abstract class AbstractQueueServiceTest {
 	
 	protected IQueueService qServ;
 	protected static String qRoot;
-	protected EventInfrastructureFactoryService infrastructureServ;
+	protected static EventInfrastructureFactoryService infrastructureServ;
 	protected URI uri;
 	
 	@BeforeClass
@@ -288,7 +286,7 @@ public abstract class AbstractQueueServiceTest {
 		qServ.activeQueueSubmit(atomA, aqID);
 		qServ.activeQueueSubmit(atomB, aqID);
 		qServ.startActiveQueue(aqID);
-		Thread.sleep(200);
+		Thread.sleep(150);
 		
 		qServ.killQueue(aqID, false, false); //Need to set disconnect false to allow post-match analysis!
 		waitForBeanFinalState(atomA, qServ.getActiveQueue(aqID).getConsumer(), 5000);
@@ -360,7 +358,7 @@ public abstract class AbstractQueueServiceTest {
 		
 		//Submit a bean to the queue and allow it to start processing
 		qServ.jobQueueSubmit(bean);
-		Thread.sleep(250);  //This is optimised//TODO
+		Thread.sleep(150);  //This is optimised
 		
 		//Request termination
 		bean.setStatus(Status.REQUEST_TERMINATE);
@@ -376,7 +374,7 @@ public abstract class AbstractQueueServiceTest {
 		
 		//Submit an atom to the queue and allow it to start processing
 		qServ.activeQueueSubmit(atom, aqID);
-		Thread.sleep(250); //This is optimised
+		Thread.sleep(150); //This is optimised
 
 		//Request termination
 		atom.setStatus(Status.REQUEST_TERMINATE);

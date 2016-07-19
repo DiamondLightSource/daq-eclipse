@@ -25,12 +25,14 @@ import org.eclipse.scanning.test.event.queues.mocks.MockQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.util.EventInfrastructureFactoryService;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class HeartbeatMonitorTest {
 	
-	private EventInfrastructureFactoryService infrastructureServ;
+	private static EventInfrastructureFactoryService infrastructureServ;
 	
 	private IConsumer<QueueBean> consOne;
 	private IConsumer<QueueAtom >consTwo;
@@ -42,10 +44,19 @@ public class HeartbeatMonitorTest {
 	
 	private URI uri;
 	
-	@Before
-	public void setUp() throws Exception {
+	@BeforeClass
+	public static void initialise() throws Exception {
 		infrastructureServ = new EventInfrastructureFactoryService();
 		infrastructureServ.start(true);
+	}
+	
+	@AfterClass
+	public static void shutdown() throws Exception {
+		infrastructureServ.stop();
+	}
+	
+	@Before
+	public void setUp() throws Exception {
 		Constants.setNotificationFrequency(200);
 		
 		consOne = infrastructureServ.makeConsumer(new DummyBean(), true);
@@ -79,7 +90,6 @@ public class HeartbeatMonitorTest {
 		consTwoID = null;
 		
 		Constants.setNotificationFrequency(2000);
-		infrastructureServ.stop();
 	}
 	
 	@Test
