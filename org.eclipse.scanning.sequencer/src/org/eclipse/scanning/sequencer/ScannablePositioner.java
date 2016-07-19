@@ -27,6 +27,8 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 	private List<IScannable<?>>         monitors;
 
 	ScannablePositioner(IDeviceConnectorService service) {	
+		
+		setLevelCachingAllowed(false);
 		this.connectorService = service;
 		
 		// This is setting the default but the actual value of the timeout
@@ -87,7 +89,7 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
   
 
 	@Override
-	protected Collection<IScannable<?>> getObjects() throws ScanningException {
+	protected Collection<IScannable<?>> getDevices() throws ScanningException {
 		Collection<String> names = position.getNames();
 		if (names==null) return null;
 		final List<IScannable<?>> ret = new ArrayList<>(names.size());

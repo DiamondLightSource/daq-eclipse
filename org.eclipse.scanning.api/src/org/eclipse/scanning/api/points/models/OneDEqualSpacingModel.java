@@ -17,10 +17,6 @@ import org.eclipse.scanning.api.annotation.UiHidden;
  */
 public class OneDEqualSpacingModel extends AbstractPointsModel implements IBoundingLineModel {
 
-	
-	private String xName = "x";
-	private String yName = "y";
-
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -33,6 +29,9 @@ public class OneDEqualSpacingModel extends AbstractPointsModel implements IBound
 
 	private BoundingLine boundingLine;
 	private int points = 5;
+
+	private String xName = "x";
+	private String yName = "y";
 
 	@Override
 	public String getName() {
@@ -58,20 +57,44 @@ public class OneDEqualSpacingModel extends AbstractPointsModel implements IBound
 		this.boundingLine = boundingLine;
 		this.pcs.firePropertyChange("boundingLine", oldValue, boundingLine);
 	}
+	@UiHidden
+	public String getxName() {
+		return xName;
+	}
+	public void setxName(String xName) {
+		String oldValue = this.xName;
+		this.xName = xName;
+		this.pcs.firePropertyChange("xName", oldValue, xName);
+	}
+	@UiHidden
+	public String getyName() {
+		return yName;
+	}
+	public void setyName(String yName) {
+		String oldValue = this.yName;
+		this.yName = yName;
+		this.pcs.firePropertyChange("yName", oldValue, yName);
+	}
+	@UiHidden
+	@Override
+	public List<String> getScannableNames() {
+		return Arrays.asList(xName, yName);
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((boundingLine == null) ? 0 : boundingLine.hashCode());
+		int result = super.hashCode();
+		result = prime * result + ((boundingLine == null) ? 0 : boundingLine.hashCode());
 		result = prime * result + points;
+		result = prime * result + ((xName == null) ? 0 : xName.hashCode());
+		result = prime * result + ((yName == null) ? 0 : yName.hashCode());
 		return result;
 	}
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
@@ -83,27 +106,16 @@ public class OneDEqualSpacingModel extends AbstractPointsModel implements IBound
 			return false;
 		if (points != other.points)
 			return false;
+		if (xName == null) {
+			if (other.xName != null)
+				return false;
+		} else if (!xName.equals(other.xName))
+			return false;
+		if (yName == null) {
+			if (other.yName != null)
+				return false;
+		} else if (!yName.equals(other.yName))
+			return false;
 		return true;
 	}
-	public String getxName() {
-		return xName;
-	}
-	public void setxName(String xName) {
-		String oldValue = this.xName;
-		this.xName = xName;
-		this.pcs.firePropertyChange("xName", oldValue, xName);
-	}
-	public String getyName() {
-		return yName;
-	}
-	public void setyName(String yName) {
-		String oldValue = this.yName;
-		this.yName = yName;
-		this.pcs.firePropertyChange("yName", oldValue, yName);
-	}
-	@Override
-	public List<String> getScannableNames() {
-		return Arrays.asList(xName, yName);
-	}
-	
 }

@@ -11,7 +11,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	TopupTest.class,
 	BenchmarkScanTest.class,
 	ScanFinishedTest.class,
-	PreprocessTest.class
+	PreprocessTest.class,
+	AnnotatedScanTest.class
 
 })
 public class Suite {

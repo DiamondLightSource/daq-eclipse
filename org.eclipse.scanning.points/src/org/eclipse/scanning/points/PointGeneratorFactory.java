@@ -22,6 +22,7 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
+import org.eclipse.scanning.api.points.models.CollatedStepModel;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.EmptyModel;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -48,6 +49,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		System.out.println("Starting generator service");
 		Map<Class<? extends IScanPathModel>, Class<? extends IPointGenerator>> gens = new HashMap<>(7);
 		gens.put(StepModel.class,             StepGenerator.class);
+		gens.put(CollatedStepModel.class,     StepGenerator.class);
 		gens.put(ArrayModel.class,            ArrayGenerator.class);
 		gens.put(GridModel.class,             GridGenerator.class);
 		gens.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);

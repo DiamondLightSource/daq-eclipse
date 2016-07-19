@@ -3,7 +3,9 @@ package org.eclipse.scanning.points;
 import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Scalar;
+import org.eclipse.scanning.api.points.models.CollatedStepModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 
 class StepIterator implements Iterator<IPosition> {
@@ -33,7 +35,16 @@ class StepIterator implements Iterator<IPosition> {
 	public IPosition next() {
 		value = increment();
         ++index;
-		return new Scalar(model.getName(), index, value);
+        if (model instanceof CollatedStepModel) {
+        	final MapPosition mp = new MapPosition();
+        	for (String name : ((CollatedStepModel)model).getNames()) {
+           		mp.put(name, value);
+           		mp.putIndex(name, index);
+			}
+        	return mp;
+        } else {
+		    return new Scalar(model.getName(), index, value);
+        }
 	}
 
 	public void remove() {

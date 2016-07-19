@@ -3,8 +3,8 @@ package org.eclipse.scanning.api.points.models;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.scanning.api.annotation.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.UiHidden;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 
 /**
@@ -99,7 +99,9 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 			return false;
 		return true;
 	}
-	
+
+	@UiHidden
+	@Override
 	public List<String> getScannableNames() {
 		return Arrays.asList(getFastAxisName(), getSlowAxisName());
 	}
