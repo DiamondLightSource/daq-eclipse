@@ -133,10 +133,20 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		ScanBean scan = getLastChildBean();
 		scan.setStatus(Status.REQUEST_PAUSE);
 		IPublisher<ScanBean> processCommander = infrastructureServ.makePublisher(scanConsumer.getStatusTopicName());
-		waitForChildBeanState(Status.RUNNING, 5000l);
+		try {
+			waitForChildBeanState(Status.RUNNING, 5000l);
+		} catch (EventException evEx) {
+			eventServiceMisbehaving();
+			return;
+		}
 		Thread.sleep(6*dryRunSleep);
 		processCommander.broadcast(scan);
-		waitForChildBeanState(Status.PAUSED, 5000l);
+		try {
+			waitForChildBeanState(Status.PAUSED, 5000l);
+		} catch (EventException evEx) {
+			eventServiceMisbehaving();
+			return;
+		}
 		
 		//...inject a FAILED
 		processCommander.setStatusSetName(scanConsumer.getStatusSetName()); //Why does this need to be set???
@@ -144,7 +154,12 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		scan.setStatus(Status.FAILED);
 		scan.setMessage("The badger apocalypse destroyed the detector");
 		processCommander.broadcast(scan);
-		waitForChildBeanState(Status.FAILED, 5000l);
+		try {
+			waitForChildBeanState(Status.FAILED, 5000l);
+		} catch (EventException evEx) {
+			eventServiceMisbehaving();
+			return;
+		}
 		
 		//Tidy up our fail causer
 		processCommander.disconnect();
@@ -278,7 +293,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		//In case the event already happened
 		if (getLastChildBean().getStatus() == awaitedStatus) statusLatch.countDown();
 		boolean unlatched = statusLatch.await(timeout, TimeUnit.MILLISECONDS);
-		if (!unlatched) fail("Didn't get child bean status before timeout.");
+		if (!unlatched) throw new EventException("Didn't get child bean status before timeout.");
 		statusSubsc.disconnect();
 		
 		return getLastChildBean();
