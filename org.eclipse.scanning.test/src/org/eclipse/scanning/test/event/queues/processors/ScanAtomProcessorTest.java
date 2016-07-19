@@ -35,26 +35,39 @@ import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.util.EventInfrastructureFactoryService;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	
 	private ScanAtom scAt;
 	private ScanAtomProcessor scProcr;
 	
-	private EventInfrastructureFactoryService infrastructureServ;
+	private static EventInfrastructureFactoryService infrastructureServ;
 	private IConsumer<ScanBean> scanConsumer;
 	private IPublisher<ScanBean> scanPublisher;
-
-	@Override
-	protected void localSetup() throws Exception {
+	
+	//Number of ms for test consumer to sleep for during "processing"
+	int dryRunSleep = 40;
+	
+	@BeforeClass
+	public static void initialise() throws Exception {
 		//Start the event infrastructure & put the EventService in the service holder
 		infrastructureServ = new EventInfrastructureFactoryService();
 		infrastructureServ.start(true);
 		QueueServicesHolder.setEventService(infrastructureServ.getEventService());
-		
+	}
+	
+	@AfterClass
+	public static void shutdown() throws Exception {
+		infrastructureServ.stop();
+	}
+
+	@Override
+	protected void localSetup() throws Exception {
 		//Set up the consumer which will work on ScanBeans made by the ScanProcessor
 		scanConsumer = infrastructureServ.makeConsumer(null, false);
-		scanConsumer.setRunner(new FastRunCreator<ScanBean>(300, true)); 
+		scanConsumer.setRunner(new FastRunCreator<ScanBean>(dryRunSleep, true)); 
 		scanConsumer.start();
 	}
 
@@ -63,20 +76,11 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		//Stop, disconnect & nullify Event infrastructure
 		scanConsumer.stop();
 		
-		/*
-		 * We only need to worry about still running beans throwing errors if there was 
-		 * anything ever in  the status topic
-		 */
-		if (!scanConsumer.getStatusSet().isEmpty()) {
-			waitForChildBeanState(Status.TERMINATED, 1000l);
-		}
-		
 		scanConsumer.clearQueue(IEventService.SUBMISSION_QUEUE);
 		scanConsumer.clearQueue(IEventService.STATUS_SET);
 		scanConsumer.clearQueue(IEventService.CMD_SET);
 		scanConsumer.disconnect();
 		if (!(scanPublisher == null)) scanPublisher.disconnect();
-		infrastructureServ.stop();
 	}
 
 	@Override
@@ -130,26 +134,21 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		scan.setStatus(Status.REQUEST_PAUSE);
 		IPublisher<ScanBean> processCommander = infrastructureServ.makePublisher(scanConsumer.getStatusTopicName());
 		waitForChildBeanState(Status.RUNNING, 5000l);
-		System.out.println("RUNNING");
-		Thread.sleep(10);
-//		processCommander.broadcast(scan);
-//		waitForChildBeanState(Status.PAUSED, 5000l);
-//		System.out.println("PAUSED");
+		Thread.sleep(6*dryRunSleep);
+		processCommander.broadcast(scan);
+		waitForChildBeanState(Status.PAUSED, 5000l);
 		
 		//...inject a FAILED
-		processCommander.setStatusSetAddRequired(false);
 		processCommander.setStatusSetName(scanConsumer.getStatusSetName()); //Why does this need to be set???
 		scan = getLastChildBean();
 		scan.setStatus(Status.FAILED);
 		scan.setMessage("The badger apocalypse destroyed the detector");
 		processCommander.broadcast(scan);
-//		Thread.sleep(1000);
-		waitForChildBeanState(Status.FAILED, 10000l);
-		System.out.println("FAILED");
+		waitForChildBeanState(Status.FAILED, 5000l);
 		
 		//Tidy up our fail causer
 		processCommander.disconnect();
-		System.out.println("\n**********************\n*** PROCESS FAILED ***\n**********************\n");
+		System.out.println("\n***********************\n*** FAILED INJECTED ***\n***********************\n");
 		
 		//Pause consumer, wait, set message on ScanBean & status FAILED
 	}
@@ -265,7 +264,6 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	private ScanBean waitForChildBeanState(Status awaitedStatus, long timeout) throws Exception {
 		final CountDownLatch statusLatch = new CountDownLatch(1);
 		ISubscriber<IBeanListener<ScanBean>> statusSubsc = infrastructureServ.makeSubscriber(null);
-		long startTime = System.currentTimeMillis();
 		statusSubsc.addListener(new IBeanListener<ScanBean>() {
 
 			@Override
@@ -280,8 +278,6 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		//In case the event already happened
 		if (getLastChildBean().getStatus() == awaitedStatus) statusLatch.countDown();
 		boolean unlatched = statusLatch.await(timeout, TimeUnit.MILLISECONDS);
-		System.out.println("Runtime = "+(System.currentTimeMillis()-startTime));//TODO
-		
 		if (!unlatched) fail("Didn't get child bean status before timeout.");
 		statusSubsc.disconnect();
 		

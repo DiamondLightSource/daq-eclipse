@@ -246,7 +246,6 @@ public abstract class AbstractQueueProcessorTest {
 		checkInitialBeanState(failBean);
 		doExecute(testProcr, failBean);
 		causeFail();
-//		waitForBeanState(failBean, Status.FAILED, true, 10000l);
 		waitForBeanFinalStatus(failBean, 5000l);
 		
 		checkLastBroadcastBeanStatuses(failBean, Status.FAILED, false);
@@ -370,6 +369,7 @@ public abstract class AbstractQueueProcessorTest {
 			}
 			lastBean = ((MockPublisher<Queueable>)statPub).getLastBean();
 		}
+		
 		String beanStatus;
 		if (lastBean == null) {
 			beanStatus = "~~ bean is null ~~";
