@@ -39,7 +39,7 @@ public class MockPositioner implements IPositioner {
 		}
 		
 		pos = position;
-		Thread.sleep(150);
+		Thread.sleep(250);
 		
 		moveComplete = true;
 		return true;
