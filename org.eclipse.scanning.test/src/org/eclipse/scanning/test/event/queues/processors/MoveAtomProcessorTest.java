@@ -1,94 +1,103 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
-import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
 import org.eclipse.scanning.test.event.queues.mocks.MockPositioner;
+import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockScanService;
-import org.eclipse.scanning.test.event.queues.util.TestAtomMaker;
-import org.junit.Before;
-import org.junit.Test;
 
-public class MoveAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom> {
+public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 	
 	private MoveAtom mvAt;
-		
-	private final MockScanService mss = new MockScanService();
+	private MoveAtomProcessor mvProcr;
 	
-	@Before
-	public void setup() throws Exception {
-		createStatusPublisher();
-		mvAt = TestAtomMaker.makeTestMoveAtomA();
-		processorSetup();
+	//Infrastructure
+	private IRunnableDeviceService mss;
+
+	@Override
+	protected void localSetup() {
+		mss = new MockScanService();
+		QueueServicesHolder.setDeviceService(mss);
+	}
+
+	@Override
+	protected void localTearDown() {
+		QueueServicesHolder.unsetDeviceService(mss);
+		mvProcr = null;
+		mvAt = null;
+		mss = null;
+	}
+
+	@Override
+	protected IQueueProcessor<? extends Queueable> getTestProcessor(boolean makeNew) {
+		if (mvProcr == null || makeNew) mvProcr = new MoveAtomProcessor();
+		return mvProcr;
+	}
+
+	@Override
+	protected Queueable getTestBean() {
+		if (mvAt == null) mvAt = new MoveAtom("Move robot arm", "robot_arm", "1250", 12000);
+		return mvAt;
 	}
 	
-	private void processorSetup() throws Exception {
-		proc = new MoveAtomProcessor().makeProcessWithScanServ(mvAt, statPub, true, mss);
+	@Override
+	protected Queueable getFailBean() {
+		return new MoveAtom("Error Causer", "BadgerApocalypseButton", "pushed", 1);
 	}
 	
-	@Test
-	public void testExecution() throws Exception {
-		doExecute();
-		
-		//In the MockPositioner, it takes 4.5secs to set the position
-		pauseForMockFinalStatus(10000);
-		
+	@Override
+	protected void causeFail() throws Exception {
+		//Nothing to do, since using MockPositioner with fail simulation included.
+	}
+	
+	@Override
+	protected void waitToTerminate() throws Exception {
+		Thread.sleep(100);
+	}
+	
+	@Override
+	protected void processorSpecificExecTests() throws Exception {
 		/*
 		 * After execution:
-		 * - first bean in statPub should be Status.RUNNING
-		 * - last bean in statPub should be Status.COMPLETE and 100%
-		 * - status publisher should have: 1 RUNNING bean and 1 COMPLETE bean
 		 * - the IPosition should be a MapPosition with map based on atom's map
 		 */
-		checkBeanFinalStatus(Status.COMPLETE);
-		
 		IPosition expected = new MapPosition(mvAt.getPositionConfig());
 		assertEquals("Position reported by scan service different from expected", expected, mss.createPositioner().getPosition());
 	}
 	
-	@Test
-	public void testTerminate() throws Exception {
-		doExecute();
-		
-		Thread.sleep(1000);
-		proc.terminate();
-		//Wait to allow the house to come crashing down
-		pauseForMockFinalStatus(10000);
+	@Override
+	protected void processorSpecificTermTests() throws Exception {
 		/*
-		 * On terminate:
-		 * - first bean in statPub should be Status.RUNNING
-		 * - last bean in statPub should Status.TERMINATED and not be 100% complete
-		 * - status publisher should have a TERMINATED bean
+		 * After terminate:
 		 * - IPositioner should have received an abort command
 		 */
-		checkBeanFinalStatus(Status.TERMINATED);
-		
+		//TODO Would be nice to check termination message here.
+		Thread.sleep(100);
 		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());
+		assertFalse("Move should have been terminated", ((MockPositioner)mss.createPositioner()).isMoveComplete());
 	}
 	
-	@Test
-	public void testErrorInMove() throws Exception {
-		//Redefine the move atom so it will cause an exception in the Mock
-		mvAt = new MoveAtom("Error Causer", "BadgerApocalypseButton", "pushed", 1);
-		processorSetup();
-		doExecute();
-		
-		pauseForMockFinalStatus(10000);
-		
+	@Override
+	protected void processorSpecificFailTests() throws Exception {
 		/*
-		 * On exception:
-		 * - first bean in statPub should be Status.RUNNING
-		 * - last bean in statPub should be marked FAILED and not be 100% complete
+		 * After fail:
+		 * - message with details should be set on bean
+		 * - IPositioner should have received an abort command
 		 */
-		checkBeanFinalStatus(Status.FAILED);
-		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) failed: The badger apocalypse cometh!", mvAt.getMessage());
+		Queueable lastBean = ((MockPublisher<Queueable>)statPub).getLastBean();
 		
+		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) in '"+lastBean.getName()+
+				"' failed: \"The badger apocalypse cometh! (EXPECTED - we pressed the button...)\".", lastBean.getMessage());
+		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());
 	}
-
 }

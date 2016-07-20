@@ -1,96 +1,87 @@
 package org.eclipse.scanning.event.queues.processors;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
-import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
+import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.api.event.status.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Helper abstract class, providing a broadcast method a several common fields 
- * used by all queue processors.
+ * Parent queue processor class, containing implementations of broadcast 
+ * methods used by the concrete {@link IQueueProcessor} instances. Also 
+ * contains boolean getters & setters for changes of execution state of the 
+ * processor.
  * 
  * @author Michael Wharmby
  *
- * @param <T> A bean extending the {@link Queueable} abstract class.
+ * @param <P> Bean type implementing {@link Queueable} which will be processed 
+ *            by the concrete {@link IQueueProcessor} instance.
  */
-public abstract class AbstractQueueProcessor<T extends Queueable> extends AbstractPausableProcess<T> {
+public abstract class AbstractQueueProcessor <P extends Queueable> implements IQueueProcessor<P> {
+
+	private static Logger logger = LoggerFactory.getLogger(AbstractQueueProcessor.class);
+
+	private boolean executed = false, terminated = false;
+
+	protected P queueBean;
+	protected IQueueBroadcaster<? extends Queueable> broadcaster;
+	protected final CountDownLatch processorLatch = new CountDownLatch(1);
+
+	@Override
+	public P getProcessBean(){
+		return queueBean;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Queueable> void setProcessBean(T bean) throws EventException {
+		if (isExecuted()) {
+			logger.error("Cannot change bean to be processed after execution has started.");
+			throw new EventException("Cannot change bean to be processed after execution has started");
+		}
+		if (bean.getClass().equals(getBeanClass())) {
+			this.queueBean = (P)bean;
+		} else {
+			logger.error("Cannot set bean: Bean type "+bean.getClass().getSimpleName()+" not supported by "+getClass().getSimpleName()+".");
+			throw new EventException("Unsupported bean type");
+		}
+	}
+
+	@Override
+	public IQueueBroadcaster<? extends Queueable> getQueueBroadcaster() {
+		return broadcaster;
+	}
+
+	@Override
+	public void setQueueBroadcaster(IQueueBroadcaster<? extends Queueable> broadcaster) throws EventException {
+		if (isExecuted()) {
+			logger.error("Cannot change broadcaster after execution has started.");
+			throw new EventException("Cannot change broadcaster after execution has started");
+		}
+		this.broadcaster = broadcaster;
+	}
+
+	@Override
+	public boolean isExecuted() {
+		return executed;
+	}
+
+	@Override
+	public void setExecuted() {
+		executed = true;
+	}
 	
-	protected boolean runComplete = false, terminated = false, blocking = true;
-	
-	//Number of ms processor waits in while loop before checking state of task.
-	protected final long loopSleepTime = 100;
-
-	protected AbstractQueueProcessor(T bean, IPublisher<T> publisher) {
-		super(bean, publisher);
-	}
-	
-	/**
-	 * Convenience method to call broadcast with only {@link Status} argument.
-	 * 
-	 * @param bean Bean to be broadcast.
-	 * @param newStatus Status the bean has just reached.
-	 * @throws EventException In case broadcasting fails.
-	 */
-	protected void broadcast(T bean, Status newStatus) throws EventException {
-		broadcast(bean, newStatus, null);
-	}
-	
-	/**
-	 * Convenience method to call broadcast with only percent complete 
-	 * argument.
-	 * 
-	 * @param bean Bean to be broadcast.
-	 * @param newPercent The value percent complete should be set to.
-	 * @throws EventException In case broadcasting fails.
-	 */
-	protected void broadcast(T bean, double newPercent) throws EventException {
-		broadcast(bean, null, newPercent);
-	}
-
-	/**
-	 * Broadcast the new status, updated previous status and percent complete 
-	 * of the given bean.
-	 * 
-	 * @param bean Bean to be broadcast.
-	 * @param newStatus Status the bean has just reached.
-	 * @param newPercent The value percent complete should be set to.
-	 * @throws EventException In case broadcasting fails.
-	 */
-	protected void broadcast(T bean, Status newStatus, Double newPercent) throws EventException {
-		if (publisher != null) {
-			if (newStatus != null) {
-				bean.setPreviousStatus(bean.getStatus());
-				bean.setStatus(newStatus);
-			}
-			if (newPercent != null) bean.setPercentComplete(newPercent);
-			
-			publisher.broadcast(bean);
-		}		
-	}
-
-	public boolean isRunComplete() {
-		return runComplete;
-	}
-
-	public void setRunComplete(boolean runComplete) {
-		this.runComplete = runComplete;
-	}
-
+	@Override
 	public boolean isTerminated() {
 		return terminated;
 	}
 
-	public void setTerminated(boolean terminated) {
-		this.terminated = terminated;
-	}
-
-	public boolean isBlocking() {
-		return blocking;
-	}
-
-	public void setBlocking(boolean blocking) {
-		this.blocking = blocking;
+	@Override
+	public void setTerminated() {
+		terminated = true;
 	}
 
 }

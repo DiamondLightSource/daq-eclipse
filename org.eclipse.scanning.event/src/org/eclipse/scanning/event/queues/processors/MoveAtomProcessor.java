@@ -2,147 +2,155 @@ package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IConsumerProcess;
-import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
+import org.eclipse.scanning.event.queues.QueueProcess;
+import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * MoveAtomProcessor takes the fields of a {@link MoveAtom} and from them makes
- * an {@link IPosition}. This is then used to set the position of referenced 
- * motors by calling to an {@link IPositioner} from the scan service. There is 
- * no monitoring of the progress of a motor move as it is happening, the 
- * processor just waits for the set call to return.
+ * MoveAtomProcessor reads the values included in a {@link MoveAtom} and 
+ * instructs the motors detailed in the atom to move to these positions.
  * 
- * TODO Add test of wrong bean type before cast.
+ * It uses the server's {@link IRunnableDeviceService} to create an 
+ * {@link IPositioner} which it passes the target positions to.
+ * 
+ * TODO Implement reporting back of the percent complete (when it might 
+ *      become available).
+ * TODO Implement pausing/resuming when implemented in the IPositioner system.
  * 
  * @author Michael Wharmby
  *
- * @param <T> Bean implementing {@link Queueable}, but must be a 
- *            {@link MoveAtom}.
  */
-public class MoveAtomProcessor implements IQueueProcessor {
-
-	private static Logger logger = LoggerFactory.getLogger(MoveAtomProcess.class);
+public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
+	
+	private static Logger logger = LoggerFactory.getLogger(MoveAtomProcessor.class);
+	
+	//Scanning infrastructure
+	private final IRunnableDeviceService deviceService;
+	private IPositioner positioner;
+	
+	//For processor operation
+	private Thread moveThread;
+	
+	/**
+	 * Create a MoveAtomProcessor which can be used by a {@link QueueProcess}. 
+	 * Constructor configures the device service 
+	 * ({@link IRunnableDeviceService}) using the instance specified in the 
+	 * {@link QueueServicesHolder}.
+	 */
+	public MoveAtomProcessor() {
+		//Get the deviceService from the OSGi configured holder.
+		deviceService = QueueServicesHolder.getDeviceService();
+	}
 
 	@Override
-	public <T extends Queueable> IConsumerProcess<T> makeProcess(T bean,
-			IPublisher<T> publisher, boolean blocking)  throws EventException {
-		return new MoveAtomProcess<T>(bean, publisher, blocking);
-	}
-	
-	public synchronized <T extends Queueable> IConsumerProcess<T> makeProcessWithScanServ(T bean,
-			IPublisher<T> publisher, boolean blocking, IRunnableDeviceService scanServ)  throws EventException {
-		MoveAtomProcess<T> moveProc = new MoveAtomProcess<T>(bean, publisher, blocking);
-		moveProc.setRunnableDeviceService(scanServ);
-		return moveProc;
-	}
-	
-
-	class MoveAtomProcess<T extends Queueable> extends AbstractQueueProcessor<T> {
-
-		private IRunnableDeviceService scanService;
-		private IPositioner positioner;
-		private MoveAtom atom;
-
-		private Thread th;
-
-		public MoveAtomProcess(T bean, IPublisher<T> publisher, boolean blocking) throws EventException {
-			super(bean, publisher);
-			this.blocking = blocking;
-
-			//We know the bean is of type MoveAtom as this processor wouldn't get
-			//called otherwise
-			atom = (MoveAtom) bean;
+	public void execute() throws EventException, InterruptedException {
+		setExecuted();
+		if (!(queueBean.equals(broadcaster.getBean()))) throw new EventException("Beans on broadcaster and processor differ");
+		broadcaster.broadcast(Status.RUNNING,"Creating position from configured values.");
+		
+		final IPosition target = new MapPosition(queueBean.getPositionConfig());
+		broadcaster.broadcast(10d);
+		
+		//Get the positioner
+		broadcaster.broadcast(Status.RUNNING, "Getting device positioner.");
+		try {
+			positioner = deviceService.createPositioner();
+		} catch (ScanningException se) {
+			broadcaster.broadcast(Status.FAILED, "Failed to get device positioner: \""+se.getMessage()+"\".");
+			logger.error("Failed to get device positioner in "+queueBean.getName()+": \""+se.getMessage()+"\".");
+			throw new EventException("Failed to get device positioner", se);
 		}
-
-		/**
-		 * For use in testing! 
-		 * @param evServ - class implementing IEventService
-		 */
-		public synchronized void setRunnableDeviceService(IRunnableDeviceService scanServ) {
-			scanService = scanServ;
-		}
-
-		@Override
-		public void execute() throws EventException {
-			broadcast(bean, Status.RUNNING);
-
-			bean.setMessage("Creating position from configured values");
-			broadcast(bean, Status.RUNNING);
-			final IPosition target = new MapPosition(atom.getPositionConfig());
-			broadcast(bean, 10d);
-
-			//Get the positioner
-			bean.setMessage("Getting device positioner");
-			broadcast(bean, Status.RUNNING);
-			try {
-				positioner = scanService.createPositioner();
-			} catch (ScanningException se) {
-				logger.error("Failed to get device positioner: "+se.getMessage());
-				bean.setMessage("Failed to get device positioner");
-				broadcast(bean, Status.FAILED);
-			}
-			broadcast(bean, 20d);
-
-			//Create a new thread to call the move in
-			th = new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					//Move device(s)
-					bean.setMessage("Moving device(s) to requested position");
-					try {
-						broadcast(bean, Status.RUNNING);
-						positioner.setPosition(target);
-						runComplete = true;
-					} catch(Exception e) {
-						logger.error("Moving device(s) failed with: "+e.getMessage());
-						bean.setMessage("Moving device(s) failed: "+e.getMessage());
-						try{
-							broadcast(bean, Status.FAILED);
-						} catch(EventException evEx) {
-							logger.error("Broadcasting bean failed with: "+evEx.getMessage());
-						}
+		broadcaster.broadcast(20d);
+				
+		//Create a new thread to call the move in
+		moveThread = new Thread(new Runnable() {
+			
+			/*
+			 * DO NOT SET FINAL STATUSES IN THIS THREAD - set them in the post-match analysis
+			 */
+			@Override
+			public synchronized void run() {
+				//Move device(s)
+				try {
+					broadcaster.broadcast(Status.RUNNING, "Moving device(s) to requested position.");
+					positioner.setPosition(target);
+					
+					//Check whether we received an interrupt whilst setting the positioner
+					if (Thread.currentThread().isInterrupted()) throw new InterruptedException("Move interrupted.");
+					//Completed cleanly
+					broadcaster.broadcast(99.5);
+					processorLatch.countDown();
+				} catch (Exception ex) {
+					if (isTerminated()) {
+						positioner.abort();
+						processorLatch.countDown();
+					} else {
+						reportFail(ex);
 					}
 				}
-			});
-			th.setDaemon(true);
-			th.setPriority(Thread.MAX_PRIORITY);
-			th.start();
-
-			while (!runComplete) {
-				try {
-					Thread.sleep(loopSleepTime);
-				} catch (InterruptedException e) {
-					throw new EventException(e);
-				}
-
-				if (terminated) {
-					th.interrupt();
-					positioner.abort();
-					broadcast(bean, Status.TERMINATED);
-					return;
-				}
 			}
 
-			bean.setMessage("Device move(s) completed.");
-			broadcast(bean, Status.COMPLETE, 100d);
+			private void reportFail(Exception ex) {
+				logger.error("Moving device(s) in '"+queueBean.getName()+"' failed with: \""+ex.getMessage()+"\".");
+				try {
+					//Bean has failed, but we don't want to set a final status here.
+					broadcaster.broadcast(Status.RUNNING, "Moving device(s) in '"+queueBean.getName()+"' failed: \""+ex.getMessage()+"\".");
+				} catch(EventException evEx) {
+					logger.error("Broadcasting bean failed with: \""+evEx.getMessage()+"\".");
+				} finally {
+					processorLatch.countDown();
+				}
+			}
+		});
+		moveThread.setDaemon(true);
+		moveThread.setPriority(Thread.MAX_PRIORITY);
+		moveThread.start();
+		
+		processorLatch.await();
+		
+		//Post-match analysis - set all final statuses here!
+		if (isTerminated()) {
+			broadcaster.broadcast("Move aborted before completion (requested).");
+			return;
 		}
-
-		@Override
-		public void terminate() throws EventException {
-			terminated = true;	
+		
+		if (queueBean.getPercentComplete() >= 99.5) {
+			//Clean finish
+			broadcaster.broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
+		} else {
+			//Scan failed - don't set anything here as messages should have 
+			//been updated elsewhere
+			positioner.abort();
+			broadcaster.broadcast(Status.FAILED);
 		}
+	}
 
+	@Override
+	public void pause() throws EventException {
+		logger.debug("Pause/resume not implemented on MoveAtom");
+	}
+
+	@Override
+	public void resume() throws EventException {
+		logger.debug("Pause/resume not implemented on MoveAtom");
+	}
+
+	@Override
+	public void terminate() throws EventException {
+		moveThread.interrupt();
+		setTerminated();
+	}
+
+	@Override
+	public Class<MoveAtom> getBeanClass() {
+		return MoveAtom.class;
 	}
 
 }

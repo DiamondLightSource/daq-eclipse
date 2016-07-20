@@ -29,9 +29,8 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 	private String queueMessage;
 	
 	private String scanSubmitQueueName;
-	private String scanStatusQueueName;
 	private String scanStatusTopicName;
-	private String scanConsumerURI;
+	private String scanBrokerURI;
 	
 	/**
 	 * No arg constructor for JSON
@@ -207,14 +206,6 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 		this.scanSubmitQueueName = scanSubmitQueueName;
 	}
 
-	public String getScanStatusQueueName() {
-		return scanStatusQueueName;
-	}
-
-	public void setScanStatusQueueName(String scanStatusQueueName) {
-		this.scanStatusQueueName = scanStatusQueueName;
-	}
-
 	public String getScanStatusTopicName() {
 		return scanStatusTopicName;
 	}
@@ -223,40 +214,25 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 		this.scanStatusTopicName = scanStatusTopicName;
 	}
 
-	public String getScanConsumerURI() {
-		return scanConsumerURI;
+	public String getScanBrokerURI() {
+		return scanBrokerURI;
 	}
 
-	public void setScanConsumerURI(String scanConsumerURI) {
-		this.scanConsumerURI = scanConsumerURI;
+	public void setScanBrokerURI(String scanBrokerURI) {
+		this.scanBrokerURI = scanBrokerURI;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((detectorModels == null) ? 0 : detectorModels.hashCode());
-		result = prime * result
-				+ ((monitors == null) ? 0 : monitors.hashCode());
-		result = prime * result
-				+ ((pathModels == null) ? 0 : pathModels.hashCode());
-		result = prime * result
-				+ ((queueMessage == null) ? 0 : queueMessage.hashCode());
-		result = prime * result
-				+ ((scanConsumerURI == null) ? 0 : scanConsumerURI.hashCode());
-		result = prime
-				* result
-				+ ((scanStatusQueueName == null) ? 0 : scanStatusQueueName
-						.hashCode());
-		result = prime
-				* result
-				+ ((scanStatusTopicName == null) ? 0 : scanStatusTopicName
-						.hashCode());
-		result = prime
-				* result
-				+ ((scanSubmitQueueName == null) ? 0 : scanSubmitQueueName
-						.hashCode());
+		result = prime * result + ((detectorModels == null) ? 0 : detectorModels.hashCode());
+		result = prime * result + ((monitors == null) ? 0 : monitors.hashCode());
+		result = prime * result + ((pathModels == null) ? 0 : pathModels.hashCode());
+		result = prime * result + ((queueMessage == null) ? 0 : queueMessage.hashCode());
+		result = prime * result + ((scanBrokerURI == null) ? 0 : scanBrokerURI.hashCode());
+		result = prime * result + ((scanStatusTopicName == null) ? 0 : scanStatusTopicName.hashCode());
+		result = prime * result + ((scanSubmitQueueName == null) ? 0 : scanSubmitQueueName.hashCode());
 		return result;
 	}
 
@@ -289,15 +265,10 @@ public class ScanAtom extends QueueAtom implements IAtomWithChildQueue {
 				return false;
 		} else if (!queueMessage.equals(other.queueMessage))
 			return false;
-		if (scanConsumerURI == null) {
-			if (other.scanConsumerURI != null)
+		if (scanBrokerURI == null) {
+			if (other.scanBrokerURI != null)
 				return false;
-		} else if (!scanConsumerURI.equals(other.scanConsumerURI))
-			return false;
-		if (scanStatusQueueName == null) {
-			if (other.scanStatusQueueName != null)
-				return false;
-		} else if (!scanStatusQueueName.equals(other.scanStatusQueueName))
+		} else if (!scanBrokerURI.equals(other.scanBrokerURI))
 			return false;
 		if (scanStatusTopicName == null) {
 			if (other.scanStatusTopicName != null)

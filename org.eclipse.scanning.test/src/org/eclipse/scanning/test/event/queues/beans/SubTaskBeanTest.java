@@ -8,7 +8,7 @@ import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.event.queues.beans.SubTaskBean;
-import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.junit.Before;
 import org.junit.Test;
 

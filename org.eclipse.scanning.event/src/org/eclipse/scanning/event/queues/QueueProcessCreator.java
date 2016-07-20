@@ -1,24 +1,15 @@
 package org.eclipse.scanning.event.queues;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.event.queues.beans.MonitorAtom;
-import org.eclipse.scanning.event.queues.beans.MoveAtom;
-import org.eclipse.scanning.event.queues.beans.ScanAtom;
-import org.eclipse.scanning.event.queues.beans.SubTaskBean;
-import org.eclipse.scanning.event.queues.beans.TaskBean;
-import org.eclipse.scanning.event.queues.processors.AtomQueueProcessor;
-import org.eclipse.scanning.event.queues.processors.MonitorAtomProcessor;
-import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
-import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * QueueProcessCreator creates the class which processes a given atom/bean. 
@@ -30,33 +21,41 @@ import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
  *            {@link QueueAtom} or {@QueueBean}.
  */
 public class QueueProcessCreator<T extends Queueable> implements IProcessCreator<T> {
+	
+	private static final Logger logger = LoggerFactory.getLogger(QueueProcessCreator.class);
 
-	private Map<String, IQueueProcessor> processMap;
 	private boolean blocking;
+	private IQueueProcess<T> queueProcess;
+	private IQueueProcessor<? extends Queueable> processor;
 
-	public QueueProcessCreator(boolean blocking) {
+	public QueueProcessCreator(boolean blocking) { //TODO Do we need this?
 		this.blocking = blocking;
 	}
 
 	@Override
 	public IConsumerProcess<T> createProcess(T atomBean,
 			IPublisher<T> statusNotifier) throws EventException {
-
-		//Create a map of bean type to processor
-		processMap = new HashMap<String, IQueueProcessor>();
-		processMap.put(MonitorAtom.class.getSimpleName(), new MonitorAtomProcessor());
-		processMap.put(MoveAtom.class.getSimpleName(), new MoveAtomProcessor());
-		processMap.put(ScanAtom.class.getSimpleName(), new ScanAtomProcessor());
-		processMap.put(SubTaskBean.class.getSimpleName(), new AtomQueueProcessor());
-		processMap.put(TaskBean.class.getSimpleName(), new AtomQueueProcessor());
-
-		//Determine the type of bean and return the appropriate processor
-		String className = atomBean.getClass().getSimpleName();
-		if (processMap.containsKey(className)) {
-			if(processMap.get(className) == null) throw new EventException("No processor registered for bean");
-			return processMap.get(className).makeProcess(atomBean, statusNotifier, blocking);
+		//Create the process
+		queueProcess = new QueueProcess<>(atomBean, statusNotifier, blocking);
+		
+		//Create & configure the processor
+		try {
+			processor = QueueProcessorFactory.getProcessor(atomBean.getClass().getName());
+		} catch (EventException evEx) {
+			logger.error("Cannot create process for bean '"+atomBean.getName()+"': No processor registered for the bean class '"+atomBean.getClass().getName()+"'");
+			throw evEx;
 		}
-		throw new EventException("Bean type '"+className+"' not registered in queue processMap.");
+		try {
+			processor.setProcessBean(atomBean);
+		} catch (EventException evEx) {
+			logger.error("Cannot create process for bean '"+atomBean.getName()+"': given bean class does not match processor bean class");
+			throw evEx;
+		}
+		processor.setQueueBroadcaster(queueProcess);
+		
+		//Finish process configuration & return
+		queueProcess.setProcessor(processor);
+		return queueProcess;
 	}
 
 }
