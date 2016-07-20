@@ -33,6 +33,7 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -70,6 +71,15 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		super();
 		this.model = new MandelbrotModel();
 		setDeviceState(DeviceState.IDLE);
+	}
+	
+	@ScanFinally
+	public void clean() {
+		image     = null;
+		imageData = null;
+		spectrum  = null;
+		spectrumData = null;
+		valueData = null;
 	}
 
 	@Override
@@ -257,6 +267,15 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		}
 		// Otherwise just return the iteration count
 		return iteration;
+	}
+
+	public boolean _isScanFinallyCalled() {
+		if (image     != null) return false;
+		if (imageData != null) return false;
+		if (spectrum  != null) return false;
+		if (spectrumData != null) return false;
+		if (valueData != null) return false;
+		return true;
 	}
 
 
