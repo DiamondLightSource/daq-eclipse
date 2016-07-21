@@ -758,6 +758,9 @@ public class StatusQueueView extends EventConnectionView {
 			copy.merge(bean);
 			copy.setUniqueId(UUID.randomUUID().toString());
 			copy.setMessage("Rerun of "+bean.getName());
+			copy.setStatus(org.eclipse.scanning.api.event.status.Status.SUBMITTED);
+			copy.setPercentComplete(0.0);
+			copy.setSubmissionTime(System.currentTimeMillis());
 						
 			queueConnection.submit(copy, true);
 			
