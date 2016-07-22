@@ -45,6 +45,14 @@ public @interface FieldDescriptor {
 	public boolean editable() default true;
 	
 	/**
+	 * If this field represents a particular sort of device, they
+	 * should only be able to choose that device.
+	 * 
+	 * @return
+	 */
+	public DeviceType device() default DeviceType.NONE;
+	
+	/**
 	 * 
 	 * @return a string expression which if true, enables the field.
 	 * For instance a field called 'status' exists which is an enum of OK, FAILED, ...
