@@ -1,0 +1,53 @@
+package org.eclipse.scanning.device.ui;
+
+import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IPerspectiveFactory;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.device.ui.device.DetectorView;
+import org.eclipse.ui.IFolderLayout;
+
+public class ScanningPerspective implements IPerspectiveFactory {
+
+	/**
+	 * Creates the initial layout for a page.
+	 */
+	public void createInitialLayout(IPageLayout layout) {
+		String editorArea = layout.getEditorArea();
+		addFastViews(layout);
+		addViewShortcuts(layout);
+		addPerspectiveShortcuts(layout);
+		{
+			IFolderLayout folderLayout = layout.createFolder("folder", IPageLayout.RIGHT, 0.5f, IPageLayout.ID_EDITOR_AREA);
+			folderLayout.addView("org.eclipse.scanning.device.ui.scanEditor");
+			final String detectorId = DetectorView.createId(getUriString(), IEventService.REQUEST_TOPIC, IEventService.RESPONSE_TOPIC);
+			folderLayout.addView(detectorId);
+		}
+		layout.addView("org.eclipse.scanning.device.ui.modelEditor", IPageLayout.BOTTOM, 0.3f, "org.eclipse.scanning.device.ui.scanEditor");
+	}
+
+	private String getUriString() {
+		String broker = System.getProperty("org.eclipse.scanning.broker.uri");
+		if (broker==null) broker = System.getProperty("gda.activemq.broker.uri");
+		if (broker==null) broker = "tcp://localhost:61616";
+		return broker;
+	}
+
+	/**
+	 * Add fast views to the perspective.
+	 */
+	private void addFastViews(IPageLayout layout) {
+	}
+
+	/**
+	 * Add view shortcuts to the perspective.
+	 */
+	private void addViewShortcuts(IPageLayout layout) {
+	}
+
+	/**
+	 * Add perspective shortcuts to the perspective.
+	 */
+	private void addPerspectiveShortcuts(IPageLayout layout) {
+	}
+
+}

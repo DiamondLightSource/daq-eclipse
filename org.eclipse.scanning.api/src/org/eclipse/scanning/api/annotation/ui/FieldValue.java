@@ -63,8 +63,29 @@ public class FieldValue {
     		String label = anot.label();
     		if (label!=null && !"".equals(label)) return label;
     	}
-    	return name;
+    	return decamel(name);
 	}
+	
+	/**
+	 * Method to decamel case field names.
+	 * @param fieldName
+	 * @return
+	 */
+	private String decamel(String fieldName) {
+		try {
+		    String[] words = fieldName.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
+		    StringBuilder buf = new StringBuilder();
+		    for (String string : words) {
+		    	buf.append(String.valueOf(string.charAt(0)).toUpperCase());
+		    	buf.append(string.substring(1));
+		    	buf.append(" ");
+			}
+		    return buf.toString();
+		} catch (Exception ne) {
+			return fieldName;
+		}
+	}
+
 
 
 	@Override

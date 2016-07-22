@@ -5,11 +5,11 @@ import java.util.Properties;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.ui.Activator;
-import org.eclipse.scanning.event.ui.preference.CommandConstants;
 import org.eclipse.ui.part.ViewPart;
 
-public abstract class EventConnectionView extends ViewPart {
+abstract class EventConnectionView extends ViewPart {
 
 	protected Properties                        idProperties;
 	
