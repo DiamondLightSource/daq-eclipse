@@ -6,127 +6,193 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
-import org.eclipse.scanning.api.event.dry.DryRunCreator;
-import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.dry.FastRunCreator;
+import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
-import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
-import org.eclipse.scanning.test.event.queues.mocks.DummyQueueable;
-import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
-import org.eclipse.scanning.test.event.queues.util.TestAtomMaker;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
+import org.eclipse.scanning.test.event.queues.util.EventInfrastructureFactoryService;
+import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-
-public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom> {
+public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 	
 	private ScanAtom scAt;
+	private ScanAtomProcessor scProcr;
 	
-	private IEventService evServ;
-	private IProcessCreator<ScanBean> fakeRunner;
-
+	private static EventInfrastructureFactoryService infrastructureServ;
 	private IConsumer<ScanBean> scanConsumer;
 	private IPublisher<ScanBean> scanPublisher;
 	
-	@Before
-	public void setup() throws Exception {
-
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller())); // <-- PointsModelMarshaller needed to serialize ScanRequests
-		evServ = new EventServiceImpl(new ActivemqConnectorService());
-		QueueServicesHolder.setEventService(evServ);
-		fakeRunner = new DryRunCreator<ScanBean>(true);
-
-		//Create the scan consumer & publisher (these are ~real)
-		scanConsumer = evServ.createConsumer(uri, IEventService.SUBMISSION_QUEUE,
-				IEventService.STATUS_SET, IEventService.STATUS_TOPIC,
-				IEventService.HEARTBEAT_TOPIC, IEventService.CMD_TOPIC);
-		scanConsumer.setRunner(fakeRunner);
-		scanConsumer.start();
-		scanPublisher = evServ.createPublisher(uri, IEventService.STATUS_TOPIC);
-		
-		createStatusPublisher();
-		
-		scAt = TestAtomMaker.makeTestScanAtomA();
-		scAt.setHostName(InetAddress.getLocalHost().getHostName());
-		scAt.setUserName("abc12345");
-		scAt.setBeamline("I15-1");
-		
-		scAt.setScanConsumerURI(uri.toString());
-		scAt.setScanSubmitQueueName(IEventService.SUBMISSION_QUEUE);
-		scAt.setScanStatusQueueName(IEventService.STATUS_SET);
-		scAt.setScanStatusTopicName(IEventService.STATUS_TOPIC);
-		
-		processorSetup();
+	//Number of ms for test consumer to sleep for during "processing"
+	int dryRunSleep = 40;
+	
+	@BeforeClass
+	public static void initialise() throws Exception {
+		//Start the event infrastructure & put the EventService in the service holder
+		infrastructureServ = new EventInfrastructureFactoryService();
+		infrastructureServ.start(true);
+		QueueServicesHolder.setEventService(infrastructureServ.getEventService());
 	}
 	
-	private void processorSetup() {
-		try {
-			proc = new ScanAtomProcessor().makeProcess(scAt, statPub, true);
-		} catch (EventException e) {
-			System.out.println("Failed to create ScanAtomProcessor "+e);
-		}
+	@AfterClass
+	public static void shutdown() throws Exception {
+		infrastructureServ.stop();
 	}
 
-	@After
-	public void tearDown() throws Exception {
-		scanPublisher.disconnect();
+	@Override
+	protected void localSetup() throws Exception {
+		//Set up the consumer which will work on ScanBeans made by the ScanProcessor
+		scanConsumer = infrastructureServ.makeConsumer(null, false);
+		scanConsumer.setRunner(new FastRunCreator<ScanBean>(dryRunSleep, true)); 
+		scanConsumer.start();
+	}
+
+	@Override
+	protected void localTearDown() throws Exception {
+		//Stop, disconnect & nullify Event infrastructure
+		scanConsumer.stop();
 		
 		scanConsumer.clearQueue(IEventService.SUBMISSION_QUEUE);
 		scanConsumer.clearQueue(IEventService.STATUS_SET);
-		scanConsumer.stop();
+		scanConsumer.clearQueue(IEventService.CMD_SET);
 		scanConsumer.disconnect();
+		if (!(scanPublisher == null)) scanPublisher.disconnect();
+	}
+
+	@Override
+	protected IQueueProcessor<? extends Queueable> getTestProcessor(boolean makeNew) {
+		if (scProcr == null || makeNew) scProcr = new ScanAtomProcessor();
+		return scProcr;
+	}
+
+	@Override
+	protected Queueable getTestBean() {
+		if (scAt == null) {
+			List<IScanPathModel> scanAxes = new ArrayList<>();
+			scanAxes.add(new StepModel("ocs", 290, 80, 10));
+			scanAxes.add(new StepModel("xMotor", 150, 100, 5));
+
+			Map<String, Object> detectors = new HashMap<>();
+			detectors.put("pe", new MockDetectorModel(30d));
+
+			List<String> monitors = new ArrayList<>();
+			monitors.add("bpm3");
+			monitors.add("i0");
+
+			scAt = new ScanAtom("VT scan across sample", scanAxes, detectors); 
+
+			try {
+				scAt.setHostName(InetAddress.getLocalHost().getHostName());
+			} catch (UnknownHostException ex) {
+				System.out.println("WARNING: Failed to set hostname on bean. Continuing...");
+			}
+			scAt.setUserName("abc12345");
+			scAt.setBeamline("I15-1");
+			try {
+				scAt.setScanBrokerURI(infrastructureServ.getURI().toString());
+			} catch (Exception ex) {
+				System.out.println("Failed to set broker URI"+ex.getMessage());
+			}
+		}
+		return scAt;
 	}
 	
-	@Ignore
-	@Test
-	public void testExecution() throws Exception {
-		scAt.setName("Test Execution");
-		doExecute();
-		executionLatch.await(30, TimeUnit.SECONDS);
+	@Override
+	protected Queueable getFailBean() {
+		//Failure will be caused by setting status FAILED & message in causeFail()
+		return getTestBean();
+	}
+	
+	@Override
+	protected void causeFail() throws Exception {
+		//Pause the scan process...
+		ScanBean scan = getLastChildBean();
+		scan.setStatus(Status.REQUEST_PAUSE);
+		IPublisher<ScanBean> processCommander = infrastructureServ.makePublisher(scanConsumer.getStatusTopicName());
+		try {
+			waitForChildBeanState(Status.RUNNING, 5000l);
+		} catch (EventException evEx) {
+			eventServiceMisbehaving();
+			return;
+		}
+		Thread.sleep(6*dryRunSleep);
+		processCommander.broadcast(scan);
+		try {
+			waitForChildBeanState(Status.PAUSED, 5000l);
+		} catch (EventException evEx) {
+			eventServiceMisbehaving();
+			return;
+		}
 		
+		//...inject a FAILED
+		processCommander.setStatusSetName(scanConsumer.getStatusSetName()); //Why does this need to be set???
+		scan = getLastChildBean();
+		scan.setStatus(Status.FAILED);
+		scan.setMessage("The badger apocalypse destroyed the detector");
+		processCommander.broadcast(scan);
+		try {
+			waitForChildBeanState(Status.FAILED, 5000l);
+		} catch (EventException evEx) {
+			eventServiceMisbehaving();
+			return;
+		}
+		
+		//Tidy up our fail causer
+		processCommander.disconnect();
+		System.out.println("\n***********************\n*** FAILED INJECTED ***\n***********************\n");
+		
+		//Pause consumer, wait, set message on ScanBean & status FAILED
+	}
+	
+	protected void waitToTerminate() throws Exception {
+		waitForChildBeanState(Status.RUNNING, 5000l);
+		Thread.sleep(100);
+	}
+	
+	@Override
+	protected void processorSpecificExecTests() throws Exception {
 		/*
 		 * After execution:
-		 * - first bean in statPub should be Status.RUNNING & 0%
-		 * - second bean in statPub should have Status.RUNNING & 5%
-		 * - last bean in statPub should be Status.COMPLETE & 100%
-		 * - consumer should have a ScanBean configured as the ScanAtom
-		 *   - should be Status.COMPLETE and 100%
+		 * - expect a specific series of reports from initial beans (creating ScanBean)
+		 * - additional (repeated) check of last bean state, but with penultimate bean too
+		 * - config of parent bean should be set on ScanBean
 		 */
-		
 		Status[] reportedStatuses = new Status[]{Status.RUNNING, Status.RUNNING,
 				Status.RUNNING, Status.RUNNING, Status.RUNNING};
-		Double[] reportedPercent = new Double[]{0d, 0d, 
-				1.25d, 2.5d, 5d};
+		Double[] reportedPercent = new Double[]{0d, 0.75d, 
+				2.5d, 4.25d, 5d};
+
+		checkFirstBroadcastBeanStatuses(scAt, reportedStatuses, reportedPercent);
+		checkLastBroadcastBeanStatuses(scAt, Status.COMPLETE, true);
 		
-		checkBeanStatuses(reportedStatuses, reportedPercent);
-		checkBeanFinalStatus(Status.COMPLETE, true);
-		
-		checkConsumerBeans(Status.COMPLETE);
-		
-		//Assert we have a properly structured ScanBean
-		List<ScanBean> statusSet = scanConsumer.getStatusSet();
-		ScanBean scan = statusSet.get(statusSet.size()-1);
+		//Get the last bean from the consumer and check its status
+		checkConsumerBean(Status.COMPLETE);
+		ScanBean scan = getLastChildBean();
+
 		//Check the properties of the ScanAtom have been correctly passed down
 		assertFalse("No beamline set", scan.getBeamline() == null);
 		assertEquals("Incorrect beamline", scAt.getBeamline(), scan.getBeamline());
@@ -136,121 +202,83 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 		assertEquals("Incorrect name", scAt.getName(), scan.getName());
 		assertFalse("No username set", scan.getUserName() == null);
 		assertEquals("Incorrect username", scAt.getUserName(), scan.getUserName());
+		
 		//Check the ScanRequest itself has been correctly interpreted
 		ScanRequest<?> req = scan.getScanRequest(); 
 		assertEquals("Scan path definitions differ", scAt.getPathModels(), req.getCompoundModel().getModels());
 		assertEquals("Detector definitions differ", scAt.getDetectorModels(), req.getDetectors());
 		assertEquals("Monitor definitions differ", scAt.getMonitors(), req.getMonitorNames());
 	}
-	
-	// Attempted to fix intermittent failure on travis.
-	@Ignore
-	@Test
-	public void testTerminateFromScan() throws Exception {
-		scAt.setName("Test Interrupted Execution");
-		doExecute();
-		
-		//Wait to allow bean onto queue and then get the bean 
-		Thread.sleep(2000);
-		ScanBean scan = scanConsumer.getStatusSet().get(0);
-		scan.setStatus(Status.REQUEST_TERMINATE);
-		scan.setMessage("Emergency stop");
-		scanPublisher.broadcast(scan);
-		
-		//Wait to allow the house to come crashing down
-		pauseForStatus(Status.TERMINATED);
-		
-		checkConsumerBeans(Status.TERMINATED);
-		checkBeanFinalStatus(Status.REQUEST_TERMINATE, true);//Has to be request since using Mock
-		
-		//Check the message was correctly set too
-		//(if this is after the terminate, we're also checking that no further processing is happening)
-		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
-		DummyQueueable lastBean = broadcastBeans.get(broadcastBeans.size()-1);
-		assertEquals("queueMessage differs to expected", "Terminate called from 'Test Interrupted Execution' with message: 'Emergency stop'"
-				, lastBean.getQueueMessage());
-	}
-	
-	@Ignore
-	@Test
-	public void testTermination() throws Exception {
-		scAt.setName("Test Termination");
-		doExecute();
-		Thread.sleep(2000);
-		proc.terminate();
 
-		//Wait for terminate to take effect
-		pauseForStatus(Status.TERMINATED);
-		
+	@Override
+	protected void processorSpecificTermTests() throws Exception {
 		/*
-		 * After execution:
-		 * - first bean in statPub should be Status.RUNNING
-		 * - last bean in statPub should be Status.TERMINATED & not be 100%
-		 * - last bean percentage should be 52.5% complete
-		 * - consumer should have a ScanBean with Status.TERMINATED & 50% complete
+		 * After termination:
+		 * - child bean should have been terminated
 		 */
-		checkBeanFinalStatus(Status.TERMINATED);
-		checkConsumerBeans(Status.TERMINATED);
+		checkConsumerBean(Status.TERMINATED);
 	}
 	
-	@Ignore
-	@Test
-	public void testFailureInScan() throws Exception {
-		scAt.setName("Failed scan");
-		doExecute();
-		
-		Thread.sleep(2000);
-		ScanBean scan = scanConsumer.getStatusSet().get(0);
-		scan.setStatus(Status.FAILED);
-		scan.setMessage("Error!");
-		scanPublisher.broadcast(scan);
-		System.out.println("**************************");
-		System.out.println("*     FAIL BROADCAST     *");
-		System.out.println("**************************");
-		
-		pauseForMockFinalStatus(10000);
+	@Override
+	protected void processorSpecificFailTests() throws Exception {
 		/*
-		 * After execution:
-		 * - first bean in statPub should be Status.RUNNING
-		 * - last bean in statPub should be Status.FAILED and not be 100%
-		 * - consumer should have a ScanBean with Status.FAILED & not 100%
+		 * After fail:
+		 * - child bean should have failed status
+		 * - message from child queue should be set on parent
 		 */
+		checkConsumerBean(Status.FAILED);
 		
-		checkBeanFinalStatus(Status.FAILED);
-		
-		//Try to end a bit more gracefully; TERMINATE before shutdown 
-		scan.setStatus(Status.REQUEST_TERMINATE);
-		scanPublisher.broadcast(scan);
-		pauseForStatus(Status.TERMINATED);
-		
-		//Check the message was correctly set too
-		List<DummyQueueable> broadcastBeans = ((MockPublisher<QueueAtom>)statPub).getBroadcastBeans();
-		DummyQueueable lastBean = broadcastBeans.get(broadcastBeans.size()-1);
-		assertEquals("queueMessage differs to expected", "Error in execution of 'Failed scan'. Message: 'Error!'"
-				, lastBean.getQueueMessage());
+		List<Queueable> broadBeans = getBroadcastBeans();
+		DummyHasQueue lastBean = (DummyHasQueue) broadBeans.get(broadBeans.size()-1);
+		assertEquals("Fail message on parent bean not same as on child bean", "'"+getLastChildBean().getName()+"': The badger apocalypse destroyed the detector", lastBean.getMessage());
+		assertEquals("Fail queue message on parent bean not as expected", "Failure caused by '"+getLastChildBean().getName()+"'", lastBean.getQueueMessage());
 	}
 	
-	private void checkConsumerBeans(Status lastStatus) throws EventException {
+	private ScanBean getLastChildBean() throws Exception {
+		return getLastChildBean(true);
+	}
+	
+	private ScanBean getLastChildBean(boolean uniqueBean) throws Exception {
 		List<ScanBean> statusSet = scanConsumer.getStatusSet();
-		assertTrue("More than one bean in the status queue. Was it cleared?",statusSet.size() == 1);
-		ScanBean lastBean = statusSet.get(statusSet.size()-1);
 		
-		if (lastStatus.equals(Status.COMPLETE)) {
-			assertEquals("Unexpected ScanBean final status", lastStatus, lastBean.getStatus());
-			assertEquals("ScanBean percentcomplete wrong", 100d, lastBean.getPercentComplete(), 0);
-		} else if (lastStatus.equals(Status.TERMINATED)) {
-			//Last bean should be TERMINATED & not 100%
-			assertEquals("Unexpected last ScanBean final status", lastStatus, lastBean.getStatus());
-			assertTrue("ScanBean percentComplete is 100%", lastBean.getPercentComplete()!=100d);
+		long startTime = System.currentTimeMillis(), runTime;
+		while (statusSet.size() == 0) {
+			Thread.sleep(50);
+			statusSet = scanConsumer.getStatusSet();
+			
+			runTime = System.currentTimeMillis();
+			if (startTime - runTime >= 10000) throw new Exception("No bean statuses in 10seconds");
+				
 		}
-		else {
+		if (uniqueBean) assertEquals("More than one bean in the status queue. Was it cleared?", statusSet.size(), 1);
+		return statusSet.get(statusSet.size()-1);
+	}
+	
+	/**
+	 * Interrogate the statusSet of the scan consumer to check it had the 
+	 * given final status.
+	 * @param lastStatus
+	 * @throws EventException
+	 */
+	private void checkConsumerBean(Status lastStatus) throws Exception {
+		ScanBean lastBean = waitForChildBeanState(lastStatus, 5000);
+		
+		assertEquals("Unexpected ScanBean final status.", lastStatus, lastBean.getStatus());
+		double lastBPercComp = lastBean.getPercentComplete();
+		if (lastStatus == Status.COMPLETE) {
+			assertEquals("ScanBean percent complete should be 100%.", 100d, lastBPercComp, 0);
+		} else if (lastStatus == Status.TERMINATED || lastStatus == Status.FAILED) {
+			//Last bean should be TERMINATED & not 100%
+			assertTrue("ScanBean percent Complete should not be 100%", lastBPercComp != 100d);
+			assertTrue("The percent complete is not between 0% & 100% (is: "+lastBPercComp+")", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
+		} else {
 			fail("Unknown bean final status");
 		}
 	}
 	
-	protected void pauseForStatus(Status awaitedStatus) throws Exception {
+	private ScanBean waitForChildBeanState(Status awaitedStatus, long timeout) throws Exception {
 		final CountDownLatch statusLatch = new CountDownLatch(1);
-		ISubscriber<IBeanListener<ScanBean>> statusSubsc = evServ.createSubscriber(uri, IEventService.STATUS_TOPIC);
+		ISubscriber<IBeanListener<ScanBean>> statusSubsc = infrastructureServ.makeSubscriber(null);
 		statusSubsc.addListener(new IBeanListener<ScanBean>() {
 
 			@Override
@@ -260,10 +288,15 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest<QueueAtom>
 					statusLatch.countDown();
 				}
 			}
-			
+
 		});
-		statusLatch.await(10, TimeUnit.SECONDS);
-		return;
+		//In case the event already happened
+		if (getLastChildBean().getStatus() == awaitedStatus) statusLatch.countDown();
+		boolean unlatched = statusLatch.await(timeout, TimeUnit.MILLISECONDS);
+		if (!unlatched) throw new EventException("Didn't get child bean status before timeout.");
+		statusSubsc.disconnect();
+		
+		return getLastChildBean();
 	}
 
 }

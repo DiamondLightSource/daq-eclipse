@@ -1,10 +1,6 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IConsumerProcess;
-import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.event.queues.beans.MonitorAtom;
 
 /**
@@ -21,33 +17,35 @@ import org.eclipse.scanning.event.queues.beans.MonitorAtom;
  * @param <T> Bean implementing {@link Queueable}, but must be a 
  *            {@link MonitorAtom}.
  */
-public class MonitorAtomProcessor implements IQueueProcessor {
+public class MonitorAtomProcessor extends AbstractQueueProcessor<MonitorAtom> {
 
 	@Override
-	public <T extends Queueable> IConsumerProcess<T> makeProcess(T bean,
-			IPublisher<T> publisher, boolean blocking) {
-		return new MonitorAtomProcess<T>(bean, publisher, blocking);
+	public void execute() throws EventException, InterruptedException {
+		// TODO Auto-generated method stub
+
 	}
 
-	class MonitorAtomProcess <T extends Queueable> extends AbstractQueueProcessor<T> {
+	@Override
+	public void pause() throws EventException {
+		// TODO Auto-generated method stub
 
-		public  MonitorAtomProcess(T bean, IPublisher<T> publisher, boolean blocking) {
-			super(bean, publisher);
-			// TODO Auto-generated constructor stub
-		}
+	}
 
-		@Override
-		public void execute() throws EventException {
-			// TODO Auto-generated method stub
+	@Override
+	public void resume() throws EventException {
+		// TODO Auto-generated method stub
 
-		}
+	}
 
-		@Override
-		public void terminate() throws EventException {
-			// TODO Auto-generated method stub
+	@Override
+	public void terminate() throws EventException {
+		// TODO Auto-generated method stub
 
-		}
+	}
 
+	@Override
+	public Class<MonitorAtom> getBeanClass() {
+		return MonitorAtom.class;
 	}
 
 }

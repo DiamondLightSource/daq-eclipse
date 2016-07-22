@@ -3,7 +3,7 @@ package org.eclipse.scanning.test.event.queues.util;
 import org.eclipse.scanning.api.event.queues.beans.IAtomQueue;
 import org.eclipse.scanning.event.queues.beans.SubTaskBean;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
-import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 
 /**
  * Factory class to generate classes implementing the {@link IAtomQueue} class.

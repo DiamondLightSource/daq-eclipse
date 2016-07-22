@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.beans;
+package org.eclipse.scanning.test.event.queues.dummy;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -6,9 +6,6 @@ import static org.junit.Assert.fail;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
-import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
-import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
-import org.eclipse.scanning.test.event.queues.mocks.DummyQueueable;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,11 +15,11 @@ import org.junit.Test;
  * @author Michael Wharmby
  *
  */
-public class DummyAtomTest {
+public class DummyQueueItemTest {
 	
 	private DummyAtom beanA, beanB;
 	private DummyBean beanC, beanD;
-	private DummyQueueable beanE, beanF;
+	private DummyHasQueue beanE, beanF;
 	
 	private long timeA = 26430, timeB = 4329;
 	
@@ -36,8 +33,8 @@ public class DummyAtomTest {
 		beanC = new DummyBean("Henry", timeA);
 		beanD = new DummyBean("Jane", timeB);
 		
-		beanE = new DummyQueueable("Henry", timeA);
-		beanF = new DummyQueueable("Jane", timeB);
+		beanE = new DummyHasQueue("Henry", timeA);
+		beanF = new DummyHasQueue("Jane", timeB);
 		
 		jsonMarshaller = new MarshallerService();
 	}
@@ -88,7 +85,7 @@ public class DummyAtomTest {
 		} catch(Exception e) {
 			fail("Bad conversion to JSON (first bean)");
 		}
-		DummyQueueable deSerBean = jsonMarshaller.unmarshal(jsonA, null);
+		DummyHasQueue deSerBean = jsonMarshaller.unmarshal(jsonA, null);
 		assertTrue("De-serialized bean differs from serialized", deSerBean.equals(beanE));
 		
 		try {

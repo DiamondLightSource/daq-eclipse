@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.event.queues.beans;
 
+import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
@@ -18,6 +19,7 @@ public abstract class Queueable extends StatusBean implements IQueueable {
 	protected Queueable() {
 		super();
 		setStatus(Status.NONE);
+		setPreviousStatus(Status.NONE);
 	}
 	
 	@Override
@@ -38,6 +40,12 @@ public abstract class Queueable extends StatusBean implements IQueueable {
 	@Override
 	public void setRunTime(long runTime) {
 		this.runTime = runTime;
+	}
+
+	public void merge(Queueable with) {
+		super.merge(with);
+		this.runTime = with.runTime;
+		this.beamline = with.beamline;
 	}
 
 	@Override
