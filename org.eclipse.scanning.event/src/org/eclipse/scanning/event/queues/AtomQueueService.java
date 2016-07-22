@@ -2,6 +2,7 @@ package org.eclipse.scanning.event.queues;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,6 +70,7 @@ public class AtomQueueService implements IQueueService {
 	private static final Logger logger = LoggerFactory.getLogger(AtomQueueService.class);
 	
 	private static IEventService eventService;
+	private String uriString;
 	private URI uri;
 	
 	private String queueRoot, heartbeatTopicName, commandTopicName;
@@ -94,6 +96,7 @@ public class AtomQueueService implements IQueueService {
 	public AtomQueueService(String queueRoot, URI uri) {
 		this.queueRoot = queueRoot;
 		this.uri = uri;
+		uriString = uri.toString();
 	}
 	
 	@Override
@@ -427,11 +430,27 @@ public class AtomQueueService implements IQueueService {
 	public URI getURI() {
 		return uri;
 	}
+	
+	@Override
+	public String getURIString() {
+		return uriString;
+	}
 
 	@Override
 	public void setURI(URI uri) throws EventException {
 		if (active) throw new UnsupportedOperationException("Cannot change URI whilst queue service is running");
 		this.uri = uri;
+		uriString = uri.toString();
+	}
+	
+	@Override
+	public void setURI(String uri) throws EventException {
+		try {
+			setURI(new URI(uri));
+			uriString = uri;
+		} catch (URISyntaxException usEx) {
+			throw new EventException(usEx);
+		}
 	}
 	
 	@Override

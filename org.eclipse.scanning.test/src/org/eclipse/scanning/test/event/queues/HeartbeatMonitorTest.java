@@ -16,18 +16,23 @@ import org.eclipse.scanning.api.event.queues.IHeartbeatMonitor;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.event.Constants;
 import org.eclipse.scanning.event.queues.HeartbeatMonitor;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
-import org.eclipse.scanning.test.event.queues.mocks.DummyAtom;
-import org.eclipse.scanning.test.event.queues.mocks.DummyBean;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
+import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
-import org.eclipse.scanning.test.event.queues.util.EventServiceActorMaker;
+import org.eclipse.scanning.test.event.queues.util.EventInfrastructureFactoryService;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class HeartbeatMonitorTest {
+	
+	private static EventInfrastructureFactoryService infrastructureServ;
 	
 	private IConsumer<QueueBean> consOne;
 	private IConsumer<QueueAtom >consTwo;
@@ -39,14 +44,27 @@ public class HeartbeatMonitorTest {
 	
 	private URI uri;
 	
+	@BeforeClass
+	public static void initialise() throws Exception {
+		infrastructureServ = new EventInfrastructureFactoryService();
+		infrastructureServ.start(true);
+	}
+	
+	@AfterClass
+	public static void shutdown() throws Exception {
+		infrastructureServ.stop();
+	}
+	
 	@Before
-	public void setUp() {
-		consOne = EventServiceActorMaker.makeConsumer(new DummyBean(), true);
+	public void setUp() throws Exception {
+		Constants.setNotificationFrequency(200);
+		
+		consOne = infrastructureServ.makeConsumer(new DummyBean(), true);
 		consOneID = consOne.getConsumerId();
-		uri = EventServiceActorMaker.getURI();
+		uri = infrastructureServ.getURI();
 		
 		//This is not a plugin-test - need to supply the EventService
-		QueueServicesHolder.setEventService(EventServiceActorMaker.getEventService());
+		QueueServicesHolder.setEventService(infrastructureServ.getEventService());
 	}
 	
 	@After
@@ -70,13 +88,15 @@ public class HeartbeatMonitorTest {
 		
 		consOneID = null;
 		consTwoID = null;
+		
+		Constants.setNotificationFrequency(2000);
 	}
 	
 	@Test
 	public void testLatestHeartbeats() throws Exception {
 		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, consOne.getConsumerId());
 		consOne.start();
-		Thread.sleep(4300);
+		Thread.sleep(600);
 		
 		List<HeartbeatBean> heartbeats = hbM.getLatestHeartbeats();
 		assertEquals("Unexpected number of heartbeats", 2, heartbeats.size());
@@ -86,10 +106,10 @@ public class HeartbeatMonitorTest {
 	public void testLastHeartbeat() throws Exception {
 		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, consOne.getConsumerId());
 		consOne.start();
-		waitForHeartbeat(3000);
+		waitForHeartbeat(600);
 		
 		final HeartbeatBean first = hbM.getLastHeartbeat();
-		Thread.sleep(2300); //Heartbeat every 2000ms
+		Thread.sleep(230); //Heartbeat every 200ms
 		final HeartbeatBean second = hbM.getLastHeartbeat();
 		consOne.start();
 		List<HeartbeatBean> heartbeats = hbM.getLatestHeartbeats();
@@ -102,7 +122,7 @@ public class HeartbeatMonitorTest {
 	public void testChangingConsumerID() throws Exception {
 		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, consOneID);
 		consOne.start();
-		waitForHeartbeat(3000);
+		waitForHeartbeat(600);
 		
 		final HeartbeatBean first = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consOneID, first.getConsumerId());
@@ -112,7 +132,7 @@ public class HeartbeatMonitorTest {
 		
 		hbM.setConsumerID(consTwoID);
 		consTwo.start();
-		waitForHeartbeat(3000);
+		waitForHeartbeat(600);
 		
 		final HeartbeatBean second = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consTwoID, second.getConsumerId());
@@ -127,7 +147,7 @@ public class HeartbeatMonitorTest {
 		assertEquals("Wrong queueID set on monitor", "MockQueueOne", hbM.getQueueID());
 		assertEquals("Wrong consumerID set on monitor", consOneID, hbM.getConsumerID());
 		consOne.start();
-		waitForHeartbeat(3000);
+		waitForHeartbeat(600);
 		
 		final HeartbeatBean first = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consOneID, first.getConsumerId());
@@ -136,7 +156,7 @@ public class HeartbeatMonitorTest {
 		assertEquals("Wrong queueID set on monitor", "MockQueueTwo", hbM.getQueueID());
 		assertEquals("Wrong consumerID set on monitor", consTwoID, hbM.getConsumerID());
 		consTwo.start();
-		waitForHeartbeat(3000);
+		waitForHeartbeat(600);
 		
 		final HeartbeatBean second = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consTwoID, second.getConsumerId());
@@ -151,7 +171,7 @@ public class HeartbeatMonitorTest {
 		hbM = new HeartbeatMonitor(uri, IEventService.HEARTBEAT_TOPIC, "MockQueueOne", mQServ);
 		assertEquals("Wrong queueID set on monitor", "MockQueueOne", hbM.getQueueID());
 		assertEquals("Wrong consumerID set on monitor", consOneID, hbM.getConsumerID());
-		waitForHeartbeat(3000);
+		waitForHeartbeat(600);
 		
 		final HeartbeatBean first = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consOneID, first.getConsumerId());
@@ -159,7 +179,7 @@ public class HeartbeatMonitorTest {
 		hbM.setQueueID("MockQueueTwo", mQServ);
 		assertEquals("Wrong queueID set on monitor", "MockQueueTwo", hbM.getQueueID());
 		assertEquals("Wrong consumerID set on monitor", consTwoID, hbM.getConsumerID());
-		waitForHeartbeat(3000);
+		waitForHeartbeat(600);
 		
 		final HeartbeatBean second = hbM.getLastHeartbeat();
 		assertEquals("Heartbeat from wrong consumer", consTwoID, second.getConsumerId());
@@ -200,13 +220,13 @@ public class HeartbeatMonitorTest {
 		
 	}
 	
-	private void createSecondConsumer() {
-		consTwo = EventServiceActorMaker.makeConsumer(new DummyAtom(), true);
+	private void createSecondConsumer() throws Exception {
+		consTwo = infrastructureServ.makeConsumer(new DummyAtom(), true);
 		consTwoID = consTwo.getConsumerId();
 		assertFalse("IDs of two consumers are identical", consTwoID.equals(consOneID));
 	}
 	
-	private void createTwoQueues() {
+	private void createTwoQueues() throws Exception {
 		createSecondConsumer();
 		mockOne = new MockQueue<>("MockQueueOne", consOne);
 		mockTwo = new MockQueue<>("MockQueueTwo", consTwo);

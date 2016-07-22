@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
@@ -119,7 +120,7 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 	@Override
 	public String getHeartbeatTopicName() {
 		// TODO Auto-generated method stub
-		return null;
+		return IEventService.HEARTBEAT_TOPIC;
 	}
 
 	@Override

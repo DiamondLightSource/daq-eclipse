@@ -6,7 +6,6 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
-	DummyAtomTest.class,
 	MonitorAtomTest.class,
 	MoveAtomTest.class,
 	ScanAtomTest.class,
