@@ -14,6 +14,7 @@ import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.IConfigurable;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Scalar;
@@ -30,9 +31,14 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 	private List<Number>            values;
 	private List<AbstractPosition>  positions;
 	
-	protected MockScannableModel     model;
+	protected MockScannableModel model;
 	private LazyWriteableDataset writer;
 	private PositionDelegate     delegate;
+	
+	@ScanFinally
+	public void clean() {
+		writer = null;
+	}
 	
     public MockScannable() {
        	values    = new ArrayList<>();

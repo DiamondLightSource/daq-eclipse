@@ -382,20 +382,36 @@ public interface IQueueService {
 	public String getCommandTopicName();
 	
 	/**
-	 * Return the URI of the server storing the queues.
+	 * Return the URI of the broker storing the queues.
 	 * 
-	 * @return URI to the queue server
+	 * @return URI to the queue broker.
 	 */
 	public URI getURI();
 	
 	/**
-	 * Change the URI of the server storing the queues.
+	 * Return the String path of the URI used to configure this service.
+	 * 
+	 * @return String of the URI to the queue broker. 
+	 */
+	public String getURIString();
+	
+	/**
+	 * Change the URI of the broker storing the queues.
 	 * Should not be possible to change this while service is started.
 	 * 
 	 * @param uri URI of new queue server.
 	 * @throws EventException If attempting to change whilst service started.
 	 */
 	public void setURI(URI uri) throws EventException;
+	
+	/**
+	 * Change the URI of the broker storing the queues with a String.
+	 * Should not be possible to change this while service is started.
+	 * 
+	 * @param uri String URI of new queue server.
+	 * @throws EventException If attempting to change whilst service started.
+	 */
+	public void setURI(String uri) throws EventException;
 	
 	/**
 	 * Return whether the queue service is currently running.

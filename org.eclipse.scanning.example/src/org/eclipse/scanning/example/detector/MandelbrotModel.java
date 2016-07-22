@@ -75,6 +75,13 @@ public class MandelbrotModel implements IDetectorModel {
 		realAxisName = "x";
 		imaginaryAxisName = "y";
 	}
+	
+	public MandelbrotModel(String r, String i) {
+	    this();
+	    this.realAxisName = r;
+	    this.imaginaryAxisName = i;
+	}
+
 
 	@UiSection("Algorithm parameters")
 	public int getMaxIterations() {

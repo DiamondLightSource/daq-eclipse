@@ -30,7 +30,7 @@ public class CountingDevice extends AbstractScannable<Double> {
 	
     @ScanStart
     public final void prepareVoltages() throws Exception {
-    	// Do a floating point op
+    	// Do a floating point op for timings
         double v1 = 2;
         double v2 = 2;
         double s = v1*v2;

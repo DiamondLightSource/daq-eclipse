@@ -13,6 +13,7 @@ import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
@@ -35,6 +36,12 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 	DelegateNexusWrapper(IScannable<Object> scannable) {
 		this.scannable = scannable;
 		
+	}
+	
+	@ScanFinally
+	public void clean() {
+		lzDemand = null;
+		lzValue  = null;
 	}
 
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) {
