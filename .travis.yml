@@ -7,7 +7,6 @@ services:
 branches:
  only:
   - master
-  - january-refactor
 
 jdk:
  - oraclejdk8
@@ -16,7 +15,7 @@ before_install:
  - chmod +x ./org.eclipse.scanning.releng/build/commit-msg.sh
  - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
  - git clone --depth=50 --branch=master https://github.com/eclipse/richbeans.git ../../eclipse/org.eclipse.richbeans
- - git clone --depth=50 --branch=january-refactor https://github.com/eclipse/dawnsci.git ../../eclipse/org.eclipse.dawnsci
+ - git clone --depth=50 --branch=master https://github.com/eclipse/dawnsci.git ../../eclipse/org.eclipse.dawnsci
  - git clone --depth=50 --branch=master https://github.com/DawnScience/jeromq.git ../../jeromq
  - git clone --depth=50 --branch=master https://github.com/DawnScience/dawn-hdf.git ../../dawn-hdf
   
