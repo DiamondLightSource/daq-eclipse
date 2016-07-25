@@ -13,7 +13,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	CompoundTest.class, 
 	RandomOffsetDecoratorTest.class,
 	ScanRankTest.class,
-	SpiralTest.class
+	SpiralTest.class,
+	ScanPointGeneratorFactoryTest.class
 
 
 	// TODO Smoke tests?
