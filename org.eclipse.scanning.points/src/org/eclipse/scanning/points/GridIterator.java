@@ -1,13 +1,18 @@
 package org.eclipse.scanning.points;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
+import org.python.core.PyDictionary;
+import org.python.core.PyObject;
 
 class GridIterator implements Iterator<IPosition> {
 
@@ -24,10 +29,14 @@ class GridIterator implements Iterator<IPosition> {
 
 	private int yIndex, xIndex;
 	private boolean forwards = true;
+	
+	private Iterator<IPosition> pyIterator;
+	private Point currentPoint;
 
 	public GridIterator(GridGenerator gen) {
-		this.gen = gen;
 		GridModel model = gen.getModel();
+		this.gen = gen;
+		
 		this.columns = model.getFastAxisPoints();
 		this.rows = model.getSlowAxisPoints();
 		this.snake = model.isSnake();
@@ -39,6 +48,78 @@ class GridIterator implements Iterator<IPosition> {
 		this.minY = model.getBoundingBox().getSlowAxisStart() + yStep / 2;
 		yIndex = 0;
 		xIndex = -1;
+		
+		JythonObjectFactory rasterGeneratorFactory = ScanPointGeneratorFactory.JRasterGeneratorFactory();
+
+        PyDictionary inner = new PyDictionary();
+        inner.put("name", xName);
+        inner.put("units", "mm");
+        inner.put("start", minX);
+        inner.put("stop", minX + (columns - 1) * xStep);
+        inner.put("num_points", columns);
+
+        PyDictionary outer = new PyDictionary();
+        outer.put("name", yName);
+        outer.put("units", "mm");
+        outer.put("start", minY);
+        outer.put("stop", minY + (rows - 1) * yStep);
+        outer.put("num_points", rows);
+        
+        boolean snake = model.isSnake();
+        
+        @SuppressWarnings("unchecked")
+		Iterator<IPosition> iterator = (Iterator<IPosition>) rasterGeneratorFactory.createObject(
+				outer, inner, snake);
+        pyIterator = iterator;
+	}
+
+	public GridIterator(RandomOffsetGridGenerator gen) {
+		this.gen = gen;
+		RandomOffsetGridModel model = (RandomOffsetGridModel) gen.getModel();
+		
+		this.columns = model.getFastAxisPoints();
+		this.rows = model.getSlowAxisPoints();
+		this.snake = model.isSnake();
+		this.xName = model.getFastAxisName();
+		this.yName = model.getSlowAxisName();
+		this.xStep = model.getBoundingBox().getFastAxisLength() / columns;
+		this.yStep = model.getBoundingBox().getSlowAxisLength() / rows;
+		this.minX = model.getBoundingBox().getFastAxisStart() + xStep / 2;
+		this.minY = model.getBoundingBox().getSlowAxisStart() + yStep / 2;
+		yIndex = 0;
+		xIndex = -1;
+		
+        JythonObjectFactory lineGeneratorFactory = ScanPointGeneratorFactory.JLineGenerator1DFactory();
+        
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> line1 = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
+				yName, "mm", minY, minY + (rows - 1) * yStep, rows);
+        
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> line2 = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
+				xName, "mm", minX, minX + (columns - 1) * xStep, columns, model.isSnake());
+		
+        JythonObjectFactory randomOffsetMutatorFactory = ScanPointGeneratorFactory.JRandomOffsetMutatorFactory();
+		
+        int seed = model.getSeed();
+        double offset = getXStep() * model.getOffset() / 100;
+        
+        PyDictionary maxOffset = new PyDictionary();
+        maxOffset.put("x", offset);
+        maxOffset.put("y", offset);
+        
+		PyObject randomOffset = (PyObject) randomOffsetMutatorFactory.createObject(seed, maxOffset);
+        
+        JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
+        
+        Object[] generators = {line1, line2};
+        Object[] excluders = {};
+        Object[] mutators = {randomOffset};
+        
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
+				generators, excluders, mutators);
+        pyIterator = iterator;
 	}
 
 	public GridIterator(RasterGenerator gen) {
@@ -55,81 +136,126 @@ class GridIterator implements Iterator<IPosition> {
 		this.rows = (int) Math.floor(model.getBoundingBox().getSlowAxisLength() / yStep + 1);
 		yIndex = 0;
 		xIndex = -1;
+		
+		JythonObjectFactory rasterGeneratorFactory = ScanPointGeneratorFactory.JRasterGeneratorFactory();
+
+        PyDictionary inner = new PyDictionary();
+        inner.put("name", xName);
+        inner.put("units", "mm");
+        inner.put("start", minX);
+        inner.put("stop", minX + (columns - 1) * xStep);
+        inner.put("num_points", columns);
+
+        PyDictionary outer = new PyDictionary();
+        outer.put("name", yName);
+        outer.put("units", "mm");
+        outer.put("start", minY);
+        outer.put("stop", minY + (rows - 1) * yStep);
+        outer.put("num_points", rows);
+        
+        boolean snake = model.isSnake();
+        
+        @SuppressWarnings("unchecked")
+		Iterator<IPosition> iterator = (Iterator<IPosition>) rasterGeneratorFactory.createObject(
+				outer, inner, snake);
+        pyIterator = iterator;
 	}
 
 	@Override
 	public boolean hasNext() {
+		Point point;
+		double x;
+		double y;
 		
-		int[] next = increment(snake, columns, yIndex, xIndex, forwards); 
-		int yIndex = next[0];
-		int xIndex = next[1];
+		while (pyIterator.hasNext()) {
+			point = (Point) pyIterator.next();
+			x = point.getX();
+			y = point.getY();
 			
-		if (yIndex > (rows - 1) || yIndex < 0)    {
-			return false;  // Normal termination
+			if (gen.containsPoint(x, y)) {
+				currentPoint = point;
+				return true;
+			}
 		}
-		if (xIndex > (columns - 1) || xIndex < 0) return false;
 		
-		double x = minX + xIndex * xStep;
-		double y = minY + yIndex * yStep;
-		if (!gen.containsPoint(x, y)) {
-			this.yIndex = yIndex;
-			this.xIndex = xIndex;
-			this.forwards = next[2]==1;
-			return hasNext();
-		}
-
-		return true;
+		return false;
+		
+//		int[] next = increment(snake, columns, yIndex, xIndex, forwards); 
+//		int yIndex = next[0];
+//		int xIndex = next[1];
+//			
+//		if (yIndex > (rows - 1) || yIndex < 0)    {
+//			return false;  // Normal termination
+//		}
+//		if (xIndex > (columns - 1) || xIndex < 0) return false;
+//		
+//		double x = minX + xIndex * xStep;
+//		double y = minY + yIndex * yStep;
+//		if (!gen.containsPoint(x, y)) {
+//			this.yIndex = yIndex;
+//			this.xIndex = xIndex;
+//			this.forwards = next[2]==1;
+//			return hasNext();
+//		}
+//
+//		return true;
 	}
 
 
-	private static final int[] increment(boolean snake, int columns, int yIndex, int xIndex, boolean forwards) {
-		
-		if (snake) {
-			if (forwards) {
-				xIndex++;
-				if (xIndex > (columns - 1)) {
-					xIndex = columns - 1;
-					yIndex++;
-					forwards = !forwards;
-				}
-			} else {
-				xIndex--;
-				if (xIndex<0) {
-					xIndex=0;
-					yIndex++;
-					forwards = !forwards;
-				}
-			}
-
-		} else {
-			xIndex++;
-			if (xIndex>(columns-1)) {
-				xIndex=0;
-				yIndex++;
-			}
-		}
-		return new int[]{yIndex,xIndex, forwards?1:0}; // Bit slow because makes array object to return int values
-	}
-
+//	private static final int[] increment(boolean snake, int columns, int yIndex, int xIndex, boolean forwards) {
+//		
+//		if (snake) {
+//			if (forwards) {
+//				xIndex++;
+//				if (xIndex > (columns - 1)) {
+//					xIndex = columns - 1;
+//					yIndex++;
+//					forwards = !forwards;
+//				}
+//			} else {
+//				xIndex--;
+//				if (xIndex<0) {
+//					xIndex=0;
+//					yIndex++;
+//					forwards = !forwards;
+//				}
+//			}
+//
+//		} else {
+//			xIndex++;
+//			if (xIndex>(columns-1)) {
+//				xIndex=0;
+//				yIndex++;
+//			}
+//		}
+//		return new int[]{yIndex,xIndex, forwards?1:0}; // Bit slow because makes array object to return int values
+//	}
 	
 	@Override
 	public Point next() {
-		
-		int[] next = increment(snake, columns, yIndex, xIndex, forwards);
-		this.yIndex = next[0];
-		this.xIndex = next[1];
-		this.forwards = next[2]==1;
-		
-		if (yIndex > (rows - 1) || yIndex < 0)    return null;  // Normal termination
-		if (xIndex > (columns - 1) || xIndex < 0) throw new NullPointerException("Unexpected index. The j index was "+xIndex);
-
-		double x = minX + xIndex * xStep;
-		double y = minY + yIndex * yStep;
-		if (gen.containsPoint(x, y)) {
-			return new Point(xName, xIndex, x, yName, yIndex, y);
-		} else {
-			return next();
+		if (currentPoint == null) {
+			hasNext();
 		}
+		Point point = currentPoint;
+		currentPoint = null;
+		
+		return point;
+		
+//		int[] next = increment(snake, columns, yIndex, xIndex, forwards);
+//		this.yIndex = next[0];
+//		this.xIndex = next[1];
+//		this.forwards = next[2]==1;
+//		
+//		if (yIndex > (rows - 1) || yIndex < 0)    return null;  // Normal termination
+//		if (xIndex > (columns - 1) || xIndex < 0) throw new NullPointerException("Unexpected index. The j index was "+xIndex);
+//
+//		double x = minX + xIndex * xStep;
+//		double y = minY + yIndex * yStep;
+//		if (gen.containsPoint(x, y)) {
+//			return new Point(xName, xIndex, x, yName, yIndex, y);
+//		} else {
+//			return next();
+//		}
 	}
 
 	public void remove() {
