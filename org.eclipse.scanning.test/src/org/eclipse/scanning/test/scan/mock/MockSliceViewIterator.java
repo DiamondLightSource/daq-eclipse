@@ -11,10 +11,10 @@ package org.eclipse.scanning.test.scan.mock;
 
 import java.util.Arrays;
 
-import org.eclipse.dawnsci.analysis.api.dataset.ILazyDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.dataset.impl.SliceNDIterator;
 import org.eclipse.dawnsci.analysis.dataset.slicer.ISliceViewIterator;
+import org.eclipse.january.dataset.ILazyDataset;
+import org.eclipse.january.dataset.SliceND;
+import org.eclipse.january.dataset.SliceNDIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

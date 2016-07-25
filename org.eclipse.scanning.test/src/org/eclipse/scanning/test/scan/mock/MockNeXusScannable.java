@@ -1,9 +1,5 @@
 package org.eclipse.scanning.test.scan.mock;
 
-import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusException;
@@ -11,6 +7,10 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.DatasetFactory;
+import org.eclipse.january.dataset.ILazyWriteableDataset;
+import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
@@ -47,10 +47,10 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			positioner.setField(FIELD_NAME_DEMAND_VALUE, getPosition().doubleValue());
 			positioner.setValueScalar(getPosition().doubleValue());
 		} else {
-			this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Dataset.FLOAT64);
+			this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Double.class);
 			lzDemand.setChunking(new int[]{1});
 			
-			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Dataset.FLOAT64);
+			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Double.class);
 			lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 		}
 

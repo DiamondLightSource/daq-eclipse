@@ -29,14 +29,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.eclipse.dawnsci.analysis.api.dataset.DataEvent;
-import org.eclipse.dawnsci.analysis.api.dataset.IDataListener;
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.IRemoteDataset;
 import org.eclipse.dawnsci.analysis.api.io.IRemoteDatasetService;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
-import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXdetector;
@@ -50,6 +45,12 @@ import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.dawnsci.remotedataset.client.RemoteDatasetServiceImpl;
 import org.eclipse.dawnsci.remotedataset.server.DataServer;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
+import org.eclipse.january.DatasetException;
+import org.eclipse.january.dataset.DataEvent;
+import org.eclipse.january.dataset.IDataListener;
+import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.IRemoteDataset;
+import org.eclipse.january.dataset.PositionIterator;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
@@ -191,7 +192,7 @@ public class MandelbrotRemoteTest extends NexusTest {
 		checkNexusFile(scanner, shape); // Step model is +1 on the size
 	}
 
-	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException, DatasetException {
 		
 		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());

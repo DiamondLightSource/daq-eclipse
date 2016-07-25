@@ -26,12 +26,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
-import org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXentry;
@@ -43,6 +39,10 @@ import org.eclipse.dawnsci.nexus.NXsample;
 import org.eclipse.dawnsci.nexus.NXuser;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
+import org.eclipse.january.dataset.DTypeUtils;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.PositionIterator;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
@@ -184,8 +184,8 @@ public class ScanMetadataTest extends NexusTest {
 				assertNotNull(dataset);
 				assertEquals(1, dataset.getRank());
 				assertEquals(1, dataset.getSize());
-				assertEquals(AbstractDataset.getDTypeFromObject(expectedValue),
-						dataset.getDtype());
+				assertEquals(DTypeUtils.getDTypeFromObject(expectedValue),
+						dataset.getDType());
 				assertEquals(expectedValue, dataset.getObject(0));
 			}
 		}
