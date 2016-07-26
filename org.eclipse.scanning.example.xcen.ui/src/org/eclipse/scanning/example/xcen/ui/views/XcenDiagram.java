@@ -3,10 +3,10 @@ package org.eclipse.scanning.example.xcen.ui.views;
 import java.io.File;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
-import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
 import org.eclipse.dawnsci.plotting.api.VanillaPlottingSystemView;
+import org.eclipse.january.IMonitor;
+import org.eclipse.january.dataset.IDataset;
 import org.eclipse.scanning.example.xcen.ui.XcenActivator;
 import org.eclipse.scanning.example.xcen.ui.XcenServices;
 import org.eclipse.swt.SWT;

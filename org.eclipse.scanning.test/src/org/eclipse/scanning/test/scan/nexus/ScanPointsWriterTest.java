@@ -1,25 +1,18 @@
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset.getDType;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_POINTS;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_UNIQUE_KEYS;
 import static org.eclipse.scanning.test.scan.nexus.ScanPointsWriterTest.ExternalFileWritingDetector.EXTERNAL_FILE_NAME;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.api.io.ILazySaver;
-import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.LazyDataset;
 import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXpositioner;
@@ -28,6 +21,14 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.AbstractNexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.january.IMonitor;
+import org.eclipse.january.dataset.DTypeUtils;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.ILazyWriteableDataset;
+import org.eclipse.january.dataset.LazyDataset;
+import org.eclipse.january.dataset.SliceND;
+import org.eclipse.january.io.ILazySaver;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
@@ -52,12 +53,12 @@ public class ScanPointsWriterTest {
 		}
 
 		@Override
-		public IDataset getDataset(IMonitor mon, SliceND slice) throws Exception {
+		public IDataset getDataset(IMonitor mon, SliceND slice) throws IOException {
 			return null;
 		}
 
 		@Override
-		public void initialize() throws Exception {
+		public void initialize() throws IOException {
 			// do nothing
 		}
 
@@ -67,7 +68,7 @@ public class ScanPointsWriterTest {
 		}
 
 		@Override
-		public void setSlice(IMonitor mon, IDataset data, SliceND slice) throws Exception {
+		public void setSlice(IMonitor mon, IDataset data, SliceND slice) throws IOException {
 			// TODO could write to a dataset? SliceIterator may be useful here
 			lastWrittenData = data;
 			lastSlice = slice;
@@ -154,7 +155,7 @@ public class ScanPointsWriterTest {
 		assertTrue(uniqueKeysDataNode.getDataset()!=null && uniqueKeysDataNode.getDataset() instanceof ILazyWriteableDataset);
 		ILazyWriteableDataset uniqueKeysDataset = (ILazyWriteableDataset) uniqueKeysDataNode.getDataset();
 		assertTrue(uniqueKeysDataset.getRank()==scanRank);
-		assertTrue(((LazyDataset) uniqueKeysDataset).getDtype()==Dataset.INT32);
+		assertTrue(((LazyDataset) uniqueKeysDataset).getDType()==Dataset.INT32);
 		assertTrue(Arrays.equals(uniqueKeysDataset.getChunking(), expectedChunking));
 		MockLazySaver uniqueKeysSaver = new MockLazySaver();
 		uniqueKeysDataset.setSaver(uniqueKeysSaver);
@@ -165,7 +166,7 @@ public class ScanPointsWriterTest {
 		assertTrue(pointsDataNode.getDataset()!=null && pointsDataNode.getDataset() instanceof ILazyWriteableDataset);
 		ILazyWriteableDataset pointsDataset = (ILazyWriteableDataset) pointsDataNode.getDataset();
 		assertTrue(pointsDataset.getRank()==scanRank);
-		assertTrue(((LazyDataset) pointsDataset).getDtype()==Dataset.STRING);
+		assertTrue(((LazyDataset) pointsDataset).getDType()==Dataset.STRING);
 		assertTrue(Arrays.equals(pointsDataset.getChunking(), expectedChunking));
 		MockLazySaver pointsSaver = new MockLazySaver();
 		pointsDataset.setSaver(pointsSaver);
@@ -258,7 +259,7 @@ public class ScanPointsWriterTest {
 		int[] expectedShape = new int[scanInfo.getRank()];
 		Arrays.fill(expectedShape, 1);
 		assertTrue(Arrays.equals(writtenToUniqueKeysData.getShape(), expectedShape));
-		assertTrue(getDType(writtenToUniqueKeysData)==Dataset.INT);
+		assertTrue(DTypeUtils.getDType(writtenToUniqueKeysData)==Dataset.INT);
 		int[] valuePos = new int[scanRank]; // all zeros
 		assertTrue(writtenToUniqueKeysData.getInt(valuePos)==(stepIndex+1));
 
@@ -273,7 +274,7 @@ public class ScanPointsWriterTest {
 		IDataset writtenToPointsData = pointsSaver.getLastWrittenData();
 		assertTrue(writtenToPointsData!=null);
 		assertTrue(Arrays.equals(writtenToPointsData.getShape(), expectedShape));
-		assertTrue(getDType(writtenToPointsData)==Dataset.STRING);
+		assertTrue(DTypeUtils.getDType(writtenToPointsData)==Dataset.STRING);
 		assertTrue(writtenToPointsData.getString(valuePos).equals(position.toString()));
 		
 		SliceND pointsSlice = pointsSaver.getLastSlice();

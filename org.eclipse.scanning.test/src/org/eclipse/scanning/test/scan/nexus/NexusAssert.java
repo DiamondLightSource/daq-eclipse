@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.dawnsci.analysis.dataset.impl.AbstractDataset.getDType;
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_AXES;
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_SIGNAL;
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_TARGET;
@@ -13,17 +12,19 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.Attribute;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.NodeLink;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NXobject;
 import org.eclipse.dawnsci.nexus.NXroot;
+import org.eclipse.january.DatasetException;
+import org.eclipse.january.dataset.DTypeUtils;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.PositionIterator;
 
 /**
  * 
@@ -95,8 +96,13 @@ public class NexusAssert {
 		// check the unique keys field - contains the step number for each scan points
 		DataNode dataNode = parentGroup.getDataNode(fieldNamePrefix + FIELD_NAME_UNIQUE_KEYS);
 		assertNotNull(dataNode);
-		IDataset dataset = dataNode.getDataset().getSlice();
-		assertTrue(getDType(dataset)==Dataset.INT32);
+		IDataset dataset;
+		try {
+			dataset = dataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
+		assertTrue(DTypeUtils.getDType(dataset)==Dataset.INT32);
 		assertTrue(dataset.getRank()==sizes.length);
 		assertArrayEquals(sizes, dataset.getShape());
 		PositionIterator iter = new PositionIterator(dataset.getShape());
@@ -110,8 +116,12 @@ public class NexusAssert {
 		// check the scan points field - contains the scan points as strings
 		dataNode = parentGroup.getDataNode(fieldNamePrefix + FIELD_NAME_POINTS);
 		assertNotNull(dataNode);
-		dataset = dataNode.getDataset().getSlice();
-		assertTrue(getDType(dataset)==Dataset.STRING);
+		try {
+			dataset = dataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
+		assertTrue(DTypeUtils.getDType(dataset)==Dataset.STRING);
 		assertTrue(dataset.getRank()==sizes.length);
 		assertArrayEquals(sizes, dataset.getShape());
 	}
@@ -131,8 +141,13 @@ public class NexusAssert {
 		// check the scan finished boolean is set to true
 		DataNode dataNode = scanPointsCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
 		assertNotNull(dataNode);
-		IDataset dataset = dataNode.getDataset().getSlice();
-		assertTrue(getDType(dataset)==Dataset.INT32); // HDF5 doesn't support boolean datasets
+		IDataset dataset;
+		try {
+			dataset = dataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
+		assertTrue(DTypeUtils.getDType(dataset)==Dataset.INT32); // HDF5 doesn't support boolean datasets
 		assertTrue(dataset.getRank()==1);
 		assertArrayEquals(dataset.getShape(), new int[] { 1 });
 		assertTrue(dataset.getBoolean(0)==finished);
