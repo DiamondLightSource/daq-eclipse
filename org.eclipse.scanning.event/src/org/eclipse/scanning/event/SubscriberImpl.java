@@ -147,6 +147,12 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 		
 		ret.put(IScanListener.class, new DiseminateHandler() {
 			public void diseminate(Object bean, EventListener e) {
+				
+				if (!(bean instanceof ScanBean)) return; 
+				// This listener must be used with events publishing ScanBean
+				// If your scan does not publish ScanBean events then you
+				// may listen to it with a standard IBeanListener.
+				
 				// Used casting because generics got silly
 				ScanBean sbean  = (ScanBean)bean;
 				IScanListener l = (IScanListener)e;
