@@ -6,7 +6,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
@@ -44,15 +44,15 @@ public class ScanExecutionTest extends BrokerTest {
 	private static IEventService     eventService;
 	private static IPointGeneratorService generatorService;
 	private static IRunnableDeviceService  runnableDeviceService;
-	private static IDeviceConnectorService connector;
+	private static IScannableDeviceService connector;
 	private static IMalcolmService   malcService;
 	
 
-	public static IDeviceConnectorService getConnector() {
+	public static IScannableDeviceService getConnector() {
 		return connector;
 	}
 
-	public static void setConnector(IDeviceConnectorService connector) {
+	public static void setConnector(IScannableDeviceService connector) {
 		ScanExecutionTest.connector = connector;
 	}
 

@@ -2,7 +2,7 @@ package org.eclipse.scanning.device.ui;
 
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionService;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
@@ -16,7 +16,7 @@ public class ServiceHolder {
 	private static IPointGeneratorService generatorService;
 	private static IExpressionService     expressionService;
 	private static ILoaderService         loaderService;
-	private static IDeviceConnectorService deviceConnectorService;
+	private static IScannableDeviceService deviceConnectorService;
 	private static BundleContext context;
 
 	public static IEventConnectorService getEventConnectorService() {
@@ -72,12 +72,12 @@ public class ServiceHolder {
 		ServiceHolder.loaderService = loaderService;
 	}
 
-	public static IDeviceConnectorService getDeviceConnectorService() {
-		if (deviceConnectorService==null) deviceConnectorService = getService(IDeviceConnectorService.class);
+	public static IScannableDeviceService getDeviceConnectorService() {
+		if (deviceConnectorService==null) deviceConnectorService = getService(IScannableDeviceService.class);
 		return deviceConnectorService;
 	}
 
-	public static void setDeviceConnectorService(IDeviceConnectorService deviceConnectorService) {
+	public static void setDeviceConnectorService(IScannableDeviceService deviceConnectorService) {
 		ServiceHolder.deviceConnectorService = deviceConnectorService;
 	}
 

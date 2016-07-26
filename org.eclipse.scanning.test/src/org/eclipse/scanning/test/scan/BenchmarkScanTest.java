@@ -15,7 +15,7 @@ import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
@@ -71,7 +71,7 @@ public class BenchmarkScanTest extends BrokerTest {
 	}
 	
 	private IRunnableDeviceService      dservice;
-	private IDeviceConnectorService     connector;
+	private IScannableDeviceService     connector;
 	private IPointGeneratorService      gservice;
 	private IEventService               eservice;
 	private ILoaderService              lservice;

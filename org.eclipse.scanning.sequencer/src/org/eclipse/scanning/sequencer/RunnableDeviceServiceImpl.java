@@ -15,9 +15,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -49,7 +49,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	 * This service can not be present for some tests which run in OSGi
 	 * but mock the test laster.
 	 */
-	private static IDeviceConnectorService deviceConnectorService;	
+	private static IScannableDeviceService deviceConnectorService;	
 	
 	/**
 	 * This service must be present.
@@ -101,7 +101,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	}
 	
 	// Test
-	public RunnableDeviceServiceImpl(IDeviceConnectorService deviceConnectorService) {
+	public RunnableDeviceServiceImpl(IScannableDeviceService deviceConnectorService) {
 		this();
 		RunnableDeviceServiceImpl.deviceConnectorService = deviceConnectorService;	
 	}
@@ -273,11 +273,11 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	}
 
 	@Override
-	public IDeviceConnectorService getDeviceConnectorService() {
+	public IScannableDeviceService getDeviceConnectorService() {
 		return deviceConnectorService;
 	}
 
-	public static void setDeviceConnectorService(IDeviceConnectorService connectorService) {
+	public static void setDeviceConnectorService(IScannableDeviceService connectorService) {
 		RunnableDeviceServiceImpl.deviceConnectorService = connectorService;
 	}
 	
@@ -303,8 +303,8 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
      * Try to get the connector service or throw an exception
      * @return
      */
-	private IDeviceConnectorService getDeviceConnector() throws ScanningException {
-		ServiceReference<IDeviceConnectorService> ref = context.getServiceReference(IDeviceConnectorService.class);
+	private IScannableDeviceService getDeviceConnector() throws ScanningException {
+		ServiceReference<IScannableDeviceService> ref = context.getServiceReference(IScannableDeviceService.class);
 		return context.getService(ref);
 	}
 
@@ -354,11 +354,6 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	@Override
 	public Collection<String> getRunnableDeviceNames() throws ScanningException {
 		return namedDevices.keySet();
-	}
-
-	@Override
-	public Collection<Class<?>> getRunnableDeviceModels() throws ScanningException {
-		return modelledDevices.keySet();
 	}
 
 }

@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
+import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 /**
@@ -7,7 +8,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  */
 public class StepModel extends AbstractPointsModel {
 
-	@FieldDescriptor(label="Device")
+	@FieldDescriptor(label="Device", device=DeviceType.SCANNABLE)
 	private String name;
 	
 	@FieldDescriptor(label="Start", scannable="name") // The scannable lookup gets the units

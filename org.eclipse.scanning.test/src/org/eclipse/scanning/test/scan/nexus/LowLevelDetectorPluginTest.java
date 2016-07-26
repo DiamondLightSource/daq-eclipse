@@ -13,7 +13,7 @@ import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -52,7 +52,7 @@ public class LowLevelDetectorPluginTest {
 
 	private IRunnableDeviceService        service;
 	private IPointGeneratorService       gservice;
-	private IDeviceConnectorService connector;
+	private IScannableDeviceService connector;
 	
 	@Before
 	public void before() {

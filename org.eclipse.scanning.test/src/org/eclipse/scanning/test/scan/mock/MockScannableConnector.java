@@ -7,16 +7,16 @@ import java.util.stream.Collectors;
 
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.scan.ScanningException;
 
-public class MockScannableConnector implements IDeviceConnectorService {
+public class MockScannableConnector implements IScannableDeviceService {
 
 	private Map<String, INameable> cache;
 	
 	// Create a few random scannables with different levels.
 	public MockScannableConnector() {
-		System.out.println("Starting up Mock IDeviceConnectorService");
+		System.out.println("Starting up Mock IScannableDeviceService");
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		register(new MockTopupMonitor("topup", 10d,  -1));
 		register(new MockBeanOnMonitor("beamon", 10d, 1));
@@ -29,7 +29,6 @@ public class MockScannableConnector implements IDeviceConnectorService {
 		register(new MockScannable("r", 10d, 2, "µm"));
 		register(new MockScannable("x", 0d,  3));
 		register(new MockScannable("y", 0d,  3));
-		register(new MockScannable("x", 0d,  3));
 		register(new MockNeXusScannable("xNex", 0d,  3));
 		register(new MockNeXusScannable("yNex", 0d,  3));
 		register(new MockNeXusScannable("T", 295,  3));

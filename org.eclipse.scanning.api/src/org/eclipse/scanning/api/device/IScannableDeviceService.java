@@ -32,7 +32,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * @author Matthew Gerring
  *
  */
-public interface IDeviceConnectorService {
+public interface IScannableDeviceService {
 	
 	/**
 	 * Get the names of all scannables known to the connector.

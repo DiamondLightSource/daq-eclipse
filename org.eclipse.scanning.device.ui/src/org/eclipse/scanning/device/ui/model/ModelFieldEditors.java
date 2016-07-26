@@ -30,6 +30,7 @@ import org.eclipse.richbeans.widgets.cell.CComboWithEntryCellEditorData;
 import org.eclipse.richbeans.widgets.cell.NumberCellEditor;
 import org.eclipse.richbeans.widgets.file.FileDialogCellEditor;
 import org.eclipse.richbeans.widgets.table.TextCellEditorWithContentProposal;
+import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
@@ -108,7 +109,9 @@ public class ModelFieldEditors {
         		fe.setDirectory(anot.file().isDirectory());
         		fe.setNewFile(anot.file().isNewFile());
         	}
-        
+        } else if (String.class.equals(clazz) && anot!=null && anot.device() != DeviceType.NONE) {
+        	ed = getDeviceEditor(value, parent, anot);
+        	
         } else if (String.class.equals(clazz) && anot!=null && anot.dataset() != null &&!anot.dataset().isEmpty()) {
         	ed = getDatasetEditor(field, parent);
         	
@@ -134,6 +137,23 @@ public class ModelFieldEditors {
         
         return ed;
 
+	}
+
+	private static CellEditor getDeviceEditor(Object value, Composite parent, FieldDescriptor anot) {
+		String[] items = null;
+		try {
+			
+		} catch (Exception ne) {
+			logger.error("Cannot get devices for "+anot.device());
+			items = null;
+		}
+		return items != null ? new CComboCellEditor(parent, items) : new TextCellEditor(parent) {
+    	    @Override
+    		protected void doSetValue(Object value) {
+    	    	String string = value!=null ? value.toString() : "";
+    	    	super.doSetValue(string);
+    	    }
+    	};
 	}
 
 	public static boolean isEnabled(FieldValue field) {

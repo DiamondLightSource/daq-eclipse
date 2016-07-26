@@ -16,7 +16,7 @@ public class ProcessingModel implements ITimeoutable {
 	 * This is used to figure out which part of the nexus file
 	 * to look at when processing.
 	 */
-	@FieldDescriptor(device=DeviceType.DETECTOR, hint="The name of the detector whose output we will process.")
+	@FieldDescriptor(device=DeviceType.RUNNABLE, hint="The name of the detector whose output we will process.")
 	private String detectorName;
 	private String name;
 	

@@ -1,6 +1,9 @@
 package org.eclipse.scanning.api.event;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.UUID;
 
 
@@ -56,12 +59,42 @@ public class IdBean implements Serializable {
 	}
 
 	/**
-	 * Subclasses must override this method calling super.merge(...)
-	 * 
+	 * Subclasses should override this method calling super.merge(...)
+	 * If they forget 
 	 * @param with
 	 */
 	public <T extends IdBean> void merge(T with) {
 		this.uniqueId = with.getUniqueId();
+		
+		// We this class does not have its own merge then we
+		// try to do it with reflection
+		
+		final Method[] methods = getClass().getMethods();
+		for (Method method : methods) {
+			if (method.getName().equals("merge")) {
+				if (method.getDeclaringClass().equals(getClass())) {
+					return; // Merge is implemented in this class.
+				}
+			}
+		}
+		
+		// We try to mush fields with reflection in case the 
+		// class implementing this one forgets.
+		Field[] wfields = with.getClass().getDeclaredFields();
+		try {
+			for (Field field : wfields)  {
+				if (Modifier.isStatic(field.getModifiers())) continue;
+				boolean isAccess = field.isAccessible();
+				try {
+					field.setAccessible(true);
+					field.set(this, field.get(with));
+				} finally {
+					field.setAccessible(isAccess);
+				}
+			}
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

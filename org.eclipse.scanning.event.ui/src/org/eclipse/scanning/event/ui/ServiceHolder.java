@@ -1,6 +1,6 @@
 package org.eclipse.scanning.event.ui;
 
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
@@ -12,7 +12,7 @@ public class ServiceHolder {
 	private static IEventConnectorService eventConnectorService;
 	private static IEventService          eventService;
 	private static IPointGeneratorService generatorService;
-	private static IDeviceConnectorService deviceConnectorService;
+	private static IScannableDeviceService deviceConnectorService;
 	private static BundleContext context;
 
 	public static IEventConnectorService getEventConnectorService() {
@@ -42,12 +42,12 @@ public class ServiceHolder {
 		ServiceHolder.generatorService = generatorService;
 	}
 
-	public static IDeviceConnectorService getDeviceConnectorService() {
-		if (deviceConnectorService==null) deviceConnectorService = getService(IDeviceConnectorService.class);
+	public static IScannableDeviceService getDeviceConnectorService() {
+		if (deviceConnectorService==null) deviceConnectorService = getService(IScannableDeviceService.class);
 		return deviceConnectorService;
 	}
 
-	public static void setDeviceConnectorService(IDeviceConnectorService deviceConnectorService) {
+	public static void setDeviceConnectorService(IScannableDeviceService deviceConnectorService) {
 		ServiceHolder.deviceConnectorService = deviceConnectorService;
 	}
 

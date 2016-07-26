@@ -19,7 +19,7 @@ public class ScanningPerspective implements IPerspectiveFactory {
 		{
 			IFolderLayout folderLayout = layout.createFolder("folder", IPageLayout.RIGHT, 0.5f, IPageLayout.ID_EDITOR_AREA);
 			folderLayout.addView("org.eclipse.scanning.device.ui.scanEditor");
-			final String detectorId = DetectorView.createId(getUriString(), IEventService.REQUEST_TOPIC, IEventService.RESPONSE_TOPIC);
+			final String detectorId = DetectorView.createId(getUriString(), IEventService.DEVICE_REQUEST_TOPIC, IEventService.DEVICE_RESPONSE_TOPIC);
 			folderLayout.addView(detectorId);
 		}
 		layout.addView("org.eclipse.scanning.device.ui.modelEditor", IPageLayout.BOTTOM, 0.3f, "org.eclipse.scanning.device.ui.scanEditor");

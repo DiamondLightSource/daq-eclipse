@@ -15,13 +15,13 @@ public abstract class EventConnectionView extends ViewPart {
 	protected String getRequestName() {
 		final String rName = getSecondaryIdAttribute("requestName");
 		if (rName != null) return rName;
-		return IEventService.REQUEST_TOPIC;
+		return IEventService.DEVICE_REQUEST_TOPIC;
 	}
 
 	protected String getResponseName() {
 		final String rName = getSecondaryIdAttribute("responseName");
 		if (rName != null) return rName;
-		return IEventService.RESPONSE_TOPIC;
+		return IEventService.DEVICE_RESPONSE_TOPIC;
 	}
 
 	protected String getTopicName() {

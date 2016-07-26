@@ -147,17 +147,9 @@ public interface IRunnableDeviceService {
 	 */
     Collection<String> getRunnableDeviceNames() throws ScanningException;
     
-	/**
-	 * A list of the current runnable device models which are supported for the createDevice(...) call.
-	 * 
-	 * @return
-	 * @throws ScanningException
-	 */
-    Collection<Class<?>> getRunnableDeviceModels() throws ScanningException;
-
     /**
      * Get the service being used to connect this service to the underlying hardware devices.
      * @return
      */
-    IDeviceConnectorService getDeviceConnectorService();
+    IScannableDeviceService getDeviceConnectorService();
 }
