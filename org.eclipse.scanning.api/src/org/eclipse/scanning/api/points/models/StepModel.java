@@ -1,22 +1,23 @@
 package org.eclipse.scanning.api.points.models;
 
+import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 /**
  * A model for a scan along one axis with start and stop positions and a step size.
  */
-public class StepModel extends AbstractPointsModel implements IScanPathModel {
+public class StepModel extends AbstractPointsModel {
 
-	@FieldDescriptor(label="Device")
+	@FieldDescriptor(label="Device", device=DeviceType.SCANNABLE)
 	private String name;
 	
-	@FieldDescriptor(label="Start", scannable="name")
+	@FieldDescriptor(label="Start", scannable="name") // The scannable lookup gets the units
 	private double start;
 	
-	@FieldDescriptor(label="Stop", scannable="name")
+	@FieldDescriptor(label="Stop", scannable="name") // The scannable lookup gets the units
 	private double stop;
 	
-	@FieldDescriptor(label="Step", scannable="name")
+	@FieldDescriptor(label="Step", scannable="name") // The scannable lookup gets the units
 	private double step;
 	
 	public StepModel() {

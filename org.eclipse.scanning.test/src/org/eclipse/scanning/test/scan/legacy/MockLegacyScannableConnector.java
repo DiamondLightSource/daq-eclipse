@@ -11,12 +11,12 @@ import java.util.stream.Collectors;
 
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.test.scan.mock.MockNeXusScannable;
 import org.eclipse.scanning.test.scan.mock.MockScannable;
 
-public class MockLegacyScannableConnector implements IDeviceConnectorService {
+public class MockLegacyScannableConnector implements IScannableDeviceService {
 	
 	private static Map<String, INameable> cache; 
 	

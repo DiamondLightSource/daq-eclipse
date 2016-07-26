@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.List;
 
+import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.dawnsci.analysis.api.io.IDataHolder;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
@@ -17,8 +18,7 @@ import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
-import org.eclipse.january.dataset.ILazyDataset;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
@@ -58,7 +58,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class LinearScanTest extends BrokerTest{
 	
 	protected IRunnableDeviceService      dservice;
-	protected IDeviceConnectorService     connector;
+	protected IScannableDeviceService     connector;
 	protected IPointGeneratorService      gservice;
 	protected IEventService               eservice;
 	protected ILoaderService              lservice;

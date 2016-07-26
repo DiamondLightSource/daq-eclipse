@@ -19,6 +19,7 @@
 		<module>org.eclipse.scanning.command</module>
 		<module>org.eclipse.scanning.event</module>
 		<module>org.eclipse.scanning.event.ui</module>
+		<module>org.eclipse.scanning.device.ui</module>
 		<module>org.eclipse.scanning.example</module>
 		<module>org.eclipse.scanning.example.xcen</module>
 		<module>org.eclipse.scanning.example.xcen.test</module>

@@ -16,7 +16,7 @@ import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.dawnsci.nexus.ServiceHolder;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
@@ -38,7 +38,7 @@ import org.junit.Test;
 public class LegacyDeviceSupportScanTest {
 
 	private IRunnableDeviceService runnableDeviceService;
-	private IDeviceConnectorService connector;
+	private IScannableDeviceService connector;
 	private IPointGeneratorService pointGeneratorService;
 	private INexusFileFactory fileFactory;
 	

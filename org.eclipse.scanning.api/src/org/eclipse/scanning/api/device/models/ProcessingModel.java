@@ -1,24 +1,35 @@
 package org.eclipse.scanning.api.device.models;
 
 import org.eclipse.scanning.api.ITimeoutable;
+import org.eclipse.scanning.api.annotation.ui.DeviceType;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
+import org.eclipse.scanning.api.annotation.ui.FileType;
 
 public class ProcessingModel implements ITimeoutable {
 
+	@FieldDescriptor(file=FileType.EXISTING_FILE)
 	private String   dataFile;
 	
 	/**
-	 * The name of the detector whose output we will be processingi
+	 * The name of the detector whose output we will be processing
+	 * 
 	 * This is used to figure out which part of the nexus file
 	 * to look at when processing.
 	 */
+	@FieldDescriptor(device=DeviceType.RUNNABLE, hint="The name of the detector whose output we will process.")
 	private String detectorName;
 	private String name;
+	
+	@FieldDescriptor(file=FileType.EXISTING_FILE, hint="A reference to any file created in the processing perspective.\n"
+			                                           + "The pipeline should be saved to file and the file must be\n"
+			                                           + "available to the scanning server.")
 	private String operationsFile;
 	
 	/**
 	 * Just for testing, set an operation directly
 	 * to be run by the device.
 	 */
+	@FieldDescriptor(visible=false)
 	private Object operation;
 
 	private long timeout = -1;

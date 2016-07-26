@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.event.core;
 
+import java.util.concurrent.TimeUnit;
+
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IdBean;
 
@@ -46,6 +48,12 @@ public interface IRequester<T extends IdBean> extends IRequestResponseConnection
 	 */
 	public void setResponseConfiguration(ResponseConfiguration rc);
 
+	/**
+	 * Set the timout on the ResponseConfiguration directly
+	 * @param time
+	 * @param unit
+	 */
+	public void setTimeout(long time, TimeUnit unit);
 
 	/**
 	 * Requests a response from the request and returns it. This 

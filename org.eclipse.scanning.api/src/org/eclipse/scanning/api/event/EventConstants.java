@@ -58,13 +58,24 @@ public interface EventConstants {
      * The default topic used for requests. It is usually better to use your own topic rather than the default.
      * It is usually better to use your own topic rather than the default.
      */
-	public static final String REQUEST_TOPIC      = "org.eclipse.scanning.request.topic";
+	public static final String DEVICE_REQUEST_TOPIC      = "org.eclipse.scanning.request.device.topic";
 
     /**
      * The default topic used for responses.  It is usually better to use your own topic rather than the default.
      * It is usually better to use your own topic rather than the default.
      */
-	public static final String RESPONSE_TOPIC      = "org.eclipse.scanning.response.topic";
+	public static final String DEVICE_RESPONSE_TOPIC      = "org.eclipse.scanning.response.device.topic";
 
+    /**
+     * The default topic used for requests. It is usually better to use your own topic rather than the default.
+     * It is usually better to use your own topic rather than the default.
+     */
+	public static final String POSITIONER_REQUEST_TOPIC      = "org.eclipse.scanning.request.positioner.topic";
+
+    /**
+     * The default topic used for responses.  It is usually better to use your own topic rather than the default.
+     * It is usually better to use your own topic rather than the default.
+     */
+	public static final String POSITIONER_RESPONSE_TOPIC      = "org.eclipse.scanning.response.positioner.topic";
 
 }

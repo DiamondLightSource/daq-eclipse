@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -11,6 +12,7 @@ import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.core.ResponseConfiguration;
+import org.eclipse.scanning.api.event.core.ResponseConfiguration.ResponseType;
 
 class RequesterImpl<T extends IdBean> extends AbstractRequestResponseConnection implements IRequester<T> {
 	
@@ -19,7 +21,12 @@ class RequesterImpl<T extends IdBean> extends AbstractRequestResponseConnection 
 
 	RequesterImpl(URI uri, String reqTopic, String resTopic, IEventService eservice) {
 		super(uri, reqTopic, resTopic, eservice);
-		responseConfiguration = ResponseConfiguration.DEFAULT;
+		responseConfiguration = new ResponseConfiguration(ResponseType.ONE, 1, TimeUnit.SECONDS);
+	}
+	
+	@Override
+	public void setTimeout(long time, TimeUnit unit) {
+		responseConfiguration.setTimeout(time, unit);
 	}
 
 	@Override

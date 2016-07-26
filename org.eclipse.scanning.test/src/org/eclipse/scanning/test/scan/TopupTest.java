@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -42,7 +42,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class TopupTest {
 
 	protected IRunnableDeviceService                sservice;
-	protected IDeviceConnectorService       connector;
+	protected IScannableDeviceService       connector;
 	protected IPointGeneratorService        gservice;
 	protected IEventService                 eservice;
 	private IWritableDetector<MockDetectorModel>       detector;

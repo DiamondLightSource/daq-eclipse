@@ -11,6 +11,7 @@ package org.eclipse.scanning.event.ui.preference;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.StringFieldEditor;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
