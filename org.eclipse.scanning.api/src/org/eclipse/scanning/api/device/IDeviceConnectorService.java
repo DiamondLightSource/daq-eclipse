@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
@@ -36,7 +37,7 @@ public interface IDeviceConnectorService {
 	
 	/**
 	 * Get the names of all scannables known to the connector.
-	 * @return
+	 * @return names of scannables
 	 * @throws ScanningException
 	 */
 	List<String> getScannableNames() throws ScanningException;
@@ -54,6 +55,9 @@ public interface IDeviceConnectorService {
 	 * This is used to support legacy (GDA8) spring configurations. Should not be called
 	 * by client code.
 	 * @return global metadata scannable names
+	 * 
+	 * @deprecated this method is used to support legacy GDA8 spring configuration files, we
+	 *   in GDA9 metadata scannables should be part of the {@link ScanRequest}
 	 */
 	@Deprecated
 	default Set<String> getGlobalMetadataScannableNames() {
@@ -66,6 +70,9 @@ public interface IDeviceConnectorService {
 	 * by client code. 
 	 * @param scannableName scannable to get required metadata scannable names for
 	 * @return names of required metadata scannables for the scannable with the given name
+	 * 
+	 * @deprecated this method is used to support legacy GDA8 spring configuration files, we
+	 *   in GDA9 metadata scannables should be part of the {@link ScanRequest}
 	 */
 	@Deprecated
 	default Set<String> getRequiredMetadataScannableNames(String scannableName) {
