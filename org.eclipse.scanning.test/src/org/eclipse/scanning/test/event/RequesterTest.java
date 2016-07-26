@@ -10,6 +10,8 @@ package org.eclipse.scanning.test.event;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.TimeUnit;
+
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
@@ -23,9 +25,9 @@ import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.DeviceServlet;
 import org.eclipse.scanning.server.servlet.Services;
-import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
 import org.junit.After;
@@ -105,6 +107,7 @@ public class RequesterTest extends BrokerTest {
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally 
 		requester  = eservice.createRequestor(uri, IEventService.DEVICE_REQUEST_TOPIC, IEventService.DEVICE_RESPONSE_TOPIC);
+		requester.setTimeout(10, TimeUnit.SECONDS); // It's a test, give it a little longer.
 
 	}
 	
