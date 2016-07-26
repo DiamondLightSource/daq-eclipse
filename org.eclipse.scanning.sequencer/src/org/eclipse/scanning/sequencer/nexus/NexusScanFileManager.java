@@ -591,12 +591,12 @@ public class NexusScanFileManager implements INexusScanFileManager {
 			dataBuilder.addAxisDevice(getAxisDataDevice(monitor, null));
 		}
 		
-		// Create the map
+		// Create the map from scannable name to default index of that scannable in the scan
 		if (defaultAxisIndexForScannable == null) {
 			defaultAxisIndexForScannable = createDefaultAxisMap(scannables);
 		}
 		
-		// add the scannables
+		// add the scannables to the data builder
 		Iterator<NexusObjectProvider<?>> scannablesIter = scannables.iterator();
 		while (scannablesIter.hasNext()) {
 			final NexusObjectProvider<?> scannable = scannablesIter.next(); 
@@ -632,8 +632,8 @@ public class NexusScanFileManager implements INexusScanFileManager {
 				if (defaultAxisIndexForScannableMap.containsKey(scannableName)) {
 					// already seen this scannable name for another index,
 					// so this scannable should not be the default axis for any index
-					// note: we put null instead of removing the entry in case there 
-					// so that we still have null if this name appears a third time
+					// note: we put null instead of removing the entry in case the scannable
+					// because we don't want to add it again if the scannable is encountered again
 					defaultAxisIndexForScannableMap.put(scannableName, null);
 				} else {
 					defaultAxisIndexForScannableMap.put(scannableName, dimensionIndex);

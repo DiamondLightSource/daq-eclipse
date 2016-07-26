@@ -24,9 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
-import org.eclipse.dawnsci.analysis.dataset.impl.PositionIterator;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXentry;
@@ -36,6 +34,9 @@ import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
+import org.eclipse.january.DatasetException;
+import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.PositionIterator;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
@@ -114,7 +115,7 @@ public class DarkCurrentTest extends NexusTest {
 		checkNexusFile(scanner, 8, 5);
 	}
 	
-	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException {
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws NexusException, ScanningException, DatasetException {
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 		
@@ -136,7 +137,7 @@ public class DarkCurrentTest extends NexusTest {
 		checkImages(rootNode, positionerNames, sizes);
 	}
 		
-	private void checkDark(NXroot rootNode, Collection<String> positionerNames, int... sizes) throws NexusException, ScanningException {
+	private void checkDark(NXroot rootNode, Collection<String> positionerNames, int... sizes) throws NexusException, ScanningException, DatasetException {
 		String detectorName = dark.getName();
 		NXentry entry = rootNode.getEntry();
 		NXdetector detector = entry.getInstrument().getDetector(detectorName);
@@ -152,7 +153,7 @@ public class DarkCurrentTest extends NexusTest {
 		checkNXdata(rootNode, detectorName, positionerNames);
 	}
 	
-	private void checkImages(NXroot rootNode, Collection<String> positionerNames, int... sizes) throws NexusException, ScanningException {
+	private void checkImages(NXroot rootNode, Collection<String> positionerNames, int... sizes) throws NexusException, ScanningException, DatasetException {
 		String detectorName = detector.getName();
 		NXentry entry = rootNode.getEntry();
 		NXinstrument instrument = entry.getInstrument();

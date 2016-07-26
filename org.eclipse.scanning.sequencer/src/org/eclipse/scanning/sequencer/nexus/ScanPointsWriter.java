@@ -3,19 +3,18 @@ package org.eclipse.scanning.sequencer.nexus;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.dawnsci.analysis.api.dataset.Dtype;
-import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
-import org.eclipse.dawnsci.analysis.dataset.impl.IntegerDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.DatasetFactory;
+import org.eclipse.january.dataset.ILazyWriteableDataset;
+import org.eclipse.january.dataset.IntegerDataset;
+import org.eclipse.january.dataset.LazyWriteableDataset;
+import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -76,9 +75,9 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		final NXcollection scanPointsCollection = NexusNodeFactory.createNXcollection();
 		// create the unique keys and scan points datasets
 		uniqueKeys = scanPointsCollection.initializeLazyDataset(
-				FIELD_NAME_UNIQUE_KEYS, info.getRank(), Dataset.INT32);
+				FIELD_NAME_UNIQUE_KEYS, info.getRank(), Integer.class);
 		points = scanPointsCollection.initializeLazyDataset(
-				FIELD_NAME_POINTS, info.getRank(), Dataset.STRING);
+				FIELD_NAME_POINTS, info.getRank(), String.class);
 		// set chunking
 		final int[] chunk = new int[info.getRank()];
 		Arrays.fill(chunk, 1);
@@ -92,7 +91,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 //		scanFinished = scanPointsCollection.initializeFixedSizeLazyDataset(
 //				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
 		// TODO: workaround for bug in HD5 loader, do not set size limit 
-		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, Dtype.INT32, new int[] { 1 },
+		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, Integer.class, new int[] { 1 },
 				new int[] { -1 }, null, null);
 		scanFinished.setFillValue(0);
 		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);
@@ -119,7 +118,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	public void scanFinished() throws ScanningException {
 		// Note: we don't use IRunListener.runPerformed as other run listeners expect the
 		// file to be closed when that method is called
-		final Dataset dataset = IntegerDataset.createFromObject(1);
+		final Dataset dataset = DatasetFactory.createFromObject(IntegerDataset.class, 1, null);
 		try {
 			this.scanFinished.setSlice(null, dataset,
 					new int[] { 0 }, new int[] { 1 }, new int[] { 1 });

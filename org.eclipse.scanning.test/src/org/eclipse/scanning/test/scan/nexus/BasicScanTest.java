@@ -13,10 +13,8 @@ import static org.junit.Assert.assertSame;
 import java.util.Collection;
 import java.util.stream.IntStream;
 
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXentry;
@@ -25,6 +23,9 @@ import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
+import org.eclipse.january.DatasetException;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.IDataset;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -38,7 +39,6 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class BasicScanTest extends NexusTest {
@@ -185,7 +185,7 @@ public class BasicScanTest extends NexusTest {
 		}
 	}
 
-	private void checkMetadataScannables(final ScanModel scanModel, NXinstrument instrument) {
+	private void checkMetadataScannables(final ScanModel scanModel, NXinstrument instrument) throws DatasetException {
 		DataNode dataNode;
 		IDataset dataset;
 		int[] shape;
@@ -199,7 +199,7 @@ public class BasicScanTest extends NexusTest {
 			dataset = dataNode.getDataset().getSlice();
 			shape = dataset.getShape();
 			assertArrayEquals(new int[] { 1 }, shape);
-			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDtype());
+			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDType());
 			assertEquals(10.0, dataset.getDouble(0), 1e-15);
 			
 			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
@@ -207,7 +207,7 @@ public class BasicScanTest extends NexusTest {
 			dataset = dataNode.getDataset().getSlice();
 			shape = dataset.getShape();
 			assertArrayEquals(new int[] { 1 }, shape);
-			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDtype());
+			assertEquals(Dataset.FLOAT64, ((Dataset) dataset).getDType());
 			assertEquals(10.0, dataset.getDouble(0), 1e-15);
 		}
 	}
