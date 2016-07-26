@@ -20,12 +20,6 @@ package org.eclipse.scanning.example.detector;
 
 import java.io.IOException;
 
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.DatasetFactory;
-import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusException;
@@ -33,6 +27,12 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.DatasetFactory;
+import org.eclipse.january.dataset.DoubleDataset;
+import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.ILazyWriteableDataset;
+import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -109,12 +109,12 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 		int scanRank = info.getRank();
 		// We add 2 to the scan rank to include the image
-		imageData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank + 2, Dataset.FLOAT64);
+		imageData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank + 2, Double.class);
 		// We add 1 to the scan rank to include the spectrum
-		spectrumData = detector.initializeLazyDataset(FIELD_NAME_SPECTRUM, scanRank + 1, Dataset.FLOAT64);
+		spectrumData = detector.initializeLazyDataset(FIELD_NAME_SPECTRUM, scanRank + 1, Double.class);
 		// Total is a single scalar value (i.e. zero-dimensional) for each point in the scan
 		// Dimensions match that of the scan
-		valueData = detector.initializeLazyDataset(FIELD_NAME_VALUE, scanRank, Dataset.FLOAT64);
+		valueData = detector.initializeLazyDataset(FIELD_NAME_VALUE, scanRank, Double.class);
 
 		// Setting chunking is a very good idea if speed is required.
 		imageData.setChunking(info.createChunk(model.getRows(), model.getColumns()));
@@ -210,7 +210,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		final double yStop = model.getMaxImaginaryCoordinate();
 		final double yStep = (yStop - yStart) / (rows - 1);
 		double y;
-		IDataset juliaSet = new DoubleDataset(rows,columns);
+		IDataset juliaSet = DatasetFactory.zeros(DoubleDataset.class, rows,columns);
 		for (int yIndex = 0; yIndex < rows; yIndex++) {
 			y = yStart + yIndex * yStep;
 			IDataset line = calculateJuliaSetLine(a, b, y, xStart, xStop, columns);
@@ -227,7 +227,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	private IDataset calculateJuliaSetLine(final double a, final double b, final double y, final double xStart, final double xStop, final int numPoints) {
 		final double xStep = (xStop - xStart) / (numPoints - 1);
 		double x;
-		IDataset juliaSetLine = new DoubleDataset(numPoints);
+		IDataset juliaSetLine = DatasetFactory.zeros(DoubleDataset.class, numPoints);
 		for (int xIndex = 0; xIndex < numPoints; xIndex++) {
 			x = xStart + xIndex * xStep;
 			juliaSetLine.set(julia(x, y, a, b), xIndex);

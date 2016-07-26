@@ -11,7 +11,7 @@ import java.util.Map.Entry;
 
 import org.eclipse.dawnsci.analysis.api.conversion.IConversionContext.ConversionScheme;
 import org.eclipse.dawnsci.analysis.api.io.IDataHolder;
-import org.eclipse.dawnsci.analysis.api.metadata.IMetadata;
+import org.eclipse.january.metadata.IMetadata;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 
 

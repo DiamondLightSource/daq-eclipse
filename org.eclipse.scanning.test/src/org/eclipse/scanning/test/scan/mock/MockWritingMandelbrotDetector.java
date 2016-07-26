@@ -22,17 +22,19 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.dawnsci.analysis.api.dataset.IDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.ILazyWriteableDataset;
-import org.eclipse.dawnsci.analysis.api.dataset.SliceND;
-import org.eclipse.dawnsci.analysis.api.metadata.Metadata;
-import org.eclipse.dawnsci.analysis.api.monitor.IMonitor;
 import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
-import org.eclipse.dawnsci.analysis.dataset.impl.Dataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.DoubleDataset;
-import org.eclipse.dawnsci.analysis.dataset.impl.LazyWriteableDataset;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
+import org.eclipse.january.IMonitor;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.DatasetFactory;
+import org.eclipse.january.dataset.DoubleDataset;
+import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.ILazyWriteableDataset;
+import org.eclipse.january.dataset.LazyWriteableDataset;
+import org.eclipse.january.dataset.SliceND;
+import org.eclipse.january.metadata.IMetadata;
+import org.eclipse.january.metadata.Metadata;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -121,9 +123,10 @@ public class MockWritingMandelbrotDetector extends AbstractRunnableDevice<MockWr
 		}
 		final Map<String, Serializable> mp = new HashMap<>(1);
 		mp.put("value", value);
-		Metadata meta = new Metadata(mp);
+		IMetadata meta = new Metadata();
+		meta.initialize(mp);
 		toWrite.addMetadata(meta);	
-  	}
+	}
 
 	@Override
 	public boolean write(IPosition pos) throws ScanningException {
@@ -157,7 +160,7 @@ public class MockWritingMandelbrotDetector extends AbstractRunnableDevice<MockWr
 		final double yStop = model.getMaxy();
 		final double yStep = (yStop - yStart) / (rows - 1);
 		double y;
-		IDataset juliaSet = new DoubleDataset(1, 1, rows, columns);
+		IDataset juliaSet = DatasetFactory.zeros(DoubleDataset.class, 1, 1, rows, columns);
 		for (int yIndex = 0; yIndex < rows; yIndex++) {
 			y = yStart + yIndex * yStep;
 			IDataset line = calculateJuliaSetLine(a, b, y, xStart, xStop, columns);
@@ -174,7 +177,7 @@ public class MockWritingMandelbrotDetector extends AbstractRunnableDevice<MockWr
 	private IDataset calculateJuliaSetLine(final double a, final double b, final double y, final double xStart, final double xStop, final int numPoints) {
 		final double xStep = (xStop - xStart) / (numPoints - 1);
 		double x;
-		IDataset juliaSetLine = new DoubleDataset(numPoints);
+		IDataset juliaSetLine = DatasetFactory.zeros(DoubleDataset.class, numPoints);
 		for (int xIndex = 0; xIndex < numPoints; xIndex++) {
 			x = xStart + xIndex * xStep;
 			juliaSetLine.set(julia(x, y, a, b), xIndex);
