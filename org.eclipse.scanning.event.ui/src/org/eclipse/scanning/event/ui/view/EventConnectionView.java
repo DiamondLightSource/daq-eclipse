@@ -5,24 +5,24 @@ import java.util.Properties;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.ui.Activator;
-import org.eclipse.scanning.event.ui.preference.CommandConstants;
 import org.eclipse.ui.part.ViewPart;
 
-public abstract class EventConnectionView extends ViewPart {
+abstract class EventConnectionView extends ViewPart {
 
 	protected Properties                        idProperties;
 	
 	protected String getRequestName() {
 		final String rName = getSecondaryIdAttribute("requestName");
 		if (rName != null) return rName;
-		return IEventService.REQUEST_TOPIC;
+		return IEventService.DEVICE_REQUEST_TOPIC;
 	}
 
 	protected String getResponseName() {
 		final String rName = getSecondaryIdAttribute("responseName");
 		if (rName != null) return rName;
-		return IEventService.RESPONSE_TOPIC;
+		return IEventService.DEVICE_RESPONSE_TOPIC;
 	}
 
 	protected String getTopicName() {

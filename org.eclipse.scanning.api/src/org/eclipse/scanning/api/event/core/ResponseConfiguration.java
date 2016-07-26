@@ -112,4 +112,9 @@ public class ResponseConfiguration {
 			return false;
 		return true;
 	}
+
+	public void setTimeout(long time, TimeUnit unit) {
+		setTimeout(time);
+		setTimeUnit(unit);
+	}
 }

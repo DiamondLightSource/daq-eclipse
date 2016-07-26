@@ -10,6 +10,7 @@ package org.eclipse.scanning.event.ui.preference;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.ui.Activator;
 
 public class CommandInitializer extends AbstractPreferenceInitializer {

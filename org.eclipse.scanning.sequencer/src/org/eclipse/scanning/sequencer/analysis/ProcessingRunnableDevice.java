@@ -47,6 +47,7 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 
 	public ProcessingRunnableDevice() {
 		setLevel(100); // Runs at the end of the cycle by default.
+		this.model = new ProcessingModel(); // We start with an empty one in case they want to fill it in the UI.
 	}
 	
 	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) throws NexusException {

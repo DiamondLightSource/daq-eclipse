@@ -20,6 +20,11 @@ public class DeviceInformation<T> {
 	private String name;
 	
 	/**
+	 * Level device will be run at
+	 */
+	private int level;
+	
+	/**
 	 * Label visible in UI table
 	 */
 	private String label;
@@ -178,5 +183,13 @@ public class DeviceInformation<T> {
 
 	public void setState(DeviceState state) {
 		this.state = state;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
 	}
 }

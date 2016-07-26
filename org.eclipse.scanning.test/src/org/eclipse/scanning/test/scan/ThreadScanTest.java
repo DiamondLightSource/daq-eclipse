@@ -9,7 +9,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.dawnsci.json.MarshallerService;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -49,7 +49,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class ThreadScanTest extends BrokerTest {
 	
 	private IRunnableDeviceService           sservice;
-	private IDeviceConnectorService    connector;
+	private IScannableDeviceService    connector;
 	private IPointGeneratorService          gservice;
 	private IEventService              eservice;
 	private ISubscriber<IScanListener> subscriber;

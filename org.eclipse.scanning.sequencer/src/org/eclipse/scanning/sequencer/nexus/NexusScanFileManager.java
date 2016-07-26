@@ -34,7 +34,7 @@ import org.eclipse.dawnsci.nexus.builder.data.PrimaryDataDevice;
 import org.eclipse.dawnsci.nexus.builder.impl.MapBasedMetadataProvider;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPosition;
@@ -176,7 +176,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	 * Creates the nexus file for the given {@link ScanModel}. 
 	 * The structure of the nexus file is determined by model and the
 	 * devices that the model references - these are retrieved from the
-	 * {@link IDeviceConnectorService}.
+	 * {@link IScannableDeviceService}.
 	 * 
 	 * @param model model of scan
 	 * @throws ScanningException
@@ -274,7 +274,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	 */
 	@SuppressWarnings("deprecation")
 	private void setMetadataScannables(ScanModel model, Collection<String> scannableNames) throws ScanningException {
-		IDeviceConnectorService deviceConnectorService = scanDevice.getConnectorService();
+		IScannableDeviceService deviceConnectorService = scanDevice.getConnectorService();
 		
 		// build up the set of all metadata scannables
 		Set<String> metadataScannableNames = new HashSet<>();

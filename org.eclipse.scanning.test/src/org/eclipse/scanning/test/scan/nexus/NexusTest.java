@@ -8,7 +8,7 @@ import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.event.IEventService;
@@ -48,7 +48,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  */
 public class NexusTest extends TmpTest {
 	
-	protected static IDeviceConnectorService connector;
+	protected static IScannableDeviceService connector;
 	protected static IRunnableDeviceService  dservice;
 	protected static IPointGeneratorService  gservice;
 	protected static INexusFileFactory       fileFactory;

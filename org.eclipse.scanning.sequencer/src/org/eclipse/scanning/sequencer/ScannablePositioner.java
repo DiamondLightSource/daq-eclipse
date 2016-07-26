@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -23,10 +23,10 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
  */
 final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IPositioner {
 		
-	private IDeviceConnectorService     connectorService;
+	private IScannableDeviceService     connectorService;
 	private List<IScannable<?>>         monitors;
 
-	ScannablePositioner(IDeviceConnectorService service) {	
+	ScannablePositioner(IScannableDeviceService service) {	
 		
 		setLevelCachingAllowed(false);
 		this.connectorService = service;

@@ -10,14 +10,14 @@ import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.core.IQueueConnection;
 import org.eclipse.scanning.api.event.core.IQueueReader;
+import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.event.remote.RemoteServiceFactory;
 
 public class EventServiceImpl implements IEventService {
 	
@@ -115,6 +115,15 @@ public class EventServiceImpl implements IEventService {
 	@Override
 	public <T> IQueueReader<T> createQueueReader(URI uri, String queueName) {
 	    return new QueueReaderImpl<T>(uri, queueName, this);
+	}
+
+	@Override
+	public <T> T createRemoteService(URI uri, Class<T> serviceClass) throws EventException {
+		try {
+			return RemoteServiceFactory.getRemoteService(uri, serviceClass, this);
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new EventException("There problem creating service for "+serviceClass, e);
+		}
 	}
 
 }
