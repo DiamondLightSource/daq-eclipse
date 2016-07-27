@@ -48,7 +48,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 
 	// OSGi services and intraprocess events
 	protected IRunnableDeviceService     runnableDeviceService;
-	protected IDeviceConnectorService    connectorService;
+	protected IScannableDeviceService    connectorService;
 	private   IPublisher<ScanBean>       publisher;
 	
 	// Listeners
@@ -85,11 +85,11 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		this.runnableDeviceService = runnableDeviceService;
 	}
 
-	public IDeviceConnectorService getConnectorService() {
+	public IScannableDeviceService getConnectorService() {
 		return connectorService;
 	}
 
-	public void setConnectorService(IDeviceConnectorService connectorService) {
+	public void setConnectorService(IScannableDeviceService connectorService) {
 		this.connectorService = connectorService;
 	}
 
@@ -341,6 +341,8 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public DeviceInformation<T> getDeviceInformation() throws ScanningException {
 		deviceInformation.setModel(getModel());
 		deviceInformation.setState(getDeviceState());
+		if (getName()!=null) deviceInformation.setName(getName());
+		deviceInformation.setLevel(getLevel());
  		return deviceInformation;
 	}
 

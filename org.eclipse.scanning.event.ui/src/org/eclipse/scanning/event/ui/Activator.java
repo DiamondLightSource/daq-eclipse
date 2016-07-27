@@ -10,7 +10,7 @@ package org.eclipse.scanning.event.ui;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.scanning.event.ui.preference.CommandConstants;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 

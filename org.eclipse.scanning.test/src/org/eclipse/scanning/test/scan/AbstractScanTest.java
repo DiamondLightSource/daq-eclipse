@@ -15,7 +15,7 @@ import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -50,7 +50,7 @@ import org.junit.Test;
 public class AbstractScanTest extends BrokerTest {
 
 	protected IRunnableDeviceService      dservice;
-	protected IDeviceConnectorService     connector;
+	protected IScannableDeviceService     connector;
 	protected IPointGeneratorService      gservice;
 	protected IEventService               eservice;
 
