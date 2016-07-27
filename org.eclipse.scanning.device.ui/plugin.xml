@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="org.eclipse.scanning.device.ui"
+            name="Scanning">
+      </category>
+      <view
+            category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.scanning.device.ui.points.ScanView"
+            icon="icons/scanner--pencil.png"
+            id="org.eclipse.scanning.device.ui.scanEditor"
+            name="Scan Editor"
+            restorable="true">
+      </view>
+      <view
+            category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.scanning.device.ui.model.ModelView"
+            icon="icons/scanner--arrow.png"
+            id="org.eclipse.scanning.device.ui.modelEditor"
+            name="Model"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="true"
+            category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.scanning.device.ui.device.DetectorView"
+            icon="icons/camera.png"
+            id="org.eclipse.scanning.device.ui.detectorView"
+            name="Detectors"
+            restorable="true">
+      </view>
+   </extension>
+    <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            class="org.eclipse.scanning.device.ui.ScanningPerspective"
+            icon="icons/scanner.png"
+            id="org.eclipse.scanning.device.ui.perspective.scanningPerspective"
+            name="Scanning">
+      </perspective>
+   </extension>
+
+</plugin>

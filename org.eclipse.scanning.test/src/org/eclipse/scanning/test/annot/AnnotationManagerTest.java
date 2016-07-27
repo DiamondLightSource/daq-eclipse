@@ -19,7 +19,7 @@ import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
-import org.eclipse.scanning.api.device.IDeviceConnectorService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -62,8 +62,8 @@ public class AnnotationManagerTest {
 		
 		final Map<Class<?>, Object> testServices = new HashMap<>();
 		testServices.put(IPointGeneratorService.class,  new PointGeneratorFactory());
-		testServices.put(IDeviceConnectorService.class, new MockScannableConnector());
-		testServices.put(IRunnableDeviceService.class,  new RunnableDeviceServiceImpl((IDeviceConnectorService)testServices.get(IDeviceConnectorService.class)));
+		testServices.put(IScannableDeviceService.class, new MockScannableConnector());
+		testServices.put(IRunnableDeviceService.class,  new RunnableDeviceServiceImpl((IScannableDeviceService)testServices.get(IScannableDeviceService.class)));
 		manager = new AnnotationManager(testServices);
 
 		sdevice   = new SimpleDevice();
