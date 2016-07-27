@@ -14,7 +14,7 @@ import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory
 import org.python.core.PyDictionary;
 import org.python.core.PyObject;
 
-class GridIterator implements Iterator<IPosition> {
+class GridIterator extends AbstractScanPointIterator {
 
 	private final AbstractGenerator<? extends AbstractBoundingBoxModel> gen;
 	private final int columns;
@@ -30,7 +30,6 @@ class GridIterator implements Iterator<IPosition> {
 	private int yIndex, xIndex;
 	private boolean forwards = true;
 	
-	private Iterator<IPosition> pyIterator;
 	private Point currentPoint;
 
 	public GridIterator(GridGenerator gen) {
@@ -49,27 +48,25 @@ class GridIterator implements Iterator<IPosition> {
 		yIndex = 0;
 		xIndex = -1;
 		
-		JythonObjectFactory rasterGeneratorFactory = ScanPointGeneratorFactory.JRasterGeneratorFactory();
-
-        PyDictionary inner = new PyDictionary();
-        inner.put("name", xName);
-        inner.put("units", "mm");
-        inner.put("start", minX);
-        inner.put("stop", minX + (columns - 1) * xStep);
-        inner.put("num_points", columns);
-
-        PyDictionary outer = new PyDictionary();
-        outer.put("name", yName);
-        outer.put("units", "mm");
-        outer.put("start", minY);
-        outer.put("stop", minY + (rows - 1) * yStep);
-        outer.put("num_points", rows);
+		JythonObjectFactory lineGeneratorFactory = ScanPointGeneratorFactory.JLineGenerator1DFactory();
         
-        boolean snake = model.isSnake();
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> outerLine = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
+				yName, "mm", minY, minY + (rows - 1) * yStep, rows);
         
-        @SuppressWarnings("unchecked")
-		Iterator<IPosition> iterator = (Iterator<IPosition>) rasterGeneratorFactory.createObject(
-				outer, inner, snake);
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> innerLine = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
+				xName, "mm", minX, minX + (columns - 1) * xStep, columns, model.isSnake());
+		
+		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
+        
+        Object[] generators = {outerLine, innerLine};
+        Object[] excluders = {};
+        Object[] mutators = {};
+        
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
+				generators, excluders, mutators);
         pyIterator = iterator;
 	}
 
@@ -92,11 +89,11 @@ class GridIterator implements Iterator<IPosition> {
         JythonObjectFactory lineGeneratorFactory = ScanPointGeneratorFactory.JLineGenerator1DFactory();
         
 		@SuppressWarnings("unchecked")
-		Iterator<IPosition> line1 = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
+		Iterator<IPosition> outerLine = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
 				yName, "mm", minY, minY + (rows - 1) * yStep, rows);
         
 		@SuppressWarnings("unchecked")
-		Iterator<IPosition> line2 = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
+		Iterator<IPosition> innerLine = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
 				xName, "mm", minX, minX + (columns - 1) * xStep, columns, model.isSnake());
 		
         JythonObjectFactory randomOffsetMutatorFactory = ScanPointGeneratorFactory.JRandomOffsetMutatorFactory();
@@ -112,7 +109,7 @@ class GridIterator implements Iterator<IPosition> {
         
         JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
         
-        Object[] generators = {line1, line2};
+        Object[] generators = {outerLine, innerLine};
         Object[] excluders = {};
         Object[] mutators = {randomOffset};
         
@@ -137,27 +134,25 @@ class GridIterator implements Iterator<IPosition> {
 		yIndex = 0;
 		xIndex = -1;
 		
-		JythonObjectFactory rasterGeneratorFactory = ScanPointGeneratorFactory.JRasterGeneratorFactory();
-
-        PyDictionary inner = new PyDictionary();
-        inner.put("name", xName);
-        inner.put("units", "mm");
-        inner.put("start", minX);
-        inner.put("stop", minX + (columns - 1) * xStep);
-        inner.put("num_points", columns);
-
-        PyDictionary outer = new PyDictionary();
-        outer.put("name", yName);
-        outer.put("units", "mm");
-        outer.put("start", minY);
-        outer.put("stop", minY + (rows - 1) * yStep);
-        outer.put("num_points", rows);
+		JythonObjectFactory lineGeneratorFactory = ScanPointGeneratorFactory.JLineGenerator1DFactory();
         
-        boolean snake = model.isSnake();
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> outerLine = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
+				yName, "mm", minY, minY + (rows - 1) * yStep, rows);
         
-        @SuppressWarnings("unchecked")
-		Iterator<IPosition> iterator = (Iterator<IPosition>) rasterGeneratorFactory.createObject(
-				outer, inner, snake);
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> innerLine = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
+				xName, "mm", minX, minX + (columns - 1) * xStep, columns, model.isSnake());
+		
+		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
+        
+        Object[] generators = {outerLine, innerLine};
+        Object[] excluders = {};
+        Object[] mutators = {};
+        
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
+				generators, excluders, mutators);
         pyIterator = iterator;
 	}
 
@@ -233,6 +228,9 @@ class GridIterator implements Iterator<IPosition> {
 	
 	@Override
 	public Point next() {
+		// TODO: This will return null if called without calling hasNext() and when the
+		// ROI will exclude all further points. Raise error if called without hasNext()
+		// first, or if point is null?
 		if (currentPoint == null) {
 			hasNext();
 		}

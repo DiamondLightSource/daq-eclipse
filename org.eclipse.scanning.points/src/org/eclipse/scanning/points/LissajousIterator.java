@@ -11,7 +11,7 @@ import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory
 import org.python.core.PyDictionary;
 import org.python.core.PyList;
 
-class LissajousIterator implements Iterator<IPosition> {
+class LissajousIterator extends AbstractScanPointIterator {
 
 	private LissajousModel model;
 //	private double theta;
@@ -19,7 +19,7 @@ class LissajousIterator implements Iterator<IPosition> {
 
 //	private int pointsSoFar = 0;
 	
-	private Iterator<IPosition> pyIterator;
+	private Point currentPoint;
 
 	public LissajousIterator(LissajousGenerator gen) {
 		this.model     = gen.getModel();
@@ -50,7 +50,22 @@ class LissajousIterator implements Iterator<IPosition> {
 
 	@Override
 	public boolean hasNext() {
-		return pyIterator.hasNext();
+		Point point;
+		double x;
+		double y;
+		
+		while (pyIterator.hasNext()) {
+			point = (Point) pyIterator.next();
+			x = point.getX();
+			y = point.getY();
+			
+			if (gen.containsPoint(x, y)) {
+				currentPoint = point;
+				return true;
+			}
+		}
+		
+		return false;
 
 //		double[] pos = increment(model, this.theta);
 //		double t = pos[0];
@@ -83,21 +98,16 @@ class LissajousIterator implements Iterator<IPosition> {
 
 	@Override
 	public Point next() {
-		Point point;
-		double x;
-		double y;
+		// TODO: This will return null if called without calling hasNext() and when the
+		// ROI will exclude all further points. Raise error if called without hasNext()
+		// first, or if point is null?
+		if (currentPoint == null) {
+			hasNext();
+		}
+		Point point = currentPoint;
+		currentPoint = null;
 		
-		do {
-			point = (Point) pyIterator.next();
-			x = point.getX();
-			y = point.getY();
-			
-			if (gen.containsPoint(x, y)) {
-				return point;
-			}
-		} while (pyIterator.hasNext());
-		
-		throw new NoSuchElementException("No more points available");
+		return point;
 
 //		double[] da  = increment(model, theta);
 //		double theta = da[0];

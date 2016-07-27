@@ -10,7 +10,7 @@ import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
 import org.python.core.PyList;
 
-class SpiralIterator implements Iterator<IPosition> {
+class SpiralIterator extends AbstractScanPointIterator {
 
 	// Constant parameters
 	private final SpiralGenerator gen;
@@ -25,7 +25,8 @@ class SpiralIterator implements Iterator<IPosition> {
 	// Mutable state
 //	private SpiralPosition currentPosition;
 //	private SpiralPosition nextPosition;
-	private Iterator<IPosition> pyIterator;
+	
+	private Point currentPoint;
 
 	/**
 	 * Simple class to hold state about a position along the spiral
@@ -76,7 +77,22 @@ class SpiralIterator implements Iterator<IPosition> {
 
 	@Override
 	public boolean hasNext() {
-		return pyIterator.hasNext();
+		Point point;
+		double x;
+		double y;
+		
+		while (pyIterator.hasNext()) {
+			point = (Point) pyIterator.next();
+			x = point.getX();
+			y = point.getY();
+			
+			if (gen.containsPoint(x, y)) {
+				currentPoint = point;
+				return true;
+			}
+		}
+		
+		return false;
 
 //		if (nextPosition == null) {
 //			nextPosition = increment(currentPosition);
@@ -91,21 +107,16 @@ class SpiralIterator implements Iterator<IPosition> {
 
 	@Override
 	public Point next() {
-		Point point;
-		double x;
-		double y;
+		// TODO: This will return null if called without calling hasNext() and when the
+		// ROI will exclude all further points. Raise error if called without hasNext()
+		// first, or if point is null?
+		if (currentPoint == null) {
+			hasNext();
+		}
+		Point point = currentPoint;
+		currentPoint = null;
 		
-		do {
-			point = (Point) pyIterator.next();
-			x = point.getX();
-			y = point.getY();
-			
-			if (gen.containsPoint(x, y)) {
-				return point;
-			}
-		} while (pyIterator.hasNext());
-		
-		throw new NoSuchElementException("No more points available");
+		return point;
 
 //		if (nextPosition == null) {
 //			nextPosition = increment(currentPosition);

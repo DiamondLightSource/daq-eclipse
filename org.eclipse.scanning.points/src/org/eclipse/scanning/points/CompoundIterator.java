@@ -9,6 +9,8 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
 
 /**
  * We are trying to make it super efficient to iterate
@@ -18,16 +20,29 @@ import org.eclipse.scanning.api.points.MapPosition;
  * @author Matthew Gerring
  *
  */
-public class CompoundIterator implements Iterator<IPosition> {
+public class CompoundIterator extends AbstractScanPointIterator {
 
 	private CompoundGenerator     gen;
 	private IPosition             pos;
 	private Iterator<? extends IPosition>[] iterators;
+	
+	public Iterator<IPosition> pyIterator;
+	private IPosition currentPoint;
 
 	public CompoundIterator(CompoundGenerator gen) throws GeneratorException {
 		this.gen       = gen;
 		this.iterators = initIterators();
 		this.pos       = createFirstPosition();
+
+		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
+		
+        Object[] excluders = {};
+        Object[] mutators = {};
+        
+		@SuppressWarnings("unchecked")
+		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
+				iterators, excluders, mutators);
+		pyIterator = iterator;
 	}
 
 	private IPosition createFirstPosition() throws GeneratorException {
@@ -44,16 +59,44 @@ public class CompoundIterator implements Iterator<IPosition> {
     
 	@Override
 	public boolean hasNext() {
-        next = getNext(); 
-        justDidNext = true;
-        return next!=null;
+		IPosition point;
+		double x;
+		double y;
+		
+		while (pyIterator.hasNext()) {
+			point = pyIterator.next();
+//			x = point.getX();
+//			y = point.getY();
+//			
+//			if (gen.containsPoint(x, y)) {
+			currentPoint = point;
+			return true;
+//			}
+		}
+		
+		return false;
+		
+//        next = getNext();
+//        justDidNext = true;
+//        return next!=null;
 	}
 
 	@Override
 	public IPosition next() {
-		if (!justDidNext) next = getNext(); 
-		justDidNext = false;
-		return next;
+		// TODO: This will return null if called without calling hasNext() and when the
+		// ROI will exclude all further points. Raise error if called without hasNext()
+		// first, or if point is null?
+		if (currentPoint == null) {
+			hasNext();
+		}
+		IPosition point = currentPoint;
+		currentPoint = null;
+		
+		return point;
+		
+//		if (!justDidNext) next = getNext(); 
+//		justDidNext = false;
+//		return next;
 	}
 	
 	public IPosition getNext() {
