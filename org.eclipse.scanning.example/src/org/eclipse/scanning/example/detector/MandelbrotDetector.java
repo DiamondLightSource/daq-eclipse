@@ -29,7 +29,6 @@ import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.DatasetFactory;
-import org.eclipse.january.dataset.DoubleDataset;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
@@ -187,7 +186,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 			rslice = IScanRankService.getScanRankService().createScanSlice(pos);
 			sliceND = new SliceND(valueData.getShape(), valueData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
-			valueData.setSlice(null, DoubleDataset.createFromObject(value), sliceND);
+			valueData.setSlice(null, DatasetFactory.createFromObject(value), sliceND);
 
 		} catch (Exception e) {
 			// Change state to fault if exception is caught
@@ -210,7 +209,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		final double yStop = model.getMaxImaginaryCoordinate();
 		final double yStep = (yStop - yStart) / (rows - 1);
 		double y;
-		IDataset juliaSet = DatasetFactory.zeros(DoubleDataset.class, rows,columns);
+		IDataset juliaSet = DatasetFactory.zeros(rows,columns);
 		for (int yIndex = 0; yIndex < rows; yIndex++) {
 			y = yStart + yIndex * yStep;
 			IDataset line = calculateJuliaSetLine(a, b, y, xStart, xStop, columns);
@@ -227,7 +226,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	private IDataset calculateJuliaSetLine(final double a, final double b, final double y, final double xStart, final double xStop, final int numPoints) {
 		final double xStep = (xStop - xStart) / (numPoints - 1);
 		double x;
-		IDataset juliaSetLine = DatasetFactory.zeros(DoubleDataset.class, numPoints);
+		IDataset juliaSetLine = DatasetFactory.zeros(numPoints);
 		for (int xIndex = 0; xIndex < numPoints; xIndex++) {
 			x = xStart + xIndex * xStep;
 			juliaSetLine.set(julia(x, y, a, b), xIndex);
