@@ -34,6 +34,11 @@ class _RunnableDevice<T> extends AbstractRemoteService<IRunnableDevice<T>> imple
 		req = requester.post(req);
 		info = (DeviceInformation<T>)req.getDeviceInformation();
 	}
+	
+	@Override
+	public void disconnect() throws EventException {
+		requester.disconnect();
+	}
 
 	@Override
 	public String getName() {

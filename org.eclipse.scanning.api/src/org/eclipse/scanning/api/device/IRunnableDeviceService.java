@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.device;
 import java.util.Collection;
 
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
@@ -152,4 +153,10 @@ public interface IRunnableDeviceService {
      * @return
      */
     IScannableDeviceService getDeviceConnectorService();
+
+    /**
+     * Get the information for all the runnable devices currently created.
+     * @return
+     */
+	Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException;
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 class _ScannableDeviceService extends AbstractRemoteService<IScannableDeviceService> implements IScannableDeviceService {
@@ -18,6 +19,11 @@ class _ScannableDeviceService extends AbstractRemoteService<IScannableDeviceServ
 	public <T> IScannable<T> getScannable(String name) throws ScanningException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void disconnect() throws EventException {
+		// TODO 
 	}
 
 }

@@ -59,7 +59,7 @@ public class DetectorView extends EventConnectionView {
 		createColumns(viewer, "", "Name");
 		
 		try {
-			viewer.setContentProvider(new DetectorContentProvider(getUri(), getRequestName(), getResponseName()));
+			viewer.setContentProvider(new DetectorContentProvider(getUri()));
 		} catch (Exception e) {
 			logger.error("Cannot create content provider", e);
 		}
