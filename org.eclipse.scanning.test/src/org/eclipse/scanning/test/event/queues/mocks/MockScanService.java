@@ -77,4 +77,10 @@ public class MockScanService implements IRunnableDeviceService {
 		return null;
 	}
 
+	@Override
+	public DeviceInformation<?> getDeviceInformation(String name) throws ScanningException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

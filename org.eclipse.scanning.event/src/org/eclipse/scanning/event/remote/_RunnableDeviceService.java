@@ -112,4 +112,15 @@ public class _RunnableDeviceService extends AbstractRemoteService<IRunnableDevic
 	public Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException {
 		return Arrays.asList(getDevices());
 	}
+
+	@Override
+	public DeviceInformation<?> getDeviceInformation(String name) throws ScanningException {
+	    DeviceRequest req;
+		try {
+			req = requester.post(new DeviceRequest(name));
+		} catch (EventException | InterruptedException e) {
+			throw new ScanningException("Cannot get devices! Connection to borker may be lost or no server up!", e);
+		}
+	    return req.getDeviceInformation();
+	}
 }

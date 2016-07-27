@@ -377,4 +377,12 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		return ret;
 	}
 
+	@Override
+	public DeviceInformation<?> getDeviceInformation(String name) throws ScanningException {
+		IRunnableDevice<Object> device = getRunnableDevice(name);
+		if (device==null)  return null;		
+		if (!(device instanceof AbstractRunnableDevice)) return null;
+		return ((AbstractRunnableDevice<?>)device).getDeviceInformation();
+	}
+
 }

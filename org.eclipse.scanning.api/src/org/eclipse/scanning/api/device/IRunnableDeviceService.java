@@ -159,4 +159,12 @@ public interface IRunnableDeviceService {
      * @return
      */
 	Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException;
+	
+	
+    /**
+     * Get the information for the named runnable device.
+     * @return
+     */
+	DeviceInformation<?> getDeviceInformation(String name) throws ScanningException;
+
 }
