@@ -1,13 +1,14 @@
 package org.eclipse.scanning.device.ui.device;
 
 import java.net.URI;
+import java.util.Collection;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IRequester;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
-import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,16 +25,19 @@ class DetectorContentProvider implements IStructuredContentProvider {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DetectorContentProvider.class);
 	
-	private IRequester<DeviceRequest> requester;
+	/**
+	 * Remote device service.
+	 */
+	private IRunnableDeviceService dservice;
 	
-	public DetectorContentProvider(URI uri, String request, String response) throws EventException {
-		requester = ServiceHolder.getEventService().createRequestor(uri, request, response);
+	public DetectorContentProvider(URI uri) throws EventException {
+		dservice = ServiceHolder.getEventService().createRemoteService(uri, IRunnableDeviceService.class);
 	}
 
 	@Override
 	public void dispose() {
 		try {
-			requester.disconnect();
+			if (dservice instanceof IDisconnectable) ((IDisconnectable)dservice).disconnect();
 		} catch (EventException e) {
 			logger.error("Cannot disconnect from device request object.", e);
 		}
@@ -49,9 +53,9 @@ class DetectorContentProvider implements IStructuredContentProvider {
 	public Object[] getElements(Object inputElement) {
 		
 		try {
-		    DeviceRequest req = requester.post(new DeviceRequest());
-		    DeviceInformation<?>[] devices = req.getDevices().toArray(new DeviceInformation<?>[req.size()]);
-		    return devices;
+		    Collection<DeviceInformation<?>> devices = dservice.getDeviceInformation();
+		    return devices.toArray(new DeviceInformation[devices.size()]);
+		    
 		} catch (Exception ne) {
 			ne.printStackTrace();
 			logger.error("Cannot get devices!", ne);

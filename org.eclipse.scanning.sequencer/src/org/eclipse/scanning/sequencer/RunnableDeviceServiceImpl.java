@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -354,6 +355,34 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	@Override
 	public Collection<String> getRunnableDeviceNames() throws ScanningException {
 		return namedDevices.keySet();
+	}
+
+	@Override
+	public Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException {
+		
+		Collection<DeviceInformation<?>> ret = new ArrayList<>();
+		final Collection<String> names = getRunnableDeviceNames();
+		for (String name : names) {
+
+			if (name==null) continue;
+
+			IRunnableDevice<Object> device = getRunnableDevice(name);
+			if (device==null)  continue;		
+			if (!(device instanceof AbstractRunnableDevice)) continue;
+	
+
+			DeviceInformation<?> info = ((AbstractRunnableDevice<?>)device).getDeviceInformation();
+			ret.add(info);
+		}
+		return ret;
+	}
+
+	@Override
+	public DeviceInformation<?> getDeviceInformation(String name) throws ScanningException {
+		IRunnableDevice<Object> device = getRunnableDevice(name);
+		if (device==null)  return null;		
+		if (!(device instanceof AbstractRunnableDevice)) return null;
+		return ((AbstractRunnableDevice<?>)device).getDeviceInformation();
 	}
 
 }

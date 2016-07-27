@@ -38,6 +38,11 @@ public class _RunnableDeviceService extends AbstractRemoteService<IRunnableDevic
 			throw new ScanningException("Cannot create a positioner!", e);
 		}
 	}
+	
+	@Override
+	public void disconnect() throws EventException {
+		requester.disconnect();
+	}
 
 	@Override
 	public <T> IRunnableDevice<T> createRunnableDevice(T model) throws ScanningException {
@@ -93,7 +98,7 @@ public class _RunnableDeviceService extends AbstractRemoteService<IRunnableDevic
 		return cservice;
 	}
 
-	private DeviceInformation[] getDevices() throws ScanningException {
+	private DeviceInformation<?>[] getDevices() throws ScanningException {
 	    DeviceRequest req;
 		try {
 			req = requester.post(new DeviceRequest());
@@ -101,5 +106,21 @@ public class _RunnableDeviceService extends AbstractRemoteService<IRunnableDevic
 			throw new ScanningException("Cannot get devices! Connection to borker may be lost or no server up!", e);
 		}
 	    return req.getDevices().toArray(new DeviceInformation<?>[req.size()]);
+	}
+
+	@Override
+	public Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException {
+		return Arrays.asList(getDevices());
+	}
+
+	@Override
+	public DeviceInformation<?> getDeviceInformation(String name) throws ScanningException {
+	    DeviceRequest req;
+		try {
+			req = requester.post(new DeviceRequest(name));
+		} catch (EventException | InterruptedException e) {
+			throw new ScanningException("Cannot get devices! Connection to borker may be lost or no server up!", e);
+		}
+	    return req.getDeviceInformation();
 	}
 }

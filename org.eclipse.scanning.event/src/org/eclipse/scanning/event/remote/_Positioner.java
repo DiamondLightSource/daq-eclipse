@@ -30,6 +30,11 @@ class _Positioner extends AbstractRemoteService<IPositioner> implements IPositio
 		init();
 	}
 	
+	@Override
+	public void disconnect() throws EventException {
+		requester.disconnect();
+	}
+	
 	public void init()  throws EventException {
 		requester = eservice.createRequestor(uri, EventConstants.POSITIONER_REQUEST_TOPIC, EventConstants.POSITIONER_RESPONSE_TOPIC);
 	    requester.setTimeout(RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()); // Useful for debugging testing 

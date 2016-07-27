@@ -1,5 +1,6 @@
 package org.eclipse.scanning.device.ui.model;
 
+import java.net.URI;
 import java.util.Collection;
 
 import org.eclipse.jface.bindings.keys.IKeyLookup;
@@ -26,9 +27,13 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -50,6 +55,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class for editing an operation model. Shows a table or other
@@ -65,6 +72,7 @@ import org.eclipse.ui.IWorkbenchPart;
  */
 public class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISelectionProvider {
 
+	private static final Logger logger = LoggerFactory.getLogger(ModelViewer.class);
 	
 	private TableViewer      viewer;
 	private Object           model;
@@ -244,11 +252,27 @@ public class ModelViewer implements ISelectionListener, ISelectionChangedListene
 				}
 			} else if (ob instanceof DeviceInformation) {
 				setGenerator(null);
-				setModel(((DeviceInformation)ob).getModel());
+				
+				DeviceInformation<?> info = (DeviceInformation<?>)ob;
+				info = getLatestDeviceInformation(info);
+				setModel(info.getModel());
 			}
 		}
 	}
 	
+	private DeviceInformation<?> getLatestDeviceInformation(DeviceInformation<?> info) {
+		try {
+			// We read the latest, other processes can change the model for the device.
+			IRunnableDeviceService dservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IRunnableDeviceService.class);
+			info = dservice.getDeviceInformation(info.getName());
+			if (dservice instanceof IDisconnectable) ((IDisconnectable)dservice).disconnect();
+			
+		} catch (Exception ne) {
+			logger.error("Cannot get latest device information for "+info, ne);
+		}
+		return info;
+	}
+
 	/**
 	 * Specifically set the operation we would like to edit
 	 * @param des

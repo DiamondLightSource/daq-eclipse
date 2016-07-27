@@ -121,24 +121,8 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			
 		} else {  // Device list needed.
 			
-			final Collection<String> names = dservice.getRunnableDeviceNames();
-			for (String name : names) {
-	
-				if (name==null) continue;
-	
-				IRunnableDevice<Object> device = dservice.getRunnableDevice(name);
-				if (device==null) {
-					System.out.println("Device '"+name+"' could not be found.");
-					continue;
-				}
-				if (!(device instanceof AbstractRunnableDevice)) {
-					System.out.println("Device '"+name+"' is not AbstractRunnableDevice and will be ignored.");
-					continue;
-				}
-	
-				DeviceInformation<?> info = ((AbstractRunnableDevice<?>)device).getDeviceInformation();
-				request.addDeviceInformation(info);
-			}
+			Collection<DeviceInformation<?>> info = dservice.getDeviceInformation();
+			request.setDevices(info);
 		}
 	}
 }

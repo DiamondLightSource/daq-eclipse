@@ -4,6 +4,7 @@ import java.net.URI;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 
 /**
  * 
@@ -11,7 +12,7 @@ import org.eclipse.scanning.api.event.IEventService;
  *
  * @param <T> The service
  */
-abstract class AbstractRemoteService<T> {
+abstract class AbstractRemoteService<T> implements IDisconnectable {
 
 	protected IEventService eservice;
 	protected URI uri;

@@ -18,15 +18,16 @@ Example spring file to configure the various scanning services
 	    <property name="durable"     value="true" />
 	</bean>
 
-    <bean id="positioner" class="org.eclipse.scanning.server.servlet.PositionServlet" init-method="connect">
-       <property name="broker"   value="${org.eclipse.scanning.broker.uri}" />
-       <property name="topic" value="org.eclipse.scanning.server.servlet.position" />
-    </bean>
-
     <bean id="deviceServlet" class="org.eclipse.scanning.server.servlet.DeviceServlet" init-method="connect">
        <property name="broker"          value="${org.eclipse.scanning.broker.uri}" />
-       <property name="requestTopic"    value="org.eclipse.scanning.device.requestTopic" />
-       <property name="responseTopic"   value="org.eclipse.scanning.device.responseTopic"   />
+       <property name="requestTopic"    value="org.eclipse.scanning.request.device.topic" />
+       <property name="responseTopic"   value="org.eclipse.scanning.response.device.topic"   />
+    </bean>
+    
+    <bean id="positionerServlet" class="org.eclipse.scanning.server.servlet.PositionerServlet" init-method="connect">
+       <property name="broker"          value="${org.eclipse.scanning.broker.uri}" />
+       <property name="requestTopic"    value="org.eclipse.scanning.request.positioner.topic" />
+       <property name="responseTopic"   value="org.eclipse.scanning.response.positioner.topic"   />
     </bean>
 
 </beans>

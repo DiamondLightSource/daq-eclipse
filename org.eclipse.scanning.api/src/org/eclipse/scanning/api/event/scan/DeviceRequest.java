@@ -78,8 +78,7 @@ public class DeviceRequest extends IdBean {
 	public <A extends IdBean> void merge(A with) {
 		super.merge(with);
 		DeviceRequest dr = (DeviceRequest)with;
-		if (devices==null) devices = dr.devices;
-		if (devices!=null) devices.addAll(dr.devices);
+		devices       = dr.devices;
 		deviceName    = dr.deviceName;
 		deviceModel   = dr.deviceModel;
 		deviceType    = dr.deviceType;
