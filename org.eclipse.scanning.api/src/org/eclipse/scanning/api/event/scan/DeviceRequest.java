@@ -69,6 +69,11 @@ public class DeviceRequest extends IdBean {
 	 */
 	private IPosition position;
 	
+	/**
+	 * If there is an error in the request.
+	 */
+	private String errorMessage;
+	
 	@Override
 	public <A extends IdBean> void merge(A with) {
 		super.merge(with);
@@ -81,6 +86,7 @@ public class DeviceRequest extends IdBean {
 		configure     = dr.configure;
 		deviceAction  = dr.deviceAction;
 		position      = dr.position;
+		errorMessage  = dr.errorMessage;
 	}
 
 	
@@ -144,6 +150,7 @@ public class DeviceRequest extends IdBean {
 		result = prime * result + ((deviceName == null) ? 0 : deviceName.hashCode());
 		result = prime * result + ((deviceType == null) ? 0 : deviceType.hashCode());
 		result = prime * result + ((devices == null) ? 0 : devices.hashCode());
+		result = prime * result + ((errorMessage == null) ? 0 : errorMessage.hashCode());
 		result = prime * result + ((position == null) ? 0 : position.hashCode());
 		return result;
 	}
@@ -177,6 +184,11 @@ public class DeviceRequest extends IdBean {
 			if (other.devices != null)
 				return false;
 		} else if (!devices.equals(other.devices))
+			return false;
+		if (errorMessage == null) {
+			if (other.errorMessage != null)
+				return false;
+		} else if (!errorMessage.equals(other.errorMessage))
 			return false;
 		if (position == null) {
 			if (other.position != null)
@@ -250,5 +262,15 @@ public class DeviceRequest extends IdBean {
 
 	public void setPosition(IPosition position) {
 		this.position = position;
+	}
+
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
 	}
 }

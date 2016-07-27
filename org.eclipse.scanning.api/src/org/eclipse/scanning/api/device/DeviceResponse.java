@@ -1,8 +1,6 @@
 package org.eclipse.scanning.api.device;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Logger;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
@@ -59,7 +57,7 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 	}
 
 	@Override
-	public DeviceRequest process(DeviceRequest request) throws EventException {
+	public DeviceRequest process(DeviceRequest request) {
 		try {
 			if (request.getDeviceType()==DeviceType.SCANNABLE) {
 				processScannables(request, cservice);
@@ -67,8 +65,11 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 				processRunnables(request, dservice);
 			}
 			return request;
-		} catch (ScanningException | InterruptedException ne) {
-			throw new EventException("", ne);
+		} catch (Exception ne) {
+			DeviceRequest error = new DeviceRequest();
+			error.merge(request);
+			error.setErrorMessage(ne.getMessage());
+			return error;
 		}
 	}
 	
