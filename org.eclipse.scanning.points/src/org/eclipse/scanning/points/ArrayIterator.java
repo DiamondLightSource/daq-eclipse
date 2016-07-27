@@ -7,12 +7,10 @@ import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
 
-class ArrayIterator implements Iterator<IPosition> {
+class ArrayIterator extends AbstractScanPointIterator {
 
 	private ArrayModel model;
 	int index = 0;
-	
-	private Iterator<IPosition> pyIterator;
 
 	public ArrayIterator(ArrayGenerator gen) {
 		this.model= gen.getModel();

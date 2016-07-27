@@ -5,24 +5,26 @@ import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.BoundingLine;
+import org.eclipse.scanning.api.points.models.CollatedStepModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
 import org.python.core.PyList;
 
-class LineIterator implements Iterator<IPosition> {
+class LineIterator extends AbstractScanPointIterator {
 
 	private AbstractGenerator<? extends AbstractPointsModel> gen;
+	StepModel model;
 	private double value;
-	
-	private Iterator<IPosition> pyIterator;
 	
 	public LineIterator(StepGenerator gen) {
 		this.gen = gen;
-		StepModel model= gen.getModel();
+		this.model = gen.getModel();
 		value = model.getStart() - model.getStep();
 
         JythonObjectFactory lineGeneratorFactory = ScanPointGeneratorFactory.JLineGenerator1DFactory();
@@ -46,7 +48,7 @@ class LineIterator implements Iterator<IPosition> {
         JythonObjectFactory lineGeneratorFactory = ScanPointGeneratorFactory.JLineGenerator2DFactory();
 		
 		int numPoints = model.getPoints();
-		double step = line.getLength() / (numPoints - 1);
+		double step = line.getLength() / numPoints;
 		double xStep = step * Math.cos(line.getAngle());
 		double yStep = step * Math.sin(line.getAngle());
 
@@ -96,20 +98,20 @@ class LineIterator implements Iterator<IPosition> {
 	int index = -1;
 	@Override
 	public IPosition next() {
-		return pyIterator.next();
 		
-//		value = increment();
-//        ++index;
-//        if (model instanceof CollatedStepModel) {
-//        	final MapPosition mp = new MapPosition();
-//        	for (String name : ((CollatedStepModel)model).getNames()) {
-//           		mp.put(name, value);
-//           		mp.putIndex(name, index);
-//			}
-//        	return mp;
-//        } else {
-//		    return new Scalar(model.getName(), index, value);
-//        }
+        if (model instanceof CollatedStepModel) { // For AnnotatedScanTest
+			Scalar point = (Scalar) pyIterator.next();
+			value = point.getValue();
+        	final MapPosition mp = new MapPosition();
+        	for (String name : ((CollatedStepModel)model).getNames()) {
+           		mp.put(name, value);
+           		mp.putIndex(name, index);
+			}
+        	return mp;
+        	
+        } else {
+    		return pyIterator.next();
+        }
 	}
 
 	public void remove() {
