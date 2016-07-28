@@ -29,6 +29,14 @@ public class CompoundTest {
 	}
 	
 	
+	@Test(expected=org.python.core.PyException.class)
+	public void testDuplicateAxisNameException() throws Exception {
+
+		IPointGenerator<StepModel> pos1 = service.createGenerator(new StepModel("Position", 1,4, 0.6));
+		IPointGenerator<StepModel> pos2 = service.createGenerator(new StepModel("Position", 1,4, 0.6));
+		IPointGenerator<?> scan = service.createCompoundGenerator(pos1, pos2);
+		scan.iterator().next();
+	}
 	@Test
 	public void testIteratedSize() throws Exception {
 
