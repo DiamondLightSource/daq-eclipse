@@ -1,5 +1,6 @@
 package org.eclipse.scanning.device.ui.model;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,6 +36,8 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.annotation.ui.FileType;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.swt.SWT;
@@ -142,6 +145,8 @@ public class ModelFieldEditors {
 	private static CellEditor getDeviceEditor(Object value, Composite parent, FieldDescriptor anot) {
 		String[] items = null;
 		try {
+			final IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+			
 			
 		} catch (Exception ne) {
 			logger.error("Cannot get devices for "+anot.device());

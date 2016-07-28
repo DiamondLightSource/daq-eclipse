@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.event.core.IDisconnectable;
  *
  * @param <T> The service
  */
-abstract class AbstractRemoteService<T> implements IDisconnectable {
+abstract class AbstractRemoteService implements IDisconnectable {
 
 	protected IEventService eservice;
 	protected URI uri;

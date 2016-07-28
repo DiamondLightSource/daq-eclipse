@@ -25,7 +25,7 @@ import org.eclipse.scanning.api.scan.event.PositionDelegate;
 
 public class MockScannable extends AbstractScannable<Number> implements IConfigurable<MockScannableModel>, IPositionListenable {
 
-	private Number  position = 0d;
+	protected Number  position = 0d;
 	private boolean requireSleep=true;
 
 	private List<Number>            values;

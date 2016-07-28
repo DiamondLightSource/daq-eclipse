@@ -3,7 +3,6 @@ package org.eclipse.scanning.event.remote;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.event.EventConstants;
@@ -17,7 +16,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 
-class _Positioner extends AbstractRemoteService<IPositioner> implements IPositioner {
+class _Positioner extends AbstractRemoteService implements IPositioner {
 
 	private IRequester<PositionerRequest> requester;
 	

@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event;
+package org.eclipse.scanning.test.remote;
 
 import static org.junit.Assert.assertTrue;
 
@@ -8,9 +8,10 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
-import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.event.EventServiceImpl;
@@ -19,24 +20,27 @@ import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
+import org.eclipse.scanning.server.servlet.AbstractResponderServlet;
 import org.eclipse.scanning.server.servlet.DeviceServlet;
 import org.eclipse.scanning.server.servlet.PositionerServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockScannableConnector;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class RemoteRunnableServiceTest extends BrokerTest {
 
-	protected IRunnableDeviceService    dservice;
-	protected IRunnableDeviceService    rservice;
-	protected IEventService             eservice;
+	private static  IRunnableDeviceService    dservice;
+	private static  IRunnableDeviceService    rservice;
+	private static  IEventService             eservice;
+	private static AbstractResponderServlet<?>  dservlet, pservlet;
 
-	@Before
-	public void createServices() throws Exception {
+	@BeforeClass
+	public static void createServices() throws Exception {
 		
 		RemoteServiceFactory.setTimeout(1, TimeUnit.MINUTES); // Make test easier to debug.
 
@@ -61,19 +65,26 @@ public class RemoteRunnableServiceTest extends BrokerTest {
 		Services.setRunnableDeviceService(dservice);
 		Services.setEventService(eservice);
 	
-		DeviceServlet dservlet = new DeviceServlet();
+		dservlet = new DeviceServlet();
 		dservlet.setBroker(uri.toString());
 		dservlet.setRequestTopic(IEventService.DEVICE_REQUEST_TOPIC);
 		dservlet.setResponseTopic(IEventService.DEVICE_RESPONSE_TOPIC);
 		dservlet.connect();
 		
-		PositionerServlet pservlet = new PositionerServlet();
+		pservlet = new PositionerServlet();
 		pservlet.setBroker(uri.toString());
 		pservlet.setRequestTopic(IEventService.POSITIONER_REQUEST_TOPIC);
 		pservlet.setResponseTopic(IEventService.POSITIONER_RESPONSE_TOPIC);
 		pservlet.connect();
 
 		rservice = eservice.createRemoteService(uri, IRunnableDeviceService.class);
+	}
+
+	@AfterClass
+	public static void cleanup() throws EventException {
+		dservlet.disconnect();
+		pservlet.disconnect();
+		((IDisconnectable)rservice).disconnect();
 	}
 
 	@Test

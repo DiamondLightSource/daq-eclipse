@@ -58,6 +58,11 @@ public class DeviceInformation<T> {
 	 */
 	private T model;
 	
+	/**
+	 * The unit for the device, if any
+	 */
+	private String unit;
+	
 	public DeviceInformation() {
 
 	}
@@ -114,9 +119,11 @@ public class DeviceInformation<T> {
 		result = prime * result + ((icon == null) ? 0 : icon.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
+		result = prime * result + level;
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
+		result = prime * result + ((unit == null) ? 0 : unit.hashCode());
 		return result;
 	}
 
@@ -149,6 +156,8 @@ public class DeviceInformation<T> {
 				return false;
 		} else if (!label.equals(other.label))
 			return false;
+		if (level != other.level)
+			return false;
 		if (model == null) {
 			if (other.model != null)
 				return false;
@@ -160,6 +169,11 @@ public class DeviceInformation<T> {
 		} else if (!name.equals(other.name))
 			return false;
 		if (state != other.state)
+			return false;
+		if (unit == null) {
+			if (other.unit != null)
+				return false;
+		} else if (!unit.equals(other.unit))
 			return false;
 		return true;
 	}
@@ -191,5 +205,13 @@ public class DeviceInformation<T> {
 
 	public void setLevel(int level) {
 		this.level = level;
+	}
+
+	public String getUnit() {
+		return unit;
+	}
+
+	public void setUnit(String unit) {
+		this.unit = unit;
 	}
 }
