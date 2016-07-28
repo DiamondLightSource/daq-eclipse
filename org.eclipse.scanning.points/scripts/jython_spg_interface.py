@@ -85,22 +85,22 @@ class JLineGenerator2D(JavaIteratorWrapper):
     Create a 2D LineGenerator and wrap the points into java Point objects
     """
     
-    def __init__(self, names, units, start, stop, num_points, alternate_direction=False):
+    def __init__(self, name, units, start, stop, num_points, alternate_direction=False):
         super(JLineGenerator2D, self).__init__()
         
         start = start.tolist()  # Convert from array to list
         stop = stop.tolist()
         
-        self.names = names
-        self.generator = LineGenerator(names, units, start, stop, num_points, alternate_direction)
+        self.name = name
+        self.generator = LineGenerator(name, units, start, stop, num_points, alternate_direction)
         logging.debug(self.generator.to_dict())
     
     def _iterator(self):
         
         for point in self.generator.iterator():
             index = point.indexes[0]
-            xName = self.names[0]
-            yName = self.names[1]
+            xName = self.name + "_X"
+            yName = self.name + "_Y"
             xPosition = point.positions[xName]
             yPosition = point.positions[yName]
             java_point = Point(xName, index, xPosition, 
@@ -135,48 +135,48 @@ class JArrayGenerator(JavaIteratorWrapper):
             yield java_point
             
 
-class JRasterGenerator(JavaIteratorWrapper):
-    """
-    Create a CompoundGenerator with two LineGenerators and wrap the points
-    into java Point objects
-    """
-
-    def __init__(self, outer_line, inner_line, alternate_direction=False):
-        super(JRasterGenerator, self).__init__()
-        
-        self.inner_name = inner_line['name']
-        name = [inner_line['name']]
-        units = inner_line['units']
-        start = [inner_line['start']]
-        stop = [inner_line['stop']]
-        num_points = inner_line['num_points']
-        inner_line = LineGenerator(name, units, start, stop, num_points, alternate_direction)
-        
-        self.outer_name = outer_line['name']
-        name = [outer_line['name']]
-        units = outer_line['units']
-        start = [outer_line['start']]
-        stop = [outer_line['stop']]
-        num_points = outer_line['num_points']
-        outer_line = LineGenerator(name, units, start, stop, num_points)
-        
-        self.generator = CompoundGenerator([outer_line, inner_line], [], [])
-        logging.debug(self.generator.to_dict())
-    
-    def _iterator(self):
-        
-        for point in self.generator.iterator():
-            xIndex = point.indexes[0]
-            yIndex = point.indexes[1]
-            xName = self.inner_name
-            yName = self.outer_name
-            xPosition = point.positions[xName]
-            yPosition = point.positions[yName]
-            java_point = Point(xName, xIndex, xPosition, 
-                               yName, yIndex, yPosition)
-            # Set is2D=False
-            
-            yield java_point
+# class JRasterGenerator(JavaIteratorWrapper):
+#     """
+#     Create a CompoundGenerator with two LineGenerators and wrap the points
+#     into java Point objects
+#     """
+# 
+#     def __init__(self, outer_line, inner_line, alternate_direction=False):
+#         super(JRasterGenerator, self).__init__()
+#         
+#         self.inner_name = inner_line['name']
+#         name = [inner_line['name']]
+#         units = inner_line['units']
+#         start = [inner_line['start']]
+#         stop = [inner_line['stop']]
+#         num_points = inner_line['num_points']
+#         inner_line = LineGenerator(name, units, start, stop, num_points, alternate_direction)
+#         
+#         self.outer_name = outer_line['name']
+#         name = [outer_line['name']]
+#         units = outer_line['units']
+#         start = [outer_line['start']]
+#         stop = [outer_line['stop']]
+#         num_points = outer_line['num_points']
+#         outer_line = LineGenerator(name, units, start, stop, num_points)
+#         
+#         self.generator = CompoundGenerator([outer_line, inner_line], [], [])
+#         logging.debug(self.generator.to_dict())
+#     
+#     def _iterator(self):
+#         
+#         for point in self.generator.iterator():
+#             xIndex = point.indexes[0]
+#             yIndex = point.indexes[1]
+#             xName = self.inner_name
+#             yName = self.outer_name
+#             xPosition = point.positions[xName]
+#             yPosition = point.positions[yName]
+#             java_point = Point(xName, xIndex, xPosition, 
+#                                yName, yIndex, yPosition)
+#             # Set is2D=False
+#             
+#             yield java_point
             
 
 class JSpiralGenerator(JavaIteratorWrapper):
@@ -184,20 +184,21 @@ class JSpiralGenerator(JavaIteratorWrapper):
     Create a SpiralGenerator and wrap the points into java Point objects
     """
 
-    def __init__(self, names, units, centre, radius, scale=1.0, alternate_direction=False):
+    def __init__(self, name, units, centre, radius, scale=1.0, alternate_direction=False):
         super(JSpiralGenerator, self).__init__()
         
-        self.names = names
-        self.generator = SpiralGenerator(names, units, centre, radius, scale, alternate_direction)
+        self.name = name
+        self.generator = SpiralGenerator(name, units, centre, radius, scale, alternate_direction)
         logging.debug(self.generator.to_dict())
         
     
     def _iterator(self):
         
+        xName = self.name + "_X"
+        yName = self.name + "_Y"
+        
         for point in self.generator.iterator():
             index = point.indexes[0]
-            xName = self.names[0]
-            yName = self.names[1]
             xPosition = point.positions[xName]
             yPosition = point.positions[yName]
             java_point = Point(xName, index, xPosition, 
@@ -212,17 +213,17 @@ class JLissajousGenerator(JavaIteratorWrapper):
     Create a LissajousGenerator and wrap the points into java Point objects
     """
 
-    def __init__(self, names, units, box, num_lobes, num_points):
+    def __init__(self, name, units, box, num_lobes, num_points):
         super(JLissajousGenerator, self).__init__()
         
-        self.names = names
-        self.generator = LissajousGenerator(names, units, box, num_lobes, num_points)
+        self.name = name
+        self.generator = LissajousGenerator(name, units, box, num_lobes, num_points)
         logging.debug(self.generator.to_dict())
     
     def _iterator(self):
         
-        xName = self.names[0]
-        yName = self.names[1]
+        xName = self.name + "_X"
+        yName = self.name + "_Y"
         
         for point in self.generator.iterator():
             index = point.indexes[0]
@@ -249,11 +250,12 @@ class JCompoundGenerator(JavaIteratorWrapper):
             generators = [iterator.getPyIterator().generator for iterator in iterators]
         logging.debug("Generators passed to JCompoundGenerator:")
         logging.debug([generator.to_dict() for generator in generators])
-            
+        
         excluders = [excluder.py_excluder for excluder in excluders]
         mutators = [mutator.py_mutator for mutator in mutators]
         
-        self.names = [generator.name[0] for generator in generators]
+        self.names = [generator.name for generator in generators]
+        
         self.generator = CompoundGenerator(generators, excluders, mutators)
         logging.debug("CompoundGenerator:")
         logging.debug(self.generator.to_dict())

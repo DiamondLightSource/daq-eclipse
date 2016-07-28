@@ -70,11 +70,11 @@ public class LinearTest {
         
         for (int i = 0; i < pointList.size(); i++) {
 		    IPosition pos = pointList.get(i);
-		    int xIndex = pos.getIndex("x");
-		    int yIndex = pos.getIndex("y");
+		    int xIndex = pos.getIndex("xyLine_X");
+		    int yIndex = pos.getIndex("xyLine_Y");
 		    
-		    assertTrue(xIndex==i);
-		    assertTrue(yIndex==i);
+		    assertEquals(i, xIndex);
+		    assertEquals(i, yIndex);
 		    assertTrue(pos.getScanRank()==1);
 		}
 	}

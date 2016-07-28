@@ -25,7 +25,9 @@ class LissajousIterator extends AbstractScanPointIterator {
 		this.model     = gen.getModel();
 		this.gen       = gen;
 //		this.theta     = -model.getThetaStep();
-		
+
+		String xName = model.getFastAxisName();
+		String yName = model.getSlowAxisName();
 		double width = model.getBoundingBox().getFastAxisLength();
 		double height = model.getBoundingBox().getSlowAxisLength();
 		
@@ -37,14 +39,13 @@ class LissajousIterator extends AbstractScanPointIterator {
         box.put("centre", new double[] {model.getBoundingBox().getFastAxisStart() + width / 2,
         								model.getBoundingBox().getSlowAxisStart() + height / 2});
 
-        PyList names = new PyList(Arrays.asList(new String[] {model.getFastAxisName(),
-        														model.getSlowAxisName()}));
+        String name = xName.concat(yName).concat("Lissajous");
         int numLobes = (int) (model.getA() / model.getB());
         int numPoints = model.getPoints();
         
         @SuppressWarnings("unchecked")
 		Iterator<IPosition> iterator = (Iterator<IPosition>) lissajousGeneratorFactory.createObject(
-				names, "mm", box, numLobes, numPoints);
+				name, "mm", box, numLobes, numPoints);
         pyIterator = iterator;
 	}
 

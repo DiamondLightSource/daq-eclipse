@@ -51,20 +51,20 @@ public class ScanPointGeneratorFactoryTest {
     public void testJLineGeneratorFactory2D() {
         JythonObjectFactory lineGeneratorFactory = ScanPointGeneratorFactory.JLineGenerator2DFactory();
         
-        PyList names = new PyList(Arrays.asList(new String[] {"x", "y"}));
+        String name = "XYLine";
         double[] start = {1.0, 2.0};
         double[] stop = {5.0, 10.0};
         
         @SuppressWarnings("unchecked")
 		Iterator<IPosition> iterator = (Iterator<IPosition>) lineGeneratorFactory.createObject(
-				names, "mm", start, stop, 5);
+				name, "mm", start, stop, 5);
         
         List<Object> expected_points = new ArrayList<Object>();
-	    expected_points.add(new Point(0, 1.0, 0, 2.0, false));
-	    expected_points.add(new Point(1, 2.0, 1, 4.0, false));
-	    expected_points.add(new Point(2, 3.0, 2, 6.0, false));
-	    expected_points.add(new Point(3, 4.0, 3, 8.0, false));
-	    expected_points.add(new Point(4, 5.0, 4, 10.0, false));
+	    expected_points.add(new Point("XYLine_X", 0, 1.0, "XYLine_Y", 0, 2.0, false));
+	    expected_points.add(new Point("XYLine_X", 1, 2.0, "XYLine_Y", 1, 4.0, false));
+	    expected_points.add(new Point("XYLine_X", 2, 3.0, "XYLine_Y", 2, 6.0, false));
+	    expected_points.add(new Point("XYLine_X", 3, 4.0, "XYLine_Y", 3, 8.0, false));
+	    expected_points.add(new Point("XYLine_X", 4, 5.0, "XYLine_Y", 4, 10.0, false));
 	    
 	    int index = 0;
         while (iterator.hasNext()){  // Just get first few points
@@ -109,7 +109,7 @@ public class ScanPointGeneratorFactoryTest {
     public void testJSpiralGeneratorFactory() {
         JythonObjectFactory spiralGeneratorFactory = ScanPointGeneratorFactory.JSpiralGeneratorFactory();
         
-        PyList names = new PyList(Arrays.asList(new String[] {"x", "y"}));
+        String name = "XYSpiral";
         PyList centre = new PyList(Arrays.asList(new Double[] {0.0, 0.0}));
         double radius = 1.5;
         double scale = 1.0;
@@ -117,15 +117,15 @@ public class ScanPointGeneratorFactoryTest {
         
         @SuppressWarnings("unchecked")
         Iterator<IPosition> iterator = (Iterator<IPosition>)  spiralGeneratorFactory.createObject(
-				names, "mm", centre, radius, scale, alternate);
+				name, "mm", centre, radius, scale, alternate);
         
         List<Object> expected_points = new ArrayList<Object>();
-	    expected_points.add(new Point(0, 0.23663214944574582, 0, -0.3211855677650875, false));
-	    expected_points.add(new Point(1, -0.6440318266552169, 1, -0.25037538922751695, false));
-	    expected_points.add(new Point(2, -0.5596688286164636, 2, 0.6946549630820702, false));
-	    expected_points.add(new Point(3, 0.36066957248394327, 3, 0.9919687803189761, false));
-	    expected_points.add(new Point(4, 1.130650533568409, 4, 0.3924587351155914, false));
-	    expected_points.add(new Point(5, 1.18586065489788, 5, -0.5868891557832875, false));
+	    expected_points.add(new Point("XYSpiral_X", 0, 0.23663214944574582, "XYSpiral_Y", 0, -0.3211855677650875, false));
+	    expected_points.add(new Point("XYSpiral_X", 1, -0.6440318266552169, "XYSpiral_Y", 1, -0.25037538922751695, false));
+	    expected_points.add(new Point("XYSpiral_X", 2, -0.5596688286164636, "XYSpiral_Y", 2, 0.6946549630820702, false));
+	    expected_points.add(new Point("XYSpiral_X", 3, 0.36066957248394327, "XYSpiral_Y", 3, 0.9919687803189761, false));
+	    expected_points.add(new Point("XYSpiral_X", 4, 1.130650533568409, "XYSpiral_Y", 4, 0.3924587351155914, false));
+	    expected_points.add(new Point("XYSpiral_X", 5, 1.18586065489788, "XYSpiral_Y", 5, -0.5868891557832875, false));
 	    
 	    int index = 0;
 	    while (iterator.hasNext() && index < 6){  // Just get first few points
@@ -147,21 +147,21 @@ public class ScanPointGeneratorFactoryTest {
         box.put("height", 1.5);
         box.put("centre", new double[] {0.0, 0.0});
 
-        PyList names = new PyList(Arrays.asList(new String[] {"x", "y"}));
+        String name = "XYLissajous";
         int numLobes = 2;
         int numPoints = 500;
         
         @SuppressWarnings("unchecked")
 		Iterator<IPosition> iterator = (Iterator<IPosition>) lissajousGeneratorFactory.createObject(
-				names, "mm", box, numLobes, numPoints);
+				name, "mm", box, numLobes, numPoints);
         
         List<Object> expected_points = new ArrayList<Object>();
-	    expected_points.add(new Point(0, 0.0, 0, 0.0, false));
-	    expected_points.add(new Point(1, 0.01884757158250311, 1, 0.028267637002450906, false));
-	    expected_points.add(new Point(2, 0.03768323863482717, 2, 0.05649510414594954, false));
-	    expected_points.add(new Point(3, 0.05649510414594954, 3, 0.08464228865511125, false));
-	    expected_points.add(new Point(4, 0.07527128613841116, 4, 0.1126691918405678, false));
-	    expected_points.add(new Point(5, 0.0939999251732282, 5, 0.14053598593929348, false));
+	    expected_points.add(new Point("XYLissajous_X", 0, 0.0, "XYLissajous_Y", 0, 0.0, false));
+	    expected_points.add(new Point("XYLissajous_X", 1, 0.01884757158250311, "XYLissajous_Y", 1, 0.028267637002450906, false));
+	    expected_points.add(new Point("XYLissajous_X", 2, 0.03768323863482717, "XYLissajous_Y", 2, 0.05649510414594954, false));
+	    expected_points.add(new Point("XYLissajous_X", 3, 0.05649510414594954, "XYLissajous_Y", 3, 0.08464228865511125, false));
+	    expected_points.add(new Point("XYLissajous_X", 4, 0.07527128613841116, "XYLissajous_Y", 4, 0.1126691918405678, false));
+	    expected_points.add(new Point("XYLissajous_X", 5, 0.0939999251732282, "XYLissajous_Y", 5, 0.14053598593929348, false));
 	    
 	    int index = 0;
         while (iterator.hasNext() && index < 6){  // Just get first few points
