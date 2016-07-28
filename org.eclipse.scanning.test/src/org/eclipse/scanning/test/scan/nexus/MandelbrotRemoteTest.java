@@ -49,7 +49,7 @@ import org.eclipse.january.DatasetException;
 import org.eclipse.january.dataset.DataEvent;
 import org.eclipse.january.dataset.IDataListener;
 import org.eclipse.january.dataset.IDataset;
-import org.eclipse.january.dataset.IRemoteDataset;
+import org.eclipse.january.dataset.IDatasetConnector;
 import org.eclipse.january.dataset.PositionIterator;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -143,9 +143,9 @@ public class MandelbrotRemoteTest extends NexusTest {
 		final ScanModel mod = ((AbstractRunnableDevice<ScanModel>)scanner).getModel();
 		String filePath = ((AbstractRunnableDevice<ScanModel>)scanner).getModel().getFilePath();
 		
-		IRemoteDataset remote = dataService.createRemoteDataset("localhost", server.getPort());
+		IDatasetConnector remote = dataService.createRemoteDataset("localhost", server.getPort());
 		remote.setPath(filePath);
-		remote.setDataset("/entry/instrument/"+mod.getDetectors().get(0).getName()+"/data");
+		remote.setDatasetName("/entry/instrument/"+mod.getDetectors().get(0).getName()+"/data");
 		remote.setWritingExpected(true); // We know that we are writing to this file, so we declare it.
 		
 		remote.connect();
