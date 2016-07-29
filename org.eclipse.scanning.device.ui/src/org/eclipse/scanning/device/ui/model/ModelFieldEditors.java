@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,8 @@ import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.annotation.ui.FileType;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
@@ -143,22 +146,50 @@ public class ModelFieldEditors {
 	}
 
 	private static CellEditor getDeviceEditor(Object value, Composite parent, FieldDescriptor anot) {
+		
 		String[] items = null;
+		IScannableDeviceService cservice=null;
 		try {
-			final IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
-			
+			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+			List<String> names = cservice.getScannableNames();
+			items = names.toArray(new String[names.size()]);
 			
 		} catch (Exception ne) {
-			logger.error("Cannot get devices for "+anot.device());
+			logger.error("Cannot get devices for "+anot.device(), ne);
 			items = null;
+		} finally {
+			if (cservice!=null) {
+				try {
+					if (cservice instanceof IDisconnectable) ((IDisconnectable)cservice).disconnect();
+				} catch (EventException e) {
+					logger.error("Cannot disconnect "+cservice);
+				}
+			}
 		}
-		return items != null ? new CComboCellEditor(parent, items) : new TextCellEditor(parent) {
-    	    @Override
-    		protected void doSetValue(Object value) {
-    	    	String string = value!=null ? value.toString() : "";
-    	    	super.doSetValue(string);
-    	    }
-    	};
+		
+		if (items != null) {
+			final List<String> sorted = Arrays.asList(items);
+			Collections.sort(sorted, new SortNatural<>(false));
+			final String[] finalItems = sorted.toArray(new String[sorted.size()]);
+			return new CComboCellEditor(parent, items) {
+	    	    protected void doSetValue(Object value) {
+	                if (value instanceof Integer) value = finalItems[((Integer) value).intValue()];
+	                super.doSetValue(value);
+	    	    }
+	    		protected Object doGetValue() {
+	    			Integer ordinal = (Integer)super.doGetValue();
+	    			return finalItems[ordinal];
+	    		}
+			};
+		} else {
+			return new TextCellEditor(parent) {
+				@Override
+				protected void doSetValue(Object value) {
+					String string = value!=null ? value.toString() : "";
+					super.doSetValue(string);
+				}
+			};
+		}
 	}
 
 	public static boolean isEnabled(FieldValue field) {

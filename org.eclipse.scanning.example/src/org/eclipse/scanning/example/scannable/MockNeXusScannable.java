@@ -1,6 +1,9 @@
-package org.eclipse.scanning.test.scan.mock;
+package org.eclipse.scanning.example.scannable;
+
+import java.text.MessageFormat;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
+import org.eclipse.dawnsci.nexus.NXobject;
 import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
@@ -11,10 +14,10 @@ import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.DatasetFactory;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
+import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
-import org.eclipse.scanning.sequencer.nexus.AttributeManager;
 
 /**
  * 
@@ -38,6 +41,9 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	public MockNeXusScannable(String name, double d, int level) {
 		super(name, d, level);
 	}
+	public MockNeXusScannable(String name, double d, int level, String unit) {
+		super(name, d, level, unit);
+	}
 
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) throws NexusException {
 		final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
@@ -54,7 +60,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
 		}
 
-		AttributeManager.registerAttributes(positioner, this);
+		registerAttributes(positioner, this);
 		
 		NexusObjectWrapper<NXpositioner> nexusDelegate = new NexusObjectWrapper<>(
 				getName(), positioner, NXpositioner.NX_VALUE);
@@ -90,6 +96,26 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			// write demand position
 			final Dataset newDemandPositionData = DatasetFactory.createFromObject(demand);
 			lzDemand.setSlice(null, newDemandPositionData, startPos, stopPos, null);
+		}
+	}
+	
+	/**
+	 * Add the attributes for the given attribute container into the given nexus object.
+	 * @param positioner
+	 * @param container
+	 * @throws NexusException if the attributes could not be added for any reason 
+	 */
+	private static void registerAttributes(NXobject nexusObject, IScanAttributeContainer container) throws NexusException {
+		// We create the attributes, if any
+		nexusObject.setField("name", container.getName());
+		if (container.getScanAttributeNames()!=null) for(String attrName : container.getScanAttributeNames()) {
+			try {
+				nexusObject.setField(attrName, container.getScanAttribute(attrName));
+			} catch (Exception e) {
+				throw new NexusException(MessageFormat.format(
+						"An exception occurred attempting to get the value of the attribute ''{0}'' for the device ''{1}''",
+						container.getName(), attrName));
+			}
 		}
 	}
 

@@ -56,4 +56,8 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 		}
 	}
 
+	public String getUnit() {
+		update();
+		return info.getUnit();
+	}
 }

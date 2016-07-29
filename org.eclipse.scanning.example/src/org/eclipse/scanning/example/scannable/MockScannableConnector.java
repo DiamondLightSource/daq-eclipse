@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.scan.mock;
+package org.eclipse.scanning.example.scannable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,17 +21,17 @@ public class MockScannableConnector implements IScannableDeviceService {
 		register(new MockTopupMonitor("topup", 10d,  -1));
 		register(new MockBeanOnMonitor("beamon", 10d, 1));
 		register(new MockScannable("bpos",  0.001,  -1));
-		register(new MockScannable("a", 10d, 1));
-		register(new MockScannable("b", 10d, 1));
-		register(new MockScannable("c", 10d, 1));
+		register(new MockScannable("a", 10d, 1, "mm"));
+		register(new MockScannable("b", 10d, 1, "mm"));
+		register(new MockScannable("c", 10d, 1, "mm"));
 		register(new MockScannable("p", 10d, 2, "Âµm"));
 		register(new MockScannable("q", 10d, 2, "Âµm"));
 		register(new MockScannable("r", 10d, 2, "Âµm"));
-		register(new MockScannable("x", 0d,  3));
-		register(new MockScannable("y", 0d,  3));
-		register(new MockNeXusScannable("xNex", 0d,  3));
-		register(new MockNeXusScannable("yNex", 0d,  3));
-		register(new MockNeXusScannable("T", 295,  3));
+		register(new MockScannable("x", 0d,  3, "µm"));
+		register(new MockScannable("y", 0d,  3, "µm"));
+		register(new MockNeXusScannable("xNex", 0d,  3, "µm"));
+		register(new MockNeXusScannable("yNex", 0d,  3, "µm"));
+		register(new MockNeXusScannable("T", 295,  3, "K"));
 		register(new MockScannable("benchmark1",  0.0,  -1, false));
 
 		for (int i = 0; i < 10; i++) {

@@ -1,17 +1,34 @@
 package org.eclipse.scanning.device.ui.model;
 
+import java.net.URI;
+
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.StringUtils;
 import org.eclipse.swt.graphics.Image;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 
 	private Image ticked;
 	private Image unticked;
+	
+	private static final Logger logger = LoggerFactory.getLogger(ModelFieldLabelProvider.class);
+	
+	private IScannableDeviceService cservice;
+	
+	public ModelFieldLabelProvider() {
+		try {
+			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+		} catch (Exception e) {
+			logger.error("Unable to make a remote connection to "+IScannableDeviceService.class.getSimpleName());
+		}
+	}
 
 	/**
 	 * The <code>LabelProvider</code> implementation of this
@@ -62,14 +79,15 @@ class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 		
 		FieldDescriptor anot = field.getAnnotation();
 		if (anot!=null) {
-			if (anot.scannable().length()>0 && ServiceHolder.getDeviceConnectorService()!=null) {
+			if (anot.scannable().length()>0 && cservice !=null) {
 				try {
 				    String scannableName = (String)FieldValue.get(field.getModel(), anot.scannable());
 				    
 				    if (scannableName!=null && scannableName.length()>0) {
-					    IScannable<?> scannable = ServiceHolder.getDeviceConnectorService().getScannable(scannableName);
+					    IScannable<?> scannable = cservice.getScannable(scannableName);
 					    
-					    if (scannable.getUnit()!=null && scannable.getUnit().length()>0) {
+					    String unit = scannable.getUnit();
+					    if (unit!=null && unit.length()>0) {
 					        return " "+scannable.getUnit();
 					    }
 				    }

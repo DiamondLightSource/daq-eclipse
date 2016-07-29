@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.scan.mock;
+package org.eclipse.scanning.example.scannable;
 
 import java.util.ArrayList;
 import java.util.List;

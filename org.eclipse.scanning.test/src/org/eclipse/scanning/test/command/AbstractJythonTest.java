@@ -2,8 +2,8 @@ package org.eclipse.scanning.test.command;
 
 import java.util.Properties;
 
+import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.test.BrokerTest;
-import org.eclipse.scanning.test.scan.mock.MockScannable;
 import org.python.util.PythonInterpreter;
 
 

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.event.remote;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.URI;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -12,7 +14,7 @@ import org.eclipse.scanning.api.event.core.IDisconnectable;
  *
  * @param <T> The service
  */
-abstract class AbstractRemoteService implements IDisconnectable {
+abstract class AbstractRemoteService implements IDisconnectable, Closeable {
 
 	protected IEventService eservice;
 	protected URI uri;
@@ -38,5 +40,13 @@ abstract class AbstractRemoteService implements IDisconnectable {
 	 */
 	void init() throws EventException {
 		
+	}
+	
+	public void close() throws IOException {
+		try {
+			disconnect();
+		} catch (EventException e) {
+			throw new IOException(e);
+		}
 	}
 }
