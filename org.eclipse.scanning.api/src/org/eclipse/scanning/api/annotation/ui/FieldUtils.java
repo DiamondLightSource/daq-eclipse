@@ -20,7 +20,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FieldUtils {
 
@@ -73,17 +75,19 @@ public class FieldUtils {
 		allFields.addAll(Arrays.asList(model.getClass().getSuperclass().getDeclaredFields()));
 		
 		// The returned descriptor
-		final List<FieldValue> ret = new ArrayList<FieldValue>();
+		final Map<String, FieldValue> map = new HashMap<>();
 		
 		// fields
 		for (Field field : allFields) {
+			if (map.containsKey(field.getName())) continue; // We do not overwrite repeats from the super.
 			
 			// If there is a getter/isser for the field we assume it is a model field.
 			if (FieldValue.isModelField(model, field.getName())) {			
-				ret.add(new FieldValue(model, field.getName()));
+				map.put(field.getName(), new FieldValue(model, field.getName()));
 			}
 		}
 		
+		List<FieldValue> ret = new ArrayList<>(map.values());
 		Collections.sort(ret, new Comparator<FieldValue>() {
 			@Override
 			public int compare(FieldValue o1, FieldValue o2) {

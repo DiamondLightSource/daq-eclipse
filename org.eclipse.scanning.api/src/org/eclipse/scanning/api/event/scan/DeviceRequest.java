@@ -10,10 +10,11 @@ import org.eclipse.scanning.api.points.IPosition;
 /**
  * 
  * Object used to query which devices are available from a given broker.
- * The solstice service for instance asks the IDeviceService what is available
+ * The solstice server for instance asks the IRunnableDeviceService what is available
  * and returns a list of devices and their configuration.
  * 
- * Servlet may also be used to configure a given device and return the result.
+ * Servlet may also be used to configure a given device and return the result, set its value
+ * get its value. It can be used for Scannables and Detectors.
  * 
  * <pre>
  * Usage:
@@ -24,6 +25,14 @@ import org.eclipse.scanning.api.points.IPosition;
  * 5. Set the device action and the device name to call specific methods.
  * 
  * </pre>
+ * 
+ * TODO The data in this class has become a little overloaded. We could have one class for scannables
+ * and one for runnable devices (detectors) to simplify things. The reason that this refactor has not
+ * been done is that it is not clear if we want Solstice to be delivering client-side services this
+ * way in the future. The hand coding of post and response which this message is part of has advantages and
+ * disadvantages. Current the design meets the requirement of server without an endpoint (multiple servers)
+ * and allows any technology like python/stomp to interact with it. However the Java client design then
+ * becomes a little inelegant because the services have these remote versions implemented. 
  * 
  * @author Matthew Gerring
  *
@@ -54,6 +63,13 @@ public class DeviceRequest extends IdBean {
 	private Object deviceModel;
 	
 	/**
+	 * The device's value, if any. For instance for a scannable it
+	 * would be it's scalar position, usually a Double.
+	 */
+	private Object deviceValue;
+
+	
+	/**
 	 * Set wether a create call (one where the model is non-null)
 	 * should call configure on the device.
 	 */
@@ -82,8 +98,9 @@ public class DeviceRequest extends IdBean {
 		deviceName    = dr.deviceName;
 		deviceModel   = dr.deviceModel;
 		deviceType    = dr.deviceType;
-		configure     = dr.configure;
 		deviceAction  = dr.deviceAction;
+		deviceValue   = dr.deviceValue;
+		configure     = dr.configure;
 		position      = dr.position;
 		errorMessage  = dr.errorMessage;
 	}
@@ -91,6 +108,10 @@ public class DeviceRequest extends IdBean {
 	
 	public DeviceRequest() {
 	
+	}
+
+	public DeviceRequest(DeviceType type) {
+		this.deviceType = type;
 	}
 	
 	/**
@@ -129,6 +150,16 @@ public class DeviceRequest extends IdBean {
 		this.deviceName  = name;
 		this.deviceModel = model;
 	}
+	/**
+	 * For IRunnableDeviceService.getRunnableDevice(...)
+	 * then device.configure(...)
+	 * @param name
+	 */
+	public DeviceRequest(String name, DeviceType type) {
+		this.deviceName  = name;
+		this.deviceType  = type;
+	}
+
 
 	public Collection<DeviceInformation<?>> getDevices() {
 		return devices;
@@ -148,6 +179,7 @@ public class DeviceRequest extends IdBean {
 		result = prime * result + ((deviceModel == null) ? 0 : deviceModel.hashCode());
 		result = prime * result + ((deviceName == null) ? 0 : deviceName.hashCode());
 		result = prime * result + ((deviceType == null) ? 0 : deviceType.hashCode());
+		result = prime * result + ((deviceValue == null) ? 0 : deviceValue.hashCode());
 		result = prime * result + ((devices == null) ? 0 : devices.hashCode());
 		result = prime * result + ((errorMessage == null) ? 0 : errorMessage.hashCode());
 		result = prime * result + ((position == null) ? 0 : position.hashCode());
@@ -178,6 +210,11 @@ public class DeviceRequest extends IdBean {
 		} else if (!deviceName.equals(other.deviceName))
 			return false;
 		if (deviceType != other.deviceType)
+			return false;
+		if (deviceValue == null) {
+			if (other.deviceValue != null)
+				return false;
+		} else if (!deviceValue.equals(other.deviceValue))
 			return false;
 		if (devices == null) {
 			if (other.devices != null)
@@ -271,5 +308,15 @@ public class DeviceRequest extends IdBean {
 
 	public void setErrorMessage(String errorMessage) {
 		this.errorMessage = errorMessage;
+	}
+
+
+	public Object getDeviceValue() {
+		return deviceValue;
+	}
+
+
+	public void setDeviceValue(Object deviceValue) {
+		this.deviceValue = deviceValue;
 	}
 }

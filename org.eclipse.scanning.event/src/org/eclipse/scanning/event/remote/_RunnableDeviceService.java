@@ -18,7 +18,7 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class _RunnableDeviceService extends AbstractRemoteService<IRunnableDeviceService> implements IRunnableDeviceService {
+public class _RunnableDeviceService extends AbstractRemoteService implements IRunnableDeviceService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(_RunnableDeviceService.class);
 
@@ -29,6 +29,11 @@ public class _RunnableDeviceService extends AbstractRemoteService<IRunnableDevic
 		requester = eservice.createRequestor(uri, IEventService.DEVICE_REQUEST_TOPIC, IEventService.DEVICE_RESPONSE_TOPIC);
 	    requester.setTimeout(RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()); // Useful for debugging testing 
 	}
+	
+	@Override
+	public void disconnect() throws EventException {
+		requester.disconnect();
+	}
 
 	@Override
 	public IPositioner createPositioner() throws ScanningException {
@@ -37,11 +42,6 @@ public class _RunnableDeviceService extends AbstractRemoteService<IRunnableDevic
 		} catch (EventException e) {
 			throw new ScanningException("Cannot create a positioner!", e);
 		}
-	}
-	
-	@Override
-	public void disconnect() throws EventException {
-		requester.disconnect();
 	}
 
 	@Override
@@ -79,8 +79,7 @@ public class _RunnableDeviceService extends AbstractRemoteService<IRunnableDevic
 
 	@Override
 	public Collection<String> getRunnableDeviceNames() throws ScanningException {
-		@SuppressWarnings("rawtypes")
-		DeviceInformation[] devices = getDevices();
+		DeviceInformation<?>[] devices = getDevices();
 	    String[] names = new String[devices.length];
 	    for (int i = 0; i < devices.length; i++) names[i] = devices[i].getName();
 		return Arrays.asList(names);

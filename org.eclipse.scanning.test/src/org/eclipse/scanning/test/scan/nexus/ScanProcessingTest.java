@@ -60,6 +60,7 @@ public class ScanProcessingTest extends NexusTest {
 	
 	private void testScan(int... shape) throws Exception {
 		
+		clearTmp();
 		IRunnableDevice<ScanModel> scanner = createGridScan(shape); // Outer scan of another scannable, for instance temp.
 		NexusAssert.assertScanNotFinished(getNexusRoot(scanner).getEntry());
 		scanner.run(null);

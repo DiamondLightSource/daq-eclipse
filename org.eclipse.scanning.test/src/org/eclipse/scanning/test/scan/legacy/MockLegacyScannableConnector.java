@@ -13,8 +13,8 @@ import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.test.scan.mock.MockNeXusScannable;
-import org.eclipse.scanning.test.scan.mock.MockScannable;
+import org.eclipse.scanning.example.scannable.MockNeXusScannable;
+import org.eclipse.scanning.example.scannable.MockScannable;
 
 public class MockLegacyScannableConnector implements IScannableDeviceService {
 	

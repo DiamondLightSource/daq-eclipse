@@ -48,7 +48,7 @@ import org.w3c.dom.NodeList;
 public class Application implements IApplication {
 
 
-	private List<Object> objects;
+	private Map<String, Object> objects;
 	private CountDownLatch latch;
 
 	@Override
@@ -83,7 +83,7 @@ public class Application implements IApplication {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<Object> create(String path) throws Exception {
+	public static Map<String, Object> create(String path) throws Exception {
 				
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 	    DocumentBuilder builder = factory.newDocumentBuilder();
@@ -92,14 +92,16 @@ public class Application implements IApplication {
 	    doc.getDocumentElement().normalize();
 	    NodeList  nl = doc.getElementsByTagName("bean");
 	    
-	    List<Object> objects = new ArrayList<>();
+	    Map<String, Object> objects = new HashMap<>();
 	    for (int i = 0; i < nl.getLength(); i++) {
 			
 	    	Element bean = (Element)nl.item(i);
 	    	if (!bean.hasChildNodes()) continue;
 	    	
 			final String className = bean.getAttributes().getNamedItem("class").getNodeValue();
-			final String init      = bean.getAttributes().getNamedItem("init-method").getNodeValue();
+			
+			Node initNode = bean.getAttributes().getNamedItem("init-method");
+			final String init      = initNode!=null ? bean.getAttributes().getNamedItem("init-method").getNodeValue() : null;
 			
 			// Look for parameters
 			// bundle, broker, submitQueue, statusSet, statusTopic, durable;	
@@ -110,8 +112,23 @@ public class Application implements IApplication {
 				conf.put(param.getAttributes().getNamedItem("name").getNodeValue(), param.getAttributes().getNamedItem("value").getNodeValue());
 			}
 			Object created = createObject(className, init, conf);
-			objects.add(created);
+			final String id = bean.getAttributes().getNamedItem("id").getNodeValue();
+			objects.put(id, created);
 		}
+	    
+	    nl = doc.getElementsByTagName("osgi:service");
+	    if (nl!=null) for (int i = 0; i < nl.getLength(); i++) {
+	    	
+	    	Element service = (Element)nl.item(i);
+			final String ref = service.getAttributes().getNamedItem("ref").getNodeValue();
+            final Object obj = objects.get(ref);
+            
+			final String interfase = service.getAttributes().getNamedItem("interface").getNodeValue();
+			final Bundle bundle    = Platform.getBundle("org.eclipse.scanning.api");
+			final Class  clazz     = bundle.loadClass(interfase);
+
+			Activator.registerService(clazz, obj);
+	    }
 	    
 		return objects;
 	}
@@ -133,8 +150,10 @@ public class Application implements IApplication {
 			method.invoke(instance, value);
 		}
 
-		Method method = clazz.getMethod(initMethod);
-		method.invoke(instance);
+		if (initMethod!=null) {
+			Method method = clazz.getMethod(initMethod);
+			method.invoke(instance);
+		}
 		System.out.println("Started Server Extension "+clazz.getSimpleName()+" using "+initMethod);
 		return instance;
 	}
@@ -187,7 +206,7 @@ public class Application implements IApplication {
 
 	@Override
 	public void stop() {
-		if (objects!=null) for (Object object : objects) {
+		if (objects!=null) for (Object object : objects.values()) {
 			try {
 				Method disconnect = object.getClass().getMethod("disconnect");
 				disconnect.invoke(object);

@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.scanning.example.scannable.MockScannable;
+
 /**
  * Should probably use Mockito
  * @author fcp94556

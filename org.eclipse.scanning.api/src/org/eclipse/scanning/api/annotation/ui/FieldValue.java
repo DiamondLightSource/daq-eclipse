@@ -300,4 +300,9 @@ public class FieldValue {
 		return fieldName.substring(0, 1).toUpperCase(Locale.US) + fieldName.substring(1);
 	}
 
+	@Override
+	public String toString() {
+		return "FieldValue [name=" + name + "]";
+	}
+
 }

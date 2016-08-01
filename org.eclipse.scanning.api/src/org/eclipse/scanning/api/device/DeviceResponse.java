@@ -73,24 +73,42 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 		}
 	}
 	
-	private static void processScannables(DeviceRequest request, IScannableDeviceService cservice) throws ScanningException, EventException {
+	private static void processScannables(DeviceRequest request, IScannableDeviceService cservice) throws Exception {
 		
-		final Collection<String> names = cservice.getScannableNames();
-		for (String name : names) {
+		if (request.getDeviceName()!=null) { // Named device required
+            
+			IScannable<Object> device = cservice.getScannable(request.getDeviceName());
+			if (request.getDeviceAction()==DeviceAction.SET && request.getDeviceValue()!=null) {
+				device.setPosition(request.getDeviceValue(), request.getPosition());
+			}
+			
+			request.setDeviceValue(device.getPosition());
 
-			if (name==null) continue;
-			if (request.getDeviceName()!=null && !name.matches(request.getDeviceName())) continue;
-
-			IScannable<?> device = cservice.getScannable(name);
-			if (device==null) throw new EventException("There is no created device called '"+name+"'");
-
-			DeviceInformation<?> info = new DeviceInformation<Object>(name);
+			DeviceInformation<?> info = new DeviceInformation<Object>(device.getName());
+			info.setLevel(device.getLevel());
+			info.setUnit(device.getUnit());
 			request.addDeviceInformation(info);
+			
+		} else {
+			final Collection<String> names = cservice.getScannableNames();
+			for (String name : names) {
+	
+				if (name==null) continue;
+				if (request.getDeviceName()!=null && !name.matches(request.getDeviceName())) continue;
+	
+				IScannable<?> device = cservice.getScannable(name);
+				if (device==null) throw new EventException("There is no created device called '"+name+"'");
+	
+				DeviceInformation<?> info = new DeviceInformation<Object>(name);
+				info.setLevel(device.getLevel());
+				info.setUnit(device.getUnit());
+				request.addDeviceInformation(info);
+			}
 		}
 	}
 
 
-	private static void processRunnables(DeviceRequest request, IRunnableDeviceService dservice) throws ScanningException, EventException, InterruptedException {
+	private static void processRunnables(DeviceRequest request, IRunnableDeviceService dservice) throws Exception {
 		
 		if (request.getDeviceName()!=null) { // Named device required
 			IRunnableDevice<Object> device = dservice.getRunnableDevice(request.getDeviceName());

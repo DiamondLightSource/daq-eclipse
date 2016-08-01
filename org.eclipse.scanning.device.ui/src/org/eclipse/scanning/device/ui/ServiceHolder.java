@@ -16,7 +16,6 @@ public class ServiceHolder {
 	private static IPointGeneratorService generatorService;
 	private static IExpressionService     expressionService;
 	private static ILoaderService         loaderService;
-	private static IScannableDeviceService deviceConnectorService;
 	private static BundleContext context;
 
 	public static IEventConnectorService getEventConnectorService() {
@@ -70,15 +69,6 @@ public class ServiceHolder {
 
 	public static void setLoaderService(ILoaderService loaderService) {
 		ServiceHolder.loaderService = loaderService;
-	}
-
-	public static IScannableDeviceService getDeviceConnectorService() {
-		if (deviceConnectorService==null) deviceConnectorService = getService(IScannableDeviceService.class);
-		return deviceConnectorService;
-	}
-
-	public static void setDeviceConnectorService(IScannableDeviceService deviceConnectorService) {
-		ServiceHolder.deviceConnectorService = deviceConnectorService;
 	}
 
 	public void start(BundleContext context) {
