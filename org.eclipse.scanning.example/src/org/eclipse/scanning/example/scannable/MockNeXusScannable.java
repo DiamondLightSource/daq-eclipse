@@ -69,7 +69,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	}	
 
 	public void setPosition(Number value, IPosition position) throws Exception {
-		this.position = value;
+		if (value!=null) this.position = value;
 		if (position!=null) write(value, getPosition(), position);
 	}
 

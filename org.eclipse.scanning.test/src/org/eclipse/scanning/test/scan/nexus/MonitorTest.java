@@ -189,7 +189,7 @@ public class MonitorTest extends NexusTest {
 			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
     		dataset = dataNode.getDataset().getSlice();
     		shape = dataset.getShape();
-    		assertArrayEquals(sizes, shape);
+    		assertArrayEquals("The value of monitor, '"+deviceName+"' is incorrect", sizes, shape);
     		
     		nxDataFieldName = deviceName + "_" + NXpositioner.NX_VALUE;
     		assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
