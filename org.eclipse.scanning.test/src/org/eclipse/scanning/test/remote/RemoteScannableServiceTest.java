@@ -36,6 +36,7 @@ public class RemoteScannableServiceTest extends BrokerTest {
 	@BeforeClass
 	public static void createServices() throws Exception {
 		
+		System.out.println("Create Services");
 		RemoteServiceFactory.setTimeout(1, TimeUnit.MINUTES); // Make test easier to debug.
 
 		// Set up stuff because we are not in OSGi with a test
@@ -49,6 +50,7 @@ public class RemoteScannableServiceTest extends BrokerTest {
 
 		Services.setEventService(eservice);
 		Services.setConnector(cservice);
+		System.out.println("Set connectors");
 		
 		dservlet = new DeviceServlet();
 		dservlet.setBroker(uri.toString());
@@ -61,8 +63,10 @@ public class RemoteScannableServiceTest extends BrokerTest {
 		pservlet.setRequestTopic(IEventService.POSITIONER_REQUEST_TOPIC);
 		pservlet.setResponseTopic(IEventService.POSITIONER_RESPONSE_TOPIC);
 		pservlet.connect();
+		System.out.println("Made Servlets");
 
 		rservice = eservice.createRemoteService(uri, IScannableDeviceService.class);
+		System.out.println("Made remote service "+rservice+" ... "+rservice.getClass());
 	}
 	
 	@AfterClass

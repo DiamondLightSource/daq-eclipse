@@ -55,15 +55,13 @@ public class RemoteServiceFactory {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T getRemoteService(URI uri, Class<T> clazz, IEventService eservice) throws EventException, InstantiationException, IllegalAccessException {
-System.out.println("Getting remote class for: "+clazz.getSimpleName());
 		if (!remotes.containsKey(clazz)) return null; // TODO Maybe throw an exception?
 		T instance = (T)remotes.get(clazz).newInstance();
-System.out.println("Found: "+instance);
 		if (instance instanceof AbstractRemoteService) {
 			AbstractRemoteService aservice = (AbstractRemoteService)instance;
 			aservice.setEventService(eservice);
 			aservice.setUri(uri);
-System.out.println("init complete ");
+			aservice.init();
 		}
 		return instance;
 	}
