@@ -26,7 +26,9 @@ import org.eclipse.scanning.server.servlet.DeviceServlet;
 import org.eclipse.scanning.server.servlet.PositionerServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.BrokerTest;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -35,7 +37,6 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class RemoteRunnableServiceTest extends BrokerTest {
 
 	private static  IRunnableDeviceService    dservice;
-	private static  IRunnableDeviceService    rservice;
 	private static  IEventService             eservice;
 	private static AbstractResponderServlet<?>  dservlet, pservlet;
 
@@ -80,14 +81,24 @@ public class RemoteRunnableServiceTest extends BrokerTest {
 		pservlet.connect();
 		System.out.println("Made Servlets");
 
-		rservice = eservice.createRemoteService(uri, IRunnableDeviceService.class);
-		System.out.println("Made remote service "+rservice+" ... "+rservice.getClass());
 	}
 
 	@AfterClass
 	public static void cleanup() throws EventException {
 		dservlet.disconnect();
 		pservlet.disconnect();
+	}
+	
+	private         IRunnableDeviceService    rservice;
+
+	@Before
+	public void createService() throws EventException {
+		rservice = eservice.createRemoteService(uri, IRunnableDeviceService.class);
+		System.out.println("Made remote service "+rservice+" ... "+rservice.getClass());
+	}
+	
+	@After
+	public void disposeService() throws EventException {
 		((IDisconnectable)rservice).disconnect();
 	}
 
@@ -114,6 +125,7 @@ public class RemoteRunnableServiceTest extends BrokerTest {
 	public void testAbort() throws Exception {
         
 		IPositioner pos1 = dservice.createPositioner();
+		if (rservice==null) rservice = eservice.createRemoteService(uri, IRunnableDeviceService.class);
 		IPositioner pos2 = rservice.createPositioner();
 		pos1.setPosition(new MapPosition("x", 0, 0));
 		pos2.setPosition(new MapPosition("x", 0, 0));

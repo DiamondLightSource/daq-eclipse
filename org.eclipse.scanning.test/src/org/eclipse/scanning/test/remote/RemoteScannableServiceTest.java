@@ -20,7 +20,9 @@ import org.eclipse.scanning.server.servlet.DeviceServlet;
 import org.eclipse.scanning.server.servlet.PositionerServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.BrokerTest;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -29,7 +31,6 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class RemoteScannableServiceTest extends BrokerTest {
 
 	private static IScannableDeviceService      cservice;
-	private static IScannableDeviceService      rservice;
 	private static IEventService                eservice;
 	private static AbstractResponderServlet<?>  dservlet, pservlet;
 
@@ -65,15 +66,26 @@ public class RemoteScannableServiceTest extends BrokerTest {
 		pservlet.connect();
 		System.out.println("Made Servlets");
 
+	}
+	
+	private        IScannableDeviceService      rservice;
+	
+	@Before
+	public void createService() throws EventException {
 		rservice = eservice.createRemoteService(uri, IScannableDeviceService.class);
 		System.out.println("Made remote service "+rservice+" ... "+rservice.getClass());
 	}
+	
+	@After
+	public void disposeService() throws EventException {
+		((IDisconnectable)rservice).disconnect();
+	}
+
 	
 	@AfterClass
 	public static void cleanup() throws EventException {
 		dservlet.disconnect();
 		pservlet.disconnect();
-		((IDisconnectable)rservice).disconnect();
 	}
 
 	@Test
