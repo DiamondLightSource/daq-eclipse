@@ -23,11 +23,18 @@ public class MockQueueService implements IQueueService {
 	
 	private Map<String, IQueue<QueueAtom>> activeQueues;
 	
+	private MockSubmitter<Queueable> mockSubmitter;
+	
 	public MockQueueService(IQueue<QueueBean> mockOne) {
 		this.jobQueue = mockOne;
 		jobQueueID = mockOne.getQueueID();
 		
 		activeQueues = new HashMap<>();
+	}
+	
+	public MockQueueService() {
+		jobQueue = null;
+		jobQueueID = "fake";
 	}
 
 	@Override
@@ -44,6 +51,7 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public void start() throws EventException {
+		if (jobQueue == null) throw new EventException("QueueService not supposed to be started with no job-queue!");
 		jobQueue.getConsumer().start();
 		for (String queueID : activeQueues.keySet()) {
 			activeQueues.get(queueID).getConsumer().start();
@@ -239,8 +247,7 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public <T extends Queueable> void submit(T atomBean, String submitQ) throws EventException {
-		// TODO Auto-generated method stub
-		
+		mockSubmitter.submit(atomBean);
 	}
 
 	@Override
@@ -271,6 +278,11 @@ public class MockQueueService implements IQueueService {
 	public boolean isActive() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void setMockSubmitter(MockSubmitter<? extends Queueable> ms) {
+		mockSubmitter = (MockSubmitter<Queueable>) ms;
 	}
 
 }
