@@ -83,5 +83,9 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	public void setTerminated() {
 		terminated = true;
 	}
+	
+	public CountDownLatch getProcessorLatch() {
+		return processorLatch;
+	}
 
 }
