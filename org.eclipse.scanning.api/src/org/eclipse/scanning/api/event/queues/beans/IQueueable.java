@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.event.queues.beans;
 
 import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
 /**
@@ -31,6 +32,18 @@ public interface IQueueable {
 	 */
 	public void setBeamline(String beamline);
 
+	public String getHostName();
+	
+	public void setHostName(String userName);
+	
+	public String getMessage();
+	
+	public void setMessage(String message);
+	
+	public double getPercentComplete();
+	
+	public void setPercentComplete(double percentComplete);
+	
 	/**
 	 * Get the amount of time (in ms) necessary to complete the processes in 
 	 * this {@link IQueueAtom}.
@@ -47,5 +60,12 @@ public interface IQueueable {
 	 */
 	public void setRunTime(long runTime);
 
+	public Status getStatus();
+	
+	public void setStatus(Status status);
+	
+	public String getUserName();
 
+	public void setUserName(String userName);
+	
 }
