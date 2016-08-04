@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 
-class ValidIfDecorator implements IDecoratorValidator {
+public class ValidIfDecorator implements IDecoratorValidator {
 	
 	private Object model;
 	private String fieldName;

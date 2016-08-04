@@ -21,9 +21,7 @@ public class StepModel extends AbstractPointsModel {
 	private double step;
 	
 	public StepModel() {
-	
 	}
-	
 	public StepModel(String name, double start, double stop, double step) {
 		super();
 		this.name = name;
@@ -31,7 +29,6 @@ public class StepModel extends AbstractPointsModel {
 		this.stop = stop;
 		this.step = step;
 	}
-	
 	public String getName() {
 		return name;
 	}
@@ -56,7 +53,6 @@ public class StepModel extends AbstractPointsModel {
 	public void setStep(double step) {
 		this.step = step;
 	}
-	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -71,7 +67,6 @@ public class StepModel extends AbstractPointsModel {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
-	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

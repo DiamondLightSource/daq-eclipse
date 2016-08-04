@@ -73,19 +73,19 @@ public @interface FieldDescriptor {
 	public String label() default "";
 	
 	/**
-	 * If scannable is set, this value overrides the maximum of the scannble, otherwise the scannable is used.
+	 * 
 	 * @return maximum allowed legal value for field
 	 */
-	public double maximum() default Double.POSITIVE_INFINITY;
+	public double max() default Double.POSITIVE_INFINITY;
 	
 	/**
-	 * If scannable is set, this value overrides the minimum of the scannble, otherwise the scannable is used.
+	 * 
 	 * @return minimum allowed legal value for field
 	 */
-	public double minimum() default Double.NEGATIVE_INFINITY;
+	public double min() default Double.NEGATIVE_INFINITY;
 	
 	/**
-	 * If scannable is set, this value overrides the unit of the scannble, otherwise the scannable unit is used.
+	 * 
 	 * @return the unit that the fields value should be in.
 	 */
 	public String unit() default "";

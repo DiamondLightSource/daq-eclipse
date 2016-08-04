@@ -1,6 +1,5 @@
 package org.eclipse.scanning.device.ui.model;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +32,6 @@ import org.eclipse.richbeans.widgets.cell.CComboWithEntryCellEditorData;
 import org.eclipse.richbeans.widgets.cell.NumberCellEditor;
 import org.eclipse.richbeans.widgets.file.FileDialogCellEditor;
 import org.eclipse.richbeans.widgets.table.TextCellEditorWithContentProposal;
-import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
@@ -54,36 +52,19 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * 
- * Factory for creating editors for FieldValue
- * 
- * @author Matthew Gerring
- *
- */
-class ModelFieldEditorFactory {
+public class ModelFieldEditors {
 	
-	private static final Logger logger = LoggerFactory.getLogger(ModelFieldEditorFactory.class);
+	private static final Logger logger = LoggerFactory.getLogger(ModelFieldEditors.class);
 
 	private static ISelectionListener selectionListener;
 	private static ToolTip            currentHint;
-	private IScannableDeviceService   cservice;
-	
-	public ModelFieldEditorFactory() {
-		try {
-			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
-		} catch (Exception e) {
-			logger.error("Unable to make a remote connection to "+IScannableDeviceService.class.getSimpleName());
-		}
-	}
 	
 	/**
 	 * Create a new editor for a field.
 	 * @param field
-	 * 
-	 * @return null if the field is not editable.
+	 * @return
 	 */
-	public CellEditor createEditor(FieldValue field, Composite parent) {
+	public static CellEditor createEditor(FieldValue field, Composite parent) {
         
 		Object value;
 		try {
@@ -116,8 +97,7 @@ class ModelFieldEditorFactory {
         } else if (Number.class.isAssignableFrom(clazz) || isNumberArray(clazz)) {        	
         	ed = getNumberEditor(field, clazz, parent);
         	
-        } else if (IROI.class.isAssignableFrom(clazz)) { 
-        	throw new IllegalArgumentException("Have not ported RegionCellEditor to DAQ Eclipse yet!");
+        } else if (IROI.class.isAssignableFrom(clazz)) {   
         	// TODO FIXME Need way of editing regions.
         	//ed = new RegionCellEditor(parent);
         	
@@ -165,10 +145,12 @@ class ModelFieldEditorFactory {
 
 	}
 
-	private CellEditor getDeviceEditor(Object value, Composite parent, FieldDescriptor anot) {
+	private static CellEditor getDeviceEditor(Object value, Composite parent, FieldDescriptor anot) {
 		
 		String[] items = null;
+		IScannableDeviceService cservice=null;
 		try {
+			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
 			List<String> names = cservice.getScannableNames();
 			items = names.toArray(new String[names.size()]);
 			
@@ -210,7 +192,13 @@ class ModelFieldEditorFactory {
 		}
 	}
 
-	public static boolean isEnabled(Object model, FieldDescriptor anot) {
+	public static boolean isEnabled(FieldValue field) {
+    	final FieldDescriptor anot  = field.getAnnotation();
+    	final Object      model = field.getModel();
+    	return isEnabled(model, anot);
+	}
+
+	private static boolean isEnabled(Object model, FieldDescriptor anot) {
 
 		if (anot == null) return true;
 		if (!anot.editable()) return false;
@@ -313,12 +301,12 @@ class ModelFieldEditorFactory {
 		return cellEd;
 	}
 	
-	private CellEditor getNumberEditor(FieldValue field, final Class<? extends Object> clazz, Composite parent) {
+	private static CellEditor getNumberEditor(FieldValue field, final Class<? extends Object> clazz, Composite parent) {
     	
 		FieldDescriptor anot = field.getAnnotation();
 		NumberCellEditor textEd = null;
 	    if (anot!=null) {
-	    	textEd = new NumberCellEditor(parent, clazz, getMinimum(field, anot), getMaximum(field, anot), getUnit(field, anot), SWT.NONE);
+	    	textEd = new NumberCellEditor(parent, clazz, anot.min(), anot.max(), anot.unit(), SWT.NONE);
 	    	
 	    	if (anot.numberFormat()!=null && !"".equals(anot.numberFormat())) {
 	    		textEd.setDecimalFormat(anot.numberFormat());
@@ -337,44 +325,6 @@ class ModelFieldEditorFactory {
     	return textEd;
 	}
 	
-	private String getUnit(FieldValue field, FieldDescriptor anot) {
-		if (anot.unit().length()>0) return anot.unit();
-		IScannable<Number> scannable = getScannable(field, anot);
-		return scannable!=null ? scannable.getUnit() : null;
-	}
-
-	private Number getMinimum(FieldValue field, FieldDescriptor anot) {
-		if (!Double.isInfinite(anot.minimum())) return anot.minimum();
-		IScannable<Number> scannable = getScannable(field, anot);
-		return scannable!=null ? scannable.getMinimum(): null;
-	}
-
-	private Number getMaximum(FieldValue field, FieldDescriptor anot) {
-		if (!Double.isInfinite(anot.maximum())) return anot.maximum();
-		IScannable<Number> scannable = getScannable(field, anot);
-		return scannable!=null ? scannable.getMaximum(): null;
-	}
-	
-	private IScannable<Number> getScannable(FieldValue field, FieldDescriptor anot) {
-		
-		if (anot.scannable().length()<1 || cservice ==null) return null;
-	    String scannableName;
-		try {
-			scannableName = (String)FieldValue.get(field.getModel(), anot.scannable());
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			return null;
-		}
-	    
-	    if (scannableName!=null && scannableName.length()>0) {
-	    	try {
-		        return cservice.getScannable(scannableName);
-	    	} catch (Exception ne) {
-	    		return null;
-	    	}
-	    }
-	    return null;
-	}
-
 	private static TextCellEditor getDatasetEditor(final FieldValue field, Composite parent) {
 		
 		final TextCellEditorWithContentProposal ed = new TextCellEditorWithContentProposal(parent, null, null);

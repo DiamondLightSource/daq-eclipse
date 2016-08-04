@@ -63,17 +63,6 @@ public class DeviceInformation<T> {
 	 */
 	private String unit;
 	
-	/**
-	 * The upper limit or null if none exists.
-	 */
-	private Object upper;
-	
-	/**
-	 * The lower limit or null if none exists.
-	 */
-	private Object lower;
-	
-
 	public DeviceInformation() {
 
 	}
@@ -131,12 +120,10 @@ public class DeviceInformation<T> {
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
 		result = prime * result + level;
-		result = prime * result + ((lower == null) ? 0 : lower.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		result = prime * result + ((unit == null) ? 0 : unit.hashCode());
-		result = prime * result + ((upper == null) ? 0 : upper.hashCode());
 		return result;
 	}
 
@@ -171,11 +158,6 @@ public class DeviceInformation<T> {
 			return false;
 		if (level != other.level)
 			return false;
-		if (lower == null) {
-			if (other.lower != null)
-				return false;
-		} else if (!lower.equals(other.lower))
-			return false;
 		if (model == null) {
 			if (other.model != null)
 				return false;
@@ -192,11 +174,6 @@ public class DeviceInformation<T> {
 			if (other.unit != null)
 				return false;
 		} else if (!unit.equals(other.unit))
-			return false;
-		if (upper == null) {
-			if (other.upper != null)
-				return false;
-		} else if (!upper.equals(other.upper))
 			return false;
 		return true;
 	}
@@ -236,21 +213,5 @@ public class DeviceInformation<T> {
 
 	public void setUnit(String unit) {
 		this.unit = unit;
-	}
-
-	public Object getUpper() {
-		return upper;
-	}
-
-	public void setUpper(Object upper) {
-		this.upper = upper;
-	}
-
-	public Object getLower() {
-		return lower;
-	}
-
-	public void setLower(Object lower) {
-		this.lower = lower;
 	}
 }

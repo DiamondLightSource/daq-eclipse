@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISelectionProvider {
+public class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISelectionProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModelViewer.class);
 	
@@ -327,15 +327,13 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	
 	class ModelFieldEditingSupport extends EditingSupport {
 
-		private ModelFieldEditorFactory factory;
 		public ModelFieldEditingSupport(ColumnViewer viewer) {
 			super(viewer);
-			factory = new ModelFieldEditorFactory();
 		}
 
 		@Override
 		protected CellEditor getCellEditor(Object element) {
-			return factory.createEditor((FieldValue)element, viewer.getTable());
+			return ModelFieldEditors.createEditor((FieldValue)element, viewer.getTable());
 		}
 
 		@Override

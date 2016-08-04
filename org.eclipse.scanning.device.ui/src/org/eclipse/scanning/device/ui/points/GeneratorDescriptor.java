@@ -11,20 +11,20 @@ import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.swt.graphics.Image;
 import org.osgi.framework.Bundle;
 
-public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesItemDescriptor {
+public class GeneratorDescriptor implements ISeriesItemDescriptor {
 	
-	private final IPointGenerator<T> generator;
+	private IPointGenerator<?> generator;
+	private String id;
+	private IPointGeneratorService pservice;
 
 	public GeneratorDescriptor(String id, IPointGeneratorService pservice) throws GeneratorException {
-		this.generator = (IPointGenerator<T>)pservice.createGenerator(id);
-	}
-	public GeneratorDescriptor(T model, IPointGeneratorService pservice) throws GeneratorException {
-		this.generator = pservice.createGenerator(model);
+		this.id = id;
+		this.pservice  = pservice;
+		this.generator = pservice.createGenerator(id);
 	}
 
 	@Override
@@ -34,6 +34,7 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 
 	@Override
 	public IPointGenerator<?> getSeriesObject() throws GeneratorException {
+		if (generator==null) generator = pservice.createGenerator(id);
 		return generator;
 	}
 
@@ -99,7 +100,7 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 	public Image getImage() {
 		if (icons==null) createIcons();
 		
-		Image icon = icons.get(generator.getId());
+		Image icon = icons.get(id);
 		if (icon != null) return icon;
 		
 		if (generator.getIconPath()!=null) {
@@ -130,7 +131,8 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 			
 		}
 	}
-	public T getModel() {
-		return generator.getModel();
-	}
+
+	public String getId() {
+		return id;
+	} 
 }

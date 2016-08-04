@@ -14,14 +14,14 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 public class GridModel extends AbstractBoundingBoxModel {
 
 	@FieldDescriptor(label="Columns (fast)", 
-			         maximum=100000, 
-			         minimum=1, 
+			         max=100000, 
+			         min=1, 
 			         hint="The number of points that the grid should run over, the fast direction.")
 	private int fastAxisPoints = 5;
 	
 	@FieldDescriptor(label="Rows (slow)", 
-			         maximum=100000, 
-			         minimum=1, 
+			         max=100000, 
+			         min=1, 
 			         hint="The number of points that the grid should run over, the slow direction.")
 	private int slowAxisPoints = 5;
 	

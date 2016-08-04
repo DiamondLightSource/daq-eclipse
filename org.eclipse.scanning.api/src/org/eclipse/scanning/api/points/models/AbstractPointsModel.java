@@ -2,15 +2,11 @@ package org.eclipse.scanning.api.points.models;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.Arrays;
-import java.util.List;
-
-import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 /**
  * Abstract base class for scan models, which provides property change support for the convenience of subclasses.
  *
- * @author Matthew Gerring
+ * @author Colin Palmer
  *
  */
 public abstract class AbstractPointsModel implements IScanPathModel {
@@ -27,7 +23,6 @@ public abstract class AbstractPointsModel implements IScanPathModel {
 		this.pcs.removePropertyChangeListener(listener);
 	}
 	
-	@FieldDescriptor(visible=false)
 	private String name;
 
 	public String getName() {
@@ -36,12 +31,6 @@ public abstract class AbstractPointsModel implements IScanPathModel {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	@Override
-	public List<String> getScannableNames() {
-		return Arrays.asList(getName());
-	}
-	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

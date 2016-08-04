@@ -15,7 +15,7 @@ import org.eclipse.january.metadata.IMetadata;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 
 
-class DatasetNameUtils {
+public class DatasetNameUtils {
 
 	
 	public static Map<String, int[]> getDatasetInfo(String path, ConversionScheme scheme) {

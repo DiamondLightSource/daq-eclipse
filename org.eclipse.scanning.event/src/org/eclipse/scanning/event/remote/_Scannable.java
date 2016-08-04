@@ -60,31 +60,4 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 		update();
 		return info.getUnit();
 	}
-	
-	
-	/**
-	 * Set the current upper limit, returning the previous value, if any.
-	 * @param upper
-	 * @return
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	public T getMaximum() {
-		update();
-		return (T)info.getUpper();
-	}
-
-	/**
-	 * Set the current lower limit, returning the previous value, if any.
-	 * @param lower
-	 * @return
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	public T getMinimum() {
-		update();
-		return (T)info.getLower();
-	}
-	
-
 }

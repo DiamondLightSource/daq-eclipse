@@ -1,6 +1,8 @@
 package org.eclipse.scanning.device.ui.points;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,8 +41,6 @@ import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This view allows users to build up arbitrary scans
@@ -53,8 +53,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ScanView  extends ViewPart {
 	
-	private static final Logger logger = LoggerFactory.getLogger(ScanView.class);
-	
 	// Thankyou OSGi
 	private IPointGeneratorService pservice;
 	private IEventService          eservice;
@@ -62,13 +60,13 @@ public class ScanView  extends ViewPart {
 	private SeriesTable  seriesTable;
 	private GeneratorFilter pointsFilter;
 
-	private List<GeneratorDescriptor<?>> saved;
+	private List<GeneratorDescriptor> saved;
 	
 	public ScanView() {
 		this.pservice     = ServiceHolder.getGeneratorService();
 		this.eservice     = ServiceHolder.getEventService();
 		this.seriesTable  = new SeriesTable();
-		this.pointsFilter = new GeneratorFilter(pservice, eservice.getEventConnectorService());
+		this.pointsFilter = new GeneratorFilter(pservice);
 	}
 	
 	@Override
@@ -78,23 +76,14 @@ public class ScanView  extends ViewPart {
 
 		final String key = memento!=null ? memento.getString(GeneratorConstants.GENERATOR_IDS) : null;
         if (key!=null && !"".equals(key)) {
+			List<String> ids = getList(key);
 			try {
-				this.saved = pointsFilter.createDescriptors(key);
-			} catch (Exception e) {
-				logger.error("Cannot load generators to memento!", e);
+				this.saved = pointsFilter.createDescriptors(ids);
+			} catch (GeneratorException e) {
+				e.printStackTrace();
 			}
 		}
 	}
-	
-	@Override
-    public void saveState(IMemento memento) {
-		try {
-			final String json = pointsFilter.createKey(seriesTable.getSeriesItems());
-	    	memento.putString(GeneratorConstants.GENERATOR_IDS, json);
-		} catch (Exception ne) {
-			logger.error("Cannot save generators to memento!", ne);
-		}
-    }
     
 	@Override
 	public void createPartControl(Composite parent) {
@@ -229,7 +218,7 @@ public class ScanView  extends ViewPart {
 				if (!path.endsWith(extensions[0])) { //pipeline should always be saved to .nxs
 					path = path.concat("." + extensions[0]);
 				}
-				saceScans(path, gens, site);
+				saveOperationsToFile(path, gens, site);
 				lastPath = path;
 			}
 		};
@@ -284,7 +273,7 @@ public class ScanView  extends ViewPart {
 
 	}
 	
-	private void saceScans(String filename, IPointGenerator[] gens, IViewSite site) {
+	private void saveOperationsToFile(String filename, IPointGenerator[] gens, IViewSite site) {
 		try {
 			
 			if (new File(filename).exists()) {
@@ -374,6 +363,38 @@ public class ScanView  extends ViewPart {
 	@Override
 	public void setFocus() {
 		seriesTable.setFocus();
+	}
+
+	@Override
+    public void saveState(IMemento memento) {
+    	memento.putString(GeneratorConstants.GENERATOR_IDS, createIdList(seriesTable.getSeriesItems()));
+    }
+
+	private String createIdList(Collection<ISeriesItemDescriptor> seriesItems) {
+		if (seriesItems==null || seriesItems.isEmpty()) return null;
+		final StringBuilder buf = new StringBuilder();
+		for (Iterator<ISeriesItemDescriptor> iterator = seriesItems.iterator(); iterator.hasNext();) {
+			ISeriesItemDescriptor des = iterator.next();
+			if (!(des instanceof GeneratorDescriptor)) continue;
+			GeneratorDescriptor  odes = (GeneratorDescriptor)des;
+			buf.append(odes.getId());
+			if(iterator.hasNext()) buf.append(",");
+		}
+		return buf.toString();
+	}
+
+	/**
+	 * 
+	 * @param value
+	 * @return v
+	 */
+	public static List<String> getList(final String value) {
+		if (value == null)           return null;
+		if ("".equals(value.trim())) return null;
+		final String[]    vals = value.split(",");
+		final List<String> ret = new ArrayList<String>(vals.length);
+		for (int i = 0; i < vals.length; i++) ret.add(vals[i].trim());
+		return ret;
 	}
 
 }

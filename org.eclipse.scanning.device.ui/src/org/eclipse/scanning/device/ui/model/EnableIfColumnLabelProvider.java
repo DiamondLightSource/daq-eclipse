@@ -1,7 +1,6 @@
 package org.eclipse.scanning.device.ui.model;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -21,7 +20,7 @@ class EnableIfColumnLabelProvider extends ColumnLabelProvider {
 		if (ofield == null) return null;
 
 		FieldValue field  = (FieldValue)ofield;
-		if (isEnabled(field)) {
+		if (ModelFieldEditors.isEnabled(field)) {
 			return null;
 		} else {
 			return Display.getDefault().getSystemColor(SWT.COLOR_GRAY);
@@ -31,7 +30,7 @@ class EnableIfColumnLabelProvider extends ColumnLabelProvider {
 		if (ofield == null) return null;
 
 		FieldValue field  = (FieldValue)ofield;
-		if (isEnabled(field)) {
+		if (ModelFieldEditors.isEnabled(field)) {
 			return null;
 		} else {
 			if (italic == null) {
@@ -41,12 +40,6 @@ class EnableIfColumnLabelProvider extends ColumnLabelProvider {
 			}
 			return italic;
 		}
-	}
-
-	private static boolean isEnabled(FieldValue field) {
-    	final FieldDescriptor anot  = field.getAnnotation();
-    	final Object      model = field.getModel();
-    	return ModelFieldEditorFactory.isEnabled(model, anot);
 	}
 
 

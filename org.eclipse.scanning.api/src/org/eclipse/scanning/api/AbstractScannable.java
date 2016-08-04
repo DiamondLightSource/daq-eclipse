@@ -22,8 +22,6 @@ import java.util.Set;
  */
 public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttributeContainer {
 
-	private T                   max;
-	private T                   min;
 	private Map<String, Object> attributes;
 	private int                 level;
 	private String              name;
@@ -85,31 +83,6 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 	
 	public void setName(String name) {
 		this.name = name;
-	}
-
-
-	@Override
-	public T getMaximum() {
-		return max;
-	}
-
-
-	public T setMaximum(T upper) {
-		T ret = this.max;
-		this.max = upper;
-		return ret;
-	}
-
-    @Override
-	public T getMinimum() {
-		return min;
-	}
-
-
-	public T setMinimum(T lower) {
-		T ret = this.min;
-		this.min = lower;
-		return ret;
 	}
 	
 }

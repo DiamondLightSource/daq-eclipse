@@ -16,7 +16,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * @author Matthew Gerring
  *
  */
-public interface IScannable<T> extends ILevel, INameable, ITimeoutable, IBoundable<T> {
+public interface IScannable<T> extends ILevel, INameable, ITimeoutable {
 	
 	/**
 	 * Returns the current position of the Scannable. Called by ConcurentScan at the end of the point. 

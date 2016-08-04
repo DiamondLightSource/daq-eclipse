@@ -9,31 +9,31 @@ public class MandelbrotModel implements IDetectorModel {
 
 	// Parameters controlling iteration and termination of the Julia/Mandelbrot algorithm
 	@FieldDescriptor(label="Maximum Iterations", 
-	         minimum=1, 
+	         min=1, 
 	         hint="Iterations to use.")
 	private int    maxIterations;
 	
 	@FieldDescriptor(label="Escape Radius", 
-	         minimum=0, 
+	         min=0, 
 	         hint="The radius of escape for the mandelbrot algorithm.")
 	private double escapeRadius;
 
 	// Parameters controlling the dimensions and size of the 1D and 2D Julia set datasets
 	@FieldDescriptor(label="Columns", 
-	         maximum=100000, 
-	         minimum=1, 
+	         max=100000, 
+	         min=1, 
 	         hint="The number of points that the grid should run over, the x direction.")
 	private int    columns; // for the 2D dataset, from -maxRealCoordinate to +maxRealCoordinate
 	
 	@FieldDescriptor(label="Rows", 
-	         maximum=100000, 
-	         minimum=1, 
+	         max=100000, 
+	         min=1, 
 	         hint="The number of points that the grid should run over, the y direction.")
 	private int    rows;    // for the 2D dataset, from -maxImaginaryCoordinate to +maxImaginaryCoordinate
 	
 	@FieldDescriptor(label="Points", 
 	         validif="points<=(maxRealCoordinate*maxIterations)", 
-	         minimum=1, 
+	         min=1, 
 	         hint="Points of Mandelbrot.")
 	private int    points;  // for the 1D dataset, from 0 to maxRealCoordinate
 	
