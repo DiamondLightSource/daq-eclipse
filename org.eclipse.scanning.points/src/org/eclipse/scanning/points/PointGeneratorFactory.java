@@ -39,6 +39,7 @@ import org.eclipse.scanning.api.points.models.StepModel;
 
 public class PointGeneratorFactory implements IPointGeneratorService {
 		
+	@SuppressWarnings("rawtypes")
 	private static final Map<Class<? extends IScanPathModel>, Class<? extends IPointGenerator>> generators;
 	private static final Map<String,   GeneratorInfo>                                           info;
 	
@@ -47,9 +48,13 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	// to allow point generators to be dynamically registered. 
 	static {
 		System.out.println("Starting generator service");
+		@SuppressWarnings("rawtypes")
 		Map<Class<? extends IScanPathModel>, Class<? extends IPointGenerator>> gens = new HashMap<>(7);
+		// NOTE Repeated generators are currently not allowed. Will not break the service
+		// (models class keys are different) but causes ambiguity in the GUI when it creates a
+		// generator for a model.
 		gens.put(StepModel.class,             StepGenerator.class);
-		gens.put(CollatedStepModel.class,     StepGenerator.class);
+		gens.put(CollatedStepModel.class,     CollatedStepGenerator.class);
 		gens.put(ArrayModel.class,            ArrayGenerator.class);
 		gens.put(GridModel.class,             GridGenerator.class);
 		gens.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
+import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 
@@ -20,10 +21,10 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 	@FieldDescriptor(visible=false)
 	private BoundingBox boundingBox;
 
-	@FieldDescriptor(label="Fast", hint="The name of the scannable in the fast direction, for instance 'x'.") // TODO Right?
+	@FieldDescriptor(label="Fast", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'x'.") // TODO Right?
 	private String      fastAxisName = "x";
 
-	@FieldDescriptor(label="Slow", hint="The name of the scannable in the fast direction, for instance 'y'.")  // TODO Right?
+	@FieldDescriptor(label="Slow", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'y'.")  // TODO Right?
 	private String      slowAxisName = "y";
 
 	protected AbstractBoundingBoxModel() {

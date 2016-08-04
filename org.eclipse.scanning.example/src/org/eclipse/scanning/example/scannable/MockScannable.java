@@ -76,6 +76,9 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		this.unit = unit;
 	}
 	
+	private Number upper = 1000;
+	private Number lower = -1000;
+
 	@Override
 	public void configure(MockScannableModel model) throws ScanningException {
 		this.model = model;
@@ -204,4 +207,26 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
     public void setUnit(String unit) {
     	this.unit = unit;
     }
+
+	@Override
+	public Number getMaximum() {
+		return upper;
+	}
+	
+	public Number setMaximum(Number upper) {
+		Number ret = this.upper;
+		this.upper = upper;
+		return ret;
+	}
+
+	@Override
+	public Number getMinimum() {
+		return lower;
+	}
+
+	public Number setMinimum(Number lower) {
+		Number ret = this.lower;
+		this.lower = lower;
+		return ret;
+	}
 }

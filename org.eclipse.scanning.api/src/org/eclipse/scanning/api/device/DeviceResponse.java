@@ -85,8 +85,7 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			request.setDeviceValue(device.getPosition());
 
 			DeviceInformation<?> info = new DeviceInformation<Object>(device.getName());
-			info.setLevel(device.getLevel());
-			info.setUnit(device.getUnit());
+			merge(info, device);
 			request.addDeviceInformation(info);
 			
 		} else {
@@ -100,13 +99,19 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 				if (device==null) throw new EventException("There is no created device called '"+name+"'");
 	
 				DeviceInformation<?> info = new DeviceInformation<Object>(name);
-				info.setLevel(device.getLevel());
-				info.setUnit(device.getUnit());
+				merge(info, device);
 				request.addDeviceInformation(info);
 			}
 		}
 	}
 
+
+	private static void merge(DeviceInformation<?> info, IScannable<?> device) {
+		info.setLevel(device.getLevel());
+		info.setUnit(device.getUnit());
+        info.setUpper(device.getMaximum());	
+        info.setLower(device.getMinimum());
+ 	}
 
 	private static void processRunnables(DeviceRequest request, IRunnableDeviceService dservice) throws Exception {
 		
