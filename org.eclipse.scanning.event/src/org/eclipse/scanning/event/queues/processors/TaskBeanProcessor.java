@@ -1,14 +1,28 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 
 public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
+	
+	private AtomQueueProcessor<TaskBean, SubTaskAtom> atomQueueProcessor;
+	
+	public TaskBeanProcessor() {
+		atomQueueProcessor = new AtomQueueProcessor<>(this);
+	}
 
 	@Override
 	public void execute() throws EventException, InterruptedException {
-		// TODO Auto-generated method stub
+		//Do most of the work of processing in the atomQueueProcessor...
+		atomQueueProcessor.run();
 
+		//...do the post-match analysis in here!
+//		if (queueBean.getPercentComplete() >= 99.5) {
+			//Completed successfully
+			broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
+//		}
 	}
 
 	@Override

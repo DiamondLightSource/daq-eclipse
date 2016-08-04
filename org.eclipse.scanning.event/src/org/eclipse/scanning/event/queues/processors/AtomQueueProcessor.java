@@ -2,15 +2,16 @@ package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.IAtomBeanWithQueue;
 import org.eclipse.scanning.api.event.queues.beans.IAtomQueue;
+import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.AtomQueueServiceUtils;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
-import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 
 /**
  * Generic class for processing a {@link Queueable} composed of an 
@@ -27,22 +28,24 @@ import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
  * @param <T> Bean implementing {@link Queueable}, but must be an 
  *            {@link IAtomBeanWithQueue}.
  */
-public class AtomQueueProcessor {
+public class AtomQueueProcessor<P extends IAtomBeanWithQueue<Q>, Q extends QueueAtom> {
+	
+	//SubTaskAtom = P, QueueAtom = Q
 	
 	private IQueueService queueService;
-	private QueueListener<SubTaskAtom, QueueAtom> queueListener;
-	private ISubscriber<QueueListener<SubTaskAtom, QueueAtom>> queueSubscriber;
+	private QueueListener<P, Q> queueListener;
+	private ISubscriber<QueueListener<P, Q>> queueSubscriber;
 	
-	private SubTaskAtomProcessor parentProcessor;
+	private IQueueProcessor<P> parentProcessor;
 	
-	public AtomQueueProcessor(SubTaskAtomProcessor parentProcessor) {
+	public AtomQueueProcessor(IQueueProcessor<P> parentProcessor) {
 		queueService = QueueServicesHolder.getQueueService();	
 		this.parentProcessor = parentProcessor;
 	}
 		
 	public void run() throws EventException, InterruptedException {
 		//Everything should be set up by now, so we can get the atomQueue
-		final IAtomQueue<QueueAtom> atomQueue = parentProcessor.getProcessBean().getAtomQueue();
+		final IAtomQueue<Q> atomQueue = parentProcessor.getProcessBean().getAtomQueue();
 		
 		//Create a new active queue to submit the atoms into
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 0d, "Registering new active queue.");
@@ -51,7 +54,7 @@ public class AtomQueueProcessor {
 		//Spool beans from bean atom queue to the queue service
 		//(queue empty after this!)
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 1d, "Submitting atoms to active queue.");
-		SubTaskAtom parentBean = parentProcessor.getProcessBean();
+		IQueueable parentBean = parentProcessor.getProcessBean();
 		while (atomQueue.queueSize() > 0) {
 			QueueAtom nextAtom = atomQueue.viewNext();
 			if (nextAtom.getBeamline() != parentBean.getBeamline()) {
