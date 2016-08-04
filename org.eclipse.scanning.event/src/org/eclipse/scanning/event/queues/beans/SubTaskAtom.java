@@ -22,7 +22,7 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
  * @author Michael Wharmby
  * 
  */
-public class SubTaskBean extends QueueAtom implements IAtomBeanWithQueue<QueueAtom> {
+public class SubTaskAtom extends QueueAtom implements IAtomBeanWithQueue<QueueAtom> {
 	
 	private IAtomQueue<QueueAtom> atomQueue = new AtomQueue<QueueAtom>();
 	private String queueMessage;
@@ -30,7 +30,7 @@ public class SubTaskBean extends QueueAtom implements IAtomBeanWithQueue<QueueAt
 	/**
 	 * No argument constructor for JSON
 	 */
-	public SubTaskBean() {
+	public SubTaskAtom() {
 		super();
 	}
 	
@@ -38,7 +38,7 @@ public class SubTaskBean extends QueueAtom implements IAtomBeanWithQueue<QueueAt
 	 * Basic constructor to set String name of bean
 	 * @param name String user-supplied name
 	 */
-	public SubTaskBean(String name) {
+	public SubTaskAtom(String name) {
 		super();
 		setName(name);
 	}
@@ -101,7 +101,7 @@ public class SubTaskBean extends QueueAtom implements IAtomBeanWithQueue<QueueAt
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		SubTaskBean other = (SubTaskBean) obj;
+		SubTaskAtom other = (SubTaskAtom) obj;
 		if (atomQueue == null) {
 			if (other.atomQueue != null)
 				return false;
