@@ -125,7 +125,6 @@ public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
 			uniqueId = bean.getUniqueId()!=null ? bean.getUniqueId() : UUID.randomUUID().toString();
 		}
 		if (prepareBean) {
-			if (bean.getUserName()==null) bean.setUserName(System.getProperty("user.name"));
 			if (bean.getUniqueId()==null) bean.setUniqueId(uniqueId);
 			if (getTimestamp()>0) bean.setSubmissionTime(getTimestamp());
 		}
