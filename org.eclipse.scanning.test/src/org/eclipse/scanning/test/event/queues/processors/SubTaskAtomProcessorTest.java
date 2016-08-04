@@ -11,6 +11,8 @@ import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskBean;
 import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcessor;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
+import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 import org.junit.After;
@@ -25,20 +27,40 @@ public class SubTaskAtomProcessorTest {
 	
 	private MockQueueService mockQServ;
 	private MockSubmitter<QueueAtom> mockSub;
+	private MockEventService mockEvServ;
+	
 	
 	@Before
 	public void setUp() {
 		pti = new ProcessorTestInfrastructure();
+		
+		//Create processor & test atom
+		stAt = new SubTaskBean("Test queue sub task bean");
+		stAt.setBeamline("I15-1(test)");
+		stAt.setHostName("afakeserver.diamond.ac.uk");
+		stAt.setUserName(System.getProperty("user.name"));
+		DummyAtom atomA = new DummyAtom("Hildebrand", 300);
+		DummyAtom atomB = new DummyAtom("Yuri", 1534);
+		DummyAtom atomC = new DummyAtom("Ingrid", 654);
+		stAt.queue().add(atomA);
+		stAt.queue().add(atomB);
+		stAt.queue().add(atomC);
 		
 		//Configure the processor Mock queue infrastructure
 		mockSub = new MockSubmitter<>();
 		mockQServ = new MockQueueService();
 		mockQServ.setMockSubmitter(mockSub);
 		QueueServicesHolder.setQueueService(mockQServ);
+		
+		mockEvServ = new MockEventService();
+		QueueServicesHolder.setEventService(mockEvServ);
 	}
 	
 	@After
 	public void tearDown() {
+		QueueServicesHolder.unsetEventService(mockEvServ);
+		mockEvServ = null;
+		
 		QueueServicesHolder.unsetQueueService(mockQServ);
 		mockQServ = null;
 		mockSub = null;
@@ -48,19 +70,22 @@ public class SubTaskAtomProcessorTest {
 	
 	@Test
 	public void testExecution() throws Exception {
+		stAtProcr = new SubTaskAtomProcessor();
 		
 		pti.executeProcessor(stAtProcr, stAt);
 		
-		System.out.println("\n\n*******************\nSleeping for 500ms - do we need to???\n*******************\n\n");
-		Thread.sleep(500);
-		stAtProcr.getProcessorLatch().countDown();
+		System.out.println("INFO: Sleeping for 50ms to give the processor time to run...");
+		Thread.sleep(50);
+		
+		stAtProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 99.5d, "Running finished.");
+		pti.endExecution(stAtProcr);
 		
 		
 		//These are the statuses & percent completes reported by the processor as it sets up the run
 		Status[] reportedStatuses = new Status[]{Status.RUNNING, Status.RUNNING,
-				Status.RUNNING, Status.RUNNING, Status.RUNNING};
-		Double[] reportedPercent = new Double[]{0d, 0d, 
-				1.25d, 2.5d, 5d};
+				Status.RUNNING, Status.RUNNING};
+		Double[] reportedPercent = new Double[]{0d, 1d, 
+				4d, 5d};
 		
 		pti.checkFirstBroadcastBeanStatuses(stAt, reportedStatuses, reportedPercent);
 		pti.checkLastBroadcastBeanStatuses(stAt, Status.COMPLETE, true);
@@ -79,8 +104,6 @@ public class SubTaskAtomProcessorTest {
 			assertEquals("Incorrect beamline", stAt.getBeamline(), dummy.getBeamline());
 			assertFalse("No hostname set", dummy.getHostName() == null);
 			assertEquals("Incorrect hostname", stAt.getHostName(), dummy.getHostName());
-			assertFalse("No name set", dummy.getName() == null);
-			assertEquals("Incorrect name", stAt.getName(), dummy.getName());
 			assertFalse("No username set", dummy.getUserName() == null);
 			assertEquals("Incorrect username", stAt.getUserName(), dummy.getUserName());
 		}
