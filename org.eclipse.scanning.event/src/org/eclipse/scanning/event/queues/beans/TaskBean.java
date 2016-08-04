@@ -19,9 +19,9 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
  * @author Michael Wharmby
  *
  */
-public class TaskBean extends QueueBean implements IAtomBeanWithQueue<SubTaskBean> {
+public class TaskBean extends QueueBean implements IAtomBeanWithQueue<SubTaskAtom> {
 	
-	private IAtomQueue<SubTaskBean> atomQueue = new AtomQueue<SubTaskBean>();
+	private IAtomQueue<SubTaskAtom> atomQueue = new AtomQueue<SubTaskAtom>();
 	private String queueMessage;
 	
 	/**
@@ -41,12 +41,12 @@ public class TaskBean extends QueueBean implements IAtomBeanWithQueue<SubTaskBea
 	}
 
 	@Override
-	public IAtomQueue<SubTaskBean> getAtomQueue() {
+	public IAtomQueue<SubTaskAtom> getAtomQueue() {
 		return atomQueue;
 	}
 
 	@Override
-	public void setAtomQueue(IAtomQueue<SubTaskBean> atomQueue) {
+	public void setAtomQueue(IAtomQueue<SubTaskAtom> atomQueue) {
 		this.atomQueue = atomQueue;
 	}
 	

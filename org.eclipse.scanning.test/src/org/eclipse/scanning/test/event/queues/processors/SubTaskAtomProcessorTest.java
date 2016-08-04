@@ -9,7 +9,7 @@ import java.util.List;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
-import org.eclipse.scanning.event.queues.beans.SubTaskBean;
+import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
@@ -21,7 +21,7 @@ import org.junit.Test;
 
 public class SubTaskAtomProcessorTest {
 	
-	private SubTaskBean stAt;
+	private SubTaskAtom stAt;
 	private SubTaskAtomProcessor stAtProcr;
 	private ProcessorTestInfrastructure pti;
 	
@@ -35,7 +35,7 @@ public class SubTaskAtomProcessorTest {
 		pti = new ProcessorTestInfrastructure();
 		
 		//Create processor & test atom
-		stAt = new SubTaskBean("Test queue sub task bean");
+		stAt = new SubTaskAtom("Test queue sub task bean");
 		stAt.setBeamline("I15-1(test)");
 		stAt.setHostName("afakeserver.diamond.ac.uk");
 		stAt.setUserName(System.getProperty("user.name"));

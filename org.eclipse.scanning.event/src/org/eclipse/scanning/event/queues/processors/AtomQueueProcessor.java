@@ -10,7 +10,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.AtomQueueServiceUtils;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
-import org.eclipse.scanning.event.queues.beans.SubTaskBean;
+import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 
 /**
  * Generic class for processing a {@link Queueable} composed of an 
@@ -30,8 +30,8 @@ import org.eclipse.scanning.event.queues.beans.SubTaskBean;
 public class AtomQueueProcessor {
 	
 	private IQueueService queueService;
-	private QueueListener<SubTaskBean, QueueAtom> queueListener;
-	private ISubscriber<QueueListener<SubTaskBean, QueueAtom>> queueSubscriber;
+	private QueueListener<SubTaskAtom, QueueAtom> queueListener;
+	private ISubscriber<QueueListener<SubTaskAtom, QueueAtom>> queueSubscriber;
 	
 	private SubTaskAtomProcessor parentProcessor;
 	
@@ -51,7 +51,7 @@ public class AtomQueueProcessor {
 		//Spool beans from bean atom queue to the queue service
 		//(queue empty after this!)
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 1d, "Submitting atoms to active queue.");
-		SubTaskBean parentBean = parentProcessor.getProcessBean();
+		SubTaskAtom parentBean = parentProcessor.getProcessBean();
 		while (atomQueue.queueSize() > 0) {
 			QueueAtom nextAtom = atomQueue.viewNext();
 			if (nextAtom.getBeamline() != parentBean.getBeamline()) {

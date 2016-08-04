@@ -2,9 +2,9 @@ package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.beans.SubTaskBean;
+import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 
-public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskBean> {
+public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 	
 	private AtomQueueProcessor atomQueueProcessor;
 	
@@ -44,8 +44,8 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskBean> {
 	}
 
 	@Override
-	public Class<SubTaskBean> getBeanClass() {
-		return SubTaskBean.class;
+	public Class<SubTaskAtom> getBeanClass() {
+		return SubTaskAtom.class;
 	}
 
 }
