@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,26 +16,40 @@ import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.event.queues.Queue;
 
 public class MockQueueService implements IQueueService {
 	
 	private IQueue<QueueBean> jobQueue;
 	private String jobQueueID;
 	
-	private Map<String, IQueue<QueueAtom>> activeQueues;
+	private Map<String, IQueue<QueueAtom>> activeQueues = new HashMap<>();
+	private int nrActiveQueues = 0;
 	
 	private MockSubmitter<Queueable> mockSubmitter;
+	
+	private URI uri;
 	
 	public MockQueueService(IQueue<QueueBean> mockOne) {
 		this.jobQueue = mockOne;
 		jobQueueID = mockOne.getQueueID();
-		
-		activeQueues = new HashMap<>();
+		try {
+			uri = new URI("mock.uri");
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public MockQueueService() {
 		jobQueue = null;
-		jobQueueID = "fake";
+		jobQueueID = "mock-job-queue";
+		try {
+			uri = new URI("mock.uri");
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -67,8 +82,16 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public String registerNewActiveQueue() throws EventException {
-		// TODO Auto-generated method stub
-		return null;
+
+		//Get an ID and the queue names for new active queue
+		nrActiveQueues = activeQueues.size();
+		String aqID = "fake." + ACTIVE_QUEUE + "-" + nrActiveQueues;
+
+		//Add to registry and increment number of registered queues
+		activeQueues.put(aqID, new MockQueue<>(aqID, null));
+		nrActiveQueues = activeQueues.size();
+
+		return aqID;
 	}
 
 	@Override
@@ -220,8 +243,7 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public URI getURI() {
-		// TODO Auto-generated method stub
-		return null;
+		return uri;
 	}
 	
 	@Override
