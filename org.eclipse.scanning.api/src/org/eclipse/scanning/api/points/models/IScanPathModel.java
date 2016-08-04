@@ -1,7 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
 import java.beans.PropertyChangeListener;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -12,20 +11,11 @@ import java.util.List;
  */
 public interface IScanPathModel {
 
-	/**
-	 * A 'friendly' name for display to the user
-	 *
-	 * @return the name of this path
-	 */
-	public String getName();
-	
     /**
      * The names of the axes which will be scanned by this model.
      * @return
      */
-	default List<String> getScannableNames() {
-		return Arrays.asList(getName()); 
-	}
+	List<String> getScannableNames();
 
 	/**
 	 * Property change support
