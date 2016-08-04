@@ -4,22 +4,23 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorCompletionService;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
-import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
-import org.eclipse.scanning.test.event.queues.mocks.MockQueue;
-import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 
 public class ProcessorTestInfrastructure {
 	
-	private MockPublisher<Queueable> statPub;
+	private URI uri = null;
+	private String topic = null;
+	private MockPublisher<Queueable> statPub = new MockPublisher<>(uri, topic);
 	
 	private Exception threadException;
 	
@@ -51,13 +52,21 @@ public class ProcessorTestInfrastructure {
 					qProc.execute();
 					threadLatch.countDown();
 				} catch (Exception e) {
-					threadException = new Exception(e);
+					threadException = e;
 				}
 			}
 		});
 		th.setDaemon(true);
 		th.setPriority(Thread.MAX_PRIORITY);
 		th.start();
+	}
+	
+	public void endExecution(IQueueProcessor<? extends Queueable> qProcr) throws Exception {
+		qProcr.getProcessorLatch().countDown();
+		
+		if (threadException != null) {
+			throw threadException;
+		}
 	}
 	
 	/**
@@ -68,9 +77,10 @@ public class ProcessorTestInfrastructure {
 	 * @param beanPercent
 	 */
 	protected void checkFirstBroadcastBeanStatuses(Queueable bean, Status[] beanStatuses, Double[] beanPercent) throws Exception {
-		assert(beanStatuses.length == beanPercent.length);
+		if (beanStatuses.length != beanPercent.length) fail("Number of Statuses and percents to test must be equal");
 		
 		List<Queueable> broadcastBeans = getBroadcastBeans();
+		if (broadcastBeans.size() < beanStatuses.length) fail("Too few beans broadcast (expected: "+beanStatuses.length+"; was: "+broadcastBeans.size()+")");
 		
 		for (int i = 0; i < beanStatuses.length; i++) {
 			Queueable broadBean = broadcastBeans.get(i);
@@ -158,6 +168,10 @@ public class ProcessorTestInfrastructure {
 	
 	public Exception getProcThreadException() {
 		return threadException;
+	}
+	
+	public void resetStatPub() {
+		statPub = new MockPublisher<>(uri, topic);
 	}
 
 }
