@@ -13,11 +13,14 @@ import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.eclipse.scanning.event.queues.processors.TaskBeanProcessor;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
+import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TaskBeanProcessorTest {
@@ -26,10 +29,36 @@ public class TaskBeanProcessorTest {
 	private TaskBeanProcessor tBeProcr;
 	private ProcessorTestInfrastructure pti;
 	
-	private MockQueueService mockQServ;
-	private MockSubmitter<QueueAtom> mockSub;
-	private MockEventService mockEvServ;
+	private static MockQueueService mockQServ;
+	private static MockSubmitter<QueueAtom> mockSub;
+	private static MockEventService mockEvServ;
+	private static MockPublisher<QueueAtom> mockPub;
 	
+	@BeforeClass
+	public static void setUpClass() {
+		//Configure the processor Mock queue infrastructure
+		mockSub = new MockSubmitter<>();
+		mockQServ = new MockQueueService();
+		mockQServ.setMockSubmitter(mockSub);
+		QueueServicesHolder.setQueueService(mockQServ);
+		
+		
+		mockPub = new MockPublisher<>(null,  null);
+		mockEvServ = new MockEventService();
+		mockEvServ.setMockPublisher(mockPub);
+		QueueServicesHolder.setEventService(mockEvServ);
+	}
+	
+	@AfterClass
+	public static void tearDownClass() {
+		QueueServicesHolder.unsetEventService(mockEvServ);
+		mockEvServ = null;
+		mockPub = null;
+		
+		QueueServicesHolder.unsetQueueService(mockQServ);
+		mockQServ = null;
+		mockSub = null;
+	}
 	
 	@Before
 	public void setUp() {
@@ -47,25 +76,13 @@ public class TaskBeanProcessorTest {
 		tBe.queue().add(atomB);
 		tBe.queue().add(atomC);
 		
-		//Configure the processor Mock queue infrastructure
-		mockSub = new MockSubmitter<>();
-		mockQServ = new MockQueueService();
-		mockQServ.setMockSubmitter(mockSub);
-		QueueServicesHolder.setQueueService(mockQServ);
-		
-		mockEvServ = new MockEventService();
-		QueueServicesHolder.setEventService(mockEvServ);
+		//Reset queue architecture
+		mockSub.resetSubmitter();
+		mockPub.resetPublisher();
 	}
 	
 	@After
 	public void tearDown() {
-		QueueServicesHolder.unsetEventService(mockEvServ);
-		mockEvServ = null;
-		
-		QueueServicesHolder.unsetQueueService(mockQServ);
-		mockQServ = null;
-		mockSub = null;
-		
 		pti = null;
 	}
 	
@@ -75,12 +92,11 @@ public class TaskBeanProcessorTest {
 		
 		pti.executeProcessor(tBeProcr, tBe);
 		
-		System.out.println("INFO: Sleeping for 50ms to give the processor time to run...");
-		Thread.sleep(50);
+		assertTrue("Execute flag not set true after execution", tBeProcr.isExecuted());
 		
 		tBeProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 99.5d, "Running finished.");
-		pti.endExecution(tBeProcr);
-		
+		tBeProcr.getProcessorLatch().countDown();
+		pti.exceptionCheck();
 		
 		//These are the statuses & percent completes reported by the processor as it sets up the run
 		Status[] reportedStatuses = new Status[]{Status.RUNNING, Status.RUNNING,
@@ -92,6 +108,26 @@ public class TaskBeanProcessorTest {
 		pti.checkLastBroadcastBeanStatuses(tBe, Status.COMPLETE, true);
 		
 		testSubmittedBeans(mockSub);
+	}
+	
+	@Test
+	public void testTermination() throws Exception {
+		tBeProcr = new TaskBeanProcessor();
+		
+		pti.executeProcessor(tBeProcr, tBe);
+		//Set some arbitrary percent complete
+		tBeProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 20d);
+		
+		/*
+		 * terminate is usually called as follows:
+		 * AbstractPausableProcess.terminate() -> QueueProcess.doTerminate -> tBeProcr.terminate()
+		 */
+		pti.getQProc().terminate();
+		pti.exceptionCheck();
+		assertTrue("Terminated flag not set true after termination", tBeProcr.isTerminated());
+		pti.checkLastBroadcastBeanStatuses(tBe, Status.TERMINATED, false);
+		pti.checkLastBroadcastChildBeanStatus(Status.REQUEST_TERMINATE);
+		
 	}
 	
 	protected void testSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
