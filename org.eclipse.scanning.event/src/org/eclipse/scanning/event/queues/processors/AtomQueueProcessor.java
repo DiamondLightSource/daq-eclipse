@@ -30,13 +30,12 @@ import org.eclipse.scanning.event.queues.QueueServicesHolder;
  */
 public class AtomQueueProcessor<P extends IAtomBeanWithQueue<Q>, Q extends QueueAtom> {
 	
-	//SubTaskAtom = P, QueueAtom = Q
-	
 	private IQueueService queueService;
 	private QueueListener<P, Q> queueListener;
 	private ISubscriber<QueueListener<P, Q>> queueSubscriber;
 	
 	private IQueueProcessor<P> parentProcessor;
+	private String activeQueueName; 
 	
 	public AtomQueueProcessor(IQueueProcessor<P> parentProcessor) {
 		queueService = QueueServicesHolder.getQueueService();	
@@ -49,7 +48,7 @@ public class AtomQueueProcessor<P extends IAtomBeanWithQueue<Q>, Q extends Queue
 		
 		//Create a new active queue to submit the atoms into
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 0d, "Registering new active queue.");
-		final String activeQueueName = queueService.registerNewActiveQueue();
+		activeQueueName = queueService.registerNewActiveQueue();
 		
 		//Spool beans from bean atom queue to the queue service
 		//(queue empty after this!)
@@ -74,7 +73,7 @@ public class AtomQueueProcessor<P extends IAtomBeanWithQueue<Q>, Q extends Queue
 				parentProcessor.getQueueBroadcaster(), 
 				parentProcessor.getProcessBean(), 
 				parentProcessor.getProcessorLatch());
-		queueSubscriber = AtomQueueServiceUtils.createActiveQueueSubscriber(activeQueueName);
+		queueSubscriber = AtomQueueServiceUtils.createQueueSubscriber(activeQueueName);
 		queueSubscriber.addListener(queueListener);
 		
 		//Start processing & wait for it to end.
@@ -89,4 +88,7 @@ public class AtomQueueProcessor<P extends IAtomBeanWithQueue<Q>, Q extends Queue
 		queueSubscriber.disconnect();
 	}
 
+	public String getActiveQueueName() {
+		return activeQueueName;
+	}
 }
