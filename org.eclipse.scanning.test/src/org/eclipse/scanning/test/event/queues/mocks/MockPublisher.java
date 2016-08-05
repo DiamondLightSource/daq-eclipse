@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 
-public class MockPublisher<T extends StatusBean> implements IPublisher<T> {
+public class MockPublisher<T> implements IPublisher<T> {
 	
 	
 	private String topicName;
@@ -22,7 +22,7 @@ public class MockPublisher<T extends StatusBean> implements IPublisher<T> {
 	private String queueName;
 	private IConsumer<?> consumer;
 	
-	private List<Queueable> broadcastBeans = new ArrayList<>();
+	private volatile List<Queueable> broadcastBeans = new ArrayList<>();
 	
 	private boolean alive;
 	
@@ -32,6 +32,10 @@ public class MockPublisher<T extends StatusBean> implements IPublisher<T> {
 		this.uri = uri;
 		
 		alive = true;
+	}
+	
+	public void resetPublisher() {
+		broadcastBeans.clear();
 	}
 
 	@Override
@@ -59,12 +63,13 @@ public class MockPublisher<T extends StatusBean> implements IPublisher<T> {
 	@Override
 	public void broadcast(T bean) throws EventException {
 		final DummyHasQueue broadBean = new DummyHasQueue();
-		broadBean.setMessage(bean.getMessage());
-		broadBean.setPreviousStatus(bean.getPreviousStatus());
-		broadBean.setStatus(bean.getStatus());
-		broadBean.setPercentComplete(bean.getPercentComplete());
-		broadBean.setUniqueId(bean.getUniqueId());
-		broadBean.setName(bean.getName());
+		StatusBean loBean = (StatusBean)bean;
+		broadBean.setMessage(loBean.getMessage());
+		broadBean.setPreviousStatus(loBean.getPreviousStatus());
+		broadBean.setStatus(loBean.getStatus());
+		broadBean.setPercentComplete(loBean.getPercentComplete());
+		broadBean.setUniqueId(loBean.getUniqueId());
+		broadBean.setName(loBean.getName());
 		
 		if (bean instanceof IAtomWithChildQueue) {
 			broadBean.setQueueMessage(((IAtomWithChildQueue)bean).getQueueMessage());

@@ -18,6 +18,10 @@ public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
 	public MockSubmitter() {
 		submittedBeans = new ArrayList<>();
 	}
+	
+	public void resetSubmitter() {
+		submittedBeans.clear();
+	}
 
 	@Override
 	public String getStatusSetName() {

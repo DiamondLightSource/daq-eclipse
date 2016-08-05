@@ -18,6 +18,8 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
 public class MockEventService implements IEventService {
+	
+	private MockPublisher<?> mockPublisher;
 
 	@Override
 	public <T> IQueueReader<T> createQueueReader(URI uri, String queueName) {
@@ -30,10 +32,10 @@ public class MockEventService implements IEventService {
 		return new MockSubscriber<>(uri, topicName);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <U> IPublisher<U> createPublisher(URI uri, String topicName) {
-		// TODO Auto-generated method stub
-		return null;
+		return (IPublisher<U>) mockPublisher;
 	}
 
 	@Override
@@ -102,4 +104,7 @@ public class MockEventService implements IEventService {
 		return null;
 	}
 
+	public void setMockPublisher(MockPublisher<?> mockPublisher) {
+		this.mockPublisher = mockPublisher;
+	}
 }
