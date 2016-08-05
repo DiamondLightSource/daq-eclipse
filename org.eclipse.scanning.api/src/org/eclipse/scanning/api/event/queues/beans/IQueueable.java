@@ -44,6 +44,10 @@ public interface IQueueable {
 	
 	public void setPercentComplete(double percentComplete);
 	
+	public void setPreviousStatus(Status status);
+	
+	public Status getPreviousStatus();
+	
 	/**
 	 * Get the amount of time (in ms) necessary to complete the processes in 
 	 * this {@link IQueueAtom}.
