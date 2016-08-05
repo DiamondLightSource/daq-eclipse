@@ -81,7 +81,9 @@ public class AtomQueueProcessor<P extends IAtomBeanWithQueue<Q>, Q extends Queue
 		queueService.startActiveQueue(activeQueueName);
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 5d, "Waiting for active queue to complete");
 		parentProcessor.getProcessorLatch().await();
-		
+	}
+	
+	public void tidyQueue() throws EventException {
 		//Tidy up our processes, before handing back control
 		queueService.stopActiveQueue(activeQueueName, false);
 		queueService.deRegisterActiveQueue(activeQueueName, true);

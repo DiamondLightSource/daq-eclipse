@@ -24,13 +24,13 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 		if (isTerminated()) {
 			broadcaster.broadcast("Active-queue aborted before completion (requested)");
 			AtomQueueServiceUtils.terminateQueueProcess(atomQueueProcessor.getActiveQueueName(), queueBean);
-		}
-		
-		if (queueBean.getPercentComplete() >= 99.5) {
+		} else if (queueBean.getPercentComplete() >= 99.5) {
 			//Completed successfully
 			broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
 		}
-
+		
+		//This should be run after we've reported the queue final state
+		atomQueueProcessor.tidyQueue();
 	}
 
 	@Override
