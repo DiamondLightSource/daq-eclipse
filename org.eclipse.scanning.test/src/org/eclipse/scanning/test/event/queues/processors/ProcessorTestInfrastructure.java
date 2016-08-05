@@ -22,7 +22,11 @@ public class ProcessorTestInfrastructure {
 	private String topic = null;
 	private MockPublisher<Queueable> statPub = new MockPublisher<>(uri, topic);
 	
+	private QueueProcess<Queueable> qProc;
+	
 	private Exception threadException;
+	private long execTime = 50;
+	private final CountDownLatch analysisLatch = new CountDownLatch(1);;
 	
 	/**
 	 * Generic method for running a queue processor. When complete, it releases the execLatch.
@@ -33,14 +37,12 @@ public class ProcessorTestInfrastructure {
 	 * @throws Exception
 	 */
 	public void executeProcessor(IQueueProcessor<? extends Queueable> qProcr, Queueable procrBean) throws Exception {
-		QueueProcess<Queueable>qProc = new QueueProcess<>(procrBean, statPub, true);
+		qProc = new QueueProcess<>(procrBean, statPub, true);
 		
 		//Configure the QueueProcess & QueueProcessor
 		qProcr.setQueueBroadcaster(qProc);
 		qProcr.setProcessBean(procrBean);
 		qProc.setProcessor(qProcr);
-		
-		final CountDownLatch threadLatch = new CountDownLatch(1);
 		
 		//Check the bean doesn't have some weird initial state set on it:
 		assertEquals("Wrong initial status", Status.NONE, procrBean.getStatus());
@@ -50,23 +52,27 @@ public class ProcessorTestInfrastructure {
 			public void run() {
 				try {
 					qProc.execute();
-					threadLatch.countDown();
 				} catch (Exception e) {
 					threadException = e;
+				} finally {
+					analysisLatch.countDown();
 				}
 			}
 		});
 		th.setDaemon(true);
 		th.setPriority(Thread.MAX_PRIORITY);
 		th.start();
+		
+		System.out.println("INFO: Sleeping for "+execTime+"ms to give the processor time to run...");
+		Thread.sleep(execTime);
 	}
 	
-	public void endExecution(IQueueProcessor<? extends Queueable> qProcr) throws Exception {
-		qProcr.getProcessorLatch().countDown();
-		
+	public void exceptionCheck() throws Exception {
+		System.out.println("INFO: Waiting for thread to finish...");
+		analysisLatch.await();
 		if (threadException != null) {
 			throw threadException;
-		}
+		} 
 	}
 	
 	/**
@@ -146,7 +152,7 @@ public class ProcessorTestInfrastructure {
 		if (!lastBean.getUniqueId().equals(bean.getUniqueId())){
 			throw new EventException("Last bean is not the bean we were looking for");
 		}
-		assertTrue("Last bean is not final", lastBean.getStatus().isFinal());
+		assertTrue("Last bean is not final (was: "+lastBean.getStatus()+")", lastBean.getStatus().isFinal());
 		assertEquals("Last bean has wrong status", state, lastBean.getStatus());
 		if (percentComplete > 0) {
 			assertEquals("Last bean has wrong percent complete", percentComplete, lastBPercComp, 0);
@@ -160,18 +166,28 @@ public class ProcessorTestInfrastructure {
 	 * Request all the broadcast beans from the mock publisher.
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public List<Queueable> getBroadcastBeans() {
-		List<Queueable> broadcastBeans  = ((MockPublisher<Queueable>)statPub).getBroadcastBeans();
-		if (broadcastBeans.size() == 0) fail("No beans broadcast to Publisher");
-		return broadcastBeans;
+		return (List<Queueable>) getPublishedBeans(statPub);
+	}
+	
+	public List<?> getPublishedBeans(MockPublisher<?> mockPub) {
+		List<?> publBeans = mockPub.getBroadcastBeans();
+		if (publBeans.size() == 0) fail("No beans broadcast to publisher");
+		return publBeans;
+	}
+	
+	public QueueProcess<Queueable> getQProc() {
+		return qProc;
 	}
 	
 	public Exception getProcThreadException() {
 		return threadException;
 	}
 	
-	public void resetStatPub() {
+	public void resetInfrastructure() {
 		statPub = new MockPublisher<>(uri, topic);
+		qProc = null;
 	}
 
 }
