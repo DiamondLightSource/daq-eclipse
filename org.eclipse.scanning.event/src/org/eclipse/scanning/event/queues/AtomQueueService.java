@@ -314,6 +314,7 @@ public class AtomQueueService implements IQueueService {
 		submitter.disconnect();
 	}
 
+	@Deprecated
 	@Override
 	public <T extends Queueable> void terminate(T atomBean, String statusT) throws EventException {
 		//Set up a publisher to send terminated beans with
@@ -397,6 +398,7 @@ public class AtomQueueService implements IQueueService {
 	}
 
 	@Override
+	//TODO This can be removed as we have the QueueServicesHolder
 	public IEventService getEventService() {
 		return eventService;
 	}

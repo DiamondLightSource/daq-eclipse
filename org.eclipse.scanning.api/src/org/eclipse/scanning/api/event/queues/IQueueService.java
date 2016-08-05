@@ -197,6 +197,7 @@ public interface IQueueService {
 	 * @param statusT String status topic to publish termination request to.
 	 * @throws EventException In case termination is unsuccessful.
 	 */
+	@Deprecated
 	public <T extends Queueable> void terminate(T atomBean, String statusT) throws EventException;
 
 	/**
