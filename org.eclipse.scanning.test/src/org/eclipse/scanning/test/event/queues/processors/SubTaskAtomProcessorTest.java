@@ -12,7 +12,6 @@ import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
-import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
@@ -120,13 +119,13 @@ public class SubTaskAtomProcessorTest {
 		
 		/*
 		 * terminate is usually called as follows:
-		 * AbstractPausableProcess.terminate() -> QueueProcess.doTerminate -> stAt.terminate()
+		 * AbstractPausableProcess.terminate() -> QueueProcess.doTerminate -> stAtProcr.terminate()
 		 */
 		pti.getQProc().terminate();
 		pti.exceptionCheck();
 		assertTrue("Terminated flag not set true after termination", stAtProcr.isTerminated());
 		pti.checkLastBroadcastBeanStatuses(stAt, Status.TERMINATED, false);
-		testLastPublishedBeanStatus(Status.REQUEST_TERMINATE);
+		pti.checkLastBroadcastChildBeanStatus(Status.REQUEST_TERMINATE);
 		
 	}
 	
@@ -144,15 +143,6 @@ public class SubTaskAtomProcessorTest {
 			assertFalse("No username set", dummy.getUserName() == null);
 			assertEquals("Incorrect username", stAt.getUserName(), dummy.getUserName());
 		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	protected void testLastPublishedBeanStatus(Status state) {
-		MockPublisher<?> mp = (MockPublisher<?>) QueueServicesHolder.getEventService().createPublisher(null, null);
-		List<DummyHasQueue> childBeans = (List<DummyHasQueue>) pti.getPublishedBeans(mp);
-		
-		DummyHasQueue lastBean = childBeans.get(childBeans.size()-1);
-		assertEquals("Last published bean has wrong state", state, lastBean.getStatus());
 	}
 
 }

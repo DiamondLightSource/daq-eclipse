@@ -7,13 +7,15 @@ import static org.junit.Assert.fail;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
+import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 
 public class ProcessorTestInfrastructure {
@@ -69,10 +71,15 @@ public class ProcessorTestInfrastructure {
 	
 	public void exceptionCheck() throws Exception {
 		System.out.println("INFO: Waiting for thread to finish...");
-		analysisLatch.await();
+		long timeout = 2000;
+		boolean released = analysisLatch.await(timeout, TimeUnit.MILLISECONDS);
 		if (threadException != null) {
 			throw threadException;
-		} 
+		}
+		
+		if (!released) {
+			fail("Thread running the QueueProcess didn't complete within "+timeout+"ms");
+		}
 	}
 	
 	/**
@@ -160,6 +167,15 @@ public class ProcessorTestInfrastructure {
 			assertTrue("The percent complete is not between 0% & 100% (is: "+lastBPercComp+")", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
 		}
 		
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected void checkLastBroadcastChildBeanStatus(Status state) {
+		MockPublisher<?> mp = (MockPublisher<?>) QueueServicesHolder.getEventService().createPublisher(null, null);
+		List<DummyHasQueue> childBeans = (List<DummyHasQueue>) getPublishedBeans(mp);
+		
+		DummyHasQueue lastBean = childBeans.get(childBeans.size()-1);
+		assertEquals("Last published bean has wrong state", state, lastBean.getStatus());
 	}
 	
 	/**
