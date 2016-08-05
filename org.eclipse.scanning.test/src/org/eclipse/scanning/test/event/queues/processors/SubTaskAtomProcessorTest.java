@@ -12,11 +12,15 @@ import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
+import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
+import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class SubTaskAtomProcessorTest {
@@ -25,10 +29,36 @@ public class SubTaskAtomProcessorTest {
 	private SubTaskAtomProcessor stAtProcr;
 	private ProcessorTestInfrastructure pti;
 	
-	private MockQueueService mockQServ;
-	private MockSubmitter<QueueAtom> mockSub;
-	private MockEventService mockEvServ;
+	private static MockQueueService mockQServ;
+	private static MockSubmitter<QueueAtom> mockSub;
+	private static MockEventService mockEvServ;
+	private static MockPublisher<QueueAtom> mockPub;
 	
+	@BeforeClass
+	public static void setUpClass() {
+		//Configure the processor Mock queue infrastructure
+		mockSub = new MockSubmitter<>();
+		mockQServ = new MockQueueService();
+		mockQServ.setMockSubmitter(mockSub);
+		QueueServicesHolder.setQueueService(mockQServ);
+		
+		
+		mockPub = new MockPublisher<>(null,  null);
+		mockEvServ = new MockEventService();
+		mockEvServ.setMockPublisher(mockPub);
+		QueueServicesHolder.setEventService(mockEvServ);
+	}
+	
+	@AfterClass
+	public static void tearDownClass() {
+		QueueServicesHolder.unsetEventService(mockEvServ);
+		mockEvServ = null;
+		mockPub = null;
+		
+		QueueServicesHolder.unsetQueueService(mockQServ);
+		mockQServ = null;
+		mockSub = null;
+	}
 	
 	@Before
 	public void setUp() {
@@ -46,25 +76,13 @@ public class SubTaskAtomProcessorTest {
 		stAt.queue().add(atomB);
 		stAt.queue().add(atomC);
 		
-		//Configure the processor Mock queue infrastructure
-		mockSub = new MockSubmitter<>();
-		mockQServ = new MockQueueService();
-		mockQServ.setMockSubmitter(mockSub);
-		QueueServicesHolder.setQueueService(mockQServ);
-		
-		mockEvServ = new MockEventService();
-		QueueServicesHolder.setEventService(mockEvServ);
+		//Reset queue architecture
+		mockSub.resetSubmitter();
+		mockPub.resetPublisher();
 	}
 	
 	@After
 	public void tearDown() {
-		QueueServicesHolder.unsetEventService(mockEvServ);
-		mockEvServ = null;
-		
-		QueueServicesHolder.unsetQueueService(mockQServ);
-		mockQServ = null;
-		mockSub = null;
-		
 		pti = null;
 	}
 	
@@ -74,12 +92,11 @@ public class SubTaskAtomProcessorTest {
 		
 		pti.executeProcessor(stAtProcr, stAt);
 		
-		System.out.println("INFO: Sleeping for 50ms to give the processor time to run...");
-		Thread.sleep(50);
+		assertTrue("Execute flag not set true after execution", stAtProcr.isExecuted());
 		
 		stAtProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 99.5d, "Running finished.");
-		pti.endExecution(stAtProcr);
-		
+		stAtProcr.getProcessorLatch().countDown();
+		pti.exceptionCheck();
 		
 		//These are the statuses & percent completes reported by the processor as it sets up the run
 		Status[] reportedStatuses = new Status[]{Status.RUNNING, Status.RUNNING,
@@ -91,6 +108,26 @@ public class SubTaskAtomProcessorTest {
 		pti.checkLastBroadcastBeanStatuses(stAt, Status.COMPLETE, true);
 		
 		testSubmittedBeans(mockSub);
+	}
+	
+	@Test
+	public void testTermination() throws Exception {
+		stAtProcr = new SubTaskAtomProcessor();
+		
+		pti.executeProcessor(stAtProcr, stAt);
+		//Set some arbitrary percent complete
+		stAtProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 20d);
+		
+		/*
+		 * terminate is usually called as follows:
+		 * AbstractPausableProcess.terminate() -> QueueProcess.doTerminate -> stAt.terminate()
+		 */
+		pti.getQProc().terminate();
+		pti.exceptionCheck();
+		assertTrue("Terminated flag not set true after termination", stAtProcr.isTerminated());
+		pti.checkLastBroadcastBeanStatuses(stAt, Status.TERMINATED, false);
+		testLastPublishedBeanStatus(Status.REQUEST_TERMINATE);
+		
 	}
 	
 	protected void testSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
@@ -107,6 +144,15 @@ public class SubTaskAtomProcessorTest {
 			assertFalse("No username set", dummy.getUserName() == null);
 			assertEquals("Incorrect username", stAt.getUserName(), dummy.getUserName());
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected void testLastPublishedBeanStatus(Status state) {
+		MockPublisher<?> mp = (MockPublisher<?>) QueueServicesHolder.getEventService().createPublisher(null, null);
+		List<DummyHasQueue> childBeans = (List<DummyHasQueue>) pti.getPublishedBeans(mp);
+		
+		DummyHasQueue lastBean = childBeans.get(childBeans.size()-1);
+		assertEquals("Last published bean has wrong state", state, lastBean.getStatus());
 	}
 
 }
