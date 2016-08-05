@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
  * @param <Q> Bean extending {@link StatusBean} from the child queue.
  * @param <T> Bean extending {@link Queueable}, the parent queue atom.
  */
+//TODO Can P now extend IAtomBeanWithQueue?
+//TODO If so, can we update the broadcast mechanism to accept queuemessage updates too?
 public class QueueListener<P extends IQueueable, Q extends StatusBean> implements IBeanListener<Q> {
 	
 	private static Logger logger = LoggerFactory.getLogger(QueueListener.class);
