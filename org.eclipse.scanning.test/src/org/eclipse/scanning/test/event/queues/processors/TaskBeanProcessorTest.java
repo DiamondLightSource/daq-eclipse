@@ -3,17 +3,22 @@ package org.eclipse.scanning.test.event.queues.processors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.eclipse.scanning.event.queues.processors.TaskBeanProcessor;
+import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
+import org.eclipse.scanning.test.event.queues.mocks.MockQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
@@ -33,15 +38,19 @@ public class TaskBeanProcessorTest {
 	private static MockSubmitter<QueueAtom> mockSub;
 	private static MockEventService mockEvServ;
 	private static MockPublisher<QueueAtom> mockPub;
+	private static MockConsumer<QueueBean> mockCons;
+	private static MockQueue<QueueBean> mockJobQ;
 	
 	@BeforeClass
 	public static void setUpClass() {
 		//Configure the processor Mock queue infrastructure
+		mockCons = new MockConsumer<>();
+		mockJobQ = new MockQueue<>("mock-job-queue", mockCons);
+		
 		mockSub = new MockSubmitter<>();
-		mockQServ = new MockQueueService();
+		mockQServ = new MockQueueService(mockJobQ);
 		mockQServ.setMockSubmitter(mockSub);
 		QueueServicesHolder.setQueueService(mockQServ);
-		
 		
 		mockPub = new MockPublisher<>(null,  null);
 		mockEvServ = new MockEventService();
@@ -107,7 +116,7 @@ public class TaskBeanProcessorTest {
 		pti.checkFirstBroadcastBeanStatuses(tBe, reportedStatuses, reportedPercent);
 		pti.checkLastBroadcastBeanStatuses(tBe, Status.COMPLETE, true);
 		
-		testSubmittedBeans(mockSub);
+		checkSubmittedBeans(mockSub);
 	}
 	
 	@Test
@@ -116,7 +125,7 @@ public class TaskBeanProcessorTest {
 		
 		pti.executeProcessor(tBeProcr, tBe);
 		//Set some arbitrary percent complete
-		tBeProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 20d);
+		tBeProcr.getQueueBroadcaster().broadcast(Status.REQUEST_TERMINATE, 20d);
 		
 		/*
 		 * terminate is usually called as follows:
@@ -125,12 +134,39 @@ public class TaskBeanProcessorTest {
 		pti.getQProc().terminate();
 		pti.exceptionCheck();
 		assertTrue("Terminated flag not set true after termination", tBeProcr.isTerminated());
-		pti.checkLastBroadcastBeanStatuses(tBe, Status.TERMINATED, false);
+		pti.checkLastBroadcastBeanStatuses(tBe, Status.TERMINATED, true);
+		//TODO Should this be the message or the queue-message?
+		assertEquals("Wrong message set after termination.", "Job-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
 		pti.checkLastBroadcastChildBeanStatus(Status.REQUEST_TERMINATE);
 		
 	}
 	
-	protected void testSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
+	//@Test
+	public void testChildFailure() throws Exception {
+		tBeProcr = new TaskBeanProcessor();
+		
+		pti.executeProcessor(tBeProcr, tBe);
+		//Set some arbitrary percent complete
+		tBeProcr.getQueueBroadcaster().broadcast(Status.REQUEST_TERMINATE, 20d);
+		
+		/*
+		 * FAILED is always going to happen underneath.
+		 * QueueListener sets the message and queueMessage
+		 * We need to set this bean's status to FAILED and pause the consumer 
+		 * to stop running any more beans until the user is happy.
+		 */
+		pti.checkLastBroadcastBeanStatuses(tBe, Status.FAILED, false);
+		
+		//Check we sent a pause instruction to the job-queue consumer
+		if (pti.getLastPublishedBean(mockPub) instanceof PauseBean) {
+			PauseBean lastBean = (PauseBean)pti.getLastPublishedBean(mockPub);
+			assertEquals("PauseBean does not pause the job-queue consumer", mockCons.getConsumerId(), lastBean.getConsumerId());
+		} else {
+			fail("Last published bean was not a PauseBean");
+		}
+	}
+	
+	protected void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
 		List<QueueAtom> submittedBeans = ms.getQueue();
 		assertTrue("No beans in the final status set", submittedBeans.size() != 0);
 		for (QueueAtom dummy : submittedBeans) {

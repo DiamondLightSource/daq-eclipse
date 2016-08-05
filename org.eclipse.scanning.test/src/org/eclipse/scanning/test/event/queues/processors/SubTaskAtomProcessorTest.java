@@ -106,7 +106,7 @@ public class SubTaskAtomProcessorTest {
 		pti.checkFirstBroadcastBeanStatuses(stAt, reportedStatuses, reportedPercent);
 		pti.checkLastBroadcastBeanStatuses(stAt, Status.COMPLETE, true);
 		
-		testSubmittedBeans(mockSub);
+		checkSubmittedBeans(mockSub);
 	}
 	
 	@Test
@@ -115,7 +115,7 @@ public class SubTaskAtomProcessorTest {
 		
 		pti.executeProcessor(stAtProcr, stAt);
 		//Set some arbitrary percent complete
-		stAtProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 20d);
+		stAtProcr.getQueueBroadcaster().broadcast(Status.REQUEST_TERMINATE, 20d);
 		
 		/*
 		 * terminate is usually called as follows:
@@ -124,12 +124,31 @@ public class SubTaskAtomProcessorTest {
 		pti.getQProc().terminate();
 		pti.exceptionCheck();
 		assertTrue("Terminated flag not set true after termination", stAtProcr.isTerminated());
-		pti.checkLastBroadcastBeanStatuses(stAt, Status.TERMINATED, false);
+		pti.checkLastBroadcastBeanStatuses(stAt, Status.TERMINATED, true);
+		//TODO Should this be the message or the queue-message?
+		assertEquals("Wrong message set after termination.", "Active-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
 		pti.checkLastBroadcastChildBeanStatus(Status.REQUEST_TERMINATE);
 		
 	}
 	
-	protected void testSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
+//	@Test
+	public void testChildFailure() throws Exception {
+		stAtProcr = new SubTaskAtomProcessor();
+		
+		pti.executeProcessor(stAtProcr, stAt);
+		//Set some arbitrary percent complete and release the latch
+		stAtProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 20d);
+		stAtProcr.getProcessorLatch().countDown();
+		
+		/*
+		 * FAILED is always going to happen underneath.
+		 * QueueListener sets the message and queueMessage
+		 * We just need to set this bean's status to FAILED.
+		 */
+		pti.checkLastBroadcastBeanStatuses(stAt, Status.FAILED, false);
+	}
+	
+	protected void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
 		List<QueueAtom> submittedBeans = ms.getQueue();
 		assertTrue("No beans in the final status set", submittedBeans.size() != 0);
 		for (QueueAtom dummy : submittedBeans) {
