@@ -16,7 +16,6 @@ import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.event.queues.Queue;
 
 public class MockQueueService implements IQueueService {
 	
