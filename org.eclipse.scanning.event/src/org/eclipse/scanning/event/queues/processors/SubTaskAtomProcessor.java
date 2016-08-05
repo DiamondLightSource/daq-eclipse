@@ -49,7 +49,6 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 	public void terminate() throws EventException {
 		setTerminated();
 		processorLatch.countDown();
-
 	}
 
 	@Override
