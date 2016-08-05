@@ -10,6 +10,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
@@ -187,10 +188,19 @@ public class ProcessorTestInfrastructure {
 		return (List<Queueable>) getPublishedBeans(statPub);
 	}
 	
+	public Queueable getLastBroadcastBean() {
+		return (Queueable)getLastPublishedBean(statPub);
+	}
+	
 	public List<?> getPublishedBeans(MockPublisher<?> mockPub) {
 		List<?> publBeans = mockPub.getBroadcastBeans();
 		if (publBeans.size() == 0) fail("No beans broadcast to publisher");
 		return publBeans;
+	}
+	
+	public IdBean getLastPublishedBean(MockPublisher<?> mockPub) {
+		List<?> publBeans = getPublishedBeans(mockPub);
+		return (IdBean) publBeans.get(publBeans.size()-1);
 	}
 	
 	public QueueProcess<Queueable> getQProc() {
