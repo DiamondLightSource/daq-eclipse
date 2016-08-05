@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.event.queues.beans;
 
-import org.eclipse.scanning.api.event.IdBean;
+import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
@@ -12,6 +12,8 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  *
  */
 public abstract class Queueable extends StatusBean implements IQueueable {
+	
+	private static final long serialVersionUID = 5067469791394115873L;
 	
 	protected long runTime;
 	protected String beamline;
