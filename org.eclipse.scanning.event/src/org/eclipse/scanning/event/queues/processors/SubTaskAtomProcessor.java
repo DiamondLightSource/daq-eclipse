@@ -1,7 +1,5 @@
 package org.eclipse.scanning.event.queues.processors;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.status.Status;
@@ -12,16 +10,9 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 	
 	private AtomQueueProcessor<SubTaskAtom, QueueAtom> atomQueueProcessor;
 	
-	private final ReentrantLock lock;
-//	private final Condition analysing;
-	private volatile boolean locked;
-	
 	public SubTaskAtomProcessor() {
+		super();
 		atomQueueProcessor = new AtomQueueProcessor<>(this);
-		
-		atomQueueProcessor = new AtomQueueProcessor<>(this);
-		lock = new ReentrantLock();
-//		analysing = lock.newCondition();
 	}
 
 	@Override
@@ -29,24 +20,25 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 		setExecuted();
 		//Do most of the work of processing in the atomQueueProcessor...
 		atomQueueProcessor.run();
-		
+
 		//...do the post-match analysis in here!
-		if (isTerminated()) {
-			queueBean.setMessage("Active-queue aborted before completion (requested)");
-			AtomQueueServiceUtils.terminateQueueProcess(atomQueueProcessor.getActiveQueueName(), queueBean);
-		} else if (queueBean.getPercentComplete() >= 99.5) {
-			//Completed successfully
-			broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
-		}
-		
-		//This should be run after we've reported the queue final state
-		atomQueueProcessor.tidyQueue();
-		
-		//And we're done, so let other processes continue
-		if (locked) {
-			//FIXME This doesn't work! Why?!
-//			analysing.signal();
-			locked = false;
+		try {
+			lock.lockInterruptibly();
+			if (isTerminated()) {
+				queueBean.setMessage("Active-queue aborted before completion (requested)");
+				AtomQueueServiceUtils.terminateQueueProcess(atomQueueProcessor.getActiveQueueName(), queueBean);
+			} else if (queueBean.getPercentComplete() >= 99.5) {
+				//Completed successfully
+				broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
+			}
+
+			//This should be run after we've reported the queue final state
+			atomQueueProcessor.tidyQueue();
+
+			//And we're done, so let other processes continue
+			analysisDone.signal();
+		} finally {
+			lock.unlock();
 		}
 	}
 
@@ -62,30 +54,24 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 
 	}
 
-	@Override
-	public void terminate() throws EventException {
-		//Reentrant lock ensures execution method (and hence tidy up) complete 
-		//before terminate
-		try{
-			lock.lock();
-			locked = true;
-			
-			setTerminated();
-			processorLatch.countDown();
-	
-			//FIXME This doesn't work! Why?!
-//			analysing.await();
-			
-			while (locked){
-				Thread.sleep(100);
-			}
-		} catch (InterruptedException iEx) {
-			throw new EventException(iEx);
-		} finally {
-			lock.unlock();
-			locked = false;
-		}
-	}
+//	@Override
+//	public void terminate() throws EventException {
+//		//Reentrant lock ensures execution method (and hence post-match 
+//		//analysis) complete before terminate does
+//		try{
+//			lock.lockInterruptibly();
+//
+//			setTerminated();
+//			processorLatch.countDown();
+//
+//			//Wait for post-match analysis to finish
+//			analysisDone.await();
+//		} catch (InterruptedException iEx) {
+//			throw new EventException(iEx);
+//		} finally {
+//			lock.unlock();
+//		}
+//	}
 
 	@Override
 	public Class<SubTaskAtom> getBeanClass() {
