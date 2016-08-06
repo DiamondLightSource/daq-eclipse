@@ -1,7 +1,5 @@
 package org.eclipse.scanning.event.queues.processors;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.AtomQueueServiceUtils;
@@ -12,14 +10,9 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 	
 	private AtomQueueProcessor<TaskBean, SubTaskAtom> atomQueueProcessor;
 	
-	private final ReentrantLock lock;
-//	private final Condition analysing;
-	private volatile boolean locked;
-	
 	public TaskBeanProcessor() {
+		super();
 		atomQueueProcessor = new AtomQueueProcessor<>(this);
-		lock = new ReentrantLock();
-//		analysing = lock.newCondition();
 	}
 
 	@Override
@@ -29,23 +22,25 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 		atomQueueProcessor.run();
 
 		//...do the post-match analysis in here!
-		if (isTerminated()) {
-			broadcaster.broadcast("Job-queue aborted before completion (requested)");
-			AtomQueueServiceUtils.terminateQueueProcess(atomQueueProcessor.getActiveQueueName(), queueBean);
-		} else if (queueBean.getPercentComplete() >= 99.5) {
-			//Completed successfully
-			broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
+		try {
+			lock.lockInterruptibly();
+			if (isTerminated()) {
+				queueBean.setMessage("Job-queue aborted before completion (requested)");
+				AtomQueueServiceUtils.terminateQueueProcess(atomQueueProcessor.getActiveQueueName(), queueBean);
+			} else if (queueBean.getPercentComplete() >= 99.5) {
+				//Completed successfully
+				broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
+			}
+			
+			//This should be run after we've reported the queue final state
+			atomQueueProcessor.tidyQueue();
+			
+			//And we're done, so let other processes continue
+			analysisDone.signal();
+		} finally {
+				lock.unlock();
 		}
 		
-		//This should be run after we've reported the queue final state
-		atomQueueProcessor.tidyQueue();
-		
-		//And we're done, so let other processes continue
-		if (locked) {
-			//FIXME This doesn't work! Why?!
-//			analysing.signal();
-			locked = false;
-		}
 	}
 
 	@Override
@@ -58,31 +53,6 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 	public void resume() throws EventException {
 		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	public void terminate() throws EventException {
-		//Reentrant lock ensures execution method (and hence tidy up) complete 
-		//before terminate
-		try{
-			lock.lock();
-			locked = true;
-			
-			setTerminated();
-			processorLatch.countDown();
-	
-			//FIXME This doesn't work! Why?!
-//			analysing.await();
-			
-			while (locked){
-				Thread.sleep(100);
-			}
-		} catch (InterruptedException iEx) {
-			throw new EventException(iEx);
-		} finally {
-			lock.unlock();
-			locked = false;
-		}
 	}
 
 	@Override
