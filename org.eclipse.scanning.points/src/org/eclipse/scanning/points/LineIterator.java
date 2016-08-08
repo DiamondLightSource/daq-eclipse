@@ -52,13 +52,13 @@ class LineIterator extends AbstractScanPointIterator {
 		double xStep = step * Math.cos(line.getAngle());
 		double yStep = step * Math.sin(line.getAngle());
 
-        String name = model.getxName().concat(model.getyName()).concat("Line");
+        PyList names =  new PyList(Arrays.asList(new String[] {model.getxName(), model.getyName()}));
 		double[] start = {line.getxStart() + xStep/2, line.getyStart() + yStep/2};
 		double[] stop = {line.getxStart() + xStep * (numPoints - 0.5), line.getyStart() + yStep * (numPoints - 0.5)};
         
 		@SuppressWarnings("unchecked")
 		Iterator<IPosition> iterator = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
-				name, "mm", start, stop, numPoints);
+				names, "mm", start, stop, numPoints);
 		pyIterator = iterator;
 	}
 	
@@ -73,13 +73,13 @@ class LineIterator extends AbstractScanPointIterator {
         double xStep = model.getStep() * Math.cos(line.getAngle());
         double yStep = model.getStep() * Math.sin(line.getAngle());
 
-        String name = model.getxName().concat(model.getyName()).concat("Line");
-        double[] start = {line.getxStart(), line.getyStart()};
+        PyList names =  new PyList(Arrays.asList(new String[] {model.getxName(), model.getyName()}));
+		double[] start = {line.getxStart(), line.getyStart()};
         double[] stop = {line.getxStart() + xStep * numPoints, line.getyStart() + yStep * numPoints};
         
 		@SuppressWarnings("unchecked")
 		Iterator<IPosition> iterator = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
-				name, "mm", start, stop, numPoints);
+				names, "mm", start, stop, numPoints);
 		pyIterator = iterator;
 	}
 

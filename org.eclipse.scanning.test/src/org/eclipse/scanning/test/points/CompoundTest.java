@@ -4,20 +4,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.BoundingBox;
-import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.python.core.PyDictionary;
+import org.python.core.PyList;
+import org.python.core.PyObject;
+import org.python.core.PyString;
 
 public class CompoundTest {
 	
@@ -27,13 +32,32 @@ public class CompoundTest {
 	public void before() throws Exception {
 		service = new PointGeneratorFactory();
 	}
-	
-	
+
+	@Test(expected=org.python.core.PyException.class)
+	public void testCompoundCompoundException() throws Exception {
+
+		IPointGenerator<StepModel> pos = service.createGenerator(new StepModel("Position", 1, 4, 0.6));
+		
+		BoundingBox box = new BoundingBox();
+		box.setFastAxisStart(0);
+		box.setSlowAxisStart(0);
+		box.setFastAxisLength(3);
+		box.setSlowAxisLength(3);
+
+		GridModel model = new GridModel();
+		model.setSlowAxisPoints(20);
+		model.setFastAxisPoints(20);
+		model.setBoundingBox(box);
+
+		IPointGenerator<GridModel> gen = service.createGenerator(model);
+		IPointGenerator<?> scan = service.createCompoundGenerator(pos, gen);
+		scan.iterator();
+	}
 	@Test(expected=org.python.core.PyException.class)
 	public void testDuplicateAxisNameException() throws Exception {
 
-		IPointGenerator<StepModel> pos1 = service.createGenerator(new StepModel("Position", 1,4, 0.6));
-		IPointGenerator<StepModel> pos2 = service.createGenerator(new StepModel("Position", 1,4, 0.6));
+		IPointGenerator<StepModel> pos1 = service.createGenerator(new StepModel("Position", 1, 4, 0.6));
+		IPointGenerator<StepModel> pos2 = service.createGenerator(new StepModel("Position", 1, 4, 0.6));
 		IPointGenerator<?> scan = service.createCompoundGenerator(pos1, pos2);
 		scan.iterator().next();
 	}

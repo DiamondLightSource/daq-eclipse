@@ -42,8 +42,8 @@ public class SpiralTest {
 
 		// Test a few points
 		// TODO check x and y index values - currently these are not tested by AbstractPosition.equals()
-		assertEquals(new Point("xySpiral_X", 0, -8.263367850554253, "xySpiral_Y", 0, 6.678814432234913, false), pointList.get(0));
-		assertEquals(new Point("xySpiral_X", 3, -8.139330427516057, "xySpiral_Y", 3, 7.991968780318976, false), pointList.get(3));
-		assertEquals(new Point("xySpiral_X", 15, -6.315009394139057, "xySpiral_Y", 15, 7.399523826759042, false), pointList.get(15));
+		assertEquals(new Point("x", 0, -8.263367850554253, "y", 0, 6.678814432234913, false), pointList.get(0));
+		assertEquals(new Point("x", 3, -8.139330427516057, "y", 3, 7.991968780318976, false), pointList.get(3));
+		assertEquals(new Point("x", 15, -6.315009394139057, "y", 15, 7.399523826759042, false), pointList.get(15));
 	}
 }
