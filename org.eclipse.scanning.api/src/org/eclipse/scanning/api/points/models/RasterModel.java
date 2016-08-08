@@ -13,13 +13,22 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  */
 public class RasterModel extends AbstractBoundingBoxModel {
 
-	@FieldDescriptor(label="Fast Step", scannable="xName", hint="The step in the fast direction to take in the units of the fast scannable.")
+	@FieldDescriptor(label="Fast Step",
+			         scannable="fastAxisName",
+				     maximum=100000, 
+					 minimum=1, 
+			         hint="The step in the fast direction to take in the units of the fast scannable.")
 	private double fastAxisStep = 1;
 	
-	@FieldDescriptor(label="Slow Step", scannable="yName", hint="The step in the slow direction to take in the units of the slow scannable.")
+	@FieldDescriptor(label="Slow Step", 
+			         scannable="slowAxisName", 
+					 maximum=100000, 
+					 minimum=1, 
+			         hint="The step in the slow direction to take in the units of the slow scannable.")
 	private double slowAxisStep = 1;
 	
-	@FieldDescriptor(label="Snake", hint="Snake: left->right->left etc. Nonsnake left->right, repeat") 
+	@FieldDescriptor(label="Snake", 
+			         hint="Snake: left->right->left etc. Nonsnake left->right, repeat") 
 	private boolean snake = false;
 
 	@Override

@@ -37,11 +37,16 @@ class StepIterator implements Iterator<IPosition> {
         ++index;
         if (model instanceof CollatedStepModel) {
         	final MapPosition mp = new MapPosition();
-        	for (String name : ((CollatedStepModel)model).getNames()) {
-           		mp.put(name, value);
-           		mp.putIndex(name, index);
-			}
-        	return mp;
+        	CollatedStepModel cmodel = (CollatedStepModel)model;
+        	if (cmodel.getNames()!=null) {
+	        	for (String name : cmodel.getNames()) {
+	           		mp.put(name, value);
+	           		mp.putIndex(name, index);
+				}
+	        	return mp;
+        	} else {
+    		    return new Scalar(model.getName(), index, value);
+        	}
         } else {
 		    return new Scalar(model.getName(), index, value);
         }
