@@ -16,6 +16,6 @@ public class SpiralGenerator extends AbstractGenerator<SpiralModel> {
 
 	@Override
 	protected void validateModel() {
-		if (model.getScale() == 0.0) throw new PointsValidationException("Scale must be non-zero!");
+		if (model.getScale() == 0.0) throw new PointsValidationException("Scale must be non-zero!", model, "scale");
 	}
 }

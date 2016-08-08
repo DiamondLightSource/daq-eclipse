@@ -21,7 +21,7 @@ class OneDStepGenerator extends AbstractGenerator<OneDStepModel> {
 
 	@Override
 	protected void validateModel() {
-		if (model.getStep() <= 0) throw new PointsValidationException("Model step size must be positive!");
+		if (model.getStep() <= 0) throw new PointsValidationException("Model step size must be positive!", model, "step");
 	}
 
 	@Override

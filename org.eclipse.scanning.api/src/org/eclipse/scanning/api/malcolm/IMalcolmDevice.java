@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.malcolm;
 
+import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 
 
@@ -42,20 +43,9 @@ import org.eclipse.scanning.api.device.IRunnableEventDevice;
  * @author Matthew Gerring
  *
  */
-public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEventPublisher, ILatchableDevice {
+public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEventPublisher, ILatchableDevice, IValidator<T> {
 	
 	// TODO setAttribute, getAttribute
-		
-	/**
-	 * allowed in any state. Can be used to check a param dict for validity. Will always report the same result whatever
-	 * the current state of the device. Will raise exception if it is invalid
-	 * 
-	 * @return true if valid, false if invalid values in legal config, exception if illegal config e.g. not allowed parameters.
-	 * 
-	 * @throws MalcolmDeviceException if params are not a just not allowed.
-	 */
-	// FIXME should this return boolean instead of T, or should the Javadoc be updated to say what it really returns?
-	public T validate(T params) throws MalcolmDeviceException;
 	
 	/**
 	 * Attempts to determine if the device is locked doing something like a configure or a run.

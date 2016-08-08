@@ -17,18 +17,18 @@ class RasterGenerator extends AbstractGenerator<RasterModel> {
 
 	@Override
 	protected void validateModel() {
-		if (model.getBoundingBox() == null) throw new PointsValidationException("Model must have a BoundingBox!");
-		if (model.getFastAxisStep() == 0) throw new PointsValidationException("Model fast axis step size must be nonzero!");
-		if (model.getSlowAxisStep() == 0) throw new PointsValidationException("Model slow axis step size must be nonzero!");
+		if (model.getBoundingBox() == null) throw new PointsValidationException("Model must have a BoundingBox!", model, "boundingBox");
+		if (model.getFastAxisStep() == 0) throw new PointsValidationException("Model fast axis step size must be nonzero!", model, "fastAxisStep");
+		if (model.getSlowAxisStep() == 0) throw new PointsValidationException("Model slow axis step size must be nonzero!", model, "slowAxisStep");
 
 		// Technically the following two throws are not required
 		// (The generator could simply produce an empty list.)
 		// but we throw errors to avoid potential confusion.
 		// Plus, this is consistent with the StepGenerator behaviour.
 		if (model.getFastAxisStep()/model.getBoundingBox().getFastAxisLength() < 0)
-			throw new PointsValidationException("Model fast axis step is directed so as to produce no points!");
+			throw new PointsValidationException("Model fast axis step is directed so as to produce no points!", model, "fastAxisStep");
 		if (model.getSlowAxisStep()/model.getBoundingBox().getSlowAxisLength() < 0)
-			throw new PointsValidationException("Model slow axis step is directed so as to produce no points!");
+			throw new PointsValidationException("Model slow axis step is directed so as to produce no points!", model, "slowAxisStep");
 	}
 
 	public Iterator<IPosition> iteratorFromValidModel() {

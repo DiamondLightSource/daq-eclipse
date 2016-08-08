@@ -5,12 +5,9 @@ import java.util.Collection;
 
 import org.eclipse.jface.bindings.keys.IKeyLookup;
 import org.eclipse.jface.bindings.keys.KeyLookupFactory;
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
-import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -24,13 +21,16 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TableViewerEditor;
 import org.eclipse.jface.viewers.TableViewerFocusCellManager;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
+import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
@@ -48,8 +48,12 @@ import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.ISelectionListener;
@@ -74,8 +78,14 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 
 	private static final Logger logger = LoggerFactory.getLogger(ModelViewer.class);
 	
-	private TableViewer      viewer;
-	private Object           model;
+	private TableViewer        viewer;
+	private Object             model;
+	private IValidator<Object> validator; // The generator or runnable device etc. for which we are editing the model 
+
+	private Composite validationComposite;
+	private Label     validationMessage;
+	private boolean   validationError = false;
+	private PointsValidationException validationException;
 	
 	public ModelViewer() {
 		this(true);
@@ -91,7 +101,11 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	}
 	
 
-	public void createPartControl(Composite parent) {
+	public void createPartControl(Composite ancestor) {
+		
+		final Composite parent = new Composite(ancestor, SWT.NONE);
+		parent.setLayout(new GridLayout(1, false));
+		GridUtils.removeMargins(parent);
 		
 		this.viewer = new TableViewer(parent, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
 		viewer.setContentProvider(createContentProvider());
@@ -100,6 +114,19 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 		viewer.getTable().setHeaderVisible(true);
 		viewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		
+		this.validationComposite = new Composite(parent, SWT.NONE);
+		validationComposite.setLayout(new GridLayout(2, false));
+		validationComposite.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
+		
+		final Label error = new Label(validationComposite, SWT.NONE);
+		error.setImage(Activator.getImageDescriptor("icons/error.png").createImage());
+		error.setLayoutData(new GridData(SWT.LEFT, SWT.BOTTOM, false, false));
+		
+		this.validationMessage = new Label(validationComposite, SWT.WRAP);
+		validationMessage.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
+		validationMessage.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
+		GridUtils.setVisible(validationComposite, false);
+
 		TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(viewer, new FocusCellOwnerDrawHighlighter(viewer));
 		ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(viewer) {
 			@Override
@@ -136,9 +163,9 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 					try {
 						Object ob = ((IStructuredSelection)viewer.getSelection()).getFirstElement();
 						((FieldValue)ob).set(null);
-						viewer.refresh(ob);
-					} catch (Exception ignored) {
-						// Ok delete did not work...
+						refresh(); // Must do global refresh because might effect units of other parameters.
+					} catch (Exception ne) {
+						logger.error("Cannot delete item "+(IStructuredSelection)viewer.getSelection(), ne);
 					}
 
 				}
@@ -223,8 +250,8 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 		var   = new TableViewerColumn(viewer, SWT.LEFT, 1);
 		var.getColumn().setText("Value");
 		var.getColumn().setWidth(200);
-		var.setLabelProvider(new ModelFieldLabelProvider());
-		var.setEditingSupport(new ModelFieldEditingSupport(viewer));
+		var.setLabelProvider(new ModelFieldLabelProvider(this));
+		var.setEditingSupport(new ModelFieldEditingSupport(this, viewer));
 	}
 
 	public void setFocus() {
@@ -232,9 +259,29 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	}
 	
 	public void refresh() {
+		validate(); // Must be first because refresh() then rerenders the values.
 		viewer.refresh();
 	}
 	
+	private void validate() {
+		
+		if (validator==null) {
+			validationError = false;
+		} else {
+			try {
+				validator.validate(model);
+				validationError = false;
+				
+			} catch (Exception ne) {
+				validationException = ne instanceof PointsValidationException ? (PointsValidationException)ne : null;
+				validationMessage.setText(ne.getMessage());
+				validationError = true;
+			}
+		}
+		GridUtils.setVisible(validationComposite, validationError);
+		validationComposite.getParent().layout(new Control[]{validationComposite});
+	}
+
 	public void dispose() {
 		viewer.removeSelectionChangedListener(this);
 		if (PageUtil.getPage()!=null) PageUtil.getPage().removeSelectionListener(this);
@@ -246,7 +293,7 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 			Object ob = ((IStructuredSelection)selection).getFirstElement();
 			if (ob instanceof ISeriesItemDescriptor) {
 				try {
-					setGenerator((IPointGenerator)((ISeriesItemDescriptor)ob).getSeriesObject());
+					setGenerator((IPointGenerator<?>)((ISeriesItemDescriptor)ob).getSeriesObject());
 				} catch (Exception e) {
 					setGenerator(null);
 				}
@@ -265,6 +312,7 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 			// We read the latest, other processes can change the model for the device.
 			IRunnableDeviceService dservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IRunnableDeviceService.class);
 			info = dservice.getDeviceInformation(info.getName());
+			this.validator = dservice.getRunnableDevice(info.getName());
 			if (dservice instanceof IDisconnectable) ((IDisconnectable)dservice).disconnect();
 			
 		} catch (Exception ne) {
@@ -277,16 +325,20 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	 * Specifically set the operation we would like to edit
 	 * @param des
 	 */
+	@SuppressWarnings("unchecked")
 	public void setGenerator(IPointGenerator<?> gen) {
 		if (viewer.getTable().isDisposed()) return;
 		viewer.setInput(gen);
+		this.validator = (IValidator<Object>)gen;
 		if (gen == null) return;
-		this.model = gen.getModel();	
+		this.model = gen.getModel();
+		refresh();
 	}
 
 	public void setModel(Object model) {
 		this.model = model;
 		viewer.setInput(model);
+		refresh();
 	}
 	
 	public Object getModel() {
@@ -325,43 +377,6 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	}
 
 	
-	class ModelFieldEditingSupport extends EditingSupport {
-
-		private ModelFieldEditorFactory factory;
-		public ModelFieldEditingSupport(ColumnViewer viewer) {
-			super(viewer);
-			factory = new ModelFieldEditorFactory();
-		}
-
-		@Override
-		protected CellEditor getCellEditor(Object element) {
-			return factory.createEditor((FieldValue)element, viewer.getTable());
-		}
-
-		@Override
-		protected boolean canEdit(Object element) {
-			return true;
-		}
-
-		@Override
-		protected Object getValue(Object element) {
-			return ((FieldValue)element).get();
-		}
-
-		@Override
-		protected void setValue(Object element, Object value) {
-			try {
-				FieldValue field = (FieldValue)element;
-				field.set(value); // Changes model value, getModel() will now return a model with the value changed.
-				viewer.refresh();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-	}
-
-
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
 		if (event.getSelection() instanceof IStructuredSelection) {
@@ -389,6 +404,27 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	@Override
 	public void setSelection(ISelection selection) {
 		viewer.setSelection(selection);
+	}
+
+	Composite getTable() {
+		return viewer.getTable();
+	}
+
+	public boolean isValidationError() {
+		return validationError;
+	}
+	
+	public boolean isValidationError(FieldValue field) {
+		if (!validationError) return false;
+		if (validationException!=null) {
+			return validationException.isField(field); // There is a validation error and this field is it.
+		}
+		return validationError;
+	}
+
+
+	public void setValidationError(boolean validationError) {
+		this.validationError = validationError;
 	}
 
 }

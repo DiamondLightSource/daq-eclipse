@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.StepModel;
 
-public class StepGenerator extends AbstractGenerator<StepModel> {
+class StepGenerator extends AbstractGenerator<StepModel> {
 	
 	StepGenerator() {
 		setLabel("Step Scan");
@@ -18,8 +18,8 @@ public class StepGenerator extends AbstractGenerator<StepModel> {
 	@Override
 	protected void validateModel() {
 		double div = ((model.getStop()-model.getStart())/model.getStep());
-		if (div < 0) throw new PointsValidationException("Model step is directed backwards!");
-		if (!Double.isFinite(div)) throw new PointsValidationException("Model step size must be nonzero!");
+		if (div < 0) throw new PointsValidationException("Model step is directed in the wrong direction!", model, "start", "stop", "step");
+		if (!Double.isFinite(div)) throw new PointsValidationException("Model step size must be nonzero!", model, "start", "stop", "step");
 	}
 
 	@Override

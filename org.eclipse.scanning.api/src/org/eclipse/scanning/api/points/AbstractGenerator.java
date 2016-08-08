@@ -15,7 +15,8 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  */
 public abstract class AbstractGenerator<T extends IScanPathModel> implements IPointGenerator<T>, Iterable<IPosition> {
 
-	protected T model;
+	protected volatile T model; // Because of the validateModel() method
+	
 	protected List<IPointContainer<?>> containers;
 	private String id;
 	private String label;
@@ -60,6 +61,26 @@ public abstract class AbstractGenerator<T extends IScanPathModel> implements IPo
 	 * @throw exception if model invalid
 	 */
 	protected abstract void validateModel() throws PointsValidationException;
+
+	/**
+	 * The AbstractGenerator has a no argument validateModel() method which
+	 * generators have implemented to validate models.
+	 * Therefore the model is temporarily set in order to check it.
+	 * In order to make that thread safe, model is marked as volatile.
+	 */
+	@Override
+	public void validate(T model) throws PointsValidationException {
+		T orig = this.getModel();
+		try {
+			setModel(model);
+			validateModel();
+			
+		} catch (SecurityException | IllegalArgumentException e) {
+			throw new PointsValidationException(e);
+		} finally {
+			setModel(orig);
+		}
+	}
 
 	@Override
 	final public int size() throws GeneratorException {

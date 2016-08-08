@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.ILevel;
+import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
@@ -56,7 +57,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * @author Matthew Gerring
  *
  */
-public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>, IResettableDevice {
+public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>, IResettableDevice, IValidator<T> {
 	
 	/**
 	 * 
