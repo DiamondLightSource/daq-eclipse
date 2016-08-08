@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.points;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 
@@ -21,7 +22,7 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  *
  * @param <T>
  */
-public interface IPointGenerator<T extends IScanPathModel> extends Iterable<IPosition> {
+public interface IPointGenerator<T extends IScanPathModel> extends Iterable<IPosition>, IValidator<T> {
 	
 	/**
 	 * The model for the generator.

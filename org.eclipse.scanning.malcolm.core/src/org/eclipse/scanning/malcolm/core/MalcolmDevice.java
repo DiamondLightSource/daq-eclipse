@@ -184,11 +184,13 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 
 	@Override
-	public T validate(T params) throws MalcolmDeviceException {
+	public void validate(T params) throws MalcolmDeviceException {
 		
 		final JsonMessage msg   = connectionDelegate.createCallMessage("validate", params);
 		final JsonMessage reply = service.send(this, msg);
-        return (T)reply.getValue();
+        if (reply.getType()==Type.ERROR) {
+        	throw new MalcolmDeviceException(reply.getMessage());
+        }
 	}
 	
 	@Override

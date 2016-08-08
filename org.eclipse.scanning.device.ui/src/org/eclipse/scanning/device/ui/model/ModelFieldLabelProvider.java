@@ -9,7 +9,10 @@ import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.StringUtils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,14 +24,27 @@ class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 	private static final Logger logger = LoggerFactory.getLogger(ModelFieldLabelProvider.class);
 	
 	private IScannableDeviceService cservice;
+	private final ModelViewer       viewer;
 	
-	public ModelFieldLabelProvider() {
+	public ModelFieldLabelProvider(ModelViewer viewer) {
+		this.viewer = viewer;
 		try {
 			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
 		} catch (Exception e) {
 			logger.error("Unable to make a remote connection to "+IScannableDeviceService.class.getSimpleName());
 		}
 	}
+	
+	public Color getForeground(Object ofield) {
+		Color ret = super.getForeground(ofield);
+		if (ret!=null) return ret;
+		if (ofield instanceof FieldValue && viewer.isValidationError((FieldValue)ofield)) {
+			return Display.getDefault().getSystemColor(SWT.COLOR_RED);
+		} else {
+			return null;
+		}
+	}
+
 
 	/**
 	 * The <code>LabelProvider</code> implementation of this

@@ -90,13 +90,13 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 	}
 
 	@Override
-	public MapMalcolmDetectorModel validate(MapMalcolmDetectorModel model) throws MalcolmDeviceException {
+	public void validate(MapMalcolmDetectorModel model) throws MalcolmDeviceException {
 		Map<String, Object> params = model.getParameterMap();
 		if (!params.containsKey("shape")) throw new MalcolmDeviceException(this, "shape must be set!");
 		if (!params.containsKey("nframes")) throw new MalcolmDeviceException(this, "nframes must be set!");
 		if (!params.containsKey("file")) throw new MalcolmDeviceException(this, "file must be set!");
 		if (!params.containsKey("exposure")) throw new MalcolmDeviceException(this, "exposure must be set!");
-		return null;
+		return;
 	}
 
 	@Override

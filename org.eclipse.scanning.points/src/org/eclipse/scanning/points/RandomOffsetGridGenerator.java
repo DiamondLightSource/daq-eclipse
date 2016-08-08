@@ -18,7 +18,7 @@ public class RandomOffsetGridGenerator extends GridGenerator {
 	protected void validateModel() {
 		super.validateModel();
 		if (!(model instanceof RandomOffsetGridModel)) {
-			throw new PointsValidationException("Model must be a RandomOffsetGridModel");
+			throw new PointsValidationException("The model must be a RandomOffsetGridModel", model, "offset"); // TODO Not really an offset problem.
 		}
 	}
 

@@ -24,7 +24,7 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	}
 
 	@Override
-	public MapMalcolmDetectorModel validate(MapMalcolmDetectorModel params) throws MalcolmDeviceException {
+	public void validate(MapMalcolmDetectorModel params) throws MalcolmDeviceException {
 		throw new MalcolmDeviceException(this, "Validate is not implemented!");
 	}
 
