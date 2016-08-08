@@ -25,6 +25,7 @@ public class ScanPointGeneratorTest {
 	    assertEquals(new Scalar("x", 2, 3.0), points.get(2));
 	    assertEquals(new Scalar("x", 3, 4.0), points.get(3));
 	    assertEquals(new Scalar("x", 4, 5.0), points.get(4));
+	    
 	}
 	
 	@Test

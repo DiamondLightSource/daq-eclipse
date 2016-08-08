@@ -188,7 +188,7 @@ public class LinearScanTest extends BrokerTest{
 			size = new int[] {5};
 		}
 		if (size.length > 1) {
-			throw new IllegalArgumentException("One or now values must be provided for size");
+			throw new IllegalArgumentException("One or no values must be provided for size");
 		}
 		double stepSize = 3.0/size[0];
 		
