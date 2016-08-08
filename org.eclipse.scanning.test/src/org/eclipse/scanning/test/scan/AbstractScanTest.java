@@ -221,7 +221,7 @@ public class AbstractScanTest extends BrokerTest {
 		} catch (Exception ex) {
 			assertEquals(ScanningException.class, ex.getClass());
 			assertEquals(PointsValidationException.class, ex.getCause().getClass());
-			assertTrue(ex.getCause().getMessage().toLowerCase().contains("backwards"));
+			assertTrue(ex.getCause().getMessage().toLowerCase().indexOf("wrong direction")>0);
 			return;
 		}
 		
