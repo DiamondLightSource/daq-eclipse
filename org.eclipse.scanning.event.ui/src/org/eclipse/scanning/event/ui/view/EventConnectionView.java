@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.ui.part.ViewPart;
 
-abstract class EventConnectionView extends ViewPart {
+public abstract class EventConnectionView extends ViewPart {
 
 	protected Properties                        idProperties;
 	
@@ -71,6 +71,15 @@ abstract class EventConnectionView extends ViewPart {
 		if (secondId == null) return null;
 		idProperties = parseString(secondId);
 		return idProperties.getProperty(key);
+	}
+
+	public void setIdProperties(String propertiesId) {
+		Properties idProperties = parseString(propertiesId);
+		setIdProperties(idProperties);
+	}
+
+	public void setIdProperties(Properties properties) {
+		idProperties = properties;
 	}
 
 	public static String createSecondaryId(final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
