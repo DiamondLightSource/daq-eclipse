@@ -9,11 +9,15 @@ public class RandomOffsetGridModel extends GridModel {
 	public String getName() {
 		return "Random Offset Grid";
 	}
-
+	
 	/**
-	 * The offset standard deviation, as a percentage of fast axis step size
+	 * The maximum allowed offset, as a percentage of fast axis step size
 	 */
 	private double offset;
+	/**
+	 * Seed to initialise random number generator with
+	 */
+	private int seed;
 
 	@Units("%")
 	@UiTooltip("Standard deviation to use for a 2D Gaussian random offset, as a percentage of the X step size")
@@ -24,6 +28,15 @@ public class RandomOffsetGridModel extends GridModel {
 		double oldValue = this.offset;
 		this.offset = newValue;
 		this.pcs.firePropertyChange("offset", oldValue, newValue);
+	}
+	@UiTooltip("Seed to initialise random number generator with")
+	public int getSeed() {
+		return seed;
+	}
+	public void setSeed(int newValue) {
+		double oldValue = this.seed;
+		this.seed = newValue;
+		this.pcs.firePropertyChange("seed", oldValue, newValue);
 	}
 	@Override
 	public int hashCode() {

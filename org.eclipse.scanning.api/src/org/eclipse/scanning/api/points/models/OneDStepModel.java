@@ -16,7 +16,7 @@ import org.eclipse.scanning.api.annotation.UiHidden;
  *
  */
 public class OneDStepModel extends AbstractPointsModel implements IBoundingLineModel {
-
+    
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener) {

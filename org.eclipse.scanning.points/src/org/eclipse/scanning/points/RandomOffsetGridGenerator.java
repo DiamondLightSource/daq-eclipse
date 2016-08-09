@@ -24,10 +24,7 @@ public class RandomOffsetGridGenerator extends GridGenerator {
 
 	@Override
 	public Iterator<IPosition> iteratorFromValidModel() {
-		GridIterator gridIterator = (GridIterator) super.iteratorFromValidModel();
-		double percentageOffset = ((RandomOffsetGridModel) model).getOffset();
-		double standardDeviation = gridIterator.getXStep() * percentageOffset / 100.0;
-		return new RandomOffsetDecorator(gridIterator, standardDeviation);
+		return new GridIterator(this);
 	}
 
 }
