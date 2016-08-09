@@ -10,6 +10,7 @@ import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.ResponseConfiguration;
 
 /**
  * 
@@ -66,8 +67,8 @@ public class RemoteServiceFactory {
 		return instance;
 	}
 	
-	private static long     time = 1;
-	private static TimeUnit timeUnit = TimeUnit.SECONDS;
+	private static long     time = ResponseConfiguration.DEFAULT.getTimeout();
+	private static TimeUnit timeUnit = ResponseConfiguration.DEFAULT.getTimeUnit();
 	
 	/**
 	 * Used to set the timeout where tests would like to debug a response.
