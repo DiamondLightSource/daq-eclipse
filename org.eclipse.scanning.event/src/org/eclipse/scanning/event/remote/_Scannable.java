@@ -57,7 +57,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 	}
 
 	public String getUnit() {
-		update();
+		if (info==null) update();  // We assume that they do not change unit.
 		return info.getUnit();
 	}
 	
@@ -70,7 +70,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public T getMaximum() {
-		update();
+		if (info==null) update();
 		return (T)info.getUpper();
 	}
 
@@ -82,7 +82,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public T getMinimum() {
-		update();
+		if (info==null) update();
 		return (T)info.getLower();
 	}
 	

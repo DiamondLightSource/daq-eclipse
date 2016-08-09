@@ -9,8 +9,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ModelView extends ViewPart implements ISelectionListener {
+	
+	private static Logger logger = LoggerFactory.getLogger(ModelView.class);
 
 	private ModelViewer modelEditor;
 	
@@ -19,10 +23,14 @@ public class ModelView extends ViewPart implements ISelectionListener {
 		
 		PageUtil.getPage(getSite()).addSelectionListener(this);
 
-		modelEditor = new ModelViewer(PageUtil.getPage(getSite()));
-		modelEditor.createPartControl(parent);
-		
-		getSite().setSelectionProvider(modelEditor);
+		try {
+			modelEditor = new ModelViewer(PageUtil.getPage(getSite()));
+			modelEditor.createPartControl(parent);
+			
+			getSite().setSelectionProvider(modelEditor);
+		} catch (Exception ne) {
+			logger.error("Unable to create model table!", ne);
+		}
 		
 	}
 

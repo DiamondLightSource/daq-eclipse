@@ -21,7 +21,7 @@ class RequesterImpl<T extends IdBean> extends AbstractRequestResponseConnection 
 
 	RequesterImpl(URI uri, String reqTopic, String resTopic, IEventService eservice) {
 		super(uri, reqTopic, resTopic, eservice);
-		responseConfiguration = new ResponseConfiguration(ResponseType.ONE, 1, TimeUnit.SECONDS);
+		responseConfiguration = new ResponseConfiguration(ResponseType.ONE, 100, TimeUnit.MILLISECONDS);
 	}
 	
 	@Override

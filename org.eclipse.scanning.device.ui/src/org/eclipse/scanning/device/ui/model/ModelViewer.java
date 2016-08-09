@@ -1,10 +1,12 @@
 package org.eclipse.scanning.device.ui.model;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 
 import org.eclipse.jface.bindings.keys.IKeyLookup;
 import org.eclipse.jface.bindings.keys.KeyLookupFactory;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
@@ -27,6 +29,7 @@ import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -86,22 +89,36 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	private Label     validationMessage;
 	private boolean   validationError = false;
 	private PointsValidationException validationException;
+
+	private IRunnableDeviceService dservice;
 	
-	public ModelViewer() {
+	public ModelViewer() throws EventException, URISyntaxException {
 		this(true);
 	}
 	
-	public ModelViewer(boolean addListener) {
+	public ModelViewer(boolean addListener) throws EventException, URISyntaxException {
 		this(addListener ? PageUtil.getPage() : null);
 	}
 	
-	public ModelViewer(IWorkbenchPage page) {
+	public ModelViewer(IWorkbenchPage page) throws EventException, URISyntaxException {
 		super();
 		if (page != null) page.addSelectionListener(this);
+		dservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IRunnableDeviceService.class);
 	}
 	
 
-	public void createPartControl(Composite ancestor) {
+	public void dispose() {
+		viewer.removeSelectionChangedListener(this);
+		if (PageUtil.getPage()!=null) PageUtil.getPage().removeSelectionListener(this);
+
+		try {
+			if (dservice instanceof IDisconnectable) ((IDisconnectable)dservice).disconnect();
+		} catch (EventException e) {
+			logger.error("Cannot disconnect remote service!", e);
+		}
+	}
+
+	public Composite createPartControl(Composite ancestor) {
 		
 		final Composite parent = new Composite(ancestor, SWT.NONE);
 		parent.setLayout(new GridLayout(1, false));
@@ -173,6 +190,8 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 		});
 
 		viewer.addSelectionChangedListener(this);
+		
+		return parent;
 	}
 
 	private void createDropTarget(TableViewer viewer) {
@@ -249,9 +268,11 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 		
 		var   = new TableViewerColumn(viewer, SWT.LEFT, 1);
 		var.getColumn().setText("Value");
-		var.getColumn().setWidth(200);
-		var.setLabelProvider(new ModelFieldLabelProvider(this));
-		var.setEditingSupport(new ModelFieldEditingSupport(this, viewer));
+		var.getColumn().setWidth(300);
+		
+		ColumnLabelProvider prov = new ModelFieldLabelProvider(this);
+		var.setLabelProvider(prov);
+		var.setEditingSupport(new ModelFieldEditingSupport(this, viewer, prov));
 	}
 
 	public void setFocus() {
@@ -282,23 +303,18 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 		validationComposite.getParent().layout(new Control[]{validationComposite});
 	}
 
-	public void dispose() {
-		viewer.removeSelectionChangedListener(this);
-		if (PageUtil.getPage()!=null) PageUtil.getPage().removeSelectionListener(this);
-	}
-
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
 			Object ob = ((IStructuredSelection)selection).getFirstElement();
 			if (ob instanceof ISeriesItemDescriptor) {
 				try {
-					setGenerator((IPointGenerator<?>)((ISeriesItemDescriptor)ob).getSeriesObject());
+					setValidator((IValidator)((ISeriesItemDescriptor)ob).getSeriesObject());
 				} catch (Exception e) {
-					setGenerator(null);
+					setValidator(null);
 				}
 			} else if (ob instanceof DeviceInformation) {
-				setGenerator(null);
+				setValidator(null);
 				
 				DeviceInformation<?> info = (DeviceInformation<?>)ob;
 				info = getLatestDeviceInformation(info);
@@ -310,7 +326,6 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	private DeviceInformation<?> getLatestDeviceInformation(DeviceInformation<?> info) {
 		try {
 			// We read the latest, other processes can change the model for the device.
-			IRunnableDeviceService dservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IRunnableDeviceService.class);
 			info = dservice.getDeviceInformation(info.getName());
 			this.validator = dservice.getRunnableDevice(info.getName());
 			if (dservice instanceof IDisconnectable) ((IDisconnectable)dservice).disconnect();
@@ -326,12 +341,14 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	 * @param des
 	 */
 	@SuppressWarnings("unchecked")
-	public void setGenerator(IPointGenerator<?> gen) {
+	public void setValidator(IValidator<?> v) {
 		if (viewer.getTable().isDisposed()) return;
-		viewer.setInput(gen);
-		this.validator = (IValidator<Object>)gen;
-		if (gen == null) return;
-		this.model = gen.getModel();
+		this.validator = (IValidator<Object>)v;
+		if (v == null) return;
+		if (v instanceof IPointGenerator<?>) {
+			viewer.setInput(v);
+			this.model = ((IPointGenerator<?>)v).getModel();
+		}
 		refresh();
 	}
 

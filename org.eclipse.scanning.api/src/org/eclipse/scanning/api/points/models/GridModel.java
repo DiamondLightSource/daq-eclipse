@@ -13,16 +13,16 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  */
 public class GridModel extends AbstractBoundingBoxModel {
 
-	@FieldDescriptor(label="Columns (fast)", 
+	@FieldDescriptor(label="Fast Axis Count", 
 			         maximum=100000, 
 			         minimum=1, 
-			         hint="The number of points that the grid should run over, the fast direction.")
+			         hint="The number of points that the grid should run over in the fast direction.")
 	private int fastAxisPoints = 5;
 	
-	@FieldDescriptor(label="Rows (slow)", 
+	@FieldDescriptor(label="Slow Axis Count", 
 			         maximum=100000, 
 			         minimum=1, 
-			         hint="The number of points that the grid should run over, the slow direction.")
+			         hint="The number of points that the grid should run over in the slow direction.")
 	private int slowAxisPoints = 5;
 	
 	@FieldDescriptor(label="Snake")
