@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.epicsv4;
+package org.eclipse.scanning.test.epics;
 
 import static org.junit.Assert.assertEquals;
 
@@ -10,16 +10,16 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestCircularROIDeserialiser;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestCircularROISerialiser;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestGridModelDeserialiser;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestGridModelSerialiser;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestRectangularROIDeserialiser;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestRectangularROISerialiser;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestSpiralModelDeserialiser;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestSpiralModelSerialiser;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestStepModelDeserialiser;
-import org.eclipse.scanning.test.epicsv4.custommarshallers.TestStepModelSerialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestCircularROIDeserialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestCircularROISerialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestGridModelDeserialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestGridModelSerialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestRectangularROIDeserialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestRectangularROISerialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestSpiralModelDeserialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestSpiralModelSerialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestStepModelDeserialiser;
+import org.eclipse.scanning.test.epics.custommarshallers.TestStepModelSerialiser;
 import org.epics.pvdata.pv.PVStructure;
 import org.epics.pvmarshaller.marshaller.PVMarshaller;
 import org.junit.Before;

@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.epicsv4.custommarshallers;
+package org.eclipse.scanning.test.epics.custommarshallers;
 
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.epics.pvdata.factory.FieldFactory;

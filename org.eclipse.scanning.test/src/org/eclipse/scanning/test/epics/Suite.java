@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.epicsv4;
+package org.eclipse.scanning.test.epics;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;

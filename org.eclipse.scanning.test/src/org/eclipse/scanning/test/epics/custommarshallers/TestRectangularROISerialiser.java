@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.epicsv4.custommarshallers;
+package org.eclipse.scanning.test.epics.custommarshallers;
 
 import java.lang.reflect.InvocationTargetException;
 
