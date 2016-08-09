@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event.remote;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
@@ -19,6 +20,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 
 	_Scannable(DeviceRequest req, URI uri, IEventService eservice) throws EventException, InterruptedException {
 		super(req, uri, eservice);
+	    requester.setTimeout(25, TimeUnit.MILLISECONDS); /// Short scannables should be fast to get value from!
 	}
 
 	@SuppressWarnings("unchecked")
