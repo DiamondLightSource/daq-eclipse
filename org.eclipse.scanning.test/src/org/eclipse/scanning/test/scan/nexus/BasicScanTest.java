@@ -215,8 +215,9 @@ public class BasicScanTest extends NexusTest {
 	private IRunnableDevice<ScanModel> createStepScan(IScannable<?> monitor,
 			IScannable<?> metadataScannable, int... size) throws Exception {
 		
-		IPointGenerator<?> gen = null;
+//		IPointGenerator<?> gen = null;
 		
+		IPointGenerator<?>[] gens = new IPointGenerator<?>[size.length];
 		// We add the outer scans, if any
 		for (int dim = size.length-1; dim>-1; dim--) {
 			final StepModel model;
@@ -226,13 +227,16 @@ public class BasicScanTest extends NexusTest {
 				model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 			}
 			final IPointGenerator<?> step = gservice.createGenerator(model);
-			if (gen!=null) {
-				gen = gservice.createCompoundGenerator(step, gen);
-			} else {
-				gen = step;
-			}
+//			if (gen!=null) {
+//				gen = gservice.createCompoundGenerator(step, gen);
+//			} else {
+//				gen = step;
+//			}
+			gens[dim] = step;
 		}
-	
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(gens);
+		
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
