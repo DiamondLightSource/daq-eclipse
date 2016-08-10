@@ -71,7 +71,7 @@ public class FieldValue {
 	 * @param fieldName
 	 * @return
 	 */
-	private String decamel(String fieldName) {
+	public static String decamel(String fieldName) {
 		try {
 		    String[] words = fieldName.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
 		    StringBuilder buf = new StringBuilder();
@@ -168,6 +168,16 @@ public class FieldValue {
 		}
 	}
 	
+
+	public Object get(boolean create) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
+		Object value = get();
+		if (value !=null ||!create) return value;
+		Method method = getMethod(model.getClass(), name);
+		if (method!=null) {
+			return method.getReturnType().newInstance();
+		}
+		return null;
+	}
 	
 	/**
 	 * Tries to find the no-argument getter for this field, ignoring case
@@ -210,6 +220,33 @@ public class FieldValue {
 		}
 		return null;
 	}
+	
+	private static Method getMethod(Class<?> clazz, String name) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		
+		if (clazz==null || clazz.equals(Object.class)) return null;
+		
+		final String getter = getGetterName(name).toLowerCase();
+		Method[] methods = clazz.getMethods();
+		for (Method method : methods) {
+			if (method.getName().toLowerCase().equals(getter)) {
+				if (method.getParameterTypes().length<1) {
+					return method;
+				}
+			}
+		}
+		
+		final String isser  = getIsserName(name).toLowerCase();
+		for (Method method : methods) {
+			if (method.getName().toLowerCase().equals(isser)) {
+				if (method.getParameterTypes().length<1) {
+					return method;
+				}
+			}
+		}
+		return null;
+	}
+	
+
 	
 	public boolean isModelField(String name) throws NoSuchFieldException, SecurityException {
         return isModelField(model, name);

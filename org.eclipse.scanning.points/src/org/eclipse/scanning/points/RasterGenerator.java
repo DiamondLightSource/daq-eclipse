@@ -17,7 +17,7 @@ class RasterGenerator extends AbstractGenerator<RasterModel> {
 
 	@Override
 	protected void validateModel() {
-		if (model.getBoundingBox() == null) throw new PointsValidationException("Model must have a BoundingBox!", model, "boundingBox");
+		super.validateModel();
 		if (model.getFastAxisStep() == 0) throw new PointsValidationException("Model fast axis step size must be nonzero!", model, "fastAxisStep");
 		if (model.getSlowAxisStep() == 0) throw new PointsValidationException("Model slow axis step size must be nonzero!", model, "slowAxisStep");
 

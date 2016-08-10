@@ -10,6 +10,8 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IRequester;
+import org.eclipse.scanning.api.event.core.ResponseConfiguration;
+import org.eclipse.scanning.api.event.core.ResponseConfiguration.ResponseType;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -27,7 +29,7 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 	
 	public void init() throws EventException {
 		requester = eservice.createRequestor(uri, IEventService.DEVICE_REQUEST_TOPIC, IEventService.DEVICE_RESPONSE_TOPIC);
-	    requester.setTimeout(RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()); // Useful for debugging testing 
+		requester.setResponseConfiguration(new ResponseConfiguration(ResponseType.ONE_OR_MORE, RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()));
 	}
 	
 	@Override

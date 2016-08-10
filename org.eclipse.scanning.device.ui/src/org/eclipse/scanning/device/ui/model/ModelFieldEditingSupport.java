@@ -1,21 +1,23 @@
 package org.eclipse.scanning.device.ui.model;
 
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
+import org.eclipse.ui.services.IDisposable;
 
-class ModelFieldEditingSupport extends EditingSupport {
+class ModelFieldEditingSupport extends EditingSupport implements IDisposable {
 
 	/**
 	 * 
 	 */
 	private final ModelViewer modelViewer;
 	private ModelFieldEditorFactory factory;
-	public ModelFieldEditingSupport(ModelViewer modelViewer, ColumnViewer viewer) {
+	public ModelFieldEditingSupport(ModelViewer modelViewer, ColumnViewer viewer, ColumnLabelProvider prov) {
 		super(viewer);
 		this.modelViewer = modelViewer;
-		factory = new ModelFieldEditorFactory();
+		factory = new ModelFieldEditorFactory(prov);
 	}
 
 	@Override
@@ -44,4 +46,7 @@ class ModelFieldEditingSupport extends EditingSupport {
 		}
 	}
 
+	public void dispose() {
+		factory.dispose();
+	}
 }

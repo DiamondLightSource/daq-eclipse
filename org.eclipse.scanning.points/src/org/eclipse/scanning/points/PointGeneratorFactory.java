@@ -76,6 +76,10 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		generators = Collections.unmodifiableMap(gens);
 		info       = Collections.unmodifiableMap(tinfo);
 	}
+	
+	public Map<Class<? extends IScanPathModel>, Class<? extends IPointGenerator>> getGenerators() {
+		return generators;
+	}
 
 	@Override
 	public <T extends IScanPathModel, R> IPointGenerator<T> createGenerator(T model, Collection<R> regions) throws GeneratorException {

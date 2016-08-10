@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
+import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 /**
@@ -60,7 +62,17 @@ public abstract class AbstractGenerator<T extends IScanPathModel> implements IPo
 	 * 
 	 * @throw exception if model invalid
 	 */
-	protected abstract void validateModel() throws PointsValidationException;
+	protected void validateModel() {
+		T model = getModel();
+		if (model instanceof AbstractBoundingBoxModel) {
+			AbstractBoundingBoxModel bmodel = (AbstractBoundingBoxModel)model;
+			// As implemented, model width and/or height can be negative,
+			// and this flips the slow and/or fast point order.
+			if (bmodel.getBoundingBox() == null) throw new PointsValidationException("The model must have a Bounding Box!", model, "boundingBox");
+	        if (bmodel.getBoundingBox().getFastAxisLength()==0)  throw new PointsValidationException("The length must not be 0!", bmodel, "boundingBox");
+	        if (bmodel.getBoundingBox().getSlowAxisLength()==0)  throw new PointsValidationException("The length must not be 0!", bmodel, "boundingBox");
+		}
+	}
 
 	/**
 	 * The AbstractGenerator has a no argument validateModel() method which
