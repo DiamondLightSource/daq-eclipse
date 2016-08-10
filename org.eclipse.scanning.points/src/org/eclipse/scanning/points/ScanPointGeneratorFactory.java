@@ -65,8 +65,6 @@ public class ScanPointGeneratorFactory {
         // Constructor obtains a reference to the importer, module, and the class name
         public JythonObjectFactory(PySystemState state, Class javaClass, String moduleName, String className) {
         	
-        	Properties postProperties = new Properties();
-        	
             File loc = getBundleLocation("org.eclipse.scanning.points");
             state.path.add(new PyString(loc.getAbsolutePath() + "/scripts/"));
             
@@ -121,7 +119,7 @@ public class ScanPointGeneratorFactory {
     
     /**
 	 * @param bundleName
-	 * @return file this can return null if bundle is not found
+	 * @return File; can return null if bundle is not found
 	 */
 	public static File getBundleLocation(final String bundleName) {
 		

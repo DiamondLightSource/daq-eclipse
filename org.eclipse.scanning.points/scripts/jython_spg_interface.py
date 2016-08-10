@@ -135,50 +135,6 @@ class JArrayGenerator(JavaIteratorWrapper):
             yield java_point
             
 
-# class JRasterGenerator(JavaIteratorWrapper):
-#     """
-#     Create a CompoundGenerator with two LineGenerators and wrap the points
-#     into java Point objects
-#     """
-# 
-#     def __init__(self, outer_line, inner_line, alternate_direction=False):
-#         super(JRasterGenerator, self).__init__()
-#         
-#         self.inner_name = inner_line['name']
-#         name = [inner_line['name']]
-#         units = inner_line['units']
-#         start = [inner_line['start']]
-#         stop = [inner_line['stop']]
-#         num_points = inner_line['num_points']
-#         inner_line = LineGenerator(name, units, start, stop, num_points, alternate_direction)
-#         
-#         self.outer_name = outer_line['name']
-#         name = [outer_line['name']]
-#         units = outer_line['units']
-#         start = [outer_line['start']]
-#         stop = [outer_line['stop']]
-#         num_points = outer_line['num_points']
-#         outer_line = LineGenerator(name, units, start, stop, num_points)
-#         
-#         self.generator = CompoundGenerator([outer_line, inner_line], [], [])
-#         logging.debug(self.generator.to_dict())
-#     
-#     def _iterator(self):
-#         
-#         for point in self.generator.iterator():
-#             xIndex = point.indexes[0]
-#             yIndex = point.indexes[1]
-#             xName = self.inner_name
-#             yName = self.outer_name
-#             xPosition = point.positions[xName]
-#             yPosition = point.positions[yName]
-#             java_point = Point(xName, xIndex, xPosition, 
-#                                yName, yIndex, yPosition)
-#             # Set is2D=False
-#             
-#             yield java_point
-            
-
 class JSpiralGenerator(JavaIteratorWrapper):
     """
     Create a SpiralGenerator and wrap the points into java Point objects

@@ -1,13 +1,8 @@
 package org.eclipse.scanning.points;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
-import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.RasterModel;
@@ -35,48 +30,6 @@ class RasterGenerator extends AbstractGenerator<RasterModel> {
 		if (model.getSlowAxisStep()/model.getBoundingBox().getSlowAxisLength() < 0)
 			throw new PointsValidationException("Model slow axis step is directed so as to produce no points!", model, "slowAxisStep");
 	}
-	
-//	@Override
-//    public List<IPosition> createPoints() throws GeneratorException {
-//        
-//        validateModel();
-//        
-//        ScanPointGenerator spg = new ScanPointGenerator();
-//        
-//        double start = model.getBoundingBox().getFastAxisStart();
-//        int numPoints = (int) Math.floor(model.getBoundingBox().getFastAxisLength() / model.getFastAxisStep() + 1);
-//        double stop = start + (numPoints - 1) * model.getFastAxisStep();
-//        
-//        HashMap<String, Object> inner = new HashMap<String, Object>();
-//        inner.put("name", model.getFastAxisName());
-//        inner.put("units", "mm");
-//        inner.put("start", start);
-//        inner.put("stop", stop);
-//        inner.put("num_points", numPoints);
-//
-//        start = model.getBoundingBox().getSlowAxisStart();
-//        numPoints = (int) Math.floor(model.getBoundingBox().getSlowAxisLength() / model.getSlowAxisStep() + 1);
-//        stop = start + (numPoints - 1) * model.getSlowAxisStep();
-//        
-//        HashMap<String, Object> outer = new HashMap<String, Object>();
-//        outer.put("name", model.getSlowAxisName());
-//        outer.put("units", "mm");
-//        outer.put("start", start);
-//        outer.put("stop", stop);
-//        outer.put("num_points", numPoints);
-//        
-//        List<IPosition> points = spg.createRasterPoints(inner, outer, model.isSnake());
-//        
-//        List<IPosition> filteredPoints = new ArrayList<IPosition>();
-//        for (IPosition point: points) {
-//            double xCoord = (Double) point.get("X");
-//            double yCoord = (Double) point.get("Y");
-//            if (containsPoint(xCoord, yCoord)) {
-//                filteredPoints.add(point);
-//            }
-//        }
-//        return filteredPoints;
-//    }
 
 	public Iterator<IPosition> iteratorFromValidModel() {
 		return new GridIterator(this);

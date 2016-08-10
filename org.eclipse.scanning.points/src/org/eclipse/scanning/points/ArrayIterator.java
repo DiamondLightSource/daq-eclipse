@@ -3,7 +3,6 @@ package org.eclipse.scanning.points;
 import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
 
@@ -29,21 +28,11 @@ class ArrayIterator extends AbstractScanPointIterator {
 	@Override
 	public boolean hasNext() {
 		return pyIterator.hasNext();
-		
-//		if (model.getPositions() == null) {
-//			return false;
-//		}
-//		return index < model.getPositions().length;
 	}
 
 	@Override
 	public IPosition next() {
 		return pyIterator.next();
-		
-//		if (model.getPositions() != null && index < model.getPositions().length) {
-//			return new Scalar(model.getName(), index, model.getPositions()[index++]);
-//		}
-//		throw new NoSuchElementException();
 	}
 
 	public void remove() {

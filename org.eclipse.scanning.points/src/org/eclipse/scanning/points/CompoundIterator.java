@@ -1,15 +1,12 @@
 package org.eclipse.scanning.points;
 
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
-import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
 
 /**
@@ -54,14 +51,12 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		return pos;
 	}
 	
-	private IPosition next;
-    private boolean justDidNext = false; // This attempts to deal with the case where someone does .next() without .hasNext();
-    
 	@Override
 	public boolean hasNext() {
+		// TODO: Uncomment this once MapPosition updated and CompoundGenerator more generic
 		IPosition point;
-		double x;
-		double y;
+//		double x;
+//		double y;
 		
 		while (pyIterator.hasNext()) {
 			point = pyIterator.next();
@@ -75,10 +70,6 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		}
 		
 		return false;
-		
-//        next = getNext();
-//        justDidNext = true;
-//        return next!=null;
 	}
 
 	@Override
@@ -93,10 +84,6 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		currentPoint = null;
 		
 		return point;
-		
-//		if (!justDidNext) next = getNext(); 
-//		justDidNext = false;
-//		return next;
 	}
 	
 	public IPosition getNext() {
