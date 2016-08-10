@@ -7,7 +7,14 @@ import org.eclipse.scanning.api.event.EventException;
 
 public class ResponseConfiguration {
 	
-	public static final ResponseConfiguration DEFAULT = new ResponseConfiguration(ResponseType.ONE, 1, TimeUnit.SECONDS);
+	public static final ResponseConfiguration DEFAULT = new ResponseConfiguration(ResponseType.ONE, 100, TimeUnit.MILLISECONDS) {
+		public void setTimeout(long timeout) {
+			throw new RuntimeException("Timeout is immutable!");
+		}
+		public void setTimeUnit(TimeUnit timeUnit) {
+			throw new RuntimeException("TimeUnit is immutable!");
+		}
+	};
 	
 	public enum ResponseType {
 		/**
@@ -37,7 +44,7 @@ public class ResponseConfiguration {
 	private boolean somethingFound;
 	
 	public ResponseConfiguration() {
-		this(ResponseType.ONE, 1, TimeUnit.SECONDS);
+		this(ResponseType.ONE, DEFAULT.getTimeout(), DEFAULT.getTimeUnit());
 	}
 	
 	public ResponseConfiguration(ResponseType responseType, long timeout, TimeUnit timeUnit) {

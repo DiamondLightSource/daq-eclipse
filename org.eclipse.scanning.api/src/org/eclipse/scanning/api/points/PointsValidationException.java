@@ -31,6 +31,11 @@ public class PointsValidationException extends RuntimeException {
 		}
 		if (!fieldFound) throw new RuntimeException("No field(s) '"+Arrays.toString(fieldNames)+"' has been found in Class "+model.getClass().getSimpleName());
 	}
+	
+	public PointsValidationException(Exception e) {
+		super(e);
+	}
+
 
 	private List<Field> getFields(Object model) {
 		List<Field> fields = new ArrayList<>();

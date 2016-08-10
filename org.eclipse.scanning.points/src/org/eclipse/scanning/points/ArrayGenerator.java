@@ -16,7 +16,7 @@ public class ArrayGenerator extends AbstractGenerator<ArrayModel> {
 
 	@Override
 	protected void validateModel() {
-		// Nothing(?) to validate.
+		super.validateModel();
 	}
 
 	@Override

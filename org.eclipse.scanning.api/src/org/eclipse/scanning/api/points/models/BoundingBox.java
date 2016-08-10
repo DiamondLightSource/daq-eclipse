@@ -1,5 +1,8 @@
 package org.eclipse.scanning.api.points.models;
 
+import org.eclipse.scanning.api.annotation.UiHidden;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
+
 /**
  * A model defining a box in two dimensional space, which can be used to confine and give scale to a {@link
  * IBoundingBoxModel}.
@@ -14,18 +17,34 @@ package org.eclipse.scanning.api.points.models;
 public class BoundingBox {
 
 	public BoundingBox() {
+		
 	}
+	
 	public BoundingBox(double fastAxisStart, double slowAxisStart, double fastAxisLength, double slowAxisLength) {
 		super();
 		this.fastAxisStart = fastAxisStart;
 		this.slowAxisStart = slowAxisStart;
 		this.fastAxisLength = fastAxisLength;
-		this.slowaxisLength = slowAxisLength;
+		this.slowAxisLength = slowAxisLength;
 	}
+	
+	@FieldDescriptor(visible=false)
+	private String fastAxisName="x";
+	
+	@FieldDescriptor(visible=false)
+	private String slowAxisName="y";
+	
+	@FieldDescriptor(scannable="fastAxisName")
 	private double fastAxisStart;
-	private double slowAxisStart;
+	
+	@FieldDescriptor(scannable="fastAxisName", validif="fastAxisLength!=0")
 	private double fastAxisLength;
-	private double slowaxisLength;
+	
+	@FieldDescriptor(scannable="slowAxisName")
+	private double slowAxisStart;
+	
+	@FieldDescriptor(scannable="slowAxisName", validif="slowAxisLength!=0")
+	private double slowAxisLength;
 
 	public double getFastAxisStart() {
 		return fastAxisStart;
@@ -46,17 +65,17 @@ public class BoundingBox {
 		this.fastAxisLength = fastAxisLength;
 	}
 	public double getSlowAxisLength() {
-		return slowaxisLength;
+		return slowAxisLength;
 	}
 	public void setSlowAxisLength(double slowAxisLength) {
-		this.slowaxisLength = slowAxisLength;
+		this.slowAxisLength = slowAxisLength;
 	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		long temp;
-		temp = Double.doubleToLongBits(slowaxisLength);
+		temp = Double.doubleToLongBits(slowAxisLength);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(fastAxisLength);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -75,8 +94,8 @@ public class BoundingBox {
 		if (getClass() != obj.getClass())
 			return false;
 		BoundingBox other = (BoundingBox) obj;
-		if (Double.doubleToLongBits(slowaxisLength) != Double
-				.doubleToLongBits(other.slowaxisLength))
+		if (Double.doubleToLongBits(slowAxisLength) != Double
+				.doubleToLongBits(other.slowAxisLength))
 			return false;
 		if (Double.doubleToLongBits(fastAxisLength) != Double
 				.doubleToLongBits(other.fastAxisLength))
@@ -88,5 +107,21 @@ public class BoundingBox {
 				.doubleToLongBits(other.slowAxisStart))
 			return false;
 		return true;
+	}
+	@UiHidden
+	public String getFastAxisName() {
+		return fastAxisName;
+	}
+	@UiHidden
+	public void setFastAxisName(String fastAxisName) {
+		this.fastAxisName = fastAxisName;
+	}
+	@UiHidden
+	public String getSlowAxisName() {
+		return slowAxisName;
+	}
+	@UiHidden
+	public void setSlowAxisName(String slowAxisName) {
+		this.slowAxisName = slowAxisName;
 	}
 }

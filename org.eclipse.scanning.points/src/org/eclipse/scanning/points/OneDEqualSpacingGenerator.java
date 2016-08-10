@@ -17,6 +17,7 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 
 	@Override
 	protected void validateModel() {
+		super.validateModel();
 		if (model.getPoints() < 1) throw new PointsValidationException("Must have one or more points in model!", model, "points");
 	}
 
