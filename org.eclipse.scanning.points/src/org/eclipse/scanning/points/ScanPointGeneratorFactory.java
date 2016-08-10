@@ -1,8 +1,13 @@
 package org.eclipse.scanning.points;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Properties;
 
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Platform;
+import org.osgi.framework.Bundle;
 import org.python.core.Py;
 import org.python.core.PyObject;
 import org.python.core.PyString;
@@ -58,9 +63,12 @@ public class ScanPointGeneratorFactory {
         private final PyObject pyClass;
         
         // Constructor obtains a reference to the importer, module, and the class name
-        public JythonObjectFactory(PySystemState state, Class javaClass, String moduleName, String className) {Properties postProperties = new Properties();
+        public JythonObjectFactory(PySystemState state, Class javaClass, String moduleName, String className) {
         	
-            state.path.add(new PyString("/scratch/workspaces/workspace_git/daq-eclipse.git/org.eclipse.scanning.points/scripts/"));
+        	Properties postProperties = new Properties();
+        	
+            File loc = getBundleLocation("org.eclipse.scanning.points");
+            state.path.add(new PyString(loc.getAbsolutePath() + "/scripts/"));
             
             this.javaClass = javaClass;
             PyObject importer = state.getBuiltins().__getitem__(Py.newString("__import__"));
@@ -100,4 +108,23 @@ public class ScanPointGeneratorFactory {
             return createObject(args, Py.NoKeywords);
         }
     }
+    
+    
+    /**
+	 * @param bundleName
+	 * @return file this can return null if bundle is not found
+	 */
+	public static File getBundleLocation(final String bundleName) {
+		final Bundle bundle = Platform.getBundle(bundleName);
+		if (bundle == null) {
+			return new File("/scratch/workspaces/workspace_git/daq-eclipse.git/org.eclipse.scanning.points");
+		}
+		try {
+			return FileLocator.getBundleFile(bundle);
+		}
+		catch (IOException e) {
+			return new File("/scratch/workspaces/workspace_git/daq-eclipse.git/org.eclipse.scanning.points");
+		}
+	}
+
 }
