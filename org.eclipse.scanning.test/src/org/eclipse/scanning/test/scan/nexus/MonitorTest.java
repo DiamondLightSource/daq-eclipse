@@ -210,9 +210,10 @@ public class MonitorTest extends NexusTest {
 			smodel = new StepModel("yNex", 10,20,30); // Will generate one value at 10
 		}
 		
-		IPointGenerator<?> gen = gservice.createGenerator(smodel);
-		assertEquals(ySize, gen.size());
-		
+		IPointGenerator<?> stepGen = gservice.createGenerator(smodel);
+		assertEquals(ySize, stepGen.size());
+
+		IPointGenerator<?>[] gens = new IPointGenerator<?>[size.length];
 		// We add the outer scans, if any
 		if (size.length > 1) { 
 			for (int dim = size.length-2; dim>-1; dim--) {
@@ -223,9 +224,13 @@ public class MonitorTest extends NexusTest {
 					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 				}
 				final IPointGenerator<?> step = gservice.createGenerator(model);
-				gen = gservice.createCompoundGenerator(step, gen);
+//				gen = gservice.createCompoundGenerator(step, gen);
+				gens[dim] = step;
 			}
 		}
+		
+		gens[size.length - 1] = stepGen;
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(gens);
 	
 		// Create the model for a scan.
 		final ScanModel  scanModel = new ScanModel();

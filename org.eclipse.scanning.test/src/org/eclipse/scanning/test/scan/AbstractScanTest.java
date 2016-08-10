@@ -43,8 +43,10 @@ import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.scannable.MockScannable;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
+import org.junit.Before;
 import org.junit.Test;
 
 public class AbstractScanTest extends BrokerTest {
@@ -53,6 +55,11 @@ public class AbstractScanTest extends BrokerTest {
 	protected IScannableDeviceService     connector;
 	protected IPointGeneratorService      gservice;
 	protected IEventService               eservice;
+	
+	@Before
+	public void before() {
+		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
+	}
 
 	@Test
 	public void testSetSimplePosition() throws Exception {

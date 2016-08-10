@@ -34,7 +34,7 @@ class StepGenerator extends AbstractGenerator<StepModel> {
 	
 	@Override
 	public Iterator<IPosition> iteratorFromValidModel() {
-		return new StepIterator(this);
+		return new LineIterator(this);
 	}
 
 }

@@ -12,6 +12,10 @@ branches:
 
 jdk:
  - oraclejdk8
+ 
+# Handle git submodules manually
+git:
+    submodules: false
 
 before_install:
  - chmod +x ./org.eclipse.scanning.releng/build/commit-msg.sh
@@ -20,6 +24,9 @@ before_install:
  - git clone --depth=50 --branch=master https://github.com/eclipse/dawnsci.git ../../eclipse/org.eclipse.dawnsci
  - git clone --depth=50 --branch=master https://github.com/DawnScience/jeromq.git ../../jeromq
  - git clone --depth=50 --branch=master https://github.com/DawnScience/dawn-hdf.git ../../dawn-hdf
+ # Replace the SSH URL with the public URL, then initialize submodules
+ - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+ - git submodule update --init --recursive
   
 # Run the build from org.eclipse.scanning
 install:

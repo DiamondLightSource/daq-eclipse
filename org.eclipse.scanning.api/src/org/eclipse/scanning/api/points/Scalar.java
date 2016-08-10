@@ -35,6 +35,10 @@ public class Scalar extends AbstractPosition {
 	public Object get(String name) {
 		return name.equals(this.name) ? value : null;
 	}
+
+	public double getValue() {
+		return value;
+	}
 	
 	@Override
 	public int getIndex(String name) {
