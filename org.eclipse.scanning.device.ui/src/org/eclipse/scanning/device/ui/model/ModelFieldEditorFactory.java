@@ -23,6 +23,9 @@ import org.eclipse.jface.fieldassist.IContentProposal;
 import org.eclipse.jface.fieldassist.IContentProposalProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CheckboxCellEditor;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewer;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.window.DefaultToolTip;
@@ -35,6 +38,7 @@ import org.eclipse.richbeans.widgets.file.FileDialogCellEditor;
 import org.eclipse.richbeans.widgets.table.TextCellEditorWithContentProposal;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
+import org.eclipse.scanning.api.annotation.ui.EditType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
@@ -68,12 +72,25 @@ class ModelFieldEditorFactory {
 	private static ISelectionListener selectionListener;
 	private static ToolTip            currentHint;
 	private IScannableDeviceService   cservice;
+
+	private ColumnLabelProvider labelProvider;
 	
-	public ModelFieldEditorFactory() {
+	public ModelFieldEditorFactory(ColumnLabelProvider labelProvider) {
+		this.labelProvider = labelProvider;
 		try {
 			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
 		} catch (Exception e) {
 			logger.error("Unable to make a remote connection to "+IScannableDeviceService.class.getSimpleName());
+		}
+	}
+	
+	public void dispose() {
+		if (cservice instanceof IDisconnectable) {
+			try {
+				((IDisconnectable)cservice).disconnect();
+			} catch (EventException e) {
+				logger.error("Unable to disconnect remote service!", e);
+			}
 		}
 	}
 	
@@ -112,6 +129,9 @@ class ModelFieldEditorFactory {
    	
         if (clazz == Boolean.class) {
         	ed = new CheckboxCellEditor(parent, SWT.NONE);
+        	
+        } else if (anot!=null && anot.edit()==EditType.COMPOUND) {
+        	ed = new ModelCellEditor(parent, field, labelProvider);
         	
         } else if (Number.class.isAssignableFrom(clazz) || isNumberArray(clazz)) {        	
         	ed = getNumberEditor(field, clazz, parent);
@@ -190,13 +210,19 @@ class ModelFieldEditorFactory {
 			Collections.sort(sorted, new SortNatural<>(false));
 			final String[] finalItems = sorted.toArray(new String[sorted.size()]);
 			return new CComboCellEditor(parent, items) {
+				private Object lastValue;
 	    	    protected void doSetValue(Object value) {
 	                if (value instanceof Integer) value = finalItems[((Integer) value).intValue()];
+	                lastValue = value;
 	                super.doSetValue(value);
 	    	    }
 	    		protected Object doGetValue() {
-	    			Integer ordinal = (Integer)super.doGetValue();
-	    			return finalItems[ordinal];
+	    			try {
+		    			Integer ordinal = (Integer)super.doGetValue();
+		    			return finalItems[ordinal];
+	    			} catch (IndexOutOfBoundsException ne) {
+	    				return lastValue;
+	    			}
 	    		}
 			};
 		} else {

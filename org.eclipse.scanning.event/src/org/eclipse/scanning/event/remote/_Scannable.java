@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event.remote;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
@@ -19,6 +20,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 
 	_Scannable(DeviceRequest req, URI uri, IEventService eservice) throws EventException, InterruptedException {
 		super(req, uri, eservice);
+	    requester.setTimeout(25, TimeUnit.MILLISECONDS); /// Short scannables should be fast to get value from!
 	}
 
 	@SuppressWarnings("unchecked")
@@ -57,7 +59,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 	}
 
 	public String getUnit() {
-		update();
+		if (info==null) update();  // We assume that they do not change unit.
 		return info.getUnit();
 	}
 	
@@ -70,7 +72,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public T getMaximum() {
-		update();
+		if (info==null) update();
 		return (T)info.getUpper();
 	}
 
@@ -82,7 +84,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public T getMinimum() {
-		update();
+		if (info==null) update();
 		return (T)info.getLower();
 	}
 	

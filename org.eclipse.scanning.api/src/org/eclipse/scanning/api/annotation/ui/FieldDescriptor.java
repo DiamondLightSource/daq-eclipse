@@ -27,6 +27,8 @@ import java.lang.annotation.Target;
  * the models and the scan command processing. It produces a general scan user interface which
  * is interoperable with queues and the jython command line.
  * 
+ * TODO Perhaps break this up into separate annotations, however that would be slower to read.
+ * 
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -53,6 +55,12 @@ public @interface FieldDescriptor {
 	public DeviceType device() default DeviceType.NONE;
 	
 	/**
+	 * Used to specify how the edit of the value should happen.
+	 * @return
+	 */
+	public EditType edit() default EditType.DIRECT;
+	
+	/**
 	 * 
 	 * @return a string expression which if true, enables the field.
 	 * For instance a field called 'status' exists which is an enum of OK, FAILED, ...
@@ -71,6 +79,16 @@ public @interface FieldDescriptor {
 	 * The label attribute. If unset, uses the name of the field for the label.
 	 */
 	public String label() default "";
+	
+	/**
+	 * The value for the value if this field is compound. If set this
+	 * is used as a pattern using ${} notation. For instance this field
+	 * is an object with two fields x and y. The compoundLabel might be
+	 * "x=${x}, y=${y}". This expression will be evaluated with the values 
+	 * of x and y at render time.
+	 * @return
+	 */
+	public String compoundLabel() default "";
 	
 	/**
 	 * If scannable is set, this value overrides the maximum of the scannble, otherwise the scannable is used.

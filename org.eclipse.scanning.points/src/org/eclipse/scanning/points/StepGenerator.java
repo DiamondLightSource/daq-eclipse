@@ -11,12 +11,14 @@ import org.eclipse.scanning.api.points.models.StepModel;
 class StepGenerator extends AbstractGenerator<StepModel> {
 	
 	StepGenerator() {
-		setLabel("Step Scan");
+		setLabel("Step");
 		setDescription("Creates a step scan.\nIf the last requested point is within 1%\nof the end it will still be included in the scan");
+		setIconPath("icons/scanner--step.png"); // This icon exists in the rendering bundle 
 	}
 
 	@Override
 	protected void validateModel() {
+		super.validateModel();
 		double div = ((model.getStop()-model.getStart())/model.getStep());
 		if (div < 0) throw new PointsValidationException("Model step is directed in the wrong direction!", model, "start", "stop", "step");
 		if (!Double.isFinite(div)) throw new PointsValidationException("Model step size must be nonzero!", model, "start", "stop", "step");

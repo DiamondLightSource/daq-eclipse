@@ -4,20 +4,24 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.SpiralModel;
-import org.eclipse.scanning.points.SpiralGenerator;
+import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
 public class SpiralTest {
 
-	private SpiralGenerator generator;
+	private IPointGeneratorService service;
+	private IPointGenerator<SpiralModel> generator;
 
 	@Before
 	public void before() throws Exception {
+		
 		BoundingBox box = new BoundingBox();
 		box.setFastAxisStart(-10);
 		box.setSlowAxisStart(5);
@@ -28,8 +32,8 @@ public class SpiralTest {
 		model.setBoundingBox(box);
 		// use default parameters
 
-		generator = new SpiralGenerator();
-		generator.setModel(model);
+		service = new PointGeneratorFactory();
+		generator = service.createGenerator(model);
 	}
 
 	@Test

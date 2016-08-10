@@ -17,11 +17,9 @@ class GridGenerator extends AbstractGenerator<GridModel> {
 
 	@Override
 	protected void validateModel() {
-		// As implemented, model width and/or height can be negative,
-		// and this flips the slow and/or fast point order.
+		super.validateModel();
 		if (model.getSlowAxisPoints() <= 0) throw new PointsValidationException("Model must have a positive number of slow axis points!", model, "slowAxisPoints");
 		if (model.getFastAxisPoints() <= 0) throw new PointsValidationException("Model must have a positive number of fast axis points!", model, "fastAxisPoints");
-		if (model.getBoundingBox() == null) throw new PointsValidationException("The model must have a Bounding Box!", model, "boundingBox");
 	}
 
 	@Override

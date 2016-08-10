@@ -2,7 +2,7 @@ package org.eclipse.scanning.device.ui;
 
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionService;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
@@ -14,6 +14,7 @@ public class ServiceHolder {
 	private static IEventConnectorService eventConnectorService;
 	private static IEventService          eventService;
 	private static IPointGeneratorService generatorService;
+	private static IValidatorService      validatorService;
 	private static IExpressionService     expressionService;
 	private static ILoaderService         loaderService;
 	private static BundleContext context;
@@ -83,5 +84,14 @@ public class ServiceHolder {
 		} catch (NullPointerException npe) {
 			return null;
 		}
+	}
+
+	public static IValidatorService getValidatorService() {
+		if (validatorService==null) validatorService = getService(IValidatorService.class);
+		return validatorService;
+	}
+
+	public static void setValidatorService(IValidatorService validatorService) {
+		ServiceHolder.validatorService = validatorService;
 	}
 }

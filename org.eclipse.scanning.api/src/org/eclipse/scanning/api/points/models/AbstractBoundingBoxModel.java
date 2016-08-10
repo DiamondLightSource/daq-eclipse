@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
+import org.eclipse.scanning.api.annotation.ui.EditType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 
@@ -18,13 +19,13 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  */
 public abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
 
-	@FieldDescriptor(visible=false)
+	@FieldDescriptor(label="Bounding Box", edit=EditType.COMPOUND, compoundLabel="[${fastAxisStart} for ${fastAxisLength}],[${slowAxisStart} for ${slowAxisLength}]") // We edit this with a popup.
 	private BoundingBox boundingBox;
 
-	@FieldDescriptor(label="Fast", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'x'.") // TODO Right?
+	@FieldDescriptor(label="Fast Axis", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'x'.") // TODO Right?
 	private String      fastAxisName = "x";
 
-	@FieldDescriptor(label="Slow", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'y'.")  // TODO Right?
+	@FieldDescriptor(label="Slow Axis", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'y'.")  // TODO Right?
 	private String      slowAxisName = "y";
 
 	protected AbstractBoundingBoxModel() {
@@ -56,6 +57,7 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 	public void setFastAxisName(String newValue) {
 		String oldValue = this.fastAxisName;
 		this.fastAxisName = newValue;
+		if (boundingBox!=null) boundingBox.setFastAxisName(fastAxisName);
 		this.pcs.firePropertyChange("fastAxisName", oldValue, newValue);
 	}
 	@UiHidden
@@ -65,6 +67,7 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 	public void setSlowAxisName(String newValue) {
 		String oldValue = this.slowAxisName;
 		this.slowAxisName = newValue;
+		if (boundingBox!=null) boundingBox.setSlowAxisName(slowAxisName);
 		this.pcs.firePropertyChange("slowAxisName", oldValue, newValue);
 	}
 	@Override
