@@ -6,23 +6,22 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.IValidatorService;
+import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 
 public class ValidatorService implements IValidatorService {
 	
+	private final PointGeneratorFactory factory = new PointGeneratorFactory();
+
 	private static final Map<Class<?>, Class<? extends IValidator>> validators;
 	static {
 		Map<Class<?>, Class<? extends IValidator>> tmp = new HashMap<>();
-		
-		final PointGeneratorFactory factory = new PointGeneratorFactory();
-		Map<Class<? extends IScanPathModel>, Class<? extends IPointGenerator>> gens = factory.getGenerators();
-		for (Class<? extends IScanPathModel> modelClass : gens.keySet()) {
-			tmp.put(modelClass, (Class<IValidator>)gens.get(modelClass));
-		}
-		tmp.put(BoundingBox.class, BoundingBoxValidator.class);
+		tmp.put(BoundingBox.class,   BoundingBoxValidator.class);
+		tmp.put(CompoundModel.class, CompoundValidator.class);
 		
 		validators = Collections.unmodifiableMap(tmp);
 	}
@@ -35,7 +34,23 @@ public class ValidatorService implements IValidatorService {
 
 	@Override
 	public <T> IValidator<T> getValidator(T model) throws InstantiationException, IllegalAccessException {
-		return validators.get(model.getClass()).newInstance();
+		
+		if (model==null) throw new NullPointerException("The model is null!");
+		if (validators.containsKey(model.getClass())) {
+			return validators.get(model.getClass()).newInstance();
+		}
+	
+		if (model instanceof IScanPathModel) { // Ask a generator
+			try {
+				IScanPathModel     pmodel = (IScanPathModel)model;
+				IPointGenerator<?> gen    = factory.createGenerator(pmodel);
+				return (IValidator<T>)gen;
+				
+			} catch (GeneratorException e) {
+				throw new IllegalAccessException(e.getMessage());
+			}
+		}
+		throw new IllegalAccessException("There is no validator for "+model.getClass().getSimpleName());
 	}
 
 }

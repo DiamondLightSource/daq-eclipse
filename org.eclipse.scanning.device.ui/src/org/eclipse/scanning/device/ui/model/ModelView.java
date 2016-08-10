@@ -19,15 +19,16 @@ public class ModelView extends ViewPart implements ISelectionListener {
 	private ModelViewer modelEditor;
 	
 	@Override
-	public void createPartControl(Composite parent) {
-		
-		PageUtil.getPage(getSite()).addSelectionListener(this);
+	public void createPartControl(Composite parent) {	
 
 		try {
 			modelEditor = new ModelViewer(PageUtil.getPage(getSite()));
 			modelEditor.createPartControl(parent);
 			
 			getSite().setSelectionProvider(modelEditor);
+			
+			PageUtil.getPage(getSite()).addSelectionListener(this);
+
 		} catch (Exception ne) {
 			logger.error("Unable to create model table!", ne);
 		}
