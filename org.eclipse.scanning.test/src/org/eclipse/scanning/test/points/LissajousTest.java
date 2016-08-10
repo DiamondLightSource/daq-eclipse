@@ -9,6 +9,7 @@ import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 import org.eclipse.scanning.points.LissajousGenerator;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,6 +19,8 @@ public class LissajousTest {
 
 	@Before
 	public void before() throws Exception {
+		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
+		
 		BoundingBox box = new BoundingBox();
 		box.setFastAxisStart(-10);
 		box.setSlowAxisStart(5);

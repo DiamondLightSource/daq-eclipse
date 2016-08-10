@@ -39,6 +39,7 @@ import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.ServiceHolder;
@@ -79,6 +80,7 @@ public class BenchmarkScanTest extends BrokerTest {
 	
 	@Before
 	public void start() throws Exception {
+		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!

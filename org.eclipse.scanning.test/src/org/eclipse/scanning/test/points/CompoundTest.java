@@ -17,6 +17,7 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.python.core.PyDictionary;
@@ -30,6 +31,7 @@ public class CompoundTest {
 	
 	@Before
 	public void before() throws Exception {
+		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		service = new PointGeneratorFactory();
 	}
 

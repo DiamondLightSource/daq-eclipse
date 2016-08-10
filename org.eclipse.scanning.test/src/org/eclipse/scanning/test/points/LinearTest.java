@@ -15,6 +15,7 @@ import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,6 +25,7 @@ public class LinearTest {
 	
 	@Before
 	public void before() throws Exception {
+		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		service = new PointGeneratorFactory();
 	}
 	

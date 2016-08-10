@@ -109,21 +109,33 @@ public class ScanPointGeneratorFactory {
         }
     }
     
+    private static String bundlePath = null;
+    
+    public String getBundlePath() {
+    	return bundlePath;
+    }
+    
+    public static void setBundlePath(String newPath) {
+    	bundlePath = newPath;
+    }
     
     /**
 	 * @param bundleName
 	 * @return file this can return null if bundle is not found
 	 */
 	public static File getBundleLocation(final String bundleName) {
+		
+		if (bundlePath!=null) return new File(bundlePath);
+		
 		final Bundle bundle = Platform.getBundle(bundleName);
 		if (bundle == null) {
-			return new File("/scratch/workspaces/workspace_git/daq-eclipse.git/org.eclipse.scanning.points");
+			return null;
 		}
 		try {
 			return FileLocator.getBundleFile(bundle);
 		}
 		catch (IOException e) {
-			return new File("/scratch/workspaces/workspace_git/daq-eclipse.git/org.eclipse.scanning.points");
+			return null;
 		}
 	}
 

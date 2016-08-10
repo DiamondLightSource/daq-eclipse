@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.points;
 
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -16,10 +17,18 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.Scalar;
+import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.LissajousModel;
+import org.eclipse.scanning.points.LissajousGenerator;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
 
 public class ScanPointGeneratorFactoryTest {
+
+	@Before
+	public void before() throws Exception {
+		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
+	}
 	
     @Test
     public void testJLineGeneratorFactory1D() {

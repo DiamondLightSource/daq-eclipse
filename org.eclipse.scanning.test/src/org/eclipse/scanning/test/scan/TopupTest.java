@@ -28,6 +28,7 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
@@ -51,6 +52,7 @@ public class TopupTest {
 
 	@Before
 	public void setup() throws ScanningException {
+		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
 		connector = new MockScannableConnector();
