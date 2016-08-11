@@ -67,7 +67,6 @@ public class AnnotatedScanTest extends BrokerTest {
 	
 	@Before
 	public void start() throws Exception {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
