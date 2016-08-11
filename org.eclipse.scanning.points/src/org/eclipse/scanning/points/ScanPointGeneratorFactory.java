@@ -3,11 +3,11 @@ package org.eclipse.scanning.points;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.Properties;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.wiring.BundleWiring;
 import org.python.core.Py;
 import org.python.core.PyObject;
 import org.python.core.PyString;
@@ -65,8 +65,36 @@ public class ScanPointGeneratorFactory {
         // Constructor obtains a reference to the importer, module, and the class name
         public JythonObjectFactory(PySystemState state, Class javaClass, String moduleName, String className) {
         	
+            try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
+	        	Bundle bundle = Platform.getBundle("org.eclipse.scanning.points");
+	        	BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
+	        	ClassLoader classLoader = bundleWiring.getClassLoader();
+	        	state.setClassLoader(classLoader);
+            } catch (Exception ne) {
+            	// Legal, if static classloader does not work in tests, there will be
+            	// errors. If bundle classloader does not work in product, there will be errors.
+            	// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
+            }
+        	
             File loc = getBundleLocation("org.eclipse.scanning.points");
             state.path.add(new PyString(loc.getAbsolutePath() + "/scripts/"));
+            
+            try {
+            	// Search for the Libs directory which should have been expanded out either
+            	// directly into the bundle or into the 'jython2.7' folder.
+	            loc = getBundleLocation("uk.ac.diamond.jython"); // TODO Name the jython OSGi bundle without Diamond in it!
+	           
+	            File jythonJar = find(loc, "jython.jar");
+	            if (jythonJar.exists()) state.path.add(new PyString(jythonJar.getAbsolutePath())); // Resolves the collections
+	           
+	            File lib = find(loc, "Lib");
+	            if (lib.exists()) state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
+	            
+            } catch (Exception ignored) {
+            	// We do it anyway, depending on the jython version, collections may be found.
+            	// Test decks can run without this step happening because their config
+            	// adds a static jython to the classpath.
+            }
             
             this.javaClass = javaClass;
             PyObject importer = state.getBuiltins().__getitem__(Py.newString("__import__"));
@@ -107,13 +135,31 @@ public class ScanPointGeneratorFactory {
         }
     }
     
-    private static String bundlePath = null;
+    
+    private static File find(File loc, String name) {
+    	
+    	File find = new File(loc, name);
+        if (find.exists()) return find;
+        
+        find = new File(loc.getAbsolutePath()+"/jython2.7/"+name);
+        if (find.exists()) return find;
+        
+        for (File child : loc.listFiles()) {
+		    if (child.isDirectory() && child.getName().startsWith("jython")) {
+		    	final File cfild = new File(child, name);
+		    	if (cfild.exists()) return cfild; 
+		    }
+		}
+        return null;
+	}
+
+	private static String bundlePath = null;
     
     public String getBundlePath() {
     	return bundlePath;
     }
-    
-    public static void setBundlePath(String newPath) {
+ 
+	public static void setBundlePath(String newPath) {
     	bundlePath = newPath;
     }
     
@@ -131,8 +177,7 @@ public class ScanPointGeneratorFactory {
 		}
 		try {
 			return FileLocator.getBundleFile(bundle);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			return null;
 		}
 	}
