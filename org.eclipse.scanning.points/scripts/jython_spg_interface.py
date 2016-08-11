@@ -213,6 +213,22 @@ class JCompoundGenerator(JavaIteratorWrapper):
         excluders = [excluder.py_excluder for excluder in excluders]
         mutators = [mutator.py_mutator for mutator in mutators]
         
+        self.index_locations = {}
+        self.scan_names = ArrayList()
+        for index, generator in enumerate(generators):
+            
+            for axis in generator.axes:
+                self.index_locations[axis] = index
+                
+                scan_name = ArrayList()
+                for name in generator.name:
+                    scan_name.add(name)
+                
+            self.scan_names.add(scan_name)
+        
+        logging.debug("Index Locations:")
+        logging.debug(self.index_locations)
+        
         self.generator = CompoundGenerator(generators, excluders, mutators)
         
         logging.debug("CompoundGenerator:")
@@ -241,16 +257,13 @@ class JCompoundGenerator(JavaIteratorWrapper):
             else:
                 java_point = MapPosition()
                 
-                names = ArrayList()
-                for index, (axis, value) in enumerate(point.positions.items()):
+                for axis, value in point.positions.items():
+                    index = self.index_locations[axis]
                     logging.debug([index, point.indexes, point.positions])
                     java_point.put(axis, value)
                     java_point.putIndex(axis, point.indexes[index])
-                    name = ArrayList()
-                    name.add(axis)
-                    names.add(name)
                 
-                java_point.setDimensionNames(names)
+                java_point.setDimensionNames(self.scan_names)
                             
             yield java_point
 
