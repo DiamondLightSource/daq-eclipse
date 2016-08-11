@@ -83,10 +83,7 @@ public class ScanPointGeneratorFactory {
             	// Search for the Libs directory which should have been expanded out either
             	// directly into the bundle or into the 'jython2.7' folder.
 	            loc = getBundleLocation("uk.ac.diamond.jython"); // TODO Name the jython OSGi bundle without Diamond in it!
-	           
-	            File jythonJar = find(loc, "jython.jar");
-	            if (jythonJar.exists()) state.path.add(new PyString(jythonJar.getAbsolutePath())); // Resolves the collections
-	           
+	           	           
 	            File lib = find(loc, "Lib");
 	            if (lib.exists()) state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
 	            
