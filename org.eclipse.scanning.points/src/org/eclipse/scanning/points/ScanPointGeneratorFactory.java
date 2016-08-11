@@ -99,7 +99,7 @@ public class ScanPointGeneratorFactory {
     }
 	
     public synchronized static JythonObjectFactory JCompoundGeneratorFactory() {
-        return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JCompoundGenerator");
+        return new JythonObjectFactory(SerializableIterator.class, "jython_spg_interface", "JCompoundGenerator");
     }
 	
     public synchronized static JythonObjectFactory JRandomOffsetMutatorFactory() {

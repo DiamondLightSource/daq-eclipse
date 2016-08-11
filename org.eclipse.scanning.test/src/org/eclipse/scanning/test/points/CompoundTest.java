@@ -16,6 +16,8 @@ import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.points.CompoundIterator;
+import org.eclipse.scanning.points.CompoundGenerator;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.junit.Before;
@@ -125,6 +127,29 @@ public class CompoundTest {
 		assertEquals(new Double(2.2), (Double)points.get(32).get("Position"));
 
         GeneratorUtil.testGeneratorPoints(scan);
+	}
+	
+	@Test
+	public void testToDict() throws Exception {
+		
+		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
+		assertEquals(6, temp.size());
+
+		IPointGenerator<StepModel> pos = service.createGenerator(new StepModel("Position", 1,4, 0.6));
+		assertEquals(6, pos.size());
+
+		CompoundGenerator scan = (CompoundGenerator) service.createCompoundGenerator(temp, pos);
+		
+		PyDictionary dict = scan.toDict();
+		PyList gens = (PyList) dict.get("generators");
+		PyDictionary line1 = (PyDictionary) gens.get(0);
+		PyDictionary line2 = (PyDictionary) gens.get(1);
+		double start = (double) ((PyList) line1.get("start")).get(0);
+
+		assertEquals(290.0, (double) ((PyList) line1.get("start")).get(0), 1E-10);
+		assertEquals(295.0, (double) ((PyList) line1.get("stop")).get(0), 1E-10);
+		assertEquals(6, (int) line1.get("num"));
+		
 	}
 	
 	@Test
