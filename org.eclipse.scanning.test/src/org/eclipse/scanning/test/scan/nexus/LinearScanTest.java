@@ -118,16 +118,13 @@ public class LinearScanTest extends BrokerTest{
 		
 	}
 	
-	@Ignore("This requires Point indexing to be refactored")
 	@Test
 	public void testWrappedLineScan() throws Exception {
 			
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
 		doScan(roi, 2, new int[]{4,10,64,64}, new StepModel("T", 290, 300, 3), create1DModel(10));
-		
 	}
 
-	@Ignore("This requires Point indexing to be refactored")
 	@Test
 	public void testBigWrappedLineScan() throws Exception {
 			
@@ -137,7 +134,6 @@ public class LinearScanTest extends BrokerTest{
                                                    new StepModel("T3", 290, 291, 1), 
                                                    new StepModel("T4", 290, 291, 1), 
                                                     create1DModel(3));
-		
 	}
 
 	private IScanPathModel create1DModel(int size) {
