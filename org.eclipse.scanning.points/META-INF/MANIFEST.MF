@@ -18,5 +18,5 @@ Export-Package: org.eclipse.scanning.points,
  org.eclipse.scanning.points.validation
 Service-Component: OSGI-INF/*.xml
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: lib/jython-standalone-2.7.0.jar,
- .
+Bundle-ClassPath: .
+Import-Package: org.python.core
