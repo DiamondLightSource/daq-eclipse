@@ -29,7 +29,8 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 	
 	public void init() throws EventException {
 		requester = eservice.createRequestor(uri, IEventService.DEVICE_REQUEST_TOPIC, IEventService.DEVICE_RESPONSE_TOPIC);
-		requester.setResponseConfiguration(new ResponseConfiguration(ResponseType.ONE_OR_MORE, RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()));
+		// TODO ResponseType.ONE_OR_MORE
+		requester.setResponseConfiguration(new ResponseConfiguration(ResponseType.ONE, RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()));
 	}
 	
 	@Override

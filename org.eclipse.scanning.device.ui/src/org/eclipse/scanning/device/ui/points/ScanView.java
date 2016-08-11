@@ -68,7 +68,7 @@ public class ScanView  extends ViewPart {
 		this.pservice     = ServiceHolder.getGeneratorService();
 		this.eservice     = ServiceHolder.getEventService();
 		this.seriesTable  = new SeriesTable();
-		this.pointsFilter = new GeneratorFilter(pservice, eservice.getEventConnectorService());
+		this.pointsFilter = new GeneratorFilter(pservice, eservice.getEventConnectorService(), seriesTable);
 	}
 	
 	@Override
