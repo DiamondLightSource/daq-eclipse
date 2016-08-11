@@ -39,7 +39,6 @@ public class MappingScanTest extends BrokerTest{
 
 	@Before
 	public void createServices() throws Exception {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!

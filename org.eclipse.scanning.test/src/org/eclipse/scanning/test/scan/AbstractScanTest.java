@@ -55,11 +55,6 @@ public class AbstractScanTest extends BrokerTest {
 	protected IScannableDeviceService     connector;
 	protected IPointGeneratorService      gservice;
 	protected IEventService               eservice;
-	
-	@Before
-	public void before() {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
-	}
 
 	@Test
 	public void testSetSimplePosition() throws Exception {

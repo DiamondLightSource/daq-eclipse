@@ -8,7 +8,6 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.points.ArrayGenerator;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,8 +17,6 @@ public class ArrayTest {
 
 	@Before
 	public void before() throws Exception {
-
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		
 		double[] positions = new double[] {1.0, 2.0 ,3.0, 4.0, 5.0};
 

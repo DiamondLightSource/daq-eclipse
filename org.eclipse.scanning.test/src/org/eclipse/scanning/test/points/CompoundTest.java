@@ -4,28 +4,21 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.points.CompoundIterator;
 import org.eclipse.scanning.points.CompoundGenerator;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.python.core.PyDictionary;
 import org.python.core.PyList;
-import org.python.core.PyObject;
-import org.python.core.PyString;
 
 public class CompoundTest {
 	
@@ -33,7 +26,6 @@ public class CompoundTest {
 	
 	@Before
 	public void before() throws Exception {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		service = new PointGeneratorFactory();
 	}
 
@@ -132,24 +124,32 @@ public class CompoundTest {
 	@Test
 	public void testToDict() throws Exception {
 		
-		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
-		assertEquals(6, temp.size());
-
-		IPointGenerator<StepModel> pos = service.createGenerator(new StepModel("Position", 1,4, 0.6));
-		assertEquals(6, pos.size());
-
+		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290, 295, 1));
+		IPointGenerator<StepModel> pos = service.createGenerator(new StepModel("Position", 1, 4, 0.6));
 		CompoundGenerator scan = (CompoundGenerator) service.createCompoundGenerator(temp, pos);
 		
 		PyDictionary dict = scan.toDict();
+		
 		PyList gens = (PyList) dict.get("generators");
 		PyDictionary line1 = (PyDictionary) gens.get(0);
 		PyDictionary line2 = (PyDictionary) gens.get(1);
-		double start = (double) ((PyList) line1.get("start")).get(0);
 
+		assertEquals("Temperature", (String) ((PyList) line1.get("name")).get(0));
+		assertEquals("mm", line1.get("units"));
 		assertEquals(290.0, (double) ((PyList) line1.get("start")).get(0), 1E-10);
 		assertEquals(295.0, (double) ((PyList) line1.get("stop")).get(0), 1E-10);
 		assertEquals(6, (int) line1.get("num"));
 		
+		assertEquals("Position", (String) ((PyList) line2.get("name")).get(0));
+		assertEquals("mm", line2.get("units"));
+		assertEquals(1.0, (double) ((PyList) line2.get("start")).get(0), 1E-10);
+		assertEquals(4.0, (double) ((PyList) line2.get("stop")).get(0), 1E-10);
+		assertEquals(6, (int) line2.get("num"));
+
+		PyList excluders = (PyList) dict.get("excluders");
+		PyList mutators = (PyList) dict.get("mutators");
+		assertEquals(new PyList(), excluders);
+		assertEquals(new PyList(), mutators);
 	}
 	
 	@Test
@@ -212,45 +212,10 @@ public class CompoundTest {
 		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,300,1));
 		assertEquals(11, temp.size());
 
-//		BoundingBox box = new BoundingBox();
-//		box.setFastAxisStart(0);
-//		box.setSlowAxisStart(0);
-//		box.setFastAxisLength(3);
-//		box.setSlowAxisLength(3);
-//
-//		GridModel model = new GridModel();
-//		model.setSlowAxisPoints(20);
-//		model.setFastAxisPoints(20);
-//		model.setBoundingBox(box);
-//		
-//		IPointGenerator<GridModel> grid = service.createGenerator(model);
-
 		IPointGenerator<StepModel> line1 = service.createGenerator(new StepModel("x", 0.075, 2.925, 3.0/20.0));
 		assertEquals(20, line1.size());
 		IPointGenerator<StepModel> line2 = service.createGenerator(new StepModel("y", 0.075, 2.925, 3.0/20.0));
 		assertEquals(20, line2.size());
-		
-//		BoundingLine bLine1 = new BoundingLine();
-//		bLine1.setxStart(0.0);
-//		bLine1.setyStart(0.0);
-//		bLine1.setLength(3.0);
-//		OneDEqualSpacingModel model1 = new OneDEqualSpacingModel();
-//		model1.setBoundingLine(bLine1);
-//		model1.setName("x");
-//		model1.setPoints(20);
-//		IPointGenerator<OneDEqualSpacingModel> line1 = service.createGenerator(model1);
-//		assertEquals(20, line1.size());
-//		
-//		BoundingLine bLine2 = new BoundingLine();
-//		bLine2.setxStart(0.0);
-//		bLine2.setyStart(0.0);
-//		bLine2.setLength(3.0);
-//		OneDEqualSpacingModel model2 = new OneDEqualSpacingModel();
-//		model2.setBoundingLine(bLine2);
-//		model2.setName("y");
-//		model2.setPoints(20);
-//		IPointGenerator<OneDEqualSpacingModel> line2 = service.createGenerator(model2);
-//		assertEquals(20, line2.size());
 		
 		IPointGenerator<?> scan = service.createCompoundGenerator(temp, line2, line1);
 		assertEquals(4400, scan.size());

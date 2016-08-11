@@ -187,7 +187,6 @@ public class ScanPointGeneratorFactory {
 
     }
     
-    
     private static File find(File loc, String name) {
     	
     	File find = new File(loc, name);
@@ -223,21 +222,26 @@ public class ScanPointGeneratorFactory {
     
     /**
 	 * @param bundleName
-	 * @return File; can return null if bundle is not found
+	 * @return File
 	 */
 	private static File getBundleLocation(final String bundleName) {
 		
-		if (bundlePath!=null) return new File(bundlePath);
-		
-		final Bundle bundle = Platform.getBundle(bundleName);
-		if (bundle == null) {
-			return null;
-		}
 		try {
+			final Bundle bundle = Platform.getBundle(bundleName);
+			if (bundle == null) {
+				throw new IOException();
+			}
 			return FileLocator.getBundleFile(bundle);
-		} catch (IOException e) {
-			return null;
 		}
+		catch (IOException e) {
+			File dir = new File("../org.eclipse.scanning.points");
+			if (dir.exists()) return dir;
+			dir = new File("../../daq-eclipse.git/org.eclipse.scanning.points");
+			if (dir.exists()) return dir;
+			dir = new File("../../org.eclipse.scanning.git/org.eclipse.scanning.points");
+			if (dir.exists()) return dir;
+		}
+		return null;
 	}
 
 }

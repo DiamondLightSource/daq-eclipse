@@ -61,7 +61,6 @@ public class ScanFinishedTest {
 
 	@Before
 	public void setup() throws Exception {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		// We wire things together without OSGi here
 		// DO NOT COPY THIS IN NON-TEST CODE
 		connector = new MockScannableConnector();
