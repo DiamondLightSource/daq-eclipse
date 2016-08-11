@@ -91,8 +91,8 @@ class GridIterator extends AbstractScanPointIterator {
         double offset = getXStep() * model.getOffset() / 100;
         
         PyDictionary maxOffset = new PyDictionary();
-        maxOffset.put("x", offset);
-        maxOffset.put("y", offset);
+        maxOffset.put(yName, offset);
+        maxOffset.put(xName, offset);
         
 		PyObject randomOffset = (PyObject) randomOffsetMutatorFactory.createObject(seed, maxOffset);
         
