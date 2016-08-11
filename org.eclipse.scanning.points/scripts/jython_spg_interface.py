@@ -1,7 +1,7 @@
-from java.util import Iterator;
 from org.eclipse.scanning.api.points import Point
 from org.eclipse.scanning.api.points import Scalar
 from org.eclipse.scanning.api.points import MapPosition
+from org.eclipse.scanning.points import SerializableIterator
 from java.util import ArrayList
 
 from scanpointgenerator import LineGenerator
@@ -16,7 +16,7 @@ import logging
 # logging.basicConfig(level=logging.DEBUG)
 
 
-class JavaIteratorWrapper(Iterator):
+class JavaIteratorWrapper(SerializableIterator):
     """
     A wrapper class to give a python iterator the while(hasNext() {next()})
     operation required of Java Iterators
@@ -56,6 +56,9 @@ class JavaIteratorWrapper(Iterator):
                 self._has_next = True
             
         return self._has_next
+    
+    def toDict(self):
+        return self.generator.to_dict()
 
 
 class JLineGenerator1D(JavaIteratorWrapper):
@@ -246,10 +249,9 @@ class JCompoundGenerator(JavaIteratorWrapper):
                     name = ArrayList()
                     name.add(axis)
                     names.add(name)
-                    
+                
                 java_point.setDimensionNames(names)
-                    
-            
+                            
             yield java_point
 
 
