@@ -66,11 +66,13 @@ public class ScanPointGeneratorFactory {
         public JythonObjectFactory(PySystemState state, Class javaClass, String moduleName, String className) {
         	
             try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
-	        	Bundle bundle = Platform.getBundle("org.eclipse.scanning.points");
-	        	BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
-	        	ClassLoader classLoader = bundleWiring.getClassLoader();
-	        	state.setClassLoader(classLoader);
+	        	CompositeClassLoader composite = new CompositeClassLoader(getClass().getClassLoader());
+	        	composite.addLast(getBundleLoader("uk.ac.diamond.jython"));
+	        	composite.addLast(getBundleLoader("org.eclipse.scanning.points"));
+	        	state.setClassLoader(composite);
+	        	
             } catch (Exception ne) {
+            	ne.printStackTrace();
             	// Legal, if static classloader does not work in tests, there will be
             	// errors. If bundle classloader does not work in product, there will be errors.
             	// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
@@ -80,6 +82,7 @@ public class ScanPointGeneratorFactory {
             state.path.add(new PyString(loc.getAbsolutePath() + "/scripts/"));
             
             try {
+            	
             	// Search for the Libs directory which should have been expanded out either
             	// directly into the bundle or into the 'jython2.7' folder.
 	            loc = getBundleLocation("uk.ac.diamond.jython"); // TODO Name the jython OSGi bundle without Diamond in it!
@@ -95,6 +98,8 @@ public class ScanPointGeneratorFactory {
             
             this.javaClass = javaClass;
             PyObject importer = state.getBuiltins().__getitem__(Py.newString("__import__"));
+            importer.__call__(Py.newString("org.python.core"));
+            importer.__call__(Py.newString("org.python.modules"));
             PyObject module = importer.__call__(Py.newString(moduleName));
             pyClass = module.__getattr__(className);
             // System.err.println("module=" + module + ",class=" + klass);
@@ -148,6 +153,12 @@ public class ScanPointGeneratorFactory {
 		    }
 		}
         return null;
+	}
+
+	private static ClassLoader getBundleLoader(String name) {
+    	Bundle bundle = Platform.getBundle(name);
+    	BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
+    	return bundleWiring.getClassLoader();
 	}
 
 	private static String bundlePath = null;

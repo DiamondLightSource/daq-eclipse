@@ -116,7 +116,7 @@ public class SummaryView extends ViewPart implements ISelectionListener {
 			if (ne.getMessage()!=null) {
 			    text.setText(ne.getMessage());
 			} else {
-				text.setText(Arrays.toString(ne.getStackTrace()));
+				text.setText(ne.toString());
 			}
 		}
 	}
@@ -144,7 +144,7 @@ public class SummaryView extends ViewPart implements ISelectionListener {
 
 	@Override
 	public void setFocus() {
-		// Set the focus
+		if (text!=null && !text.isDisposed()) text.setFocus();
 	}
 
 }
