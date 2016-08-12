@@ -1,0 +1,7 @@
+Note that the scanpointgenerator Python module is a git Submodule.
+
+Until a `git submodule update` has been run, the scanpointgenerator directory
+will be empty.
+
+To do this from the Eclipse IDE, open the daq-eclipse.git repository in the
+Git Repositories view, right click on Submodules and select Update Submodule.
