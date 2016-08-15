@@ -124,4 +124,8 @@ public class CompoundIterator extends AbstractScanPointIterator {
         throw new UnsupportedOperationException("remove");
     }
 
+	public int size() {
+		return pyIterator.size();
+	}
+
 }

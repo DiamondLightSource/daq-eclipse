@@ -63,9 +63,9 @@ public class CompoundGenerator extends AbstractGenerator<IScanPathModel> {
 
 	@Override
 	public int sizeOfValidModel() throws GeneratorException {
-		int size = 1;
-		for (int i = 0; i < generators.length; i++) size*=generators[i].size();
-        return size;
+		CompoundIterator it = (CompoundIterator) iteratorFromValidModel();
+		return it.size();
+//		for (int i = 0; i < generators.length; i++) size*=generators[i].size();
 	}
 	
 	@Override
