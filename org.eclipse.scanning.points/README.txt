@@ -12,3 +12,8 @@ the fast sequences, if any, found.
 The Lib folder here is taken from Jython 2.7.1.b3 which is assumed to be delivered with this bundle. If
 the ScanPointGenerator cannot find 'collections' from Jython, it attempts to use this version of the
 internal Jython scripts.
+
+The Jython 2.7.1.b3 bundle name is set into org.eclipse.scanning by putting it in the target and using the system
+property org.eclipse.scanning.jython.osgi.bundle.name to the bundle name. By default it is uk.ac.diamond.jython
+which is provided as a dependency in the target for org.eclipse.scanning. However the system property may be used
+to change it.

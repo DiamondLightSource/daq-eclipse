@@ -12,12 +12,16 @@ import org.python.core.Py;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Based on JythonObjectFactory
  * See: http://www.jython.org/jythonbook/en/1.0/JythonAndJavaIntegration.html#more-efficient-version-of-loosely-coupled-object-factory
  */
 public class ScanPointGeneratorFactory {
+	
+	private static final Logger logger = LoggerFactory.getLogger(ScanPointGeneratorFactory.class);
 	
 	/**
 	 * Call to load Jython asynchronously to avoid the
@@ -40,6 +44,28 @@ public class ScanPointGeneratorFactory {
 		background.setPriority(Thread.MIN_PRIORITY+2); // Background but some urgency more than least
 		background.start();
 	}
+	
+	private static ClassLoader jythonClassloader;
+	static {
+		jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
+	    try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
+	    	CompositeClassLoader composite = new CompositeClassLoader(ScanPointGeneratorFactory.class.getClassLoader());
+	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+	    	composite.addLast(getBundleLoader(jythonBundleName));
+	    	jythonClassloader = composite;
+	    	
+	    } catch (NullPointerException ne) {
+	    	// Allowed, the bundles do not have to be there we are just trying to be helpful
+	    	// in loading classes without making hard dependencies on them.
+	    	
+	    } catch (Exception ne) {
+	    	logger.debug("Problem loading jython bundles!", ne);
+	    	// Legal, if static classloader does not work in tests, there will be
+	    	// errors. If bundle classloader does not work in product, there will be errors.
+	    	// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
+	    }
+	}
+
 	
 	// This class compiles Jython objects and maps them to an IPointGenerator so they can be
 	// used easily in Java. More specifically, it creates the Jython ScanPointGenerator interface
@@ -83,18 +109,19 @@ public class ScanPointGeneratorFactory {
     // This class creates Java objects from Jython classes
     public static class JythonObjectFactory {
         
-    	private final Class    javaClass;
+    	private final Class<?> javaClass;
         private final PyObject pyClass;
         
         // This constructor passes through to the other constructor with the SystemState
-        JythonObjectFactory(Class javaClass, String moduleName, String className) {
+        JythonObjectFactory(Class<?> javaClass, String moduleName, String className) {
             this(Py.getSystemState(), javaClass, moduleName, className);
         }
 
         // Constructor obtains a reference to the importer, module, and the class name
-        JythonObjectFactory(PySystemState state, Class javaClass, String moduleName, String className) {
+        JythonObjectFactory(PySystemState state, Class<?> javaClass, String moduleName, String className) {
         	
-        	createClassloaders(state);
+        	state.setClassLoader(jythonClassloader);
+        	addScriptPath(state);
             
             this.javaClass = javaClass;
             PyObject importer = state.getBuiltins().__getitem__(Py.newString("__import__"));
@@ -131,32 +158,16 @@ public class ScanPointGeneratorFactory {
             return createObject(args, Py.NoKeywords);
         }
         
-        private void createClassloaders(PySystemState state) {
-        	
-            try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
-	        	CompositeClassLoader composite = new CompositeClassLoader(getClass().getClassLoader());
-	        	composite.addLast(getBundleLoader("uk.ac.diamond.jython"));
-	        	composite.addLast(getBundleLoader("org.eclipse.scanning.points"));
-	        	state.setClassLoader(composite);
-	        	
-            } catch (NullPointerException ne) {
-            	// Allowed, the bundles do not have to be there we are just trying to be helpful
-            	// in loading classes without making hard dependencies on them.
-            	
-            } catch (Exception ne) {
-            	ne.printStackTrace();
-            	// Legal, if static classloader does not work in tests, there will be
-            	// errors. If bundle classloader does not work in product, there will be errors.
-            	// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
-            }
-        	
+        private void addScriptPath(PySystemState state) {
+        	        	
             final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
             state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
             
             try {
             	// Search for the Libs directory which should have been expanded out either
             	// directly into the bundle or into the 'jython2.7' folder.
-	            File loc = getBundleLocation("uk.ac.diamond.jython"); // TODO Name the jython OSGi bundle without Diamond in it!
+    	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+	            File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
 	           	   
 	            File lib;
 	            if (loc!=null && loc.exists()) {
@@ -165,13 +176,12 @@ public class ScanPointGeneratorFactory {
 	            	lib = find(pointsLocation, "Lib"); // We copied it somewhere.
 	            }
 	            if (lib.exists()) {
-	            	System.out.println("Loading Jython libs from "+lib.getAbsolutePath());
+	            	logger.debug("Loading Jython libs from "+lib.getAbsolutePath());
 	            	state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
 	            }
-
 	            
             } catch (Exception ne) {
-            	ne.printStackTrace();
+            	logger.debug("Problem setting jython path to include scripts!", ne);
             }
 		}
 
