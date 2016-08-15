@@ -13,7 +13,7 @@ from scanpointgenerator import RandomOffsetMutator
 
 # logging
 import logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 
 class JavaIteratorWrapper(SerializableIterator):
