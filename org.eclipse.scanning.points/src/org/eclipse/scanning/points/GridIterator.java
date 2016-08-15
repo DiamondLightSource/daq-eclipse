@@ -111,6 +111,9 @@ class GridIterator extends AbstractScanPointIterator {
 		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
 				generators, excluders, mutators);
         pyIterator = iterator;
+        
+        pyIterators.add(outerLine);
+        pyIterators.add(innerLine);
 	}
 
 	public GridIterator(RasterGenerator gen) {
@@ -145,6 +148,9 @@ class GridIterator extends AbstractScanPointIterator {
 		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
 				generators, excluders, mutators);
         pyIterator = iterator;
+        
+        pyIterators.add(outerLine);
+        pyIterators.add(innerLine);
 	}
 
 	@Override
