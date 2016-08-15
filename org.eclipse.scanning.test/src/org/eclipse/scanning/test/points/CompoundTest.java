@@ -47,7 +47,8 @@ public class CompoundTest {
 
 		IPointGenerator<GridModel> gen = service.createGenerator(model);
 		IPointGenerator<?> scan = service.createCompoundGenerator(pos, gen);
-		scan.iterator();
+		IPointGenerator<?> scan2 = service.createCompoundGenerator(pos, scan);
+		scan2.iterator();
 	}
 	@Test(expected=org.python.core.PyException.class)
 	public void testDuplicateAxisNameException() throws Exception {
