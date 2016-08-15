@@ -1,5 +1,7 @@
 package org.eclipse.scanning.device.ui.scan;
 
+import java.util.Arrays;
+
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -9,6 +11,7 @@ import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.points.GeneratorDescriptor;
@@ -105,9 +108,16 @@ public class SummaryView extends ViewPart implements ISelectionListener {
 	        	final IPointGenerator<?> gen = pservice.createCompoundGenerator(cm);
 	        	text.setText(gen.toString());
 	        }
+		} catch (PointsValidationException ne) {
+			 text.setText(ne.getMessage());
+			 
 		} catch (Exception ne) {
 			logger.error("Cannot create summary of scan!", ne);
-			text.setText(ne.getMessage());
+			if (ne.getMessage()!=null) {
+			    text.setText(ne.getMessage());
+			} else {
+				text.setText(ne.toString());
+			}
 		}
 	}
 
@@ -134,7 +144,7 @@ public class SummaryView extends ViewPart implements ISelectionListener {
 
 	@Override
 	public void setFocus() {
-		// Set the focus
+		if (text!=null && !text.isDisposed()) text.setFocus();
 	}
 
 }
