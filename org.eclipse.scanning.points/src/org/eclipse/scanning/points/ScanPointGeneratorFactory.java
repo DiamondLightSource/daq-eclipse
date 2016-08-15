@@ -18,6 +18,29 @@ import org.python.core.PySystemState;
  * See: http://www.jython.org/jythonbook/en/1.0/JythonAndJavaIntegration.html#more-efficient-version-of-loosely-coupled-object-factory
  */
 public class ScanPointGeneratorFactory {
+	
+	/**
+	 * Call to load Jython asynchronously to avoid the
+	 * long wait time that happens when points are first generated.
+	 * 
+	 * Call this method to load jython in a daemon thread such that
+	 * when it is first used, for instance in the UI, it will execute
+	 * fast because the interpreter has classloaded.
+	 */
+	static void init() {
+		
+		final Thread background = new Thread() {
+			public void run() {
+				// Loading one causes Jython to class load.
+				ScanPointGeneratorFactory.JLineGenerator1DFactory();
+			}
+		};
+		background.setDaemon(true);
+		background.setName("Jython loader thread");    // Always name threads.
+		background.setPriority(Thread.MIN_PRIORITY+2); // Background but some urgency more than least
+		background.start();
+	}
+	
 	// This class compiles Jython objects and maps them to an IPointGenerator so they can be
 	// used easily in Java. More specifically, it creates the Jython ScanPointGenerator interface
 	// classes found in the scripts folder of this package (org.eclipse.scanning.points)
@@ -25,15 +48,15 @@ public class ScanPointGeneratorFactory {
 	// These are the constructors for each Jython SPG interface. To add a new one just replace, 
 	// for example, "JArrayGenerator" with your new class and give the constructor a new name
 	// like "<YourClass>Factory"
-    public static JythonObjectFactory JLineGenerator1DFactory() {
+    public synchronized static JythonObjectFactory JLineGenerator1DFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JLineGenerator1D");
     }
 	
-    public static JythonObjectFactory JLineGenerator2DFactory() {
+    public synchronized static JythonObjectFactory JLineGenerator2DFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JLineGenerator2D");
     }
 	
-    public static JythonObjectFactory JArrayGeneratorFactory() {
+    public synchronized static JythonObjectFactory JArrayGeneratorFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JArrayGenerator");
     }
 	
@@ -41,60 +64,37 @@ public class ScanPointGeneratorFactory {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JRasterGenerator");
     }
 	
-    public static JythonObjectFactory JSpiralGeneratorFactory() {
+    public synchronized static JythonObjectFactory JSpiralGeneratorFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JSpiralGenerator");
     }
 	
-    public static JythonObjectFactory JLissajousGeneratorFactory() {
+    public synchronized static JythonObjectFactory JLissajousGeneratorFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JLissajousGenerator");
     }
 	
-    public static JythonObjectFactory JCompoundGeneratorFactory() {
+    public synchronized static JythonObjectFactory JCompoundGeneratorFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JCompoundGenerator");
     }
 	
-    public static JythonObjectFactory JRandomOffsetMutatorFactory() {
+    public synchronized static JythonObjectFactory JRandomOffsetMutatorFactory() {
         return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JRandomOffsetMutator");
     }
     
     // This class creates Java objects from Jython classes
     public static class JythonObjectFactory {
-        private final Class javaClass;
+        
+    	private final Class    javaClass;
         private final PyObject pyClass;
         
+        // This constructor passes through to the other constructor with the SystemState
+        JythonObjectFactory(Class javaClass, String moduleName, String className) {
+            this(Py.getSystemState(), javaClass, moduleName, className);
+        }
+
         // Constructor obtains a reference to the importer, module, and the class name
-        public JythonObjectFactory(PySystemState state, Class javaClass, String moduleName, String className) {
+        JythonObjectFactory(PySystemState state, Class javaClass, String moduleName, String className) {
         	
-            try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
-	        	CompositeClassLoader composite = new CompositeClassLoader(getClass().getClassLoader());
-	        	composite.addLast(getBundleLoader("uk.ac.diamond.jython"));
-	        	composite.addLast(getBundleLoader("org.eclipse.scanning.points"));
-	        	state.setClassLoader(composite);
-	        	
-            } catch (Exception ne) {
-            	ne.printStackTrace();
-            	// Legal, if static classloader does not work in tests, there will be
-            	// errors. If bundle classloader does not work in product, there will be errors.
-            	// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
-            }
-        	
-            File loc = getBundleLocation("org.eclipse.scanning.points");
-            state.path.add(new PyString(loc.getAbsolutePath() + "/scripts/"));
-            
-            try {
-            	
-            	// Search for the Libs directory which should have been expanded out either
-            	// directly into the bundle or into the 'jython2.7' folder.
-	            loc = getBundleLocation("uk.ac.diamond.jython"); // TODO Name the jython OSGi bundle without Diamond in it!
-	           	           
-	            File lib = find(loc, "Lib");
-	            if (lib.exists()) state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
-	            
-            } catch (Exception ignored) {
-            	// We do it anyway, depending on the jython version, collections may be found.
-            	// Test decks can run without this step happening because their config
-            	// adds a static jython to the classpath.
-            }
+        	createClassloaders(state);
             
             this.javaClass = javaClass;
             PyObject importer = state.getBuiltins().__getitem__(Py.newString("__import__"));
@@ -104,13 +104,8 @@ public class ScanPointGeneratorFactory {
             pyClass = module.__getattr__(className);
             // System.err.println("module=" + module + ",class=" + klass);
         }
-        
-        // This constructor passes through to the other constructor with the SystemState
-        public JythonObjectFactory(Class javaClass, String moduleName, String className) {
-            this(Py.getSystemState(), javaClass, moduleName, className);
-        }
-        
-        // The following methods return a coerced Jython object based upon the pieces of
+
+		// The following methods return a coerced Jython object based upon the pieces of
         // information that were passed into the factory, for various argument structures
         
         public Object createObject() {
@@ -135,6 +130,51 @@ public class ScanPointGeneratorFactory {
         public Object createObject(Object... args) {
             return createObject(args, Py.NoKeywords);
         }
+        
+        private void createClassloaders(PySystemState state) {
+        	
+            try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
+	        	CompositeClassLoader composite = new CompositeClassLoader(getClass().getClassLoader());
+	        	composite.addLast(getBundleLoader("uk.ac.diamond.jython"));
+	        	composite.addLast(getBundleLoader("org.eclipse.scanning.points"));
+	        	state.setClassLoader(composite);
+	        	
+            } catch (NullPointerException ne) {
+            	// Allowed, the bundles do not have to be there we are just trying to be helpful
+            	// in loading classes without making hard dependencies on them.
+            	
+            } catch (Exception ne) {
+            	ne.printStackTrace();
+            	// Legal, if static classloader does not work in tests, there will be
+            	// errors. If bundle classloader does not work in product, there will be errors.
+            	// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
+            }
+        	
+            final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
+            state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
+            
+            try {
+            	// Search for the Libs directory which should have been expanded out either
+            	// directly into the bundle or into the 'jython2.7' folder.
+	            File loc = getBundleLocation("uk.ac.diamond.jython"); // TODO Name the jython OSGi bundle without Diamond in it!
+	           	   
+	            File lib;
+	            if (loc!=null && loc.exists()) {
+		            lib = find(loc, "Lib");
+	            } else {
+	            	lib = find(pointsLocation, "Lib"); // We copied it somewhere.
+	            }
+	            if (lib.exists()) {
+	            	System.out.println("Loading Jython libs from "+lib.getAbsolutePath());
+	            	state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
+	            }
+
+	            
+            } catch (Exception ne) {
+            	ne.printStackTrace();
+            }
+		}
+
     }
     
     
@@ -175,7 +215,7 @@ public class ScanPointGeneratorFactory {
 	 * @param bundleName
 	 * @return File; can return null if bundle is not found
 	 */
-	public static File getBundleLocation(final String bundleName) {
+	private static File getBundleLocation(final String bundleName) {
 		
 		if (bundlePath!=null) return new File(bundlePath);
 		
