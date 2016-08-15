@@ -50,7 +50,8 @@ public class ScanPointGeneratorFactory {
 		jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
 	    try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
 	    	CompositeClassLoader composite = new CompositeClassLoader(ScanPointGeneratorFactory.class.getClassLoader());
-	    	composite.addLast(getBundleLoader("uk.ac.diamond.jython"));
+	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+	    	composite.addLast(getBundleLoader(jythonBundleName));
 	    	jythonClassloader = composite;
 	    	
 	    } catch (NullPointerException ne) {
@@ -165,7 +166,8 @@ public class ScanPointGeneratorFactory {
             try {
             	// Search for the Libs directory which should have been expanded out either
             	// directly into the bundle or into the 'jython2.7' folder.
-	            File loc = getBundleLocation("uk.ac.diamond.jython"); // TODO Name the jython OSGi bundle without Diamond in it!
+    	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+	            File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
 	           	   
 	            File lib;
 	            if (loc!=null && loc.exists()) {
