@@ -17,4 +17,7 @@ public abstract class AbstractScanPointIterator implements Iterator<IPosition> {
 		this.pyIterator = pyIterator;
 	}
 	
+	public PyDictionary toDict() {
+		return null;
+	}
 }

@@ -9,4 +9,8 @@ public abstract class SerializableIterator<E> implements Iterator<E> {
 	public PyDictionary toDict() {
 		return null;
 	}
+
+	public int size() {
+		return 0;
+	}
 }
