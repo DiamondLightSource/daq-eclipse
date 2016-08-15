@@ -19,5 +19,6 @@ Export-Package: org.eclipse.scanning.points,
 Service-Component: OSGI-INF/*.xml
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
-Import-Package: org.python.core
+Import-Package: org.python.core,
+ org.slf4j;version="1.7.2"
 Bundle-Activator: org.eclipse.scanning.points.PointsActivator
