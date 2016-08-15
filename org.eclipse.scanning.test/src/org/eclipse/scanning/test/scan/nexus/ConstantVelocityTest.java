@@ -211,7 +211,6 @@ public class ConstantVelocityTest extends NexusTest {
 					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 				}
 				final IPointGenerator<?> step = gservice.createGenerator(model);
-//				gen = gservice.createCompoundGenerator(step, gen);
 				gens[dim] = step;
 			}
 		}

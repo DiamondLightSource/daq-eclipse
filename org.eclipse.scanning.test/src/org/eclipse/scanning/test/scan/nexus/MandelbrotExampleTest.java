@@ -288,22 +288,16 @@ public class MandelbrotExampleTest extends NexusTest {
 	private IRunnableDevice<ScanModel> createGridScan(final IRunnableDevice<?> detector, File file, int... size) throws Exception {
 		
 		// Create scan points for a grid and make a generator
-//		GridModel gmodel = new GridModel();
-//		gmodel.setFastAxisName("xNex");
-//		gmodel.setFastAxisPoints(size[size.length-1]);
-//		gmodel.setSlowAxisName("yNex");
-//		gmodel.setSlowAxisPoints(size[size.length-2]);
-//		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
+		GridModel gmodel = new GridModel();
+		gmodel.setFastAxisName("xNex");
+		gmodel.setFastAxisPoints(size[size.length-1]);
+		gmodel.setSlowAxisName("yNex");
+		gmodel.setSlowAxisPoints(size[size.length-2]);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
-//		IPointGenerator<?> gen = gservice.createGenerator(gmodel);
+		IPointGenerator<?> gen = gservice.createGenerator(gmodel);
 		
-		double stepSize1 = 3.0/size[size.length-1];
-		double stepSize2 = 3.0/size[size.length-2];
-		
-		IPointGenerator<StepModel> line1 = gservice.createGenerator(new StepModel("xNex", stepSize1/2, 3.0 - stepSize1/2, stepSize1));
-		IPointGenerator<StepModel> line2 = gservice.createGenerator(new StepModel("yNex", stepSize2/2, 3.0 - stepSize2/2, stepSize2));
-		
-		IPointGenerator<?>[] gens = new IPointGenerator<?>[size.length];
+		IPointGenerator<?>[] gens = new IPointGenerator<?>[size.length - 1];
 		// We add the outer scans, if any
 		if (size.length > 2) { 
 			for (int dim = size.length-3; dim>-1; dim--) {
@@ -317,10 +311,9 @@ public class MandelbrotExampleTest extends NexusTest {
 				gens[dim] = step;
 			}
 		}
-		gens[size.length-1] = line1;
-		gens[size.length-2] = line2;
+		gens[size.length - 2] = gen;
 
-		IPointGenerator<?> gen = gservice.createCompoundGenerator(gens);
+		gen = gservice.createCompoundGenerator(gens);
 	
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();

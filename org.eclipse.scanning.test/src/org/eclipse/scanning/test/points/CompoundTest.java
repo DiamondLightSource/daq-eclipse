@@ -211,20 +211,28 @@ public class CompoundTest {
 		
 		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,300,1));
 		assertEquals(11, temp.size());
-
-		IPointGenerator<StepModel> line1 = service.createGenerator(new StepModel("x", 0.075, 2.925, 3.0/20.0));
-		assertEquals(20, line1.size());
-		IPointGenerator<StepModel> line2 = service.createGenerator(new StepModel("y", 0.075, 2.925, 3.0/20.0));
-		assertEquals(20, line2.size());
 		
-		IPointGenerator<?> scan = service.createCompoundGenerator(temp, line2, line1);
+		BoundingBox box = new BoundingBox();		
+		box.setFastAxisStart(0);		
+		box.setSlowAxisStart(0);		
+		box.setFastAxisLength(3);		
+		box.setSlowAxisLength(3);		
+		
+		GridModel model = new GridModel();		
+		model.setSlowAxisPoints(20);		
+		model.setFastAxisPoints(20);		
+		model.setBoundingBox(box);		
+		
+		IPointGenerator<GridModel> grid = service.createGenerator(model);
+		
+		IPointGenerator<?> scan = service.createCompoundGenerator(temp, grid);
 		assertEquals(4400, scan.size());
 
 		List<IPosition> points = scan.createPoints();
 
 		List<IPosition> first400 = new ArrayList<>(400);
 
-		// The fist 400 should be T=290
+		// The first 400 should be T=290
 		for (int i = 0; i < 400; i++) {
 			assertEquals(new Double(290.0), points.get(i).get("Temperature"));
 			first400.add(points.get(i));
@@ -239,6 +247,39 @@ public class CompoundTest {
 		}
         GeneratorUtil.testGeneratorPoints(scan);
 
+	}
+
+	@Test
+	public void testGridCompoundGrid() throws Exception {
+		
+		BoundingBox box = new BoundingBox();		
+		box.setFastAxisStart(0);		
+		box.setSlowAxisStart(0);		
+		box.setFastAxisLength(3);		
+		box.setSlowAxisLength(3);		
+		
+		GridModel model1 = new GridModel();		
+		model1.setSlowAxisPoints(5);		
+		model1.setFastAxisPoints(5);		
+		model1.setBoundingBox(box);	
+		model1.setFastAxisName("x");
+		model1.setSlowAxisName("y");	
+		
+		IPointGenerator<GridModel> grid1 = service.createGenerator(model1);	
+		
+		GridModel model2 = new GridModel();		
+		model2.setSlowAxisPoints(5);		
+		model2.setFastAxisPoints(5);		
+		model2.setBoundingBox(box);	
+		model2.setFastAxisName("x2");
+		model2.setSlowAxisName("y2");	
+		
+		IPointGenerator<GridModel> grid2 = service.createGenerator(model2);
+		
+		IPointGenerator<?> scan = service.createCompoundGenerator(grid1, grid2);
+		assertEquals(625, scan.size());
+		
+        GeneratorUtil.testGeneratorPoints(scan);
 	}
 	
 	private void checkPoints(List<IPosition> pointList) {
@@ -273,21 +314,17 @@ public class CompoundTest {
 		gmodel.setSlowAxisPoints(size[size.length-1]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
-		IPointGenerator<StepModel> line1 = service.createGenerator(new StepModel("xNex", 0.075, 2.925, size[size.length-2]));
-		IPointGenerator<StepModel> line2 = service.createGenerator(new StepModel("yNex", 0.075, 2.925, size[size.length-1]));
-		
 		IPointGenerator<?> gen = service.createGenerator(gmodel);
 		
 		// We add the outer scans, if any
 		if (size.length > 2) {
-			IPointGenerator<?>[] gens = new IPointGenerator<?>[size.length];
+			IPointGenerator<?>[] gens = new IPointGenerator<?>[size.length - 1];
 			for (int dim = size.length-3; dim>-1; dim--) {
 				final StepModel model = new StepModel("neXusScannable"+dim, 10,20,11/size[dim]);
 				gens[dim] = service.createGenerator(model);
 			}
-		gens[size.length-1] = line1;
-		gens[size.length-2] = line2;
-		gen = service.createCompoundGenerator(gens);
+			gens[size.length - 2] = gen;
+			gen = service.createCompoundGenerator(gens);
 		}
 		
 		final IPosition pos = gen.iterator().next();

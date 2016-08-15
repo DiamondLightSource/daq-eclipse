@@ -13,7 +13,7 @@ from scanpointgenerator import RandomOffsetMutator
 
 # logging
 import logging
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class JavaIteratorWrapper(SerializableIterator):
@@ -59,6 +59,9 @@ class JavaIteratorWrapper(SerializableIterator):
     
     def toDict(self):
         return self.generator.to_dict()
+    
+    def size(self):
+        return self.generator.num
 
 
 class JLineGenerator1D(JavaIteratorWrapper):
@@ -203,15 +206,23 @@ class JCompoundGenerator(JavaIteratorWrapper):
     def __init__(self, iterators, excluders, mutators):
         super(JCompoundGenerator, self).__init__()
         
-        try:
+        try: # If JavaIteratorWrapper
             generators = [iterator.generator for iterator in iterators]
-        except AttributeError:
+        except AttributeError: # Else call get*() of Java iterator
             generators = [iterator.getPyIterator().generator for iterator in iterators]
         logging.debug("Generators passed to JCompoundGenerator:")
         logging.debug([generator.to_dict() for generator in generators])
         
         excluders = [excluder.py_excluder for excluder in excluders]
         mutators = [mutator.py_mutator for mutator in mutators]
+        
+        extracted_generators = []
+        for generator in generators:
+            if generator.__class__.__name__ == "CompoundGenerator":
+                extracted_generators.extend(generator.generators)
+            else:
+                extracted_generators.append(generator)
+        generators = extracted_generators
         
         self.index_locations = {}
         self.scan_names = ArrayList()
@@ -221,8 +232,8 @@ class JCompoundGenerator(JavaIteratorWrapper):
                 self.index_locations[axis] = index
                 
                 scan_name = ArrayList()
-                for name in generator.name:
-                    scan_name.add(name)
+                for axis in generator.axes:
+                    scan_name.add(axis)
                 
             self.scan_names.add(scan_name)
         

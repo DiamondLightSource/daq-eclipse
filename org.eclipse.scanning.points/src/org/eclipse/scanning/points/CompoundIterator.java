@@ -31,7 +31,7 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		this.gen       = gen;
 		this.iterators = initIterators();
 		this.pos       = createFirstPosition();
-
+		
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
 		
         Object[] excluders = {};
@@ -58,7 +58,7 @@ public class CompoundIterator extends AbstractScanPointIterator {
     
 	@Override
 	public boolean hasNext() {
-		// TODO: Uncomment this once MapPosition updated and CompoundGenerator more generic
+		// TODO: Commented out until Python ROIs are ready
 		IPosition point;
 //		double x;
 //		double y;
