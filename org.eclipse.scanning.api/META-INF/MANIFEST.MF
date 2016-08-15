@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Eclipse-BuddyPolicy: global
 Bundle-ManifestVersion: 2
 Bundle-Name: Api
 Bundle-SymbolicName: org.eclipse.scanning.api;singleton:=true
