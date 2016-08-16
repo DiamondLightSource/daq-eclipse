@@ -33,8 +33,8 @@ public class CompoundIterator extends AbstractScanPointIterator {
 
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
 		
-        Object[] excluders = {};
-        Object[] mutators = {};
+        Object[] excluders = {}; // TODO FIXME excluders not respected?
+        Object[] mutators = {};  // TODO FIXME mutators not respected?
         
 		@SuppressWarnings("unchecked")
 		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(

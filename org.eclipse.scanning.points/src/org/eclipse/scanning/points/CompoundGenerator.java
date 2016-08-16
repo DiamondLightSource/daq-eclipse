@@ -10,7 +10,7 @@ import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 
 /**
  * 
@@ -20,15 +20,21 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * @author Matthew Gerring
  *
  */
-class CompoundGenerator extends AbstractGenerator<IScanPathModel> {
+class CompoundGenerator extends AbstractGenerator<CompoundModel> {
 	
-	private IPointGenerator<?>[] generators;
+	private IPointGenerator<?>[]     generators;
 	private List<Collection<String>> dimensionNames;
 
 	public CompoundGenerator(IPointGenerator<?>[] generators) throws GeneratorException {
 		super(createId(generators));
         if (generators == null || generators.length<1) throw new GeneratorException("Cannot make a compound generator from a list of less than one generators!");
-	    this.generators = generators;
+        
+        // We create a model with no regions from the generators.
+        this.model = new CompoundModel();
+        for (IPointGenerator<?> g : generators) model.addData(g.getModel(), null);
+        // This model is not designed to hold all the data because we have the actual generators!
+        
+        this.generators = generators;
 	    this.dimensionNames = createDimensionNames(generators);
 		setLabel("Compound");
 		setDescription("Compound generator used when wrapping scans.");
@@ -59,6 +65,35 @@ class CompoundGenerator extends AbstractGenerator<IScanPathModel> {
 		// turn each calls .validateModel(). Therefore we don't need to do any
 		// explicit validation here.
 	}
+	
+	/**
+	 * The description is run on the fly for compound generator
+	 * and it provides the scan point summary.
+	 */
+	@Override
+	public String getDescription() {
+		if (model==null) return super.getDescription();
+		try {
+			validate(model); // Probably does nothing depending on what validation is chosen for compound models.
+
+			final StringBuilder buf = new StringBuilder();
+			buf.append("A scan of "+size()+" points\n");
+			IPosition first = iterator().next();
+			buf.append("Scanning motors: ");
+			for (String name : first.getNames()) {
+				buf.append(name);
+				buf.append(" ");
+			}
+			buf.append('\n');
+			
+			return buf.toString();
+			
+		} catch (Exception ne) {
+			return ne.getMessage() != null ? ne.getMessage() : ne.toString();
+		}
+		
+	}
+
 
 	@Override
 	public int sizeOfValidModel() throws GeneratorException {

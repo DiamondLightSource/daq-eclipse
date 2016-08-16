@@ -2,6 +2,7 @@ package org.eclipse.scanning.api.points.models;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
@@ -64,5 +65,19 @@ public abstract class AbstractPointsModel implements IScanPathModel {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+	
+	
+	public static List<String> getScannableNames(Object model) {
+		if (model instanceof IScanPathModel) return ((IScanPathModel)model).getScannableNames();
+		try {
+			Method method = model.getClass().getMethod("getScannableNames");
+			Object ret    = method.invoke(model);
+			if (ret instanceof List) return (List<String>)ret;
+			return null;
+		} catch (Exception ne) {
+			return null;
+		}
+		
 	}
 }

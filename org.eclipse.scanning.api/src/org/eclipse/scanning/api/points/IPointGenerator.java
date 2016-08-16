@@ -22,7 +22,7 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  *
  * @param <T>
  */
-public interface IPointGenerator<T extends IScanPathModel> extends Iterable<IPosition>, IValidator<T> {
+public interface IPointGenerator<T> extends Iterable<IPosition>, IValidator<T> {
 	
 	/**
 	 * The model for the generator.

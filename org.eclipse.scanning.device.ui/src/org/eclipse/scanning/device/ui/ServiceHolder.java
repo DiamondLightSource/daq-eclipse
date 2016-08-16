@@ -24,7 +24,7 @@ public class ServiceHolder {
 		return eventConnectorService;
 	}
 
-	public static void setEventConnectorService(IEventConnectorService eventService) {
+	public void setEventConnectorService(IEventConnectorService eventService) {
 		ServiceHolder.eventConnectorService = eventService;
 	}
 
@@ -33,7 +33,7 @@ public class ServiceHolder {
 		return eventService;
 	}
 
-	public static void setEventService(IEventService eventService) {
+	public void setEventService(IEventService eventService) {
 		ServiceHolder.eventService = eventService;
 	}
 
@@ -42,7 +42,7 @@ public class ServiceHolder {
 		return generatorService;
 	}
 
-	public static void setGeneratorService(IPointGeneratorService generatorService) {
+	public void setGeneratorService(IPointGeneratorService generatorService) {
 		ServiceHolder.generatorService = generatorService;
 	}
 
@@ -59,7 +59,7 @@ public class ServiceHolder {
 		return expressionService;
 	}
 
-	public static void setExpressionService(IExpressionService expressionService) {
+	public void setExpressionService(IExpressionService expressionService) {
 		ServiceHolder.expressionService = expressionService;
 	}
 
@@ -68,7 +68,7 @@ public class ServiceHolder {
 		return loaderService;
 	}
 
-	public static void setLoaderService(ILoaderService loaderService) {
+	public void setLoaderService(ILoaderService loaderService) {
 		ServiceHolder.loaderService = loaderService;
 	}
 

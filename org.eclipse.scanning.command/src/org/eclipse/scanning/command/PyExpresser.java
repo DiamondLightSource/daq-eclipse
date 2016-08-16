@@ -11,7 +11,6 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 
@@ -45,7 +44,7 @@ public class PyExpresser {
 			if (verbose || request.getCompoundModel().getModels().size() > 1) fragment += "[";
 			boolean listPartiallyWritten = false;
 
-			for (IScanPathModel model : request.getCompoundModel().getModels()) {  // Order is important.
+			for (Object model : request.getCompoundModel().getModels()) {  // Order is important.
 				if (listPartiallyWritten) fragment += ", ";
 				Collection<IROI> rois = pointGeneratorService.findRegions(request.getCompoundModel(), model);
 				fragment += pyExpress(model, rois, verbose);
@@ -80,7 +79,7 @@ public class PyExpresser {
 	}
 
 	final private static String pyExpress(
-			IScanPathModel model,
+			Object model,
 			Collection<IROI> rois,
 			boolean verbose)
 					throws PyExpressionNotImplementedException {
