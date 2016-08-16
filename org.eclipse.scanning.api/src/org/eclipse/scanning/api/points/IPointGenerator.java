@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.IValidator;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 
 /**

@@ -51,13 +51,9 @@ public class ScanPointGeneratorFactory {
 	    try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
 	    	CompositeClassLoader composite = new CompositeClassLoader(ScanPointGeneratorFactory.class.getClassLoader());
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
-	    	composite.addLast(getBundleLoader(jythonBundleName));
+	    	addLast(composite, jythonBundleName);
 	    	jythonClassloader = composite;
-	    	
-	    } catch (NullPointerException ne) {
-	    	// Allowed, the bundles do not have to be there we are just trying to be helpful
-	    	// in loading classes without making hard dependencies on them.
-	    	
+	    		    	
 	    } catch (Exception ne) {
 	    	logger.debug("Problem loading jython bundles!", ne);
 	    	// Legal, if static classloader does not work in tests, there will be
@@ -78,7 +74,18 @@ public class ScanPointGeneratorFactory {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JLineGenerator1D");
     }
 	
-    public synchronized static JythonObjectFactory JLineGenerator2DFactory() {
+    private static void addLast(CompositeClassLoader composite, String bundleName) {
+    	try {
+    		ClassLoader cl = getBundleLoader(bundleName);
+    		composite.addLast(cl);
+	    } catch (NullPointerException ne) {
+	    	// Allowed, the bundles do not have to be there we are just trying to be helpful
+	    	// in loading classes without making hard dependencies on them.
+
+    	}
+	}
+
+	public synchronized static JythonObjectFactory JLineGenerator2DFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JLineGenerator2D");
     }
 	
@@ -99,7 +106,7 @@ public class ScanPointGeneratorFactory {
     }
 	
     public synchronized static JythonObjectFactory JCompoundGeneratorFactory() {
-        return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JCompoundGenerator");
+        return new JythonObjectFactory(SerializableIterator.class, "jython_spg_interface", "JCompoundGenerator");
     }
 	
     public synchronized static JythonObjectFactory JRandomOffsetMutatorFactory() {
@@ -125,8 +132,6 @@ public class ScanPointGeneratorFactory {
             
             this.javaClass = javaClass;
             PyObject importer = state.getBuiltins().__getitem__(Py.newString("__import__"));
-            importer.__call__(Py.newString("org.python.core"));
-            importer.__call__(Py.newString("org.python.modules"));
             PyObject module = importer.__call__(Py.newString(moduleName));
             pyClass = module.__getattr__(className);
             // System.err.println("module=" + module + ",class=" + klass);
@@ -187,7 +192,6 @@ public class ScanPointGeneratorFactory {
 
     }
     
-    
     private static File find(File loc, String name) {
     	
     	File find = new File(loc, name);
@@ -223,21 +227,26 @@ public class ScanPointGeneratorFactory {
     
     /**
 	 * @param bundleName
-	 * @return File; can return null if bundle is not found
+	 * @return File
 	 */
 	private static File getBundleLocation(final String bundleName) {
 		
-		if (bundlePath!=null) return new File(bundlePath);
-		
-		final Bundle bundle = Platform.getBundle(bundleName);
-		if (bundle == null) {
-			return null;
-		}
 		try {
+			final Bundle bundle = Platform.getBundle(bundleName);
+			if (bundle == null) {
+				throw new IOException();
+			}
 			return FileLocator.getBundleFile(bundle);
-		} catch (IOException e) {
-			return null;
 		}
+		catch (IOException e) {
+			File dir = new File("../org.eclipse.scanning.points");
+			if (dir.exists()) return dir;
+			dir = new File("../../daq-eclipse.git/org.eclipse.scanning.points");
+			if (dir.exists()) return dir;
+			dir = new File("../../org.eclipse.scanning.git/org.eclipse.scanning.points");
+			if (dir.exists()) return dir;
+		}
+		return null;
 	}
 
 }

@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -12,13 +11,12 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -33,7 +31,6 @@ public class ScanRankTest {
 	
 	@Before
 	public void before() throws Exception {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		service = new PointGeneratorFactory();
 	}
 
@@ -42,49 +39,41 @@ public class ScanRankTest {
 		lineTest(0);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankLine2D() throws Exception {
 		lineTest(1);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankLine3D() throws Exception {
 		lineTest(2);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankLine4D() throws Exception {
 		lineTest(3);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankLine5D() throws Exception {
 		lineTest(4);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankLine6D() throws Exception {
 		lineTest(5);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankLine7D() throws Exception {
 		lineTest(6);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankLine8D() throws Exception {
 		lineTest(7);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankLine9D() throws Exception {
 		lineTest(8);
@@ -115,49 +104,41 @@ public class ScanRankTest {
 		spiralTest(0);
 	}
 	
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankSpiral2D() throws Exception {
 		spiralTest(1);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankSpiral3D() throws Exception {
 		spiralTest(2);
 	}
 
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankSpiral4D() throws Exception {
 		spiralTest(3);
 	}
 	
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankSpiral5D() throws Exception {
 		spiralTest(4);
 	}
 	
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankSpiral6D() throws Exception {
 		spiralTest(5);
 	}
 	
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankSpiral7D() throws Exception {
 		spiralTest(6);
 	}
 	
-	@Ignore("This needs point indexing to be refactored")
 	@Test
 	public void testRankSpiral8D() throws Exception {
 		spiralTest(7);
 	}
 	
-	@Ignore("This needs point indexing to be refactored")
 	@Test(expected=org.python.core.PyException.class)
 	public void testScanLengthOver32BitRaisesPyException() throws Exception {
 		spiralTest(8);
@@ -242,31 +223,25 @@ public class ScanRankTest {
 
 	private void gridTest(int nestCount) throws Exception {
 		
-//		BoundingBox box = new BoundingBox();
-//		box.setFastAxisStart(0);
-//		box.setSlowAxisStart(0);
-//		box.setFastAxisLength(3);
-//		box.setSlowAxisLength(3);
-//
-//		GridModel model = new GridModel();
-//		model.setSlowAxisPoints(20);
-//		model.setFastAxisPoints(20);
-//		model.setBoundingBox(box);
-		
-		IPointGenerator<StepModel> line1 = service.createGenerator(new StepModel("x", 0.075, 2.925, 3.0/20.0));
-		assertEquals(20, line1.size());
-		IPointGenerator<StepModel> line2 = service.createGenerator(new StepModel("y", 0.075, 2.925, 3.0/20.0));
-		assertEquals(20, line2.size());
+		BoundingBox box = new BoundingBox();
+		box.setFastAxisStart(0);
+		box.setSlowAxisStart(0);
+		box.setFastAxisLength(3);
+		box.setSlowAxisLength(3);
+
+		GridModel model = new GridModel();
+		model.setSlowAxisPoints(20);
+		model.setFastAxisPoints(20);
+		model.setBoundingBox(box);
 		
 		// Get the point list
-//		IPointGenerator<?> gen = service.createGenerator(model);
+		IPointGenerator<?> grid = service.createGenerator(model);
 		
-		IPointGenerator<?>[] gens = new IPointGenerator<?>[nestCount + 2];
+		IPointGenerator<?>[] gens = new IPointGenerator<?>[nestCount + 1];
 		for (int i = 0; i < nestCount; i++) {
 			gens[i] = service.createGenerator(new StepModel("T"+(nestCount -1 -i), 290, 300, 1));
 		}
-		gens[nestCount+1] = line1;
-		gens[nestCount] = line2;
+		gens[nestCount] = grid;
 
 		IPointGenerator<?> gen = service.createCompoundGenerator(gens);
 		

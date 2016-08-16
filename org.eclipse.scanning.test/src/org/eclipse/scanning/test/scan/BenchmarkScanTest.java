@@ -80,7 +80,6 @@ public class BenchmarkScanTest extends BrokerTest {
 	
 	@Before
 	public void start() throws Exception {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
@@ -278,23 +277,20 @@ public class BenchmarkScanTest extends BrokerTest {
 
 		// Before, run, after, check time.
 		final StepModel smodel = new StepModel(bean.getScannableName(), 0, bean.getSize(), 1);
-//		final GridModel gmodel = new GridModel();
-//		gmodel.setFastAxisName("xNex");
-//		gmodel.setSlowAxisName("yNex");
-//		gmodel.setFastAxisPoints(1);
-//		gmodel.setSlowAxisPoints(1);
-//		
-//		BoundingBox box = new BoundingBox();
-//		box.setFastAxisStart(2);
-//		box.setSlowAxisStart(2);
-//		box.setFastAxisLength(5);
-//		box.setSlowAxisLength(5);
-//		gmodel.setBoundingBox(box);
+		final GridModel gmodel = new GridModel();
+		gmodel.setFastAxisName("xNex");
+		gmodel.setSlowAxisName("yNex");
+		gmodel.setFastAxisPoints(1);
+		gmodel.setSlowAxisPoints(1);
 		
-		StepModel line1 = new StepModel("xNex", 4.5, 7.0, 5.0);
-		StepModel line2 = new StepModel("yNex", 4.5, 7.0, 5.0);
+		BoundingBox box = new BoundingBox();
+		box.setFastAxisStart(2);
+		box.setSlowAxisStart(2);
+		box.setFastAxisLength(5);
+		box.setSlowAxisLength(5);
+		gmodel.setBoundingBox(box);
 	
-		ScanModel scanModel = createTestScanner(bean.getDetector(), smodel, line1, line2);
+		ScanModel scanModel = createTestScanner(bean.getDetector(), smodel, gmodel);
 		if (bean.getFilePath()!=null) {
 			scanModel.setFilePath(bean.getFilePath());
 			System.out.println("File writing to "+bean.getFilePath());

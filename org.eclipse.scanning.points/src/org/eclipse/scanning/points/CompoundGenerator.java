@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
+import org.python.core.PyDictionary;
 
 /**
  * 
@@ -20,7 +21,7 @@ import org.eclipse.scanning.api.points.models.CompoundModel;
  * @author Matthew Gerring
  *
  */
-class CompoundGenerator extends AbstractGenerator<CompoundModel> {
+class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySerializable {
 	
 	private IPointGenerator<?>[]     generators;
 	private List<Collection<String>> dimensionNames;
@@ -66,6 +67,20 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> {
 		// explicit validation here.
 	}
 	
+	@Override
+	public int sizeOfValidModel() throws GeneratorException {
+		CompoundIterator it = (CompoundIterator) iteratorFromValidModel();
+		return it.size();
+//		for (int i = 0; i < generators.length; i++) size*=generators[i].size();
+	}
+	
+
+    public PyDictionary toDict() {
+		Iterator<?> it = iteratorFromValidModel();
+		if (it instanceof PySerializable) return ((PySerializable)it).toDict();
+		return null;
+    }
+	
 	/**
 	 * The description is run on the fly for compound generator
 	 * and it provides the scan point summary.
@@ -92,14 +107,6 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> {
 			return ne.getMessage() != null ? ne.getMessage() : ne.toString();
 		}
 		
-	}
-
-
-	@Override
-	public int sizeOfValidModel() throws GeneratorException {
-		int size = 1;
-		for (int i = 0; i < generators.length; i++) size*=generators[i].size();
-        return size;
 	}
 	
 	@Override

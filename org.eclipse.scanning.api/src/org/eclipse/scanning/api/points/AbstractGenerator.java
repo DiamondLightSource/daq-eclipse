@@ -52,6 +52,7 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 
 	protected abstract Iterator<IPosition> iteratorFromValidModel();
 
+
 	/**
 	 * If the given model is considered "invalid", this method throws a 
 	 * PointsValidationException explaining why it is considered invalid.

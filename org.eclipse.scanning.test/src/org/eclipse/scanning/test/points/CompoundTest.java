@@ -4,26 +4,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
+import org.eclipse.scanning.points.PySerializable;
 import org.junit.Before;
 import org.junit.Test;
 import org.python.core.PyDictionary;
 import org.python.core.PyList;
-import org.python.core.PyObject;
-import org.python.core.PyString;
 
 public class CompoundTest {
 	
@@ -31,7 +27,6 @@ public class CompoundTest {
 	
 	@Before
 	public void before() throws Exception {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		service = new PointGeneratorFactory();
 	}
 
@@ -53,7 +48,8 @@ public class CompoundTest {
 
 		IPointGenerator<GridModel> gen = service.createGenerator(model);
 		IPointGenerator<?> scan = service.createCompoundGenerator(pos, gen);
-		scan.iterator();
+		IPointGenerator<?> scan2 = service.createCompoundGenerator(pos, scan);
+		scan2.iterator();
 	}
 	@Test(expected=org.python.core.PyException.class)
 	public void testDuplicateAxisNameException() throws Exception {
@@ -128,6 +124,37 @@ public class CompoundTest {
 	}
 	
 	@Test
+	public void testToDict() throws Exception {
+		
+		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290, 295, 1));
+		IPointGenerator<StepModel> pos = service.createGenerator(new StepModel("Position", 1, 4, 0.6));
+		IPointGenerator<?> scan = service.createCompoundGenerator(temp, pos);
+		
+		Map<?,?> dict = ((PySerializable)scan).toDict();
+		
+		PyList gens = (PyList) dict.get("generators");
+		PyDictionary line1 = (PyDictionary) gens.get(0);
+		PyDictionary line2 = (PyDictionary) gens.get(1);
+
+		assertEquals("Temperature", (String) ((PyList) line1.get("name")).get(0));
+		assertEquals("mm", line1.get("units"));
+		assertEquals(290.0, (double) ((PyList) line1.get("start")).get(0), 1E-10);
+		assertEquals(295.0, (double) ((PyList) line1.get("stop")).get(0), 1E-10);
+		assertEquals(6, (int) line1.get("num"));
+		
+		assertEquals("Position", (String) ((PyList) line2.get("name")).get(0));
+		assertEquals("mm", line2.get("units"));
+		assertEquals(1.0, (double) ((PyList) line2.get("start")).get(0), 1E-10);
+		assertEquals(4.0, (double) ((PyList) line2.get("stop")).get(0), 1E-10);
+		assertEquals(6, (int) line2.get("num"));
+
+		PyList excluders = (PyList) dict.get("excluders");
+		PyList mutators = (PyList) dict.get("mutators");
+		assertEquals(new PyList(), excluders);
+		assertEquals(new PyList(), mutators);
+	}
+	
+	@Test
 	public void testSimpleCompoundStep3Step() throws Exception {
 		
 		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,295,1));
@@ -186,55 +213,28 @@ public class CompoundTest {
 		
 		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290,300,1));
 		assertEquals(11, temp.size());
-
-//		BoundingBox box = new BoundingBox();
-//		box.setFastAxisStart(0);
-//		box.setSlowAxisStart(0);
-//		box.setFastAxisLength(3);
-//		box.setSlowAxisLength(3);
-//
-//		GridModel model = new GridModel();
-//		model.setSlowAxisPoints(20);
-//		model.setFastAxisPoints(20);
-//		model.setBoundingBox(box);
-//		
-//		IPointGenerator<GridModel> grid = service.createGenerator(model);
-
-		IPointGenerator<StepModel> line1 = service.createGenerator(new StepModel("x", 0.075, 2.925, 3.0/20.0));
-		assertEquals(20, line1.size());
-		IPointGenerator<StepModel> line2 = service.createGenerator(new StepModel("y", 0.075, 2.925, 3.0/20.0));
-		assertEquals(20, line2.size());
 		
-//		BoundingLine bLine1 = new BoundingLine();
-//		bLine1.setxStart(0.0);
-//		bLine1.setyStart(0.0);
-//		bLine1.setLength(3.0);
-//		OneDEqualSpacingModel model1 = new OneDEqualSpacingModel();
-//		model1.setBoundingLine(bLine1);
-//		model1.setName("x");
-//		model1.setPoints(20);
-//		IPointGenerator<OneDEqualSpacingModel> line1 = service.createGenerator(model1);
-//		assertEquals(20, line1.size());
-//		
-//		BoundingLine bLine2 = new BoundingLine();
-//		bLine2.setxStart(0.0);
-//		bLine2.setyStart(0.0);
-//		bLine2.setLength(3.0);
-//		OneDEqualSpacingModel model2 = new OneDEqualSpacingModel();
-//		model2.setBoundingLine(bLine2);
-//		model2.setName("y");
-//		model2.setPoints(20);
-//		IPointGenerator<OneDEqualSpacingModel> line2 = service.createGenerator(model2);
-//		assertEquals(20, line2.size());
+		BoundingBox box = new BoundingBox();		
+		box.setFastAxisStart(0);		
+		box.setSlowAxisStart(0);		
+		box.setFastAxisLength(3);		
+		box.setSlowAxisLength(3);		
 		
-		IPointGenerator<?> scan = service.createCompoundGenerator(temp, line2, line1);
+		GridModel model = new GridModel();		
+		model.setSlowAxisPoints(20);		
+		model.setFastAxisPoints(20);		
+		model.setBoundingBox(box);		
+		
+		IPointGenerator<GridModel> grid = service.createGenerator(model);
+		
+		IPointGenerator<?> scan = service.createCompoundGenerator(temp, grid);
 		assertEquals(4400, scan.size());
 
 		List<IPosition> points = scan.createPoints();
 
 		List<IPosition> first400 = new ArrayList<>(400);
 
-		// The fist 400 should be T=290
+		// The first 400 should be T=290
 		for (int i = 0; i < 400; i++) {
 			assertEquals(new Double(290.0), points.get(i).get("Temperature"));
 			first400.add(points.get(i));
@@ -249,6 +249,39 @@ public class CompoundTest {
 		}
         GeneratorUtil.testGeneratorPoints(scan);
 
+	}
+
+	@Test
+	public void testGridCompoundGrid() throws Exception {
+		
+		BoundingBox box = new BoundingBox();		
+		box.setFastAxisStart(0);		
+		box.setSlowAxisStart(0);		
+		box.setFastAxisLength(3);		
+		box.setSlowAxisLength(3);		
+		
+		GridModel model1 = new GridModel();		
+		model1.setSlowAxisPoints(5);		
+		model1.setFastAxisPoints(5);		
+		model1.setBoundingBox(box);	
+		model1.setFastAxisName("x");
+		model1.setSlowAxisName("y");	
+		
+		IPointGenerator<GridModel> grid1 = service.createGenerator(model1);	
+		
+		GridModel model2 = new GridModel();		
+		model2.setSlowAxisPoints(5);		
+		model2.setFastAxisPoints(5);		
+		model2.setBoundingBox(box);	
+		model2.setFastAxisName("x2");
+		model2.setSlowAxisName("y2");	
+		
+		IPointGenerator<GridModel> grid2 = service.createGenerator(model2);
+		
+		IPointGenerator<?> scan = service.createCompoundGenerator(grid1, grid2);
+		assertEquals(625, scan.size());
+		
+        GeneratorUtil.testGeneratorPoints(scan);
 	}
 	
 	private void checkPoints(List<IPosition> pointList) {
@@ -283,21 +316,17 @@ public class CompoundTest {
 		gmodel.setSlowAxisPoints(size[size.length-1]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
-		IPointGenerator<StepModel> line1 = service.createGenerator(new StepModel("xNex", 0.075, 2.925, size[size.length-2]));
-		IPointGenerator<StepModel> line2 = service.createGenerator(new StepModel("yNex", 0.075, 2.925, size[size.length-1]));
-		
 		IPointGenerator<?> gen = service.createGenerator(gmodel);
 		
 		// We add the outer scans, if any
 		if (size.length > 2) {
-			IPointGenerator<?>[] gens = new IPointGenerator<?>[size.length];
+			IPointGenerator<?>[] gens = new IPointGenerator<?>[size.length - 1];
 			for (int dim = size.length-3; dim>-1; dim--) {
 				final StepModel model = new StepModel("neXusScannable"+dim, 10,20,11/size[dim]);
 				gens[dim] = service.createGenerator(model);
 			}
-		gens[size.length-1] = line1;
-		gens[size.length-2] = line2;
-		gen = service.createCompoundGenerator(gens);
+			gens[size.length - 2] = gen;
+			gen = service.createCompoundGenerator(gens);
 		}
 		
 		final IPosition pos = gen.iterator().next();

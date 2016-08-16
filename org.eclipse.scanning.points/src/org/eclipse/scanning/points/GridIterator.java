@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
 import org.python.core.PyDictionary;
+import org.python.core.PyList;
 import org.python.core.PyObject;
 
 class GridIterator extends AbstractScanPointIterator {
@@ -26,6 +27,7 @@ class GridIterator extends AbstractScanPointIterator {
 	private final double yStep;
 	
 	private Point currentPoint;
+	private PyList pyIterators = new PyList();
 
 	public GridIterator(GridGenerator gen) {
 		GridModel model = gen.getModel();
@@ -60,6 +62,9 @@ class GridIterator extends AbstractScanPointIterator {
 		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
 				generators, excluders, mutators);
         pyIterator = iterator;
+        
+        pyIterators.add(outerLine);
+        pyIterators.add(innerLine);
 	}
 
 	public GridIterator(RandomOffsetGridGenerator gen) {
@@ -91,8 +96,8 @@ class GridIterator extends AbstractScanPointIterator {
         double offset = getXStep() * model.getOffset() / 100;
         
         PyDictionary maxOffset = new PyDictionary();
-        maxOffset.put("x", offset);
-        maxOffset.put("y", offset);
+        maxOffset.put(yName, offset);
+        maxOffset.put(xName, offset);
         
 		PyObject randomOffset = (PyObject) randomOffsetMutatorFactory.createObject(seed, maxOffset);
         
@@ -106,6 +111,9 @@ class GridIterator extends AbstractScanPointIterator {
 		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
 				generators, excluders, mutators);
         pyIterator = iterator;
+        
+        pyIterators.add(outerLine);
+        pyIterators.add(innerLine);
 	}
 
 	public GridIterator(RasterGenerator gen) {
@@ -140,6 +148,9 @@ class GridIterator extends AbstractScanPointIterator {
 		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
 				generators, excluders, mutators);
         pyIterator = iterator;
+        
+        pyIterators.add(outerLine);
+        pyIterators.add(innerLine);
 	}
 
 	@Override

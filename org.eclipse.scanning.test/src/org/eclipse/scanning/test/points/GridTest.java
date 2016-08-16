@@ -37,7 +37,6 @@ import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,7 +46,6 @@ public class GridTest {
 
 	@Before
 	public void before() throws Exception {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		service = new PointGeneratorFactory();
 	}
 
