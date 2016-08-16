@@ -28,6 +28,7 @@ import org.eclipse.equinox.app.IApplicationContext;
 import org.osgi.framework.Bundle;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -92,7 +93,9 @@ public class Application implements IApplication {
 	    doc.getDocumentElement().normalize();
 	    NodeList  nl = doc.getElementsByTagName("bean");
 	    
-	    Map<String, Object> objects = new HashMap<>();
+	    Map<String, Object>    objects = new HashMap<>();
+	    Map<String, NamedList> lists   = new HashMap<>();
+	    
 	    for (int i = 0; i < nl.getLength(); i++) {
 			
 	    	Element bean = (Element)nl.item(i);
@@ -103,17 +106,48 @@ public class Application implements IApplication {
 			Node initNode = bean.getAttributes().getNamedItem("init-method");
 			final String init      = initNode!=null ? bean.getAttributes().getNamedItem("init-method").getNodeValue() : null;
 			
+			final String id = bean.getAttributes().getNamedItem("id").getNodeValue();
+
 			// Look for parameters
 			// bundle, broker, submitQueue, statusSet, statusTopic, durable;	
-			NodeList params = bean.getElementsByTagName("property");
+			NodeList props = bean.getElementsByTagName("property");
 			final Map<String,String> conf = new HashMap<>();
-			for (int j = 0; j < params.getLength(); j++) {
-				Node param = params.item(j);
-				conf.put(param.getAttributes().getNamedItem("name").getNodeValue(), param.getAttributes().getNamedItem("value").getNodeValue());
+			for (int j = 0; j < props.getLength(); j++) {
+				Node prop = props.item(j);
+				String name = prop.getAttributes().getNamedItem("name").getNodeValue();
+				Node value = prop.getAttributes().getNamedItem("value");
+				if (value!=null) {
+				    conf.put(name, value.getNodeValue());
+				} else {
+					NodeList children = prop.getChildNodes();
+					final List<String> refs = new ArrayList<>();
+					for (int k = 0; k < children.getLength(); k++) {
+						Node list = children.item(k);
+						if (!list.hasChildNodes()) continue;
+						NodeList rs = list.getChildNodes();
+						for (int l = 0; l < rs.getLength(); l++) {
+							Node item = rs.item(l);
+							NamedNodeMap attr = item.getAttributes();
+							if (attr==null) continue;
+							Node ref  = attr.getNamedItem("bean");
+							refs.add(ref.getNodeValue());
+						}
+					}
+				    lists.put(id, new NamedList(name, refs));
+				}
 			}
 			Object created = createObject(className, init, conf);
-			final String id = bean.getAttributes().getNamedItem("id").getNodeValue();
 			objects.put(id, created);
+		}
+	    
+	    // We process the lists to wire together objects
+	    for (String id : lists.keySet()) {
+	    	final NamedList namedList  = lists.get(id);
+			final Object    object     = objects.get(id);
+			if (object!=null) {
+				final List<Object> listValue = getObjects(objects, namedList);
+				setValue(object, namedList.getName(), listValue, List.class);
+			}
 		}
 	    
 	    nl = doc.getElementsByTagName("osgi:service");
@@ -133,6 +167,14 @@ public class Application implements IApplication {
 		return objects;
 	}
 
+	private static List<Object> getObjects(Map<String, Object> objects, NamedList namedList) {
+		final List<Object> ret = new ArrayList<>();
+		for (String id : namedList.getRefs()) {
+			ret.add(objects.get(id));
+		}
+		return ret;
+	}
+
 	private static Object createObject(String className, String initMethod, Map<String, String> conf) throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, SecurityException, NoSuchFieldException {
 		
 		// Must have a bundle
@@ -144,10 +186,8 @@ public class Application implements IApplication {
 		
 		Object instance = clazz.newInstance();
 		for (String fieldName : conf.keySet()) {
-			final String setterName = getSetterName(fieldName);
 			final Object value      = getValue(conf, fieldName);
-			Method method = getMethod(clazz, setterName, value.getClass());
-			method.invoke(instance, value);
+			setValue(clazz, instance, fieldName, value, null);
 		}
 
 		if (initMethod!=null) {
@@ -156,6 +196,17 @@ public class Application implements IApplication {
 		}
 		System.out.println("Started Server Extension "+clazz.getSimpleName()+" using "+initMethod);
 		return instance;
+	}
+
+	private static void setValue(Object instance, final String fieldName, final Object value, final Class<?> valueClass) throws NoSuchMethodException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException, InvocationTargetException {
+		setValue(instance.getClass(), instance, fieldName, value, valueClass);
+	}
+	
+	private static void setValue(final Class<?> clazz, Object instance, final String fieldName, final Object value, Class<?> valueClass) throws NoSuchMethodException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException, InvocationTargetException {
+		final String setterName = getSetterName(fieldName);
+		if (valueClass==null) valueClass = value.getClass();
+		Method method = getMethod(clazz, setterName, valueClass);
+		method.invoke(instance, value);
 	}
 
 	private static Method getMethod(Class<?> clazz, String setterName, Class<? extends Object> valueClass) throws NoSuchMethodException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
@@ -227,5 +278,6 @@ public class Application implements IApplication {
 	public static String getFieldWithUpperCaseFirstLetter(final String fieldName) {
 		return fieldName.substring(0, 1).toUpperCase(Locale.US) + fieldName.substring(1);
 	}
+
 
 }
