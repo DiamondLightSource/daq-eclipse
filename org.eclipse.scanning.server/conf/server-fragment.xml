@@ -65,46 +65,6 @@
 	
     <osgi:service ref="scannableDeviceService" interface="org.eclipse.scanning.api.device.IScannableDeviceService"/>
 
-	<!-- Create some live controls for specific devices. -->
-	<bean id="Translations" class="org.eclipse.scanning.api.scan.ui.ScannableControlGroup">
-		<property name="name" value="Translations" />
-		<property name="controls">
-			<list>
-				<ref bean="x" />
-				<ref bean="y" />
-				<ref bean="z" />
-			</list>
-		</property>
-	</bean>
-	<bean id="ExperimentalConditions" class="org.eclipse.scanning.api.scan.ui.ScannableControlGroup">
-		<property name="name" value="Experimental Conditions" />
-		<property name="controls">
-			<list>
-				<ref bean="T" />
-			</list>
-		</property>
-	</bean>
-	
-	<bean id="x" class="org.eclipse.scanning.api.scan.ui.ScannableControl" >
-		<property name="displayName" value="Stage X" />
-		<property name="scannableName" value="x" />
-		<property name="increment" value="0.1" />
-	</bean>
-	<bean id="y" class="org.eclipse.scanning.api.scan.ui.ScannableControl">
-		<property name="displayName" value="Stage Y" />
-		<property name="scannableName" value="y" />
-		<property name="increment" value="0.1" />
-	</bean>
-	<bean id="z" class="org.eclipse.scanning.api.scan.ui.ScannableControl">
-		<property name="displayName" value="Stage Z" />
-		<property name="scannableName" value="z" />
-		<property name="increment" value="0.1" />
-	</bean>
-	<bean id="T" class="org.eclipse.scanning.api.scan.ui.ScannableControl">
-		<property name="displayName" value="Temperature" />
-		<property name="scannableName" value="T" />
-		<property name="increment" value="0.1" />
-	</bean>
 	
 	<!--  End testing/example only-->
 

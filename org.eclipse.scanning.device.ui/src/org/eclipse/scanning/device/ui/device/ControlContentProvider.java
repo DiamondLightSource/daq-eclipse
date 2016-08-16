@@ -3,17 +3,18 @@ package org.eclipse.scanning.device.ui.device;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.INameable;
-import org.eclipse.scanning.api.scan.ui.ScannableControlFactory;
+import org.eclipse.scanning.api.INamedNode;
+import org.eclipse.scanning.api.scan.ui.ControlFactory;
 
-public class ScannableControlContentProvider implements ITreeContentProvider {
+public class ControlContentProvider implements ITreeContentProvider {
 
 	
-	private ScannableControlFactory factory;
+	private ControlFactory factory;
 
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		this.factory = (ScannableControlFactory)newInput;
-		factory.createTree();
+		this.factory = (ControlFactory)newInput;
+		factory.build();
 	}
 
 	@Override
@@ -28,20 +29,21 @@ public class ScannableControlContentProvider implements ITreeContentProvider {
 	}
 
 	@Override
-	public Object[] getChildren(Object parentElement) {
-		INameable item = (INameable)parentElement;
-		return factory.getChildren(item);
+	public Object[] getChildren(Object element) {
+		INamedNode node = (INamedNode)element;
+		return node.getChildren();
 	}
 
 	@Override
 	public Object getParent(Object element) {
-		INameable item = (INameable)element;
-		return factory.getParent(item);
+		INamedNode node = (INamedNode)element;
+		return node.getParent();
 	}
 
 	@Override
 	public boolean hasChildren(Object element) {
-		return factory.hasChildren(element);
+		INamedNode node = (INamedNode)element;
+		return node.hasChildren();
 	}
 
 }

@@ -17,7 +17,7 @@
 <stringAttribute key="location" value="${workspace_loc}/../runtime-scanningServer"/>
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
 <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl} -consoleLog -xml ${project_loc:org.eclipse.scanning.server}/config.xml"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-os ${target.os} -ws ${target.ws} -arch ${target.arch} -nl ${target.nl} -consoleLog -xml ${project_loc:org.eclipse.scanning.server}/conf/server-fragment.xml"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dorg.eclipse.scanning.broker.uri=&quot;failover:(tcp://localhost:61616)?startupMaxReconnectAttempts=3&quot;&#13;&#10;-Dlogback.configurationFile=${project_loc:org.eclipse.scanning.event}/config/logback.xml"/>
 <stringAttribute key="pde.version" value="3.3"/>

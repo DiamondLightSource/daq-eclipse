@@ -21,4 +21,8 @@ public class Activator implements BundleActivator {
 		context.registerService(interfaceClass, serviceInstance, null);
 	}
 
+	public static BundleContext getContext() {
+		return context;
+	}
+
 }

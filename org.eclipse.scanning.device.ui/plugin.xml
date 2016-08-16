@@ -41,10 +41,10 @@
       </view>
       <view
             category="org.eclipse.scanning.device.ui"
-            class="org.eclipse.scanning.device.ui.device.ScannableView"
+            class="org.eclipse.scanning.device.ui.device.ControlView"
             icon="icons/ui-slider-050.png"
-            id="org.eclipse.scanning.device.ui.device.ScannableView"
-            name="Scannable">
+            id="org.eclipse.scanning.device.ui.device.ControlView"
+            name="Controls">
       </view>
    </extension>
     <extension
