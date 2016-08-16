@@ -29,7 +29,6 @@ import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,7 +38,6 @@ public class RandomOffsetGridTest {
 
 	@Before
 	public void before() throws Exception {
-		ScanPointGeneratorFactory.setBundlePath("../org.eclipse.scanning.points");
 		service = new PointGeneratorFactory();
 	}
 	
@@ -48,9 +46,9 @@ public class RandomOffsetGridTest {
 
 		BoundingBox box = new BoundingBox();
 		box.setFastAxisStart(-0.5);
-		box.setSlowAxisStart(-0.5);
+		box.setSlowAxisStart(-1.0);
 		box.setFastAxisLength(5);
-		box.setSlowAxisLength(5);
+		box.setSlowAxisLength(10);
 
 		RandomOffsetGridModel model = new RandomOffsetGridModel();
 		model.setSlowAxisPoints(5);
@@ -62,12 +60,12 @@ public class RandomOffsetGridTest {
 		IPointGenerator<RandomOffsetGridModel> gen = service.createGenerator(model);
 		List<IPosition> pointList = gen.createPoints();
 		
-		assertEquals(new Point("x", 0, 0.09924303325000006,"y", 0, 0.012403455250000084), pointList.get(0));
-		assertEquals(new Point("x", 1, 1.164356053,"y", 0, -0.16276468200000005), pointList.get(1));
-		assertEquals(new Point("x", 2, 2.01859302275,"y", 0, 0.20470153074999997), pointList.get(2));
-		assertEquals(new Point("x", 3, 2.97557593825,"y", 0, 0.05792535300000001), pointList.get(3));
-		assertEquals(new Point("x", 4, 4.021858763,"y", 0, -0.21869839925), pointList.get(4));
-		assertEquals(new Point("x", 0, -0.16136334424999998,"y", 1, 1.09698760275), pointList.get(5));
+		assertEquals(new Point("x", 0, 0.012403455250000084,"y", 0, 0.09924303325000006), pointList.get(0));
+		assertEquals(new Point("x", 1, 0.837235318,"y", 0, 0.1643560529999999), pointList.get(1));
+		assertEquals(new Point("x", 2, 2.20470153075,"y", 0, 0.018593022749999966), pointList.get(2));
+		assertEquals(new Point("x", 3, 3.057925353,"y", 0, -0.024424061750000003), pointList.get(3));
+		assertEquals(new Point("x", 4, 3.78130160075,"y", 0, 0.021858763000000003), pointList.get(4));
+		assertEquals(new Point("x", 0, 0.09698760274999996,"y", 1, 1.83863665575), pointList.get(5));
 	}
 
 }

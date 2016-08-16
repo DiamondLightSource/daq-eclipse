@@ -1,7 +1,7 @@
-from java.util import Iterator;
 from org.eclipse.scanning.api.points import Point
 from org.eclipse.scanning.api.points import Scalar
 from org.eclipse.scanning.api.points import MapPosition
+from org.eclipse.scanning.points import SerializableIterator
 from java.util import ArrayList
 
 from scanpointgenerator import LineGenerator
@@ -16,7 +16,7 @@ import logging
 # logging.basicConfig(level=logging.DEBUG)
 
 
-class JavaIteratorWrapper(Iterator):
+class JavaIteratorWrapper(SerializableIterator):
     """
     A wrapper class to give a python iterator the while(hasNext() {next()})
     operation required of Java Iterators
@@ -56,6 +56,12 @@ class JavaIteratorWrapper(Iterator):
                 self._has_next = True
             
         return self._has_next
+    
+    def toDict(self):
+        return self.generator.to_dict()
+    
+    def size(self):
+        return self.generator.num
 
 
 class JLineGenerator1D(JavaIteratorWrapper):
@@ -200,15 +206,39 @@ class JCompoundGenerator(JavaIteratorWrapper):
     def __init__(self, iterators, excluders, mutators):
         super(JCompoundGenerator, self).__init__()
         
-        try:
+        try: # If JavaIteratorWrapper
             generators = [iterator.generator for iterator in iterators]
-        except AttributeError:
+        except AttributeError: # Else call get*() of Java iterator
             generators = [iterator.getPyIterator().generator for iterator in iterators]
         logging.debug("Generators passed to JCompoundGenerator:")
         logging.debug([generator.to_dict() for generator in generators])
         
         excluders = [excluder.py_excluder for excluder in excluders]
         mutators = [mutator.py_mutator for mutator in mutators]
+        
+        extracted_generators = []
+        for generator in generators:
+            if generator.__class__.__name__ == "CompoundGenerator":
+                extracted_generators.extend(generator.generators)
+            else:
+                extracted_generators.append(generator)
+        generators = extracted_generators
+        
+        self.index_locations = {}
+        self.scan_names = ArrayList()
+        for index, generator in enumerate(generators):
+            
+            for axis in generator.axes:
+                self.index_locations[axis] = index
+                
+                scan_name = ArrayList()
+                for axis in generator.axes:
+                    scan_name.add(axis)
+                
+            self.scan_names.add(scan_name)
+        
+        logging.debug("Index Locations:")
+        logging.debug(self.index_locations)
         
         self.generator = CompoundGenerator(generators, excluders, mutators)
         
@@ -238,18 +268,14 @@ class JCompoundGenerator(JavaIteratorWrapper):
             else:
                 java_point = MapPosition()
                 
-                names = ArrayList()
-                for index, (axis, value) in enumerate(point.positions.items()):
+                for axis, value in point.positions.items():
+                    index = self.index_locations[axis]
                     logging.debug([index, point.indexes, point.positions])
                     java_point.put(axis, value)
                     java_point.putIndex(axis, point.indexes[index])
-                    name = ArrayList()
-                    name.add(axis)
-                    names.add(name)
-                    
-                java_point.setDimensionNames(names)
-                    
-            
+                
+                java_point.setDimensionNames(self.scan_names)
+                            
             yield java_point
 
 

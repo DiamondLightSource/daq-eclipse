@@ -8,6 +8,7 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
+import org.python.core.PyDictionary;
 
 /**
  * We are trying to make it super efficient to iterate
@@ -23,21 +24,21 @@ public class CompoundIterator extends AbstractScanPointIterator {
 	private IPosition             pos;
 	private Iterator<? extends IPosition>[] iterators;
 	
-	public Iterator<IPosition> pyIterator;
+	public SerializableIterator<IPosition> pyIterator;
 	private IPosition currentPoint;
 
 	public CompoundIterator(CompoundGenerator gen) throws GeneratorException {
 		this.gen       = gen;
 		this.iterators = initIterators();
 		this.pos       = createFirstPosition();
-
+		
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
 		
         Object[] excluders = {};
         Object[] mutators = {};
         
-		@SuppressWarnings("unchecked")
-		Iterator<IPosition> iterator = (Iterator<IPosition>)  compoundGeneratorFactory.createObject(
+        @SuppressWarnings("unchecked")
+		SerializableIterator<IPosition> iterator = (SerializableIterator<IPosition>)  compoundGeneratorFactory.createObject(
 				iterators, excluders, mutators);
 		pyIterator = iterator;
 	}
@@ -51,9 +52,13 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		return pos;
 	}
 	
+    public PyDictionary toDict() {
+		return pyIterator.toDict();
+    }
+    
 	@Override
 	public boolean hasNext() {
-		// TODO: Uncomment this once MapPosition updated and CompoundGenerator more generic
+		// TODO: Commented out until Python ROIs are ready
 		IPosition point;
 //		double x;
 //		double y;
@@ -118,5 +123,9 @@ public class CompoundIterator extends AbstractScanPointIterator {
 	public void remove() {
         throw new UnsupportedOperationException("remove");
     }
+
+	public int size() {
+		return pyIterator.size();
+	}
 
 }

@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.python.core.PyDictionary;
 
 /**
  * 
@@ -20,7 +21,7 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * @author Matthew Gerring
  *
  */
-class CompoundGenerator extends AbstractGenerator<IScanPathModel> {
+public class CompoundGenerator extends AbstractGenerator<IScanPathModel> {
 	
 	private IPointGenerator<?>[] generators;
 	private List<Collection<String>> dimensionNames;
@@ -62,9 +63,9 @@ class CompoundGenerator extends AbstractGenerator<IScanPathModel> {
 
 	@Override
 	public int sizeOfValidModel() throws GeneratorException {
-		int size = 1;
-		for (int i = 0; i < generators.length; i++) size*=generators[i].size();
-        return size;
+		CompoundIterator it = (CompoundIterator) iteratorFromValidModel();
+		return it.size();
+//		for (int i = 0; i < generators.length; i++) size*=generators[i].size();
 	}
 	
 	@Override
@@ -108,6 +109,11 @@ class CompoundGenerator extends AbstractGenerator<IScanPathModel> {
 		}
 	
 	}
+	
+    public PyDictionary toDict() {
+		CompoundIterator it = (CompoundIterator) iteratorFromValidModel();
+		return it.toDict();
+    }
 
 	public IPointGenerator<?>[] getGenerators() {
 		return generators;
