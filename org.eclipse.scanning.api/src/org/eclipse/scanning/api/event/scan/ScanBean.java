@@ -207,11 +207,17 @@ public final class ScanBean extends StatusBean {
 		IPosition tmp = new MapPosition(name, index, val);
 		this.position = tmp.compound(position);
 	}
-	
+
+	/**
+	 * @return whether the scan has just started, i.e. transitioned from a QUEUED state to a RUNNING state.
+	 */
 	public boolean scanStart() {
 		return Status.QUEUED ==previousStatus && Status.RUNNING==status;
 	}
 
+	/**
+	 * @return whether the scan has just ended, i.e. transitioned from a RUNNING/RESUMED state to a post-running state.
+	 */
 	public boolean scanEnd() {
 		return previousStatus.isRunning() && status.isFinal();
 	}
