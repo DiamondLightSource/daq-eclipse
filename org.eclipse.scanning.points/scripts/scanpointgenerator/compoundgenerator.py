@@ -1,4 +1,4 @@
-from collections import OrderedDict
+# from collections import OrderedDict
 import logging
 
 from scanpointgenerator.compat import range_
@@ -184,7 +184,7 @@ class CompoundGenerator(Generator):
     def to_dict(self):
         """Convert object attributes into a dictionary"""
 
-        d = OrderedDict()
+        d = dict()
         d['type'] = "CompoundGenerator"
 
         d['generators'] = []
