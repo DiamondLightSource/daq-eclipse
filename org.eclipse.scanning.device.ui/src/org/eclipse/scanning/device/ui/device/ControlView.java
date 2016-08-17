@@ -1,6 +1,9 @@
 package org.eclipse.scanning.device.ui.device;
 
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -21,6 +24,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.dialogs.FilteredTree;
 import org.eclipse.ui.part.ViewPart;
 import org.slf4j.Logger;
@@ -71,6 +75,7 @@ public class ControlView extends ViewPart {
 		TreeViewer tviewer = viewer.getViewer();
 		tviewer.getTree().setLinesVisible(true);
 		tviewer.getTree().setHeaderVisible(false);
+		setItemHeight(tviewer.getTree(), 30);
 		viewer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		createColumns(tviewer);
@@ -111,10 +116,7 @@ public class ControlView extends ViewPart {
 		var.getColumn().setText("Value");
 		var.getColumn().setWidth(300);
 		var.setLabelProvider(new DelegatingStyledCellLabelProvider(new ControlValueLabelProvider()));
-		
-//		ColumnLabelProvider prov = new ModelFieldLabelProvider(this);
-//		var.setLabelProvider(prov);
-//		var.setEditingSupport(new ModelFieldEditingSupport(this, viewer, prov));
+		var.setEditingSupport(new ControlEditingSupport(viewer));
 
 	}
 
@@ -150,4 +152,42 @@ public class ControlView extends ViewPart {
 		// Set the focus
 	}
 
+
+	static void setItemHeight(Tree tree, int height) {
+		try {
+			Method method = null;
+			
+			Method[] methods = tree.getClass().getDeclaredMethods();
+			method = findMethod(methods, "setItemHeight", 1); //$NON-NLS-1$
+			if (method != null) {
+				boolean accessible = method.isAccessible();
+				method.setAccessible(true);
+				method.invoke(tree, Integer.valueOf(height));
+				method.setAccessible(accessible);
+			}
+		} catch (SecurityException e) {
+			// ignore
+		} catch (IllegalArgumentException e) {
+			// ignore
+		} catch (IllegalAccessException e) {
+			// ignore
+		} catch (InvocationTargetException e) {
+			// ignore
+		}
+	}
+	/**
+	 * Finds the method with the given name and parameter count from the specified methods.
+	 * @param methods the methods to search through
+	 * @param name the name of the method to find
+	 * @param parameterCount the count of parameters of the method to find
+	 * @return the method or <code>null</code> if not found
+	 */
+	private static Method findMethod(Method[] methods, String name, int parameterCount) {
+		for (Method method : methods) {
+			if (method.getName().equals(name) && method.getParameterTypes().length == parameterCount) {
+				return method;
+			}
+		}
+		return null;
+	}
 }
