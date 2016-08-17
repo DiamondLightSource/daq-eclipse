@@ -225,17 +225,19 @@ class JCompoundGenerator(JavaIteratorWrapper):
         generators = extracted_generators
         
         self.index_locations = {}
-        self.scan_names = ArrayList()
+        self.dimension_names = ArrayList()
+        self.axes_ordering = []
         for index, generator in enumerate(generators):
             
             for axis in generator.axes:
                 self.index_locations[axis] = index
+                self.axes_ordering.append(axis)
                 
                 scan_name = ArrayList()
                 for axis in generator.axes:
                     scan_name.add(axis)
                 
-            self.scan_names.add(scan_name)
+            self.dimension_names.add(scan_name)
         
         logging.debug("Index Locations:")
         logging.debug(self.index_locations)
@@ -250,37 +252,37 @@ class JCompoundGenerator(JavaIteratorWrapper):
         for point in self.generator.iterator():
             
             if len(point.positions.keys()) == 1:
-                for point in self.generator.iterator():
-                    name = point.positions.keys()[0]
-                    index = point.indexes[0]
-                    position = point.positions[name]
-                    java_point = Scalar(name, index, position)
+                name = point.positions.keys()[0]
+                index = point.indexes[0]
+                position = point.positions[name]
+                java_point = Scalar(name, index, position)
                 
             elif len(point.positions.keys()) == 2:
-                    xName = self.generator.axes[1]
-                    yName = self.generator.axes[0]
-                    xIndex = point.indexes[1]
-                    yIndex = point.indexes[0]
-                    xPosition = point.positions[xName]
-                    yPosition = point.positions[yName]
-                    java_point = Point(xName, xIndex, xPosition, 
-                                       yName, yIndex, yPosition)
+                xName = self.generator.axes[1]
+                yName = self.generator.axes[0]
+                xIndex = point.indexes[1]
+                yIndex = point.indexes[0]
+                xPosition = point.positions[xName]
+                yPosition = point.positions[yName]
+                java_point = Point(xName, xIndex, xPosition, 
+                                   yName, yIndex, yPosition)
             else:
                 java_point = MapPosition()
                 
-                for axis, value in point.positions.items():
+                for axis in self.axes_ordering:
                     index = self.index_locations[axis]
                     logging.debug([index, point.indexes, point.positions])
+                    value = point.positions[axis]
                     java_point.put(axis, value)
                     java_point.putIndex(axis, point.indexes[index])
                 
-                java_point.setDimensionNames(self.scan_names)
+                java_point.setDimensionNames(self.dimension_names)
                             
             yield java_point
 
 
 class JRandomOffsetMutator(object):
     
-    def __init__(self, seed, max_offset):
-        self.py_mutator = RandomOffsetMutator(seed, max_offset)
+    def __init__(self, seed, axes, max_offset):
+        self.py_mutator = RandomOffsetMutator(seed, axes, max_offset)
         logging.debug(self.py_mutator.to_dict())

@@ -230,12 +230,14 @@ public class ScanPointGeneratorFactoryTest {
         JythonObjectFactory randomOffsetMutatorFactory = ScanPointGeneratorFactory.JRandomOffsetMutatorFactory();
 		
         int seed = 10;
+        
+        PyList axes = new PyList(Arrays.asList(new String[] {"y", "x"}));
 
         PyDictionary maxOffset = new PyDictionary();
         maxOffset.put("x", 0.5);
         maxOffset.put("y", 0.5);
         
-		PyObject randomOffset = (PyObject) randomOffsetMutatorFactory.createObject(seed, maxOffset);
+		PyObject randomOffset = (PyObject) randomOffsetMutatorFactory.createObject(seed, axes, maxOffset);
         
         JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
         
