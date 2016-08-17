@@ -59,7 +59,11 @@ public class CompoundModel {
 	}
 
 	public CompoundModel(Object... ms) {
-		models = Arrays.asList(ms);
+		if (ms!=null && ms.length==1 && ms[0] instanceof List) {
+			models = (List<Object>)ms[0];
+		} else {
+		    models = Arrays.asList(ms);
+		}
 	}
 	public CompoundModel(List<Object> ms) {
 		models = ms;

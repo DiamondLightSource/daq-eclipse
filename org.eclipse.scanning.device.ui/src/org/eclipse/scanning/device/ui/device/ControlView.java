@@ -66,7 +66,7 @@ public class ControlView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		
-		viewer = new FilteredTree(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, new NamedObjectFilter(), true);
+		viewer = new FilteredTree(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, new NamedNodeFilter(), true);
 		
 		TreeViewer tviewer = viewer.getViewer();
 		tviewer.getTree().setLinesVisible(true);
