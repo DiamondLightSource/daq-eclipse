@@ -3,7 +3,6 @@ package org.eclipse.scanning.api.points.models;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -52,17 +51,17 @@ import java.util.List;
  */
 public class CompoundModel {
 
-	private List<IScanPathModel>       models;
+	private List<Object>               models;
 	private Collection<ScanRegion<?>>  regions;
 	
 	public CompoundModel() {
 		// Must have no-arg constructor
 	}
 
-	public CompoundModel(IScanPathModel... ms) {
+	public CompoundModel(Object... ms) {
 		models = Arrays.asList(ms);
 	}
-	public CompoundModel(List<IScanPathModel> ms) {
+	public CompoundModel(List<Object> ms) {
 		models = ms;
 	}
 	public <T> CompoundModel(IScanPathModel model, T region) {
@@ -96,15 +95,15 @@ public class CompoundModel {
 	 * @param model
 	 * @param rois
 	 */
-	public void addData(IScanPathModel model, Collection<?> rois) {
+	public void addData(Object model, Collection<?> rois) {
 		
-		if (models==null) models = new ArrayList<IScanPathModel>(7);
+		if (models==null) models = new ArrayList<Object>(7);
 		try {
 			models.add(model);
 		} catch(Exception ne) {
 			// Models is allowed to be non-null and unmodifiable	
 			// If it is, we make it modifiable and add the model.
-			List<IScanPathModel> tmp = new ArrayList<IScanPathModel>(7);
+			List<Object> tmp = new ArrayList<Object>(7);
 			tmp.addAll(models);
 			tmp.add(model);
 			models = tmp;
@@ -112,8 +111,8 @@ public class CompoundModel {
 		
 		// They are not really ordered but for now we maintain order.
 		if (regions==null) regions = new LinkedHashSet<ScanRegion<?>>(7);
-		for (Object roi : rois) {
-			ScanRegion<?> region = new ScanRegion<>(roi, model.getScannableNames());
+		if (rois!=null) for (Object roi : rois) {
+			ScanRegion<?> region = new ScanRegion<>(roi, AbstractPointsModel.getScannableNames(model));
 			try {
 				this.regions.add(region);
 			} catch(Exception ne) {
@@ -126,13 +125,13 @@ public class CompoundModel {
 		}
 	}
 	
-	public List<IScanPathModel> getModels() {
+	public List<Object> getModels() {
 		return models;
 	}
-	public void setModels(List<IScanPathModel> models) {
+	public void setModels(List<Object> models) {
 		this.models = models;
 	}
-	public void setModelsVarArgs(IScanPathModel... models) {
+	public void setModelsVarArgs(Object... models) {
 		this.models = Arrays.asList(models);
 	}
 	public Collection<ScanRegion<?>> getRegions() {

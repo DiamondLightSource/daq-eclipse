@@ -79,10 +79,10 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 		return null;
 	}
 	
-	private List<IScanPathModel> getModels() {
+	private List getModels() {
 		
 		List<IPointGenerator<?>> gens = getGenerators();
-		List<IScanPathModel>     ret  = new ArrayList<>(gens.size());
+		List     ret  = new ArrayList<>(gens.size());
 		for (IPointGenerator<?> gen : gens) ret.add(gen.getModel());
 		return ret;
 	}

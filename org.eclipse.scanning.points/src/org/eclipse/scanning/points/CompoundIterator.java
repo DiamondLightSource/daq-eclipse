@@ -34,8 +34,8 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
 		
-        Object[] excluders = {};
-        Object[] mutators = {};
+        Object[] excluders = {}; // TODO FIXME excluders not respected?
+        Object[] mutators = {};  // TODO FIXME mutators not respected?
         
         @SuppressWarnings("unchecked")
 		SerializableIterator<IPosition> iterator = (SerializableIterator<IPosition>)  compoundGeneratorFactory.createObject(
@@ -52,6 +52,7 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		return pos;
 	}
 	
+	@Override
     public PyDictionary toDict() {
 		return pyIterator.toDict();
     }

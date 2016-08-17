@@ -106,7 +106,7 @@ public class SummaryView extends ViewPart implements ISelectionListener {
 	        	
 	        	// Create generator for points
 	        	final IPointGenerator<?> gen = pservice.createCompoundGenerator(cm);
-	        	text.setText(gen.toString());
+	        	text.setText(gen.getDescription());
 	        }
 		} catch (PointsValidationException ne) {
 			 text.setText(ne.getMessage());

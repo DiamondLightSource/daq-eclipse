@@ -37,7 +37,11 @@
         <property name="bundle"   value="org.eclipse.dawnsci.remotedataset.server" /> <!-- Delete for real spring? -->
     </bean>
 
-	<!--  Testing/example only section config do not copy to production. -->
+	<!--  
+	$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+	Testing/example only section config do not copy to production. 
+	$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+	-->
 
 	<!--  Something to respond to xcen runs if they use the example xcen perspective -->
 	<bean id="xcenServlet"  class="org.eclipse.scanning.example.xcen.consumer.XcenServlet" init-method="connect">
@@ -60,6 +64,7 @@
 	</bean>
 	
     <osgi:service ref="scannableDeviceService" interface="org.eclipse.scanning.api.device.IScannableDeviceService"/>
+
 	
 	<!--  End testing/example only-->
 
