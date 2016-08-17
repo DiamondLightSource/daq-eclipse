@@ -1,5 +1,6 @@
 package org.eclipse.scanning.points;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
@@ -91,15 +92,16 @@ class GridIterator extends AbstractScanPointIterator {
 				xName, "mm", minX, minX + (columns - 1) * xStep, columns, model.isSnake());
 		
         JythonObjectFactory randomOffsetMutatorFactory = ScanPointGeneratorFactory.JRandomOffsetMutatorFactory();
-		
+        
         int seed = model.getSeed();
+        PyList axes = new PyList(Arrays.asList(new String[] {yName, xName}));
         double offset = getXStep() * model.getOffset() / 100;
         
         PyDictionary maxOffset = new PyDictionary();
         maxOffset.put(yName, offset);
         maxOffset.put(xName, offset);
         
-		PyObject randomOffset = (PyObject) randomOffsetMutatorFactory.createObject(seed, maxOffset);
+		PyObject randomOffset = (PyObject) randomOffsetMutatorFactory.createObject(seed, axes, maxOffset);
         
         JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
         
