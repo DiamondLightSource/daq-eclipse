@@ -5,8 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
-import org.eclipse.scanning.api.points.models.BoundingBox;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 /**
  * 
@@ -15,7 +13,7 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * @param <T>
  * @param <P>
  */
-public abstract class AbstractGenerator<T extends IScanPathModel> implements IPointGenerator<T>, Iterable<IPosition> {
+public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterable<IPosition> {
 
 	protected volatile T model; // Because of the validateModel() method
 	
@@ -53,6 +51,7 @@ public abstract class AbstractGenerator<T extends IScanPathModel> implements IPo
 	};
 
 	protected abstract Iterator<IPosition> iteratorFromValidModel();
+
 
 	/**
 	 * If the given model is considered "invalid", this method throws a 

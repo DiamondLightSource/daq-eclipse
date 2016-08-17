@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
@@ -13,8 +14,8 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.points.CompoundGenerator;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PySerializable;
 import org.junit.Before;
 import org.junit.Test;
 import org.python.core.PyDictionary;
@@ -127,9 +128,9 @@ public class CompoundTest {
 		
 		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290, 295, 1));
 		IPointGenerator<StepModel> pos = service.createGenerator(new StepModel("Position", 1, 4, 0.6));
-		CompoundGenerator scan = (CompoundGenerator) service.createCompoundGenerator(temp, pos);
+		IPointGenerator<?> scan = service.createCompoundGenerator(temp, pos);
 		
-		PyDictionary dict = scan.toDict();
+		Map<?,?> dict = ((PySerializable)scan).toDict();
 		
 		PyList gens = (PyList) dict.get("generators");
 		PyDictionary line1 = (PyDictionary) gens.get(0);

@@ -39,6 +39,13 @@
             id="org.eclipse.scanning.device.ui.scan.SummaryView"
             name="Summary">
       </view>
+      <view
+            category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.scanning.device.ui.device.ControlView"
+            icon="icons/ui-slider-050.png"
+            id="org.eclipse.scanning.device.ui.device.ControlView"
+            name="Controls">
+      </view>
    </extension>
     <extension
          point="org.eclipse.ui.perspectives">

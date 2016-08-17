@@ -97,4 +97,9 @@ public class StepModel extends AbstractPointsModel {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "StepModel [name=" + name + ", start=" + start + ", stop=" + stop + ", step=" + step + "]";
+	}
 }

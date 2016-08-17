@@ -2,6 +2,12 @@ sudo: false
 
 language: java
 
+# Makes build faster to cache maven things.
+cache:
+  directories:
+  - .autoconf
+  - $HOME/.m2
+
 services:
   - docker
 

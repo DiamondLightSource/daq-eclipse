@@ -29,6 +29,7 @@ public class MockScannableConnector implements IScannableDeviceService {
 		register(new MockScannable("r", 10d, 2, "Âµm"));
 		register(new MockScannable("x", 0d,  3, "µm"));
 		register(new MockScannable("y", 0d,  3, "µm"));
+		register(new MockScannable("z", 2d,  3, "µm"));
 		register(new MockNeXusScannable("xNex", 0d,  3, "µm"));
 		register(new MockNeXusScannable("yNex", 0d,  3, "µm"));
 		register(new MockNeXusScannable("T", 295,  3, "K"));

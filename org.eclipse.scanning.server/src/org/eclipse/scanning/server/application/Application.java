@@ -28,6 +28,7 @@ import org.eclipse.equinox.app.IApplicationContext;
 import org.osgi.framework.Bundle;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -67,142 +68,13 @@ public class Application implements IApplication {
 			}
 		}
 		
-		this.objects = create(conf.get("xml"));
+		PseudoSpringParser parser = new PseudoSpringParser();
+		this.objects = parser.parse(conf.get("xml"));
 		latch.await();
 		
 		return objects;
 	}
 
-	/**
-	 * Manually parse spring XML to create the objects.
-	 * This means that the example has no dependency on a
-	 * particular spring version and can be part of the open
-	 * source project.
-	 * 
-	 * @param conf
-	 * @return
-	 * @throws Exception
-	 */
-	public static Map<String, Object> create(String path) throws Exception {
-				
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder builder = factory.newDocumentBuilder();
-	    
-	    Document doc = builder.parse(new File(path));
-	    doc.getDocumentElement().normalize();
-	    NodeList  nl = doc.getElementsByTagName("bean");
-	    
-	    Map<String, Object> objects = new HashMap<>();
-	    for (int i = 0; i < nl.getLength(); i++) {
-			
-	    	Element bean = (Element)nl.item(i);
-	    	if (!bean.hasChildNodes()) continue;
-	    	
-			final String className = bean.getAttributes().getNamedItem("class").getNodeValue();
-			
-			Node initNode = bean.getAttributes().getNamedItem("init-method");
-			final String init      = initNode!=null ? bean.getAttributes().getNamedItem("init-method").getNodeValue() : null;
-			
-			// Look for parameters
-			// bundle, broker, submitQueue, statusSet, statusTopic, durable;	
-			NodeList params = bean.getElementsByTagName("property");
-			final Map<String,String> conf = new HashMap<>();
-			for (int j = 0; j < params.getLength(); j++) {
-				Node param = params.item(j);
-				conf.put(param.getAttributes().getNamedItem("name").getNodeValue(), param.getAttributes().getNamedItem("value").getNodeValue());
-			}
-			Object created = createObject(className, init, conf);
-			final String id = bean.getAttributes().getNamedItem("id").getNodeValue();
-			objects.put(id, created);
-		}
-	    
-	    nl = doc.getElementsByTagName("osgi:service");
-	    if (nl!=null) for (int i = 0; i < nl.getLength(); i++) {
-	    	
-	    	Element service = (Element)nl.item(i);
-			final String ref = service.getAttributes().getNamedItem("ref").getNodeValue();
-            final Object obj = objects.get(ref);
-            
-			final String interfase = service.getAttributes().getNamedItem("interface").getNodeValue();
-			final Bundle bundle    = Platform.getBundle("org.eclipse.scanning.api");
-			final Class  clazz     = bundle.loadClass(interfase);
-
-			Activator.registerService(clazz, obj);
-	    }
-	    
-		return objects;
-	}
-
-	private static Object createObject(String className, String initMethod, Map<String, String> conf) throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, SecurityException, NoSuchFieldException {
-		
-		// Must have a bundle
-		String bundleName = conf.remove("bundle");
-		if (bundleName==null) bundleName = "org.eclipse.scanning.server";
-		final Bundle bundle = Platform.getBundle(bundleName);
-	
-		final Class<?> clazz = bundle.loadClass(className);
-		
-		Object instance = clazz.newInstance();
-		for (String fieldName : conf.keySet()) {
-			final String setterName = getSetterName(fieldName);
-			final Object value      = getValue(conf, fieldName);
-			Method method = getMethod(clazz, setterName, value.getClass());
-			method.invoke(instance, value);
-		}
-
-		if (initMethod!=null) {
-			Method method = clazz.getMethod(initMethod);
-			method.invoke(instance);
-		}
-		System.out.println("Started Server Extension "+clazz.getSimpleName()+" using "+initMethod);
-		return instance;
-	}
-
-	private static Method getMethod(Class<?> clazz, String setterName, Class<? extends Object> valueClass) throws NoSuchMethodException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
-		try {
-			return clazz.getMethod(setterName, valueClass);
-		} catch (Exception ne) {
-			return clazz.getMethod(setterName, (Class<?>)valueClass.getField("TYPE").get(null));
-		}
-	}
-
-	private static Object getValue(Map<String, String> conf, String fieldName) {
-		
-		String val = conf.get(fieldName);
-		val = replaceProperties(val); // Insert any system properties that the user used.
-		
-		if ("true".equalsIgnoreCase(val)) {
-			return Boolean.TRUE;
-		} else if ("false".equalsIgnoreCase(val)) {
-			return Boolean.FALSE;
-		} else {
-			// There are faster ways to do this
-			// but they are not required here...
-			try {
-				return Integer.parseInt(val);
-			} catch (Exception ne) {
-				try {
-					return Double.parseDouble(val);
-				} catch (Exception ignored) {
-					
-				}
-			}
-		}
-		return val; // The String
-	}
-
-	/**
-	 * Not very efficient but no dependencies required and does job.
-	 * @param val
-	 * @return
-	 */
-	private static String replaceProperties(String val) {
-		final Properties props = System.getProperties();
-		for (Object name : props.keySet()) {
-			val = val.replace("${"+name+"}", props.getProperty(name.toString()));
-		}
-		return val;
-	}
 
 	@Override
 	public void stop() {
@@ -217,15 +89,5 @@ public class Application implements IApplication {
 		latch.countDown();
 	}
 	
-	private static String getSetterName(final String fieldName) {
-		if (fieldName == null) return null;
-		return getName("set", fieldName);
-	}
-	private static String getName(final String prefix, final String fieldName) {
-		return prefix + getFieldWithUpperCaseFirstLetter(fieldName);
-	}
-	public static String getFieldWithUpperCaseFirstLetter(final String fieldName) {
-		return fieldName.substring(0, 1).toUpperCase(Locale.US) + fieldName.substring(1);
-	}
 
 }

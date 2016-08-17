@@ -15,6 +15,10 @@ import org.eclipse.scanning.points.PointGeneratorFactory;
 
 public class ValidatorService implements IValidatorService {
 	
+	static {
+		System.out.println("Starting ValidatorService");
+	}
+	
 	private final PointGeneratorFactory factory = new PointGeneratorFactory();
 
 	private static final Map<Class<?>, Class<? extends IValidator>> validators;
