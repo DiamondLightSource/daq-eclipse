@@ -183,23 +183,25 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		if (orig==null) orig = 0d;
 		
 		double distance = pos.doubleValue()-orig.doubleValue();
-		double rate     = getMoveRate(); // units/s
-		double time     = distance/rate; // Time, s, to do the move.
-		
-		// We will pretend there are 10 points in any move for notification
-		double increment = distance/10d;
-		long   pauseTime= Math.round(time/10d)*1000; // pause in ms
-		
 		long waitedTime = 0L;
-		double currentPosition = orig.doubleValue();
-		for (int i = 0; i < 10; i++) {
-			Thread.sleep(pauseTime);
-			waitedTime+=pauseTime;
-			currentPosition+=increment;
-			this.position = currentPosition;
-			delegate.firePositionPerformed(-1, new Scalar(getName(), index, currentPosition));
+		if (distance>0.000001) {
+			double rate     = getMoveRate(); // units/s
+			double time     = distance/rate; // Time, s, to do the move.
+			
+			// We will pretend there are 10 points in any move for notification
+			double increment = distance/10d;
+			long   pauseTime= Math.abs(Math.round(time/10d)*1000); // pause in ms
+			
+			double currentPosition = orig.doubleValue();
+			for (int i = 0; i < 10; i++) {
+				Thread.sleep(pauseTime);
+				waitedTime+=pauseTime;
+				currentPosition+=increment;
+				this.position = currentPosition;
+				delegate.firePositionPerformed(-1, new Scalar(getName(), index, currentPosition));
+			}
+			System.out.println("Realistic move of "+getName()+" from "+orig+" to "+currentPosition+" complete");
 		}
-		System.out.println("Realistic move of "+getName()+" from "+orig+" to "+currentPosition+" complete");
 		if (isRequireSleep() && minimumWaitTime>0 && minimumWaitTime>waitedTime) {
 			Thread.sleep(minimumWaitTime-waitedTime);
 		}
