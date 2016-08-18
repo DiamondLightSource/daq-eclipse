@@ -13,6 +13,7 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.PySerializable;
@@ -81,6 +82,27 @@ public class CompoundTest {
 			if (sz>size) throw new Exception("Iterator grew too large!");
 		}
 	}
+
+	@Test
+	public void testCompoundSpiral() throws Exception {
+		
+		BoundingBox box = new BoundingBox();
+		box.setFastAxisStart(-10);
+		box.setSlowAxisStart(5);
+		box.setFastAxisLength(3);
+		box.setSlowAxisLength(4);
+
+		SpiralModel model = new SpiralModel();
+		model.setBoundingBox(box);
+		// use default parameters
+
+		service = new PointGeneratorFactory();
+		IPointGenerator<SpiralModel> generator = service.createGenerator(model);
+		IPointGenerator<?> scan = service.createCompoundGenerator(generator);
+
+		List<IPosition> pointList = scan.createPoints();
+		assertTrue(true);
+	}
 	
 	@Test
 	public void testSimpleCompoundStep2Step() throws Exception {
@@ -124,7 +146,30 @@ public class CompoundTest {
 	}
 	
 	@Test
-	public void testToDict() throws Exception {
+	public void testSimpleToDict() throws Exception {
+		
+		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290, 295, 1));
+		IPointGenerator<?> scan = service.createCompoundGenerator(temp);
+		
+		Map<?,?> dict = ((PySerializable)scan).toDict();
+		
+		PyList gens = (PyList) dict.get("generators");
+		PyDictionary line1 = (PyDictionary) gens.get(0);
+
+		assertEquals("Temperature", (String) ((PyList) line1.get("name")).get(0));
+		assertEquals("mm", line1.get("units"));
+		assertEquals(290.0, (double) ((PyList) line1.get("start")).get(0), 1E-10);
+		assertEquals(295.0, (double) ((PyList) line1.get("stop")).get(0), 1E-10);
+		assertEquals(6, (int) line1.get("num"));
+
+		PyList excluders = (PyList) dict.get("excluders");
+		PyList mutators = (PyList) dict.get("mutators");
+		assertEquals(new PyList(), excluders);
+		assertEquals(new PyList(), mutators);
+	}
+	
+	@Test
+	public void testNestedToDict() throws Exception {
 		
 		IPointGenerator<StepModel> temp = service.createGenerator(new StepModel("Temperature", 290, 295, 1));
 		IPointGenerator<StepModel> pos = service.createGenerator(new StepModel("Position", 1, 4, 0.6));

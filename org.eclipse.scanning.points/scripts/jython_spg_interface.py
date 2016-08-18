@@ -235,6 +235,8 @@ class JCompoundGenerator(JavaIteratorWrapper):
         
         logging.debug("Index Locations:")
         logging.debug(self.index_locations)
+        logging.debug("Axes Ordering:")
+        logging.debug(self.axes_ordering)
         
         self.generator = CompoundGenerator(generators, excluders, mutators)
         
@@ -252,26 +254,33 @@ class JCompoundGenerator(JavaIteratorWrapper):
                 java_point = Scalar(name, index, position)
                 
             elif len(point.positions.keys()) == 2:
-                x_name = self.generator.axes[1]
-                y_name = self.generator.axes[0]
-                x_index = point.indexes[1]
-                y_index = point.indexes[0]
-                x_position = point.positions[x_name]
-                y_position = point.positions[y_name]
-                java_point = Point(x_name, x_index, x_position, 
-                                   y_name, y_index, y_position)
+                logging.debug([point.indexes, point.positions])
+                
+                names = []
+                indexes = []
+                values = []
+                for axis in self.axes_ordering:
+                    index = self.index_locations[axis]
+                    indexes.append(point.indexes[index])
+                    logging.debug([axis, index])
+                    values.append(point.positions[axis])
+                    names.append(axis)
+                    
+                java_point = Point(names[1], indexes[1], values[1], 
+                                   names[0], indexes[0], values[0])
+                java_point.setDimensionNames(self.dimension_names)
             else:
                 java_point = MapPosition()
                 
                 for axis in self.axes_ordering:
                     index = self.index_locations[axis]
-                    logging.debug([index, point.indexes, point.positions])
+                    logging.debug([axis, index])
                     value = point.positions[axis]
                     java_point.put(axis, value)
                     java_point.putIndex(axis, point.indexes[index])
                 
                 java_point.setDimensionNames(self.dimension_names)
-                            
+                
             yield java_point
 
 
