@@ -26,6 +26,7 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory;
@@ -93,6 +94,9 @@ public class TopupTest {
 			}
 		});
 		final IScannable<Number>   x       = connector.getScannable("x");
+		if (x instanceof MockScannable) {
+			((MockScannable)x).setRealisticMove(false);
+		}
 		((IPositionListenable)x).addPositionListener(new IPositionListener() {
 			@Override
 			public void positionPerformed(PositionEvent evt) {

@@ -27,14 +27,27 @@ public class MockScannableConnector implements IScannableDeviceService {
 		register(new MockScannable("p", 10d, 2, "Âµm"));
 		register(new MockScannable("q", 10d, 2, "Âµm"));
 		register(new MockScannable("r", 10d, 2, "Âµm"));
-		register(new MockScannable("x", 0d,  3, "µm"));
-		register(new MockScannable("y", 0d,  3, "µm"));
+		
+		MockScannable x = new MockScannable("x", 0d,  3, "µm");
+		x.setRealisticMove(true);
+		x.setMoveRate(10000); // µm/s or 1 cm/s
+		register(x);
+		
+		MockScannable y = new MockScannable("y", 0d,  3, "µm");
+		y.setRealisticMove(true);
+		y.setMoveRate(10); // µm/s
+		register(y);
+		
 		register(new MockScannable("z", 2d,  3, "µm"));
 		register(new MockNeXusScannable("xNex", 0d,  3, "µm"));
 		register(new MockNeXusScannable("yNex", 0d,  3, "µm"));
-		register(new MockNeXusScannable("T", 295,  3, "K"));
 		register(new MockScannable("benchmark1",  0.0,  -1, false));
-
+		
+		MockNeXusScannable temp= new MockNeXusScannable("T", 295,  3, "K");
+		temp.setRealisticMove(true);
+		temp.setMoveRate(0.5); // K/s
+		register(temp);
+		
 		for (int i = 0; i < 10; i++) {
 			register(new MockNeXusScannable("neXusScannable"+i, 0d,  3));
 	    }
