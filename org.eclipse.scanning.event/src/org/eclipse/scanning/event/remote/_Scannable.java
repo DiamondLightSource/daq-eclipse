@@ -11,10 +11,12 @@ import org.eclipse.scanning.api.event.scan.DeviceAction;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.event.IPositionListenable;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
+class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, IPositionListenable {
 
 	private final static Logger logger = LoggerFactory.getLogger(_Scannable.class);
 
@@ -86,6 +88,18 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T> {
 	public T getMinimum() {
 		if (info==null) update();
 		return (T)info.getLower();
+	}
+
+	@Override
+	public void addPositionListener(IPositionListener listener) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removePositionListener(IPositionListener listener) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 

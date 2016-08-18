@@ -23,7 +23,7 @@ import org.eclipse.scanning.api.scan.event.IPositionListenable;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.PositionDelegate;
 
-public class MockScannable extends AbstractScannable<Number> implements IConfigurable<MockScannableModel>, IPositionListenable {
+public class MockScannable extends AbstractScannable<Number> implements IConfigurable<MockScannableModel> {
 
 	protected Number  position = 0d;
 	private boolean requireSleep=true;
@@ -39,7 +39,6 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 	
 	protected MockScannableModel model;
 	private LazyWriteableDataset writer;
-	private PositionDelegate     delegate;
 	
 	@ScanFinally
 	public void clean() {
@@ -47,9 +46,9 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 	}
 	
     public MockScannable() {
+    	super();
        	values    = new ArrayList<>();
        	positions = new ArrayList<>();
-       	delegate  = new PositionDelegate();
     }
     public MockScannable(double position) {
     	this();
@@ -184,7 +183,7 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		
 		double distance = pos.doubleValue()-orig.doubleValue();
 		long waitedTime = 0L;
-		if (distance>0.000001) {
+		if (Math.abs(distance)>0.000001) {
 			double rate     = getMoveRate(); // units/s
 			double time     = distance/rate; // Time, s, to do the move.
 			
@@ -231,16 +230,7 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		
 		throw new Exception("No call to setPosition had value="+value+" and position="+point);
 	}
-	
-	@Override
-	public void addPositionListener(IPositionListener listener) {
-		delegate.addPositionListener(listener);
-	}
-	@Override
-	public void removePositionListener(IPositionListener listener) {
-		delegate.removePositionListener(listener);
-	}
-	
+
 	private String unit = "mm";
 	@Override
 	public String getUnit() {

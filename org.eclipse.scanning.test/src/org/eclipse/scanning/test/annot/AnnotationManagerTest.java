@@ -62,7 +62,7 @@ public class AnnotationManagerTest {
 		
 		final Map<Class<?>, Object> testServices = new HashMap<>();
 		testServices.put(IPointGeneratorService.class,  new PointGeneratorFactory());
-		testServices.put(IScannableDeviceService.class, new MockScannableConnector());
+		testServices.put(IScannableDeviceService.class, new MockScannableConnector(null));
 		testServices.put(IRunnableDeviceService.class,  new RunnableDeviceServiceImpl((IScannableDeviceService)testServices.get(IScannableDeviceService.class)));
 		manager = new AnnotationManager(testServices);
 

@@ -14,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
@@ -376,11 +377,14 @@ public class ScanServletPluginTest {
 	}
 	
 	private static void doHardCodedTestThings() throws Exception {
+		
+		
 		// We will run this test without real GDA devices. Therefore we
 		// override the connector
 		// DO NOT COPY TESTING ONLY
-		RunnableDeviceServiceImpl.setDeviceConnectorService(new MockScannableConnector()); 
-		
+		IScannableDeviceService dservice = new MockScannableConnector(null);
+		RunnableDeviceServiceImpl.setDeviceConnectorService(dservice); 
+		Services.setConnector(dservice);
 		
 		// Put a connection in the DeviceServiceImpl which is used for the test
 		IMalcolmService malcolmService = new MockedMalcolmService();
@@ -390,7 +394,6 @@ public class ScanServletPluginTest {
 		((RunnableDeviceServiceImpl)Services.getRunnableDeviceService())._registerConnection(URI.create("tcp://standard"), connection);
 		
 		// DO NOT COPY TESTING ONLY
-		Services.setConnector(new MockScannableConnector());
 		
 		// We double check that the services injected into the servlet bundle are there.
 		assertNotNull(Services.getConnector());

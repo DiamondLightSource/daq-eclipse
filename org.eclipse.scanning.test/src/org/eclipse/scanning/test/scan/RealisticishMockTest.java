@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.scan;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class RealisticishMockTest {
 	public static void setup() throws Exception {
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		cservice = new MockScannableConnector();
+		cservice = new MockScannableConnector(null);
 		temp = cservice.getScannable("T");
 		temp.setPosition(295d); // We operate it from a known point.
 		
@@ -64,8 +65,9 @@ public class RealisticishMockTest {
 				positions.add(val);
 			}
 		});
-		temp.setPosition(295d+delta);
+		System.out.println("Moving to "+(temp.getPosition().doubleValue()+delta)+" from "+temp.getPosition());
+		temp.setPosition(temp.getPosition().doubleValue()+delta);
 
-        assertTrue(positions.size() == 10);
+        assertEquals(10, positions.size());
 	}
 }

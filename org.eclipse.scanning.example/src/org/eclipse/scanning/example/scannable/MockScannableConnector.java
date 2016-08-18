@@ -5,18 +5,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.Location;
 
 public class MockScannableConnector implements IScannableDeviceService {
 
 	private Map<String, INameable> cache;
+	private IPublisher<Location> positionPublisher;
 	
 	// Create a few random scannables with different levels.
-	public MockScannableConnector() {
+	public MockScannableConnector(IPublisher<Location> positionPublisher) {
+		
 		System.out.println("Starting up Mock IScannableDeviceService");
+		this.positionPublisher = positionPublisher;
+		
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		register(new MockTopupMonitor("topup", 10d,  -1));
 		register(new MockBeanOnMonitor("beamon", 10d, 1));
@@ -35,7 +42,7 @@ public class MockScannableConnector implements IScannableDeviceService {
 		
 		MockScannable y = new MockScannable("y", 0d,  3, "µm");
 		y.setRealisticMove(true);
-		y.setMoveRate(10); // µm/s
+		y.setMoveRate(100); // µm/s, faster than real?
 		register(y);
 		
 		register(new MockScannable("z", 2d,  3, "µm"));
@@ -45,9 +52,14 @@ public class MockScannableConnector implements IScannableDeviceService {
 		
 		MockNeXusScannable temp= new MockNeXusScannable("T", 295,  3, "K");
 		temp.setRealisticMove(true);
-		temp.setMoveRate(0.5); // K/s
+		temp.setMoveRate(10); // K/s much faster than real but device used in tests.
 		register(temp);
-		
+		for (int i = 0; i < 10; i++) {
+			MockScannable t = new MockScannable("T"+i, 0d,  0, "K");
+			t.setRequireSleep(false);
+			register(t);
+
+		}
 		for (int i = 0; i < 10; i++) {
 			register(new MockNeXusScannable("neXusScannable"+i, 0d,  3));
 	    }
@@ -64,6 +76,9 @@ public class MockScannableConnector implements IScannableDeviceService {
 
 	public void register(INameable mockScannable) {
 		cache.put(mockScannable.getName(), mockScannable);
+		if (mockScannable instanceof AbstractScannable) {
+			((AbstractScannable)mockScannable).setPublisher(positionPublisher);
+		}
 	}
 
 	@Override

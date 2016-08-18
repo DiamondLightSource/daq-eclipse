@@ -56,7 +56,7 @@ public class LowLevelDetectorPluginTest {
 	
 	@Before
 	public void before() {
-		connector = new MockScannableConnector();
+		connector = new MockScannableConnector(null);
 		service   = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice  = new PointGeneratorFactory();
 	}
