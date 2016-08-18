@@ -170,13 +170,13 @@ public class ScanPointGeneratorFactory {
     	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 	            File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
 	           	   
-	            File lib;
+	            File lib=null;
 	            if (loc!=null && loc.exists()) {
 		            lib = find(loc, "Lib");
-	            } else {
-	            	lib = find(pointsLocation, "Lib"); // We copied it somewhere.
+//	            } else if (version is 2.7) {
+//	            	lib = find(pointsLocation, "Lib"); // We copied it somewhere.
 	            }
-	            if (lib.exists()) {
+	            if (lib!=null && lib.exists()) {
 	            	logger.debug("Loading Jython libs from "+lib.getAbsolutePath());
 	            	state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
 	            }
