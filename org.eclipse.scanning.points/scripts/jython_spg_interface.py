@@ -32,13 +32,13 @@ class JavaIteratorWrapper(SerializableIterator):
     
     def _iterator(self):
         raise NotImplementedError("Must be implemented in child class")
-
+    
     def next(self):
         
         if self._has_next:
             result = self._next
         else:
-            result = next(self._iterator)
+            result = self._iterator.next()  # Note: No next() in Py3
             
         self._has_next = None
         
@@ -49,7 +49,7 @@ class JavaIteratorWrapper(SerializableIterator):
         if self._has_next is None:
             
             try:
-                self._next = next(self._iterator)
+                self._next = self._iterator.next()  # Note: No next() in Py3
             except StopIteration:
                 self._has_next = False
             else:
