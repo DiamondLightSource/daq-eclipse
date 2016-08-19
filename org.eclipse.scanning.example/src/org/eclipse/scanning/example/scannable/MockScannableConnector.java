@@ -9,11 +9,13 @@ import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.Location;
 
-public class MockScannableConnector implements IScannableDeviceService {
+public class MockScannableConnector implements IScannableDeviceService, IDisconnectable {
 
 	private Map<String, INameable> cache;
 	private IPublisher<Location> positionPublisher;
@@ -93,6 +95,11 @@ public class MockScannableConnector implements IScannableDeviceService {
 	@Override
 	public List<String> getScannableNames() throws ScanningException {
 		return cache.keySet().stream().filter(key -> cache.get(key) instanceof IScannable).collect(Collectors.toList());
+	}
+
+	@Override
+	public void disconnect() throws EventException {
+		if (positionPublisher!=null) positionPublisher.disconnect();
 	}
 
 }

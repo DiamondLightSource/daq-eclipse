@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.scan;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -9,16 +8,16 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.dawnsci.analysis.api.io.IDataHolder;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
@@ -40,7 +39,6 @@ import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.ServiceHolder;
@@ -69,8 +67,8 @@ public class BenchmarkScanTest extends BrokerTest {
 		
 	@AfterClass
 	public static void checkTimes() throws Exception {
-		assertTrue(nexusSmallEvents<(nexusSmall+10));
-		assertTrue(nexusMediumEvents<(nexusMedium+10));
+		assertTrue(nexusSmallEvents<(nexusSmall+20));
+		assertTrue(nexusMediumEvents<(nexusMedium+20));
 	}
 	
 	private IRunnableDeviceService      dservice;

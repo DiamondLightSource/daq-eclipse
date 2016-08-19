@@ -107,5 +107,4 @@ public class PositionDelegate {
 	public void setPublisher(IPublisher<Location> publisher) {
 		this.publisher = publisher;
 	}
-
 }

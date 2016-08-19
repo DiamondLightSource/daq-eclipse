@@ -19,9 +19,6 @@ import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.api.scan.event.IPositionListenable;
-import org.eclipse.scanning.api.scan.event.IPositionListener;
-import org.eclipse.scanning.api.scan.event.PositionDelegate;
 
 public class MockScannable extends AbstractScannable<Number> implements IConfigurable<MockScannableModel> {
 
@@ -172,7 +169,6 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		}
 		
 		delegate.firePositionPerformed(-1, new Scalar(getName(), index, value));
-
 	}
 	
 	protected void doRealisticMove(Number pos, int index, long minimumWaitTime) throws InterruptedException, ScanningException {
