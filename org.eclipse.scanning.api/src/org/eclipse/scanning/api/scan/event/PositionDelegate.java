@@ -36,10 +36,10 @@ public class PositionDelegate {
 	}
 
 	public boolean firePositionWillPerform(IPosition position) throws ScanningException {
-		if (listeners==null) return true;
-		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		final PositionEvent evnt = new PositionEvent(position);
 		broadcast(LocationType.positionWillPerform, evnt);
+		if (listeners==null) return true;
+		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		for (IPositionListener l : ls)  {
 			boolean ok = l.positionWillPerform(evnt);
 			if (!ok) return false;
@@ -60,31 +60,33 @@ public class PositionDelegate {
 	}
 
 	public void firePositionChanged(int finalLevel, IPosition position) throws ScanningException {
-		if (listeners==null) return;
-		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		final PositionEvent evnt = new PositionEvent(position);
 		evnt.setLevel(finalLevel);
 		broadcast(LocationType.positionChanged, evnt);
+		
+		if (listeners==null) return;
+		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		for (IPositionListener l : ls)  l.positionChanged(evnt);
 	}
 
 	public void firePositionPerformed(int finalLevel, IPosition position) throws ScanningException {
-		if (listeners==null) return;
-		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		final PositionEvent evnt = new PositionEvent(position);
 		evnt.setLevel(finalLevel);
 		broadcast(LocationType.positionPerformed, evnt);
+
+		if (listeners==null) return;
+		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		for (IPositionListener l : ls)  l.positionPerformed(evnt);
 	}
 
 	public void fireLevelPerformed(int level, List<? extends ILevel> levels, IPosition position) throws ScanningException {
-		if (listeners==null) return;
-		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		final PositionEvent evnt = new PositionEvent(position);
 		evnt.setLevel(level);
 	    evnt.setLevelObjects(levels);
-		
 		broadcast(LocationType.levelPerformed, evnt);
+		
+		if (listeners==null) return;
+		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
 		for (IPositionListener l : ls)  l.levelPerformed(evnt);
 	}
 

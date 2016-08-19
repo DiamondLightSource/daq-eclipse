@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.scanning.api.ILevel;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
-import org.eclipse.scanning.api.scan.event.Location.LocationType;
 
 /**
  * 
@@ -22,8 +22,12 @@ import org.eclipse.scanning.api.scan.event.Location.LocationType;
  * @author Matthew Gerring
  *
  */
-public class Location {
+public class Location implements INameable {
 	
+	/**
+	 * Must match method names in IPositionListener as reflection used on the value to 
+	 * call the correct method on the listener.
+	 */
 	public enum LocationType {
 		positionWillPerform, levelPerformed, positionChanged, positionPerformed;
 	}
@@ -125,5 +129,9 @@ public class Location {
 		if (type != other.type)
 			return false;
 		return true;
+	}
+	@Override
+	public String toString() {
+		return "Location [type=" + type + ", name=" + name + ", position=" + position + ", level=" + level + "]";
 	}
 }

@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.remote;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class RemoteScannableServiceTest extends BrokerTest {
 
 	private static IScannableDeviceService      cservice;
+	private        IScannableDeviceService      rservice;
 	private static IEventService                eservice;
 	private static AbstractResponderServlet<?>  dservlet, pservlet;
 
@@ -76,8 +78,6 @@ public class RemoteScannableServiceTest extends BrokerTest {
 		System.out.println("Made Servlets");
 
 	}
-	
-	private        IScannableDeviceService      rservice;
 	
 	@Before
 	public void createService() throws EventException {
@@ -151,12 +151,11 @@ public class RemoteScannableServiceTest extends BrokerTest {
 		}
 	}
 	
-	@Ignore
 	@Test
 	public void addFive() throws Exception {
 		checkTemperature(5);
 	}
-	@Ignore
+	
 	@Test
 	public void subtractFive() throws Exception {
 		checkTemperature(-5);
@@ -165,7 +164,7 @@ public class RemoteScannableServiceTest extends BrokerTest {
 	private void checkTemperature(double delta) throws Exception {
 		
 		IScannable<Double> temp = rservice.getScannable("T");
-		
+	
 		List<Double> positions = new ArrayList<>();
 		((IPositionListenable)temp).addPositionListener(new IPositionListener() {
 			public void positionPerformed(PositionEvent evt) throws ScanningException {
@@ -174,9 +173,10 @@ public class RemoteScannableServiceTest extends BrokerTest {
 				positions.add(val);
 			}
 		});
-		temp.setPosition(295d+delta);
+		System.out.println("Moving to "+(temp.getPosition().doubleValue()+delta)+" from "+temp.getPosition());
+		temp.setPosition(temp.getPosition().doubleValue()+delta);
 
-        assertTrue(positions.size() == 10);
+        assertEquals(10, positions.size());
 	}
 
 }

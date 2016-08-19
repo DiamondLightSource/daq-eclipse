@@ -69,4 +69,21 @@ public interface IRequester<T extends IdBean> extends IRequestResponseConnection
 	 */
 	T post(T request) throws EventException, InterruptedException;
 	
+	/**
+	 * Same as post with an optional ResponseWaiter (may be null) which
+	 * provides the ability to return true if the post should carry on waiting. 
+	 * This is useful for instance in the case where a scannable is setting
+	 * position. It will have notified position recently and if the waiter thinks
+	 * it is still alive there is not reason to timeout. This is useful
+	 * in setPosition(...) calls for scannbles that can take an indeterminate
+	 * time but should still timeout if they go inactive.
+	 * 
+	 * @param request
+	 * @param waiter
+	 * @return
+	 * @throws EventException
+	 * @throws InterruptedException
+	 */
+	T post(T request, ResponseConfiguration.ResponseWaiter waiter) throws EventException, InterruptedException;
+	
 }

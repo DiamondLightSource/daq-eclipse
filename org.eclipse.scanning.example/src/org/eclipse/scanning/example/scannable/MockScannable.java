@@ -198,6 +198,7 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 				currentPosition+=increment;
 				this.position = currentPosition;
 				delegate.firePositionPerformed(-1, new Scalar(getName(), index, currentPosition));
+				//System.out.println("Set "+getName()+" intermediate value "+position);
 			}
 			System.out.println("Realistic move of "+getName()+" from "+orig+" to "+currentPosition+" complete");
 		}
