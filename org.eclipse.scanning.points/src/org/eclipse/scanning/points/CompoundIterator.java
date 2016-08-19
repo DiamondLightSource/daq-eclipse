@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
@@ -31,6 +32,13 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		this.gen       = gen;
 		this.iterators = initIterators();
 		this.pos       = createFirstPosition();
+		
+		// Throw an exception if iterator is device dependent and can't be processed by SPG
+		for (Iterator<? extends IPosition>it : this.iterators) {
+			if (IDeviceDependentIterable.class.isAssignableFrom(it.getClass())) {
+				throw new IllegalArgumentException();
+			}
+		}
 		
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
 		
