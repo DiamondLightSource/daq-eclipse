@@ -49,27 +49,35 @@ public class ScanPointGeneratorFactory {
 	private static ClassLoader jythonClassloader;
 	static {
 		
-    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
-        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
-        File jythonDir = findJythonDir(loc);
-        
-        Properties props = new Properties();
-    	props.put("python.home", jythonDir.getAbsolutePath());
-    	props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
-    	props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
-    	props.put("python.import.site","false");
+		try {
+	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+	        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
+	        File jythonDir = findJythonDir(loc);
+	        
+	        Properties props = new Properties();
+	    	props.put("python.home", jythonDir.getAbsolutePath());
+	    	props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
+	    	props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
+	    	props.put("python.import.site","false");
 
-    	Properties preprops = System.getProperties();
-    	
-    	PySystemState.initialize(preprops, props);
+	    	Properties preprops = System.getProperties();
+	    	
+	    	PySystemState.initialize(preprops, props);
+	    
+	    } catch (Throwable ne) {
+	    	ne.printStackTrace();
+	    	System.out.print(ne.getMessage());
+	    	logger.debug("Problem loading jython bundles!", ne);
+	    }
     	
 		jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
 	    try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
+	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 	    	CompositeClassLoader composite = new CompositeClassLoader(ScanPointGeneratorFactory.class.getClassLoader());
 	    	addLast(composite, jythonBundleName);
 	    	jythonClassloader = composite;
 	    		    	
-	    } catch (Exception ne) {
+	    } catch (Throwable ne) {
 	    	logger.debug("Problem loading jython bundles!", ne);
 	    	// Legal, if static classloader does not work in tests, there will be
 	    	// errors. If bundle classloader does not work in product, there will be errors.
@@ -260,7 +268,7 @@ public class ScanPointGeneratorFactory {
 			for (String file : files) {
 				if (file.startsWith("uk.ac.diamond.jython")) {
 					dir = new File(file);
-					if (!dir.isDirectory()) continue;
+					if (dir.isFile()) continue;
 					return dir;
 				}
 			}
@@ -269,15 +277,25 @@ public class ScanPointGeneratorFactory {
 	}
 	
 	private static File findJythonDir(File loc) {
-
-		String[] files = loc.list();
-		for (String file : files) {
-			if (file.startsWith("jython")) {
-				File dir = new File(file);
-				if (!dir.isDirectory()) continue;
-				return dir;
-			}
+		
+		try {
+			File dir = new File(loc.getCanonicalPath() + "/jython2.7");
+	    	System.out.print(dir.getCanonicalPath());
+	    	System.out.print(dir.getAbsolutePath());
+	    	System.out.print(dir.exists());
+			return dir;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+//		String[] files = loc.list();
+//		for (String file : files) {
+//			if (file.startsWith("jython")) {
+//				File dir = new File(file);
+//				if (!dir.isDirectory()) continue;
+//				return dir;
+//			}
+//		}
 		return null;
 	}
 
