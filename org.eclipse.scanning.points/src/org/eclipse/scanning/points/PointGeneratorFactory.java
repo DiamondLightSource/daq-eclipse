@@ -196,7 +196,6 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 
 	@Override
 	public IPointGenerator<?> createCompoundGenerator(IPointGenerator<?>... generators) throws GeneratorException {
-		if (generators.length==1) return generators[0];
 		return new CompoundGenerator(generators);
 	}
 

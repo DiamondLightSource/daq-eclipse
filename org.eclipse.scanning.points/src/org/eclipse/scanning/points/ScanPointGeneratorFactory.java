@@ -70,7 +70,7 @@ public class ScanPointGeneratorFactory {
 	// These are the constructors for each Jython SPG interface. To add a new one just replace, 
 	// for example, "JArrayGenerator" with your new class and give the constructor a new name
 	// like "<YourClass>Factory"
-    public synchronized static JythonObjectFactory JLineGenerator1DFactory() {
+    public static JythonObjectFactory JLineGenerator1DFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JLineGenerator1D");
     }
 	
@@ -85,31 +85,27 @@ public class ScanPointGeneratorFactory {
     	}
 	}
 
-	public synchronized static JythonObjectFactory JLineGenerator2DFactory() {
+	public static JythonObjectFactory JLineGenerator2DFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JLineGenerator2D");
     }
 	
-    public synchronized static JythonObjectFactory JArrayGeneratorFactory() {
+    public static JythonObjectFactory JArrayGeneratorFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JArrayGenerator");
     }
 	
-    public static JythonObjectFactory JRasterGeneratorFactory() {
-        return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JRasterGenerator");
-    }
-	
-    public synchronized static JythonObjectFactory JSpiralGeneratorFactory() {
+    public static JythonObjectFactory JSpiralGeneratorFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JSpiralGenerator");
     }
 	
-    public synchronized static JythonObjectFactory JLissajousGeneratorFactory() {
+    public static JythonObjectFactory JLissajousGeneratorFactory() {
         return new JythonObjectFactory(Iterator.class, "jython_spg_interface", "JLissajousGenerator");
     }
 	
-    public synchronized static JythonObjectFactory JCompoundGeneratorFactory() {
+    public static JythonObjectFactory JCompoundGeneratorFactory() {
         return new JythonObjectFactory(SerializableIterator.class, "jython_spg_interface", "JCompoundGenerator");
     }
 	
-    public synchronized static JythonObjectFactory JRandomOffsetMutatorFactory() {
+    public static JythonObjectFactory JRandomOffsetMutatorFactory() {
         return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JRandomOffsetMutator");
     }
     

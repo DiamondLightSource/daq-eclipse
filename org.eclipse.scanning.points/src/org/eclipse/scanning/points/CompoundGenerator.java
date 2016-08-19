@@ -71,7 +71,6 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 	public int sizeOfValidModel() throws GeneratorException {
 		CompoundIterator it = (CompoundIterator) iteratorFromValidModel();
 		return it.size();
-//		for (int i = 0; i < generators.length; i++) size*=generators[i].size();
 	}
 	
 
