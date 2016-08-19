@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.scan;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -9,17 +8,18 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.dawnsci.analysis.api.io.IDataHolder;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
@@ -39,7 +39,6 @@ import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.ServiceHolder;
@@ -68,8 +67,8 @@ public class BenchmarkScanTest extends BrokerTest {
 		
 	@AfterClass
 	public static void checkTimes() throws Exception {
-		assertTrue(nexusSmallEvents<(nexusSmall+10));
-		assertTrue(nexusMediumEvents<(nexusMedium+10));
+		assertTrue(nexusSmallEvents<(nexusSmall+20));
+		assertTrue(nexusMediumEvents<(nexusMedium+20));
 	}
 	
 	private IRunnableDeviceService      dservice;
@@ -81,9 +80,12 @@ public class BenchmarkScanTest extends BrokerTest {
 	@Before
 	public void start() throws Exception {
 		
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		eservice  = new EventServiceImpl(new ActivemqConnectorService());
+
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		connector = new MockScannableConnector();
+		connector = new MockScannableConnector(eservice.createPublisher(uri, EventConstants.POSITION_TOPIC));
 		dservice  = new RunnableDeviceServiceImpl(connector);
 		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)dservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
@@ -91,11 +93,7 @@ public class BenchmarkScanTest extends BrokerTest {
 		impl._register(MandelbrotModel.class, MandelbrotDetector.class);
 
 		gservice  = new PointGeneratorFactory();
-
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
-		eservice  = new EventServiceImpl(new ActivemqConnectorService());
-		
-		lservice = new LoaderServiceMock();
+		lservice  = new LoaderServiceMock();
 		
 		// Provide lots of services that OSGi would normally.
 		Services.setEventService(eservice);

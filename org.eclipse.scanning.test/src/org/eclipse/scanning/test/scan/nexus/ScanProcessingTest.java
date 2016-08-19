@@ -65,6 +65,7 @@ public class ScanProcessingTest extends NexusTest {
 		NexusAssert.assertScanNotFinished(getNexusRoot(scanner).getEntry());
 		scanner.run(null);
 	
+		Thread.sleep(100);
 		// Check we reached ready (it will normally throw an exception on error)
 		checkNexusFile(scanner, shape); // Step model is +1 on the size
 	}

@@ -30,9 +30,14 @@ class RequesterImpl<T extends IdBean> extends AbstractRequestResponseConnection 
 	public void setTimeout(long time, TimeUnit unit) {
 		responseConfiguration.setTimeout(time, unit);
 	}
-
+	
 	@Override
 	public T post(final T request) throws EventException, InterruptedException {
+        return post(request, null);
+	}
+
+	@Override
+	public T post(final T request, ResponseConfiguration.ResponseWaiter waiter) throws EventException, InterruptedException {
 
 		// Something to listen
         final ISubscriber<IBeanListener<T>>  receive = eservice.createSubscriber(getUri(), getResponseTopic());
@@ -54,7 +59,7 @@ class RequesterImpl<T extends IdBean> extends AbstractRequestResponseConnection 
 	        // Send the request
 	        send.broadcast(request);
 	        
-	        responseConfiguration.latch(); // Wait or die trying
+	        responseConfiguration.latch(waiter); // Wait or die trying
 	        
 	        return request;
 	        

@@ -56,7 +56,7 @@ public class ARPESScanTest {
 		// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
 		this.mservice    = new MalcolmService(); 
 		this.gservice    = new PointGeneratorFactory();
-		this.sservice    = new RunnableDeviceServiceImpl(new MockScannableConnector());
+		this.sservice    = new RunnableDeviceServiceImpl(new MockScannableConnector(null));
 		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)sservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);

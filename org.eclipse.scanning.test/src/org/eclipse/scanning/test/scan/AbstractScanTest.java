@@ -3,7 +3,6 @@ package org.eclipse.scanning.test.scan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,11 +14,12 @@ import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -43,10 +43,8 @@ import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.scannable.MockScannable;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
-import org.junit.Before;
 import org.junit.Test;
 
 public class AbstractScanTest extends BrokerTest {
@@ -180,12 +178,17 @@ public class AbstractScanTest extends BrokerTest {
 	@Test
 	public void testThreadCount() throws Exception {
 			
-		int before = Thread.activeCount();
 		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
+		int before = Thread.activeCount();
 		scanner.run(null);
-		Thread.sleep(200);
+		if (connector instanceof IDisconnectable) ((IDisconnectable)connector).disconnect();
+		Thread.sleep(25); // Just allows any threads no longer required to exit.
 		int after = Thread.activeCount();
-		if (after>before+1) throw new Exception("too many extra threads after scan! Expected not more than "+before+1+" got "+after);
+		System.out.println("Before = "+before);
+		System.out.println("After  = "+after);
+		int tolerance = 3;
+		System.out.println("Tolerance  = "+tolerance);
+		if (after>before+tolerance) throw new Exception("too many extra threads after scan! Expected not more than "+(before+tolerance)+" got "+after);
 	}
 
 	

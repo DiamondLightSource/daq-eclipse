@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.List;
 
-import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.dawnsci.analysis.api.io.IDataHolder;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
@@ -18,9 +17,12 @@ import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.january.dataset.ILazyDataset;
+import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
@@ -51,7 +53,6 @@ import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
@@ -71,11 +72,16 @@ public class LinearScanTest extends BrokerTest{
 	@Before
 	public void setup() throws Exception {
 		
+
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		eservice  = new EventServiceImpl(new ActivemqConnectorService());
+
 		this.lservice = new LoaderServiceMock();
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		connector = new MockScannableConnector();
+		connector = new MockScannableConnector(eservice.createPublisher(uri, EventConstants.POSITION_TOPIC));
+		
 		dservice  = new RunnableDeviceServiceImpl(connector);
 		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)dservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
@@ -83,9 +89,6 @@ public class LinearScanTest extends BrokerTest{
 		impl._register(MandelbrotModel.class, MandelbrotDetector.class);
 
 		gservice  = new PointGeneratorFactory();
-
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
-		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
 		// TODO Perhaps put service setting in super class or utility
 		Services.setEventService(eservice);
