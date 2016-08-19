@@ -82,27 +82,6 @@ public class CompoundTest {
 			if (sz>size) throw new Exception("Iterator grew too large!");
 		}
 	}
-
-	@Test
-	public void testCompoundSpiral() throws Exception {
-		
-		BoundingBox box = new BoundingBox();
-		box.setFastAxisStart(-10);
-		box.setSlowAxisStart(5);
-		box.setFastAxisLength(3);
-		box.setSlowAxisLength(4);
-
-		SpiralModel model = new SpiralModel();
-		model.setBoundingBox(box);
-		// use default parameters
-
-		service = new PointGeneratorFactory();
-		IPointGenerator<SpiralModel> generator = service.createGenerator(model);
-		IPointGenerator<?> scan = service.createCompoundGenerator(generator);
-
-		List<IPosition> pointList = scan.createPoints();
-		assertTrue(true);
-	}
 	
 	@Test
 	public void testSimpleCompoundStep2Step() throws Exception {
