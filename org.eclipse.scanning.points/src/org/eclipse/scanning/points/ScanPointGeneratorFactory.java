@@ -173,8 +173,6 @@ public class ScanPointGeneratorFactory {
 	            File lib=null;
 	            if (loc!=null && loc.exists()) {
 		            lib = find(loc, "Lib");
-//	            } else if (version is 2.7) {
-//	            	lib = find(pointsLocation, "Lib"); // We copied it somewhere.
 	            }
 	            if (lib!=null && lib.exists()) {
 	            	logger.debug("Loading Jython libs from "+lib.getAbsolutePath());
