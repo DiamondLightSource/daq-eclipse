@@ -3,6 +3,7 @@ package org.eclipse.scanning.points;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Properties;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
@@ -47,10 +48,24 @@ public class ScanPointGeneratorFactory {
 	
 	private static ClassLoader jythonClassloader;
 	static {
+		
+    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
+        File jythonDir = findJythonDir(loc);
+        
+        Properties props = new Properties();
+    	props.put("python.home", jythonDir.getAbsolutePath());
+    	props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
+    	props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
+    	props.put("python.import.site","false");
+
+    	Properties preprops = System.getProperties();
+    	
+    	PySystemState.initialize(preprops, props);
+    	
 		jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
 	    try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
 	    	CompositeClassLoader composite = new CompositeClassLoader(ScanPointGeneratorFactory.class.getClassLoader());
-	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 	    	addLast(composite, jythonBundleName);
 	    	jythonClassloader = composite;
 	    		    	
@@ -61,7 +76,6 @@ public class ScanPointGeneratorFactory {
 	    	// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
 	    }
 	}
-
 	
 	// This class compiles Jython objects and maps them to an IPointGenerator so they can be
 	// used easily in Java. More specifically, it creates the Jython ScanPointGenerator interface
@@ -169,7 +183,7 @@ public class ScanPointGeneratorFactory {
             	// directly into the bundle or into the 'jython2.7' folder.
     	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 	            File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
-	           	   
+	           	
 	            File lib=null;
 	            if (loc!=null && loc.exists()) {
 		            lib = find(loc, "Lib");
@@ -233,12 +247,36 @@ public class ScanPointGeneratorFactory {
 			return FileLocator.getBundleFile(bundle);
 		}
 		catch (IOException e) {
-			File dir = new File("../org.eclipse.scanning.points");
+			File dir = new File("../"+bundleName);
 			if (dir.exists()) return dir;
-			dir = new File("../../daq-eclipse.git/org.eclipse.scanning.points");
+			dir = new File("../../daq-eclipse.git/"+bundleName);
 			if (dir.exists()) return dir;
-			dir = new File("../../org.eclipse.scanning.git/org.eclipse.scanning.points");
+			dir = new File("../../org.eclipse.scanning.git/"+bundleName);
 			if (dir.exists()) return dir;
+			
+			// To find uk.ac.diamond.jython on travis from target
+			dir = new File("/home/travis/.m2/repository/.cache/tycho/");
+			String[] files = dir.list();
+			for (String file : files) {
+				if (file.startsWith("uk.ac.diamond.jython")) {
+					dir = new File(file);
+					if (!dir.isDirectory()) continue;
+					return dir;
+				}
+			}
+		}
+		return null;
+	}
+	
+	private static File findJythonDir(File loc) {
+
+		String[] files = loc.list();
+		for (String file : files) {
+			if (file.startsWith("jython")) {
+				File dir = new File(file);
+				if (!dir.isDirectory()) continue;
+				return dir;
+			}
 		}
 		return null;
 	}
