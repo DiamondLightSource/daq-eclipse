@@ -43,12 +43,15 @@ public class ControlView extends ViewPart {
 	public ControlView() {
 		
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, true);
+		
 		if (ControlFactory.getInstance().isEmpty()) {
 			// We ensure that the xml is parsed, if any
 			// Hopefully this has already been done by
 			// the client spring xml configuration but
 			// if not we check if there is an xml argument
 			// here and attempt to load its path.
+			// This step is done for testing and to make
+			// the example client work.
 			String[] args = Platform.getApplicationArgs();
 			for (int i = 0; i < args.length; i++) {
 				final String arg = args[i];
