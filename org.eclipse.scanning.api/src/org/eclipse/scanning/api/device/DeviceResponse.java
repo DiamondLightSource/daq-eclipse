@@ -10,7 +10,6 @@ import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.scan.DeviceAction;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
-import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
  * TODO FIXME Is the idea of having request/response calls correct for exposing
@@ -80,6 +79,14 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			IScannable<Object> device = cservice.getScannable(request.getDeviceName());
 			if (request.getDeviceAction()==DeviceAction.SET && request.getDeviceValue()!=null) {
 				device.setPosition(request.getDeviceValue(), request.getPosition());
+				/* This thread is executing to set position, while it does that it
+				 * sends events over AMQ. These events queue up with no higher priority
+				 * than this call. Therefore if we return immediately it is possible
+				 * for this call to return before position events are sent out.
+				 * FUDGE warning
+				 */
+				Thread.sleep(10); 
+				 /* End warning */
 			}
 			
 			request.setDeviceValue(device.getPosition());

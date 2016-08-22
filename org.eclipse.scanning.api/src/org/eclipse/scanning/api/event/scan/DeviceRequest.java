@@ -319,4 +319,11 @@ public class DeviceRequest extends IdBean {
 	public void setDeviceValue(Object deviceValue) {
 		this.deviceValue = deviceValue;
 	}
+
+
+	@Override
+	public String toString() {
+		return "DeviceRequest [deviceType=" + deviceType + ", deviceName=" + deviceName + ", deviceValue=" + deviceValue
+				+ ", deviceAction=" + deviceAction + ", errorMessage=" + errorMessage + "]";
+	}
 }

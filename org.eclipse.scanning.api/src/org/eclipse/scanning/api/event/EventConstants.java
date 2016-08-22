@@ -66,7 +66,13 @@ public interface EventConstants {
      */
 	public static final String DEVICE_RESPONSE_TOPIC      = "org.eclipse.scanning.response.device.topic";
 
-    /**
+	/**
+	 * A topic on which the values of all scannables should publish. This can happen quite frequently however
+	 * not at a rate that JMS should not be able to handle providing the message is kept small.
+	 */
+	public static final String POSITION_TOPIC              = "org.eclipse.scanning.request.position.topic";
+    
+	/**
      * The default topic used for requests. It is usually better to use your own topic rather than the default.
      * It is usually better to use your own topic rather than the default.
      */

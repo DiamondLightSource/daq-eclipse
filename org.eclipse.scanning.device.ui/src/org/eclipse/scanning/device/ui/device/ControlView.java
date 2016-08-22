@@ -9,6 +9,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
@@ -19,6 +20,7 @@ import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.ISpringParser;
 import org.eclipse.scanning.api.scan.ui.ControlFactory;
 import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -40,6 +42,7 @@ public class ControlView extends ViewPart {
 
 	public ControlView() {
 		
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, true);
 		if (ControlFactory.getInstance().isEmpty()) {
 			// We ensure that the xml is parsed, if any
 			// Hopefully this has already been done by
@@ -145,6 +148,15 @@ public class ControlView extends ViewPart {
 		toolbarManager.add(showSearch);
 		menuManager.add(showSearch);
 	
+		IAction setShowTip = new Action("Show tooltip on edit", IAction.AS_CHECK_BOX) {
+			public void run() {
+				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, isChecked());
+			}
+		};
+		setShowTip.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS));
+		menuManager.add(new Separator());
+		menuManager.add(setShowTip);
+		
 	}
 	
 	@Override
