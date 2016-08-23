@@ -205,8 +205,8 @@ public class ScanPointGeneratorFactory {
 	    	PySystemState.initialize(preprops, props);
 	    
 	    } catch (Throwable ne) {
+	    	System.out.print("Problem loading jython bundles!");
 	    	ne.printStackTrace();
-	    	System.out.print(ne.getMessage());
 	    	logger.debug("Problem loading jython bundles!", ne);
 	    }
 	}
@@ -276,19 +276,15 @@ System.out.println("$$$$$$ lib is: $$$$$$"+lib);
 			if (dir.exists()) return dir;
 			dir = new File("../../daq-eclipse.git/"+bundleName);
 			if (dir.exists()) return dir;
-			dir = new File("../../org.eclipse.scanning.git/"+bundleName);
-			if (dir.exists()) return dir;
 			
-			// To find uk.ac.diamond.jython on travis from target
-			dir = new File("/home/travis/.m2/repository/.cache/tycho/");
-			String[] files = dir.list();
-			for (String file : files) {
-				if (file.startsWith("uk.ac.diamond.jython")) {
-					dir = new File(file);
-					if (dir.isFile()) continue;
-					return dir;
-				}
-			}
+			// These paths refer to finding things in the travis build 
+			// They will not resolve from the IDE or binary.
+			dir = new File("../../org.eclipse.scanning/"+bundleName);
+			if (dir.exists()) return dir;
+			dir = new File("../../diamond-jython/"+bundleName);
+			if (dir.exists()) return dir;
+			dir = new File("../../../diamond-jython/"+bundleName);
+			if (dir.exists()) return dir;
 		}
 		return null;
 	}
