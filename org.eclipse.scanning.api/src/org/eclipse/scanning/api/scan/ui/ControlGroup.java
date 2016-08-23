@@ -6,21 +6,21 @@ import org.eclipse.scanning.api.INameable;
 
 public class ControlGroup extends AbstractControl implements INameable {
 
-	private List<Control> controls;
+	private List<ControlNode> controls;
 	
 	public ControlGroup() {
 		ControlFactory.getInstance().add(this);
 	}
 
-	public List<Control> getControls() {
+	public List<ControlNode> getControls() {
 		return controls;
 	}
 
-	public void setControls(List<Control> controls) {
+	public void setControls(List<ControlNode> controls) {
 		this.controls = controls;
-		for (Control scannableControl : controls) {
+		for (ControlNode scannableControl : controls) {
 			scannableControl.setParent(this);
 		}
-		this.setChildren(controls.toArray(new Control[controls.size()]));
+		this.setChildren(controls.toArray(new ControlNode[controls.size()]));
 	}
 }

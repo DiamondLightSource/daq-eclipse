@@ -1,11 +1,13 @@
 package org.eclipse.scanning.example.detector;
 
+import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.annotation.UiComesAfter;
 import org.eclipse.scanning.api.annotation.UiSection;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.points.PointsValidationException;
 
-public class MandelbrotModel implements IDetectorModel {
+public class MandelbrotModel implements IDetectorModel, IValidator<MandelbrotModel> {
 
 	// Parameters controlling iteration and termination of the Julia/Mandelbrot algorithm
 	@FieldDescriptor(label="Maximum Iterations", 
@@ -234,4 +236,7 @@ public class MandelbrotModel implements IDetectorModel {
 		this.exposureTime = exposure;
 	}
 
+	public void validate(MandelbrotModel model) throws Exception {
+		if (model.exposureTime <=0) throw new PointsValidationException("The exposure time must be non-zero!", model, "exposureTime");
+	}
 }

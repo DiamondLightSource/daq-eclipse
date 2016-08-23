@@ -25,7 +25,9 @@ import org.eclipse.jface.viewers.TableViewerFocusCellManager;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
+import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.IValidator;
+import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
@@ -305,20 +307,23 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		
 		if (selection instanceof IStructuredSelection) {
 			Object ob = ((IStructuredSelection)selection).getFirstElement();
-			if (ob instanceof ISeriesItemDescriptor) {
-				try {
-					setValidator((IValidator)((ISeriesItemDescriptor)ob).getSeriesObject());
-				} catch (Exception e) {
-					setValidator(null);
-				}
-			} else if (ob instanceof DeviceInformation) {
-				setValidator(null);
+			try {
+				if (ob instanceof IValidator)     setValidator((IValidator<?>)ob, true);
 				
-				DeviceInformation<?> info = (DeviceInformation<?>)ob;
-				info = getLatestDeviceInformation(info);
-				setModel(info.getModel());
+				// Special case for device information, we read the latest
+				if (ob instanceof DeviceInformation) {				
+					DeviceInformation<?> info = (DeviceInformation<?>)ob;
+					info = getLatestDeviceInformation(info);
+					setModel(info.getModel());
+				} else {
+				    if (ob instanceof IModelProvider) setModel(((IModelProvider<?>)ob).getModel());
+				}
+				
+			} catch (Exception ne) {
+				logger.error("Cannot set model for object "+ob);
 			}
 		}
 	}
@@ -341,19 +346,19 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	 * @param des
 	 */
 	@SuppressWarnings("unchecked")
-	public void setValidator(IValidator<?> v) {
+	protected void setValidator(IValidator<?> v, boolean refresh) {
 		if (viewer.getTable().isDisposed()) return;
 		this.validator = (IValidator<Object>)v;
-		if (v == null) return;
-		if (v instanceof IPointGenerator<?>) {
-			viewer.setInput(v);
-			this.model = ((IPointGenerator<?>)v).getModel();
-		}
-		refresh();
+		if (refresh) refresh();
 	}
 
-	public void setModel(Object model) {
+	public void setModel(Object model) throws InstantiationException, IllegalAccessException {
+		if (viewer.getTable().isDisposed()) return;
+		if (viewer.isCellEditorActive())    return;
 		this.model = model;
+		IValidatorService vservice = ServiceHolder.getValidatorService();
+		final IValidator<Object> validator = vservice.getValidator(model);
+		setValidator(validator, false);
 		viewer.setInput(model);
 		refresh();
 	}

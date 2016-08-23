@@ -1,7 +1,10 @@
 package org.eclipse.scanning.event;
 
+import java.lang.ref.SoftReference;
 import java.net.URI;
 import java.util.EventListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.EventConstants;
@@ -116,11 +119,23 @@ public class EventServiceImpl implements IEventService {
 	public <T> IQueueReader<T> createQueueReader(URI uri, String queueName) {
 	    return new QueueReaderImpl<T>(uri, queueName, this);
 	}
+	
+	private Map<String, SoftReference<?>> cachedServices;
 
 	@Override
 	public <T> T createRemoteService(URI uri, Class<T> serviceClass) throws EventException {
+		
+		if (cachedServices==null) cachedServices = new HashMap<>(7);
 		try {
-			return RemoteServiceFactory.getRemoteService(uri, serviceClass, this);
+			String key = ""+uri+serviceClass.getName();
+			if (cachedServices.containsKey(key)) {
+				SoftReference<T> ref = (SoftReference<T>)cachedServices.get(key);
+				if (ref.get()!=null) return ref.get();
+			}
+			T service = RemoteServiceFactory.getRemoteService(uri, serviceClass, this);
+			cachedServices.put(key, new SoftReference<T>(service));
+			return service;
+			
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new EventException("There problem creating service for "+serviceClass, e);
 		}

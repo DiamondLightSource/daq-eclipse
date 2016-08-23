@@ -217,8 +217,18 @@ public class PseudoSpringParser implements ISpringParser {
 		try {
 			return clazz.getMethod(setterName, valueClass);
 		} catch (Exception ne) {
-			return clazz.getMethod(setterName, (Class<?>)valueClass.getField("TYPE").get(null));
+			try {
+			    return clazz.getMethod(setterName, (Class<?>)valueClass.getField("TYPE").get(null));
+			} catch (Exception neOther) {
+				final Method[] methods = clazz.getMethods();
+				for (Method method : methods) {
+					if (method.getName().equals(setterName) && method.getParameterTypes().length==1) {
+						return method;
+					}
+				}
+			}
 		}
+        return null;
 	}
 	private String getSetterName(final String fieldName) {
 		if (fieldName == null) return null;

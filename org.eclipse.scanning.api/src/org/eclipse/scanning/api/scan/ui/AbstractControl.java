@@ -1,12 +1,11 @@
 package org.eclipse.scanning.api.scan.ui;
 
-import java.util.Arrays;
-
 import org.eclipse.scanning.api.INamedNode;
 
 abstract class AbstractControl implements INamedNode {
 
 	private INamedNode parent;
+	
 	@Override
 	public INamedNode getParent() {
 		return parent;
@@ -64,6 +63,11 @@ abstract class AbstractControl implements INamedNode {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName()+" [name=" + name + "]";
 	}
 
 }
