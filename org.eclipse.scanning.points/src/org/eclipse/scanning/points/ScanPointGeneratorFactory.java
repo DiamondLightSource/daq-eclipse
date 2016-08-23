@@ -24,27 +24,6 @@ public class ScanPointGeneratorFactory {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ScanPointGeneratorFactory.class);
 	
-	private static ClassLoader jythonClassloader;
-	static {
-	    	
-		jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
-	    try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
-	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
-	    	CompositeClassLoader composite = new CompositeClassLoader(ScanPointGeneratorFactory.class.getClassLoader());
-	    	addLast(composite, jythonBundleName);
-	    	jythonClassloader = composite;
-	    		    	
-	    } catch (Throwable ne) {
-	    	if (logger!=null) {
-	    		logger.debug("Problem loading jython bundles!", ne);
-	    	} else {
-	    		ne.printStackTrace();
-	    	}
-	    	// Legal, if static classloader does not work in tests, there will be
-	    	// errors. If bundle classloader does not work in product, there will be errors.
-	    	// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
-	    }
-	}
 
 	/**
 	 * Call to load Jython asynchronously to avoid the
@@ -118,7 +97,6 @@ public class ScanPointGeneratorFactory {
     // This class creates Java objects from Jython classes
     public static class JythonObjectFactory {
     	
-    	private static boolean setupPythonState = false;
         
     	private final Class<?> javaClass;
         private final PyObject pyClass;
@@ -126,10 +104,7 @@ public class ScanPointGeneratorFactory {
         // This constructor passes through to the other constructor with the SystemState
         JythonObjectFactory(Class<?> javaClass, String moduleName, String className) {
 
-        	if (!setupPythonState) {
-        		setupPythonState = true;
-        		setupSystemState();
-        	}
+        	setupSystemState();
         	PySystemState state = Py.getSystemState();
           
             this.javaClass = javaClass;
@@ -180,13 +155,45 @@ public class ScanPointGeneratorFactory {
         return null;
 	}
 
+	private static volatile boolean setupPythonState = false;
+
 	private static void setupSystemState() {
+		
+		if (setupPythonState) return;
+		setupPythonState = true;
+		
  		createPythonPath(); // Must do this first
  		
     	PySystemState state = Py.getSystemState();
+        ClassLoader jythonClassloader = createJythonClassLoader(state);
 	   	state.setClassLoader(jythonClassloader);
     	addScriptPaths(state);
 	}
+
+	private static ClassLoader createJythonClassLoader(PySystemState state) {
+		
+    	ClassLoader jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
+    	
+    	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
+    		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+    		CompositeClassLoader composite = new CompositeClassLoader(state.getClassLoader());
+    		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
+    		addLast(composite, jythonBundleName);
+    		jythonClassloader = composite;
+
+    	} catch (Throwable ne) {
+    		if (logger!=null) {
+    			logger.debug("Problem loading jython bundles!", ne);
+    		} else {
+    			ne.printStackTrace();
+    		}
+    		// Legal, if static classloader does not work in tests, there will be
+    		// errors. If bundle classloader does not work in product, there will be errors.
+    		// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
+    	}
+    	return jythonClassloader;
+	}
+
 
 	private static void createPythonPath() {
 		try {
