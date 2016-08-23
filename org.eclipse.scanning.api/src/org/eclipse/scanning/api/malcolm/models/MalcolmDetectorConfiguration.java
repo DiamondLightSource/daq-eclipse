@@ -1,12 +1,14 @@
 package org.eclipse.scanning.api.malcolm.models;
 
+import org.eclipse.scanning.api.IModelProvider;
+
 /**
  * A class to provide a malcolm model and the information required to connect to the malcolm device.
  *
  * @author Matthew Gerring
  *
  */
-public class MalcolmDetectorConfiguration<T> {
+public class MalcolmDetectorConfiguration<T> implements IModelProvider<T> {
 	
 	/**
 	 * The model that will  be sent to the MalcolmDevice for instance

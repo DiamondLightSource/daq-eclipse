@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
+import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 /**
@@ -25,7 +26,7 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * discovery information about the field.
  * 
  */
-public class FieldValue {
+public class FieldValue implements IModelProvider<Object> {
 
 	private Object  model;
 	private String  name;

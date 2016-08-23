@@ -10,7 +10,7 @@ import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.scan.ui.Control;
+import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
@@ -40,7 +40,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 		
 		INamedNode node = (INamedNode)element;
 		try {
-			if (node instanceof Control) {
+			if (node instanceof ControlNode) {
 				final IScannable<?> scannable = cservice.getScannable(node.getName());
 				ret.append("    ");
 				ret.append(scannable.getUnit(), StyledString.DECORATIONS_STYLER);
@@ -63,7 +63,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 		
 		if (cservice==null) return "Server Error";
 		try {
-			if (node instanceof Control) {
+			if (node instanceof ControlNode) {
 				final IScannable<?> scannable = cservice.getScannable(node.getName());
 				return String.valueOf(scannable.getPosition()); // TODO Formatting!
 				

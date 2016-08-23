@@ -29,10 +29,23 @@ public interface INamedNode extends INameable {
 	 * @return the children or null if there are none.
 	 */
 	INamedNode[] getChildren();
+	
+	/**
+	 * Set the children.
+	 * @param children
+	 */
+	void setChildren(INamedNode[] children);
 
 	/**
 	 * 
 	 * @return true if there are children.
 	 */
 	boolean hasChildren();
+	
+	/**
+	 * Used to provide a label in the UI
+	 */
+	default String getDisplayName() {
+		return getName();
+	}
 }

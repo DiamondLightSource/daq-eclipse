@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -30,7 +31,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
  *
  * @param <T>
  */
-public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IScanAttributeContainer, IPositionListenable {
+public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IModelProvider<T>, IScanAttributeContainer, IPositionListenable {
 
 	// Data
 	protected T                          model;
