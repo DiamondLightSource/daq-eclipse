@@ -2,8 +2,8 @@ package org.eclipse.scanning.points;
 
 import java.util.Iterator;
 
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 
 public class RandomOffsetGridGenerator extends GridGenerator {
@@ -18,7 +18,7 @@ public class RandomOffsetGridGenerator extends GridGenerator {
 	protected void validateModel() {
 		super.validateModel();
 		if (!(model instanceof RandomOffsetGridModel)) {
-			throw new PointsValidationException("The model must be a RandomOffsetGridModel", model, "offset"); // TODO Not really an offset problem.
+			throw new ModelValidationException("The model must be a RandomOffsetGridModel", model, "offset"); // TODO Not really an offset problem.
 		}
 	}
 

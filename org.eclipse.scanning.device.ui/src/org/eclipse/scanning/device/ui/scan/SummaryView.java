@@ -8,10 +8,10 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.scanning.api.IValidatorService;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.points.GeneratorDescriptor;
@@ -108,7 +108,7 @@ public class SummaryView extends ViewPart implements ISelectionListener {
 	        	final IPointGenerator<?> gen = pservice.createCompoundGenerator(cm);
 	        	text.setText(gen.getDescription());
 	        }
-		} catch (PointsValidationException ne) {
+		} catch (ModelValidationException ne) {
 			 text.setText(ne.getMessage());
 			 
 		} catch (Exception ne) {

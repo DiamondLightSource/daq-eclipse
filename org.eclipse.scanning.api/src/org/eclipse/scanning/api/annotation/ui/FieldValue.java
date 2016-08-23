@@ -26,7 +26,7 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * discovery information about the field.
  * 
  */
-public class FieldValue implements IModelProvider<Object> {
+public class FieldValue {
 
 	private Object  model;
 	private String  name;

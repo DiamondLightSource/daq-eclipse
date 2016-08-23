@@ -6,11 +6,11 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
@@ -97,7 +97,7 @@ public class LinearTest {
 		gen.createPoints();
 	}
 
-	@Test(expected = PointsValidationException.class)
+	@Test(expected = ModelValidationException.class)
 	public void testOneDEqualSpacingNoPoints() throws Exception {
         
         BoundingLine line = new BoundingLine();
@@ -154,7 +154,7 @@ public class LinearTest {
 		gen.createPoints();
 	}
 
-	@Test(expected = PointsValidationException.class)
+	@Test(expected = ModelValidationException.class)
 	public void testOneDStepNoStep() throws Exception {
         
         BoundingLine line = new BoundingLine();
@@ -172,7 +172,7 @@ public class LinearTest {
         GeneratorUtil.testGeneratorPoints(gen);
 	}
 	
-	@Test(expected = PointsValidationException.class)
+	@Test(expected = ModelValidationException.class)
 	public void testOneDStepNegativeStep() throws Exception {
         
         BoundingLine line = new BoundingLine();

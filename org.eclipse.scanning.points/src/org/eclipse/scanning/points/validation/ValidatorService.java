@@ -44,7 +44,7 @@ public class ValidatorService implements IValidatorService {
 		
 		if (model==null) throw new NullPointerException("The model is null!");
 		
-		if (model instanceof IValidator) return (IValidator<T>)model;
+		if (model instanceof IValidator) throw new IllegalArgumentException("Models should be vanilla and not contain logic for validating themselves!");
 		
 		if (validators.containsKey(model.getClass())) {
 			return validators.get(model.getClass()).newInstance();

@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.device;
 import java.util.Collection;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -64,6 +65,14 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 				processRunnables(request, dservice);
 			}
 			return request;
+			
+		} catch (ModelValidationException ne) {
+			DeviceRequest error = new DeviceRequest();
+			error.merge(request);
+			error.setErrorMessage(ne.getMessage());
+			error.setErrorFieldNames(ne.getFieldNames());
+			return error;
+			
 		} catch (Exception ne) {
 			DeviceRequest error = new DeviceRequest();
 			error.merge(request);
@@ -131,7 +140,9 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			// TODO We should have a much more reflection based way of
 			// calling arbitrary methods. 
 			if (request.getDeviceAction()!=null) {
-				if (request.getDeviceAction()==DeviceAction.RUN) {
+				if (request.getDeviceAction()==DeviceAction.VALIDATE) {
+					device.validate(request.getDeviceModel());
+				} else if (request.getDeviceAction()==DeviceAction.RUN) {
 					device.run(request.getPosition());
 				} else if (request.getDeviceAction()==DeviceAction.ABORT) {
 					device.abort();

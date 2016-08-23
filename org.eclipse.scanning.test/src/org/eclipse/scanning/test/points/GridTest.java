@@ -29,11 +29,11 @@ import java.util.List;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
-import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
@@ -73,7 +73,7 @@ public class GridTest {
 		GeneratorUtil.testGeneratorPoints(gen, 20, 20);
 	}
 
-	@Test(expected = PointsValidationException.class)
+	@Test(expected = ModelValidationException.class)
 	public void testNegativeRowCount() throws Exception {
 
 		BoundingBox box = new BoundingBox();

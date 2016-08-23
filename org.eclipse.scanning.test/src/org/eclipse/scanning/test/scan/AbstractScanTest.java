@@ -13,6 +13,7 @@ import java.util.List;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
@@ -32,7 +33,6 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
-import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -225,7 +225,7 @@ public class AbstractScanTest extends BrokerTest {
 			
 		} catch (Exception ex) {
 			assertEquals(ScanningException.class, ex.getClass());
-			assertEquals(PointsValidationException.class, ex.getCause().getClass());
+			assertEquals(ModelValidationException.class, ex.getCause().getClass());
 			assertTrue(ex.getCause().getMessage().toLowerCase().indexOf("wrong direction")>0);
 			return;
 		}
@@ -252,7 +252,7 @@ public class AbstractScanTest extends BrokerTest {
 			
 		} catch (Exception ex) {
 			assertEquals(ScanningException.class, ex.getClass());
-			assertEquals(PointsValidationException.class, ex.getCause().getClass());
+			assertEquals(ModelValidationException.class, ex.getCause().getClass());
 			assertEquals("Model step size must be nonzero!", ex.getCause().getMessage());
 			return;
 		}
