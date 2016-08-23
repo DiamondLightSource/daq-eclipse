@@ -33,7 +33,7 @@ public class ControlCellEditor extends CellEditor {
 	private static final Logger logger = LoggerFactory.getLogger(ControlCellEditor.class);
 
 	// Data
-	private org.eclipse.scanning.api.scan.ui.Control     value;
+	private org.eclipse.scanning.api.scan.ui.ControlNode     value;
 	
 	// UI
 	private FloatDecorator decorator, incDeco;
@@ -137,7 +137,7 @@ public class ControlCellEditor extends CellEditor {
 	@Override
 	protected void doSetValue(Object v) {
 		if (v == null) return;
-		this.value = (org.eclipse.scanning.api.scan.ui.Control)v;
+		this.value = (org.eclipse.scanning.api.scan.ui.ControlNode)v;
 		try {
 			text.setEnabled(true);
 			this.scannable = cservice.getScannable(value.getName());

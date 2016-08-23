@@ -7,7 +7,6 @@ import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.slf4j.Logger;
@@ -36,11 +35,7 @@ class DetectorContentProvider implements IStructuredContentProvider {
 
 	@Override
 	public void dispose() {
-		try {
-			if (dservice instanceof IDisconnectable) ((IDisconnectable)dservice).disconnect();
-		} catch (EventException e) {
-			logger.error("Cannot disconnect from device request object.", e);
-		}
+		
 	}
 
 	@Override

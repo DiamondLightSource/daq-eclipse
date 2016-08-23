@@ -11,6 +11,8 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.SeriesTable;
+import org.eclipse.scanning.api.IModelProvider;
+import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
@@ -20,7 +22,7 @@ import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.swt.graphics.Image;
 import org.osgi.framework.Bundle;
 
-public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesItemDescriptor {
+public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesItemDescriptor, IValidator<T>, IModelProvider<T> {
 	
 	private final IPointGenerator<T> generator;
 	private final SeriesTable        table;
@@ -161,7 +163,15 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 			
 		}
 	}
+	
+	@Override
 	public T getModel() {
 		return generator.getModel();
 	}
+	
+	@Override
+	public void validate(T model) throws Exception {
+		generator.validate(model);
+	}
+
 }

@@ -21,8 +21,10 @@ public class ValidatorService implements IValidatorService {
 	
 	private final PointGeneratorFactory factory = new PointGeneratorFactory();
 
+	@SuppressWarnings("rawtypes")
 	private static final Map<Class<?>, Class<? extends IValidator>> validators;
 	static {
+		@SuppressWarnings("rawtypes")
 		Map<Class<?>, Class<? extends IValidator>> tmp = new HashMap<>();
 		tmp.put(BoundingBox.class,   BoundingBoxValidator.class);
 		tmp.put(CompoundModel.class, CompoundValidator.class);
@@ -36,10 +38,14 @@ public class ValidatorService implements IValidatorService {
 		validator.validate(model);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> IValidator<T> getValidator(T model) throws InstantiationException, IllegalAccessException {
 		
 		if (model==null) throw new NullPointerException("The model is null!");
+		
+		if (model instanceof IValidator) throw new IllegalArgumentException("Models should be vanilla and not contain logic for validating themselves!");
+		
 		if (validators.containsKey(model.getClass())) {
 			return validators.get(model.getClass()).newInstance();
 		}

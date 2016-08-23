@@ -35,22 +35,22 @@
 		</property>
 	</bean>
 	
-	<bean id="x" class="org.eclipse.scanning.api.scan.ui.Control" >
+	<bean id="x" class="org.eclipse.scanning.api.scan.ui.ControlNode" >
 		<property name="displayName" value="Stage X" />
 		<property name="scannableName" value="x" />
 		<property name="increment" value="0.1" />
 	</bean>
-	<bean id="y" class="org.eclipse.scanning.api.scan.ui.Control">
+	<bean id="y" class="org.eclipse.scanning.api.scan.ui.ControlNode">
 		<property name="displayName" value="Stage Y" />
 		<property name="scannableName" value="y" />
 		<property name="increment" value="0.1" />
 	</bean>
-	<bean id="z" class="org.eclipse.scanning.api.scan.ui.Control">
+	<bean id="z" class="org.eclipse.scanning.api.scan.ui.ControlNode">
 		<property name="displayName" value="Stage Z" />
 		<property name="scannableName" value="z" />
 		<property name="increment" value="0.1" />
 	</bean>
-	<bean id="T" class="org.eclipse.scanning.api.scan.ui.Control">
+	<bean id="T" class="org.eclipse.scanning.api.scan.ui.ControlNode">
 		<property name="displayName" value="Temperature" />
 		<property name="scannableName" value="T" />
 		<property name="increment" value="1" />

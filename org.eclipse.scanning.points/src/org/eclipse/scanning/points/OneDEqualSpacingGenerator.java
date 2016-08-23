@@ -2,9 +2,9 @@ package org.eclipse.scanning.points;
 
 import java.util.Iterator;
 
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 
 public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacingModel> {
@@ -18,7 +18,7 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 	@Override
 	protected void validateModel() {
 		super.validateModel();
-		if (model.getPoints() < 1) throw new PointsValidationException("Must have one or more points in model!", model, "points");
+		if (model.getPoints() < 1) throw new ModelValidationException("Must have one or more points in model!", model, "points");
 	}
 
 	@Override

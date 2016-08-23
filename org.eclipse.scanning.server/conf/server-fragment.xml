@@ -59,8 +59,9 @@
 	      In this case we want a server with no hardware so we mock out all the devices.
 	      The mock service does not read other spring files for the devices as the real
 	 -->
-	<bean id="scannableDeviceService" class="org.eclipse.scanning.example.scannable.MockScannableConnector">
-        <property name="bundle" value="org.eclipse.scanning.example"/> <!-- TODO Delete for real spring? -->
+	<bean id="scannableDeviceService" class="org.eclipse.scanning.example.scannable.MockScannableConnector" init-method="connect">
+        <property name="bundle"  value="org.eclipse.scanning.example"/> <!-- TODO Delete for real spring? -->
+        <property name="broker"  value="${org.eclipse.scanning.broker.uri}" />
 	</bean>
 	
     <osgi:service ref="scannableDeviceService" interface="org.eclipse.scanning.api.device.IScannableDeviceService"/>

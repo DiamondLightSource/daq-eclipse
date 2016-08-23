@@ -2,27 +2,33 @@ package org.eclipse.scanning.api.scan.ui;
 
 import org.eclipse.scanning.api.INameable;
 
-public class Control extends AbstractControl implements INameable {
+public class ControlNode extends AbstractControl implements INameable {
 
 	private String displayName;
-	private String scannableName;
 	private double increment=1;
 	
-	public Control() {
+	public ControlNode() {
 		ControlFactory.getInstance().add(this);
 	}
-	
+	public ControlNode(String name, double increment) {
+		this();
+		setName(name);
+		this.increment     = increment;
+	}
+
+	@Override
 	public String getDisplayName() {
+		if (displayName==null) return getScannableName();
 		return displayName;
 	}
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
 	}
 	public String getScannableName() {
-		return scannableName;
+		return getName();
 	}
 	public void setScannableName(String scannableName) {
-		this.scannableName = scannableName;
+		setName(scannableName);
 	}
 	public double getIncrement() {
 		return increment;
@@ -30,12 +36,5 @@ public class Control extends AbstractControl implements INameable {
 	public void setIncrement(double increment) {
 		this.increment = increment;
 	}
-	@Override
-	public String getName() {
-		return scannableName;
-	}
-	@Override
-	public void setName(String name) {
-		throw new IllegalArgumentException("Cannot change the name of "+scannableName);
-	}
+
 }

@@ -30,7 +30,7 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 	}
 	
 	public void disconnect() throws EventException {
-		requester.disconnect();
+		requester.disconnect(); // Requester can still be used again after a disconnect
 	}
 
 	public String getName() {

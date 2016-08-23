@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-class ModelFieldEditorFactory {
+public class ModelFieldEditorFactory {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ModelFieldEditorFactory.class);
 
@@ -156,7 +156,7 @@ class ModelFieldEditorFactory {
         		fe.setNewFile(anot.file().isNewFile());
         	}
         } else if (String.class.equals(clazz) && anot!=null && anot.device() != DeviceType.NONE) {
-        	ed = getDeviceEditor(value, parent, anot);
+        	ed = getDeviceEditor(parent);
         	
         } else if (String.class.equals(clazz) && anot!=null && anot.dataset() != null &&!anot.dataset().isEmpty()) {
         	ed = getDatasetEditor(field, parent);
@@ -184,8 +184,13 @@ class ModelFieldEditorFactory {
         return ed;
 
 	}
+	
+	private CellEditor getDeviceEditor(Composite parent) {
+        // TODO Only scannables supported...
+		return getScannableEditor(parent, cservice);
+	}
 
-	private CellEditor getDeviceEditor(Object value, Composite parent, FieldDescriptor anot) {
+	public static CellEditor getScannableEditor(Composite parent, IScannableDeviceService cservice) {
 		
 		String[] items = null;
 		try {
@@ -193,7 +198,7 @@ class ModelFieldEditorFactory {
 			items = names.toArray(new String[names.size()]);
 			
 		} catch (Exception ne) {
-			logger.error("Cannot get devices for "+anot.device(), ne);
+			logger.error("Cannot get devices for "+DeviceType.SCANNABLE, ne);
 			items = null;
 		} finally {
 			if (cservice!=null) {

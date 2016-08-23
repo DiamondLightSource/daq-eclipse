@@ -10,7 +10,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.IScanAttributeContainer;
+import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
@@ -30,7 +33,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
  *
  * @param <T>
  */
-public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IScanAttributeContainer, IPositionListenable {
+public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IModelProvider<T>, IScanAttributeContainer, IPositionListenable {
 
 	// Data
 	protected T                          model;
@@ -357,4 +360,16 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void setPrimaryScanDevice(boolean primaryScanDevice) {
 		this.primaryScanDevice = primaryScanDevice;
 	}
+	
+	/**
+	 * If ovrriding don't forget the old super.validate(...)
+	 */
+	@Override
+	public void validate(T model) throws Exception {
+		if (model instanceof IDetectorModel) {
+			IDetectorModel dmodel = (IDetectorModel)model;
+			if (dmodel.getExposureTime()<=0) throw new ModelValidationException("The exposure time must be non-zero!", model, "exposureTime");
+		}
+	}
+
 }

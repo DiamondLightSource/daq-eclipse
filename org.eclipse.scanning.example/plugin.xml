@@ -10,7 +10,7 @@
             id="org.eclipse.scanning.example.detector.mandelbrotDetector"
             label="Mandelbrot Example"
             model="org.eclipse.scanning.example.detector.MandelbrotModel"
-            name="mandelbrot">
+            name="mandelbrot_detector">
       </device>
       <device
             class="org.eclipse.scanning.example.detector.ConstantVelocityDevice"

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.example.scannable;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,20 +11,43 @@ import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.Location;
+import org.eclipse.scanning.example.Services;
 
 public class MockScannableConnector implements IScannableDeviceService, IDisconnectable {
 
+	protected String               broker;
 	private Map<String, INameable> cache;
-	private IPublisher<Location> positionPublisher;
+	private IPublisher<Location>   positionPublisher;
 	
-	// Create a few random scannables with different levels.
+	// Spring
+	public MockScannableConnector() {
+		// Called by Spring.
+	}
+	
+	// Spring
+	public void connect() throws URISyntaxException {
+		IEventService eservice = Services.getEventService();
+		this.positionPublisher = eservice.createPublisher(new URI(broker), EventConstants.POSITION_TOPIC);
+        createMockObjects();
+	}
+
+	// Test decks
 	public MockScannableConnector(IPublisher<Location> positionPublisher) {
-		
+		this.positionPublisher = positionPublisher;
+        createMockObjects();
+	}
+
+	/**
+	 * Makes a bunch of things that the tests and example user interface connect to.
+	 */
+	private void createMockObjects() {
 		System.out.println("Starting up Mock IScannableDeviceService");
 		this.positionPublisher = positionPublisher;
 		
@@ -73,7 +98,6 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 			metadataScannable.setInitialPosition(i * 10.0);
 			register(metadataScannable);
 		}
-		
 	}
 
 	public void register(INameable mockScannable) {
@@ -100,6 +124,14 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	@Override
 	public void disconnect() throws EventException {
 		if (positionPublisher!=null) positionPublisher.disconnect();
+	}
+
+	public String getBroker() {
+		return broker;
+	}
+
+	public void setBroker(String broker) {
+		this.broker = broker;
 	}
 
 }
