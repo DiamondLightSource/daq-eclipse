@@ -90,19 +90,22 @@ public class DeviceRequest extends IdBean {
 	 */
 	private String errorMessage;
 	
+	private String[] errorFieldNames;
+	
 	@Override
 	public <A extends IdBean> void merge(A with) {
 		super.merge(with);
 		DeviceRequest dr = (DeviceRequest)with;
-		devices       = dr.devices;
-		deviceName    = dr.deviceName;
-		deviceModel   = dr.deviceModel;
-		deviceType    = dr.deviceType;
-		deviceAction  = dr.deviceAction;
-		deviceValue   = dr.deviceValue;
-		configure     = dr.configure;
-		position      = dr.position;
-		errorMessage  = dr.errorMessage;
+		devices          = dr.devices;
+		deviceName       = dr.deviceName;
+		deviceModel      = dr.deviceModel;
+		deviceType       = dr.deviceType;
+		deviceAction     = dr.deviceAction;
+		deviceValue      = dr.deviceValue;
+		configure        = dr.configure;
+		position         = dr.position;
+		errorMessage     = dr.errorMessage;
+		errorFieldNames  = dr.errorFieldNames;
 	}
 
 	
@@ -119,7 +122,7 @@ public class DeviceRequest extends IdBean {
 	 * @param name
 	 */
 	public DeviceRequest(String name) {
-		deviceName = name;
+		this.deviceName = name;
 	}
 	
 	/**
@@ -127,10 +130,15 @@ public class DeviceRequest extends IdBean {
 	 * @param name
 	 */
 	public DeviceRequest(String name, DeviceAction action) {
-		deviceName   = name;
-		deviceAction = action;
+		this.deviceName   = name;
+		this.deviceAction = action;
 	}
 
+	public DeviceRequest(String name, DeviceAction action, Object model) {
+		this.deviceName   = name;
+		this.deviceAction = action;
+		this.deviceModel  = model;
+	}
 
 	/**
 	 * For IRunnableDeviceService.createRunnableDevice()
@@ -325,5 +333,15 @@ public class DeviceRequest extends IdBean {
 	public String toString() {
 		return "DeviceRequest [deviceType=" + deviceType + ", deviceName=" + deviceName + ", deviceValue=" + deviceValue
 				+ ", deviceAction=" + deviceAction + ", errorMessage=" + errorMessage + "]";
+	}
+
+
+	public String[] getErrorFieldNames() {
+		return errorFieldNames;
+	}
+
+
+	public void setErrorFieldNames(String[] errorFieldNames) {
+		this.errorFieldNames = errorFieldNames;
 	}
 }

@@ -2,9 +2,9 @@ package org.eclipse.scanning.points;
 
 import java.util.Iterator;
 
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 
 public class LissajousGenerator extends AbstractGenerator<LissajousModel> {
@@ -16,7 +16,7 @@ public class LissajousGenerator extends AbstractGenerator<LissajousModel> {
 
 	@Override
 	protected void validateModel() {
-		if (model.getPoints() < 1) throw new PointsValidationException("Must have one or more points in model!", model, "points");
+		if (model.getPoints() < 1) throw new ModelValidationException("Must have one or more points in model!", model, "points");
 	}
 
 }

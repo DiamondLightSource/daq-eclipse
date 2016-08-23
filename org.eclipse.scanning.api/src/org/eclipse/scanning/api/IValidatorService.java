@@ -17,7 +17,7 @@ public interface IValidatorService {
 	/**
 	 * Call to validate a given model or model component.
 	 * @param model
-	 * @throws Exception, PointsValidationException
+	 * @throws Exception, ModelValidationException
 	 */
     <T> void validate(T model) throws Exception;
 

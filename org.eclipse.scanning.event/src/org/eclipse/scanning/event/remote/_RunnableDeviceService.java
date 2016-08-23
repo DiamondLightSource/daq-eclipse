@@ -35,7 +35,7 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 	
 	@Override
 	public void disconnect() throws EventException {
-		requester.disconnect();
+		requester.disconnect(); // Requester can still be used again after a disconnect
 	}
 
 	@Override

@@ -21,6 +21,7 @@ import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
@@ -62,6 +63,14 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 		nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
 
 		return nexusProvider;
+	}
+	
+	@Override
+	public void validate(ProcessingModel model) throws Exception {
+		if (model.getDataFile()==null) throw new ModelValidationException("The data file must be set!", model, "dataFile");
+		if (model.getOperationsFile()==null) throw new ModelValidationException("The operation file must be set!", model, "operationsFile");
+		if (model.getDetectorName()==null) throw new ModelValidationException("The detector name must be set!", model, "detectorName");
+		if (model.getTimeout()<=0) throw new ModelValidationException("The timeout must be greater than 0", model, "timeout");
 	}
 
 	public NXdetector createNexusObject(NexusScanInfo info)  throws NexusException {
