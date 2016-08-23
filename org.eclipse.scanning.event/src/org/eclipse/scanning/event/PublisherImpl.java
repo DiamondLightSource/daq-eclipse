@@ -48,7 +48,11 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	public synchronized void broadcast(T bean) throws EventException {
 		
 		try {
-		    if (getTopicName()!=null) if (scanProducer==null) scanProducer = createProducer(getTopicName());
+		    if (getTopicName()!=null) {
+		    	if (scanProducer==null) {
+		    		scanProducer = createProducer(getTopicName());
+		    	}
+		    }
 		    try {
 			    if (queueName!=null) {
 			    	updateSet(bean);

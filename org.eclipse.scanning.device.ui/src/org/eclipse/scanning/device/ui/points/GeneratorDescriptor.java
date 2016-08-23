@@ -1,30 +1,39 @@
 package org.eclipse.scanning.device.ui.points;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
+import org.eclipse.richbeans.widgets.table.SeriesTable;
+import org.eclipse.scanning.api.IModelProvider;
+import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.swt.graphics.Image;
 import org.osgi.framework.Bundle;
 
-public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesItemDescriptor {
+public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesItemDescriptor, IValidator<T>, IModelProvider<T> {
 	
 	private final IPointGenerator<T> generator;
+	private final SeriesTable        table;
 
-	public GeneratorDescriptor(String id, IPointGeneratorService pservice) throws GeneratorException {
+	public GeneratorDescriptor(SeriesTable table, String id, IPointGeneratorService pservice) throws GeneratorException {
 		this.generator = (IPointGenerator<T>)pservice.createGenerator(id);
+		this.table = table;
 	}
-	public GeneratorDescriptor(T model, IPointGeneratorService pservice) throws GeneratorException {
+	public GeneratorDescriptor(SeriesTable table, T model, IPointGeneratorService pservice) throws GeneratorException {
 		this.generator = pservice.createGenerator(model);
+		this.table = table;
 	}
 
 	@Override
@@ -65,8 +74,32 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 
 	@Override
 	public Object getAdapter(Class clazz) {
-		// TODO What is required for the model fields? 
+		
+		if (IPointGenerator.class==clazz) return generator;
+		if (List.class == clazz)          return getGenerators();
+		if (CompoundModel.class == clazz) return new CompoundModel(getModels()); // TODO Regions?
 		return null;
+	}
+	
+	private List getModels() {
+		
+		List<IPointGenerator<?>> gens = getGenerators();
+		List     ret  = new ArrayList<>(gens.size());
+		for (IPointGenerator<?> gen : gens) ret.add(gen.getModel());
+		return ret;
+	}
+	private List<IPointGenerator<?>> getGenerators() {
+		// They can only ask for a list of the series of 
+		// generators which we are editing.
+		final List<ISeriesItemDescriptor> descriptors = table.getSeriesItems();
+		final List<IPointGenerator<?>>    gens        = new ArrayList<>();
+		for (ISeriesItemDescriptor des : descriptors) {
+			if (des instanceof GeneratorDescriptor<?>) {
+				GeneratorDescriptor<?> gdes = (GeneratorDescriptor<?>)des;
+				gens.add(gdes.generator);
+			}
+		}
+		return gens;
 	}
 
 	public boolean isVisible() {
@@ -130,7 +163,15 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 			
 		}
 	}
+	
+	@Override
 	public T getModel() {
 		return generator.getModel();
 	}
+	
+	@Override
+	public void validate(T model) throws Exception {
+		generator.validate(model);
+	}
+
 }

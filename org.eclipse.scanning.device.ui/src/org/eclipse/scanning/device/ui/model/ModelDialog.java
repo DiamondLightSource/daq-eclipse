@@ -51,9 +51,6 @@ public class ModelDialog extends Dialog {
 
 	public void setModel(Object model) throws InstantiationException, IllegalAccessException {
 		modelEditor.setModel(model);
-		IValidatorService vservice = ServiceHolder.getValidatorService();
-		final IValidator<Object> validator = vservice.getValidator(model);
-		modelEditor.setValidator(validator);
 	}
 
 }

@@ -19,7 +19,6 @@ import org.eclipse.richbeans.widgets.file.FileSelectionDialog;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.SeriesTable;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.device.ui.Activator;
@@ -68,7 +67,7 @@ public class ScanView  extends ViewPart {
 		this.pservice     = ServiceHolder.getGeneratorService();
 		this.eservice     = ServiceHolder.getEventService();
 		this.seriesTable  = new SeriesTable();
-		this.pointsFilter = new GeneratorFilter(pservice, eservice.getEventConnectorService());
+		this.pointsFilter = new GeneratorFilter(pservice, eservice.getEventConnectorService(), seriesTable);
 	}
 	
 	@Override

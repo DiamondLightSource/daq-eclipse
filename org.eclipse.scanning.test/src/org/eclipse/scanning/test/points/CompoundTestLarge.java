@@ -23,7 +23,6 @@ public class CompoundTestLarge {
 	public void before() throws Exception {
 		service = new PointGeneratorFactory();
 	}
-
 	
 	@Test
 	public void test2Pow24() throws Exception {

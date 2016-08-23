@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.device;
 import java.util.Collection;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -10,7 +11,6 @@ import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.scan.DeviceAction;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
-import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
  * TODO FIXME Is the idea of having request/response calls correct for exposing
@@ -65,6 +65,14 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 				processRunnables(request, dservice);
 			}
 			return request;
+			
+		} catch (ModelValidationException ne) {
+			DeviceRequest error = new DeviceRequest();
+			error.merge(request);
+			error.setErrorMessage(ne.getMessage());
+			error.setErrorFieldNames(ne.getFieldNames());
+			return error;
+			
 		} catch (Exception ne) {
 			DeviceRequest error = new DeviceRequest();
 			error.merge(request);
@@ -80,6 +88,14 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			IScannable<Object> device = cservice.getScannable(request.getDeviceName());
 			if (request.getDeviceAction()==DeviceAction.SET && request.getDeviceValue()!=null) {
 				device.setPosition(request.getDeviceValue(), request.getPosition());
+				/* This thread is executing to set position, while it does that it
+				 * sends events over AMQ. These events queue up with no higher priority
+				 * than this call. Therefore if we return immediately it is possible
+				 * for this call to return before position events are sent out.
+				 * FUDGE warning
+				 */
+				Thread.sleep(10); 
+				 /* End warning */
 			}
 			
 			request.setDeviceValue(device.getPosition());
@@ -124,7 +140,9 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			// TODO We should have a much more reflection based way of
 			// calling arbitrary methods. 
 			if (request.getDeviceAction()!=null) {
-				if (request.getDeviceAction()==DeviceAction.RUN) {
+				if (request.getDeviceAction()==DeviceAction.VALIDATE) {
+					device.validate(request.getDeviceModel());
+				} else if (request.getDeviceAction()==DeviceAction.RUN) {
 					device.run(request.getPosition());
 				} else if (request.getDeviceAction()==DeviceAction.ABORT) {
 					device.abort();

@@ -7,6 +7,16 @@ import org.eclipse.scanning.api.event.EventException;
 
 public class ResponseConfiguration {
 	
+	public interface ResponseWaiter {
+		boolean waitAgain();
+		public static class Dont implements ResponseWaiter {
+			@Override
+			public boolean waitAgain() {
+				return false;
+			}
+		}
+	}
+	
 	public static final ResponseConfiguration DEFAULT = new ResponseConfiguration(ResponseType.ONE, 100, TimeUnit.MILLISECONDS) {
 		public void setTimeout(long timeout) {
 			throw new RuntimeException("Timeout is immutable!");
@@ -54,16 +64,25 @@ public class ResponseConfiguration {
 		this.timeUnit = timeUnit;
 	}
 	
-	public void latch() throws EventException, InterruptedException {
+	public void latch(ResponseWaiter waiter) throws EventException, InterruptedException {
+		
+		if (waiter==null) waiter = new ResponseWaiter.Dont();
 		
 		if (getResponseType()==ResponseType.ONE) {
 			this.latch    = new CountDownLatch(1);
 			boolean ok = latch.await(timeout, timeUnit);
+			while (!ok && waiter.waitAgain()) {
+				ok = latch.await(timeout, timeUnit);
+			}
 			if (!ok) throw new EventException("The timeout of "+timeout+" "+timeUnit+" was reached and no response occurred!");
 			
 		} else if (getResponseType()==ResponseType.ONE_OR_MORE) {
 			somethingFound = false;
+			
 			Thread.sleep(timeUnit.toMillis(timeout));
+			while (waiter.waitAgain()) {
+				Thread.sleep(timeUnit.toMillis(timeout));		
+			}
 			if (!somethingFound) throw new EventException("The timeout of "+timeout+" "+timeUnit+" was reached and no response occurred!");
 		}
 	}

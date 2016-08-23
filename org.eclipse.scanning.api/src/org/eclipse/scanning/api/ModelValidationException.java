@@ -1,4 +1,4 @@
-package org.eclipse.scanning.api.points;
+package org.eclipse.scanning.api;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 
-public class PointsValidationException extends RuntimeException {
+public class ModelValidationException extends RuntimeException {
 	// Use an unchecked exception because IPointGenerator.iterator() cannot
 	// throw a checked exception. (TODO: Why can't we change signature of
 	// IPointGenerator.iterator())?
@@ -16,7 +16,7 @@ public class PointsValidationException extends RuntimeException {
 	private Object model;
 	private String[] fieldNames;
 
-	public PointsValidationException(String message, Object model, String... fieldNames) {
+	public ModelValidationException(String message, Object model, String... fieldNames) {
 		super(message);
 		this.model      = model;
 		this.fieldNames = fieldNames;
@@ -32,7 +32,7 @@ public class PointsValidationException extends RuntimeException {
 		if (!fieldFound) throw new RuntimeException("No field(s) '"+Arrays.toString(fieldNames)+"' has been found in Class "+model.getClass().getSimpleName());
 	}
 	
-	public PointsValidationException(Exception e) {
+	public ModelValidationException(Exception e) {
 		super(e);
 	}
 
@@ -46,7 +46,7 @@ public class PointsValidationException extends RuntimeException {
 		return fields;
 	}
 
-	public PointsValidationException(RuntimeException e) {
+	public ModelValidationException(RuntimeException e) {
 		super(e);
 	}
 

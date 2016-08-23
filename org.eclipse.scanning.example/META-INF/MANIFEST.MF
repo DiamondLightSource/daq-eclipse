@@ -14,3 +14,4 @@ Export-Package: org.eclipse.scanning.example.detector,
  org.eclipse.scanning.example.preprocess,
  org.eclipse.scanning.example.scannable
 Bundle-ActivationPolicy: lazy
+Service-Component: OSGI-INF/*.xml

@@ -297,6 +297,7 @@ public class MandelbrotExampleTest extends NexusTest {
 		
 		IPointGenerator<?> gen = gservice.createGenerator(gmodel);
 		
+		IPointGenerator<?>[] gens = new IPointGenerator<?>[size.length - 1];
 		// We add the outer scans, if any
 		if (size.length > 2) { 
 			for (int dim = size.length-3; dim>-1; dim--) {
@@ -307,9 +308,12 @@ public class MandelbrotExampleTest extends NexusTest {
 					model = new StepModel("neXusScannable"+(dim+1), 10,20,30); // Will generate one value at 10
 				}
 				final IPointGenerator<?> step = gservice.createGenerator(model);
-				gen = gservice.createCompoundGenerator(step, gen);
+				gens[dim] = step;
 			}
 		}
+		gens[size.length - 2] = gen;
+
+		gen = gservice.createCompoundGenerator(gens);
 	
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();

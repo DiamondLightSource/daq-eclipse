@@ -75,7 +75,7 @@ public class IntegrateathonMalcolmTest extends BrokerTest {
 		this.connection = service.createConnection(new URI("tcp://pc0013.cs.diamond.ac.uk:5600"), new ZeromqConnectorService());
 		this.device     = connection.getDevice("lab", publisher);
 		
-		this.dservice  = new RunnableDeviceServiceImpl(new MockScannableConnector());
+		this.dservice  = new RunnableDeviceServiceImpl(new MockScannableConnector(null));
 		DeviceState state = device.getDeviceState();
 		if (state!=DeviceState.IDLE && state!=DeviceState.READY) device.reset();
     }

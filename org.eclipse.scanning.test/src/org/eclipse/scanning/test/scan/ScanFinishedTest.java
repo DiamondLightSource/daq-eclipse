@@ -18,10 +18,10 @@ import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
@@ -60,9 +60,13 @@ public class ScanFinishedTest {
 
 	@Before
 	public void setup() throws Exception {
+
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		eservice  = new EventServiceImpl(new ActivemqConnectorService());
+		
 		// We wire things together without OSGi here
 		// DO NOT COPY THIS IN NON-TEST CODE
-		connector = new MockScannableConnector();
+		connector = new MockScannableConnector(null);
 		dservice  = new RunnableDeviceServiceImpl(connector);
 		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)dservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
@@ -70,9 +74,6 @@ public class ScanFinishedTest {
 		impl._register(MandelbrotModel.class, MandelbrotDetector.class);
 
 		gservice  = new PointGeneratorFactory();
-
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
-		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
 		lservice = new LoaderServiceMock();
 		

@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
@@ -82,7 +83,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	}
 
 	@Override
-	public <T extends IScanPathModel, R> IPointGenerator<T> createGenerator(T model, Collection<R> regions) throws GeneratorException {
+	public <T, R> IPointGenerator<T> createGenerator(T model, Collection<R> regions) throws GeneratorException {
 		try {
 			IPointGenerator<T> gen = (IPointGenerator<T>)generators.get(model.getClass()).newInstance();
 			if (regions != null) {
@@ -195,7 +196,6 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 
 	@Override
 	public IPointGenerator<?> createCompoundGenerator(IPointGenerator<?>... generators) throws GeneratorException {
-		if (generators.length==1) return generators[0];
 		return new CompoundGenerator(generators);
 	}
 
@@ -225,7 +225,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		
 		IPointGenerator<?>[] gens = new IPointGenerator<?>[cmodel.getModels().size()];
 		int index = 0;
-		for (IScanPathModel model : cmodel.getModels()) {
+		for (Object model : cmodel.getModels()) {
 			Collection<?> regions = findRegions(cmodel, model);
 			gens[index] = createGenerator(model, regions);
 			index++;
@@ -235,12 +235,12 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <R> Collection<R> findRegions(CompoundModel cmodel, IScanPathModel model) throws GeneratorException {
+	public <R> Collection<R> findRegions(CompoundModel cmodel, Object model) throws GeneratorException {
 		
 		if (cmodel.getRegions()==null) return null;
 		
         final Collection<R> regions = new LinkedHashSet<R>(); // Order should not be important but some tests assume it
-		final Collection<String> names = model.getScannableNames();
+		final Collection<String> names = AbstractPointsModel.getScannableNames(model);
 		for (ScanRegion<?> region : cmodel.getRegions()) {
 			if (region.getScannables().containsAll(names)) {
 				regions.add((R)region.getRoi());

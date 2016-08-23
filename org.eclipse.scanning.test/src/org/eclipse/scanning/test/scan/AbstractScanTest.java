@@ -3,7 +3,6 @@ package org.eclipse.scanning.test.scan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,12 +13,14 @@ import java.util.List;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -32,7 +33,6 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
-import org.eclipse.scanning.api.points.PointsValidationException;
 import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -178,12 +178,17 @@ public class AbstractScanTest extends BrokerTest {
 	@Test
 	public void testThreadCount() throws Exception {
 			
-		int before = Thread.activeCount();
 		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
+		int before = Thread.activeCount();
 		scanner.run(null);
-		Thread.sleep(200);
+		if (connector instanceof IDisconnectable) ((IDisconnectable)connector).disconnect();
+		Thread.sleep(25); // Just allows any threads no longer required to exit.
 		int after = Thread.activeCount();
-		if (after>before+1) throw new Exception("too many extra threads after scan! Expected not more than "+before+1+" got "+after);
+		System.out.println("Before = "+before);
+		System.out.println("After  = "+after);
+		int tolerance = 3;
+		System.out.println("Tolerance  = "+tolerance);
+		if (after>before+tolerance) throw new Exception("too many extra threads after scan! Expected not more than "+(before+tolerance)+" got "+after);
 	}
 
 	
@@ -220,7 +225,7 @@ public class AbstractScanTest extends BrokerTest {
 			
 		} catch (Exception ex) {
 			assertEquals(ScanningException.class, ex.getClass());
-			assertEquals(PointsValidationException.class, ex.getCause().getClass());
+			assertEquals(ModelValidationException.class, ex.getCause().getClass());
 			assertTrue(ex.getCause().getMessage().toLowerCase().indexOf("wrong direction")>0);
 			return;
 		}
@@ -247,7 +252,7 @@ public class AbstractScanTest extends BrokerTest {
 			
 		} catch (Exception ex) {
 			assertEquals(ScanningException.class, ex.getClass());
-			assertEquals(PointsValidationException.class, ex.getCause().getClass());
+			assertEquals(ModelValidationException.class, ex.getCause().getClass());
 			assertEquals("Model step size must be nonzero!", ex.getCause().getMessage());
 			return;
 		}

@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Eclipse-BuddyPolicy: global
 Bundle-ManifestVersion: 2
 Bundle-Name: Api
 Bundle-SymbolicName: org.eclipse.scanning.api;singleton:=true
@@ -33,6 +34,7 @@ Export-Package: org.eclipse.scanning.api,
  org.eclipse.scanning.api.scan.models,
  org.eclipse.scanning.api.scan.process,
  org.eclipse.scanning.api.scan.rank,
+ org.eclipse.scanning.api.scan.ui,
  org.eclipse.scanning.api.script,
  org.eclipse.scanning.api.ui
 

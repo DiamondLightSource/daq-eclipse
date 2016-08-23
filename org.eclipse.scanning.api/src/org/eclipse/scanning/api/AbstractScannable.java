@@ -4,6 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.scan.event.IPositionListenable;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.eclipse.scanning.api.scan.event.Location;
+import org.eclipse.scanning.api.scan.event.PositionDelegate;
+
 /**
  * 
  * Convenience class using inheritance to contain some of the general 
@@ -20,17 +26,43 @@ import java.util.Set;
  *
  * @param <T>
  */
-public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttributeContainer {
+public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttributeContainer, IPositionListenable {
 
 	private T                   max;
 	private T                   min;
 	private Map<String, Object> attributes;
 	private int                 level;
 	private String              name;
+	
+	/**
+	 * Implementors should use the delegate to notify of position.
+	 */
+	protected PositionDelegate  delegate;
+	
 	protected AbstractScannable() {
-		attributes = new HashMap<>(7); // TODO 
+		this(null);
+	}
+	/**
+	 * 
+	 * @param publisher used to notify of positions externally.
+	 */
+	protected AbstractScannable(IPublisher<Location> publisher) {
+		this.attributes = new HashMap<>(7);
+		this.delegate   = new PositionDelegate(publisher);
 	}
 	
+	@Override
+	public void addPositionListener(IPositionListener listener) {
+		delegate.addPositionListener(listener);
+	}
+	@Override
+	public void removePositionListener(IPositionListener listener) {
+		delegate.removePositionListener(listener);
+	}
+	
+	public void setPublisher(IPublisher<Location> publisher) {
+		delegate.setPublisher(publisher);
+	}
 	
 	/**
 	 * 

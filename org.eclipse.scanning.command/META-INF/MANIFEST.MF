@@ -9,9 +9,7 @@ Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  org.eclipse.dawnsci.analysis.dataset,
  org.eclipse.scanning.server
-Export-Package: org.eclipse.scanning.command,
- org.python.core,
- org.python.util
-Bundle-ClassPath: lib/jython-standalone-2.7.0.jar,
- .
-Import-Package: org.eclipse.dawnsci.analysis.api.roi
+Export-Package: org.eclipse.scanning.command
+Bundle-ClassPath: .
+Import-Package: org.eclipse.dawnsci.analysis.api.roi,
+ org.python.core

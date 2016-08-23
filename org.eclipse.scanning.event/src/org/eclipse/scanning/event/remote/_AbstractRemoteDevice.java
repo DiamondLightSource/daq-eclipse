@@ -16,6 +16,8 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 	protected final IRequester<DeviceRequest> requester;
 
 	private _AbstractRemoteDevice(URI uri, IEventService eservice) throws EventException {
+		setEventService(eservice);
+		setUri(uri);
 		requester = eservice.createRequestor(uri, EventConstants.DEVICE_REQUEST_TOPIC, EventConstants.DEVICE_RESPONSE_TOPIC);
 	    requester.setTimeout(RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()); // Useful for debugging testing 
 	}
@@ -28,7 +30,7 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 	}
 	
 	public void disconnect() throws EventException {
-		requester.disconnect();
+		requester.disconnect(); // Requester can still be used again after a disconnect
 	}
 
 	public String getName() {

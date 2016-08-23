@@ -1,0 +1,3 @@
+[submodule "org.eclipse.scanning.points/scripts/scanpointgenerator"]
+	path = org.eclipse.scanning.points/scripts/scanpointgenerator
+	url = git@github.com:dls-controls/SPGSource.git

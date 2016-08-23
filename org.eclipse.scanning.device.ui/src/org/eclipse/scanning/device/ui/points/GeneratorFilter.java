@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.ISeriesItemFilter;
+import org.eclipse.richbeans.widgets.table.SeriesTable;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
@@ -26,10 +27,12 @@ final class GeneratorFilter implements ISeriesItemFilter {
 	
 	private IPointGeneratorService pservice;
 	private IEventConnectorService cservice;
+	private SeriesTable            table; // Gets the table which provides access the series via getAdapter(...)
 
-	public GeneratorFilter(IPointGeneratorService pservice, IEventConnectorService cservice) {
+	public GeneratorFilter(IPointGeneratorService pservice, IEventConnectorService cservice, SeriesTable table) {
 		this.pservice     = pservice;
 		this.cservice     = cservice;
+		this.table        = table;
 	}
 	
 	@Override
@@ -44,7 +47,7 @@ final class GeneratorFilter implements ISeriesItemFilter {
 			
 			for (String id : ids) {
 									
-				final GeneratorDescriptor des = new GeneratorDescriptor(id, pservice);
+				final GeneratorDescriptor des = new GeneratorDescriptor(table, id, pservice);
 				if (!des.isVisible()) continue;
 				if (contents!=null && !des.matches(contents)) continue;
 				ret.add(des);
@@ -64,7 +67,7 @@ final class GeneratorFilter implements ISeriesItemFilter {
 		List<? extends IScanPathModel>  models = cservice.unmarshal(key, ArrayList.class);
 		if (models!=null && models.size()>0) {
 			for (IScanPathModel model : models) {
-				final GeneratorDescriptor<?> des = new GeneratorDescriptor<>(model, pservice);
+				final GeneratorDescriptor<?> des = new GeneratorDescriptor<>(table, model, pservice);
 				if (!des.isVisible()) continue;
 				descriptions.add(des);
 			}

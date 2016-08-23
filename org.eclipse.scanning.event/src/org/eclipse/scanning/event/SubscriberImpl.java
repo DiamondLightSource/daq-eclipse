@@ -22,6 +22,7 @@ import javax.jms.TextMessage;
 import javax.jms.Topic;
 
 import org.apache.commons.lang.ClassUtils;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IdBean;
@@ -36,6 +37,9 @@ import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.scan.event.ILocationListener;
+import org.eclipse.scanning.api.scan.event.Location;
+import org.eclipse.scanning.api.scan.event.LocationEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,6 +122,9 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 		if (bean instanceof IdBean) {
 			IdBean idBean = (IdBean)bean;
 		    diseminate(bean, listeners.get(idBean.getUniqueId())); // scan specific listeners, if any
+		} else if (bean instanceof INameable) {
+			INameable namedBean = (INameable)bean;
+		    diseminate(bean, listeners.get(namedBean.getName())); // scan specific listeners, if any
 		}
 	}
 
@@ -189,6 +196,14 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 				queue.add(new DespatchEvent(l, new BeanEvent<Object>(bean)));
 			}
 		});
+		ret.put(ILocationListener.class, new DiseminateHandler() {
+			public void diseminate(Object bean, EventListener e) {
+				// Used casting because generics got silly
+				ILocationListener l = (ILocationListener)e;
+				queue.add(new DespatchEvent(l, new LocationEvent((Location)bean)));
+			}
+		});
+
 
 
 		return ret;
@@ -264,6 +279,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 						
 						if (event.listener instanceof IHeartbeatListener) ((IHeartbeatListener)event.listener).heartbeatPerformed((HeartbeatEvent)event.object);
 						if (event.listener instanceof IBeanListener)      ((IBeanListener)event.listener).beanChangePerformed((BeanEvent)event.object);
+						if (event.listener instanceof ILocationListener)  ((ILocationListener)event.listener).locationPerformed((LocationEvent)event.object);
 						if (event.listener instanceof IScanListener){
 							IScanListener l = (IScanListener)event.listener;
 							ScanEvent     e = (ScanEvent)event.object;

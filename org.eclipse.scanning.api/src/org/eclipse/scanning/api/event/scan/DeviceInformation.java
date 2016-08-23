@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.event.scan;
 
+import org.eclipse.scanning.api.IModelProvider;
+
 /**
  * 
  * Information about a given device.
@@ -7,7 +9,7 @@ package org.eclipse.scanning.api.event.scan;
  * @author Matthew Gerring
  *
  */
-public class DeviceInformation<T> {
+public class DeviceInformation<T> implements IModelProvider<T> {
 	
 	/**
 	 * The device state, for instance, IDLE, READY, PAUSED, FAULT etc.

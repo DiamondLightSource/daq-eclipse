@@ -57,7 +57,7 @@ public class NexusTest extends TmpTest {
 	@BeforeClass
 	public static void setServices() throws Exception {
 		
-		connector   = new MockScannableConnector();
+		connector   = new MockScannableConnector(null);
 		dservice    = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice    = new PointGeneratorFactory();
 		fileFactory = new NexusFileFactoryHDF5();		

@@ -13,6 +13,11 @@ import org.eclipse.scanning.api.points.IPosition;
  * other scannables are. This is important so that during a scan, each scannable when it is
  * told to move, has available all the other moves at that IPosition in the scan.
  * 
+ * Important note - please do not extend this interface, it must be kept simple. In GDA9 extra
+ * methods such as scanStart() etc. are dealt with by annotations. The idea is to have core
+ * functionality as interface declarations and optional extensions as annotated methods.
+ * See @ScanStart @ScanEnd @ScanFinally @ScanFault @ScanAbort etc.
+ * 
  * @author Matthew Gerring
  *
  */

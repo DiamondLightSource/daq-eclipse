@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IDisconnectable;
@@ -46,9 +47,14 @@ public class RemoteRunnableServiceTest extends BrokerTest {
 		System.out.println("Create Services");
 		RemoteServiceFactory.setTimeout(1, TimeUnit.MINUTES); // Make test easier to debug.
 
+		// We wire things together without OSGi here 
+		// DO NOT COPY THIS IN NON-TEST CODE!
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
+
 		// Set up stuff because we are not in OSGi with a test
 		// DO NOT COPY TESTING ONLY
-		dservice = new RunnableDeviceServiceImpl(new MockScannableConnector());
+		dservice = new RunnableDeviceServiceImpl(new MockScannableConnector(eservice.createPublisher(uri, EventConstants.POSITION_TOPIC)));
 		MandelbrotDetector mandy = new MandelbrotDetector();
 		final DeviceInformation<MandelbrotModel> info = new DeviceInformation<MandelbrotModel>(); // This comes from extension point or spring in the real world.
 		info.setName("mandelbrot");
@@ -58,11 +64,6 @@ public class RemoteRunnableServiceTest extends BrokerTest {
 		info.setIcon("org.eclipse.scanning.example/icon/mandelbrot.png");
 		mandy.setDeviceInformation(info);
 		((RunnableDeviceServiceImpl)dservice)._register("mandelbrot", mandy);
-				
-		// We wire things together without OSGi here 
-		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
-		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 
 		Services.setRunnableDeviceService(dservice);
 		Services.setEventService(eservice);

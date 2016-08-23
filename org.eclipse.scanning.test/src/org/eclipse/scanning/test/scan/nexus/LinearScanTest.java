@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.List;
 
-import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.dawnsci.analysis.api.io.IDataHolder;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
@@ -18,9 +17,12 @@ import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.january.dataset.ILazyDataset;
+import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
@@ -70,11 +72,16 @@ public class LinearScanTest extends BrokerTest{
 	@Before
 	public void setup() throws Exception {
 		
+
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		eservice  = new EventServiceImpl(new ActivemqConnectorService());
+
 		this.lservice = new LoaderServiceMock();
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		connector = new MockScannableConnector();
+		connector = new MockScannableConnector(eservice.createPublisher(uri, EventConstants.POSITION_TOPIC));
+		
 		dservice  = new RunnableDeviceServiceImpl(connector);
 		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)dservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
@@ -82,9 +89,6 @@ public class LinearScanTest extends BrokerTest{
 		impl._register(MandelbrotModel.class, MandelbrotDetector.class);
 
 		gservice  = new PointGeneratorFactory();
-
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
-		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
 		// TODO Perhaps put service setting in super class or utility
 		Services.setEventService(eservice);
@@ -122,19 +126,17 @@ public class LinearScanTest extends BrokerTest{
 			
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
 		doScan(roi, 2, new int[]{4,10,64,64}, new StepModel("T", 290, 300, 3), create1DModel(10));
-		
 	}
 
 	@Test
 	public void testBigWrappedLineScan() throws Exception {
 			
 		LinearROI roi = new LinearROI(new double[]{0,0}, new double[]{3,3});
-		doScan(roi, 5, new int[]{2,2,2,2,3,64,64}, new StepModel("T", 290, 291, 1), 
-				                                   new StepModel("T", 290, 291, 1), 
-                                                   new StepModel("T", 290, 291, 1), 
-                                                   new StepModel("T", 290, 291, 1), 
+		doScan(roi, 5, new int[]{2,2,2,2,3,64,64}, new StepModel("T1", 290, 291, 1), 
+				                                   new StepModel("T2", 290, 291, 1), 
+                                                   new StepModel("T3", 290, 291, 1), 
+                                                   new StepModel("T4", 290, 291, 1), 
                                                     create1DModel(3));
-		
 	}
 
 	private IScanPathModel create1DModel(int size) {
@@ -161,13 +163,12 @@ public class LinearScanTest extends BrokerTest{
 	@Test
 	public void testBigWrappedGridScan() throws Exception {
 			
-		doScan(null,6, new int[]{2,2,2,2,2,2,64,64}, new StepModel("T", 290, 291, 1), 
-										             new StepModel("T", 290, 291, 1), 
-										             new StepModel("T", 290, 291, 1), 
-										             new StepModel("T", 290, 291, 1), 
+		doScan(null,6, new int[]{2,2,2,2,2,2,64,64}, new StepModel("T1", 290, 291, 1), 
+										             new StepModel("T2", 290, 291, 1), 
+										             new StepModel("T3", 290, 291, 1), 
+										             new StepModel("T4", 290, 291, 1), 
 										             createGridModel(2,2));
 	}
-
 
 	private GridModel createGridModel(int... size) {
 		

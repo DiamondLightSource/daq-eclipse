@@ -2,6 +2,7 @@ package org.eclipse.scanning.api.scan;
 
 import java.util.Collection;
 
+import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 
@@ -14,7 +15,7 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
  * @author Matthew Gerring
  *
  */
-public class ScanInformation {
+public class ScanInformation implements IModelProvider<ScanModel>{
 
 	private IRunnableDevice<?> parent;
 	private ScanModel          model;
