@@ -217,16 +217,23 @@ public class ScanPointGeneratorFactory {
         	// Search for the Libs directory which should have been expanded out either
         	// directly into the bundle or into the 'jython2.7' folder.
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+System.out.println("$$$$$$ jythonBundleName is: $$$$$$"+jythonBundleName);
+
             File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
+System.out.println("$$$$$$ loc is: $$$$$$"+loc);
 	        File jythonDir = find(loc, "jython");
+System.out.println("$$$$$$ jythonDir is: $$$$$$"+loc);
            	state.path.add(new PyString(jythonDir.getAbsolutePath())); // Resolves the collections
 	        File lib       = find(jythonDir, "Lib");
-           	state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
+System.out.println("$$$$$$ lib is: $$$$$$"+lib);
+	        state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
            
            	System.out.println("$$$$$$ Python Path is: $$$$$$");
            	System.out.println(state.path);
             
         } catch (Exception ne) {
+        	System.out.println("Problem setting jython path to include scripts");
+        	ne.printStackTrace();
         	logger.debug("Problem setting jython path to include scripts!", ne);
         }
 
