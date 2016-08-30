@@ -8,29 +8,16 @@
  */
 package org.eclipse.scanning.server.application;
 
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
-import org.osgi.framework.Bundle;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IMessagingService;
+import org.eclipse.scanning.server.servlet.Services;
 
 /**
  * 
@@ -64,8 +51,18 @@ public class Application implements IApplication {
 		for (int i = 0; i < configuration.length; i++) {
 			final String pkey = configuration[i];
 			if (pkey.startsWith("-")) {
-				conf.put(pkey.substring(1), configuration[i+1]);
+				if (i<configuration.length-1) {
+				    conf.put(pkey.substring(1), configuration[i+1]);
+				} else {
+					conf.put(pkey.substring(1), null);
+				}
 			}
+		}
+		
+		if (conf.containsKey("startActiveMQ")) {
+			IMessagingService mservice = Services.getMessagingService();
+			String uri = System.getProperty("org.eclipse.scanning.broker.uri");
+			mservice.start(uri);
 		}
 		
 		PseudoSpringParser parser = new PseudoSpringParser();
@@ -78,6 +75,7 @@ public class Application implements IApplication {
 
 	@Override
 	public void stop() {
+		
 		if (objects!=null) for (Object object : objects.values()) {
 			try {
 				Method disconnect = object.getClass().getMethod("disconnect");
@@ -85,6 +83,12 @@ public class Application implements IApplication {
 			} catch (Exception ne) {
 				continue;
 			}
+		}
+		IMessagingService mservice = Services.getMessagingService();
+		try {
+			mservice.stop();
+		} catch (EventException e) {
+			e.printStackTrace();
 		}
 		latch.countDown();
 	}

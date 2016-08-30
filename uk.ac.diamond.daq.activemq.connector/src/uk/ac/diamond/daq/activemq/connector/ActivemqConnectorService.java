@@ -1,10 +1,19 @@
 package uk.ac.diamond.daq.activemq.connector;
 
+import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.ServerSocket;
 import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.usage.SystemUsage;
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.IMessagingService;
 
 /**
  * This class is temporarily in this plugin and needs to be moved out of it once:
@@ -19,7 +28,7 @@ import org.eclipse.scanning.api.event.IEventConnectorService;
  * @author Colin Palmer
  *
  */
-public class ActivemqConnectorService implements IEventConnectorService {
+public class ActivemqConnectorService implements IEventConnectorService, IMessagingService {
 
 	private static IMarshallerService jsonMarshaller;
 
@@ -63,4 +72,97 @@ public class ActivemqConnectorService implements IEventConnectorService {
 			throw new NullPointerException(msg);
 		}
 	}
+
+	private BrokerService service;
+	
+	/**
+	 * @param The activemq connector uri, for instance: "failover:(tcp://localhost:61616)?startupMaxReconnectAttempts=3"
+	 *        The failover:() is stipped out so that a tcp:// uri is created for the server.
+	 */
+	@Override
+	public URI start(String suggestedURI) throws EventException {
+		
+		try {
+			Pattern pattern = Pattern.compile(".*(tcp://[a-zA-Z\\.]+:\\d+).*");
+			Matcher matcher = pattern.matcher(suggestedURI);
+			if (matcher.matches()) suggestedURI = matcher.group(1);
+			
+			URI uri = new URI(suggestedURI); // Each test uses a new port if the port is running on another test.
+			service = new BrokerService();
+	        service.addConnector(uri);
+	        service.setPersistent(false); 
+	        SystemUsage systemUsage = service.getSystemUsage();
+	        systemUsage.getStoreUsage().setLimit(1024 * 1024 * 8);
+	        systemUsage.getTempUsage().setLimit(1024 * 1024 * 8);
+	        service.start();
+			service.waitUntilStarted();
+			return uri;
+			
+		} catch (Exception ne) {
+			throw new EventException(ne);
+		}
+	}
+
+	@Override
+	public void stop() throws EventException {
+		if (service==null) return;
+		try {
+			service.stop();
+			service.waitUntilStopped();
+			service = null;
+		} catch (Exception ne) {
+			throw new EventException(ne);
+		}
+	}
+	
+	private static URI createUri(int start) {
+		try {
+			return new URI("tcp://localhost:"+getFreePort(start));
+		} catch (Exception ne) {
+			ne.printStackTrace();
+		    return null;
+		}
+	}
+
+	
+	private static int getFreePort(final int startPort) {
+
+	    int port = startPort;
+	    while(!isPortFree(port)) port++;
+
+	    return port;
+	}
+	/**
+	 * Checks if a port is free.
+	 * @param port
+	 * @return
+	 */
+	public static boolean isPortFree(int port) {
+
+	    ServerSocket ss = null;
+	    DatagramSocket ds = null;
+	    try {
+	        ss = new ServerSocket(port);
+	        ss.setReuseAddress(true);
+	        ds = new DatagramSocket(port);
+	        ds.setReuseAddress(true);
+	        return true;
+	    } catch (IOException e) {
+	    } finally {
+	        if (ds != null) {
+	            ds.close();
+	        }
+
+	        if (ss != null) {
+	            try {
+	                ss.close();
+	            } catch (IOException e) {
+	                /* should not be thrown */
+	            }
+	        }
+	    }
+
+	    return false;
+	}
+
 }
