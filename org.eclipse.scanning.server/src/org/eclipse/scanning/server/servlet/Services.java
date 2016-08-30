@@ -7,6 +7,7 @@ import java.util.Set;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.IMessagingService;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.IFilePathService;
@@ -31,6 +32,7 @@ public class Services {
 	private static IMalcolmService         malcService;
 	private static IFilePathService        filePathService;
 	private static IScriptService          scriptService;
+	private static IMessagingService       messagingService;
 
 	private static final Set<IPreprocessor> preprocessors = new LinkedHashSet<>();
 
@@ -100,5 +102,13 @@ public class Services {
 
 	public static Collection<IPreprocessor> getPreprocessors() {
 		return preprocessors;
+	}
+
+	public static IMessagingService getMessagingService() {
+		return messagingService;
+	}
+
+	public static void setMessagingService(IMessagingService messagingService) {
+		Services.messagingService = messagingService;
 	}
 }
