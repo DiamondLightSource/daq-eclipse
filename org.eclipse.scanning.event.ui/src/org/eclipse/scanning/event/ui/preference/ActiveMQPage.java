@@ -36,7 +36,7 @@ public class ActiveMQPage extends FieldEditorPreferencePage implements IWorkbenc
 	@Override
 	protected void createFieldEditors() {
 		
-	    final StringFieldEditor uri = new StringFieldEditor(CommandConstants.JMS_URI, "Comamnd Server", getFieldEditorParent());
+	    final StringFieldEditor uri = new StringFieldEditor(CommandConstants.JMS_URI, "Command Server", getFieldEditorParent());
 	    addField(uri);
 
 	    final StringFieldEditor checking = new StringFieldEditor(CommandConstants.DIR_CHECKING_URI, "Directory Permisssion Checker", getFieldEditorParent());
