@@ -1,5 +1,10 @@
 package org.eclipse.scanning.server.servlet;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import javax.annotation.PostConstruct;
+
 import org.eclipse.scanning.api.device.DeviceResponse;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -27,6 +32,19 @@ import org.eclipse.scanning.api.event.scan.DeviceRequest;
  *
  */
 public class DeviceServlet extends AbstractResponderServlet<DeviceRequest> {
+
+	@PostConstruct  // Requires spring 3 or better
+    public void connect() throws EventException, URISyntaxException {	
+    	
+		responder = eventService.createResponder(new URI(broker), requestTopic, responseTopic);
+		responder.setResponseCreator(new DoResponseCreator() {
+			@Override
+			public boolean isSynchronous() {
+				return false;
+			}
+		});
+     	logger.info("Started "+getClass().getSimpleName());
+    }
 
 	@Override
 	public IResponseProcess<DeviceRequest> createResponder(DeviceRequest bean, IPublisher<DeviceRequest> response) throws EventException {

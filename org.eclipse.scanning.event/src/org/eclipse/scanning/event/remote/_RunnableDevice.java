@@ -43,20 +43,14 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	@Override
 	public void validate(M model) throws Exception {
 		DeviceRequest res = requester.post(new DeviceRequest(info.getName(), DeviceAction.VALIDATE, model));		
-		if (res.getErrorMessage()!=null) {
-			if (res.getErrorFieldNames()!=null) {
-				throw new ModelValidationException(res.getErrorMessage(), model, res.getErrorFieldNames());
-			} else {
-				throw new Exception(res.getErrorMessage());
-			}
-		}
+		if (res.getErrorMessage()!=null) throw res.createException();
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public DeviceState getDeviceState() throws ScanningException {
 		try {
-			DeviceRequest req = requester.post(new DeviceRequest(info.getName()));
+			DeviceRequest req = requester.post(new DeviceRequest(name));
 			info = (DeviceInformation<M>)req.getDeviceInformation();
 		} catch (Exception ne) {
 			throw new ScanningException(ne);
@@ -68,7 +62,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	@Override
 	protected DeviceRequest update() {
 		try {
-			DeviceRequest req = requester.post(new DeviceRequest(info.getName()));
+			DeviceRequest req = requester.post(new DeviceRequest(name));
 			info = (DeviceInformation<M>)req.getDeviceInformation();
 			return req;
 		} catch (Exception ne) {

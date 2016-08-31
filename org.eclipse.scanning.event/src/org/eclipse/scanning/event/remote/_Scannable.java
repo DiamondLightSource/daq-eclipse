@@ -7,10 +7,12 @@ import java.util.LinkedHashSet;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.ITerminatable;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.core.ResponseConfiguration.ResponseWaiter;
 import org.eclipse.scanning.api.event.scan.DeviceAction;
@@ -26,7 +28,7 @@ import org.eclipse.scanning.api.scan.event.LocationEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, IPositionListenable {
+class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, IPositionListenable, ITerminatable {
 
 	private final static Logger logger = LoggerFactory.getLogger(_Scannable.class);
 
@@ -41,6 +43,8 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 	@Override
 	public T getPosition() throws Exception {
 		DeviceRequest req = update();
+		if (req==null) return null;
+		if (req.getErrorMessage()!=null) throw req.createException();
 		return (T)req.getDeviceValue();
 	}
 
@@ -59,23 +63,46 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 			req.setDeviceAction(DeviceAction.SET);
 			req.setDeviceValue(value);
 			req.setPosition(position);
-			req = requester.post(req, createResponseWaiter());
-			info = (DeviceInformation<T>)req.getDeviceInformation();
+			req = requester.post(req, createResponseWaiter()); // Blocks until position set.
+			if (req.getDeviceInformation()!=null) {
+				info = (DeviceInformation<T>)req.getDeviceInformation();
+			}
 			
 		} catch (Exception ne) {
 			logger.error("Cannot update device info for "+info.getName(), ne);
 		}
 	}
+	
+
+	@Override
+	public void terminate(TerminationPreference pref) throws Exception {
+		
+		// Use a separate call
+		IRequester<DeviceRequest> srequestor = eservice.createRequestor(uri, EventConstants.DEVICE_REQUEST_TOPIC, EventConstants.DEVICE_RESPONSE_TOPIC);
+		srequestor.setTimeout(100, TimeUnit.SECONDS); /** TODO How long to wait until a motor <i>should</i> be terminated? **/
+		try {
+			DeviceRequest req = new DeviceRequest(info.getName(), DeviceType.SCANNABLE);
+			req.setDeviceAction(DeviceAction.as(pref));
+			req = srequestor.post(req);
+			if (req.getErrorMessage()!=null) throw req.createException();
+			if (req.getDeviceInformation()!=null) {
+				info = (DeviceInformation<T>)req.getDeviceInformation();
+			}
+		} finally {
+			srequestor.disconnect();
+		}
+	}
+
 
 	@SuppressWarnings("unchecked")
 	@Override
 	protected DeviceRequest update() {
 		try {
-			DeviceRequest req = requester.post(new DeviceRequest(info.getName(), DeviceType.SCANNABLE));
-			info = (DeviceInformation<T>)req.getDeviceInformation();
+			DeviceRequest req = requester.post(new DeviceRequest(name, DeviceType.SCANNABLE));
+			this.info = req.getDeviceInformation()!=null ? (DeviceInformation<T>)req.getDeviceInformation() : this.info;
 			return req;
 		} catch (Exception ne) {
-			logger.error("Cannot update device info for "+info.getName(), ne);
+			logger.error("Cannot update device info for "+info, ne);
 			return null;
 		}
 	}
@@ -139,7 +166,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 			subscriber.addListener(getName(), new ILocationListener() {
 				@Override
 				public void locationPerformed(LocationEvent evt) {
-					
+
 					lastActive = System.currentTimeMillis();
 					final Location      loc  = evt.getLocation();
 					if (loc.getType()==null) return;

@@ -6,43 +6,57 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.richbeans.widgets.decorator.BoundsDecorator;
 import org.eclipse.richbeans.widgets.decorator.FloatDecorator;
 import org.eclipse.richbeans.widgets.decorator.IValueChangeListener;
 import org.eclipse.richbeans.widgets.decorator.ValueChangeEvent;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.ITerminatable;
+import org.eclipse.scanning.api.ITerminatable.TerminationPreference;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListenable;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ControlCellEditor extends CellEditor {
+public class ControlCellEditor extends CellEditor implements IPositionListener {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ControlCellEditor.class);
 
 	// Data
-	private org.eclipse.scanning.api.scan.ui.ControlNode     value;
+	private ControlNode     node;
 	
 	// UI
-	private FloatDecorator decorator, incDeco;
-	private Text text;
+	private BoundsDecorator decorator, incDeco;
+	private Text    text;
+	private ToolTip tip;
+	private Button  stop;
 
 	// Hardware
 	private IScannableDeviceService cservice;
-	private IScannable<Number>      scannable; // Transient depending on which scannable we are editing.
+	private IScannable<Number>      scannable; // Transient depending on which scannable we are editing.	
+	private ControlValueJob         job;
 
-	private ToolTip tip;
 
 
 	public ControlCellEditor(Composite parent) {
@@ -63,11 +77,20 @@ public class ControlCellEditor extends CellEditor {
         GridUtils.removeMargins(content);
  
 		this.text = new Text(content, SWT.LEFT);
+		job = new ControlValueJob(text);
         text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
-        this.decorator = new FloatDecorator(text);
+        this.decorator = new FloatDecorator(text, Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
         this.tip = new ToolTip(text.getShell(), SWT.BALLOON);
-        tip.setMessage("Press enter to set the value or use the up and down arrows.");
-       
+        tip.setMessage("Press enter to set the node or use the up and down arrows.");
+        text.addListener(SWT.Traverse, new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                if (event.detail == SWT.TRAVERSE_RETURN) {
+                    setPosition(decorator.getValue());
+                }
+            }
+        });
+        
         final Composite buttons = new Composite(content, SWT.NONE);
         buttons.setBackground(content.getDisplay().getSystemColor(SWT.COLOR_WHITE));
         GridData layout = new GridData(SWT.FILL, SWT.FILL, false, false);
@@ -82,13 +105,13 @@ public class ControlCellEditor extends CellEditor {
         layout.heightHint = 15;
         up.setLayoutData(layout);
         up.setImage(Activator.getImageDescriptor("icons/up.png").createImage());
-        up.setToolTipText("Nudge value up by increment amount");
+        up.setToolTipText("Nudge node up by increment amount");
      
         final Button down = new Button(buttons, SWT.DOWN);
         down.setBackground(content.getDisplay().getSystemColor(SWT.COLOR_WHITE));
         down.setLayoutData(layout);
         down.setImage(Activator.getImageDescriptor("icons/down.png").createImage());
-        down.setToolTipText("Nudge value down by increment amount");
+        down.setToolTipText("Nudge node down by increment amount");
 
         Text increment = new Text(content, SWT.RIGHT);
         layout = new GridData(SWT.FILL, SWT.CENTER, false, false);
@@ -100,23 +123,49 @@ public class ControlCellEditor extends CellEditor {
         incDeco.addValueChangeListener(new IValueChangeListener() {	
 			@Override
 			public void valueValidating(ValueChangeEvent evt) {
-				value.setIncrement(evt.getValue().doubleValue());
+				node.setIncrement(evt.getValue().doubleValue());
 			}
 		});
         
-        final Button stop = new Button(content, SWT.DOWN);
+        this.stop = new Button(content, SWT.DOWN);
         stop.setBackground(content.getDisplay().getSystemColor(SWT.COLOR_WHITE));
         stop.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
         stop.setImage(Activator.getImageDescriptor("icons/cross-button.png").createImage());
         stop.setToolTipText("Stop current move");
+        stop.addSelectionListener(new SelectionAdapter() {
+        	public void widgetSelected(SelectionEvent e) {
+        		Thread test = new Thread("Test terninate in thread") {
+        			public void run() {
+        				try {
+        					((ITerminatable)scannable).terminate(TerminationPreference.CONTROLLED);
+        				} catch (Exception e1) {
+        					logger.error("Problem stopping motor!", e1);
+        				}
+        			}
+        		};
+        		test.start();
+        	}
+        });
 
 		return content;
 	}
 
+	protected void setPosition(Number value) {
+		job.setPosition(scannable, value);
+	}
+	
+	/**
+	 * Not the SWT thread, events come from the device.
+	 */
 	@Override
-	protected Object doGetValue() {
-		if (tip!=null) tip.setVisible(false);
-		return value;
+	public void positionPerformed(PositionEvent evt) throws ScanningException {
+
+		final double intermeadiatePos = evt.getPosition().getValue(scannable.getName());
+		text.getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				decorator.setValue(intermeadiatePos); // This call renders the text and bounds correctly.
+			}
+		});
 	}
 
 	@Override
@@ -134,16 +183,41 @@ public class ControlCellEditor extends CellEditor {
 	}
 
 	@Override
+	protected void focusLost() {
+		super.focusLost();
+	}
+	
+	@Override
+	protected Object doGetValue() {
+		if (tip!=null) tip.setVisible(false);
+		if (scannable!=null && scannable instanceof IPositionListenable) {
+			((IPositionListenable)scannable).removePositionListener(this);
+		}
+		return node;
+	}
+	
+	@Override
 	protected void doSetValue(Object v) {
+		
 		if (v == null) return;
-		this.value = (org.eclipse.scanning.api.scan.ui.ControlNode)v;
+		this.node = (ControlNode)v;
 		try {
+			if (scannable!=null && scannable instanceof IPositionListenable) {
+				((IPositionListenable)scannable).removePositionListener(this);
+			}
 			text.setEnabled(true);
-			this.scannable = cservice.getScannable(value.getName());
+			this.scannable = cservice.getScannable(node.getName());
+			stop.setEnabled(scannable instanceof ITerminatable);
+			if (scannable!=null && scannable instanceof IPositionListenable) {
+				((IPositionListenable)scannable).addPositionListener(this);
+			}
+			
 			this.decorator.setMaximum(scannable.getMaximum());
 			this.decorator.setMinimum(scannable.getMinimum());
 			this.decorator.setValue(scannable.getPosition());
-			this.incDeco.setValue(value.getIncrement());
+			this.incDeco.setValue(node.getIncrement());
+			
+			
 		} catch (Exception e) {
 			logger.error("Cannot get scannable!", e);
 			text.setEnabled(false);

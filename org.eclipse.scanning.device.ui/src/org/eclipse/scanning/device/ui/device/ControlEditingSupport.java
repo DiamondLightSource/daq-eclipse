@@ -4,12 +4,15 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.scanning.api.INamedNode;
+import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.swt.widgets.Composite;
 
 class ControlEditingSupport extends EditingSupport {
 	
 	ControlEditingSupport(ColumnViewer viewer) {
 		super(viewer);
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
 	}
 
 	@Override
@@ -30,7 +33,7 @@ class ControlEditingSupport extends EditingSupport {
 
 	@Override
 	protected void setValue(Object element, Object value) {
-		// Not required, the scannable value is set directly by the control.
+		getViewer().refresh(element);
 	}
 
 }

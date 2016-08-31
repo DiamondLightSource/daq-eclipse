@@ -37,6 +37,7 @@ public class ResponderImpl<T extends IdBean> extends AbstractRequestResponseConn
 	    
 		this.creator = res;
 
+		subscriber.setSynchronous(res.isSynchronous());
 		subscriber.addListener(new IBeanListener<T>() {
 			@Override
 			public void beanChangePerformed(BeanEvent<T> evt) {

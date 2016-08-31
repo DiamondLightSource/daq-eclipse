@@ -2,7 +2,6 @@ package org.eclipse.scanning.device.ui.device;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.scan.ui.ControlFactory;
 
@@ -14,7 +13,7 @@ public class ControlContentProvider implements ITreeContentProvider {
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		this.factory = (ControlFactory)newInput;
-		factory.build();
+		if (factory!=null) factory.build();
 	}
 
 	@Override

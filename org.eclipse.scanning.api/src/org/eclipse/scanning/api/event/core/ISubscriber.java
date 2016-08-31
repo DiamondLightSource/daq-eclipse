@@ -84,4 +84,22 @@ public interface ISubscriber<T> extends ITopicConnection {
 	 * @param listener
 	 */
 	public void removeListener(String id, T listener);
+	
+	/**
+	 * Call to set if the events should be ordered and BLOCKING.
+	 * The default is true. When synchronous is true events are 
+	 * despatched in order and the event listener method is waited
+	 * for until it returns before processing more events.
+	 * If it is false the messaging thread is used to directly
+	 * depatch the event meaning that more events may occur and
+	 * be called the last listener has returned.
+	 * @param sync
+	 */
+	public void setSynchronous(boolean sync);
+	
+	/**
+	 * 
+	 * @return true by default.
+	 */
+	public boolean isSynchronous();
 }

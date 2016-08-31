@@ -72,7 +72,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		if (value!=null) {
 			if (isRealisticMove()) {
 				int index = position!=null ? position.getIndex(getName()) : -1;
-				doRealisticMove(value, index, -1);
+				value = doRealisticMove(value, index, -1);
 			}
 			this.position = value;
 		}
