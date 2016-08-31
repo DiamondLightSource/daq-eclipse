@@ -4,6 +4,7 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.ui.services.IDisposable;
 
@@ -41,6 +42,7 @@ class ModelFieldEditingSupport extends EditingSupport implements IDisposable {
 			FieldValue field = (FieldValue)element;
 			field.set(value); // Changes model value, getModel() will now return a model with the value changed.
 			this.modelViewer.refresh();
+			this.modelViewer.setSelection(new StructuredSelection(field));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

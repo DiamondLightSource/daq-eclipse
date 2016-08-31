@@ -77,7 +77,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISelectionProvider {
+class ModelViewer implements ISelectionListener, ISelectionProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModelViewer.class);
 	
@@ -108,7 +108,6 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 	
 
 	public void dispose() {
-		viewer.removeSelectionChangedListener(this);
 		if (PageUtil.getPage()!=null) PageUtil.getPage().removeSelectionListener(this);
 
 		try {
@@ -188,8 +187,11 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 				}
 			}
 		});
-
-		viewer.addSelectionChangedListener(this);
+		
+		if (PageUtil.getPage()!=null) {
+			ISelection selection = PageUtil.getPage().getSelection();
+			processWorkbenchSelection(selection); // If model view is selected later but something it can process is the page selection...
+		}
 		
 		return parent;
 	}
@@ -305,12 +307,10 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		
-		if (viewer.getTable().isDisposed()) {
-			viewer.removeSelectionChangedListener(this);
-			return;
-		}
-		
+        processWorkbenchSelection(selection);	
+	}
+	
+	private void processWorkbenchSelection(ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
 			Object ob = ((IStructuredSelection)selection).getFirstElement();
 			try {
@@ -328,7 +328,7 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 			}
 		}
 	}
-	
+
 	private DeviceInformation<?> getLatestDeviceInformation(DeviceInformation<?> info) {
 		try {
 			// We read the latest, other processes can change the model for the device.
@@ -391,16 +391,6 @@ class ModelViewer implements ISelectionListener, ISelectionChangedListener, ISel
 				}
 			}
 		};
-	}
-
-	
-	@Override
-	public void selectionChanged(SelectionChangedEvent event) {
-		if (event.getSelection() instanceof IStructuredSelection) {
-			IStructuredSelection ss = (IStructuredSelection)event.getSelection();
-			final FieldValue     mf = (FieldValue)ss.getFirstElement();
-			// TODO 
-		}
 	}
 
 	@Override
