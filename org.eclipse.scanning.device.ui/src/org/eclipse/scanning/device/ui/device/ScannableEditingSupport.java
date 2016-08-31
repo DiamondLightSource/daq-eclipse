@@ -8,6 +8,7 @@ import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
@@ -27,12 +28,14 @@ public class ScannableEditingSupport extends EditingSupport {
 	@Override
 	protected CellEditor getCellEditor(Object element) {
 		try {
-			IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
-			return ModelFieldEditorFactory.getScannableEditor((Composite)getViewer().getControl(), cservice);
+			if (element instanceof ControlNode) {
+				IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+				return ModelFieldEditorFactory.getScannableEditor((Composite)getViewer().getControl(), cservice);
+			} 
 		} catch (Exception ne) {
 			logger.error("Cannot get a proper scannable editor!", ne);
-			return new TextCellEditor((Composite)getViewer().getControl());
 		}
+		return new TextCellEditor((Composite)getViewer().getControl());
 	}
 
 	@Override

@@ -170,7 +170,8 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 	 
 		}
 		
-		delegate.firePositionPerformed(-1, new Scalar(getName(), index, position.doubleValue()));
+		delegate.firePositionPerformed(-1, new Scalar(getName(), index, val));
+		
 	}
 	
 	private TerminationPreference terminate;
@@ -245,14 +246,26 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		
 		for (int i = 0; i < positions.size(); i++) {
 			
-			if (positions.get(i).equals(point, false)  && ( 
-				values.get(i) == value || values.get(i).equals(value))) {
+			boolean equalPos  = positions.get(i).equals(point, false);
+			Number other = values.get(i);
+			boolean identical = other == value;
+			boolean equals    = equalsWithinTolerance(other, value, 0.0000000001);
+			if (equalPos  && (identical || equals)) {
 				return;
 			}
 		}
 		
 		throw new Exception("No call to setPosition had value="+value+" and position="+point);
 	}
+	
+	protected static boolean equalsWithinTolerance(Number foo, Number bar, Number tolerance) {
+		if (foo==null || bar==null || tolerance==null) return false;
+		final double a = foo.doubleValue();
+		final double b = bar.doubleValue();
+		final double t = tolerance.doubleValue();	
+		return t>=Math.abs(a-b);
+	}
+
 
 	private String unit = "mm";
 	@Override

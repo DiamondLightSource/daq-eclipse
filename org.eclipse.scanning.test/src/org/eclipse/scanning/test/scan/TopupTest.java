@@ -89,6 +89,9 @@ public class TopupTest {
 		
 		final List<String> moved   = new ArrayList<>();
 		final IScannable<Number>   topup   = connector.getScannable("topup");
+		if (topup instanceof MockScannable) {
+			((MockScannable)topup).setRealisticMove(false);
+		}
 		((IPositionListenable)topup).addPositionListener(new IPositionListener() {
 			@Override
 			public void positionPerformed(PositionEvent evt) {

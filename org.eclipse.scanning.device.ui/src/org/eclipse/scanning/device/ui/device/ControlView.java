@@ -7,8 +7,10 @@ import java.lang.reflect.Method;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -142,10 +144,12 @@ public class ControlView extends ViewPart {
 		
 		IMenuManager    menuManager    = getViewSite().getActionBars().getMenuManager();
 		IToolBarManager toolbarManager = getViewSite().getActionBars().getToolBarManager();
+		MenuManager     rightClick     = new MenuManager();
 		
 		final IAction addGroup = new Action("Add Group", Activator.getImageDescriptor("icons/ui-toolbar--purpleplus.png")) {
 			public void run() {
-                // TODO!
+                INamedNode nnode = ControlFactory.getInstance().insert(ControlFactory.getInstance(), new ControlGroup());
+                edit(nnode, 0);
 			}
 		};
 		
@@ -155,8 +159,7 @@ public class ControlView extends ViewPart {
                 if (!(node instanceof ControlGroup)) node = node.getParent();
                 if (node instanceof ControlGroup) {
                  	INamedNode control = ControlFactory.getInstance().insert(node, new org.eclipse.scanning.api.scan.ui.ControlNode("", 0.1));
-                 	refresh();
-                	viewer.getViewer().editElement(control, 0);
+                 	edit(control, 0);
                 }
 			}
 		};
@@ -176,15 +179,10 @@ public class ControlView extends ViewPart {
 			}
 		};
 		remove.setEnabled(false);
-				
-		toolbarManager.add(addGroup);
-		toolbarManager.add(addNode);
-		toolbarManager.add(remove);
-		toolbarManager.add(new Separator());
-		menuManager.add(addGroup);
-		menuManager.add(addNode);
-		menuManager.add(remove);
-		menuManager.add(new Separator());
+			
+		addGroup("add", toolbarManager, addGroup, addNode, remove);
+		addGroup("add", menuManager, addGroup, addNode, remove);
+		addGroup("add", rightClick, addGroup, addNode, remove);
 
 		
 		IAction expandAll = new Action("Expand All", Activator.getImageDescriptor("icons/expand_all.png")) {
@@ -192,8 +190,6 @@ public class ControlView extends ViewPart {
 				refresh();
 			}
 		};
-		toolbarManager.add(expandAll);
-		menuManager.add(expandAll);
 		
 		IAction showSearch = new Action("Expand All", IAction.AS_CHECK_BOX) {
 			public void run() {
@@ -201,8 +197,10 @@ public class ControlView extends ViewPart {
 			}
 		};
 		showSearch.setImageDescriptor(Activator.getImageDescriptor("icons/magnifier--pencil.png"));
-		toolbarManager.add(showSearch);
-		menuManager.add(showSearch);
+		
+		addGroup("refresh", toolbarManager, expandAll, showSearch);
+		addGroup("refresh", menuManager, expandAll, showSearch);
+		addGroup("refresh", rightClick, expandAll, showSearch);
 	
 		IAction setShowTip = new Action("Show tooltip on edit", IAction.AS_CHECK_BOX) {
 			public void run() {
@@ -210,10 +208,9 @@ public class ControlView extends ViewPart {
 			}
 		};
 		setShowTip.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS));
-		menuManager.add(new Separator());
+		menuManager.add(new Separator("tip"));
 		menuManager.add(setShowTip);
-	
-		
+
 		tviewer.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
@@ -221,8 +218,22 @@ public class ControlView extends ViewPart {
 			}
 		});
 
+		viewer.getViewer().getControl().setMenu(rightClick.createContextMenu(viewer.getViewer().getControl()));
+
 	}
 	
+	private void addGroup(String id, IContributionManager manager, IAction... actions) {
+		manager.add(new Separator(id));
+		for (IAction action : actions) {
+			manager.add(action);
+		}
+	}
+	
+	protected void edit(INamedNode node, int index) {
+     	refresh();
+    	viewer.getViewer().editElement(node, index);
+	}
+
 	protected void refresh() {
 		viewer.getViewer().refresh();
 		viewer.getViewer().expandAll();
