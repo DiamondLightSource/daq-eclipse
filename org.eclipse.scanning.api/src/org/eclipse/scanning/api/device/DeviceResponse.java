@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.device;
 import java.util.Collection;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.ITerminatable;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.event.EventException;
@@ -29,7 +30,7 @@ import org.eclipse.scanning.api.event.scan.DeviceRequest;
  *
  */
 public class DeviceResponse implements IResponseProcess<DeviceRequest> {
-	
+		
 	private IRunnableDeviceService    dservice;
 	private DeviceRequest             bean;
 	private IPublisher<DeviceRequest> publisher;
@@ -74,6 +75,7 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			return error;
 			
 		} catch (Exception ne) {
+			ne.printStackTrace();
 			DeviceRequest error = new DeviceRequest();
 			error.merge(request);
 			error.setErrorMessage(ne.getMessage());
@@ -86,7 +88,8 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 		if (request.getDeviceName()!=null) { // Named device required
             
 			IScannable<Object> device = cservice.getScannable(request.getDeviceName());
-			if (request.getDeviceAction()==DeviceAction.SET && request.getDeviceValue()!=null) {
+			DeviceAction action = request.getDeviceAction();
+			if (action==DeviceAction.SET && request.getDeviceValue()!=null) {
 				device.setPosition(request.getDeviceValue(), request.getPosition());
 				/* This thread is executing to set position, while it does that it
 				 * sends events over AMQ. These events queue up with no higher priority
@@ -96,6 +99,12 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 				 */
 				Thread.sleep(10); 
 				 /* End warning */
+			}
+			
+			
+			if (action!=null && action.isTerminate() && device instanceof ITerminatable) {
+				ITerminatable tdevice = (ITerminatable)device;
+				tdevice.terminate(action.to());
 			}
 			
 			request.setDeviceValue(device.getPosition());
@@ -140,13 +149,17 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			// TODO We should have a much more reflection based way of
 			// calling arbitrary methods. 
 			if (request.getDeviceAction()!=null) {
-				if (request.getDeviceAction()==DeviceAction.VALIDATE) {
+				DeviceAction action = request.getDeviceAction();
+				if (action.isTerminate() && device instanceof ITerminatable) {
+					ITerminatable tdevice = (ITerminatable)device;
+					tdevice.terminate(action.to());
+				} else if (action==DeviceAction.VALIDATE) {
 					device.validate(request.getDeviceModel());
-				} else if (request.getDeviceAction()==DeviceAction.RUN) {
+				} else if (action==DeviceAction.RUN) {
 					device.run(request.getPosition());
-				} else if (request.getDeviceAction()==DeviceAction.ABORT) {
+				} else if (action==DeviceAction.ABORT) {
 					device.abort();
-				} else if (request.getDeviceAction()==DeviceAction.RESET) {
+				} else if (action==DeviceAction.RESET) {
 					device.reset();
 				}
 			}

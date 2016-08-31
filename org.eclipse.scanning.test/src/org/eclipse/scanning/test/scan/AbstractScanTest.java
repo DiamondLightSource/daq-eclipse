@@ -59,9 +59,14 @@ public class AbstractScanTest extends BrokerTest {
 
 		IPositioner     pos    = dservice.createPositioner();
 		pos.setPosition(new MapPosition("x:0:1, y:0:2"));
+
+		IScannable<Number> x = connector.getScannable("x");
+		IScannable<Number> y = connector.getScannable("y");
+		Number xpos = x.getPosition();
+		Number ypos = y.getPosition();
 		
-		assertTrue(connector.getScannable("x").getPosition().equals(1d));
-		assertTrue(connector.getScannable("y").getPosition().equals(2d));
+		assertTrue(Math.round(xpos.doubleValue()) == 1d);
+		assertTrue(Math.round(ypos.doubleValue()) == 2d);
 	}
 	
 	@Test

@@ -1,7 +1,5 @@
 package org.eclipse.scanning.device.ui.scan;
 
-import java.util.Arrays;
-
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;

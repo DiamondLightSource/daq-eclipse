@@ -79,7 +79,10 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		
 		MockNeXusScannable temp= new MockNeXusScannable("T", 295,  3, "K");
 		temp.setRealisticMove(true);
-		temp.setMoveRate(10); // K/s much faster than real but device used in tests.
+		
+		String srate = System.getProperty("org.eclipse.scanning.example.temperatureRate");
+		if (srate==null) srate = "10.0";
+		temp.setMoveRate(Double.valueOf(srate)); // K/s much faster than real but device used in tests.
 		register(temp);
 		for (int i = 0; i < 10; i++) {
 			MockScannable t = new MockScannable("T"+i, 0d,  0, "K");

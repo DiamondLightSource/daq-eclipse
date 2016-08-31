@@ -2,6 +2,7 @@ package org.eclipse.scanning.device.ui.device;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -11,8 +12,8 @@ import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
-import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 	private IScannableDeviceService cservice;
 	
 	public ControlValueLabelProvider() {
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
 		try {
 			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
 		} catch (EventException | URISyntaxException e) {
@@ -64,14 +66,16 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 		if (cservice==null) return "Server Error";
 		try {
 			if (node instanceof ControlNode) {
-				final IScannable<?> scannable = cservice.getScannable(node.getName());
-				return String.valueOf(scannable.getPosition()); // TODO Formatting!
+				final IScannable<Number> scannable = cservice.getScannable(node.getName());
 				
+				final DecimalFormat format = new DecimalFormat(Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
+				return format.format(scannable.getPosition().doubleValue()); 
 			} else {
 				return ""; // Only controls have values...
 			}
 		} catch (Exception ne) {
-			return ne.getMessage();
+			logger.error("Error with value for "+node, ne);
+		    return ne.toString();
 		}
 		
 	}

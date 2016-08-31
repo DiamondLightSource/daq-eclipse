@@ -17,4 +17,9 @@ public class LocationEvent extends EventObject {
 		return (Location)getSource();
 	}
 
+	@Override
+	public String toString() {
+		return "LocationEvent [getSource()=" + getSource() + "]";
+	}
+
 }

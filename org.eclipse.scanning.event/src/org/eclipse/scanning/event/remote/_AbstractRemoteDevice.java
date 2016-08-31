@@ -12,6 +12,7 @@ import org.eclipse.scanning.api.event.scan.DeviceRequest;
 abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 
 	
+	protected String                          name;
 	protected DeviceInformation<M>            info;
 	protected final IRequester<DeviceRequest> requester;
 
@@ -27,6 +28,7 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 		this(uri, eservice);
 		req = requester.post(req);
 		info = (DeviceInformation<M>)req.getDeviceInformation();
+		this.name = info.getName();
 	}
 	
 	public void disconnect() throws EventException {
@@ -34,7 +36,7 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 	}
 
 	public String getName() {
-		update();
+		if (info==null) update();
 		return info.getName();
 	}
 
@@ -49,7 +51,7 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 	}
 
 	public int getLevel() {
-		update();
+		if (info==null) update();
 		return info.getLevel();
 	}
 

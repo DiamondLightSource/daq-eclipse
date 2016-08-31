@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="org.eclipse.scanning.example.feature"
+      id="org.eclipse.scanning.example.ui.feature"
       label="Feature"
       version="1.0.0.qualifier"
-      provider-name="DLS">
+      provider-name="Diamond Light Source">
 
    <description url="http://www.example.com/description">
       [Enter Feature Description here.]
@@ -26,6 +26,13 @@
 
    <plugin
          id="org.eclipse.scanning.example.xcen"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.scanning.example.xcen.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"
