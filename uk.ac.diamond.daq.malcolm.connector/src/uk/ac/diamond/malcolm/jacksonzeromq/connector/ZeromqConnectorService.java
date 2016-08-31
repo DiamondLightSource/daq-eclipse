@@ -15,7 +15,7 @@ import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
-import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.malcolm.message.Type;
 import org.eclipse.scanning.api.points.IPosition;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMessage> {
+public class ZeromqConnectorService implements IMalcolmConnectorService<MalcolmMessage> {
 	
 	static {
 		System.out.println("Started "+IMalcolmConnectorService.class.getSimpleName());
@@ -48,7 +48,7 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 	// Malc Id -> Zeromq Id
 	private Map<Long, byte[]>                         idMap; // TODO Subscribes memory leak into this map at the moment.
 	
-	private Map<Long, Collection<IMalcolmListener<JsonMessage>>>  listeners;
+	private Map<Long, Collection<IMalcolmListener<MalcolmMessage>>>  listeners;
 	private boolean                                   alive;
 	private ObjectMapper                              mapper;
 	
@@ -76,7 +76,7 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 		
 		// Latches to deal with threading, not ideal, overly complex?
 		this.idMap        = new Hashtable<Long, byte[]>(7);
-		this.listeners    = new Hashtable<Long, Collection<IMalcolmListener<JsonMessage>>>(7);
+		this.listeners    = new Hashtable<Long, Collection<IMalcolmListener<MalcolmMessage>>>(7);
 		
 		setAlive(true);
 		
@@ -125,14 +125,14 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 	
 	private void messageRead(ObjectMapper mapper, String received) {
         try {
-        	JsonMessage msg = (JsonMessage)mapper.readValue(received, JsonMessage.class);
+        	MalcolmMessage msg = (MalcolmMessage)mapper.readValue(received, MalcolmMessage.class);
         	
         	if (listeners.containsKey(msg.getId())) {
         		
         		// TODO Do not use the 0MQ socket thread to despatch events?
-        		Collection<IMalcolmListener<JsonMessage>> ls = listeners.get(msg.getId());
-        		IMalcolmListener<JsonMessage>[] snapshot = ls.toArray(new IMalcolmListener[ls.size()]);
-        		for (IMalcolmListener<JsonMessage> l : snapshot) l.eventPerformed(new MalcolmEvent<JsonMessage>(received, msg));
+        		Collection<IMalcolmListener<MalcolmMessage>> ls = listeners.get(msg.getId());
+        		IMalcolmListener<MalcolmMessage>[] snapshot = ls.toArray(new IMalcolmListener[ls.size()]);
+        		for (IMalcolmListener<MalcolmMessage> l : snapshot) l.eventPerformed(new MalcolmEvent<MalcolmMessage>(msg));
         		
         	} else if (idMap.containsKey(msg.getId())) {
         		
@@ -193,14 +193,14 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 	}
 
 	@Override
-	public MessageGenerator<JsonMessage> createDeviceConnection(IMalcolmDevice device) throws MalcolmDeviceException {
+	public MessageGenerator<MalcolmMessage> createDeviceConnection(IMalcolmDevice device) throws MalcolmDeviceException {
 
-		return (MessageGenerator<JsonMessage>) new JsonMessageGenerator(device, this);
+		return (MessageGenerator<MalcolmMessage>) new JsonMessageGenerator(device, this);
 	}
 
 	@Override
-	public MessageGenerator<JsonMessage> createConnection() {
-		return (MessageGenerator<JsonMessage>) new JsonMessageGenerator(this);
+	public MessageGenerator<MalcolmMessage> createConnection() {
+		return (MessageGenerator<MalcolmMessage>) new JsonMessageGenerator(this);
 	}
 
 	public boolean isAlive() {
@@ -226,40 +226,40 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 	}
 
 	@Override
-	public JsonMessage send(IMalcolmDevice device, JsonMessage msg) throws MalcolmDeviceException {
-        JsonMessage reply = this.communicate(device, msg, true);
+	public MalcolmMessage send(IMalcolmDevice device, MalcolmMessage msg) throws MalcolmDeviceException {
+        MalcolmMessage reply = this.communicate(device, msg, true);
 		if (reply!=null && reply.getType().isError()) throw new MalcolmDeviceException(device, reply.getMessage());
         return reply;
 	}
 	
 	@Override
-	public void subscribe(IMalcolmDevice device, JsonMessage msg, IMalcolmListener<JsonMessage> listener) throws MalcolmDeviceException {
+	public void subscribe(IMalcolmDevice device, MalcolmMessage msg, IMalcolmListener<MalcolmMessage> listener) throws MalcolmDeviceException {
 		this.communicate(device, msg, false);
 		
-		Collection<IMalcolmListener<JsonMessage>> ls = listeners.get(msg.getId());
+		Collection<IMalcolmListener<MalcolmMessage>> ls = listeners.get(msg.getId());
 		if (ls == null) {
-			ls = new Vector<IMalcolmListener<JsonMessage>>(3);
+			ls = new Vector<IMalcolmListener<MalcolmMessage>>(3);
 			listeners.put(msg.getId(), ls);
 		}
 		ls.add(listener);
 	}
 
 	@Override
-	public JsonMessage unsubscribe(IMalcolmDevice device, JsonMessage msg, IMalcolmListener<JsonMessage>... removeListeners) throws MalcolmDeviceException {
+	public MalcolmMessage unsubscribe(IMalcolmDevice device, MalcolmMessage msg, IMalcolmListener<MalcolmMessage>... removeListeners) throws MalcolmDeviceException {
 		
 		if (removeListeners==null) { // Kill ever subscribe
-			JsonMessage reply = this.communicate(device, msg, false);
+			MalcolmMessage reply = this.communicate(device, msg, false);
 			listeners.remove(msg.getId());
 			if (reply!=null && reply.getType().isError()) throw new MalcolmDeviceException(device, reply.getMessage());
 			return reply;
 			
 		} else {
-			Collection<IMalcolmListener<JsonMessage>> ls = listeners.get(msg.getId());
+			Collection<IMalcolmListener<MalcolmMessage>> ls = listeners.get(msg.getId());
 			if (ls!=null) {
 				ls.removeAll(Arrays.asList(removeListeners));
 				
 				if (ls.isEmpty()) {
-					JsonMessage reply = this.communicate(device, msg, false);
+					MalcolmMessage reply = this.communicate(device, msg, false);
 					listeners.remove(msg.getId());
 					if (reply!=null && reply.getType().isError()) throw new MalcolmDeviceException(device, reply.getMessage());
 					return reply;
@@ -269,7 +269,7 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 		}
  	}
 	
-	protected JsonMessage communicate(IMalcolmDevice device, JsonMessage msg, boolean block) throws MalcolmDeviceException {
+	protected MalcolmMessage communicate(IMalcolmDevice device, MalcolmMessage msg, boolean block) throws MalcolmDeviceException {
 		
 		if (!isAlive())	throw new MalcolmDeviceException(device, "Cannot send message to "+device.getName()+" we are not connected!");
 		
@@ -287,7 +287,7 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 			    try {
 					if (!isAlive())	throw new MalcolmDeviceException(device, "Cannot send message to "+device.getName()+" we are not connected!");
 					String received = connection.recvStr(); // Blocks until message is returned.
-					return (JsonMessage)mapper.readValue(received, JsonMessage.class);
+					return (MalcolmMessage)mapper.readValue(received, MalcolmMessage.class);
 	
 			    } catch (MalcolmDeviceException mde) {
 					throw mde;
@@ -304,7 +304,7 @@ public class ZeromqConnectorService implements IMalcolmConnectorService<JsonMess
 		
 	}
 
-	private String toString(IMalcolmDevice device, JsonMessage msg) throws MalcolmDeviceException {
+	private String toString(IMalcolmDevice device, MalcolmMessage msg) throws MalcolmDeviceException {
 		try {
 			if (mapper==null) mapper = createJacksonMapper();
 		    return mapper.writeValueAsString(msg);

@@ -1,6 +1,8 @@
-package org.eclipse.scanning.test.epics.custommarshallers;
+package org.eclipse.scanning.connector.epics.custommarshallers;
 
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.epics.pvdata.pv.PVDouble;
+import org.epics.pvdata.pv.PVString;
 import org.epics.pvdata.pv.PVStructure;
 import org.epics.pvmarshaller.marshaller.api.IPVStructureDeserialiser;
 import org.epics.pvmarshaller.marshaller.deserialisers.Deserialiser;
@@ -11,15 +13,15 @@ import org.epics.pvmarshaller.marshaller.deserialisers.Deserialiser;
  * @author Matt Taylor
  *
  */
-public class TestStepModelDeserialiser implements IPVStructureDeserialiser {
+public class StepModelDeserialiser implements IPVStructureDeserialiser {
 
 	@Override
 	public Object fromPVStructure(Deserialiser deserialiser, PVStructure pvStructure) throws Exception {
 		StepModel stepModel = new StepModel();
-		stepModel.setName(pvStructure.getStringField("name").get());
-		stepModel.setStart(pvStructure.getDoubleField("start").get());
-		stepModel.setStop(pvStructure.getDoubleField("stop").get());
-		stepModel.setStep(pvStructure.getDoubleField("step").get());
+		stepModel.setName(pvStructure.getSubField(PVString.class, "name").get());
+		stepModel.setStart(pvStructure.getSubField(PVDouble.class, "start").get());
+		stepModel.setStop(pvStructure.getSubField(PVDouble.class, "stop").get());
+		stepModel.setStep(pvStructure.getSubField(PVDouble.class, "step").get());
 		return stepModel;
 	}
 }

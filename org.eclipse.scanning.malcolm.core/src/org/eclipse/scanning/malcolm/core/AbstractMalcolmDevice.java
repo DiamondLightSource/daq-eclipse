@@ -13,7 +13,7 @@ import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.malcolm.models.MalcolmModel;
 import org.eclipse.scanning.api.malcolm.models.OneDetectorTestMappingModel;
 import org.eclipse.scanning.api.malcolm.models.TwoDetectorTestMappingModel;
@@ -37,9 +37,9 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 	protected MalcolmEventDelegate eventDelegate;
 	
 	// Connection to serilization to talk to the remote object
-	protected MessageGenerator<JsonMessage> connectionDelegate;
+	protected MessageGenerator<MalcolmMessage> connectionDelegate;
 	
-	public AbstractMalcolmDevice(IMalcolmConnectorService<JsonMessage> connector) throws MalcolmDeviceException {
+	public AbstractMalcolmDevice(IMalcolmConnectorService<MalcolmMessage> connector) throws MalcolmDeviceException {
    		this.connectionDelegate = connector.createDeviceConnection(this);
    		this.eventDelegate = new MalcolmEventDelegate(getName(), connector);
 	}

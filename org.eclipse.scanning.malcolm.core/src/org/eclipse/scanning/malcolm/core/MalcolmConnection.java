@@ -12,11 +12,11 @@ import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
-import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 
 class MalcolmConnection implements IMalcolmConnection {
 
-	private IMalcolmConnectorService<JsonMessage> connector;	
+	private IMalcolmConnectorService<MalcolmMessage> connector;	
 	private Map<String, IMalcolmDevice<?>>        devices;
 
 	MalcolmConnection(URI malcolmUri) throws MalcolmDeviceException {
@@ -29,7 +29,7 @@ class MalcolmConnection implements IMalcolmConnection {
 	 * @param malcolmUri - 
 	 * @throws MalcolmDeviceException
 	 */
-	MalcolmConnection(URI malcolmUri, IMalcolmConnectorService<JsonMessage> connector) throws MalcolmDeviceException {
+	MalcolmConnection(URI malcolmUri, IMalcolmConnectorService<MalcolmMessage> connector) throws MalcolmDeviceException {
 		
 		this.connector = connector; // Usually null unless we are in testing mode.
 		this.devices   = new ConcurrentHashMap<String, IMalcolmDevice<?>>(4);
@@ -44,10 +44,10 @@ class MalcolmConnection implements IMalcolmConnection {
 		}
 	}
 
-	private static IMalcolmConnectorService<JsonMessage> createConnectorService() throws MalcolmDeviceException {
+	private static IMalcolmConnectorService<MalcolmMessage> createConnectorService() throws MalcolmDeviceException {
 		
 		try {
-			Collection<IMalcolmConnectorService<JsonMessage>> services = MalcolmActivator.getConnectionServices();
+			Collection<IMalcolmConnectorService<MalcolmMessage>> services = MalcolmActivator.getConnectionServices();
 			if (services.size()>1) throw new Exception("We have more than one connector service and not information to choose between them!"); // TODO
 	
 			return services.iterator().next();
@@ -59,9 +59,9 @@ class MalcolmConnection implements IMalcolmConnection {
 	@Override
 	public Collection<String> getDeviceNames() throws MalcolmDeviceException {
 		
-		MessageGenerator<JsonMessage> connection = connector.createConnection();
-		JsonMessage request = connection.createGetMessage("DirectoryService.attributes.instancesDevice.value");
-		JsonMessage reply   = connector.send(null, request);
+		MessageGenerator<MalcolmMessage> connection = connector.createConnection();
+		MalcolmMessage request = connection.createGetMessage("DirectoryService.attributes.instancesDevice.value");
+		MalcolmMessage reply   = connector.send(null, request);
 		final Collection<String> names = (Collection<String>)reply.getValue();
 		return names;
 	}
@@ -98,7 +98,7 @@ class MalcolmConnection implements IMalcolmConnection {
 		connector.disconnect();
 	}
 
-	IMalcolmConnectorService<JsonMessage> getConnector() {
+	IMalcolmConnectorService<MalcolmMessage> getConnector() {
 		return connector;
 	}
 }

@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.epics.custommarshallers;
+package org.eclipse.scanning.connector.epics.custommarshallers;
 
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.epics.pvdata.factory.FieldFactory;
@@ -18,7 +18,7 @@ import org.epics.pvmarshaller.marshaller.serialisers.Serialiser;
  * @author Matt Taylor
  *
  */
-public class TestGridModelSerialiser implements IPVStructureSerialiser<GridModel> {
+public class GridModelSerialiser implements IPVStructureSerialiser<GridModel> {
 
 	@Override
 	public Structure buildStructure(Serialiser serialiser, GridModel model) throws Exception {
@@ -40,15 +40,15 @@ public class TestGridModelSerialiser implements IPVStructureSerialiser<GridModel
 	public void populatePVStructure(Serialiser serialiser, GridModel model, PVStructure pvStructure) throws Exception {
 		PVString name = pvStructure.getStringField("name");
 		name.put(model.getName());	
-		PVString fastAxisName = pvStructure.getStringField("fastAxisName");
+		PVString fastAxisName = pvStructure.getSubField(PVString.class, "fastAxisName");
 		fastAxisName.put(model.getFastAxisName());		
-		PVString slowAxisName = pvStructure.getStringField("slowAxisName");
+		PVString slowAxisName = pvStructure.getSubField(PVString.class, "slowAxisName");
 		slowAxisName.put(model.getSlowAxisName());		
-		PVInt fastAxisPoints = pvStructure.getIntField("fastAxisPoints");
+		PVInt fastAxisPoints = pvStructure.getSubField(PVInt.class, "fastAxisPoints");
 		fastAxisPoints.put(model.getFastAxisPoints());	
-		PVInt slowAxisPoints = pvStructure.getIntField("slowAxisPoints");
+		PVInt slowAxisPoints = pvStructure.getSubField(PVInt.class, "slowAxisPoints");
 		slowAxisPoints.put(model.getSlowAxisPoints());
-		PVBoolean snake = pvStructure.getBooleanField("snake");
+		PVBoolean snake = pvStructure.getSubField(PVBoolean.class, "snake");
 		snake.put(model.isSnake());
 	}
 	

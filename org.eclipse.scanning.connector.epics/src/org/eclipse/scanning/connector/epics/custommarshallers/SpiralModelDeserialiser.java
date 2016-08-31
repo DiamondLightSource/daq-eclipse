@@ -1,7 +1,9 @@
-package org.eclipse.scanning.test.epics.custommarshallers;
+package org.eclipse.scanning.connector.epics.custommarshallers;
 
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.SpiralModel;
+import org.epics.pvdata.pv.PVDouble;
+import org.epics.pvdata.pv.PVString;
 import org.epics.pvdata.pv.PVStructure;
 import org.epics.pvmarshaller.marshaller.api.IPVStructureDeserialiser;
 import org.epics.pvmarshaller.marshaller.deserialisers.Deserialiser;
@@ -12,16 +14,16 @@ import org.epics.pvmarshaller.marshaller.deserialisers.Deserialiser;
  * @author Matt Taylor
  *
  */
-public class TestSpiralModelDeserialiser implements IPVStructureDeserialiser {
+public class SpiralModelDeserialiser implements IPVStructureDeserialiser {
 
 	@Override
 	public Object fromPVStructure(Deserialiser deserialiser, PVStructure pvStructure) throws Exception {
 		SpiralModel spiralModel = new SpiralModel();
-		spiralModel.setName(pvStructure.getStringField("name").get());
+		spiralModel.setName(pvStructure.getSubField(PVString.class, "name").get());
 		spiralModel.setBoundingBox(deserialiser.fromPVStructure(pvStructure.getStructureField("boundingBox"), BoundingBox.class));
-		spiralModel.setFastAxisName(pvStructure.getStringField("fastAxisName").get());
-		spiralModel.setSlowAxisName(pvStructure.getStringField("slowAxisName").get());
-		spiralModel.setScale(pvStructure.getDoubleField("scale").get());
+		spiralModel.setFastAxisName(pvStructure.getSubField(PVString.class, "fastAxisName").get());
+		spiralModel.setSlowAxisName(pvStructure.getSubField(PVString.class, "slowAxisName").get());
+		spiralModel.setScale(pvStructure.getSubField(PVDouble.class, "scale").get());
 		return spiralModel;
 	}
 }

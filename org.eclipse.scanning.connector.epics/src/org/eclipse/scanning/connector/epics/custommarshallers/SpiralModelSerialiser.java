@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.epics.custommarshallers;
+package org.eclipse.scanning.connector.epics.custommarshallers;
 
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.epics.pvdata.factory.FieldFactory;
@@ -17,7 +17,7 @@ import org.epics.pvmarshaller.marshaller.serialisers.Serialiser;
  * @author Matt Taylor
  *
  */
-public class TestSpiralModelSerialiser implements IPVStructureSerialiser<SpiralModel> {
+public class SpiralModelSerialiser implements IPVStructureSerialiser<SpiralModel> {
 
 	@Override
 	public Structure buildStructure(Serialiser serialiser, SpiralModel model) throws Exception {
@@ -38,13 +38,13 @@ public class TestSpiralModelSerialiser implements IPVStructureSerialiser<SpiralM
 
 	@Override
 	public void populatePVStructure(Serialiser serialiser, SpiralModel model, PVStructure pvStructure) throws Exception {
-		PVString name = pvStructure.getStringField("name");
+		PVString name = pvStructure.getSubField(PVString.class, "name");
 		name.put(model.getName());	
-		PVString fastAxisName = pvStructure.getStringField("fastAxisName");
+		PVString fastAxisName = pvStructure.getSubField(PVString.class, "fastAxisName");
 		fastAxisName.put(model.getFastAxisName());		
-		PVString slowAxisName = pvStructure.getStringField("slowAxisName");
+		PVString slowAxisName = pvStructure.getSubField(PVString.class, "slowAxisName");
 		slowAxisName.put(model.getSlowAxisName());		
-		PVDouble scale = pvStructure.getDoubleField("scale");
+		PVDouble scale = pvStructure.getSubField(PVDouble.class, "scale");
 		scale.put(model.getScale());				
 		PVStructure bbStructure = pvStructure.getStructureField("boundingBox");
 		serialiser.setValues(model.getBoundingBox(), bbStructure);

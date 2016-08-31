@@ -3,7 +3,7 @@ package org.eclipse.scanning.api.malcolm.message;
 import java.util.Map;
 
 /**
- * Class used to define JSON object which 
+ * Class used to define malcolm object which 
  * sends information to the server.
  * 
  * @author Matthew Gerring
@@ -14,7 +14,7 @@ import java.util.Map;
  * Some methods may not be required anymore.
  * 
  */
-public class JsonMessage {
+public class MalcolmMessage {
 
 	private Type   type;
 	
@@ -69,7 +69,7 @@ public class JsonMessage {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		JsonMessage other = (JsonMessage) obj;
+		MalcolmMessage other = (MalcolmMessage) obj;
 		if (arguments == null) {
 			if (other.arguments != null)
 				return false;
