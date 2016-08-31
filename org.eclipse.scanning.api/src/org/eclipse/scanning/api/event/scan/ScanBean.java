@@ -219,6 +219,7 @@ public final class ScanBean extends StatusBean {
 	 * @return whether the scan has just ended, i.e. transitioned from a RUNNING/RESUMED state to a post-running state.
 	 */
 	public boolean scanEnd() {
+		if (previousStatus == null || status == null) return false; 
 		return previousStatus.isRunning() && status.isFinal();
 	}
 
