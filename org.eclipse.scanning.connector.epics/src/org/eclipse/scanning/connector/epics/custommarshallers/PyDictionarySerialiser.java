@@ -18,8 +18,8 @@ import org.python.core.PyString;
 import org.python.core.PyUnicode;
 
 /**
- * Custom serialiser for Circular ROI.
- * TODO - make this non 'test' and finalise custom serialisation strategy for ROIs 
+ * Custom serialiser for PyDictionary.
+ * TODO - make this non 'test' and finalise custom serialisation strategy for PyDictionaries 
  * @author Matt Taylor
  *
  */
