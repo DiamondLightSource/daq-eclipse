@@ -5,6 +5,7 @@ import java.awt.PointerInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.richbeans.widgets.decorator.BoundsDecorator;
 import org.eclipse.richbeans.widgets.decorator.FloatDecorator;
@@ -48,16 +49,15 @@ public class ControlCellEditor extends CellEditor implements IPositionListener {
 	
 	// UI
 	private BoundsDecorator decorator, incDeco;
-	private Text    text;
-	private ToolTip tip;
-	private Button  stop;
+	private Text            text;
+	private ToolTip         tip;
+	private Button          stop;
+	private Button          up, down;
 
 	// Hardware
 	private IScannableDeviceService cservice;
 	private IScannable<Number>      scannable; // Transient depending on which scannable we are editing.	
 	private ControlValueJob         job;
-
-
 
 	public ControlCellEditor(Composite parent) {
 		super(parent);
@@ -77,7 +77,6 @@ public class ControlCellEditor extends CellEditor implements IPositionListener {
         GridUtils.removeMargins(content);
  
 		this.text = new Text(content, SWT.LEFT);
-		job = new ControlValueJob(text);
         text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
         this.decorator = new FloatDecorator(text, Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
         this.tip = new ToolTip(text.getShell(), SWT.BALLOON);
@@ -99,19 +98,30 @@ public class ControlCellEditor extends CellEditor implements IPositionListener {
         buttons.setLayout(new GridLayout(1, false));
         GridUtils.removeMargins(buttons);
         
-        final Button up = new Button(buttons, SWT.UP);
+        this.up = new Button(buttons, SWT.UP);
         up.setBackground(content.getDisplay().getSystemColor(SWT.COLOR_WHITE));
         layout = new GridData(SWT.FILL, SWT.TOP, false, false);
         layout.heightHint = 15;
         up.setLayoutData(layout);
         up.setImage(Activator.getImageDescriptor("icons/up.png").createImage());
         up.setToolTipText("Nudge node up by increment amount");
+        up.addSelectionListener(new SelectionAdapter() {
+        	public void widgetSelected(SelectionEvent e) {
+        		nudge(incDeco.getValue());
+        	}
+        });
      
-        final Button down = new Button(buttons, SWT.DOWN);
+        this.down = new Button(buttons, SWT.DOWN);
         down.setBackground(content.getDisplay().getSystemColor(SWT.COLOR_WHITE));
         down.setLayoutData(layout);
         down.setImage(Activator.getImageDescriptor("icons/down.png").createImage());
         down.setToolTipText("Nudge node down by increment amount");
+        down.addSelectionListener(new SelectionAdapter() {
+        	public void widgetSelected(SelectionEvent e) {
+        		if (incDeco.getValue()==null) return;
+        		nudge(-1*incDeco.getValue().doubleValue());
+        	}
+        });
 
         Text increment = new Text(content, SWT.RIGHT);
         layout = new GridData(SWT.FILL, SWT.CENTER, false, false);
@@ -147,7 +157,24 @@ public class ControlCellEditor extends CellEditor implements IPositionListener {
         	}
         });
 
+		job = new ControlValueJob(this);
+
 		return content;
+	}
+
+	protected void nudge(Number value) {
+		try {
+			final Number pos = scannable.getPosition();
+			if (pos == null) return;
+			double loc = pos.doubleValue()+value.doubleValue();
+			if (!decorator.check(loc)) {
+				MessageDialog.openError(text.getShell(), "Invalid Value '"+decorator.format(loc)+"'", "The value of '"+decorator.format(loc)+"' is out of bounds for device '"+scannable.getName()+"'");
+			    return;
+			}
+			setPosition(loc);
+		} catch (Exception e) {
+			logger.error("Cannot nudge value!", e);
+		}
 	}
 
 	protected void setPosition(Number value) {
@@ -158,14 +185,19 @@ public class ControlCellEditor extends CellEditor implements IPositionListener {
 	 * Not the SWT thread, events come from the device.
 	 */
 	@Override
+	public void positionChanged(PositionEvent evt) throws ScanningException {
+		setPosition(evt, false);
+	}
+	
+	@Override
 	public void positionPerformed(PositionEvent evt) throws ScanningException {
-
-		final double intermeadiatePos = evt.getPosition().getValue(scannable.getName());
-		text.getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				decorator.setValue(intermeadiatePos); // This call renders the text and bounds correctly.
-			}
-		});
+		setPosition(evt, true);
+	}
+	
+	private void setPosition(PositionEvent evt, boolean enabled) {
+		final double pos = evt.getPosition().getValue(scannable.getName());
+		setSafeValue(pos);
+		setSafeEnabled(enabled);
 	}
 
 	@Override
@@ -223,6 +255,56 @@ public class ControlCellEditor extends CellEditor implements IPositionListener {
 			text.setEnabled(false);
 			text.setText(e.toString());
 		}
+	}
+
+
+	/**
+	 * Thread safe
+	 * @param message
+	 */
+	protected void setSafeValue(double intermeadiatePos) {
+		asynch(new Runnable() {
+			public void run() {
+				decorator.setValue(intermeadiatePos); // This call renders the text and bounds correctly.
+			}
+		});
+	}
+	
+	/**
+	 * Thread safe
+	 * @param message
+	 */
+	protected void setSafeText(final String message) {
+		asynch(new Runnable() {
+			public void run() {
+				text.setText(message);
+			}
+		});
+	}
+
+	/**
+	 * Thread safe.
+	 * @param b
+	 */
+	protected void setSafeEnabled(final boolean b) {
+		asynch(new Runnable() {
+			public void run() {
+				text.setEditable(b);
+				up.setEnabled(b);
+				down.setEnabled(b);
+			    text.setBackground(text.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+				if (b) {
+				    text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+				} else {
+				    text.setForeground(text.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
+				}
+			}
+		});
+	}
+
+	private void asynch(Runnable runnable) {
+		if (text==null || text.isDisposed()) return;
+		text.getDisplay().asyncExec(runnable);
 	}
 
 }

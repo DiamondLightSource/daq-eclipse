@@ -64,6 +64,7 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		
 		MockScannable x = new MockScannable("x", 0d,  3, "µm");
 		x.setRealisticMove(true);
+		x.setRequireSleep(false);
 		x.setMoveRate(10000); // µm/s or 1 cm/s
 		register(x);
 		

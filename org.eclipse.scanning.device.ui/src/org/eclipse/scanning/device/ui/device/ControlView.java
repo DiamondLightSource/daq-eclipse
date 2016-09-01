@@ -3,6 +3,10 @@ package org.eclipse.scanning.device.ui.device;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.EventListener;
+import java.util.Iterator;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
@@ -26,8 +30,16 @@ import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.ISpringParser;
+import org.eclipse.scanning.api.event.EventConstants;
+import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.scan.event.ILocationListener;
+import org.eclipse.scanning.api.scan.event.Location.LocationType;
+import org.eclipse.scanning.api.scan.event.LocationEvent;
 import org.eclipse.scanning.api.scan.ui.ControlFactory;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
+import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
@@ -35,6 +47,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.dialogs.FilteredTree;
 import org.eclipse.ui.part.ViewPart;
@@ -48,6 +61,8 @@ public class ControlView extends ViewPart {
 	public static final String ID = "org.eclipse.scanning.device.ui.device.ControlView"; //$NON-NLS-1$
 	
 	private FilteredTree viewer;
+
+	private ISubscriber<EventListener> subscriber;
 
 	public ControlView() {
 		
@@ -106,6 +121,52 @@ public class ControlView extends ViewPart {
 		getSite().setSelectionProvider(tviewer);
 		createActions(tviewer);
 		setSearchVisible(false);
+		
+		try {
+		    registerAll();
+		} catch (Exception ne) {
+			logger.error("Cannot listen to motor values changing...");
+		}
+
+	}
+
+	/**
+	 * Clears all the current listeners and registers all the new ones.
+	 * 
+	 * @throws EventException
+	 * @throws URISyntaxException 
+	 */
+	private void registerAll() throws EventException, URISyntaxException {
+		
+		if (subscriber!=null) subscriber.disconnect();
+		
+	    IEventService eservice  = ServiceHolder.getEventService();
+	    this.subscriber = eservice.createSubscriber(new URI(Activator.getJmsUri()), EventConstants.POSITION_TOPIC);
+
+	    Iterator<INamedNode> it = ControlFactory.getInstance().iterator();
+	    while(it.hasNext()) register(it.next());
+	}
+
+	private void register(final INamedNode node) throws EventException {
+		if (node instanceof ControlNode) {
+			subscriber.addListener(node.getName(), new ILocationListener() {
+				@Override
+				public void locationPerformed(LocationEvent evt) {
+					if (evt.getLocation().getType()==LocationType.positionChanged) {
+						Display.getDefault().asyncExec(new Runnable() {
+							public void run() {
+								if (viewer.getViewer().isCellEditorActive()) {
+									final Object sel = viewer.getViewer().getStructuredSelection().getFirstElement(); // editing object
+									if (sel!=node) viewer.getViewer().update(node, new String[]{"Value"});
+								} else {
+								    viewer.getViewer().refresh(node);
+								}
+							}
+						});
+					}
+				}
+			});
+		}
 	}
 
 	private void setSearchVisible(boolean b) {
@@ -174,6 +235,7 @@ public class ControlView extends ViewPart {
                 	boolean ok = MessageDialog.openQuestion(getViewSite().getShell(), "Confirm Delete", "The item '"+node.getName()+"' contains chilren.\n\nAre you sure you would like to delete it?");
                 	if (ok) ControlFactory.getInstance().delete(node);
                 }
+                subscriber.removeListeners(node.getName());
                 viewer.getViewer().refresh();
                 setSelection(parent);
 			}
@@ -187,11 +249,16 @@ public class ControlView extends ViewPart {
 		
 		IAction expandAll = new Action("Expand All", Activator.getImageDescriptor("icons/expand_all.png")) {
 			public void run() {
+				try {
+					registerAll();
+				} catch (Exception e) {
+					logger.error("Unable to reconnect all listeners!", e);
+				}
 				refresh();
 			}
 		};
 		
-		IAction showSearch = new Action("Expand All", IAction.AS_CHECK_BOX) {
+		IAction showSearch = new Action("Show search", IAction.AS_CHECK_BOX) {
 			public void run() {
 				setSearchVisible(isChecked());
 			}
@@ -260,6 +327,11 @@ public class ControlView extends ViewPart {
 	@Override
 	public void dispose() {
 		super.dispose();
+		try {
+			subscriber.disconnect();
+		} catch (EventException e) {
+			logger.error("Unable to disconnect subscriber in "+getClass().getSimpleName());
+		}
 	}
 
 

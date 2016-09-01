@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -55,6 +56,8 @@ public class ControlFactory extends AbstractControl {
 		nnodes[nnodes.length-1] = child;
 		parent.setChildren(nnodes);
 		
+		content.add(child);
+		
 		return child;
 	}
 
@@ -71,7 +74,10 @@ public class ControlFactory extends AbstractControl {
 	public boolean isEmpty() {
 		return content.isEmpty();
 	}
-	
+	public Iterator<INamedNode> iterator() {
+		return content.iterator();
+	}
+
 	/**
 	 * A call to this method tells the factory to validate by reading
 	 * the groups and controls created in spring. 
@@ -81,7 +87,7 @@ public class ControlFactory extends AbstractControl {
 	 */
 	public void build() {
 		
-		if (getChildren()!=null) throw new IllegalArgumentException("The factory is already build after spring, it cannot be built again. Use insert(...) to add controls!");
+		if (getChildren()!=null) throw new IllegalArgumentException("The factory is already built, it cannot be built again. Use insert(...) to add controls!");
 		
 		final List<INamedNode> children = new ArrayList<>();
 		// Parse all names into a map, if names are repeated, throw 
