@@ -267,7 +267,11 @@ public class ControlView extends ViewPart {
                 }
                 subscriber.removeListeners(node.getName());
                 viewer.getViewer().refresh();
-                setSelection(parent);
+                if (parent.hasChildren()) {
+                	setSelection(parent.getChildren()[parent.getChildren().length-1]);
+                } else {
+                    setSelection(parent);
+                }
 			}
 		};
 		remove.setEnabled(false);

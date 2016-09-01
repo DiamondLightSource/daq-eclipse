@@ -65,8 +65,6 @@ public class ControlTree extends AbstractControl {
 		nnodes[nnodes.length-1] = child;
 		parent.setChildren(nnodes);
 		
-		content.put(child.getName(), child);
-		
 		return child;
 	}
 
@@ -155,6 +153,8 @@ public class ControlTree extends AbstractControl {
 	}
 	
 	private static void write(final File file, final String text) throws Exception {
+		
+		file.getParentFile().mkdirs();
 		BufferedWriter b = null;
 		try {
 			final OutputStream out = new FileOutputStream(file);
@@ -215,6 +215,11 @@ public class ControlTree extends AbstractControl {
 		} else if (!content.equals(other.content))
 			return false;
 		return true;
+	}
+
+	public void setName(INamedNode node, String name) {
+		node.setName(name);
+		content.put(name, node);
 	}
 
 }
