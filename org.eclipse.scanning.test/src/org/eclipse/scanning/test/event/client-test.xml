@@ -14,12 +14,12 @@
 	Testing/example only section config do not copy to production. 
 	$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 	-->
-
-	<!-- Create some live controls for specific devices. -->
+	
 	<bean id="Control_Factory" class="org.eclipse.scanning.api.scan.ui.ControlTree" init-method="globalize">
 		<property name="name" value="Control Factory" />
 	</bean>
-	
+
+	<!-- Create some live controls for specific devices. -->
 	<bean id="Translations" class="org.eclipse.scanning.api.scan.ui.ControlGroup" init-method="add">
 		<property name="name" value="Translations" />
 		<property name="controls">

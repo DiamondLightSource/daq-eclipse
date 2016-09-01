@@ -9,7 +9,7 @@ public class ControlGroup extends AbstractControl implements INameable {
 	private List<ControlNode> controls;
 	
 	public ControlGroup() {
-		ControlFactory.getInstance().add(this);
+		
 	}
 
 	public List<ControlNode> getControls() {
@@ -19,7 +19,7 @@ public class ControlGroup extends AbstractControl implements INameable {
 	public void setControls(List<ControlNode> controls) {
 		this.controls = controls;
 		for (ControlNode scannableControl : controls) {
-			scannableControl.setParent(this);
+			scannableControl.setParentName(getName());
 		}
 		this.setChildren(controls.toArray(new ControlNode[controls.size()]));
 	}
