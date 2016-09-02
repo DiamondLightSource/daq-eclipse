@@ -143,6 +143,7 @@ public class ScanPointGeneratorFactory {
     
     private static File find(File loc, String name) {
     	
+    	if (loc==null) return null;
     	if (!loc.exists()) return null;
     	File find = new File(loc, name);
         if (find.exists()) return find;
