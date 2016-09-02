@@ -58,7 +58,69 @@ import org.slf4j.LoggerFactory;
 /**
  * A Widget to edit a tree of scannables.
  * 
- * @author fcp94556
+ * <p>1. The widget requires a ControlTree to define what the user can edit.
+ * This may come in from XML or JSON or code.
+ * <p>2. The widget must be given a mode, such as where it changes values of
+ * scannables directly or allows the user to enter values which do not change
+ * hardware straight away.
+ * <p>3. ControlTree.toPosition() may be used to create an IPosition representing
+ * the values when the user just set up. So ControlTreeViewer.getControlTree().toPosition()
+ * for instance.
+ * 
+ * <p>
+ * <p>Example XML (@see {@link ControlTreeViewer} or client-fragment.xml for XML example)
+ 
+<pre> 
+ 
+	<!-- Create some live controls for specific devices. -->
+	<bean id="Control_Factory" class="org.eclipse.scanning.api.scan.ui.ControlTree" init-method="globalize">
+		<property name="name" value="Control Factory" />
+	</bean>
+	
+	<bean id="Translations" class="org.eclipse.scanning.api.scan.ui.ControlGroup" init-method="add">
+		<property name="name" value="Translations" />
+		<property name="controls">
+			<list>
+				<ref bean="x" />
+				<ref bean="y" />
+				<ref bean="z" />
+			</list>
+		</property>
+	</bean>
+	<bean id="ExperimentalConditions" class="org.eclipse.scanning.api.scan.ui.ControlGroup" init-method="add">
+		<property name="name" value="Experimental Conditions" />
+		<property name="controls">
+			<list>
+				<ref bean="T" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="x" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add" >
+		<property name="displayName" value="Stage X" />
+		<property name="scannableName" value="x" />
+		<property name="increment" value="0.1" />
+	</bean>
+	<bean id="y" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add">
+		<property name="displayName" value="Stage Y" />
+		<property name="scannableName" value="y" />
+		<property name="increment" value="0.1" />
+	</bean>
+	<bean id="z" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add">
+		<property name="displayName" value="Stage Z" />
+		<property name="scannableName" value="z" />
+		<property name="increment" value="0.1" />
+	</bean>
+	<bean id="T" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add">
+		<property name="displayName" value="Temperature" />
+		<property name="scannableName" value="T" />
+		<property name="increment" value="1" />
+	</bean>
+
+</pre>
+
+ * 
+ * @author Matthew Gerring
  *
  */
 public class ControlTreeViewer {
@@ -66,33 +128,43 @@ public class ControlTreeViewer {
 	private static final Logger logger = LoggerFactory.getLogger(ControlTreeViewer.class);
 
 	// Services
-	private IScannableDeviceService cservice;
+	private final IScannableDeviceService cservice;
 
 	// Events
 	private ISubscriber<EventListener> subscriber;
 	
 	// UI
 	private FilteredTree viewer;
+	
+	// Data
+	private ControlTree       defaultTree;
+	private final ControlViewerMode controlViewerMode;
 
-	private ControlTree defaultTree;
 	
 	/**
 	 * 
 	 * @param cservice
+	 * @param linkHardware true to set values to the hardware directly, false to take values and then keep them locally.
 	 */
-	public ControlTreeViewer(IScannableDeviceService cservice) {
-		this(null, cservice);
+	public ControlTreeViewer(IScannableDeviceService cservice, ControlViewerMode mode) {
+		this(null, cservice, mode);
 	}
 
     /**
-     * 
+     * Create a ControlTreeViewer linked to hardware with the default tree specified.
      * @param defaultTree may be null
      * @param cservice
      */
 	public ControlTreeViewer(ControlTree defaultTree, IScannableDeviceService cservice) {
-		this.cservice = cservice;
-		this.defaultTree = defaultTree;
+		this(defaultTree, cservice, ControlViewerMode.DIRECT);
 	}
+	
+	public ControlTreeViewer(ControlTree defaultTree, IScannableDeviceService cservice, ControlViewerMode mode) {
+		this.cservice          = cservice;
+		this.defaultTree       = defaultTree;
+		this.controlViewerMode = mode;
+	}
+
 	
 	/**
 	 * Creates an editor for the tree passed in
@@ -162,13 +234,13 @@ public class ControlTreeViewer {
 				return node.getDisplayName();
 			}
 		});
-		var.setEditingSupport(new ScannableEditingSupport(this));
+		var.setEditingSupport(new NameEditingSupport(this));
 		
 		var   = new TreeViewerColumn(viewer, SWT.LEFT, 1);
 		var.getColumn().setText("Value");
 		var.getColumn().setWidth(300);
-		var.setLabelProvider(new DelegatingStyledCellLabelProvider(new ControlValueLabelProvider(cservice)));
-		var.setEditingSupport(new ControlEditingSupport(viewer, cservice));
+		var.setLabelProvider(new DelegatingStyledCellLabelProvider(new ControlValueLabelProvider(cservice, controlViewerMode)));
+		var.setEditingSupport(new ControlEditingSupport(viewer, cservice, controlViewerMode));
 
 	}
 
@@ -264,7 +336,11 @@ public class ControlTreeViewer {
 			public void run() {
 				boolean ok = MessageDialog.openConfirm(viewer.getShell(), "Confirm Reset Controls", "Are you sure that you want to reset all controls to default?");
 				if (!ok) return;
-				viewer.getViewer().setInput(defaultTree);
+				try {
+					viewer.getViewer().setInput(ControlTreeViewer.this.clone(defaultTree));
+				} catch (Exception e) {
+					logger.error("Unable to set input back to default!", e);
+				}
 				expandAll.run();
 			}
 		};
@@ -276,6 +352,7 @@ public class ControlTreeViewer {
 			}
 		};
 		setShowTip.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS));
+		setShowTip.setImageDescriptor(Activator.getImageDescriptor("icons/balloon.png"));
 		addGroups("tip", mans, setShowTip);
 
 		tviewer.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -413,6 +490,8 @@ public class ControlTreeViewer {
 	 */
 	private void registerAll() throws EventException, URISyntaxException {
 		
+		if (!controlViewerMode.isDirectlyConnected()) return; // Nothing to monitor.
+		
 		if (subscriber!=null) subscriber.disconnect();
 		
 	    IEventService eservice  = ServiceHolder.getEventService();
@@ -423,6 +502,8 @@ public class ControlTreeViewer {
 	}
 
 	private void register(final INamedNode node) throws EventException {
+		
+		if (!controlViewerMode.isDirectlyConnected()) return; // Nothing to monitor.
 		if (node instanceof ControlNode) {
 			subscriber.addListener(node.getName(), new ILocationListener() {
 				@Override
