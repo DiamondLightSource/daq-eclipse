@@ -87,7 +87,8 @@ class LineIterator extends AbstractScanPointIterator {
 	public IPosition next() {
 		
         if (model instanceof CollatedStepModel) { // For AnnotatedScanTest
-			Scalar point = (Scalar) pyIterator.next();
+			@SuppressWarnings("unchecked")
+			Scalar<Double> point = (Scalar<Double>) pyIterator.next();
 			value = point.getValue();
         	final MapPosition mp = new MapPosition();
         	for (String name : ((CollatedStepModel)model).getNames()) {
