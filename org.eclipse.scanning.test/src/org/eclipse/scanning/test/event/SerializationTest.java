@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.event;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -16,6 +17,7 @@ import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.dawnsci.json.MarshallerService;
+import org.eclipse.scanning.api.ISpringParser;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -29,8 +31,10 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.server.application.PseudoSpringParser;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.junit.Before;
 import org.junit.Test;
@@ -292,6 +296,27 @@ public class SerializationTest {
         String   json = service.marshal(bean, true);
         ScanBean naeb = service.unmarshal(json, null);
         assertEquals(bean, naeb);
+	}
+
+	
+	@Test
+	public void testControlFactorySerialize() throws Exception {
+		
+		ISpringParser parser = new PseudoSpringParser();
+		InputStream in = getClass().getResourceAsStream("client-test.xml");
+		parser.parse(in);
+		
+		assertTrue(!ControlTree.getInstance().isEmpty());
+		
+		ControlTree.getInstance().build();
+		
+		String json = service.marshal(ControlTree.getInstance());
+		
+		assertTrue(json!=null);
+		
+		ControlTree factory = service.unmarshal(json, ControlTree.class);
+		
+		assertEquals(factory, ControlTree.getInstance());
 	}
 
 	

@@ -32,7 +32,7 @@ import org.eclipse.scanning.api.event.EventException;
  * 		public void scanEventPerformed(ScanEvent evt) {
  * 		// Everything that happens ...
  *  		}
- * sub.addScanListener(<b>scanId</b>, listener2);
+ * sub.addScanListener(<b>id</b>, listener2);
  * }
  * </pre>
  * 
@@ -41,11 +41,11 @@ import org.eclipse.scanning.api.event.EventException;
  * instance:
  * 
  * <pre>
- * {@code sub.addScanListener(scanId, listener); // registers for scanId but removes it as general listener.}
+ * {@code sub.addScanListener(id, listener); // registers for id but removes it as general listener.}
  * </pre>
  * 
  * Removes the Object listener from the general listeners and defines it as a
- * listener of the scanId. This listener would have to be readded using
+ * listener of the id. This listener would have to be readded using
  * {@code addScanListener(listener)} to use it again as a general listener.
  * 
  * @author Matthew Gerring
@@ -71,7 +71,7 @@ public interface ISubscriber<T> extends ITopicConnection {
 	public void removeListener(T listener);
 
 	/**
-	 * Register events for a given scanId to be reported.
+	 * Register events for a given id to be reported.
 	 * @param id
 	 * @param listener
 	 * @throws event exception if the remote event cannot be connected to.
@@ -79,11 +79,24 @@ public interface ISubscriber<T> extends ITopicConnection {
 	public void addListener(String id, T listener) throws EventException;
 	
 	/**
-	 * Unregister events for a given scanId to be reported.
+	 * Unregister events for a given id to be reported.
 	 * @param id
 	 * @param listener
 	 */
 	public void removeListener(String id, T listener);
+	
+	/**
+	 * Unregister all listeners with this id.
+	 * @param id
+	 * @param listener
+	 */
+	public void removeListeners(String id);
+	
+	/**
+	 * Clears all listeners without disconnecting from events or
+	 * stopping the JMS threads.
+	 */
+	public void clear();
 	
 	/**
 	 * Call to set if the events should be ordered and BLOCKING.

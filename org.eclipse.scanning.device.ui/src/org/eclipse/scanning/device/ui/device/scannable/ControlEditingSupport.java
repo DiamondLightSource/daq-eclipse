@@ -1,23 +1,27 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.scanning.api.INamedNode;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.swt.widgets.Composite;
 
 class ControlEditingSupport extends EditingSupport {
 	
-	ControlEditingSupport(ColumnViewer viewer) {
+	private IScannableDeviceService cservice;
+
+	ControlEditingSupport(ColumnViewer viewer, IScannableDeviceService cservice) {
 		super(viewer);
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
+		this.cservice = cservice;
 	}
 
 	@Override
 	protected CellEditor getCellEditor(Object element) {
-		return new ControlCellEditor((Composite)getViewer().getControl());
+		return new ControlCellEditor((Composite)getViewer().getControl(), cservice);
 	}
 
 	@Override

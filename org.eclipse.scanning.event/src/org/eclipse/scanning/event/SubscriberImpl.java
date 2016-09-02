@@ -253,12 +253,22 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 			slisteners.get(id).remove(listener);
 		}
 	}
+	
+	@Override
+	public void removeListeners(String id) {
+		slisteners.remove(id);
+	}
+	
+	@Override
+	public void clear() {
+		slisteners.clear();
+		hlisteners.clear();
+	}
 
 	@Override
 	public void disconnect() throws EventException {
 		try {
-			slisteners.clear();
-			hlisteners.clear();
+			clear();
 			if (scanConsumer!=null)     scanConsumer.close();
 			if (hearbeatConsumer!=null) hearbeatConsumer.close();
 			

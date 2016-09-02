@@ -11,18 +11,27 @@ package org.eclipse.scanning.api;
  *
  */
 public interface INamedNode extends INameable {
+	
+	/**
+	 * Used to provide a label in the UI
+	 */
+	default String getDisplayName() {
+		return getName();
+	}
+	
+	void setDisplayName(String name);
 
 	/**
 	 * 
 	 * @return
 	 */
-	INamedNode getParent();
+	String getParentName();
 	
 	/**
 	 * 
 	 * @param parent
 	 */
-	void setParent(INamedNode parent);
+	void setParentName(String parentName);
 
 	/**
 	 * 
@@ -42,10 +51,4 @@ public interface INamedNode extends INameable {
 	 */
 	boolean hasChildren();
 	
-	/**
-	 * Used to provide a label in the UI
-	 */
-	default String getDisplayName() {
-		return getName();
-	}
 }
