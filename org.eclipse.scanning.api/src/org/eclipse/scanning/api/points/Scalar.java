@@ -4,18 +4,20 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A single value position.
+ * A single value position. Instances of this class are immutable.
  * 
+ * @param <T> the type of the value of this position 
  * @author Matthew Gerring
- *
  */
-public class Scalar extends AbstractPosition {
+public class Scalar<T> extends AbstractPosition {
 	
-	private String name;
-	private double value;
-	private int    index;
+	private static final long serialVersionUID = 9078732007535500363L;
 	
-	public Scalar(String name, int index, double value) {
+	private final String name;
+	private final int index;
+	private final T value;
+	
+	public Scalar(String name, int index, T value) {
 		this.name  = name;
 		this.index = index;
 		this.value = value;
@@ -36,8 +38,13 @@ public class Scalar extends AbstractPosition {
 		return name.equals(this.name) ? value : null;
 	}
 
-	public double getValue() {
+	public T getValue() {
 		return value;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Class<T> getType() {
+		return (Class<T>) value.getClass();
 	}
 	
 	@Override
