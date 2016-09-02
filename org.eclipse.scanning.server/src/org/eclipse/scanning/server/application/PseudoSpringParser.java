@@ -1,6 +1,8 @@
 package org.eclipse.scanning.server.application;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.scanning.api.ISpringParser;
@@ -23,6 +26,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * 
@@ -43,17 +47,48 @@ public class PseudoSpringParser implements ISpringParser {
 	 * particular spring version and can be part of the open
 	 * source project.
 	 * 
-	 * @param conf
+	 * @param path
 	 * @return
 	 * @throws Exception
 	 */
 	@Override
 	public Map<String, Object> parse(String path) throws Exception {
-				
+			
+		Document doc = getDocument(path);
+		return parse(doc);
+	}
+	
+	/**
+	 * Manually parse spring XML to create the objects.
+	 * This means that the example has no dependency on a
+	 * particular spring version and can be part of the open
+	 * source project.
+	 * 
+	 * @param in
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public Map<String, Object> parse(InputStream in) throws Exception {
+			
+		Document doc = getDocument(in);
+		return parse(doc);
+	}
+
+	private Document getDocument(String path) throws SAXException, IOException, ParserConfigurationException {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 	    DocumentBuilder builder = factory.newDocumentBuilder();
-	    
-	    Document doc = builder.parse(new File(path));
+	    return builder.parse(new File(path));
+	}
+	
+	private Document getDocument(InputStream in) throws SAXException, IOException, ParserConfigurationException {
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(in);
+	}
+
+	private Map<String, Object> parse(Document doc) throws Exception {
+		
 	    doc.getDocumentElement().normalize();
 	    NodeList  nl = doc.getElementsByTagName("bean");
 	    
@@ -146,7 +181,7 @@ public class PseudoSpringParser implements ISpringParser {
 		if (bundleName==null) bundleName = "org.eclipse.scanning.server";
 		final Bundle bundle = Platform.getBundle(bundleName);
 	
-		final Class<?> clazz = bundle.loadClass(className);
+		final Class<?> clazz = bundle != null ? bundle.loadClass(className) : Class.forName(className);
 		
 		Object instance = clazz.newInstance();
 		for (String fieldName : conf.keySet()) {

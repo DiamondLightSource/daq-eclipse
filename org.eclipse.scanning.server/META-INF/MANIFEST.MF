@@ -9,7 +9,8 @@ Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  org.eclipse.core.runtime;bundle-version="3.11.1"
 Service-Component: OSGI-INF/*.xml
 Bundle-ActivationPolicy: lazy
-Export-Package: org.eclipse.scanning.server.servlet
+Export-Package: org.eclipse.scanning.server.application,
+ org.eclipse.scanning.server.servlet
 Eclipse-RegisterBuddy: uk.ac.diamond.org.springframework
 Import-Package: org.osgi.framework;version="1.8.0",
  org.slf4j;version="[1.7.2,2.0.0)"

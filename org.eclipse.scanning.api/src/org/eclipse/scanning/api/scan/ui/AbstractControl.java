@@ -1,22 +1,31 @@
 package org.eclipse.scanning.api.scan.ui;
 
+import java.util.Arrays;
+
 import org.eclipse.scanning.api.INamedNode;
 
 abstract class AbstractControl implements INamedNode {
-
-	private INamedNode parent;
 	
-	@Override
-	public INamedNode getParent() {
-		return parent;
-	}
-
-	@Override
-	public void setParent(INamedNode parent) {
-		this.parent = parent;
-	}
-	
+	// Should not serialize parent.
+	private String parentName;
+	private String name;
+	private String displayName;
 	private INamedNode[] children;
+
+	public void add() { // Called by spring
+		ControlTree.getInstance().add(this);
+	}
+
+	@Override
+	public String getParentName() {
+		return parentName;
+	}
+
+	@Override
+	public void setParentName(String pName) {
+		this.parentName = pName;
+	}
+	
 
 	@Override
 	public boolean hasChildren() {
@@ -31,7 +40,6 @@ abstract class AbstractControl implements INamedNode {
 		this.children = children;
 	}
 
-	private String name;
 	public String getName() {
 		return name;
 	}
@@ -41,10 +49,21 @@ abstract class AbstractControl implements INamedNode {
 	}
 
 	@Override
+	public String getDisplayName() {
+		if (displayName==null) return getName();
+		return displayName;
+	}
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + Arrays.hashCode(children);
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((parentName == null) ? 0 : parentName.hashCode());
 		return result;
 	}
 
@@ -57,10 +76,17 @@ abstract class AbstractControl implements INamedNode {
 		if (getClass() != obj.getClass())
 			return false;
 		AbstractControl other = (AbstractControl) obj;
+		if (!Arrays.equals(children, other.children))
+			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
+			return false;
+		if (parentName == null) {
+			if (other.parentName != null)
+				return false;
+		} else if (!parentName.equals(other.parentName))
 			return false;
 		return true;
 	}

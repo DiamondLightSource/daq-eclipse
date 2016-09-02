@@ -2,6 +2,7 @@ package org.eclipse.scanning.device.ui;
 
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionService;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
+import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.scanning.api.ISpringParser;
 import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.event.IEventConnectorService;
@@ -19,6 +20,8 @@ public class ServiceHolder {
 	private static IExpressionService     expressionService;
 	private static ILoaderService         loaderService;
 	private static ISpringParser          springParser;
+	private static IMarshallerService     marshallerService;
+	
 	private static BundleContext context;
 
 	public static IEventConnectorService getEventConnectorService() {
@@ -104,5 +107,14 @@ public class ServiceHolder {
 
 	public void setSpringParser(ISpringParser springParser) {
 		ServiceHolder.springParser = springParser;
+	}
+
+	public static IMarshallerService getMarshallerService() {
+		if (marshallerService==null) marshallerService = getService(IMarshallerService.class);
+		return marshallerService;
+	}
+
+	public static void setMarshallerService(IMarshallerService marshallerService) {
+		ServiceHolder.marshallerService = marshallerService;
 	}
 }

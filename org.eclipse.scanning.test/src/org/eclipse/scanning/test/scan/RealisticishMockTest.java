@@ -59,7 +59,7 @@ public class RealisticishMockTest {
 		
 		List<Double> positions = new ArrayList<>();
 		((IPositionListenable)temp).addPositionListener(new IPositionListener() {
-			public void positionPerformed(PositionEvent evt) throws ScanningException {
+			public void positionChanged(PositionEvent evt) throws ScanningException {
 				double val = (Double)evt.getPosition().get("T");
 				System.out.println("The value of T was at "+val);
 				positions.add(val);
