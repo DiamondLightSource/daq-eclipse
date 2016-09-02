@@ -18,10 +18,10 @@ class ControlValueJob extends Job {
 	private Number             value;
 
     // UI
-	private ControlCellEditor editor;
+	private ControlValueCellEditor editor;
 
 
-	public ControlValueJob(ControlCellEditor editor) { // TODO Float spinner?
+	public ControlValueJob(ControlValueCellEditor editor) { // TODO Float spinner?
 		super("Set Value");
 		this.editor = editor;
 	}
