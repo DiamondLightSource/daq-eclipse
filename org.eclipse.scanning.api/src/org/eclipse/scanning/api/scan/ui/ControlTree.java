@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.INamedNode;
+import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.MapPosition;
 
 /**
  * This is the top node for a control tree. It is both
@@ -157,4 +159,22 @@ public class ControlTree extends AbstractControl {
 		content.put(name, node);
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
+	public IPosition toPosition() {
+		
+		MapPosition ret = new MapPosition();
+		
+		final Iterator<INamedNode> it = iterator();
+		while(it.hasNext()) {
+			INamedNode node = it.next();
+			if (node instanceof ControlNode) {
+				ControlNode cnode = (ControlNode)node;
+				if (cnode.getValue()!=null) ret.put(cnode.getScannableName(), cnode.getValue());
+			}
+		}
+		return ret;
+	}
 }

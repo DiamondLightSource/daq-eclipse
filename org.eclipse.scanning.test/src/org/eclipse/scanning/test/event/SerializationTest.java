@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.net.InetAddress;
+import java.util.Iterator;
 import java.util.UUID;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
@@ -17,6 +18,7 @@ import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.dawnsci.json.MarshallerService;
+import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.ISpringParser;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -31,6 +33,7 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
@@ -319,5 +322,34 @@ public class SerializationTest {
 		assertEquals(factory, ControlTree.getInstance());
 	}
 
-	
+	@Test
+	public void testControlFactoryToPosition() throws Exception {
+		
+		ISpringParser parser = new PseudoSpringParser();
+		InputStream in = getClass().getResourceAsStream("client-test.xml");
+		parser.parse(in);
+		
+		ControlTree tree = ControlTree.getInstance();
+		assertTrue(!tree.isEmpty());
+		
+        Iterator<INamedNode> it = tree.iterator();
+        while (it.hasNext()) {
+			INamedNode iNamedNode = (INamedNode) it.next();
+			if (iNamedNode instanceof ControlNode) {
+				((ControlNode)iNamedNode).setValue(Math.random());
+			}
+		}
+
+        IPosition pos = tree.toPosition();
+        assertTrue(pos.size()>0);
+        it = tree.iterator();
+        while (it.hasNext()) {
+			INamedNode iNamedNode = (INamedNode) it.next();
+			if (iNamedNode instanceof ControlNode) {
+				Object value = ((ControlNode)iNamedNode).getValue();
+				assertEquals(value, pos.get(iNamedNode.getName()));
+			}
+        }
+	}
+
 }
