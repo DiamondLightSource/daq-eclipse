@@ -62,7 +62,6 @@ abstract class AbstractControl implements INamedNode {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + Arrays.hashCode(children);
-		result = prime * result + ((displayName == null) ? 0 : displayName.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + ((parentName == null) ? 0 : parentName.hashCode());
 		return result;
@@ -78,11 +77,6 @@ abstract class AbstractControl implements INamedNode {
 			return false;
 		AbstractControl other = (AbstractControl) obj;
 		if (!Arrays.equals(children, other.children))
-			return false;
-		if (displayName == null) {
-			if (other.displayName != null)
-				return false;
-		} else if (!displayName.equals(other.displayName))
 			return false;
 		if (name == null) {
 			if (other.name != null)

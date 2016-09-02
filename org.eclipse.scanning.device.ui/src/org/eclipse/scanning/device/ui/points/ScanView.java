@@ -7,8 +7,10 @@ import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
@@ -108,7 +110,7 @@ public class ScanView  extends ViewPart {
 		final IViewSite site = getViewSite();
 		site.setSelectionProvider(seriesTable.getSelectionProvider());
 		
-		createToobarActions(site);
+		createActions(site);
 		final MenuManager rightClick = new MenuManager("#PopupMenu");
 		rightClick.setRemoveAllWhenShown(true);
 		//createActions(rightClick);
@@ -178,14 +180,17 @@ public class ScanView  extends ViewPart {
 	private final static String[] extensions = new String[]{"scan"};
 	private final static String[] files = new String[]{"Scan files"};
 
-	private void createToobarActions(final IViewSite site) {
+	private void createActions(final IViewSite site) {
+		
+		
+		IToolBarManager tmanager = site.getActionBars().getToolBarManager();
+		IMenuManager    mmanager = site.getActionBars().getMenuManager();
 		
 		add = new Action("Insert", Activator.getImageDescriptor("icons/clipboard-list.png")) {
 			public void run() {
 				seriesTable.addNew();
 			}
 		};
-
 
 		delete = new Action("Delete", Activator.getImageDescriptor("icons/clipboard--minus.png")) {
 			public void run() {
@@ -201,14 +206,8 @@ public class ScanView  extends ViewPart {
 			}
 		};
 		
-		site.getActionBars().getToolBarManager().add(add);
-		site.getActionBars().getMenuManager().add(add);
-		site.getActionBars().getToolBarManager().add(delete);
-		site.getActionBars().getMenuManager().add(delete);
-		site.getActionBars().getToolBarManager().add(clear);
-		site.getActionBars().getMenuManager().add(clear);
-		site.getActionBars().getToolBarManager().add(new Separator());
-		site.getActionBars().getMenuManager().add(new Separator());
+		addGroup("manage", tmanager, add, delete, clear);
+		addGroup("manage", mmanager, add, delete, clear);
 		
 		final IAction save = new Action("Save configured scan", IAction.AS_PUSH_BUTTON) {
 			public void run() {
@@ -253,13 +252,8 @@ public class ScanView  extends ViewPart {
 		save.setImageDescriptor(Activator.getImageDescriptor("icons/mask-import-wiz.png"));
 		load.setImageDescriptor(Activator.getImageDescriptor("icons/mask-export-wiz.png"));
 	
-		site.getActionBars().getToolBarManager().add(save);
-		site.getActionBars().getMenuManager().add(save);
-		site.getActionBars().getToolBarManager().add(load);
-		site.getActionBars().getMenuManager().add(load);
-		
-		site.getActionBars().getToolBarManager().add(new Separator());
-		site.getActionBars().getMenuManager().add(new Separator());
+		addGroup("file", tmanager, save, load);
+		addGroup("file", mmanager, save, load);
 		
 		final IAction lock = new Action("Lock scan editing", IAction.AS_CHECK_BOX) {
 			public void run() {
@@ -278,9 +272,16 @@ public class ScanView  extends ViewPart {
 		clear.setEnabled(!lock.isChecked());
 		seriesTable.setLockEditing(lock.isChecked());
 		
-		site.getActionBars().getToolBarManager().add(lock);
-		site.getActionBars().getMenuManager().add(lock);
+		addGroup("lock", tmanager, lock);
+		addGroup("lock", mmanager, lock);
 
+	}
+	
+	private void addGroup(String id, IContributionManager manager, IAction... actions) {
+		manager.add(new Separator(id));
+		for (IAction action : actions) {
+			manager.add(action);
+		}
 	}
 	
 	private void saceScans(String filename, IPointGenerator[] gens, IViewSite site) {
