@@ -1,14 +1,5 @@
 package org.eclipse.scanning.api.scan.ui;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -17,11 +8,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.INamedNode;
-import org.eclipse.scanning.api.event.IEventConnectorService;
 
 /**
- * An old fashioned singleton pattern because this interacts with 
- * the objects like ScannableContol etc. being made by spring, nicely.
+ * This is the top node for a control tree. It is both
+ * created from spring and serialized to json at different
+ * points. Spring calls add(...) on the children and globalize(...)
+ * on this class to force the static instance to be a given value.
+ * 
+ * There is one static instance but the object is not a singleton
+ * because it is created from json files as well. The design is
+ * therefore a multiple instance, single static value rather than
+ * singleton. This is intentional.
  * 
  * @author Matthew Gerring
  *
@@ -129,68 +126,6 @@ public class ControlTree extends AbstractControl {
 		return content.containsKey(name);
 	}
 
-	
-	private static File getStashFile() {
-		final File stash = new File(System.getProperty("user.name")+"/.solstice/org.eclipse.scanning.device.ui.device.controls.json");
-        return stash;
-	}
-	
-	public static boolean isStashed() {
-		return getStashFile().exists();
-	}
-	
-	public void stash(IEventConnectorService marshallerService) throws Exception {
-		final String json = marshallerService.marshal(this);
-		write(getStashFile(), json);
-	}
-	
-	public static void unstash(IEventConnectorService marshallerService) throws Exception {
-		
-		final String json = readFile(getStashFile()).toString();
-		final ControlTree factory = marshallerService.unmarshal(json, ControlTree.class);
-		factory.build();
-		factory.globalize();
-	}
-	
-	private static void write(final File file, final String text) throws Exception {
-		
-		file.getParentFile().mkdirs();
-		BufferedWriter b = null;
-		try {
-			final OutputStream out = new FileOutputStream(file);
-			final OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
-			b = new BufferedWriter(writer);
-			b.write(text.toCharArray());
-		} finally {
-			if (b != null) {
-				b.close();
-			}
-		}
-	}
-
-	private static final StringBuffer readFile(final File file) throws Exception {
-
-		final String charsetName = "UTF-8";
-		final InputStream in = new FileInputStream(file);
-		BufferedReader ir = null;
-		try {
-			ir = new BufferedReader(new InputStreamReader(in, charsetName));
-
-			// deliberately do not remove BOM here
-			int c;
-			StringBuffer currentStrBuffer = new StringBuffer();
-			final char[] buf = new char[4096];
-			while ((c = ir.read(buf, 0, 4096)) > 0) {
-				currentStrBuffer.append(buf, 0, c);
-			}
-			return currentStrBuffer;
-
-		} finally {
-			if (ir != null) {
-				ir.close();
-			}
-		}
-	}
 
 	@Override
 	public int hashCode() {

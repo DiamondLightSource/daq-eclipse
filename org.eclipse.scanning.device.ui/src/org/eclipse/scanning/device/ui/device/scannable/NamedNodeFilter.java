@@ -1,4 +1,4 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.INamedNode;

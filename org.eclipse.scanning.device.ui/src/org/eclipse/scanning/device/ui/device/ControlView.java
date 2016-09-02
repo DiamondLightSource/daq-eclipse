@@ -1,57 +1,28 @@
 package org.eclipse.scanning.device.ui.device;
 
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.EventListener;
-import java.util.Iterator;
 
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IContributionManager;
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.ColumnViewer;
-import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
-import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.TreeViewerColumn;
-import org.eclipse.richbeans.widgets.internal.GridUtils;
-import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.ISpringParser;
-import org.eclipse.scanning.api.event.EventConstants;
-import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.core.ISubscriber;
-import org.eclipse.scanning.api.scan.event.ILocationListener;
-import org.eclipse.scanning.api.scan.event.Location.LocationType;
-import org.eclipse.scanning.api.scan.event.LocationEvent;
-import org.eclipse.scanning.api.scan.ui.ControlGroup;
-import org.eclipse.scanning.api.scan.ui.ControlNode;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
+import org.eclipse.scanning.device.ui.device.scannable.ControlTreeViewer;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.dialogs.FilteredTree;
 import org.eclipse.ui.part.ViewPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,34 +33,18 @@ public class ControlView extends ViewPart {
 
 	public static final String ID = "org.eclipse.scanning.device.ui.device.ControlView"; //$NON-NLS-1$
 	
-	private FilteredTree viewer;
-
-	private ISubscriber<EventListener> subscriber;
+	// UI
+	private ControlTreeViewer viewer;
 
 	public ControlView() {
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, true);
-		if (ControlTree.getInstance()==null || ControlTree.getInstance().isEmpty()) createFactory(false);
-	}
-
-	private void createFactory(boolean resetDefault) {
-		try {
-			// See if we stashed the previous control factory, use
-			// that if we did, otherwise see if the client had a -xml argument
-			if (!resetDefault && ControlTree.isStashed()) {
-				ControlTree.unstash(ServiceHolder.getEventConnectorService()); // Loads from stash
-			} else {
-			    parseDefaultXML(); // Spring reread
-			}
-		} catch (Exception ne) {
-			logger.error("Problem reading control factory!", ne);
-		}
 	}
 	
 	@Override
     public void saveState(IMemento memento) {
     	super.saveState(memento);
     	try {
-			ControlTree.getInstance().stash(ServiceHolder.getEventConnectorService());
+			stash(viewer.getControlTree(), ServiceHolder.getEventConnectorService());
 		} catch (Exception e) {
 			logger.error("Problem stashing control factory!", e);
 		}
@@ -104,7 +59,9 @@ public class ControlView extends ViewPart {
 	 * This step is done for testing and to make
 	 * the example client work. 
 	 **/
-	private void parseDefaultXML() {
+	private ControlTree parseDefaultXML() {
+		
+		if (ControlTree.getInstance()!=null) return ControlTree.getInstance();
 		String[] args = Platform.getApplicationArgs();
 		for (int i = 0; i < args.length; i++) {
 			final String arg = args[i];
@@ -119,6 +76,7 @@ public class ControlView extends ViewPart {
 				break;
 			}
 		}
+		return ControlTree.getInstance();
 	}
 
 	/**
@@ -128,322 +86,101 @@ public class ControlView extends ViewPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		
-		viewer = new FilteredTree(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, new NamedNodeFilter(), true);
-		
-		TreeViewer tviewer = viewer.getViewer();
-		tviewer.getTree().setLinesVisible(true);
-		tviewer.getTree().setHeaderVisible(false);
-		setItemHeight(tviewer.getTree(), 30);
-		viewer.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-		createColumns(tviewer);
-		
 		try {
-			tviewer.setContentProvider(new ControlContentProvider());
-		} catch (Exception e) {
-			logger.error("Cannot create content provider", e);
-		}
-		tviewer.setInput(ControlTree.getInstance());
-		tviewer.expandAll();
-		
-		getSite().setSelectionProvider(tviewer);
-		createActions(tviewer);
-		setSearchVisible(false);
-		
-		try {
-		    registerAll();
-		} catch (Exception ne) {
-			logger.error("Cannot listen to motor values changing...");
-		}
+			IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
 
-	}
-
-	/**
-	 * Clears all the current listeners and registers all the new ones.
-	 * 
-	 * @throws EventException
-	 * @throws URISyntaxException 
-	 */
-	private void registerAll() throws EventException, URISyntaxException {
-		
-		if (subscriber!=null) subscriber.disconnect();
-		
-	    IEventService eservice  = ServiceHolder.getEventService();
-	    this.subscriber = eservice.createSubscriber(new URI(Activator.getJmsUri()), EventConstants.POSITION_TOPIC);
-
-	    Iterator<INamedNode> it = ControlTree.getInstance().iterator();
-	    while(it.hasNext()) register(it.next());
-	}
-
-	private void register(final INamedNode node) throws EventException {
-		if (node instanceof ControlNode) {
-			subscriber.addListener(node.getName(), new ILocationListener() {
-				@Override
-				public void locationPerformed(LocationEvent evt) {
-					if (evt.getLocation().getType()==LocationType.positionChanged) {
-						Display.getDefault().asyncExec(new Runnable() {
-							public void run() {
-								if (viewer.getViewer().isCellEditorActive()) {
-									final Object sel = viewer.getViewer().getStructuredSelection().getFirstElement(); // editing object
-									if (sel!=node) viewer.getViewer().update(node, new String[]{"Value"});
-								} else {
-								    viewer.getViewer().refresh(node);
-								}
-							}
-						});
-					}
-				}
-			});
-		}
-	}
-
-	private void setSearchVisible(boolean b) {
-		GridUtils.setVisible(viewer.getFilterControl().getParent(), b);
-		viewer.layout(new Control[]{viewer.getFilterControl().getParent()});
-	}
-
-	private void createColumns(TreeViewer viewer) {
-		
-		viewer.setColumnProperties(new String[] { "Name", "Value"});
-		ColumnViewerToolTipSupport.enableFor(viewer);
-		
-        TreeViewerColumn var   = new TreeViewerColumn(viewer, SWT.LEFT, 0);
-		var.getColumn().setText("Name");
-		var.getColumn().setWidth(200);
-		var.setLabelProvider(new ColumnLabelProvider() {
-			public String getText(Object element) {
-				INamedNode node = (INamedNode)element;
-				return node.getDisplayName();
-			}
-		});
-		var.setEditingSupport(new ScannableEditingSupport(this));
-		
-		var   = new TreeViewerColumn(viewer, SWT.LEFT, 1);
-		var.getColumn().setText("Value");
-		var.getColumn().setWidth(300);
-		var.setLabelProvider(new DelegatingStyledCellLabelProvider(new ControlValueLabelProvider()));
-		var.setEditingSupport(new ControlEditingSupport(viewer));
-
-	}
-
-	/**
-	 * Create the actions.
-	 */
-	private void createActions(final TreeViewer tviewer) {
-		
-		IMenuManager    menuManager    = getViewSite().getActionBars().getMenuManager();
-		IToolBarManager toolbarManager = getViewSite().getActionBars().getToolBarManager();
-		MenuManager     rightClick     = new MenuManager();
-		
-		final IAction addGroup = new Action("Add group", Activator.getImageDescriptor("icons/ui-toolbar--purpleplus.png")) {
-			public void run() {
-                INamedNode nnode = ControlTree.getInstance().insert(ControlTree.getInstance(), new ControlGroup());
-                edit(nnode, 0);
-			}
-		};
-		
-		final IAction addNode = new Action("Add control", Activator.getImageDescriptor("icons/ui-toolbar--plus.png")) {
-			public void run() {
-                INamedNode     node    = getSelection();
-                ControlTree factory = ControlTree.getInstance();
-                if (!(node instanceof ControlGroup)) node = factory.getNode(node.getParentName());
-                if (node instanceof ControlGroup) {
-                 	INamedNode control = factory.insert(node, new org.eclipse.scanning.api.scan.ui.ControlNode("", 0.1));
-                 	edit(control, 0);
-                }
-			}
-		};
-		
-		final IAction remove = new Action("Remove", Activator.getImageDescriptor("icons/ui-toolbar--minus.png")) {
-			public void run() {
-				final INamedNode node = getSelection();
-                ControlTree factory = ControlTree.getInstance();
-			    INamedNode parent = factory.getNode(node.getParentName());
-                if (node.getChildren()==null || node.getChildren().length<1) {
-                	factory.delete(node);
-                } else {
-                	boolean ok = MessageDialog.openQuestion(getViewSite().getShell(), "Confirm Delete", "The item '"+node.getName()+"' is a group.\n\nAre you sure you would like to delete it?");
-                	if (ok) factory.delete(node);
-                }
-                subscriber.removeListeners(node.getName());
-                viewer.getViewer().refresh();
-                if (parent.hasChildren()) {
-                	setSelection(parent.getChildren()[parent.getChildren().length-1]);
-                } else {
-                    setSelection(parent);
-                }
-			}
-		};
-		remove.setEnabled(false);
+			ControlTree defaultTree = parseDefaultXML();
+			viewer = new ControlTreeViewer(defaultTree, cservice);
 			
-		addGroup("add", toolbarManager, addGroup, addNode, remove);
-		addGroup("add", menuManager, addGroup, addNode, remove);
-		addGroup("add", rightClick, addGroup, addNode, remove);
-
+			ControlTree stashedTree = unstash(ServiceHolder.getEventConnectorService()); // Or null if couldn't
+			viewer.createPartControl(parent, stashedTree, getViewSite().getActionBars().getMenuManager(), getViewSite().getActionBars().getToolBarManager());
 		
-		IAction expandAll = new Action("Expand All", Activator.getImageDescriptor("icons/expand_all.png")) {
-			public void run() {
-				try {
-					registerAll();
-				} catch (Exception e) {
-					logger.error("Unable to reconnect all listeners!", e);
-				}
-				refresh();
-			}
-		};
-		
-		IAction showSearch = new Action("Show search", IAction.AS_CHECK_BOX) {
-			public void run() {
-				setSearchVisible(isChecked());
-			}
-		};
-		showSearch.setImageDescriptor(Activator.getImageDescriptor("icons/magnifier--pencil.png"));
-		
-		IAction edit = new Action("Edit", Activator.getImageDescriptor("icons/pencil.png")) {
-			public void run() {
-				try {
-					setEditNode(true);
-					INamedNode node = getSelection();
-					if (node!=null) {
-						viewer.getViewer().editElement(node, 0); // edit name of control
-					}
-				} finally {
-					setEditNode(false);
-				}
-			}
-		};
-		
-		addGroup("refresh", toolbarManager, expandAll, showSearch, edit);
-		addGroup("refresh", menuManager, expandAll, showSearch, edit);
-		addGroup("refresh", rightClick, expandAll, showSearch, edit);
-	
-		IAction resetAll = new Action("Reset all controls to default", Activator.getImageDescriptor("icons/arrow-return-180-left.png")) {
-			public void run() {
-				boolean ok = MessageDialog.openConfirm(getViewSite().getShell(), "Confirm Reset Controls", "Are you sure that you want to reset all controls to default?");
-				if (!ok) return;
-				createFactory(false);
-				viewer.getViewer().setInput(ControlTree.getInstance());
-				expandAll.run();
-			}
-		};
-		addGroup("reset", toolbarManager, resetAll);
-		addGroup("reset", menuManager, resetAll);
-		addGroup("reset", rightClick, resetAll);
-				
-		IAction setShowTip = new Action("Show tooltip on edit", IAction.AS_CHECK_BOX) {
-			public void run() {
-				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, isChecked());
-			}
-		};
-		setShowTip.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS));
-		menuManager.add(new Separator("tip"));
-		menuManager.add(setShowTip);
+		    getSite().setSelectionProvider(viewer.getSelectionProvider());
 
-		tviewer.addSelectionChangedListener(new ISelectionChangedListener() {
-			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
-				remove.setEnabled(true);
-			}
-		});
-
-		viewer.getViewer().getControl().setMenu(rightClick.createContextMenu(viewer.getViewer().getControl()));
-
-	}
-	
-	private void addGroup(String id, IContributionManager manager, IAction... actions) {
-		manager.add(new Separator(id));
-		for (IAction action : actions) {
-			manager.add(action);
+		} catch (Exception e) {
+			logger.error("Cannot build ControlTreeViewer!", e);
 		}
-	}
-	
-	protected void edit(INamedNode node, int index) {
-     	refresh();
-    	viewer.getViewer().editElement(node, index);
-	}
 
-	protected void refresh() {
-		viewer.getViewer().refresh();
-		viewer.getViewer().expandAll();
-	}
-
-	protected INamedNode getSelection() {
-		final ISelection selection = viewer.getViewer().getSelection();
-		if (selection instanceof IStructuredSelection) {
-			IStructuredSelection ssel = (IStructuredSelection)selection;
-			return (INamedNode)ssel.getFirstElement();
-		}
-		return null;
-	}
-	protected void setSelection(INamedNode node) {
-		final IStructuredSelection sel = new StructuredSelection(node);
-		viewer.getViewer().setSelection(sel);
 	}
 
 	@Override
 	public void setFocus() {
-		if (!viewer.isDisposed()) viewer.getViewer().getTree().setFocus();
+		viewer.setFocus();
 	}
 	
 	@Override
 	public void dispose() {
 		super.dispose();
-		try {
-			if (subscriber!=null) subscriber.disconnect();
-		} catch (EventException e) {
-			logger.error("Unable to disconnect subscriber in "+getClass().getSimpleName());
-		}
-	}
-
-	static void setItemHeight(Tree tree, int height) {
-		try {
-			Method method = null;
-			
-			Method[] methods = tree.getClass().getDeclaredMethods();
-			method = findMethod(methods, "setItemHeight", 1); //$NON-NLS-1$
-			if (method != null) {
-				boolean accessible = method.isAccessible();
-				method.setAccessible(true);
-				method.invoke(tree, Integer.valueOf(height));
-				method.setAccessible(accessible);
-			}
-		} catch (SecurityException e) {
-			// ignore
-		} catch (IllegalArgumentException e) {
-			// ignore
-		} catch (IllegalAccessException e) {
-			// ignore
-		} catch (InvocationTargetException e) {
-			// ignore
-		}
-	}
-	/**
-	 * Finds the method with the given name and parameter count from the specified methods.
-	 * @param methods the methods to search through
-	 * @param name the name of the method to find
-	 * @param parameterCount the count of parameters of the method to find
-	 * @return the method or <code>null</code> if not found
-	 */
-	private static Method findMethod(Method[] methods, String name, int parameterCount) {
-		for (Method method : methods) {
-			if (method.getName().equals(name) && method.getParameterTypes().length == parameterCount) {
-				return method;
-			}
-		}
-		return null;
+		viewer.dispose();
 	}
 	
-	private boolean editNode = false; // Can be set to true when UI wants to edit
-	public boolean isEditNode() {
-		return editNode;
+	
+	private static File getStashFile() {
+		final File stash = new File(System.getProperty("user.name")+"/.solstice/org.eclipse.scanning.device.ui.device.controls.json");
+        return stash;
+	}
+	
+	private static boolean isStashed() {
+		return getStashFile().exists();
+	}
+	
+	private void stash(ControlTree tree, IEventConnectorService marshallerService) throws Exception {
+		final String json = marshallerService.marshal(tree);
+		write(getStashFile(), json);
+	}
+	
+	private static ControlTree unstash(IEventConnectorService marshallerService) {
+		
+		if (!isStashed()) return null;
+		try {
+			final String json = readFile(getStashFile()).toString();
+			final ControlTree factory = marshallerService.unmarshal(json, ControlTree.class);
+			factory.build();
+			return factory;
+		} catch (Exception ne) {
+			logger.error("Cannot read file "+getStashFile(), ne);
+			return null;
+		}
+	}
+	
+	private static void write(final File file, final String text) throws Exception {
+		
+		file.getParentFile().mkdirs();
+		BufferedWriter b = null;
+		try {
+			final OutputStream out = new FileOutputStream(file);
+			final OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+			b = new BufferedWriter(writer);
+			b.write(text.toCharArray());
+		} finally {
+			if (b != null) {
+				b.close();
+			}
+		}
 	}
 
-	public void setEditNode(boolean editNode) {
-		this.editNode = editNode;
-	}
+	private static final StringBuffer readFile(final File file) throws Exception {
 
-	ColumnViewer getViewer() {
-		return viewer.getViewer();
+		final String charsetName = "UTF-8";
+		final InputStream in = new FileInputStream(file);
+		BufferedReader ir = null;
+		try {
+			ir = new BufferedReader(new InputStreamReader(in, charsetName));
+
+			// deliberately do not remove BOM here
+			int c;
+			StringBuffer currentStrBuffer = new StringBuffer();
+			final char[] buf = new char[4096];
+			while ((c = ir.read(buf, 0, 4096)) > 0) {
+				currentStrBuffer.append(buf, 0, c);
+			}
+			return currentStrBuffer;
+
+		} finally {
+			if (ir != null) {
+				ir.close();
+			}
+		}
 	}
 
 }

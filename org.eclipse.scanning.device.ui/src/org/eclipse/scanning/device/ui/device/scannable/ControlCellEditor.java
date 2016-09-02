@@ -1,4 +1,4 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
@@ -40,7 +40,7 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ControlCellEditor extends CellEditor implements IPositionListener {
+class ControlCellEditor extends CellEditor implements IPositionListener {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ControlCellEditor.class);
 
@@ -59,13 +59,9 @@ public class ControlCellEditor extends CellEditor implements IPositionListener {
 	private IScannable<Number>      scannable; // Transient depending on which scannable we are editing.	
 	private ControlValueJob         job;
 
-	public ControlCellEditor(Composite parent) {
+	public ControlCellEditor(Composite parent, IScannableDeviceService cservice) {
 		super(parent);
-		try {
-			this.cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
-		} catch (EventException | URISyntaxException e) {
-			logger.error("Cannot get the scannable service!", e);
-		}
+		this.cservice = cservice;
 	}
 	
 	@Override

@@ -1,4 +1,4 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
 import java.net.URI;
 
@@ -6,7 +6,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
-import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
@@ -19,12 +18,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ScannableEditingSupport extends EditingSupport {
+class ScannableEditingSupport extends EditingSupport {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ScannableEditingSupport.class);
-	private ControlView controlView;
+	private ControlTreeViewer controlView;
 	
-	public ScannableEditingSupport(ControlView cview) {
+	public ScannableEditingSupport(ControlTreeViewer cview) {
 		super(cview.getViewer());
 		this.controlView = cview;
 	}
@@ -69,13 +68,14 @@ public class ScannableEditingSupport extends EditingSupport {
 		INamedNode node = (INamedNode)element;
 		
 		if (node.getName()==null || "".equals(node.getName())) {
-			if (ControlTree.getInstance().contains(name)) {
-				INamedNode other = ControlTree.getInstance().getNode(name);
+			ControlTree tree = controlView.getControlTree();
+			if (tree.contains(name)) {
+				INamedNode other = tree.getNode(name);
 				MessageDialog.openError(getViewer().getControl().getShell(), "Invalid Name '"+name+"'", "The name '"+name+"' is already used for another control.\n\n"
 						+ "The control has a label of '"+other.getDisplayName()+"' and is linked to '"+other.getName()+"' and cannot be redefined.");
 			    return;
 			}
-			ControlTree.getInstance().setName(node, name);
+			tree.setName(node, name);
 		}
 		node.setDisplayName(name);
 		getViewer().refresh();

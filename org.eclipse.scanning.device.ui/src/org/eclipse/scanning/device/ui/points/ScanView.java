@@ -5,6 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
@@ -14,6 +17,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -59,15 +63,18 @@ public class ScanView  extends ViewPart {
 	// Thankyou OSGi
 	private IPointGeneratorService pservice;
 	private IEventService          eservice;
+	private IMarshallerService     mservice;
 
 	private SeriesTable  seriesTable;
 	private GeneratorFilter pointsFilter;
 
 	private List<GeneratorDescriptor<?>> saved;
+
 	
 	public ScanView() {
 		this.pservice     = ServiceHolder.getGeneratorService();
 		this.eservice     = ServiceHolder.getEventService();
+		this.mservice     = ServiceHolder.getMarshallerService();
 		this.seriesTable  = new SeriesTable();
 		this.pointsFilter = new GeneratorFilter(pservice, eservice.getEventConnectorService(), seriesTable);
 	}
@@ -115,13 +122,11 @@ public class ScanView  extends ViewPart {
 		rightClick.setRemoveAllWhenShown(true);
 		//createActions(rightClick);
 		rightClick.addMenuListener(new IMenuListener() {
-			
 			@Override
 			public void menuAboutToShow(IMenuManager manager) {
 				setDynamicMenuOptions(manager);
 			}
 		});
-		createColumns();
 		
 		// Here's the data, lets show it
 		seriesTable.setMenuManager(rightClick);
@@ -157,17 +162,13 @@ public class ScanView  extends ViewPart {
 		});
 
 	}
-	
-	private void createColumns() {
-		
-		// Do we need extra columns for the scans?
-		
-	}
 
 	@Override
 	public Object getAdapter(Class clazz) {
-		if (clazz==IPointGenerator.class) {
+		if (clazz==IPointGenerator.class || clazz==IPointGenerator[].class) {
 			return getGenerators();
+		}else if (clazz==Object[].class) {
+			return getModels();
 		}
 		return null;
 	}
@@ -177,7 +178,7 @@ public class ScanView  extends ViewPart {
 	private IAction delete;
 	private IAction clear;
 	
-	private final static String[] extensions = new String[]{"scan"};
+	private final static String[] extensions = new String[]{"json"};
 	private final static String[] files = new String[]{"Scan files"};
 
 	private void createActions(final IViewSite site) {
@@ -212,9 +213,9 @@ public class ScanView  extends ViewPart {
 		final IAction save = new Action("Save configured scan", IAction.AS_PUSH_BUTTON) {
 			public void run() {
 				
-				IPointGenerator<?>[] gens = getGenerators();
+				Object[] models = getModels();
 				
-				if (gens == null) return;
+				if (models == null) return;
 				FileSelectionDialog dialog = new FileSelectionDialog(site.getShell());
 				if (lastPath != null) dialog.setPath(lastPath);
 				dialog.setExtensions(extensions);
@@ -227,7 +228,7 @@ public class ScanView  extends ViewPart {
 				if (!path.endsWith(extensions[0])) { //pipeline should always be saved to .nxs
 					path = path.concat("." + extensions[0]);
 				}
-				saceScans(path, gens, site);
+				saveScans(path, models, site);
 				lastPath = path;
 			}
 		};
@@ -284,17 +285,22 @@ public class ScanView  extends ViewPart {
 		}
 	}
 	
-	private void saceScans(String filename, IPointGenerator[] gens, IViewSite site) {
+	private void saveScans(String filename, Object[] models, IViewSite site) {
 		try {
 			
-			if (new File(filename).exists()) {
-				MessageDialog.openInformation(site.getShell(), "File error", "Overwriting of processing information forbidden, please select a new file.");
-				return;
+			final File file = new File(filename);
+			if (file.exists()) {
+				boolean ok = MessageDialog.openConfirm(site.getShell(), "Confirm Overwrite", "Are you sure that you would like to overwrite '"+file.getName()+"'?");
+				if (ok) return;
 			}
 			
-			System.out.println("TODO Create a way of persisting scans to file!");
+			final String json = mservice.marshal(models);
+			
+			
 		} catch (Exception e) {
-			MessageDialog.openInformation(site.getShell(), "Exception while writing scans to file", "An exception occurred while writing the scans to a file.\n" + e.getMessage());
+			ErrorDialog.openError(site.getShell(), "Error Saving Scan Information", "An exception occurred while writing the scans to a file.",
+					              new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", e.getMessage()));
+		    logger.error("Error Saving Scan Information", e);
 		}
 	}
 	private void readScans(String filename, IViewSite site) {
@@ -328,6 +334,16 @@ public class ScanView  extends ViewPart {
 		}
 		return pipeline;
 	}
+	private Object[] getModels() {
+		
+		IPointGenerator<?>[] gens = getGenerators();
+		Object[]          mods = new Object[gens.length];
+		for (int i = 0; i < gens.length; i++) {
+			mods[i] = gens[i].getModel();
+		}
+		return mods;
+	}
+
 
 	private void setDynamicMenuOptions(IMenuManager mm) {
 		

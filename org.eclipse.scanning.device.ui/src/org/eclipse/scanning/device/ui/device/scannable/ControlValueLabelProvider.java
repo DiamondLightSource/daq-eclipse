@@ -1,7 +1,5 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -10,11 +8,9 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
-import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +20,9 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 	
 	private IScannableDeviceService cservice;
 	
-	public ControlValueLabelProvider() {
+	public ControlValueLabelProvider(IScannableDeviceService cservice) {
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
-		try {
-			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
-		} catch (EventException | URISyntaxException e) {
-			logger.error("Cannot create a remote scannable device service!", e);
-		}
+		this.cservice = cservice;
 	}
 
 	@Override

@@ -1,11 +1,11 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 
-public class ControlContentProvider implements ITreeContentProvider {
+class ControlContentProvider implements ITreeContentProvider {
 
 	
 	private ControlTree factory;

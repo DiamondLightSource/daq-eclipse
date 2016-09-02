@@ -1,4 +1,4 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.IScannable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ControlValueJob extends Job {
+class ControlValueJob extends Job {
 	
 	private static Logger logger = LoggerFactory.getLogger(ControlValueJob.class);
 
