@@ -208,7 +208,7 @@ abstract class LevelRunner<L extends ILevel> {
 			if (eservice.isTerminated()) return;
 			eservice.shutdown();
 			eservice.awaitTermination(time, TimeUnit.SECONDS); 
-			if (!eservice.isTerminated()) {
+			if (eservice!=null && !eservice.isTerminated()) { // Might have nullified service during wait.
 				eservice.shutdownNow();
 			    throw new ScanningException("The timeout of "+timeout+"s has been reached, scan aborting. Please implement ITimeoutable to define how long your device needs to write.");
 			}
