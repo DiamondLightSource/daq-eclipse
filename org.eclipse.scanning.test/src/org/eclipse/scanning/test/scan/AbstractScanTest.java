@@ -283,6 +283,7 @@ public class AbstractScanTest extends BrokerTest {
 		    scanner.run(null);
 		} catch (ScanningException expected) {
 			if (!expected.getMessage().equals("The detector had a problem writing! This exception should stop the scan running!")) {
+				if (expected.getCause()!=null) expected.getCause().printStackTrace();
 				throw new Exception("Expected the precise message from the mock detector not to be lost but it was! It was '"+expected.getMessage()+"'");
 			}
 			ok=true;

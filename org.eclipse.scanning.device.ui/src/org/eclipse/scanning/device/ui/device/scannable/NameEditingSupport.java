@@ -18,12 +18,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ScannableEditingSupport extends EditingSupport {
+class NameEditingSupport extends EditingSupport {
 	
-	private static final Logger logger = LoggerFactory.getLogger(ScannableEditingSupport.class);
+	private static final Logger logger = LoggerFactory.getLogger(NameEditingSupport.class);
 	private ControlTreeViewer controlView;
 	
-	public ScannableEditingSupport(ControlTreeViewer cview) {
+	public NameEditingSupport(ControlTreeViewer cview) {
 		super(cview.getViewer());
 		this.controlView = cview;
 	}

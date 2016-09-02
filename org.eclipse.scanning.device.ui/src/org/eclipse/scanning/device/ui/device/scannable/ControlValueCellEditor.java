@@ -2,8 +2,6 @@ package org.eclipse.scanning.device.ui.device.scannable;
 
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CellEditor;
@@ -16,7 +14,6 @@ import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.ITerminatable;
 import org.eclipse.scanning.api.ITerminatable.TerminationPreference;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListenable;
@@ -24,8 +21,9 @@ import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
-import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -40,12 +38,13 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ControlCellEditor extends CellEditor implements IPositionListener {
+class ControlValueCellEditor extends CellEditor implements IPositionListener {
 	
-	private static final Logger logger = LoggerFactory.getLogger(ControlCellEditor.class);
+	private static final Logger logger = LoggerFactory.getLogger(ControlValueCellEditor.class);
 
 	// Data
-	private ControlNode     node;
+	private ControlNode       node;
+	private ControlViewerMode cmode;
 	
 	// UI
 	private BoundsDecorator decorator, incDeco;
@@ -59,9 +58,13 @@ class ControlCellEditor extends CellEditor implements IPositionListener {
 	private IScannable<Number>      scannable; // Transient depending on which scannable we are editing.	
 	private ControlValueJob         job;
 
-	public ControlCellEditor(Composite parent, IScannableDeviceService cservice) {
-		super(parent);
+
+	public ControlValueCellEditor(Composite parent, IScannableDeviceService cservice, ControlViewerMode mode) {
+		super();
 		this.cservice = cservice;
+		this.cmode    = mode;
+		setStyle(SWT.NONE);
+		create(parent);
 	}
 	
 	@Override
@@ -84,6 +87,11 @@ class ControlCellEditor extends CellEditor implements IPositionListener {
                     setPosition(decorator.getValue());
                 }
             }
+        });
+        if (!cmode.isDirectlyConnected()) text.addFocusListener(new FocusAdapter() {
+        	public void focusLost(FocusEvent e) {
+                setPosition(decorator.getValue());
+        	}
         });
         
         final Composite buttons = new Composite(content, SWT.NONE);
@@ -133,34 +141,36 @@ class ControlCellEditor extends CellEditor implements IPositionListener {
 			}
 		});
         
-        this.stop = new Button(content, SWT.DOWN);
-        stop.setBackground(content.getDisplay().getSystemColor(SWT.COLOR_WHITE));
-        stop.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
-        stop.setImage(Activator.getImageDescriptor("icons/cross-button.png").createImage());
-        stop.setToolTipText("Stop current move");
-        stop.addSelectionListener(new SelectionAdapter() {
-        	public void widgetSelected(SelectionEvent e) {
-        		Thread test = new Thread("Test terninate in thread") {
-        			public void run() {
-        				try {
-        					((ITerminatable)scannable).terminate(TerminationPreference.CONTROLLED);
-        				} catch (Exception e1) {
-        					logger.error("Problem stopping motor!", e1);
-        				}
-        			}
-        		};
-        		test.start();
-        	}
-        });
+        if (cmode.isDirectlyConnected()) {
+	        this.stop = new Button(content, SWT.DOWN);
+	        stop.setBackground(content.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+	        stop.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
+	        stop.setImage(Activator.getImageDescriptor("icons/cross-button.png").createImage());
+	        stop.setToolTipText("Stop current move");
+	        stop.addSelectionListener(new SelectionAdapter() {
+	        	public void widgetSelected(SelectionEvent e) {
+	        		Thread test = new Thread("Test terninate in thread") {
+	        			public void run() {
+	        				try {
+	        					((ITerminatable)scannable).terminate(TerminationPreference.CONTROLLED);
+	        				} catch (Exception e1) {
+	        					logger.error("Problem stopping motor!", e1);
+	        				}
+	        			}
+	        		};
+	        		test.start();
+	        	}
+	        });
+        }
 
-		job = new ControlValueJob(this);
+        if (cmode.isDirectlyConnected())	job = new ControlValueJob(this);
 
 		return content;
 	}
 
 	protected void nudge(Number value) {
 		try {
-			final Number pos = scannable.getPosition();
+			final Number pos = getPosition();
 			if (pos == null) return;
 			double loc = pos.doubleValue()+value.doubleValue();
 			if (!decorator.check(loc)) {
@@ -168,13 +178,27 @@ class ControlCellEditor extends CellEditor implements IPositionListener {
 			    return;
 			}
 			setPosition(loc);
+			if (!cmode.isDirectlyConnected()) decorator.setValue(getPosition());
+			
 		} catch (Exception e) {
 			logger.error("Cannot nudge value!", e);
 		}
 	}
+	
+	protected Number getPosition() throws Exception {
+		if (!cmode.isDirectlyConnected() && node.getValue()!=null) {
+			return (Number)node.getValue();
+		} else {
+			return scannable.getPosition();
+		}
+ 	}
 
 	protected void setPosition(Number value) {
-		job.setPosition(scannable, value);
+		if (cmode.isDirectlyConnected()) {
+		    job.setPosition(scannable, value);
+		} else {
+			node.setValue(value);
+		}
 	}
 	
 	/**
@@ -201,7 +225,7 @@ class ControlCellEditor extends CellEditor implements IPositionListener {
 		text.setFocus();
 		text.setSelection(text.getText().length());
 		
-		if (Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS)) {
+		if (cmode.isDirectlyConnected() && Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS)) {
 			PointerInfo a = MouseInfo.getPointerInfo();
 			java.awt.Point loc = a.getLocation();
 			
@@ -218,7 +242,7 @@ class ControlCellEditor extends CellEditor implements IPositionListener {
 	@Override
 	protected Object doGetValue() {
 		if (tip!=null) tip.setVisible(false);
-		if (scannable!=null && scannable instanceof IPositionListenable) {
+		if (scannable!=null && scannable instanceof IPositionListenable  && cmode.isDirectlyConnected()) {
 			((IPositionListenable)scannable).removePositionListener(this);
 		}
 		return node;
@@ -230,19 +254,20 @@ class ControlCellEditor extends CellEditor implements IPositionListener {
 		if (v == null) return;
 		this.node = (ControlNode)v;
 		try {
-			if (scannable!=null && scannable instanceof IPositionListenable) {
+			if (scannable!=null && scannable instanceof IPositionListenable && cmode.isDirectlyConnected()) {
 				((IPositionListenable)scannable).removePositionListener(this);
 			}
 			text.setEnabled(true);
 			this.scannable = cservice.getScannable(node.getName());
-			stop.setEnabled(scannable instanceof ITerminatable);
-			if (scannable!=null && scannable instanceof IPositionListenable) {
+			if (stop!=null) stop.setEnabled(scannable instanceof ITerminatable);
+			
+			if (scannable!=null && scannable instanceof IPositionListenable && cmode.isDirectlyConnected()) {
 				((IPositionListenable)scannable).addPositionListener(this);
 			}
 			
 			this.decorator.setMaximum(scannable.getMaximum());
 			this.decorator.setMinimum(scannable.getMinimum());
-			this.decorator.setValue(scannable.getPosition());
+			this.decorator.setValue(getPosition());
 			this.incDeco.setValue(node.getIncrement());
 			
 			

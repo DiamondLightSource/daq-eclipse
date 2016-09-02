@@ -12,16 +12,19 @@ import org.eclipse.swt.widgets.Composite;
 class ControlEditingSupport extends EditingSupport {
 	
 	private IScannableDeviceService cservice;
+	private ControlViewerMode       mode;
 
-	ControlEditingSupport(ColumnViewer viewer, IScannableDeviceService cservice) {
+	ControlEditingSupport(ColumnViewer viewer, IScannableDeviceService cservice, ControlViewerMode mode) {
 		super(viewer);
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
 		this.cservice = cservice;
+		this.mode = mode;
 	}
 
 	@Override
 	protected CellEditor getCellEditor(Object element) {
-		return new ControlCellEditor((Composite)getViewer().getControl(), cservice);
+		// TODO Editor for non-number controls...
+		return new ControlValueCellEditor((Composite)getViewer().getControl(), cservice, mode);
 	}
 
 	@Override

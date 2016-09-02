@@ -21,6 +21,7 @@ import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.device.scannable.ControlTreeViewer;
+import org.eclipse.scanning.device.ui.device.scannable.ControlViewerMode;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.part.ViewPart;
@@ -90,7 +91,7 @@ public class ControlView extends ViewPart {
 			IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
 
 			ControlTree defaultTree = parseDefaultXML();
-			viewer = new ControlTreeViewer(defaultTree, cservice);
+			viewer = new ControlTreeViewer(defaultTree, cservice); // Widget linked to hardware, use ControlViewerMode.INDIRECT_NO_SET_VALUE to edit without setting hardware.
 			
 			ControlTree stashedTree = unstash(ServiceHolder.getEventConnectorService()); // Or null if couldn't
 			viewer.createPartControl(parent, stashedTree, getViewSite().getActionBars().getMenuManager(), getViewSite().getActionBars().getToolBarManager());

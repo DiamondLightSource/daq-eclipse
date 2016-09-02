@@ -19,10 +19,12 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 	private static final Logger logger = LoggerFactory.getLogger(ControlValueLabelProvider.class);
 	
 	private IScannableDeviceService cservice;
+	private ControlViewerMode       mode;
 	
-	public ControlValueLabelProvider(IScannableDeviceService cservice) {
+	public ControlValueLabelProvider(IScannableDeviceService cservice, ControlViewerMode mode) {
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
 		this.cservice = cservice;
+		this.mode     = mode;
 	}
 
 	@Override
@@ -58,10 +60,24 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 		if (cservice==null) return "Server Error";
 		try {
 			if (node instanceof ControlNode) {
-				final IScannable<Number> scannable = cservice.getScannable(node.getName());
+				ControlNode cnode = (ControlNode)node;
 				
+				Object value = null;
+				if (!mode.isDirectlyConnected() && cnode.getValue()!=null) {
+					value = cnode.getValue();
+				} else {
+					final IScannable<Number> scannable = cservice.getScannable(cnode.getName());
+					value = scannable.getPosition();
+				}
+				
+				if (value == null) return "!VALUE";
 				final DecimalFormat format = new DecimalFormat(Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
-				return format.format(scannable.getPosition().doubleValue()); 
+				try {
+					return format.format(value); 
+				} catch (Exception ne) {
+					return value.toString();
+				}
+				
 			} else {
 				return ""; // Only controls have values...
 			}
