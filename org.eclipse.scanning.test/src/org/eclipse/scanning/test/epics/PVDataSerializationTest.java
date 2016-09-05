@@ -108,7 +108,7 @@ public class PVDataSerializationTest {
 							
 				System.out.println(pvStructure);
 			} catch (Exception ex ) {
-				System.out.println("zsdfsdf");
+				System.out.println("TODO - FIX ME");
 				ex.printStackTrace();
 			}
 			//CompoundModel ledom = connectorService.pvUnmarshal(pvStructure, CompoundModel.class);
@@ -265,7 +265,7 @@ public class PVDataSerializationTest {
 		}
 		
 		/**
-		 * Test Compound Model is serialised into correct format expected by Malcom
+		 * Test Compound Model is serialised into correct format expected by Malcolm
 		 * @throws Exception
 		 */
 		/*@Test
