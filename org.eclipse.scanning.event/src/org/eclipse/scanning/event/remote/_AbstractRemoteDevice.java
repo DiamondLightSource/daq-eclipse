@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event.remote;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
@@ -20,12 +21,22 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 		setEventService(eservice);
 		setUri(uri);
 		requester = eservice.createRequestor(uri, EventConstants.DEVICE_REQUEST_TOPIC, EventConstants.DEVICE_RESPONSE_TOPIC);
-	    requester.setTimeout(RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()); // Useful for debugging testing 
 	}
 
 	@SuppressWarnings("unchecked")
 	_AbstractRemoteDevice(DeviceRequest req, URI uri, IEventService eservice) throws EventException, InterruptedException {
 		this(uri, eservice);
+	    requester.setTimeout(RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()); // Useful for debugging testing 
+	    connect(req);
+	}
+
+	_AbstractRemoteDevice(DeviceRequest req, long timeoutMs, URI uri, IEventService eservice) throws EventException, InterruptedException {
+		this(uri, eservice);
+	    requester.setTimeout(timeoutMs, TimeUnit.MILLISECONDS); // Useful for debugging testing 
+	    connect(req);
+	}
+	
+	private void connect(DeviceRequest req) throws EventException, InterruptedException {
 		req = requester.post(req);
 		info = (DeviceInformation<M>)req.getDeviceInformation();
 		this.name = info.getName();

@@ -8,6 +8,7 @@ import javax.annotation.PostConstruct;
 import org.eclipse.scanning.api.device.DeviceResponse;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.IResponseCreator;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 
@@ -32,19 +33,23 @@ import org.eclipse.scanning.api.event.scan.DeviceRequest;
  *
  */
 public class DeviceServlet extends AbstractResponderServlet<DeviceRequest> {
-
+	
 	@PostConstruct  // Requires spring 3 or better
     public void connect() throws EventException, URISyntaxException {	
-    	
 		responder = eventService.createResponder(new URI(broker), requestTopic, responseTopic);
-		responder.setResponseCreator(new DoResponseCreator() {
+		responder.setBeanClass(DeviceRequest.class);
+		responder.setResponseCreator(createResponseCreator());
+     	logger.info("Started "+getClass().getSimpleName()+" using bean "+responder.getBeanClass());
+	}
+
+	protected IResponseCreator<DeviceRequest> createResponseCreator() {
+		return new DoResponseCreator() {
 			@Override
 			public boolean isSynchronous() {
 				return false;
 			}
-		});
-     	logger.info("Started "+getClass().getSimpleName());
-    }
+		};
+	}
 
 	@Override
 	public IResponseProcess<DeviceRequest> createResponder(DeviceRequest bean, IPublisher<DeviceRequest> response) throws EventException {
