@@ -197,8 +197,8 @@ public class EpicsV4MessageMapper {
 		PVField endPointField = pvStructure.getSubField(message.getEndpoint());
 		if (endPointField.getField().getType().equals(org.epics.pvdata.pv.Type.union)) {
 			// Create from scratch for union
-			PVStructure newStructure = marshaller.toPVStructure(message.getValue());
 			PVUnion unionField = (PVUnion)endPointField;
+			PVStructure newStructure = marshaller.toPVStructure(message.getValue());
 			unionField.set(newStructure);
 		} else {
 			marshaller.setFieldWithValue(pvStructure, message.getEndpoint(), message.getValue());
@@ -214,23 +214,25 @@ public class EpicsV4MessageMapper {
 	} 
 	
 	private Object getEndpointObjectFromPVStructure(PVStructure pvStructure, String endpoint) throws Exception {
-		
-		PVStructure parentStructure = null;
-		String[] requestArray = endpoint.split("\\.");
-		
-		if (requestArray.length == 1) {
-			parentStructure = pvStructure;
-		} else {
-			String parentStructureString = "";
-			for (int i = 0; i < requestArray.length - 1; i++) {
-				parentStructureString += requestArray[i];
-			}
-			parentStructure = pvStructure.getStructureField(parentStructureString);
-		}
 
-		if (endpoint.contains(",")) {
+		if (endpoint.isEmpty()) {
+			return marshaller.fromPVStructure(pvStructure, Object.class);
+		} else if (endpoint.contains(",")) {
 			return marshaller.fromPVStructure(pvStructure, Object.class);
 		} else {
+			PVStructure parentStructure = null;
+			String[] requestArray = endpoint.split("\\.");
+			
+			if (requestArray.length == 1) {
+				parentStructure = pvStructure;
+			} else {
+				String parentStructureString = "";
+				for (int i = 0; i < requestArray.length - 1; i++) {
+					parentStructureString += requestArray[i];
+				}
+				parentStructure = pvStructure.getStructureField(parentStructureString);
+			}
+
 			return marshaller.getObjectFromField(parentStructure, requestArray[requestArray.length-1]);
 		}
 	}

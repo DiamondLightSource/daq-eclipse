@@ -2,7 +2,8 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         id="osgi server"
+         id="org.eclipse.scanning.server"
+         name="Data Acqusition - Example Scanning Server"
          point="org.eclipse.core.runtime.applications">
       <application
             cardinality="*"

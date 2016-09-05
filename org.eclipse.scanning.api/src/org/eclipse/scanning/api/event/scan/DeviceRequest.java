@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.event.scan;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.points.IPosition;
@@ -343,5 +344,14 @@ public class DeviceRequest extends IdBean {
 
 	public void setErrorFieldNames(String[] errorFieldNames) {
 		this.errorFieldNames = errorFieldNames;
+	}
+
+
+	public Exception createException() {
+		if (getErrorFieldNames()!=null) {
+			return new ModelValidationException(getErrorMessage(), getDeviceModel(), getErrorFieldNames());
+		} else {
+			return new Exception(getErrorMessage());
+		}
 	}
 }

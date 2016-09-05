@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api;
 
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -20,4 +21,13 @@ public interface ISpringParser {
 	 * @return
 	 */
 	Map<String, Object> parse(String path) throws UnsupportedOperationException, Exception;
+	
+	
+	/**
+	 * Parse an xml 
+	 * @param in
+	 * @return
+	 */
+	Map<String, Object> parse(InputStream in) throws UnsupportedOperationException, Exception;
+
 }

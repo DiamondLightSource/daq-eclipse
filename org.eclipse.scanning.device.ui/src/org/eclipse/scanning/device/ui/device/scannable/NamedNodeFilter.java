@@ -1,7 +1,8 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.INamedNode;
+import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.ui.dialogs.PatternFilter;
 
 class NamedNodeFilter extends PatternFilter {
@@ -11,8 +12,9 @@ class NamedNodeFilter extends PatternFilter {
 		try {
 			INamedNode ob = (INamedNode)element;
 			boolean matched = super.isLeafMatch(viewer, ob.getName());
-			if (!matched && ob.getParent()!=null) {
-				return isLeafMatch(viewer, ob.getParent());
+			if (!matched && ob.getParentName()!=null) {
+				final ControlTree tree = (ControlTree)viewer.getInput();
+				return isLeafMatch(viewer, tree.getNode(ob.getParentName()));
 			}
 			return matched;
 		} catch (Exception ne) {

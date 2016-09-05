@@ -74,6 +74,7 @@ public class ResponseConfiguration {
 			while (!ok && waiter.waitAgain()) {
 				ok = latch.await(timeout, timeUnit);
 			}
+			ok = latch.await(timeout, timeUnit); // This is because waitAgain() could be false leaving ok as false, we recheck it!
 			if (!ok) throw new EventException("The timeout of "+timeout+" "+timeUnit+" was reached and no response occurred!");
 			
 		} else if (getResponseType()==ResponseType.ONE_OR_MORE) {

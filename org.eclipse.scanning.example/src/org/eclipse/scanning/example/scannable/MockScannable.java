@@ -2,6 +2,7 @@ package org.eclipse.scanning.example.scannable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
 import org.eclipse.dawnsci.nexus.NexusException;
@@ -14,13 +15,14 @@ import org.eclipse.january.dataset.LazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.IConfigurable;
+import org.eclipse.scanning.api.ITerminatable;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.scan.ScanningException;
 
-public class MockScannable extends AbstractScannable<Number> implements IConfigurable<MockScannableModel> {
+public class MockScannable extends AbstractScannable<Number> implements IConfigurable<MockScannableModel>, ITerminatable {
 
 	protected Number  position = 0d;
 	private boolean requireSleep=true;
@@ -128,33 +130,33 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		this.position = position;
 	}
 	
-	public void setPosition(Number position, IPosition loc) throws Exception {
-		
-		double value = position!=null ? position.doubleValue() : Double.NaN;
-		boolean ok = delegate.firePositionWillPerform(new Scalar(getName(), loc.getIndex(getName()), value));
-		if (!ok) return;
+	public void setPosition(Number value, IPosition loc) throws Exception {
 		
 		int index = loc!=null ? loc.getIndex(getName()) : -1;
-		if (position!=null) {
-			long waitTime = Math.abs(Math.round((position.doubleValue()-this.position.doubleValue())/1)*100);
+		double val = value!=null ? value.doubleValue() : Double.NaN;
+		boolean ok = delegate.firePositionWillPerform(new Scalar(getName(), index, val));
+		if (!ok) return;
+		
+		if (value!=null) {
+			long waitTime = Math.abs(Math.round((val-this.position.doubleValue()))*100);
 			waitTime = Math.max(waitTime, 1);
 
 			if (isRealisticMove()) {
-				doRealisticMove(position, index, waitTime);
+				value = doRealisticMove(value, index, waitTime); // Might get cancelled while moving.
 			} else if (isRequireSleep()) {
 				Thread.sleep(waitTime);
 			}
 		}
-		this.position = position;
+		this.position = value;
 		
-		values.add(position);
+		values.add(value);
 		positions.add((AbstractPosition)loc);
 		
 		
 		if (writer!=null && loc!=null) {
 			
 			// Write a single value
-			IDataset toWrite = DatasetFactory.createFromObject(position);
+			IDataset toWrite = DatasetFactory.createFromObject(value);
 			
 			final int[] start = new int[]{loc.getIndex(getName())};    // DO NOT COPY!
 			final int[] stop  = new int[] {loc.getIndex(getName())+1}; // DO NOT COPY!
@@ -168,39 +170,64 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 	 
 		}
 		
-		delegate.firePositionPerformed(-1, new Scalar(getName(), index, value));
+		delegate.firePositionPerformed(-1, new Scalar(getName(), index, val));
+		
 	}
 	
-	protected void doRealisticMove(Number pos, int index, long minimumWaitTime) throws InterruptedException, ScanningException {
+	private TerminationPreference terminate;
+	private CountDownLatch        latch;
+	
+	protected Number doRealisticMove(Number pos, int index, long minimumWaitTime) throws InterruptedException, ScanningException {
 		
-		if (pos==null) return;
-		Number orig     = this.position;
-		if (orig==null) orig = 0d;
+		if (pos==null) return pos;
 		
-		double distance = pos.doubleValue()-orig.doubleValue();
-		long waitedTime = 0L;
-		if (Math.abs(distance)>0.000001) {
-			double rate     = getMoveRate(); // units/s
-			double time     = distance/rate; // Time, s, to do the move.
+		try {
+			latch     = new CountDownLatch(1);
+			terminate = null;
 			
-			// We will pretend there are 10 points in any move for notification
-			double increment = distance/10d;
-			long   pauseTime= Math.abs(Math.round(time/10d)*1000); // pause in ms
+			Number orig     = this.position;
+			if (orig==null) orig = 0d;
 			
-			double currentPosition = orig.doubleValue();
-			for (int i = 0; i < 10; i++) {
-				Thread.sleep(pauseTime);
-				waitedTime+=pauseTime;
-				currentPosition+=increment;
-				this.position = currentPosition;
-				delegate.firePositionPerformed(-1, new Scalar(getName(), index, currentPosition));
-				//System.out.println("Set "+getName()+" intermediate value "+position);
+			double distance = pos.doubleValue()-orig.doubleValue();
+			long waitedTime = 0L;
+			if (Math.abs(distance)>0.000001) {
+				double rate     = getMoveRate(); // units/s
+				double time     = distance/rate; // Time, s, to do the move.
+				
+				// We will pretend there are 10 points in any move for notification
+				double increment = distance/10d;
+				long   pauseTime= Math.abs(Math.round(time/10d)*1000); // pause in ms
+				
+				double currentPosition = orig.doubleValue();
+				for (int i = 0; i <10; i++) {
+					if (terminate==TerminationPreference.PANIC) return this.position;
+					Thread.sleep(pauseTime);
+					waitedTime+=pauseTime;
+					currentPosition+=increment;
+					this.position = currentPosition;
+					delegate.firePositionChanged(-1, new Scalar(getName(), index, currentPosition));
+					if (terminate==TerminationPreference.CONTROLLED) break;
+				}
+				System.out.println("Realistic move of "+getName()+" from "+orig+" to "+currentPosition+" complete");
 			}
-			System.out.println("Realistic move of "+getName()+" from "+orig+" to "+currentPosition+" complete");
+			if (isRequireSleep() && minimumWaitTime>0 && minimumWaitTime>waitedTime && terminate!=TerminationPreference.PANIC) {
+				Thread.sleep(minimumWaitTime-waitedTime);
+			}
+			return this.position;
+
+		} finally {
+			terminate = null;
+			if (latch!=null) latch.countDown();
+			latch = null;
 		}
-		if (isRequireSleep() && minimumWaitTime>0 && minimumWaitTime>waitedTime) {
-			Thread.sleep(minimumWaitTime-waitedTime);
-		}
+
+	}
+
+	@Override
+	public void terminate(TerminationPreference pref) throws Exception {
+		System.out.println("Terminate requested, preference "+pref);
+		terminate = pref;
+		if (latch!=null) latch.await();
 	}
 
 	@Override
@@ -219,14 +246,26 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		
 		for (int i = 0; i < positions.size(); i++) {
 			
-			if (positions.get(i).equals(point, false)  && ( 
-				values.get(i) == value || values.get(i).equals(value))) {
+			boolean equalPos  = positions.get(i).equals(point, false);
+			Number other = values.get(i);
+			boolean identical = other == value;
+			boolean equals    = equalsWithinTolerance(other, value, 0.0000000001);
+			if (equalPos  && (identical || equals)) {
 				return;
 			}
 		}
 		
 		throw new Exception("No call to setPosition had value="+value+" and position="+point);
 	}
+	
+	protected static boolean equalsWithinTolerance(Number foo, Number bar, Number tolerance) {
+		if (foo==null || bar==null || tolerance==null) return false;
+		final double a = foo.doubleValue();
+		final double b = bar.doubleValue();
+		final double t = tolerance.doubleValue();	
+		return t>=Math.abs(a-b);
+	}
+
 
 	private String unit = "mm";
 	@Override

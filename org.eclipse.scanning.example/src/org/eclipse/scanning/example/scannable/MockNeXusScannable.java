@@ -16,6 +16,7 @@ import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
 
@@ -69,13 +70,16 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	}	
 
 	public void setPosition(Number value, IPosition position) throws Exception {
+		
 		if (value!=null) {
+			int index = position!=null ? position.getIndex(getName()) : -1;
 			if (isRealisticMove()) {
-				int index = position!=null ? position.getIndex(getName()) : -1;
-				doRealisticMove(value, index, -1);
+				value = doRealisticMove(value, index, -1);
 			}
 			this.position = value;
+			delegate.firePositionPerformed(-1, new Scalar(getName(), index, value.doubleValue()));
 		}
+
 		if (position!=null) write(value, getPosition(), position);
 	}
 

@@ -71,8 +71,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	
 	@Override
 	public String marshal(Object anyObject) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 	
 	public PVStructure pvMarshal(Object anyObject) throws Exception {
@@ -81,8 +80,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 
 	@Override
 	public <U> U unmarshal(String anyObject, Class<U> beanClass) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	public <U> U pvUnmarshal(PVStructure anyObject, Class<U> beanClass) throws Exception {

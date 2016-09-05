@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractResponderServlet<B extends IdBean> implements IResponderServlet<B> {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AbstractResponderServlet.class);
+	protected static final Logger logger = LoggerFactory.getLogger(AbstractResponderServlet.class);
 
 	protected IEventService eventService;
 	protected String        broker;
@@ -46,7 +46,7 @@ public abstract class AbstractResponderServlet<B extends IdBean> implements IRes
 	protected String        responseTopic = IEventService.DEVICE_RESPONSE_TOPIC;
 	
 	// The responder for requests to this servlet.
-	private IResponder<B>   responder;
+	protected IResponder<B>   responder;
 
 	
 	protected AbstractResponderServlet() {
@@ -67,7 +67,7 @@ public abstract class AbstractResponderServlet<B extends IdBean> implements IRes
      	logger.info("Started "+getClass().getSimpleName());
     }
     
-	class DoResponseCreator<T> implements IResponseCreator<B> {
+	class DoResponseCreator implements IResponseCreator<B> {
 		@Override
 		public IResponseProcess<B> createResponder(B bean, IPublisher<B> response) throws EventException {
 			return AbstractResponderServlet.this.createResponder(bean, response);
@@ -79,7 +79,6 @@ public abstract class AbstractResponderServlet<B extends IdBean> implements IRes
 		responder.disconnect();
     }
 
-	
 	public String getBroker() {
 		return broker;
 	}

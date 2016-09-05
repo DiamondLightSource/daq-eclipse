@@ -36,14 +36,16 @@ public class XcenProcess extends AbstractPausableProcess<XcenBean>{
 		
 		super(bean, status);
 				
-		// TODO Do we a directory?
         final String runDir;
+        
+        if (bean.getRunDirectory()==null) bean.setRunDirectory("xcenrun");
+               
 		if (isWindowsOS()) {
 			// We are likely to be a test consumer, anyway the unix paths
 			// from ISPyB will certainly not work, so we process in C:/tmp/
 			runDir  = "C:/tmp/"+bean.getRunDirectory();
 		} else {
-			runDir  = bean.getRunDirectory();
+			runDir  = "/tmp/"+bean.getRunDirectory();
 		}
 
  		final File   xcenDir = getUnique(new File(runDir), "Xcen_", 1);

@@ -20,6 +20,9 @@ import org.eclipse.scanning.api.device.IRunnableDeviceService;
  * <B>NOTE:</B> An object is available using IDeviceService.createPositioner()
  * called IPositioner which can move scannables to a given
  * position by level.
+ * <p>
+ * Implementations of this class should be immutable where possible. Where this is not
+ * possible they should not be modified once they have been fully initialized. 
  * 
  * @see IRunnableDeviceService
  * @see org.eclipse.scanning.api.scan.event.IPositioner

@@ -9,11 +9,8 @@ import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.pv.Convert;
 import org.epics.pvdata.pv.Field;
 import org.epics.pvdata.pv.FieldCreate;
-import org.epics.pvdata.pv.PVLong;
 import org.epics.pvdata.pv.PVString;
-import org.epics.pvdata.pv.PVStringArray;
 import org.epics.pvdata.pv.PVStructure;
-import org.epics.pvdata.pv.PVUnion;
 import org.epics.pvdata.pv.ScalarType;
 import org.epics.pvdata.pv.Structure;
 import org.epics.pvmarshaller.marshaller.api.IPVStructureSerialiser;
@@ -83,16 +80,13 @@ public class MalcolmMessageSerialiser implements IPVStructureSerialiser<MalcolmM
 
 	@Override
 	public void populatePVStructure(Serialiser serialiser, MalcolmMessage msg, PVStructure pvStructure) throws Exception {
-		PVString type = pvStructure.getSubField(PVString.class, "type");
-		PVLong id = pvStructure.getSubField(PVLong.class, "id");
-		PVStringArray endpoint = pvStructure.getSubField(PVStringArray.class, "endpoint");
-		PVStructure parameters = pvStructure.getStructureField("parameters");
-		PVUnion value = pvStructure.getSubField(PVUnion.class, "value");
 		
 		switch (msg.getType()) {
 		case CALL:
 			PVStructure methodName = pvStructure.getStructureField("method");
 			PVString method = methodName.getSubField(PVString.class, "method");
+			PVStructure parameters = pvStructure.getStructureField("parameters");
+			
 			method.put(msg.getMethod());
 			
 			if (msg.getArguments() != null) {
@@ -102,22 +96,8 @@ public class MalcolmMessageSerialiser implements IPVStructureSerialiser<MalcolmM
 				convert.copyStructure(params.getStructureField("parameters"), parameters);
 			}
 			break;
-		case GET:
-			type.put("Get");
-			id.put(msg.getId());
-			String[] getEndpointArray = msg.getEndpoint().split("\\.");
-			endpoint.put(0, getEndpointArray.length, getEndpointArray, 0);
-			break;
-		case PUT:
-			type.put("Put");
-			id.put(msg.getId());
-			String[] putEndpointArray = msg.getEndpoint().split("\\.");
-			endpoint.put(0, putEndpointArray.length, putEndpointArray, 0);
-			PVStructure valueStructure = serialiser.toPVStructure(msg.getValue());
-			value.set(valueStructure);
-			break;
 		default:
-			throw new Exception("Unknown MalcolmMessage type");
+			throw new Exception("Unexpected MalcolmMessage type");
 		}
 	}
 	

@@ -1,20 +1,19 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.INamedNode;
-import org.eclipse.scanning.api.scan.ui.ControlFactory;
+import org.eclipse.scanning.api.scan.ui.ControlTree;
 
-public class ControlContentProvider implements ITreeContentProvider {
+class ControlContentProvider implements ITreeContentProvider {
 
 	
-	private ControlFactory factory;
+	private ControlTree factory;
 
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		this.factory = (ControlFactory)newInput;
-		factory.build();
+		this.factory = (ControlTree)newInput;
+		if (factory!=null) factory.build();
 	}
 
 	@Override
@@ -37,7 +36,7 @@ public class ControlContentProvider implements ITreeContentProvider {
 	@Override
 	public Object getParent(Object element) {
 		INamedNode node = (INamedNode)element;
-		return node.getParent();
+		return factory.getNode(node.getParentName());
 	}
 
 	@Override

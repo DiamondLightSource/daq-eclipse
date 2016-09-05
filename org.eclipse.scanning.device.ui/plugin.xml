@@ -34,7 +34,7 @@
       </view>
       <view
             category="org.eclipse.scanning.device.ui"
-            class="org.eclipse.scanning.device.ui.scan.SummaryView"
+            class="org.eclipse.scanning.device.ui.points.SummaryView"
             icon="icons/scanner--info.png"
             id="org.eclipse.scanning.device.ui.scan.SummaryView"
             name="Summary">

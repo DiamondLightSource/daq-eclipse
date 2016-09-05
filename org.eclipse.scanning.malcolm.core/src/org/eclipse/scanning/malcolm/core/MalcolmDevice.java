@@ -51,7 +51,7 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	
 	private static String STATE_ENDPOINT = "state";
 	
-	private static String CURRENT_STEP_ENDPOINT = "attributes.currentStep";
+	private static String CURRENT_STEP_ENDPOINT = "currentStep";
 
 
 	public MalcolmDevice(String name, IMalcolmConnectorService<MalcolmMessage> service, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
@@ -120,6 +120,8 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		
 		MalcolmMessage msg      = e.getBean();
 		DeviceState newState = MalcolmUtil.getState(msg, false);
+		
+		System.out.println("######MTMT####### SCAN EVENT RECEIVED: " + newState); // TODO REMOVE
 
 		ScanBean bean = getBean();
 		bean.setDeviceName(getName());
@@ -143,6 +145,8 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		MalcolmMessage msg = e.getBean();
 		
 		DeviceState newState = MalcolmUtil.getState(msg, false);
+		
+		System.out.println("######MTMT####### STATE CHANGED RECEIVED: " + newState); // TODO REMOVE
 		
 		// Send scan state changed
 		ScanBean bean = getBean();
@@ -201,6 +205,7 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	public void configure(T model) throws MalcolmDeviceException {
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", model);
 		service.send(this, msg);
+		// TODO handle return from configure. Check for error?
 		setModel(model);
 	}
 

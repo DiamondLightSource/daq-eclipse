@@ -143,7 +143,8 @@ public class ScanPointGeneratorFactory {
     
     private static File find(File loc, String name) {
     	
-    	if (!loc.exists()) throw new IllegalArgumentException(loc+" does not exist!");
+    	if (loc==null) return null;
+    	if (!loc.exists()) return null;
     	File find = new File(loc, name);
         if (find.exists()) return find;
         
@@ -199,7 +200,9 @@ public class ScanPointGeneratorFactory {
 		try {
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 	        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
+	        if (loc ==null) return;
 	        File jythonDir = find(loc, "jython");
+	        if (jythonDir ==null) return;
 	        
 	        Properties props = new Properties();
 	    	props.put("python.home", jythonDir.getAbsolutePath());
@@ -226,12 +229,14 @@ public class ScanPointGeneratorFactory {
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 
             File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
-	        File jythonDir = find(loc, "jython");
-           	state.path.add(new PyString(jythonDir.getAbsolutePath())); // Resolves the collections
-	        File lib       = find(jythonDir, "Lib");
-	        state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
-           
-           	System.out.println(state.path);
+	        if (loc != null) {
+	            File jythonDir = find(loc, "jython");
+	           	state.path.add(new PyString(jythonDir.getAbsolutePath())); // Resolves the collections
+		        File lib       = find(jythonDir, "Lib");
+		        state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
+	           
+	           	System.out.println(state.path);
+	        }
             
         } catch (Exception ne) {
         	System.out.println("Problem setting jython path to include scripts");

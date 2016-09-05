@@ -1,7 +1,6 @@
-package org.eclipse.scanning.device.ui.device;
+package org.eclipse.scanning.device.ui.device.scannable;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -9,11 +8,9 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
-import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.device.ui.Activator;
-import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,13 +19,12 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 	private static final Logger logger = LoggerFactory.getLogger(ControlValueLabelProvider.class);
 	
 	private IScannableDeviceService cservice;
+	private ControlViewerMode       mode;
 	
-	public ControlValueLabelProvider() {
-		try {
-			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
-		} catch (EventException | URISyntaxException e) {
-			logger.error("Cannot create a remote scannable device service!", e);
-		}
+	public ControlValueLabelProvider(IScannableDeviceService cservice, ControlViewerMode mode) {
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
+		this.cservice = cservice;
+		this.mode     = mode;
 	}
 
 	@Override
@@ -64,14 +60,30 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 		if (cservice==null) return "Server Error";
 		try {
 			if (node instanceof ControlNode) {
-				final IScannable<?> scannable = cservice.getScannable(node.getName());
-				return String.valueOf(scannable.getPosition()); // TODO Formatting!
+				ControlNode cnode = (ControlNode)node;
+				
+				Object value = null;
+				if (!mode.isDirectlyConnected() && cnode.getValue()!=null) {
+					value = cnode.getValue();
+				} else {
+					final IScannable<Number> scannable = cservice.getScannable(cnode.getName());
+					value = scannable.getPosition();
+				}
+				
+				if (value == null) return "!VALUE";
+				final DecimalFormat format = new DecimalFormat(Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
+				try {
+					return format.format(value); 
+				} catch (Exception ne) {
+					return value.toString();
+				}
 				
 			} else {
 				return ""; // Only controls have values...
 			}
 		} catch (Exception ne) {
-			return ne.getMessage();
+			logger.error("Error with value for "+node, ne);
+		    return ne.toString();
 		}
 		
 	}
