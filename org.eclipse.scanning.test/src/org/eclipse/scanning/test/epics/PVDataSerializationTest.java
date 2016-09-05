@@ -141,7 +141,7 @@ public class PVDataSerializationTest {
 							
 				System.out.println(pvStructure);
 			} catch (Exception ex ) {
-				System.out.println("zsdfsdf");
+				System.out.println("TODO - FIX ME");
 				ex.printStackTrace();
 			}
 		}
