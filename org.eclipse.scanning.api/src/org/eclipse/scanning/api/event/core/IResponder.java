@@ -16,7 +16,7 @@ import org.eclipse.scanning.api.event.IdBean;
  * @author Matthew Gerring
  *
  */
-public interface IResponder<T extends IdBean> extends IRequestResponseConnection{
+public interface IResponder<T extends IdBean> extends IRequestResponseConnection, IBeanClass<T>{
 
 	/**
 	 * The responder will be asked to respond to posts on the request topic

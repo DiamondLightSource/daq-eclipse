@@ -63,10 +63,18 @@ public abstract class AbstractResponderServlet<B extends IdBean> implements IRes
     public void connect() throws EventException, URISyntaxException {	
     	
 		responder = eventService.createResponder(new URI(broker), requestTopic, responseTopic);
-		responder.setResponseCreator(new DoResponseCreator());
+		responder.setResponseCreator(createResponseCreator());
      	logger.info("Started "+getClass().getSimpleName());
     }
-    
+
+	/**
+	 * Override to change the behaviour of the IResponseCreator
+	 * @return
+	 */
+	protected IResponseCreator<B> createResponseCreator() {
+		return new DoResponseCreator();
+	}
+
 	class DoResponseCreator implements IResponseCreator<B> {
 		@Override
 		public IResponseProcess<B> createResponder(B bean, IPublisher<B> response) throws EventException {

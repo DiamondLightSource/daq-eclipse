@@ -46,6 +46,14 @@
             id="org.eclipse.scanning.device.ui.device.ControlView"
             name="Controls">
       </view>
+      <view
+            category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.scanning.device.ui.vis.VisualiseView"
+            icon="icons/image.png"
+            id="org.eclipse.scanning.device.ui.vis.visualiseView"
+            name="Image"
+            restorable="true">
+      </view>
    </extension>
     <extension
          point="org.eclipse.ui.perspectives">

@@ -35,8 +35,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 	private ISubscriber<ILocationListener> subscriber;
 	
 	_Scannable(DeviceRequest req, URI uri, IEventService eservice) throws EventException, InterruptedException {
-		super(req, uri, eservice);
-	    requester.setTimeout(250, TimeUnit.MILLISECONDS); // TODO This is how often the response is checked for setPosition()
+		super(req, 250, uri, eservice);
 	}
 
 	@SuppressWarnings("unchecked")
