@@ -14,12 +14,12 @@ public class MalcolmUtil {
 	 * @return
 	 * @throws Exception 
 	 */
-	public static DeviceState getState(JsonMessage msg) throws Exception {
+	public static DeviceState getState(MalcolmMessage msg) throws Exception {
 
 		return getState(msg, true);
 	}
 	
-	public static DeviceState getState(JsonMessage msg, boolean requireException) throws Exception {
+	public static DeviceState getState(MalcolmMessage msg, boolean requireException) throws Exception {
 
 		try {
 			if (msg.getValue() instanceof String) {
@@ -37,19 +37,27 @@ public class MalcolmUtil {
 		}
 	}
 
-	public static DeviceState getState(Map<String, ?> value) {
+	public static DeviceState getState(Map<String, ?> value) throws Exception {
 		
 		if (value.containsKey("state")) {
 			final String state = (String)value.get("state");
 			return DeviceState.valueOf(state.toUpperCase());
 		}
-
-		if (value.containsKey("value") && !value.containsKey("choices")) value = (Map<String,Object>)value.get("value");
-		List<String> choices = (List<String>)value.get("choices");
-		int          index   = (int)value.get("index");
-		final String state = choices.get(index);
-		return DeviceState.valueOf(state.toUpperCase());
-
+		
+		if (value.containsKey("value") && !value.containsKey("choices")) {
+			if (value.get("value") instanceof Map) {
+				value = (Map<String,Object>)value.get("value");
+				List<String> choices = (List<String>)value.get("choices");
+				int          index   = (int)value.get("index");
+				final String state = choices.get(index);
+				return DeviceState.valueOf(state.toUpperCase());
+			} else if (value.get("value") instanceof String) {
+				final String state = (String)value.get("value");
+				return DeviceState.valueOf(state.toUpperCase());
+			}
+		}
+		
+		throw new Exception("Unable to get state from value Map");
 	}
 
 

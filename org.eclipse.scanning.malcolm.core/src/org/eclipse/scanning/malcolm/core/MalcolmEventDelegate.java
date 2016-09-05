@@ -10,7 +10,7 @@ import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
@@ -27,9 +27,9 @@ public class MalcolmEventDelegate {
 	// scan and to hold data for scan events
 	private MalcolmEventBean templateBean;
 
-	private IMalcolmConnectorService<JsonMessage> service;
+	private IMalcolmConnectorService<MalcolmMessage> service;
 
-	public MalcolmEventDelegate(String deviceName, IMalcolmConnectorService<JsonMessage> service) {
+	public MalcolmEventDelegate(String deviceName, IMalcolmConnectorService<MalcolmMessage> service) {
 		
 		this.service = service;
 		

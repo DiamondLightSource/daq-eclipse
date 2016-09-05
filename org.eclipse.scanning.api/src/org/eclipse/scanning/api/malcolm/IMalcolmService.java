@@ -4,7 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
-import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 
 /**
  * An OSGi service for creating Malcolm connections
@@ -56,6 +56,6 @@ public interface IMalcolmService {
 	 * @throws URISyntaxException
 	 * @throws MalcolmDeviceException
 	 */
-	public IMalcolmConnection createConnection(URI malcolmUri, IMalcolmConnectorService<JsonMessage> connectorService) throws URISyntaxException, MalcolmDeviceException;
+	public IMalcolmConnection createConnection(URI malcolmUri, IMalcolmConnectorService<MalcolmMessage> connectorService) throws URISyntaxException, MalcolmDeviceException;
 		
 }

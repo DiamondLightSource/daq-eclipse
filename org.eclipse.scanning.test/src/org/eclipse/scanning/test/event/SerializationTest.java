@@ -16,6 +16,7 @@ import java.util.UUID;
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.INamedNode;
@@ -238,11 +239,15 @@ public class SerializationTest {
 	@Test
 	public void testCompoundModel1() throws Exception {
 
+		double[] spt = {1, 2};
+		double[] ept = {3, 4};
+		
 		CompoundModel model = new CompoundModel();
-		model.setData(new SpiralModel("x", "y", 1, new BoundingBox(0, -5, 10, 5)), new CircularROI(2, 0, 0));
+		model.setData(new SpiralModel("x", "y", 1, new BoundingBox(0, -5, 10, 5)), new LinearROI(spt, ept));
 		
 		String   json = service.marshal(model, true); // TODO Should work with false here but does not, see below.
 
+		System.out.println(json);
 		// TODO This json uses the @bundle_and_class
 		// It is required to have a type: field in the model refering to the simple name of the class
 		// and replacing @bundle_and_class which is a java specific thing.
