@@ -22,6 +22,7 @@ public class ResponderImpl<T extends IdBean> extends AbstractRequestResponseConn
 	private ISubscriber<IBeanListener<T>>      subscriber;
 	private IPublisher<T>                      publisher;
 	private IResponseCreator<T>                creator;
+	private Class<T>                           beanClass;
 
 	ResponderImpl(URI uri, String reqTopic, String resTopic, IEventService eservice) {
 		super(uri, reqTopic, resTopic, eservice);
@@ -51,6 +52,10 @@ public class ResponderImpl<T extends IdBean> extends AbstractRequestResponseConn
 					logger.error("Request unable to be processed! "+request, ne);
 				}
 			}
+			@Override
+			public Class<T> getBeanClass() {
+				return ResponderImpl.this.getBeanClass();
+			}
 		});
 		
 	}
@@ -61,5 +66,15 @@ public class ResponderImpl<T extends IdBean> extends AbstractRequestResponseConn
 		subscriber = null;
 		if (publisher!=null) publisher.disconnect();
 		publisher = null;
+	}
+
+	@Override
+	public Class<T> getBeanClass() {
+		return beanClass;
+	}
+
+	@Override
+	public void setBeanClass(Class<T> beanClass) {
+		this.beanClass = beanClass;
 	}
 }

@@ -10,14 +10,30 @@ package org.eclipse.scanning.test.event;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.QueueConnectionFactory;
+import javax.jms.Session;
+import javax.jms.Topic;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventConstants;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.bean.BeanEvent;
+import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.IResponder;
+import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.core.ResponseConfiguration;
+import org.eclipse.scanning.api.event.core.ResponseConfiguration.ResponseType;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -129,6 +145,60 @@ public class RequesterTest extends BrokerTest {
 		
 		if (res.getDevices().size()<1) throw new Exception("There were no devices found and at least the mandelbrot example should have been!");
 	}
+	
+	//@Test
+	public void testGetDevicesUsingString() throws Exception {
+		
+		final ResponseConfiguration responseConfiguration = new ResponseConfiguration(ResponseType.ONE, 1000, TimeUnit.MILLISECONDS);
+		
+		final List<DeviceRequest> responses = new ArrayList<>(1);
+
+        final ISubscriber<IBeanListener<DeviceRequest>>  receive = eservice.createSubscriber(uri, IEventService.DEVICE_RESPONSE_TOPIC);
+		// Just listen to our id changing.
+		receive.addListener("726c5d29-72f8-42e3-ba0c-51d26378065e", new IBeanListener<DeviceRequest>() {
+			@Override
+			public void beanChangePerformed(BeanEvent<DeviceRequest> evt) {
+				responses.add(evt.getBean());
+				responseConfiguration.countDown();
+			}
+		});
+
+		// Manually send a string without the extra java things...
+		final String rawString = "{\"uniqueId\":\"726c5d29-72f8-42e3-ba0c-51d26378065e\",\"deviceType\":\"RUNNABLE\",\"configure\":false}";
+
+		MessageProducer producer = null;
+		Connection      send     = null;
+		Session         session  = null;
+
+		try {
+
+			QueueConnectionFactory connectionFactory = (QueueConnectionFactory)eservice.getEventConnectorService().createConnectionFactory(uri);
+			send              = connectionFactory.createConnection();
+
+			session = send.createSession(false, Session.AUTO_ACKNOWLEDGE);
+			Topic topic = session.createTopic(IEventService.DEVICE_REQUEST_TOPIC);
+
+			producer = session.createProducer(topic);
+			producer.setDeliveryMode(DeliveryMode.PERSISTENT);
+
+			// Send the request
+			producer.send(session.createTextMessage(rawString));
+
+		} finally {
+			try {
+				if (session!=null) session.close();
+			} catch (JMSException e) {
+				throw new EventException("Cannot close session!", e);
+			}
+		}
+
+		responseConfiguration.latch(null); // Wait or die trying
+
+		if (responses.isEmpty()) throw new Exception("There was no response identified!");
+		if (responses.get(0).getDevices().size()<1) throw new Exception("There were no devices found and at least the mandelbrot example should have been!");
+
+	}
+
 
 	@Test
 	public void testGetNamedDeviceModel() throws Exception {

@@ -4,21 +4,7 @@ import java.util.List;
 
 import org.eclipse.scanning.api.event.EventException;
 
-public interface IQueueReader<T> extends IURIConnection {
-
-	/**
-	 * Class of bean usually extending StatusBean
-	 * 
-	 * @return class or null
-	 */
-	public Class<T> getBeanClass();
-
-	/**
-	 * Class of bean usually extending StatusBean
-	 * 
-	 * It is not compulsory to set the bean class unless trying to deserialize messages sent by older versions of the connector service.
-	 */
-	public void setBeanClass(Class<T> beanClass);
+public interface IQueueReader<T> extends IURIConnection, IBeanClass<T> {
 
 	/**
 	 * The queue of beans type T, unordered
