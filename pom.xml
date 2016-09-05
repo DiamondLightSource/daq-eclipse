@@ -13,7 +13,6 @@
 	<modules>
         <module>org.eclipse.scanning.target.platform</module>
 		<module>../org.eclipse.dawnsci</module>
-		<module>../../jeromq</module>
 
 		<module>org.eclipse.scanning.api</module>
 		<module>org.eclipse.scanning.command</module>
@@ -33,7 +32,6 @@
 		
 		<module>uk.ac.diamond.daq.activemq.connector</module>
 		<module>uk.ac.diamond.daq.activemq.connector.test</module>
-		<module>uk.ac.diamond.daq.malcolm.connector</module>
 	</modules>
 
 	<properties>
