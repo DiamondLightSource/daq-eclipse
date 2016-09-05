@@ -14,6 +14,7 @@ import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,6 +72,11 @@ public abstract class AbstractSubmissionTest extends AbstractJythonTest {
 
 		// Put any old ScanRequest in the Python namespace.
 		pi.exec("sr = scan_request(step(my_scannable, 0, 10, 1), det=mandelbrot(0.1))");
+	}
+	
+	@After
+	public void stop() throws EventException {
+		consumer.disconnect();
 	}
 
 	@Test

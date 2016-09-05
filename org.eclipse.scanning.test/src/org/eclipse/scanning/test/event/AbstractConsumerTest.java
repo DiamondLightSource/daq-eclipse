@@ -90,6 +90,7 @@ public class AbstractConsumerTest extends BrokerTest {
         	if (!fromQ.equals(bean)) throw new Exception("The bean from the queue was not the same as that submitted! q="+fromQ+" submit="+bean);
         	
 		} finally {
+			consumer.disconnect();
 			connection.close();
 		}
 	}
