@@ -51,7 +51,7 @@
             class="org.eclipse.scanning.device.ui.vis.VisualiseView"
             icon="icons/image.png"
             id="org.eclipse.scanning.device.ui.vis.visualiseView"
-            name="Image"
+            name="Map"
             restorable="true">
       </view>
    </extension>

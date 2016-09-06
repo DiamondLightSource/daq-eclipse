@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.points.models;
 
+import java.text.DecimalFormat;
+
 import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
@@ -16,18 +18,11 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  */
 public class BoundingBox {
 
-	public BoundingBox() {
-		
-	}
 	
-	public BoundingBox(double fastAxisStart, double slowAxisStart, double fastAxisLength, double slowAxisLength) {
-		super();
-		this.fastAxisStart = fastAxisStart;
-		this.slowAxisStart = slowAxisStart;
-		this.fastAxisLength = fastAxisLength;
-		this.slowAxisLength = slowAxisLength;
+	public enum MARKER {
+		BOX;
 	}
-	
+
 	@FieldDescriptor(visible=false)
 	private String fastAxisName="x";
 	
@@ -45,6 +40,62 @@ public class BoundingBox {
 	
 	@FieldDescriptor(scannable="slowAxisName", validif="slowAxisLength!=0")
 	private double slowAxisLength;
+	
+	@FieldDescriptor(editable=false, hint="Provides information about the visible region we are linked to.")
+	private String regionName;
+
+
+	public BoundingBox() {
+		
+	}
+	
+	public BoundingBox(double fastAxisStart, double slowAxisStart, double fastAxisLength, double slowAxisLength) {
+		super();
+		this.fastAxisStart = fastAxisStart;
+		this.slowAxisStart = slowAxisStart;
+		this.fastAxisLength = fastAxisLength;
+		this.slowAxisLength = slowAxisLength;
+	}
+
+	/**
+	 * 
+	 * @param spt [fastStart, slowStart]
+	 * @param ept [fastEnd, slowEnd]
+	 */
+	public BoundingBox(double[] spt, double[] ept) {
+		
+		double[] len = new double[2];
+		double lx = ept[0] - spt[0];
+		double ly = ept[1] - spt[1];
+		@SuppressWarnings("unused")
+		double ang = 0d; // TODO should be used?
+		if (lx > 0) {
+			if (ly > 0) {
+				len[0] = lx;
+				len[1] = ly;
+				ang = 0;
+			} else {
+				len[0] = lx;
+				len[1] = -ly;
+				ang = Math.PI * 1.5;
+			}
+		} else {
+			if (ly > 0) {
+				len[0] = -lx;
+				len[1] = ly;
+				ang = Math.PI * 0.5;
+			} else {
+				len[0] = -lx;
+				len[1] = -ly;
+				ang = Math.PI;
+			}
+		}
+
+		fastAxisStart  = spt[0];
+		fastAxisLength = len[0];
+		slowAxisStart  = spt[1];
+		slowAxisLength = len[1];
+	}
 
 	public double getFastAxisStart() {
 		return fastAxisStart;
@@ -124,4 +175,55 @@ public class BoundingBox {
 	public void setSlowAxisName(String slowAxisName) {
 		this.slowAxisName = slowAxisName;
 	}
+
+	public String getRegionName() {
+		return regionName;
+	}
+
+	public void setRegionName(String regionName) {
+		this.regionName = regionName;
+	}
+
+	public double getSlowAxisEnd() {
+		return getSlowAxisStart()+getSlowAxisLength();
+	}
+	
+	public double getFastAxisEnd() {
+		return getFastAxisStart()+getFastAxisLength();
+	}
+
+	@Override
+	public String toString() {
+		return "Start="+toString(getStart())+" length="+toString(getLength());
+	}
+
+	private double[] getStart() {
+		return new double[]{fastAxisStart, slowAxisStart};
+	}
+	private double[] getLength() {
+		return new double[]{fastAxisLength, slowAxisLength};
+	}
+	
+    private String toString(double[] a) {
+        if (a == null)
+            return "null";
+        int iMax = a.length - 1;
+        if (iMax == -1)
+            return "[]";
+
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        for (int i = 0; ; i++) {
+            b.append(format.format(a[i]));
+            if (i == iMax)
+                return b.append(']').toString();
+            b.append(", ");
+        }
+    }
+    
+    private DecimalFormat format = new DecimalFormat("##########0.0###");
+    public void setNumberFormat(String sformat) {
+    	format = new DecimalFormat(sformat);
+    }
+
 }

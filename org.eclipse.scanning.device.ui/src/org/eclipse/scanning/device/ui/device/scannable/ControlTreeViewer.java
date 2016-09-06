@@ -1,7 +1,5 @@
 package org.eclipse.scanning.device.ui.device.scannable;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -45,12 +43,12 @@ import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.util.ViewerUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.dialogs.FilteredTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,7 +187,7 @@ public class ControlTreeViewer {
 		TreeViewer tviewer = viewer.getViewer();
 		tviewer.getTree().setLinesVisible(true);
 		tviewer.getTree().setHeaderVisible(false);
-		setItemHeight(tviewer.getTree(), 30);
+		ViewerUtils.setItemHeight(tviewer.getTree(), 30);
 		viewer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		createColumns(tviewer);
@@ -414,43 +412,6 @@ public class ControlTreeViewer {
 	}
 
 
-	static void setItemHeight(Tree tree, int height) {
-		try {
-			Method method = null;
-			
-			Method[] methods = tree.getClass().getDeclaredMethods();
-			method = findMethod(methods, "setItemHeight", 1); //$NON-NLS-1$
-			if (method != null) {
-				boolean accessible = method.isAccessible();
-				method.setAccessible(true);
-				method.invoke(tree, Integer.valueOf(height));
-				method.setAccessible(accessible);
-			}
-		} catch (SecurityException e) {
-			// ignore
-		} catch (IllegalArgumentException e) {
-			// ignore
-		} catch (IllegalAccessException e) {
-			// ignore
-		} catch (InvocationTargetException e) {
-			// ignore
-		}
-	}
-	/**
-	 * Finds the method with the given name and parameter count from the specified methods.
-	 * @param methods the methods to search through
-	 * @param name the name of the method to find
-	 * @param parameterCount the count of parameters of the method to find
-	 * @return the method or <code>null</code> if not found
-	 */
-	private static Method findMethod(Method[] methods, String name, int parameterCount) {
-		for (Method method : methods) {
-			if (method.getName().equals(name) && method.getParameterTypes().length == parameterCount) {
-				return method;
-			}
-		}
-		return null;
-	}
 	
 	private boolean editNode = false; // Can be set to true when UI wants to edit
 	public boolean isEditNode() {
