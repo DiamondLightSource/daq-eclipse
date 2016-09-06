@@ -62,7 +62,6 @@ public class PageUtil {
 		if (windows==null) return null;
 		
 		return windows[0].getActivePage();
-	}
-
+	}	
 
 }

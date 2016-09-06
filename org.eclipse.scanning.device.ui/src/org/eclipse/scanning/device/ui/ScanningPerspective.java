@@ -13,6 +13,7 @@ public class ScanningPerspective implements IPerspectiveFactory {
 	 */
 	public void createInitialLayout(IPageLayout layout) {
 		String editorArea = layout.getEditorArea();
+		layout.setEditorAreaVisible(false);
 		addFastViews(layout);
 		addViewShortcuts(layout);
 		addPerspectiveShortcuts(layout);
@@ -22,6 +23,7 @@ public class ScanningPerspective implements IPerspectiveFactory {
 			final String detectorId = DetectorView.createId(getUriString(), IEventService.DEVICE_REQUEST_TOPIC, IEventService.DEVICE_RESPONSE_TOPIC);
 			folderLayout.addView(detectorId);
 		}
+		layout.addView("org.eclipse.scanning.device.ui.vis.visualiseView", IPageLayout.TOP, 0.78f, IPageLayout.ID_EDITOR_AREA);
 		{
 			IFolderLayout folderLayout = layout.createFolder("folder_1", IPageLayout.BOTTOM, 0.3f, "org.eclipse.scanning.device.ui.scanEditor");
 			folderLayout.addView("org.eclipse.scanning.device.ui.modelEditor");

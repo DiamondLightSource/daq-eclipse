@@ -4,6 +4,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 
+import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
+import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.jface.bindings.keys.IKeyLookup;
 import org.eclipse.jface.bindings.keys.KeyLookupFactory;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -17,7 +20,6 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TableViewerEditor;
@@ -34,10 +36,13 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.util.BoxConvert;
 import org.eclipse.scanning.device.ui.util.PageUtil;
+import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -55,8 +60,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.ISelectionListener;
@@ -129,7 +136,19 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 		viewer.getTable().setLinesVisible(true);
 		viewer.getTable().setHeaderVisible(true);
 		viewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
-		
+		// resize the row height using a MeasureItem listener
+		viewer.getTable().addListener(SWT.MeasureItem, new Listener() {
+	        public void handleEvent(Event event) {
+	            event.height = 24;
+	        }
+	    });
+
+	    //added 'event.height=rowHeight' here just to check if it will draw as I want
+		viewer.getTable().addListener(SWT.EraseItem, new Listener() {
+	        public void handleEvent(Event event) {
+	            event.height=24;
+	        }
+	    });		
 		this.validationComposite = new Composite(parent, SWT.NONE);
 		validationComposite.setLayout(new GridLayout(2, false));
 		validationComposite.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
@@ -322,6 +341,15 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 					setValidator(dservice.getRunnableDevice(((DeviceInformation<?>)ob).getName()));
 				}
 				if (ob instanceof IModelProvider) setModel(((IModelProvider<?>)ob).getModel());
+				
+				if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
+					IROI               roi    = (IROI)ob;
+            		IPlottingSystem<?> system = (IPlottingSystem<?>)PlotUtil.getRegionSystem();
+    	    		BoxConvert converter = new BoxConvert(system.getTraces(IImageTrace.class).iterator().next());
+    	    		IBoundingBoxModel boxMod = (IBoundingBoxModel)getModel();
+    	    		boxMod.setBoundingBox(converter.toBox(roi));
+    	    		refresh();
+				}
 				
 			} catch (Exception ne) {
 				logger.error("Cannot set model for object "+ob);
