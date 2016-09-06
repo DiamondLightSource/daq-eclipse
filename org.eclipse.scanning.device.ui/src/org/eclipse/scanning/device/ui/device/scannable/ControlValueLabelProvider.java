@@ -32,22 +32,24 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 
 		if(!(element instanceof INamedNode)) return new StyledString();
 
-		final StyledString ret = new StyledString(getText(element));
+		final StyledString styledText = new StyledString(getText(element));
 		
 		INamedNode node = (INamedNode)element;
 		try {
 			if (node instanceof ControlNode) {
 				final IScannable<?> scannable = cservice.getScannable(node.getName());
-				ret.append("    ");
-				ret.append(scannable.getUnit(), StyledString.DECORATIONS_STYLER);
+					if (scannable.getUnit() != null) {
+					styledText.append("    ");
+					styledText.append(scannable.getUnit(), StyledString.DECORATIONS_STYLER);
+				}
 			} else {
 				// Intentionally do nothing!
 			}
 		} catch (Exception ne) {
-			return ret.append(ne.getMessage(), StyledString.QUALIFIER_STYLER);
+			return styledText.append(ne.getMessage(), StyledString.QUALIFIER_STYLER);
 		}
 		
-		return ret;
+		return styledText;
 	}
 
 	@Override
