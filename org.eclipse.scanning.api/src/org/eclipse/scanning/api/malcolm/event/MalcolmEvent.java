@@ -17,14 +17,9 @@ public class MalcolmEvent<T> extends EventObject {
 	 * 
 	 */
 	private static final long serialVersionUID = -1945090670224642819L;
-	private final String json;
 
 	public MalcolmEvent(T bean) {
-		this(null, bean);
-	}
-	public MalcolmEvent(String json, T bean) {
 		super(bean);
-		this.json = json;
 	}
 	
 	/**
@@ -33,10 +28,6 @@ public class MalcolmEvent<T> extends EventObject {
 	 */
 	public T getBean() {
 		return (T)getSource();
-	}
-
-	public String getJson() {
-		return json;
 	}
 
 }

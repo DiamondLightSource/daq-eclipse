@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
-import org.eclipse.scanning.api.malcolm.message.JsonMessage;
+import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 
 public class MockedMalcolmService implements IMalcolmService {
 
@@ -34,7 +34,7 @@ public class MockedMalcolmService implements IMalcolmService {
 	}
 
 	@Override
-	public IMalcolmConnection createConnection(URI malcolmUri, IMalcolmConnectorService<JsonMessage> connectorService) throws URISyntaxException, MalcolmDeviceException {
-		throw new MalcolmDeviceException("Method createConnection(URI malcolmUri, IConnectorService<JsonMessage> connectorService) not implemented for "+getClass().getName());
+	public IMalcolmConnection createConnection(URI malcolmUri, IMalcolmConnectorService<MalcolmMessage> connectorService) throws URISyntaxException, MalcolmDeviceException {
+		throw new MalcolmDeviceException("Method createConnection(URI malcolmUri, IConnectorService<MalcolmMessage> connectorService) not implemented for "+getClass().getName());
 	}
 }

@@ -26,9 +26,8 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.connector.epics.EpicsV4ConnectorService;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
-
-import uk.ac.diamond.malcolm.jacksonzeromq.connector.ZeromqConnectorService;
 
 class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel> {
 	
@@ -66,7 +65,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 	
 	MockedMalcolmDevice(String name, final LatchDelegate latcher) throws ScanningException {
 		
-		super(new ZeromqConnectorService()); // Hard coded, that's the way we role in tests.
+		super(new EpicsV4ConnectorService()); // Hard coded, that's the way we role in tests.
 		this.latcher = latcher;
 		this.taskRunLock    = new ReentrantLock(true);
 		setDeviceState(DeviceState.IDLE);

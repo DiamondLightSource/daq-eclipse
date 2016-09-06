@@ -2,32 +2,35 @@ package org.eclipse.scanning.test.epics;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
+import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.LissajousModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.test.epics.custommarshallers.TestBoundingBoxDeserialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestBoundingBoxSerialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestCircularROIDeserialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestCircularROISerialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestGridModelDeserialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestGridModelSerialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestRectangularROIDeserialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestRectangularROISerialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestSpiralModelDeserialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestSpiralModelSerialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestStepModelDeserialiser;
-import org.eclipse.scanning.test.epics.custommarshallers.TestStepModelSerialiser;
+import org.eclipse.scanning.connector.epics.EpicsV4ConnectorService;
+import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PySerializable;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.pv.FieldCreate;
+import org.epics.pvdata.pv.PVBoolean;
 import org.epics.pvdata.pv.PVDataCreate;
 import org.epics.pvdata.pv.PVDouble;
 import org.epics.pvdata.pv.PVDoubleArray;
+import org.epics.pvdata.pv.PVInt;
 import org.epics.pvdata.pv.PVString;
 import org.epics.pvdata.pv.PVStringArray;
 import org.epics.pvdata.pv.PVStructure;
@@ -39,6 +42,7 @@ import org.epics.pvdata.pv.Union;
 import org.epics.pvmarshaller.marshaller.PVMarshaller;
 import org.junit.Before;
 import org.junit.Test;
+import org.python.core.PyDictionary;
 
 /**
  * Tests for serialisation into EPICS V4 structures for transmission over PVAccess
@@ -47,18 +51,224 @@ import org.junit.Test;
  */
 public class PVDataSerializationTest {
 
-		private PVMarshaller marshaller;
+	EpicsV4ConnectorService connectorService;
 
 		@Before
 		public void create() throws Exception {
-			marshaller = new PVMarshaller();
+			this.connectorService = new EpicsV4ConnectorService();
+		}
+		
+		@Test
+		public void TestCompoundModel1() throws Exception {
+
+			CompoundModel model = new CompoundModel();
+			model.setData(new SpiralModel("x", "y", 1, new BoundingBox(0, -5, 10, 5)), new CircularROI(2, 0, 0));
+			
+			List<IROI> regions = new LinkedList<>();
+			regions.add(new CircularROI(2, 6, 7));
+			//regions.add(new CircularROI(3, 8, 9));
+			
+			IPointGeneratorService pgService = new PointGeneratorFactory();
+			IPointGenerator<SpiralModel> temp = pgService.createGenerator(new SpiralModel("x", "y", 1, new BoundingBox(0, -5, 10, 5)), regions);
+			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
+			
+			PVStructure pvStructure = connectorService.pvMarshal(scan);
+						
+			System.out.println(pvStructure);
+			//CompoundModel ledom = connectorService.pvUnmarshal(pvStructure, CompoundModel.class);
+			
+			//assertEquals(model, ledom);
+		}
+		
+		@Test
+		public void TestArrayGenerator() throws Exception {
+
+			try {
+				List<IROI> regions = new LinkedList<>();
+			
+				regions.add(new CircularROI(2, 6, 7));
+				//regions.add(new CircularROI(3, 8, 9));
+				
+				IPointGeneratorService pgService = new PointGeneratorFactory();
+				ArrayModel arrayModel = new ArrayModel();
+				arrayModel.setName("x");
+				arrayModel.setPositions(1, 2, 3);
+				
+				IPointGenerator<ArrayModel> temp = pgService.createGenerator(arrayModel);
+				
+				IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
+				
+				PySerializable ps = (PySerializable)scan;
+				
+				
+				
+				System.out.println(ps.toDict());
+				
+				PVStructure pvStructure = connectorService.pvMarshal(scan);
+							
+				System.out.println(pvStructure);
+			} catch (Exception ex ) {
+				System.out.println("TODO - FIX ME");
+				ex.printStackTrace();
+			}
+			//CompoundModel ledom = connectorService.pvUnmarshal(pvStructure, CompoundModel.class);
+			
+			//assertEquals(model, ledom);
+		}
+		
+		@Test
+		public void TestArrayGenerator2DPoints() throws Exception {
+			try {
+				
+				List<IROI> regions = new LinkedList<>();
+				regions.add(new CircularROI(2, 6, 7));
+				//regions.add(new CircularROI(3, 8, 9));
+				
+				IPointGeneratorService pgService = new PointGeneratorFactory();
+				ArrayModel arrayModel = new ArrayModel();
+				arrayModel.setName("x, y");
+				arrayModel.setPositions(1, 2, 3, 4, 5, 6);
+				IPointGenerator<ArrayModel> temp = pgService.createGenerator(arrayModel);
+				IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
+	
+				PySerializable ps = (PySerializable)scan;
+				
+				
+				
+				System.out.println(ps.toDict());
+				
+				PVStructure pvStructure = connectorService.pvMarshal(scan);
+							
+				System.out.println(pvStructure);
+			} catch (Exception ex ) {
+				System.out.println("TODO - FIX ME");
+				ex.printStackTrace();
+			}
+		}
+		
+		@Test
+		public void TestLineGenerator() throws Exception {
+
+			// Create test generator
+			List<IROI> regions = new LinkedList<>();
+			regions.add(new CircularROI(2, 6, 7));
+			//regions.add(new CircularROI(3, 8, 9));
+			
+			IPointGeneratorService pgService = new PointGeneratorFactory();
+			StepModel stepModel = new StepModel("x", 3, 4, 0.25);
+			IPointGenerator<StepModel> temp = pgService.createGenerator(stepModel);
+			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
+			
+			PySerializable ps = (PySerializable)scan;
+			
+			PyDictionary asd = ps.toDict();
+			
+			// Create the expected PVStructure
+			FieldCreate fieldCreate = FieldFactory.getFieldCreate();
+
+			PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
+			
+			Structure expectedGeneratorsStructure = fieldCreate.createFieldBuilder().
+					add("num", ScalarType.pvInt).
+					addArray("start", ScalarType.pvDouble).
+					add("units", ScalarType.pvString).
+					addArray("stop", ScalarType.pvDouble).
+					addArray("name", ScalarType.pvString).
+					add("alternate_direction", ScalarType.pvBoolean).
+					setId("LineGenerator").					
+					createStructure();
+
+			Union union = fieldCreate.createVariantUnion();
+			
+			Structure expectedCompGenStructure = fieldCreate.createFieldBuilder().
+					addArray("mutators", union).				
+					addArray("generators", union).				
+					addArray("excluders", union).	
+					setId("CompoundGenerator").
+					createStructure();
+			
+			PVStructure expectedGeneratorsPVStructure = pvDataCreate.createPVStructure(expectedGeneratorsStructure);
+			PVStringArray nameVal = expectedGeneratorsPVStructure.getSubField(PVStringArray.class, "name");
+			String[] name = new String[] {"x"};
+			nameVal.put(0, name.length, name, 0);
+			PVString unitsVal = expectedGeneratorsPVStructure.getSubField(PVString.class, "units");
+			unitsVal.put("mm");
+			PVDoubleArray startVal = expectedGeneratorsPVStructure.getSubField(PVDoubleArray.class, "start");
+			double[] start = new double[] {3};
+			startVal.put(0, start.length, start, 0);
+			PVDoubleArray stopVal = expectedGeneratorsPVStructure.getSubField(PVDoubleArray.class, "stop");
+			double[] stop = new double[] {4};
+			stopVal.put(0, stop.length, stop, 0);
+			PVInt numVal = expectedGeneratorsPVStructure.getSubField(PVInt.class, "num");
+			numVal.put(5);
+			PVBoolean adVal = expectedGeneratorsPVStructure.getSubField(PVBoolean.class, "alternate_direction");
+			adVal.put(false);
+			
+			PVStructure expectedCompGenPVStructure = pvDataCreate.createPVStructure(expectedCompGenStructure);
+			PVUnionArray generators = expectedCompGenPVStructure.getSubField(PVUnionArray.class, "generators");
+			
+			PVUnion[] unionArray = new PVUnion[1];
+			unionArray[0] = pvDataCreate.createPVUnion(union);
+			unionArray[0].set(expectedGeneratorsPVStructure);
+					
+			generators.put(0, unionArray.length, unionArray, 0);
+			
+			// Marshall and check against expected
+			PVStructure pvStructure = connectorService.pvMarshal(scan);
+
+			System.out.println(pvStructure);
+			
+			assertEquals(expectedCompGenPVStructure.getStructure(), pvStructure.getStructure());
+			assertEquals(expectedCompGenPVStructure, pvStructure);
+		}
+		
+		@Test
+		public void TestLissajousGenerator() throws Exception {
+
+			List<IROI> regions = new LinkedList<>();
+			regions.add(new CircularROI(2, 6, 7));
+			//regions.add(new CircularROI(3, 8, 9));
+			
+			IPointGeneratorService pgService = new PointGeneratorFactory();
+			LissajousModel lissajousModel = new LissajousModel();
+			lissajousModel.setName("myName");
+			lissajousModel.setBoundingBox(new BoundingBox(0, -5, 10, 5));
+			lissajousModel.setPoints(20);
+			lissajousModel.setA(3);
+			lissajousModel.setB(4);
+			lissajousModel.setDelta(5);
+			lissajousModel.setThetaStep(0.5);
+			lissajousModel.setSlowAxisName("san");
+			lissajousModel.setFastAxisName("fan");
+			IPointGenerator<LissajousModel> temp = pgService.createGenerator(lissajousModel);
+			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
+			
+			PVStructure pvStructure = connectorService.pvMarshal(scan);
+						
+			System.out.println(pvStructure);
+		}
+		
+		@Test
+		public void TestSpiralModel() throws Exception {
+
+			List<IROI> regions = new LinkedList<>();
+			regions.add(new CircularROI(2, 6, 7));
+			//regions.add(new CircularROI(3, 8, 9));
+			
+			IPointGeneratorService pgService = new PointGeneratorFactory();
+			IPointGenerator<SpiralModel> temp = pgService.createGenerator(new SpiralModel("x", "y", 2, new BoundingBox(0, -5, 10, 5)), regions);
+			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
+			
+			PVStructure pvStructure = connectorService.pvMarshal(scan);
+						
+			System.out.println(pvStructure);
 		}
 		
 		/**
-		 * Test Compound Model is serialised into correct format expected by Malcom
+		 * Test Compound Model is serialised into correct format expected by Malcolm
 		 * @throws Exception
 		 */
-		@Test
+		/*@Test
 		public void TestCompoundModelSerialisation() throws Exception {
 
 			// Create the expected PVStructure
@@ -168,7 +378,7 @@ public class PVDataSerializationTest {
 			model.setData(new SpiralModel("x", "y", 1, new BoundingBox(0, -5, 10, 5)), new CircularROI(2, 0, 0));
 			
 			// Set up the custom serialisers and deserialisers
-			marshaller.registerSerialiser(SpiralModel.class, new TestSpiralModelSerialiser());
+			marshaller.registerSerialiser(SpiralModel.class, new SpiralModelSerialiser());
 			marshaller.registerDeserialiser("SpiralModel", new TestSpiralModelDeserialiser());
 			marshaller.registerSerialiser(CircularROI.class, new TestCircularROISerialiser());
 			marshaller.registerDeserialiser("CircularROI", new TestCircularROIDeserialiser());
@@ -230,6 +440,6 @@ public class PVDataSerializationTest {
 			
 			assertEquals(model, ledom);
 		}
-		
+		*/
 	}
 

@@ -28,7 +28,6 @@ before_install:
  - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
  - git clone --depth=50 --branch=master https://github.com/eclipse/richbeans.git ../../eclipse/org.eclipse.richbeans
  - git clone --depth=50 --branch=master https://github.com/eclipse/dawnsci.git ../../eclipse/org.eclipse.dawnsci
- - git clone --depth=50 --branch=master https://github.com/DawnScience/jeromq.git ../../jeromq
  - git clone --depth=50 --branch=master https://github.com/DawnScience/dawn-hdf.git ../../dawn-hdf
  
 # Just needed for travis build, not if making an IDE version. No need to copy this if doing
