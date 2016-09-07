@@ -105,24 +105,13 @@ public class ModelCellEditor extends DialogCellEditor {
 			            		BoundingBox existing = getExistingValue(value);
 			            		if (existing==null || system.getRegion(existing.getRegionName())==null) {
 									try {
-										system.createRegion(RegionUtils.getUniqueName("boundingBox", system), RegionType.BOX);
+										IRegion region = system.createRegion(RegionUtils.getUniqueName("boundingBox", system), RegionType.BOX);
+										region.setUserObject(BoundingBox.MARKER.BOX);
+										region.setRegionColor(ColorConstants.blue);
+										region.setAlpha(10);
+										region.setLineWidth(1);
+	
 										showTip(tip, "Drag a box in the '"+regionViewName+"' to create a bounding box.");
-										system.addRegionListener(new IRegionListener.Stub() {
-											@Override
-											public void regionCancelled(RegionEvent evt) {
-												system.removeRegionListener(this);
-											}
-										    @Override
-											public void regionAdded(RegionEvent evt) {
-												system.removeRegionListener(this);
-												IRegion region = evt.getRegion();
-												if (region==null) return;
-												region.setUserObject(BoundingBox.MARKER.BOX);
-												region.setRegionColor(ColorConstants.blue);
-												region.setAlpha(10);
-												region.setLineWidth(1);
-											}
-										});
 										
 									} catch (Exception e1) {
 										logger.error("Cannot create a bounding box!", e1);

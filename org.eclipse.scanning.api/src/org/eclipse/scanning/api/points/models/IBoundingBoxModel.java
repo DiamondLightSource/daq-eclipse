@@ -7,7 +7,7 @@ package org.eclipse.scanning.api.points.models;
  * @author Colin Palmer
  *
  */
-public interface IBoundingBoxModel extends IScanPathModel {
+public interface IBoundingBoxModel extends IContainerModel {
 
 	public BoundingBox getBoundingBox();
 

@@ -7,6 +7,7 @@ import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.annotation.ui.EditType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
+import org.eclipse.scanning.api.points.IPointContainer;
 
 
 /**
@@ -50,6 +51,10 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 		this.boundingBox = newValue;
 		this.pcs.firePropertyChange("boundingBox", oldValue, newValue);
 	}
+	public IPointContainer getContainer() {
+		return boundingBox;
+	}
+
 	@UiHidden
 	public String getFastAxisName() {
 		return fastAxisName;

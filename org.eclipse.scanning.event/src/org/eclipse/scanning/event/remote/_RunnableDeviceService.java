@@ -105,7 +105,7 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 		try {
 			req = requester.post(new DeviceRequest());
 		} catch (EventException | InterruptedException e) {
-			throw new ScanningException("Cannot get devices! Connection to borker may be lost or no server up!", e);
+			throw new ScanningException("Cannot get devices! Connection to broker may be lost or no server up!", e);
 		}
 	    return req.getDevices().toArray(new DeviceInformation<?>[req.size()]);
 	}
@@ -121,7 +121,7 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 		try {
 			req = requester.post(new DeviceRequest(name));
 		} catch (EventException | InterruptedException e) {
-			throw new ScanningException("Cannot get devices! Connection to borker may be lost or no server up!", e);
+			throw new ScanningException("Cannot get devices! Connection to broker may be lost or no server up!", e);
 		}
 	    return req.getDeviceInformation();
 	}

@@ -5,10 +5,6 @@ import org.eclipse.scanning.api.annotation.Units;
 
 public class RandomOffsetGridModel extends GridModel {
 
-	@Override
-	public String getName() {
-		return "Random Offset Grid";
-	}
 	
 	/**
 	 * The maximum allowed offset, as a percentage of fast axis step size
@@ -18,6 +14,10 @@ public class RandomOffsetGridModel extends GridModel {
 	 * Seed to initialise random number generator with
 	 */
 	private int seed;
+
+	public RandomOffsetGridModel() {
+		setName("Random Offset Grid");
+	}
 
 	@Units("%")
 	@UiTooltip("Standard deviation to use for a 2D Gaussian random offset, as a percentage of the X step size")

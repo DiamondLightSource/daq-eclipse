@@ -11,17 +11,8 @@ import java.util.Arrays;
  */
 public class ArrayModel extends AbstractPointsModel implements IScanPathModel {
 
-	private String name;
 	private double[] positions;
 
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		String oldValue = this.name;
-		this.name = name;
-		this.pcs.firePropertyChange("name", oldValue, name);
-	}
 	public double[] getPositions() {
 		return positions;
 	}
@@ -34,7 +25,6 @@ public class ArrayModel extends AbstractPointsModel implements IScanPathModel {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + Arrays.hashCode(positions);
 		return result;
 	}
@@ -47,11 +37,6 @@ public class ArrayModel extends AbstractPointsModel implements IScanPathModel {
 		if (getClass() != obj.getClass())
 			return false;
 		ArrayModel other = (ArrayModel) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
 		if (!Arrays.equals(positions, other.positions))
 			return false;
 		return true;

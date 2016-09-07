@@ -49,7 +49,7 @@ public interface IPointGeneratorService {
 	 * Convenience implementation when using only one region of interest
 	 * 
 	 * @param model
-	 * @param region a reference to an IROI for instance
+	 * @param region which implements IPointContainer (most useful) or IROI (less useful because IROI is in the data coordinates)
 	 * @return
 	 */
 	default <T,R> IPointGenerator<T> createGenerator(T model, R region) throws GeneratorException {

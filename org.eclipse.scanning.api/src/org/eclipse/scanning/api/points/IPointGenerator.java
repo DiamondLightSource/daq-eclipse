@@ -35,8 +35,8 @@ public interface IPointGenerator<T> extends Iterable<IPosition>, IValidator<T>, 
 	 * The class which contains points, may be null.
 	 * @return
 	 */
-	List<IPointContainer<?>> getContainers();
-	void setContainers(List<IPointContainer<?>> container) throws GeneratorException;
+	List<IPointContainer> getContainers();
+	void setContainers(List<IPointContainer> container) throws GeneratorException;
 
 	/**
 	 * The size of the points iterator. This call will be as fast as possible

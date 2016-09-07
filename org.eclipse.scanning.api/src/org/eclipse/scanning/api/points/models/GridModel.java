@@ -12,6 +12,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  *
  */
 public class GridModel extends AbstractBoundingBoxModel {
+	
 
 	@FieldDescriptor(label="Fast Axis Count", 
 			         maximum=100000, 
@@ -29,7 +30,7 @@ public class GridModel extends AbstractBoundingBoxModel {
 	private boolean snake = false;
 	
 	public GridModel() {
-		// We are a bean
+		setName("Grid");
 	}
 	
 	public GridModel(String fastName, String slowName) {
@@ -37,10 +38,6 @@ public class GridModel extends AbstractBoundingBoxModel {
 		setSlowAxisName(slowName);
 	}
 
-	@Override
-	public String getName() {
-		return "Grid";
-	}
 	@MinimumValue("1")
 	public int getFastAxisPoints() {
 		return fastAxisPoints;

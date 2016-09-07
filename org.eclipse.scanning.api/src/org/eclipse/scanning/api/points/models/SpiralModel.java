@@ -22,19 +22,15 @@ import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 
 public class SpiralModel extends AbstractBoundingBoxModel {
 
-	private String name = "Fermat Spiral";
 	private double scale = 1;
 
 	public SpiralModel() {
-		
+		setName("Fermat Spiral");
 	}
 	public SpiralModel(String fastName, String slowName, double scale, BoundingBox box) {
 		super(fastName, slowName, box);
+		setName("Fermat Spiral");
 		this.scale = scale;
-	}
-	@Override
-	public String getName() {
-		return name;
 	}
 
 	public double getScale() {
@@ -50,8 +46,7 @@ public class SpiralModel extends AbstractBoundingBoxModel {
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		int result = super.hashCode();
 		long temp;
 		temp = Double.doubleToLongBits(scale);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -62,16 +57,11 @@ public class SpiralModel extends AbstractBoundingBoxModel {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		SpiralModel other = (SpiralModel) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
 		if (Double.doubleToLongBits(scale) != Double.doubleToLongBits(other.scale))
 			return false;
 		return true;

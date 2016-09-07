@@ -31,9 +31,8 @@ public class RasterModel extends AbstractBoundingBoxModel {
 			         hint="Snake: left->right->left etc. Nonsnake left->right, repeat") 
 	private boolean snake = false;
 
-	@Override
-	public String getName() {
-		return "Raster";
+	public RasterModel() {
+		setName( "Raster" );
 	}
 	public double getFastAxisStep() {
 		return fastAxisStep;
