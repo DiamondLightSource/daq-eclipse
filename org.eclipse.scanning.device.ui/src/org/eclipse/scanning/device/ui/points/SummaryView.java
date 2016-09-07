@@ -79,6 +79,9 @@ public class SummaryView extends ViewPart implements ISelectionListener {
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
 			Object ob = ((IStructuredSelection)selection).getFirstElement();
+			
+			// This slightly funny alg or assign and sometimes update
+			// is correct. Do not change unless sure that UI is working afterwards.
 			if (ob instanceof IAdaptable) {
                 CompoundModel cm = ((IAdaptable)ob).getAdapter(CompoundModel.class);
                 if (cm !=null) modelAdaptable = (IAdaptable)ob;

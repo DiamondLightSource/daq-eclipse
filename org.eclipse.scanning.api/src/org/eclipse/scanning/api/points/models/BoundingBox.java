@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
+import org.eclipse.scanning.api.points.IPointContainer;
 
 /**
  * A model defining a box in two dimensional space, which can be used to confine and give scale to a {@link
@@ -13,10 +14,14 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  * axes could be used depending on the beamline configuration or the required experiment. The axis names to be used are
  * defined in AbstractBoundingBoxModel.
  *
+ * Important difference between BoundingBox and IRectangularROI - rois are in data coordinates and bounding boxes are
+ * in axis coordinates i.e. locations of the motors rather than the selection of the data.
+ *
  * @author Colin Palmer
+ * @author Matthew Gerring
  *
  */
-public class BoundingBox {
+public class BoundingBox implements IPointContainer {
 
 	
 	public enum MARKER {
@@ -225,5 +230,39 @@ public class BoundingBox {
     public void setNumberFormat(String sformat) {
     	format = new DecimalFormat(sformat);
     }
+
+
+	@Override
+	public boolean containsPoint(double x, double y) {
+		
+		double[] spt = new double[]{getFastAxisStart(), getSlowAxisStart()};
+		double[] len = new double[]{getFastAxisLength(), getSlowAxisLength()};
+		double ang = 0;// TODO angle!
+		
+		x -= spt[0];
+		y -= spt[1];
+		if (ang == 0) {
+			if (x < 0 || x > len[0])
+				return false;
+			return y >= 0 && y <= len[1];
+		}
+		double[] pr = transformToRotated(x, y); // Not really required until angle supported.
+		if (pr[0] < 0 || pr[0] > len[0])
+			return false;
+		return pr[1] >= 0 && pr[1] <= len[1];
+	}
+	
+	/**
+	 * @param ox 
+	 * @param oy 
+	 * @return array with rotated Cartesian coordinates
+	 */
+	protected double[] transformToRotated(double ox, double oy) {
+		double ang  = 0d; // TODO support angle...
+		double cang = Math.cos(ang);
+		double sang = Math.sin(ang);
+		double[] car = { ox * cang + oy * sang, -ox * sang + oy * cang };
+		return car;
+	}
 
 }

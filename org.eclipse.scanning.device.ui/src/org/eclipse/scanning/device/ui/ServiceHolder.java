@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.event.EventAdmin;
 
 public class ServiceHolder {
 
@@ -23,6 +24,7 @@ public class ServiceHolder {
 	private static ISpringParser          springParser;
 	private static IMarshallerService     marshallerService;
 	private static IPlottingService       plottingService;
+	private static EventAdmin             eventAdmin;
 	
 	private static BundleContext context;
 
@@ -127,5 +129,14 @@ public class ServiceHolder {
 
 	public static void setPlottingService(IPlottingService plottingService) {
 		ServiceHolder.plottingService = plottingService;
+	}
+
+	public static EventAdmin getEventAdmin() {
+		if (eventAdmin==null) eventAdmin = getService(EventAdmin.class);
+		return eventAdmin;
+	}
+
+	public static void setEventAdmin(EventAdmin eventAdmin) {
+		ServiceHolder.eventAdmin = eventAdmin;
 	}
 }

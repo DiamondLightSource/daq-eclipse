@@ -1,11 +1,13 @@
 package org.eclipse.scanning.api.points;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
+import org.eclipse.scanning.api.points.models.IContainerModel;
 
 /**
  * 
@@ -18,7 +20,7 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 
 	protected volatile T model; // Because of the validateModel() method
 	
-	protected List<IPointContainer<?>> containers;
+	protected List<IPointContainer> containers;
 	private String id;
 	private String label;
 	private String description;
@@ -126,12 +128,16 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 	}
 
 	@Override
-	public List<IPointContainer<?>> getContainers() {
-		return containers;
+	public List<IPointContainer> getContainers() {
+		if (containers!=null) return containers;
+		if (model instanceof IContainerModel) {
+			if (((IContainerModel)model).getContainer()!=null) Arrays.asList(((IContainerModel)model).getContainer());
+		}
+		return null;
 	}
 
 	@Override
-	public void setContainers(List<IPointContainer<?>> containers) throws GeneratorException {
+	public void setContainers(List<IPointContainer> containers) throws GeneratorException {
 		this.containers = containers;
 	}
 	
@@ -144,7 +150,7 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 	public boolean containsPoint(double x, double y) {
 		if (containers==null)    return true;
 		if (containers.size()<1) return true;
-		for (IPointContainer<?> container : containers) {
+		for (IPointContainer container : containers) {
 			if (container.containsPoint(x, y)) return true;
 		}
 		return false;

@@ -45,7 +45,7 @@ class _ScannableDeviceService extends AbstractRemoteService implements IScannabl
 		try {
 			req = requester.post(new DeviceRequest(DeviceType.SCANNABLE));
 		} catch (EventException | InterruptedException e) {
-			throw new ScanningException("Cannot get devices! Connection to borker may be lost or no server up!", e);
+			throw new ScanningException("Cannot get devices! Connection to broker may be lost or no server up!", e);
 		}
 	    return req.getDevices().toArray(new DeviceInformation<?>[req.size()]);
 	}

@@ -1,17 +1,21 @@
 package org.eclipse.scanning.api.points.models;
 
+import org.eclipse.scanning.api.points.IPointContainer;
 
 /**
  * A model defining a line in two dimensional space, which can be used to confine and give scale to a {@link
  * IBoundingLineModel}.
  * <p>
  * The position of the line is defined by an (X, Y) start point, an angle (CCW from the positive X axis) and a length.
- * However, X and Y do not necessarily need to refer to two orthogonal physical axes.
+ * 
+ * Important difference between BoundingLine and LinearROI -> rois are in data coordinates and bounding lines are
+ * in axis coordinates i.e. locations of the motors rather than the selection of the data.
  *
  * @author Colin Palmer
+ * @author Matthew Gerring
  *
  */
-public class BoundingLine {
+public class BoundingLine implements IPointContainer {
 
 	private double xStart;
 	private double yStart;
@@ -80,4 +84,25 @@ public class BoundingLine {
 			return false;
 		return true;
 	}
+	@Override
+	public boolean containsPoint(double x, double y) {
+		return isNearOutline(x, y, Math.max(Math.ulp(x), Math.ulp(y)));
+	}
+
+	public boolean isNearOutline(double x, double y, double distance) {
+		double[] spt = new double[]{xStart, yStart};
+		double ang  = 0d; // TODO support angle...
+		double cang = Math.cos(ang);
+		double sang = Math.sin(ang);
+		return isNearSegment(cang, sang, length, x - spt[0], y - spt[1], distance);
+	}
+	
+	static boolean isNearSegment(double dx, double dy, double l, double x, double y, double distance) {
+		double t = x * dx + y * dy; // parameter on segment
+		if (t < 0 || t > l)
+			return false;
+
+		return Math.abs(x * dy - y * dx) <= distance;
+	}
+
 }

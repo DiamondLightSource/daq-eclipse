@@ -90,7 +90,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 			IPointGenerator<T> gen = (IPointGenerator<T>)generators.get(model.getClass()).newInstance();
 			if (regions != null) {
 				for (R region : regions) {
-					synchModel(model, (IROI) region);
+					if (region instanceof IROI) synchModel(model, (IROI)region);
 					break; // to preserve old behaviour of only using first region
 					// TODO fix this by removing break statement and correctly handling multiple regions
 				}
@@ -144,33 +144,42 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		}
 	}
 
-	private List<IPointContainer<?>> wrap(Collection<?> regions) throws GeneratorException {
+	private List<IPointContainer> wrap(Collection<?> regions) throws GeneratorException {
 		
 		if (regions==null || regions.isEmpty()) return null;
 		
-		List<IPointContainer<?>> ret = new ArrayList<>();
+		List<IPointContainer> ret = new ArrayList<>();
 		for (Object region : regions) {
-			if (!(region instanceof IROI)) throw new GeneratorException("Currently only type "+IROI.class.getName()+" can be wrapped!");
-			final IROI roi = (IROI)region;
-			IPointContainer<IROI> container = new IPointContainer<IROI>() {
-				@Override
-				public boolean containsPoint(double x, double y) {
-					return roi.containsPoint(x, y);
-				}
-
-				@Override
-				public IROI getROI() {
-					return roi;
-				}
-			};
-			ret.add(container);
+			IPointContainer container = null;
+			if (region instanceof IROI) {
+				final IROI roi = (IROI)region;
+				container = new IPointContainer() {
+					@Override
+					public boolean containsPoint(double x, double y) {
+						// TODO FIXME This is in data coordinates and does
+						// not work when axes are set.
+						return roi.containsPoint(x, y);
+					}
+				};
+			} else if (region instanceof IPointContainer) {
+				container = (IPointContainer)region;
+			}
+			if (container!=null) ret.add(container);
 		}
 		return ret;
 	}
 	
-	private <T> void synchModel(T model, IROI roi) throws GeneratorException {
+	/**
+	 * @param model
+	 * @param roi
+	 * @throws GeneratorException
+	 */
+	private <T, R> void synchModel(T model, IROI roi) throws GeneratorException {
 
 		if (model instanceof IBoundingBoxModel) {
+
+			IBoundingBoxModel bmodel = (IBoundingBoxModel) model;
+			if (bmodel.getBoundingBox()!=null) return; // It's already set.
 
 			BoundingBox box = new BoundingBox();
 			IRectangularROI rect = roi.getBounds();
@@ -179,10 +188,12 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 			box.setFastAxisLength(rect.getLength(0));
 			box.setSlowAxisLength(rect.getLength(1));
 			((IBoundingBoxModel) model).setBoundingBox(box);
-//			return;
 
 		} else if (model instanceof IBoundingLineModel) {
 
+			IBoundingLineModel lmodel = (IBoundingLineModel) model;
+			if (lmodel.getBoundingLine()!=null) return; // It's already set.
+				
 			BoundingLine line = new BoundingLine();
 			LinearROI lroi = (LinearROI) roi;
 			line.setxStart(lroi.getPoint()[0]);
@@ -190,7 +201,6 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 			line.setLength(lroi.getLength());
 			line.setAngle(lroi.getAngle());
 			((IBoundingLineModel) model).setBoundingLine(line);
-//			return;
 		}
 
 		//throw new GeneratorException("Cannot deal with model "+model.getClass());

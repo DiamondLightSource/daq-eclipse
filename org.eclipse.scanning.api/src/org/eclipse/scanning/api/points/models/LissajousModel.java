@@ -1,7 +1,6 @@
 package org.eclipse.scanning.api.points.models;
 
 import org.eclipse.scanning.api.annotation.MinimumValue;
-import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 
 public class LissajousModel extends AbstractBoundingBoxModel {
 
@@ -11,10 +10,10 @@ public class LissajousModel extends AbstractBoundingBoxModel {
 	private double thetaStep = 0.05;
 	private int points = 503; // this gives a closed path with the other default values
 
-	@Override
-	public String getName() {
-		return "Lissajous Curve";
+	public LissajousModel() {
+		setName("Lissajous Curve");
 	}
+	
 	public double getA() {
 		return a;
 	}
