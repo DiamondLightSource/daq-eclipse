@@ -69,7 +69,7 @@ public class PVDataSerializationTest {
 			//regions.add(new CircularROI(3, 8, 9));
 			
 			IPointGeneratorService pgService = new PointGeneratorFactory();
-			IPointGenerator<SpiralModel> temp = pgService.createGenerator(new SpiralModel("x", "y", 1, new BoundingBox(0, -5, 10, 5)), regions);
+			IPointGenerator<SpiralModel> temp = pgService.createGenerator(new SpiralModel("x", "y", 1, new BoundingBox(0, 5, 10, 5)), regions);
 			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
 			
 			PVStructure pvStructure = connectorService.pvMarshal(scan);
@@ -256,7 +256,7 @@ public class PVDataSerializationTest {
 			//regions.add(new CircularROI(3, 8, 9));
 			
 			IPointGeneratorService pgService = new PointGeneratorFactory();
-			IPointGenerator<SpiralModel> temp = pgService.createGenerator(new SpiralModel("x", "y", 2, new BoundingBox(0, -5, 10, 5)), regions);
+			IPointGenerator<SpiralModel> temp = pgService.createGenerator(new SpiralModel("x", "y", 2, new BoundingBox(0, 5, 10, 5)), regions);
 			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
 			
 			PVStructure pvStructure = connectorService.pvMarshal(scan);

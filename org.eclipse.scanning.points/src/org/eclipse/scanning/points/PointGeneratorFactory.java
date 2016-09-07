@@ -200,6 +200,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 			line.setyStart(lroi.getPoint()[1]);
 			line.setLength(lroi.getLength());
 			line.setAngle(lroi.getAngle());
+			((IBoundingLineModel) model).setBoundingLine(line);
 		}
 
 		//throw new GeneratorException("Cannot deal with model "+model.getClass());

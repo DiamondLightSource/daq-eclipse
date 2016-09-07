@@ -190,7 +190,7 @@ public class LinearTest {
 		GeneratorUtil.testGeneratorPoints(gen);
 	}
 
-	@Test(expected = GeneratorException.class)
+	@Test(expected = ModelValidationException.class)
 	public void testOneDStepWrongROI() throws Exception {
 		
 		RectangularROI roi = new RectangularROI(new double[]{0,0}, new double[]{3,3});
