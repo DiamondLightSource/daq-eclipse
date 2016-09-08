@@ -52,15 +52,11 @@ class SpiralIterator extends AbstractScanPointIterator {
 	@Override
 	public boolean hasNext() {
 		Point point;
-		double x;
-		double y;
 		
 		while (pyIterator.hasNext()) {
 			point = (Point) pyIterator.next();
-			x = point.getX();
-			y = point.getY();
 			
-			if (gen.containsPoint(x, y)) {
+			if (gen.containsPoint(point)) {
 				currentPoint = point;
 				return true;
 			}

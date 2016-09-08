@@ -72,7 +72,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		assertEquals(10, bbox.getFastAxisLength(), 1e-8);
 		assertEquals(9, bbox.getSlowAxisLength(), 1e-8);
 
-		Collection<IROI> regions = service.findRegions(request.getCompoundModel(), gmodel);
+		Collection<IROI> regions = service.findRegions(gmodel, request.getCompoundModel().getRegions());
 		assertEquals(1, regions.size());
 
 		IROI region = regions.iterator().next();
@@ -146,7 +146,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		RasterModel rmodel = (RasterModel) model;
 		assertEquals(0.5, rmodel.getFastAxisStep(), 1e-8);
 
-		Collection<IROI> regions = service.findRegions(request.getCompoundModel(), rmodel);
+		Collection<IROI> regions = service.findRegions(rmodel, request.getCompoundModel().getRegions());
 		assertEquals(2, regions.size());
 
 		Iterator<IROI> regionIterator = regions.iterator();

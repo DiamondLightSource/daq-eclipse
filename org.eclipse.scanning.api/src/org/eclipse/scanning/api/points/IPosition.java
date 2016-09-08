@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.points;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +43,7 @@ public interface IPosition {
 	 * 
 	 * @return name of scalars
 	 */
-	Collection<String> getNames();
+	List<String> getNames();
 
 	/**
 	 * Get the data index of this point for a given scan dimension.

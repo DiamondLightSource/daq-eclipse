@@ -3,6 +3,8 @@ package org.eclipse.scanning.api.points.models;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.scanning.api.INameable;
+
 /**
  * 
  * A scan region encapsulates a geometric region of interest with
@@ -12,15 +14,19 @@ import java.util.List;
  *
  * @param <T>
  */
-public class ScanRegion<T> {
-
+public class ScanRegion<T> implements INameable {
+	
+	private String       name;
 	private T            roi;
 	private List<String> scannables;
 	
 	public ScanRegion() {
 		// We are a bean
 	}
-	
+	public ScanRegion(String name) {
+		this.name = name;
+	}
+
 	public ScanRegion(T roi, List<String> names) {
 		this.roi = roi;
 		this.scannables = names;
@@ -70,5 +76,13 @@ public class ScanRegion<T> {
 		} else if (!scannables.equals(other.scannables))
 			return false;
 		return true;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }

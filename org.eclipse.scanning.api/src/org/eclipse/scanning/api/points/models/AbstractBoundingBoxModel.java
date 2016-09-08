@@ -5,9 +5,7 @@ import java.util.List;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
-import org.eclipse.scanning.api.annotation.ui.EditType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
-import org.eclipse.scanning.api.points.IPointContainer;
 
 
 /**
@@ -20,7 +18,7 @@ import org.eclipse.scanning.api.points.IPointContainer;
  */
 public abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
 
-	@FieldDescriptor(label="Bounding Box", edit=EditType.COMPOUND, compoundLabel="[${fastAxisStart} for ${fastAxisLength}],[${slowAxisStart} for ${slowAxisLength}]") // We edit this with a popup.
+	@FieldDescriptor(visible=false) // We edit this with a popup.
 	private BoundingBox boundingBox;
 
 	@FieldDescriptor(label="Fast Axis", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'x'.") // TODO Right?
@@ -50,9 +48,6 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 		BoundingBox oldValue = this.boundingBox;
 		this.boundingBox = newValue;
 		this.pcs.firePropertyChange("boundingBox", oldValue, newValue);
-	}
-	public IPointContainer getContainer() {
-		return boundingBox;
 	}
 
 	@UiHidden

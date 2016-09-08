@@ -4,7 +4,6 @@ import java.text.DecimalFormat;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
-import org.eclipse.scanning.api.points.IPointContainer;
 
 /**
  * A model defining a box in two dimensional space, which can be used to confine and give scale to a {@link
@@ -20,14 +19,11 @@ import org.eclipse.scanning.api.points.IPointContainer;
  * @author Colin Palmer
  * @author Matthew Gerring
  *
+ * @Deprecated Replaced by ScanRegion which is provided with the CompoundModel
  */
-public class BoundingBox implements IPointContainer {
+public class BoundingBox  {
 
 	
-	public enum MARKER {
-		BOX;
-	}
-
 	@FieldDescriptor(visible=false)
 	private String fastAxisName="x";
 	
@@ -230,39 +226,5 @@ public class BoundingBox implements IPointContainer {
     public void setNumberFormat(String sformat) {
     	format = new DecimalFormat(sformat);
     }
-
-
-	@Override
-	public boolean containsPoint(double x, double y) {
-		
-		double[] spt = new double[]{getFastAxisStart(), getSlowAxisStart()};
-		double[] len = new double[]{getFastAxisLength(), getSlowAxisLength()};
-		double ang = 0;// TODO angle!
-		
-		x -= spt[0];
-		y -= spt[1];
-		if (ang == 0) {
-			if (x < 0 || x > len[0])
-				return false;
-			return y >= 0 && y <= len[1];
-		}
-		double[] pr = transformToRotated(x, y); // Not really required until angle supported.
-		if (pr[0] < 0 || pr[0] > len[0])
-			return false;
-		return pr[1] >= 0 && pr[1] <= len[1];
-	}
-	
-	/**
-	 * @param ox 
-	 * @param oy 
-	 * @return array with rotated Cartesian coordinates
-	 */
-	protected double[] transformToRotated(double ox, double oy) {
-		double ang  = 0d; // TODO support angle...
-		double cang = Math.cos(ang);
-		double sang = Math.sin(ang);
-		double[] car = { ox * cang + oy * sang, -ox * sang + oy * cang };
-		return car;
-	}
 
 }

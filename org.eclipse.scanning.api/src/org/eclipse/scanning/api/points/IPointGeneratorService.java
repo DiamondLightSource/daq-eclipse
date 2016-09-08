@@ -6,6 +6,7 @@ import java.util.Collections;
 
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.ScanRegion;
 
 /**
  * This service generates points for a given scan type.
@@ -49,7 +50,7 @@ public interface IPointGeneratorService {
 	 * Convenience implementation when using only one region of interest
 	 * 
 	 * @param model
-	 * @param region which implements IPointContainer (most useful) or IROI (less useful because IROI is in the data coordinates)
+	 * @param region which implements IPointContainer (most useful) or IROI (less useful because IROI is in the data coordinates, no the motor coordinates)
 	 * @return
 	 */
 	default <T,R> IPointGenerator<T> createGenerator(T model, R region) throws GeneratorException {
@@ -90,7 +91,7 @@ public interface IPointGeneratorService {
 	 * @return
 	 * @throws GeneratorException
 	 */
-	<R> Collection<R> findRegions(CompoundModel cmodel, Object model) throws GeneratorException;
+	<R> Collection<R> findRegions(Object model, Collection<ScanRegion<R>> regions) throws GeneratorException;
 
 	/**
 	 * Each IPointGenerator must have a unique id which is used to refer to it in the user interface.

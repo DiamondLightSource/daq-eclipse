@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
@@ -88,12 +89,8 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	public <T, R> IPointGenerator<T> createGenerator(T model, Collection<R> regions) throws GeneratorException {
 		try {
 			IPointGenerator<T> gen = (IPointGenerator<T>)generators.get(model.getClass()).newInstance();
-			if (regions != null) {
-				for (R region : regions) {
-					if (region instanceof IROI) synchModel(model, (IROI)region);
-					break; // to preserve old behaviour of only using first region
-					// TODO fix this by removing break statement and correctly handling multiple regions
-				}
+			if (regions != null && !regions.isEmpty())  {
+				setBounds(model, new ArrayList<>(regions));
 				gen.setContainers(wrap(regions));
 			}
 			gen.setModel(model);
@@ -103,6 +100,34 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 			throw g;
 		} catch (Exception ne) {
 			throw new GeneratorException("Cannot make a new generator for "+model.getClass().getName(), ne);
+		}
+	}
+
+	private <T, R> void setBounds(T model, List<R> regions) {
+		
+		IRectangularROI rect = ((IROI)regions.get(0)).getBounds();
+		for (R roi : regions) {
+			rect = rect.bounds((IROI)roi);
+		}
+		
+		if (model instanceof IBoundingBoxModel) {
+
+			BoundingBox box = new BoundingBox();
+			box.setFastAxisStart(rect.getPoint()[0]);
+			box.setSlowAxisStart(rect.getPoint()[1]);
+			box.setFastAxisLength(rect.getLength(0));
+			box.setSlowAxisLength(rect.getLength(1));
+			((IBoundingBoxModel) model).setBoundingBox(box);
+
+		} else if (model instanceof IBoundingLineModel) {
+				
+			BoundingLine line = new BoundingLine();
+			LinearROI lroi = (LinearROI) regions.get(0);
+			line.setxStart(lroi.getPoint()[0]);
+			line.setyStart(lroi.getPoint()[1]);
+			line.setLength(lroi.getLength());
+			line.setAngle(lroi.getAngle());
+			((IBoundingLineModel) model).setBoundingLine(line);
 		}
 	}
 
@@ -155,9 +180,12 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 				final IROI roi = (IROI)region;
 				container = new IPointContainer() {
 					@Override
-					public boolean containsPoint(double x, double y) {
-						// TODO FIXME This is in data coordinates and does
-						// not work when axes are set.
+					public boolean containsPoint(IPosition pos) {
+						// Important, this assumes that the IROI is in axis coordinates
+						String dim0Name = pos.getNames().get(0);
+						String dim1Name = pos.getNames().get(1);
+						double x = pos.getValue(dim1Name);
+						double y = pos.getValue(dim0Name);
 						return roi.containsPoint(x, y);
 					}
 				};
@@ -169,43 +197,6 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		return ret;
 	}
 	
-	/**
-	 * @param model
-	 * @param roi
-	 * @throws GeneratorException
-	 */
-	private <T, R> void synchModel(T model, IROI roi) throws GeneratorException {
-
-		if (model instanceof IBoundingBoxModel) {
-
-			IBoundingBoxModel bmodel = (IBoundingBoxModel) model;
-			if (bmodel.getBoundingBox()!=null) return; // It's already set.
-
-			BoundingBox box = new BoundingBox();
-			IRectangularROI rect = roi.getBounds();
-			box.setFastAxisStart(rect.getPoint()[0]);
-			box.setSlowAxisStart(rect.getPoint()[1]);
-			box.setFastAxisLength(rect.getLength(0));
-			box.setSlowAxisLength(rect.getLength(1));
-			((IBoundingBoxModel) model).setBoundingBox(box);
-
-		} else if (model instanceof IBoundingLineModel) {
-
-			IBoundingLineModel lmodel = (IBoundingLineModel) model;
-			if (lmodel.getBoundingLine()!=null) return; // It's already set.
-				
-			BoundingLine line = new BoundingLine();
-			LinearROI lroi = (LinearROI) roi;
-			line.setxStart(lroi.getPoint()[0]);
-			line.setyStart(lroi.getPoint()[1]);
-			line.setLength(lroi.getLength());
-			line.setAngle(lroi.getAngle());
-			((IBoundingLineModel) model).setBoundingLine(line);
-		}
-
-		//throw new GeneratorException("Cannot deal with model "+model.getClass());
-	}
-
 	@Override
 	public IPointGenerator<?> createCompoundGenerator(IPointGenerator<?>... generators) throws GeneratorException {
 		return new CompoundGenerator(generators);
@@ -238,7 +229,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		IPointGenerator<?>[] gens = new IPointGenerator<?>[cmodel.getModels().size()];
 		int index = 0;
 		for (Object model : cmodel.getModels()) {
-			Collection<?> regions = findRegions(cmodel, model);
+			Collection<?> regions = findRegions(model, cmodel.getRegions());
 			gens[index] = createGenerator(model, regions);
 			index++;
 		}
@@ -247,14 +238,15 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <R> Collection<R> findRegions(CompoundModel cmodel, Object model) throws GeneratorException {
+	public <R> Collection<R> findRegions(Object model, Collection<ScanRegion<R>> sregions) throws GeneratorException {
 		
-		if (cmodel.getRegions()==null) return null;
+		if (sregions==null) return null;
 		
         final Collection<R> regions = new LinkedHashSet<R>(); // Order should not be important but some tests assume it
 		final Collection<String> names = AbstractPointsModel.getScannableNames(model);
-		for (ScanRegion<?> region : cmodel.getRegions()) {
-			if (region.getScannables().containsAll(names)) {
+		for (ScanRegion<R> region : sregions) {
+			// A region with no scannables is considered to act on all 
+			if (region.getScannables()==null || region.getScannables().containsAll(names)) {
 				regions.add((R)region.getRoi());
 			}
 		}

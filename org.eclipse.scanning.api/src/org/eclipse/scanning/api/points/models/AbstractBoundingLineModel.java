@@ -4,11 +4,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
-import org.eclipse.scanning.api.points.IPointContainer;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 public class AbstractBoundingLineModel extends AbstractPointsModel implements IBoundingLineModel {
 	
+	@FieldDescriptor(visible=false) // We edit this with a popup.
 	private BoundingLine boundingLine;
+	
 	private String xName = "x";
 	private String yName = "y";
 	@UiHidden
@@ -46,9 +48,7 @@ public class AbstractBoundingLineModel extends AbstractPointsModel implements IB
 		this.boundingLine = boundingLine;
 		this.pcs.firePropertyChange("boundingLine", oldValue, boundingLine);
 	}
-	public IPointContainer getContainer() {
-		return boundingLine;
-	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

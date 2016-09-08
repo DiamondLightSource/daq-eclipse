@@ -20,6 +20,7 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TableViewerEditor;
@@ -40,9 +41,9 @@ import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
-import org.eclipse.scanning.device.ui.util.BoxConvert;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
+import org.eclipse.scanning.device.ui.util.RegionConverter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -198,6 +199,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 					try {
 						Object ob = ((IStructuredSelection)viewer.getSelection()).getFirstElement();
 						((FieldValue)ob).set(null);
+						viewer.setSelection(new StructuredSelection(ob));
 						refresh(); // Must do global refresh because might effect units of other parameters.
 					} catch (Exception ne) {
 						logger.error("Cannot delete item "+(IStructuredSelection)viewer.getSelection(), ne);
@@ -345,9 +347,9 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 				if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
 					IROI               roi    = (IROI)ob;
             		IPlottingSystem<?> system = (IPlottingSystem<?>)PlotUtil.getRegionSystem();
-    	    		BoxConvert converter = new BoxConvert(system.getTraces(IImageTrace.class).iterator().next());
-    	    		IBoundingBoxModel boxMod = (IBoundingBoxModel)getModel();
-    	    		boxMod.setBoundingBox(converter.toBox(roi));
+    	    		RegionConverter converter = new RegionConverter(system.getTraces(IImageTrace.class).iterator().next(), roi);
+    	    		IBoundingBoxModel  boxMod = (IBoundingBoxModel)getModel();
+    	    		boxMod.setBoundingBox(converter.getBoundingBox());
     	    		refresh();
 				}
 				

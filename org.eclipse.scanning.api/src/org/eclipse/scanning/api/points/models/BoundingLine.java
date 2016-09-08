@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.points.models;
 
-import org.eclipse.scanning.api.points.IPointContainer;
-
 /**
  * A model defining a line in two dimensional space, which can be used to confine and give scale to a {@link
  * IBoundingLineModel}.
@@ -13,9 +11,11 @@ import org.eclipse.scanning.api.points.IPointContainer;
  *
  * @author Colin Palmer
  * @author Matthew Gerring
+ * 
+ * @Deprecated Replaced by ScanRegion which is provided with the CompoundModel
  *
  */
-public class BoundingLine implements IPointContainer {
+public class BoundingLine  {
 
 	private double xStart;
 	private double yStart;
@@ -83,26 +83,6 @@ public class BoundingLine implements IPointContainer {
 				.doubleToLongBits(other.yStart))
 			return false;
 		return true;
-	}
-	@Override
-	public boolean containsPoint(double x, double y) {
-		return isNearOutline(x, y, Math.max(Math.ulp(x), Math.ulp(y)));
-	}
-
-	public boolean isNearOutline(double x, double y, double distance) {
-		double[] spt = new double[]{xStart, yStart};
-		double ang  = 0d; // TODO support angle...
-		double cang = Math.cos(ang);
-		double sang = Math.sin(ang);
-		return isNearSegment(cang, sang, length, x - spt[0], y - spt[1], distance);
-	}
-	
-	static boolean isNearSegment(double dx, double dy, double l, double x, double y, double distance) {
-		double t = x * dx + y * dy; // parameter on segment
-		if (t < 0 || t > l)
-			return false;
-
-		return Math.abs(x * dy - y * dx) <= distance;
 	}
 
 }
