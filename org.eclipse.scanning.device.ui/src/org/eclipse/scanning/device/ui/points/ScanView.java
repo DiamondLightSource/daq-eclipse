@@ -27,6 +27,7 @@ import org.eclipse.richbeans.widgets.table.SeriesTable;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.MarginUtils;
@@ -57,6 +58,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ScanView  extends ViewPart {
+	
+	public static final String ID = "org.eclipse.scanning.device.ui.scanEditor";
 	
 	private static final Logger logger = LoggerFactory.getLogger(ScanView.class);
 	
@@ -165,7 +168,12 @@ public class ScanView  extends ViewPart {
 
 	@Override
 	public Object getAdapter(Class clazz) {
-		if (clazz==IPointGenerator.class || clazz==IPointGenerator[].class) {
+		
+		if (clazz==IScanPathModel.class) {
+			ISeriesItemDescriptor selected = seriesTable.getSelected();
+			if (!(selected instanceof GeneratorDescriptor)) return null;
+			return ((GeneratorDescriptor)selected).getModel();
+		} else if (clazz==IPointGenerator.class || clazz==IPointGenerator[].class) {
 			return getGenerators();
 		}else if (clazz==Object[].class) {
 			return getModels();

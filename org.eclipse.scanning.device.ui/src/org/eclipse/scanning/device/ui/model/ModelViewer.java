@@ -45,6 +45,7 @@ import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.points.ScanRegionProvider;
+import org.eclipse.scanning.device.ui.points.ScanView;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.swt.SWT;
@@ -71,6 +72,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.slf4j.Logger;
@@ -215,6 +217,12 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 		if (PageUtil.getPage()!=null) {
 			ISelection selection = PageUtil.getPage().getSelection();
 			processWorkbenchSelection(selection); // If model view is selected later but something it can process is the page selection...
+			
+			if (model==null) { // Go and look for the model on a view
+				final IViewPart part  = PageUtil.getPage().findView(ScanView.ID);
+				final Object    model = part.getAdapter(IScanPathModel.class);
+				processObject(model);
+			}
 		}
 		
 		return parent;
@@ -337,29 +345,35 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 	private void processWorkbenchSelection(ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
 			Object ob = ((IStructuredSelection)selection).getFirstElement();
-			try {
-				if (ob instanceof IValidator) setValidator((IValidator<?>)ob);
-				
-				// Special case for device information, we read the latest
-				if (ob instanceof DeviceInformation) {
-					ob = getLatestDeviceInformation((DeviceInformation<?>)ob); // Reread the device information.
-					setValidator(dservice.getRunnableDevice(((DeviceInformation<?>)ob).getName()));
-				}
-				if (ob instanceof IModelProvider) setModel(((IModelProvider<?>)ob).getModel());
-				
-				if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
-	
-            		IPlottingSystem<?>     system  = (IPlottingSystem<?>)PlotUtil.getRegionSystem();
-    	    		List<ScanRegion<IROI>> regions = ScanRegionProvider.getScanRegions(system);
-    	    		List<IROI> rois = ServiceHolder.getGeneratorService().findRegions(getModel(), regions);
-    	    		BoundingBox      box  = bounds(rois);
-    	    		((IBoundingBoxModel)getModel()).setBoundingBox(box);
-    	    		refresh();
-				}
-				
-			} catch (Exception ne) {
-				logger.error("Cannot set model for object "+ob);
+			processObject(ob);
+		}
+	}
+
+	private void processObject(Object ob) {
+		
+		if (ob==null) return;
+		try {
+			if (ob instanceof IValidator) setValidator((IValidator<?>)ob);
+			
+			// Special case for device information, we read the latest
+			if (ob instanceof DeviceInformation) {
+				ob = getLatestDeviceInformation((DeviceInformation<?>)ob); // Reread the device information.
+				setValidator(dservice.getRunnableDevice(((DeviceInformation<?>)ob).getName()));
 			}
+			if (ob instanceof IModelProvider) setModel(((IModelProvider<?>)ob).getModel());
+			
+			if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
+
+        		IPlottingSystem<?>     system  = (IPlottingSystem<?>)PlotUtil.getRegionSystem();
+	    		List<ScanRegion<IROI>> regions = ScanRegionProvider.getScanRegions(system);
+	    		List<IROI> rois = ServiceHolder.getGeneratorService().findRegions(getModel(), regions);
+	    		BoundingBox      box  = bounds(rois);
+	    		((IBoundingBoxModel)getModel()).setBoundingBox(box);
+	    		refresh();
+			}
+			
+		} catch (Exception ne) {
+			logger.error("Cannot set model for object "+ob);
 		}
 	}
 

@@ -17,6 +17,7 @@ import org.eclipse.scanning.api.INameable;
 public class ScanRegion<T> implements INameable {
 	
 	private String       name;
+	private Object       type;
 	private T            roi;
 	private List<String> scannables;
 	
@@ -26,8 +27,9 @@ public class ScanRegion<T> implements INameable {
 	public ScanRegion(String name) {
 		this.name = name;
 	}
-	public ScanRegion(String name, List<String> snames) {
+	public ScanRegion(String name, Object type, List<String> snames) {
 		this.name = name;
+		this.type = type;
 		this.scannables = snames;
 	}
 
@@ -88,5 +90,11 @@ public class ScanRegion<T> implements INameable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+	public Object getType() {
+		return type;
+	}
+	public void setType(Object type) {
+		this.type = type;
 	}
 }

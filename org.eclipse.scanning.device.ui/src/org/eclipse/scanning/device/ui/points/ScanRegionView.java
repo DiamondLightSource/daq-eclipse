@@ -2,6 +2,7 @@ package org.eclipse.scanning.device.ui.points;
 
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -9,6 +10,7 @@ import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
+import org.eclipse.dawnsci.plotting.api.preferences.BasePlottingConstants;
 import org.eclipse.dawnsci.plotting.api.region.ColorConstants;
 import org.eclipse.dawnsci.plotting.api.region.IRegion;
 import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
@@ -16,27 +18,36 @@ import org.eclipse.dawnsci.plotting.api.region.IRegionListener;
 import org.eclipse.dawnsci.plotting.api.region.RegionEvent;
 import org.eclipse.dawnsci.plotting.api.region.RegionUtils;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.richbeans.widgets.menu.MenuAction;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
+import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
+import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ToolTip;
+import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.part.ViewPart;
 import org.slf4j.Logger;
@@ -86,7 +97,14 @@ public class ScanRegionView extends ViewPart {
 	// Listeners
 	private IRegionListener regionListener;
 	
+	// File
+	private Stashing stash;
+	
 	public ScanRegionView() {
+		
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.AUTO_SAVE_REGIONS, true);
+		this.stash = new Stashing("org.eclipse.scanning.device.ui.scan.regions.json", ServiceHolder.getEventConnectorService());
+		
 		this.regionListener = new IRegionListener.Stub() {
 
 			protected void update(RegionEvent evt) {
@@ -98,6 +116,9 @@ public class ScanRegionView extends ViewPart {
 	@Override
 	public void createPartControl(Composite ancestor) {
 		
+		// TODO Action to choose a different plotting system?
+		this.system = getPlottingSystem();
+
 		Composite control = new Composite(ancestor, SWT.NONE);
 		control.setLayout(new GridLayout(1, false));
 		GridUtils.removeMargins(control);
@@ -122,15 +143,65 @@ public class ScanRegionView extends ViewPart {
 	        }
 	    });		
 		
+		viewer.getTable().addKeyListener(new KeyListener() {
+			public void keyReleased(KeyEvent e) {
+			}
+
+			public void keyPressed(KeyEvent e) {
+				if (e.keyCode == SWT.F1) {
+					// TODO Help!
+				}
+				if (e.character == SWT.DEL) {
+					try {
+						Object ob = ((IStructuredSelection)viewer.getSelection()).getFirstElement();
+						ScanRegion<IROI> region = (ScanRegion<IROI>)ob;
+						IRegion sregion = system.getRegion(region.getName());
+						if (sregion!=null) system.removeRegion(sregion);
+						viewer.refresh(); // Must do global refresh because might effect units of other parameters.
+					} catch (Exception ne) {
+						logger.error("Cannot delete item "+(IStructuredSelection)viewer.getSelection(), ne);
+					}
+
+				}
+			}
+		});
+
+		
 		createActions();
 		createColumns(viewer);
 		
-		// TODO Action to choose a different plotting system?
-		this.system = getPlottingSystem();
 		viewer.setInput(system);
 		system.addRegionListener(regionListener);
 		
+		if (Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.AUTO_SAVE_REGIONS)) {
+			try {
+				List<ScanRegion<IROI>> regions = stash.unstash(List.class);
+				if (regions!=null && !regions.isEmpty()) {
+					for (ScanRegion<IROI> scanRegion : regions) {
+						IRegion region = createRegion((RegionType)scanRegion.getType(), system.getPlotName(), scanRegion.getRoi());
+						region.setUserObject(scanRegion);
+					}
+				}
+				viewer.refresh();
+			} catch (Exception ne) {
+				logger.error("Unable to read stored regions!", ne);
+			}
+		}
+
 	}
+	
+	@Override
+    public void saveState(IMemento memento) {
+    	super.saveState(memento);
+    	
+    	if (!Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.AUTO_SAVE_REGIONS)) return;
+    	try {
+    		stash.stash(ScanRegionProvider.getScanRegions(system));
+		} catch (Exception e) {
+			logger.error("Problem stashing control factory!", e);
+		}
+    }
+
 
 	private IPlottingSystem<?> getPlottingSystem() {
         // We search for a view which has a PlottingController attached to its plotting system
@@ -145,9 +216,17 @@ public class ScanRegionView extends ViewPart {
 		IMenuManager    menuMan    = getViewSite().getActionBars().getMenuManager();
 		MenuManager     rightClick     = new MenuManager();
 		List<IContributionManager> mans = Arrays.asList(toolBarMan, menuMan, rightClick);
-		
+				
 		addGroups("add", mans, createRegionActions());
 
+		IAction autoSave = new Action("Automatically save regions", IAction.AS_CHECK_BOX) {
+			public void run() {
+				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.AUTO_SAVE_REGIONS, isChecked());
+			}
+		};
+		autoSave.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.AUTO_SAVE_REGIONS));
+		autoSave.setImageDescriptor(Activator.getImageDescriptor("icons/autosave.png"));
+		addGroups("auto", mans, autoSave);
 	}
 	
 	private void createColumns(TableViewer viewer) {
@@ -203,15 +282,21 @@ public class ScanRegionView extends ViewPart {
         
 		MenuAction rois = new MenuAction("Add Region");
 
+		ActionContributionItem menu  = (ActionContributionItem)system.getActionBars().getMenuManager().find(BasePlottingConstants.ADD_REGION);
+		IAction        menuAction = (IAction)menu.getAction();	
+
 		for (RegionType regionType : regionTypes) {
 			
             IAction action = new Action("Press to click and drag a "+regionType.getName()+" on '"+PlotUtil.getRegionViewName()+"'") {
             	public void run() {
-            		createRegion(regionType, regionViewName, tip);
+            		createRegion(regionType, regionViewName, null);
+    				showTip(tip, "Drag a box in the '"+regionViewName+"' to create a scan region.");
+            		rois.setSelectedAction(this);
             	}
             };
 
-            action.setImageDescriptor(Activator.getImageDescriptor("icons/ProfileBox.png"));
+			final ImageDescriptor des = findImageDescriptor(menuAction, regionType.getId());
+            action.setImageDescriptor(des);
             rois.add(action);
 		}
 		
@@ -219,29 +304,47 @@ public class ScanRegionView extends ViewPart {
 		return rois;
 	}
 
-	private void createRegion(RegionType regionType, final String regionViewName, ToolTip tip) {
-		
-		if (system!=null) {
-			try {
-				IRegion region = system.createRegion(RegionUtils.getUniqueName("scan"+regionType.getName(), system), regionType);
-				
-				String x = system.getAxes().get(0).getTitle();
-				String y = system.getAxes().get(1).getTitle();
-				region.setUserObject(new ScanRegion<IROI>(region.getName(), Arrays.asList(x,y))); 
-				region.setRegionColor(ColorConstants.blue);
-				region.setAlpha(25);
-				region.setLineWidth(1);
+	private ImageDescriptor findImageDescriptor(IAction menuAction, String id) {
 
-				showTip(tip, "Drag a box in the '"+regionViewName+"' to create a scan region.");
-
-			} catch (Exception e1) {
-				logger.error("Cannot create a bounding box!", e1);
-				return;
-			}
+		try {
+	        final Method method = menuAction.getClass().getMethod("findAction", String.class);
+	        IAction paction = (IAction)method.invoke(menuAction, id);
+	        return paction.getImageDescriptor();
+		} catch (Exception ne) {
+			logger.error("Cannot get plotting menu for adding regions!", ne);
+			return Activator.getImageDescriptor("icons/ProfileBox.png");
 		}
 	}
 
+	private IRegion createRegion(RegionType regionType, final String regionViewName, IROI roi) {
+		
+		if (system!=null) {
+			try {
+				IRegion region = system.createRegion(RegionUtils.getUniqueName("Scan "+regionType.getName(), system), regionType);
+				
+				String x = system.getAxes().get(0).getTitle();
+				String y = system.getAxes().get(1).getTitle();
+				region.setUserObject(new ScanRegion<IROI>(region.getName(), regionType, Arrays.asList(x,y))); 
+				region.setRegionColor(ColorConstants.blue);
+				region.setAlpha(25);
+				region.setLineWidth(1);
+				if (roi!=null) {
+					region.setROI(roi);
+					system.addRegion(region);
+					region.repaint();
+				}
+				return region;
+
+			} catch (Exception e1) {
+				logger.error("Cannot create a bounding box!", e1);
+			}
+		}
+		return null;
+	}
+
 	private void showTip(ToolTip tip, String message) {
+		
+		if (tip==null) return;
     	tip.setMessage(message);
 		PointerInfo a = MouseInfo.getPointerInfo();
 		java.awt.Point loc = a.getLocation();

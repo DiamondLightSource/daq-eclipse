@@ -16,4 +16,9 @@ public class DevicePreferenceConstants {
 	 * Topic for publishing the result of an event calculation.
 	 */
 	public static final String PATH_CALCULATION_TOPIC = "uk/ac/diamond/daq/mapping/client/events/PathCalculationEvent";
+
+	/**
+	 * Normally scan regions are saved and remembered when the user restarts.
+	 */
+	public static final String AUTO_SAVE_REGIONS = "org.eclipse.scanning.device.ui.device.autoSaveRegions";;
 }
