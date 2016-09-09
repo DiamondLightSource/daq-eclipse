@@ -33,6 +33,7 @@ public class ControlTree extends AbstractControl {
 
 	public ControlTree() {
 		this.content = new LinkedHashMap<>(37); // Ordered by insertion
+		setName("Control Tree");
 	}
 	
 	public static ControlTree getInstance() {

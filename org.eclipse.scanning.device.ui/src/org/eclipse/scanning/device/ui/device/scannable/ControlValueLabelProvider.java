@@ -1,6 +1,7 @@
 package org.eclipse.scanning.device.ui.device.scannable;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -32,22 +33,28 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 
 		if(!(element instanceof INamedNode)) return new StyledString();
 
-		final StyledString ret = new StyledString(getText(element));
+		final StyledString styledText = new StyledString(getText(element));
 		
 		INamedNode node = (INamedNode)element;
 		try {
 			if (node instanceof ControlNode) {
-				final IScannable<?> scannable = cservice.getScannable(node.getName());
-				ret.append("    ");
-				ret.append(scannable.getUnit(), StyledString.DECORATIONS_STYLER);
+				final String scannableName = node.getName();
+				if (scannableName != null && !scannableName.equals("")) {
+					final IScannable<?> scannable = cservice.getScannable(node.getName());
+						if (scannable.getUnit() != null) {
+						styledText.append("    ");
+						styledText.append(scannable.getUnit(), StyledString.DECORATIONS_STYLER);
+					}
+				}
 			} else {
 				// Intentionally do nothing!
 			}
 		} catch (Exception ne) {
-			return ret.append(ne.getMessage(), StyledString.QUALIFIER_STYLER);
+			String message = ne.getMessage() == null ? "" : ne.getMessage();
+			return styledText.append(message, StyledString.QUALIFIER_STYLER);
 		}
 		
-		return ret;
+		return styledText;
 	}
 
 	@Override
@@ -60,24 +67,37 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 		if (cservice==null) return "Server Error";
 		try {
 			if (node instanceof ControlNode) {
-				ControlNode cnode = (ControlNode)node;
-				
+				final ControlNode cnode = (ControlNode)node;
+				final String scannableName = cnode.getName();
+				if (scannableName == null || scannableName.equals("")) {
+					return "";
+				}
+
 				Object value = null;
 				if (!mode.isDirectlyConnected() && cnode.getValue()!=null) {
 					value = cnode.getValue();
 				} else {
-					final IScannable<Number> scannable = cservice.getScannable(cnode.getName());
+					final IScannable<Number> scannable = cservice.getScannable(scannableName);
 					value = scannable.getPosition();
 				}
 				
 				if (value == null) return "!VALUE";
-				final DecimalFormat format = new DecimalFormat(Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
-				try {
-					return format.format(value); 
-				} catch (Exception ne) {
-					return value.toString();
+				if (value instanceof Number) {
+					try {
+						final DecimalFormat format = new DecimalFormat(Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
+						return format.format(value); 
+					} catch (Exception ne) {
+						logger.warn("Could not format value as a decimal: ", value);
+						return value.toString();
+					}
+				}
+				if (value instanceof Object[]) {
+					return Arrays.toString((Object[]) value);
+				} else if (value instanceof double[]) {
+					return Arrays.toString((double[]) value);
 				}
 				
+				return value.toString();
 			} else {
 				return ""; // Only controls have values...
 			}

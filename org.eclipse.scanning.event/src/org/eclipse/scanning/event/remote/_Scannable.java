@@ -43,7 +43,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 	public T getPosition() throws Exception {
 		DeviceRequest req = update();
 		if (req==null) return null;
-		if (req.getErrorMessage()!=null) throw req.createException();
+		req.checkException();
 		return (T)req.getDeviceValue();
 	}
 
@@ -83,7 +83,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 			DeviceRequest req = new DeviceRequest(info.getName(), DeviceType.SCANNABLE);
 			req.setDeviceAction(DeviceAction.as(pref));
 			req = srequestor.post(req);
-			if (req.getErrorMessage()!=null) throw req.createException();
+			req.checkException();
 			if (req.getDeviceInformation()!=null) {
 				info = (DeviceInformation<T>)req.getDeviceInformation();
 			}
@@ -113,9 +113,8 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 	
 	
 	/**
-	 * Set the current upper limit, returning the previous value, if any.
-	 * @param upper
-	 * @return
+	 * Gets the current upper limit.
+	 * @return upper limit
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
@@ -125,15 +124,21 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 	}
 
 	/**
-	 * Set the current lower limit, returning the previous value, if any.
-	 * @param lower
-	 * @return
+	 * Gets the current lower limit.
+	 * @return lower limit
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public T getMinimum() {
 		if (info==null) update();
 		return (T)info.getLower();
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public T[] getPermittedValues() {
+		if (info == null) update();
+		return (T[]) info.getPermittedValues();
 	}
 
 	private Collection<IPositionListener> listeners;

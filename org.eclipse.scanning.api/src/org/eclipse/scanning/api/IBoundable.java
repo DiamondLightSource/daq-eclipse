@@ -44,5 +44,15 @@ public interface IBoundable<T> {
 	default T getMinimum() {
 		return null;
 	}
+	
+	/**
+	 * Returns a list of the permitted values for this object, or
+	 * <code>null</code> if the values are not restricted to a set of permitted values
+	 * @return list of permitted values, or <code>null</code>
+	 * @throws Exception 
+	 */
+	default T[] getPermittedValues() throws Exception {
+		return null;
+	}
 
 }

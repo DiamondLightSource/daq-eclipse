@@ -38,6 +38,7 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 	
 	private void connect(DeviceRequest req) throws EventException, InterruptedException {
 		req = requester.post(req);
+		req.checkException();
 		info = (DeviceInformation<M>)req.getDeviceInformation();
 		this.name = info.getName();
 	}

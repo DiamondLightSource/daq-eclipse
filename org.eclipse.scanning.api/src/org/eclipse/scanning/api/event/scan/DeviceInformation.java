@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.event.scan;
 
+import java.util.Arrays;
+
 import org.eclipse.scanning.api.IModelProvider;
 
 /**
@@ -75,6 +77,7 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	 */
 	private Object lower;
 	
+	private Object[] permittedValues;
 
 	public DeviceInformation() {
 
@@ -123,8 +126,10 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	public void setIcon(String icon) {
 		this.icon = icon;
 	}
+	
+	
 
-	@Override
+@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -136,6 +141,7 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		result = prime * result + ((lower == null) ? 0 : lower.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + Arrays.hashCode(permittedValues);
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		result = prime * result + ((unit == null) ? 0 : unit.hashCode());
 		result = prime * result + ((upper == null) ? 0 : upper.hashCode());
@@ -187,6 +193,8 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
+			return false;
+		if (!Arrays.equals(permittedValues, other.permittedValues))
 			return false;
 		if (state != other.state)
 			return false;
@@ -254,5 +262,13 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 
 	public void setLower(Object lower) {
 		this.lower = lower;
+	}
+
+	public Object[] getPermittedValues() {
+		return permittedValues;
+	}
+	
+	public void setPermittedValues(Object[] permittedValues) {
+		this.permittedValues = permittedValues;
 	}
 }

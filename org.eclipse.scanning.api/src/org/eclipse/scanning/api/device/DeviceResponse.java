@@ -131,11 +131,12 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 	}
 
 
-	private static void merge(DeviceInformation<?> info, IScannable<?> device) {
+	private static void merge(DeviceInformation<?> info, IScannable<?> device) throws Exception {
 		info.setLevel(device.getLevel());
 		info.setUnit(device.getUnit());
         info.setUpper(device.getMaximum());	
         info.setLower(device.getMinimum());
+        info.setPermittedValues(device.getPermittedValues());
  	}
 
 	private static void processRunnables(DeviceRequest request, IRunnableDeviceService dservice) throws Exception {
