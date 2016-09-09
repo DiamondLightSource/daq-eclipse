@@ -2,7 +2,6 @@ package org.eclipse.scanning.event.remote;
 
 import java.net.URI;
 
-import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -43,7 +42,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	@Override
 	public void validate(M model) throws Exception {
 		DeviceRequest res = requester.post(new DeviceRequest(info.getName(), DeviceAction.VALIDATE, model));		
-		if (res.getErrorMessage()!=null) throw res.createException();
+		res.checkException();
 	}
 	
 	@SuppressWarnings("unchecked")
