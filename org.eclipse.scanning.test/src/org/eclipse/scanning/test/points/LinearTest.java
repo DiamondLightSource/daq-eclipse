@@ -190,23 +190,28 @@ public class LinearTest {
 		GeneratorUtil.testGeneratorPoints(gen);
 	}
 
-	@Test(expected = ModelValidationException.class)
+	@Test
 	public void testOneDStepWrongROI() throws Exception {
 		
-		RectangularROI roi = new RectangularROI(new double[]{0,0}, new double[]{3,3});
-        
-        BoundingLine line = new BoundingLine();
-        line.setxStart(0.0);
-        line.setyStart(0.0);
-        line.setLength(Math.hypot(3.0, 3.0));
-
-        OneDStepModel model = new OneDStepModel();
-        model.setStep(0);
-        model.setBoundingLine(line);
-		
-		// Get the point list
-		IPointGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
-		List<IPosition> pointList = gen.createPoints();
-        GeneratorUtil.testGeneratorPoints(gen);
+		try {
+			RectangularROI roi = new RectangularROI(new double[]{0,0}, new double[]{3,3});
+	        
+	        BoundingLine line = new BoundingLine();
+	        line.setxStart(0.0);
+	        line.setyStart(0.0);
+	        line.setLength(Math.hypot(3.0, 3.0));
+	
+	        OneDStepModel model = new OneDStepModel();
+	        model.setStep(0);
+	        model.setBoundingLine(line);
+			
+			// Get the point list
+			IPointGenerator<OneDStepModel> gen = service.createGenerator(model, roi);
+			List<IPosition> pointList = gen.createPoints();
+	        GeneratorUtil.testGeneratorPoints(gen);
+		} catch (ModelValidationException | GeneratorException e) {
+			return;
+		}
+		throw new Exception("testOneDStepWrongROI did not throw an exception as expected!");
 	}
 }

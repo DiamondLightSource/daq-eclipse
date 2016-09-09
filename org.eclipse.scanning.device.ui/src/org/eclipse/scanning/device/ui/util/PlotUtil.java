@@ -1,7 +1,7 @@
 package org.eclipse.scanning.device.ui.util;
 
-import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.plotting.api.region.IRegionSystem;
+import org.eclipse.scanning.device.ui.vis.PlottingController;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 
@@ -27,8 +27,8 @@ public class PlotUtil {
     	for (IViewReference vr : views) {
 			IViewPart part = vr.getView(false);
 			if (part==null) continue;
-			final IROI roi = (IROI)part.getAdapter(IROI.class);
-			if (roi!=null) return part;
+			final PlottingController controller = part.getAdapter(PlottingController.class);
+			if (controller!=null) return part;
 		}
     	return null;
     }

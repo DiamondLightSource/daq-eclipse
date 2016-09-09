@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
@@ -92,11 +93,11 @@ public final class Point extends AbstractPosition {
 		return 2;
 	}
 
-	private Collection<String> names;
+	private List<String> names;
 	@UiHidden
 	@Override
-	public Collection<String> getNames() {
-		if (names==null) names = Collections.unmodifiableCollection(Arrays.asList(yName, xName));
+	public List<String> getNames() {
+		if (names==null) names = Arrays.asList(yName, xName);
 		return names;
 	}
 

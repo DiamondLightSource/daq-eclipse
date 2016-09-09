@@ -6,17 +6,15 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
-import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.PlotType;
-import org.eclipse.dawnsci.plotting.api.region.ColorConstants;
 import org.eclipse.dawnsci.plotting.api.region.IROIListener;
 import org.eclipse.dawnsci.plotting.api.region.IRegion;
-import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.eclipse.dawnsci.plotting.api.region.IRegionListener;
+import org.eclipse.dawnsci.plotting.api.region.IRegionSystem;
 import org.eclipse.dawnsci.plotting.api.region.ROIEvent;
 import org.eclipse.dawnsci.plotting.api.region.RegionEvent;
-import org.eclipse.dawnsci.plotting.api.region.RegionUtils;
+import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.dawnsci.plotting.api.trace.ILineTrace;
 import org.eclipse.dawnsci.plotting.api.trace.ILineTrace.PointStyle;
@@ -25,16 +23,18 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
-import org.eclipse.scanning.device.ui.util.BoxConvert;
+import org.eclipse.scanning.api.points.models.IBoundingLineModel;
+import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.device.ui.points.ScanRegionProvider;
 import org.eclipse.swt.graphics.Color;
 
 /**
  * 
  * This controller can be used by any plotting
  * system to make it process maps. When regions are
- * selected or moved, the scan path is reploted using a job.
+ * selected or moved, the scan path is replotted using a job.
+ * {@link org.dawnsci.plotting.tools.profile.ProfileTool.ProfileJob}
  * 
  * @author Matthew Gerring
  * @author James Mudd
@@ -50,8 +50,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 	private   final Color        scanPathColour;
 	
 	// Data
-	private   IROI               currentROI;
-	private   Object             model;
+	private   volatile Object    model; // We make accessing the model single threaded because worker threads are involved.
 	
 	// Events
 	private   IRegionListener    regionListener;
@@ -89,12 +88,14 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 			@Override
 			public void regionRemoved(RegionEvent evt) {
 				evt.getRegion().removeROIListener(roiListener);
+				fireRegion((IRegion)evt.getSource(), evt.getRegion().getROI(), true);
 			}
 			@Override
 			public void regionsRemoved(RegionEvent evt) {
 				for (IRegion region : evt.getRegions()) {
 					region.removeROIListener(roiListener);
 				}
+				fireRegion((IRegion)evt.getSource(), evt.getRegion().getROI(), true);
 			}
 		};
 	}
@@ -104,6 +105,14 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		boolean newTrace = false;
 		//Remove the previous trace
 		ILineTrace pathTrace = (ILineTrace)system.getTrace(MAPPING_PATH_NAME);
+		
+		// If there are no scan regions at all, no trace to draw
+		// If the model is not one we draw scan paths for, no trace to draw.
+		if (!isScanPathModel() || ScanRegionProvider.getScanRegions(system)==null) {
+			if (pathTrace!=null) pathTrace.setVisible(false);
+			return;
+		}	
+		
 		if (pathTrace == null) {
 			pathTrace = system.createLineTrace(MAPPING_PATH_NAME);
 			pathTrace.setTraceColor(scanPathColour);
@@ -114,8 +123,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		// Check if the scan region is currently plotted - if not, we don't want to plot the path either
 		// (This fixes a synchronisation bug where the path is added while the scan region drawing event is still
 		// active, cancelling the event and making it impossible to draw regions)
-		IRegion plotRegion = system.getRegion(currentROI.getName());
-		if (plotRegion != null && info != null) {
+		if (info != null) {
 
 			// Get the point coordinates from the last path info and add them to the trace
 			pathTrace.setData(info.getX(), info.getY());
@@ -129,14 +137,12 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 
 	private void fireRegion(IRegion region, IROI roi, boolean drawPath) {
 
-		if (roi==null)    return;
 		if (region==null) return;
 		
-		if (region.getUserObject()!=BoundingBox.MARKER.BOX) return; // Must be another region.
-		currentROI = roi;
-	    currentROI.setName(region.getName());
-		setSelection(new StructuredSelection(currentROI));
-		if (drawPath) job.schedule(model, currentROI);
+		if (!(region.getUserObject() instanceof ScanRegion)) return; // Must be another region.
+		roi.setName(region.getName());
+		setSelection(new StructuredSelection(roi));
+		if (drawPath) job.schedule(model, ScanRegionProvider.getScanRegions(system));
 	}
 
 	
@@ -175,47 +181,33 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		if (listeners!=null) listeners.clear();
 	}
 
-	public void setRegionPosition(Object model) throws Exception {
+	public void setModel(Object model) throws Exception {
 		
-		BoundingBox box = model!=null ? ((IBoundingBoxModel)model).getBoundingBox() : null;
-		if (box==null) {
-			
-			setPathVisible(false);
-			Collection<IRegion> regions = system.getRegions();
-			for (IRegion iRegion : regions) {
-				if (iRegion.getUserObject()==BoundingBox.MARKER.BOX) system.removeRegion(iRegion);
-			}
-			
+		this.model = model;
+		if (isScanPathModel()) {			
+			setRegionsVisible(true);
+			job.schedule(model, ScanRegionProvider.getScanRegions(system));
 		} else {
-		
-			this.model = model;
-			BoxConvert converter = new BoxConvert(system.getTraces(IImageTrace.class).iterator().next());
-			IROI roi = converter.toROI(box);
-			
-		    String regionName = box.getRegionName();
-		    IRegion region = system.getRegion(regionName);
-		    if (region==null) region = createRegion(box);
-		    
-	    	region.setROI(roi);
+			setPathVisible(false);
+			setRegionsVisible(false);
 		}
 	}
 	
+	private boolean isScanPathModel() {
+		// TODO We may want to change the definition of this.
+		return model instanceof IBoundingBoxModel || model instanceof IBoundingLineModel;
+	}
+
+	private void setRegionsVisible(boolean vis) {
+		Collection<IRegion> regions = system.getRegions();
+		for (IRegion iRegion : regions) {
+			if (iRegion.getUserObject() instanceof ScanRegion) iRegion.setVisible(vis);
+		}
+	}
+
 	private void setPathVisible(boolean vis) {
 		ILineTrace pathTrace = (ILineTrace)system.getTrace(MAPPING_PATH_NAME);
         if (pathTrace!=null) pathTrace.setVisible(vis);
-	}
-
-	private IRegion createRegion(BoundingBox box) throws Exception {
-		
-		String regionName = RegionUtils.getUniqueName("boundingBox", system);
-		IRegion region = system.createRegion(regionName, RegionType.BOX);
-		region.setUserObject(BoundingBox.MARKER.BOX);
-		region.setRegionColor(ColorConstants.blue);
-		region.setAlpha(10);
-		region.setLineWidth(1);
-     	system.addRegion(region);
-    	box.setRegionName(regionName);
-    	return region;
 	}
 
 	public void dispose() {
@@ -223,7 +215,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		if (system!=null) {
 		    system.removeRegionListener(regionListener);
 		    for (IRegion region : system.getRegions()) {
-		    	if (region.getUserObject()==BoundingBox.MARKER.BOX) region.removeROIListener(roiListener);
+		    	if (region.getUserObject() instanceof ScanRegion) region.removeROIListener(roiListener);
 			}
 			system.dispose();
 		}
@@ -232,7 +224,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 
 	public void connect() {
 	    for (IRegion region : system.getRegions()) {
-	    	if (region.getUserObject()==BoundingBox.MARKER.BOX) region.addROIListener(roiListener);
+	    	if (region.getUserObject() instanceof ScanRegion) region.addROIListener(roiListener);
 		}
         system.addRegionListener(regionListener);
 	}
@@ -240,13 +232,16 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 
 	@Override
 	public <T> T getAdapter(Class<T> adapter) {
-		if (IROI.class == adapter) return currentROI!=null ? (T)currentROI : (T)(new RectangularROI());
+		if (PlottingController.class == adapter) return (T)this;
+		if (IPlottingSystem.class == adapter) return (T)system;
+		if (IRegionSystem.class == adapter)   return (T)system;
+		if (IToolPageSystem.class == adapter) return system.getAdapter(adapter);
 		return null;
 	}
 
-	public double[] getPointInImageCoordinates(double[] axisPoint) throws Exception {
-		IImageTrace itrace = (IImageTrace)system.getTraces(IImageTrace.class).iterator().next();
-		return itrace.getPointInImageCoordinates(axisPoint);
+	public IImageTrace getImageTrace() {
+		IImageTrace it = (IImageTrace)system.getTraces(IImageTrace.class).iterator().next();
+		return it;
 	}
 
 }

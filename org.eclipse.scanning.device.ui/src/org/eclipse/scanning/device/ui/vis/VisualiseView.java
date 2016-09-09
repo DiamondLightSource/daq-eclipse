@@ -8,6 +8,7 @@ import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.region.IRegionSystem;
 import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
+import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.DatasetFactory;
 import org.eclipse.january.dataset.IDataset;
@@ -16,10 +17,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
-import org.eclipse.scanning.api.points.models.BoundingBox;
-import org.eclipse.scanning.api.points.models.IContainerModel;
 import org.eclipse.scanning.device.ui.ServiceHolder;
-import org.eclipse.scanning.device.ui.points.GeneratorDescriptor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -52,7 +50,7 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 			system = service.createPlottingSystem();
 			
             controller = new PlottingController(system);
-            
+ 
 		} catch (Exception ne) {
 			logger.error("Unable to make plotting system", ne);
 			system = null; // It creates the view but there will be no plotting system 
@@ -66,10 +64,7 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 		system.createPlotPart(parent, getPartName(), getViewSite().getActionBars(), PlotType.IMAGE, this);  
 
 		// Plot a random image
-		// TODO Correct data source, not this random one!
-		IDataset x = DatasetFactory.createRange(-10d, 10d, 20d/3012, Dataset.FLOAT);
-		IDataset y = DatasetFactory.createRange(100d, 200d, 20d/4096, Dataset.FLOAT);
-		system.createPlot2D(Random.rand(4096, 3012), Arrays.asList(new IDataset[]{x,y}), null);
+		createExampleTrace(); // TODO FIXME
 		
 		// Connect to existing regions, although they might not be desirable ones
 		controller.connect();
@@ -77,6 +72,23 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
         getSite().setSelectionProvider(controller);
         
         getSite().getPage().addSelectionListener(this);
+	}
+
+	private void createExampleTrace() {
+		// TODO Correct data source, not this random one!
+		IDataset x = DatasetFactory.createRange(-100d, 0d, 20d/3012, Dataset.FLOAT);
+		x.setName("x");
+		IDataset y = DatasetFactory.createRange(100d, 200d, 20d/4096, Dataset.FLOAT);
+		y.setName("y");
+		IImageTrace it = system.createImageTrace("image");
+		it.setData(Random.rand(4096, 3012), Arrays.asList(new IDataset[]{x,y}), false);
+		double[] globalRange = new double[4];
+		globalRange[0] = x.min().doubleValue();
+		globalRange[1] = x.max().doubleValue();
+		globalRange[2] = y.min().doubleValue();
+		globalRange[3] = y.max().doubleValue();
+		it.setGlobalRange(globalRange);
+		system.addTrace(it);
 	}
 
 	@Override
@@ -94,11 +106,7 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 	
 	private void processModel(Object model) {
 		try {
-			if (model instanceof IContainerModel) {
-				controller.setRegionPosition(model);
-			} else { // Cannot deal with regions
-				controller.setRegionPosition(null);
-			}
+			controller.setModel(model);
 		} catch (Exception ignored) {
 			logger.trace("Unable to deal with model "+model, ignored);
 		}

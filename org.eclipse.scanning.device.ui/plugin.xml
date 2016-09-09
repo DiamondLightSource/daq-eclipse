@@ -54,6 +54,14 @@
             name="Map"
             restorable="true">
       </view>
+      <view
+            category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.scanning.device.ui.points.ScanRegionView"
+            icon="icons/ProfileBox.png"
+            id="org.eclipse.scanning.device.ui.points.scanRegionView"
+            name="Regions"
+            restorable="true">
+      </view>
    </extension>
     <extension
          point="org.eclipse.ui.perspectives">
