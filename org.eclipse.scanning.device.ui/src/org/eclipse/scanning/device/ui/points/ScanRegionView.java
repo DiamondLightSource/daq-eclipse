@@ -12,7 +12,8 @@ import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.region.ColorConstants;
 import org.eclipse.dawnsci.plotting.api.region.IRegion;
 import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
-import org.eclipse.dawnsci.plotting.api.region.IRegionSystem;
+import org.eclipse.dawnsci.plotting.api.region.IRegionListener;
+import org.eclipse.dawnsci.plotting.api.region.RegionEvent;
 import org.eclipse.dawnsci.plotting.api.region.RegionUtils;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -21,7 +22,9 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.richbeans.widgets.menu.MenuAction;
 import org.eclipse.scanning.api.points.models.ScanRegion;
@@ -51,6 +54,12 @@ import org.slf4j.LoggerFactory;
  * of these ScanRegions which may be packaged in the CompoundModel which
  * is given to the server.
  * 
+ * TODO This view is only linked to one plotting system which is 
+ * read when the view is created. Should the view actually be a 
+ * static tool which updates the scan regions for any plotting system?
+ * Or should there be an action to change plotting systems that
+ * the view is linked to?
+ * 
  * @author Matthew Gerring
  *
  */
@@ -70,7 +79,21 @@ public class ScanRegionView extends ViewPart {
 		regionTypes.add(RegionType.ELLIPSE);
 	}
 
-	private TableViewer viewer;
+	// UI
+	private TableViewer        viewer;
+	private IPlottingSystem<?> system;
+
+	// Listeners
+	private IRegionListener regionListener;
+	
+	public ScanRegionView() {
+		this.regionListener = new IRegionListener.Stub() {
+
+			protected void update(RegionEvent evt) {
+				viewer.refresh();
+			}
+		};
+	}
 
 	@Override
 	public void createPartControl(Composite ancestor) {
@@ -100,8 +123,13 @@ public class ScanRegionView extends ViewPart {
 	    });		
 		
 		createActions();
+		createColumns(viewer);
 		
-		viewer.setInput(getPlottingSystem());
+		// TODO Action to choose a different plotting system?
+		this.system = getPlottingSystem();
+		viewer.setInput(system);
+		system.addRegionListener(regionListener);
+		
 	}
 
 	private IPlottingSystem<?> getPlottingSystem() {
@@ -122,6 +150,30 @@ public class ScanRegionView extends ViewPart {
 
 	}
 	
+	private void createColumns(TableViewer viewer) {
+		
+        TableViewerColumn var   = new TableViewerColumn(viewer, SWT.LEFT, 0);
+		var.getColumn().setText("Name");
+		var.getColumn().setWidth(200);
+		var.setLabelProvider(new ColumnLabelProvider() {
+			public String getText(Object element) {
+				return ((ScanRegion<IROI>)element).getName();
+			}
+		});
+		
+		var   = new TableViewerColumn(viewer, SWT.LEFT, 1);
+		var.getColumn().setText("Axes");
+		var.getColumn().setWidth(300);
+		
+		var.setLabelProvider(new ColumnLabelProvider() {
+			public String getText(Object element) {
+				if (element==null || ((ScanRegion<IROI>)element).getScannables()==null) return "";
+				return ((ScanRegion<IROI>)element).getScannables().toString();
+			}
+		});
+	}
+
+	
 	@Override
 	public void setFocus() {
 		if (viewer!=null) viewer.getTable().setFocus();
@@ -130,6 +182,7 @@ public class ScanRegionView extends ViewPart {
 	@Override
 	public void dispose() {
 		if (viewer!=null) viewer.getTable().dispose();
+		if (system!=null) system.removeRegionListener(regionListener);
 		super.dispose();
 	}
 
@@ -168,16 +221,18 @@ public class ScanRegionView extends ViewPart {
 
 	private void createRegion(RegionType regionType, final String regionViewName, ToolTip tip) {
 		
-		IRegionSystem system = PlotUtil.getRegionSystem();
 		if (system!=null) {
 			try {
-				IRegion region = system.createRegion(RegionUtils.getUniqueName("bounding"+regionType.getName(), system), regionType);
-				region.setUserObject(new ScanRegion<IROI>(region.getName())); // TODO Axis names!
+				IRegion region = system.createRegion(RegionUtils.getUniqueName("scan"+regionType.getName(), system), regionType);
+				
+				String x = system.getAxes().get(0).getTitle();
+				String y = system.getAxes().get(1).getTitle();
+				region.setUserObject(new ScanRegion<IROI>(region.getName(), Arrays.asList(x,y))); 
 				region.setRegionColor(ColorConstants.blue);
 				region.setAlpha(25);
 				region.setLineWidth(1);
 
-				showTip(tip, "Drag a box in the '"+regionViewName+"' to create a bounding box.");
+				showTip(tip, "Drag a box in the '"+regionViewName+"' to create a scan region.");
 
 			} catch (Exception e1) {
 				logger.error("Cannot create a bounding box!", e1);

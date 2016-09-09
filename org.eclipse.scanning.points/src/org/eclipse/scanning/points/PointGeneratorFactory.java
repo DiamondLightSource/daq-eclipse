@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -238,11 +237,11 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <R> Collection<R> findRegions(Object model, Collection<ScanRegion<R>> sregions) throws GeneratorException {
+	public <R> List<R> findRegions(Object model, Collection<ScanRegion<R>> sregions) throws GeneratorException {
 		
 		if (sregions==null) return null;
 		
-        final Collection<R> regions = new LinkedHashSet<R>(); // Order should not be important but some tests assume it
+        final List<R> regions = new ArrayList<R>(); // Order should not be important but some tests assume it
 		final Collection<String> names = AbstractPointsModel.getScannableNames(model);
 		for (ScanRegion<R> region : sregions) {
 			// A region with no scannables is considered to act on all 

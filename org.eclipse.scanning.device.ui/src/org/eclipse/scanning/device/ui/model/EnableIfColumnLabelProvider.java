@@ -24,7 +24,7 @@ class EnableIfColumnLabelProvider extends ColumnLabelProvider {
 		if (isEnabled(field)) {
 			return null;
 		} else {
-			return Display.getDefault().getSystemColor(SWT.COLOR_GRAY);
+			return Display.getDefault().getSystemColor(SWT.COLOR_DARK_GRAY);
 		}
 	}
 	public Font getFont(Object ofield) {

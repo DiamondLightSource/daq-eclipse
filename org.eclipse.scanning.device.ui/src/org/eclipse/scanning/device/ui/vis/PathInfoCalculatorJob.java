@@ -74,7 +74,9 @@ class PathInfoCalculatorJob extends Job {
 	public IStatus run(IProgressMonitor monitor) {
 		
 		if (scanPathModel==null) return Status.CANCEL_STATUS;
-		if (scanRegions==null || scanRegions.isEmpty())    return Status.CANCEL_STATUS;
+		if (scanRegions==null || scanRegions.isEmpty())    {
+			return Status.CANCEL_STATUS;
+		}
 		
 		final IImageTrace trace = controller.getImageTrace();
 		if (!trace.hasTrueAxes()) throw new IllegalArgumentException(getClass().getSimpleName()+" should act on true axis images!");

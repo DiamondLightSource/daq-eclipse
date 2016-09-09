@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 public class AbstractBoundingLineModel extends AbstractPointsModel implements IBoundingLineModel {
 	
-	@FieldDescriptor(visible=false) // We edit this with a popup.
+	@FieldDescriptor(editable=false) // We edit this with a popup.
 	private BoundingLine boundingLine;
 	
 	private String xName = "x";

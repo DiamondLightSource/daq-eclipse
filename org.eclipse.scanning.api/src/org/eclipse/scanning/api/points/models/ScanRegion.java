@@ -26,6 +26,10 @@ public class ScanRegion<T> implements INameable {
 	public ScanRegion(String name) {
 		this.name = name;
 	}
+	public ScanRegion(String name, List<String> snames) {
+		this.name = name;
+		this.scannables = snames;
+	}
 
 	public ScanRegion(T roi, List<String> names) {
 		this.roi = roi;

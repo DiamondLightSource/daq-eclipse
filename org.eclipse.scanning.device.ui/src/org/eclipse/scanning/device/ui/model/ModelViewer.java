@@ -3,10 +3,11 @@ package org.eclipse.scanning.device.ui.model;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
-import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.jface.bindings.keys.IKeyLookup;
 import org.eclipse.jface.bindings.keys.KeyLookupFactory;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -37,13 +38,15 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.points.ScanRegionProvider;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
-import org.eclipse.scanning.device.ui.util.RegionConverter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -345,11 +348,12 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 				if (ob instanceof IModelProvider) setModel(((IModelProvider<?>)ob).getModel());
 				
 				if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
-					IROI               roi    = (IROI)ob;
-            		IPlottingSystem<?> system = (IPlottingSystem<?>)PlotUtil.getRegionSystem();
-    	    		RegionConverter converter = new RegionConverter(system.getTraces(IImageTrace.class).iterator().next(), roi);
-    	    		IBoundingBoxModel  boxMod = (IBoundingBoxModel)getModel();
-    	    		boxMod.setBoundingBox(converter.getBoundingBox());
+	
+            		IPlottingSystem<?>     system  = (IPlottingSystem<?>)PlotUtil.getRegionSystem();
+    	    		List<ScanRegion<IROI>> regions = ScanRegionProvider.getScanRegions(system);
+    	    		List<IROI> rois = ServiceHolder.getGeneratorService().findRegions(getModel(), regions);
+    	    		BoundingBox      box  = bounds(rois);
+    	    		((IBoundingBoxModel)getModel()).setBoundingBox(box);
     	    		refresh();
 				}
 				
@@ -357,6 +361,19 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 				logger.error("Cannot set model for object "+ob);
 			}
 		}
+	}
+
+	private BoundingBox bounds(List<IROI> rois) {
+		
+		IRectangularROI rect = rois.get(0).getBounds();
+		for (IROI roi : rois) rect = rect.bounds(roi);
+
+		BoundingBox box = new BoundingBox();
+		box.setFastAxisStart(rect.getPoint()[0]);
+		box.setSlowAxisStart(rect.getPoint()[1]);
+		box.setFastAxisLength(rect.getLength(0));
+		box.setSlowAxisLength(rect.getLength(1));
+		return box;
 	}
 
 	private DeviceInformation<?> getLatestDeviceInformation(DeviceInformation<?> info) {

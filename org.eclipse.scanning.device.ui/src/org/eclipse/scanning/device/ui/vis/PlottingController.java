@@ -8,15 +8,12 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.PlotType;
-import org.eclipse.dawnsci.plotting.api.region.ColorConstants;
 import org.eclipse.dawnsci.plotting.api.region.IROIListener;
 import org.eclipse.dawnsci.plotting.api.region.IRegion;
-import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.eclipse.dawnsci.plotting.api.region.IRegionListener;
 import org.eclipse.dawnsci.plotting.api.region.IRegionSystem;
 import org.eclipse.dawnsci.plotting.api.region.ROIEvent;
 import org.eclipse.dawnsci.plotting.api.region.RegionEvent;
-import org.eclipse.dawnsci.plotting.api.region.RegionUtils;
 import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.dawnsci.plotting.api.trace.ILineTrace;
@@ -26,8 +23,8 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
+import org.eclipse.scanning.api.points.models.IBoundingLineModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.device.ui.points.ScanRegionProvider;
 import org.eclipse.swt.graphics.Color;
@@ -53,7 +50,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 	private   final Color        scanPathColour;
 	
 	// Data
-	private   Object             model;
+	private   volatile Object    model; // We make accessing the model single threaded because worker threads are involved.
 	
 	// Events
 	private   IRegionListener    regionListener;
@@ -91,12 +88,14 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 			@Override
 			public void regionRemoved(RegionEvent evt) {
 				evt.getRegion().removeROIListener(roiListener);
+				fireRegion((IRegion)evt.getSource(), evt.getRegion().getROI(), true);
 			}
 			@Override
 			public void regionsRemoved(RegionEvent evt) {
 				for (IRegion region : evt.getRegions()) {
 					region.removeROIListener(roiListener);
 				}
+				fireRegion((IRegion)evt.getSource(), evt.getRegion().getROI(), true);
 			}
 		};
 	}
@@ -106,10 +105,14 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		boolean newTrace = false;
 		//Remove the previous trace
 		ILineTrace pathTrace = (ILineTrace)system.getTrace(MAPPING_PATH_NAME);
-		if (ScanRegionProvider.getScanRegions(system)==null) {
+		
+		// If there are no scan regions at all, no trace to draw
+		// If the model is not one we draw scan paths for, no trace to draw.
+		if (!isScanPathModel() || ScanRegionProvider.getScanRegions(system)==null) {
 			if (pathTrace!=null) pathTrace.setVisible(false);
 			return;
-		}
+		}	
+		
 		if (pathTrace == null) {
 			pathTrace = system.createLineTrace(MAPPING_PATH_NAME);
 			pathTrace.setTraceColor(scanPathColour);
@@ -134,7 +137,6 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 
 	private void fireRegion(IRegion region, IROI roi, boolean drawPath) {
 
-		if (roi==null)    return;
 		if (region==null) return;
 		
 		if (!(region.getUserObject() instanceof ScanRegion)) return; // Must be another region.
@@ -181,18 +183,21 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 
 	public void setModel(Object model) throws Exception {
 		
-		BoundingBox box = model!=null && model instanceof IBoundingBoxModel ? ((IBoundingBoxModel)model).getBoundingBox() : null;
-		if (box==null) {
-			
-			setPathVisible(false);
-			setRegionsVisible(false);
-		} else {
-			this.model = model;
+		this.model = model;
+		if (isScanPathModel()) {			
 			setRegionsVisible(true);
 			job.schedule(model, ScanRegionProvider.getScanRegions(system));
+		} else {
+			setPathVisible(false);
+			setRegionsVisible(false);
 		}
 	}
 	
+	private boolean isScanPathModel() {
+		// TODO We may want to change the definition of this.
+		return model instanceof IBoundingBoxModel || model instanceof IBoundingLineModel;
+	}
+
 	private void setRegionsVisible(boolean vis) {
 		Collection<IRegion> regions = system.getRegions();
 		for (IRegion iRegion : regions) {

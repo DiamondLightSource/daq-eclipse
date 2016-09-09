@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.points;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
@@ -91,7 +92,7 @@ public interface IPointGeneratorService {
 	 * @return
 	 * @throws GeneratorException
 	 */
-	<R> Collection<R> findRegions(Object model, Collection<ScanRegion<R>> regions) throws GeneratorException;
+	<R> List<R> findRegions(Object model, Collection<ScanRegion<R>> regions) throws GeneratorException;
 
 	/**
 	 * Each IPointGenerator must have a unique id which is used to refer to it in the user interface.
