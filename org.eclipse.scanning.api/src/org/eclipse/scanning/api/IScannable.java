@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * See @ScanStart @ScanEnd @ScanFinally @ScanFault @ScanAbort etc.
  * 
  * @author Matthew Gerring
+ * @param <T> the type of value returned by {@link #getPosition()}
  *
  */
 public interface IScannable<T> extends ILevel, INameable, ITimeoutable, IBoundable<T> {
@@ -27,7 +28,7 @@ public interface IScannable<T> extends ILevel, INameable, ITimeoutable, IBoundab
 	 * Returns the current position of the Scannable. Called by ConcurentScan at the end of the point. 
 	 * 
 	 * @return Current position with an element for each input and extra field. null if their are no fields.
-	 * @throws DeviceException
+	 * @throws Exception
 	 */
 	public T getPosition() throws Exception;
 	
@@ -37,7 +38,7 @@ public interface IScannable<T> extends ILevel, INameable, ITimeoutable, IBoundab
 	 * 
 	 * Same as calling setPosition(value, null);
 	 * 
-	 * @param position
+	 * @param value
 	 * @throws Exception
 	 */
 	default void setPosition(T value) throws Exception {

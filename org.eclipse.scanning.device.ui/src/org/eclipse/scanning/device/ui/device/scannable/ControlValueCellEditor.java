@@ -283,10 +283,10 @@ class ControlValueCellEditor extends CellEditor implements IPositionListener {
 	 * Thread safe
 	 * @param message
 	 */
-	protected void setSafeValue(double intermeadiatePos) {
+	protected void setSafeValue(double intermediatePos) {
 		asynch(new Runnable() {
 			public void run() {
-				decorator.setValue(intermeadiatePos); // This call renders the text and bounds correctly.
+				decorator.setValue(intermediatePos); // This call renders the text and bounds correctly.
 			}
 		});
 	}

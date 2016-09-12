@@ -85,6 +85,10 @@ public class ControlView extends ViewPart {
 			IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
 
 			ControlTree defaultTree = parseDefaultXML();
+			if (defaultTree==null) {
+				defaultTree = new ControlTree();
+				defaultTree.globalize();
+			}
 			viewer = new ControlTreeViewer(defaultTree, cservice); // Widget linked to hardware, use ControlViewerMode.INDIRECT_NO_SET_VALUE to edit without setting hardware.
 			
 			ControlTree stashedTree = stash.unstash(ControlTree.class); // Or null if couldn't

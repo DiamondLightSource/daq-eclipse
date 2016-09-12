@@ -50,9 +50,10 @@ public final class MapPosition extends AbstractPosition {
 	 * 
 	 * The value string must parse as a double or a NumberFormatException is thrown
 	 * 
-	 * Spaces between commas and between names and values will be trimed
+	 * Spaces between commas and between names and values will be trimmed
 	 * 
 	 * @param value
+	 * @throws NumberFormatException if the elements of the string could not be parsed as numbers
 	 */
 	public MapPosition(String value) throws NumberFormatException {
 		
@@ -62,11 +63,10 @@ public final class MapPosition extends AbstractPosition {
 		String[] pairs = value.split(",");
 		for (String pair : pairs) {
 			String[] nv = pair.trim().split("\\:");
-		    indices.put(nv[0].trim(), Integer.parseInt(nv[1].trim()));
-		    values.put(nv[0].trim(), Double.parseDouble(nv[2].trim()));
+			indices.put(nv[0].trim(), Integer.parseInt(nv[1].trim()));
+			values.put(nv[0].trim(), Double.parseDouble(nv[2].trim()));
 		}
 	}
-
 
 	@Override
 	public int size() {

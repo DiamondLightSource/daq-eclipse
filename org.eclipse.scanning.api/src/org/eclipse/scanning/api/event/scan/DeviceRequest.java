@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.points.IPosition;
 
@@ -346,12 +347,20 @@ public class DeviceRequest extends IdBean {
 		this.errorFieldNames = errorFieldNames;
 	}
 
-
-	public Exception createException() {
-		if (getErrorFieldNames()!=null) {
-			return new ModelValidationException(getErrorMessage(), getDeviceModel(), getErrorFieldNames());
-		} else {
-			return new Exception(getErrorMessage());
+	/**
+	 * Checks if this request contains an error message and throws an exception if it does,
+	 * does nothing otherwise
+	 * @throws ModelValidationException if the model failed validation
+	 * @throws EventException if the request failed for any other reason
+	 */
+	public void checkException() throws EventException {
+		final String errorMessage = getErrorMessage();
+		if (errorMessage != null) {
+			if (getErrorFieldNames()!=null) {
+				throw new ModelValidationException(getErrorMessage(), getDeviceModel(), getErrorFieldNames());
+			} else {
+				throw new EventException(getErrorMessage());
+			}
 		}
 	}
 }
