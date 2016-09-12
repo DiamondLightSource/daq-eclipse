@@ -32,7 +32,7 @@ public class Stashing {
 	 * @param fileName, e.g. org.eclipse.scanning.device.ui.device.controls.json
 	 */
 	public Stashing(String fileName, IEventConnectorService marshallerService) {
-		this(new File(System.getProperty("user.name")+"/.solstice/"+fileName),marshallerService);
+		this(new File(System.getProperty("user.home")+"/.solstice/"+fileName),marshallerService);
 	}
 	
 	public Stashing(File file, IEventConnectorService marshallerService) {

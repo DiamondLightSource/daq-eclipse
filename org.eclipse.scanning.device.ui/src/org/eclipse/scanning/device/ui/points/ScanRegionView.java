@@ -4,17 +4,13 @@ import java.awt.MouseInfo;
 import java.awt.PointerInfo;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.preferences.BasePlottingConstants;
@@ -33,8 +29,6 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -43,7 +37,8 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.richbeans.widgets.file.FileSelectionDialog;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.richbeans.widgets.menu.MenuAction;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
@@ -180,7 +175,11 @@ public class ScanRegionView extends ViewPart {
 
 		
 		createActions();
-		createColumns(viewer);
+		try {
+			createColumns(viewer);
+		} catch (EventException | URISyntaxException e1) {
+			logger.error("Serious internal error trying to create table columns!", e1);
+		}
 		
 		viewer.setInput(system);
 		system.addRegionListener(regionListener);
@@ -295,11 +294,11 @@ public class ScanRegionView extends ViewPart {
 		createRegions(regions);
 	}
 	
-	private void createColumns(TableViewer viewer) {
+	private void createColumns(TableViewer viewer) throws EventException, URISyntaxException {
 		
         TableViewerColumn var   = new TableViewerColumn(viewer, SWT.LEFT, 0);
 		var.getColumn().setText("Name");
-		var.getColumn().setWidth(200);
+		var.getColumn().setWidth(100);
 		var.setLabelProvider(new ColumnLabelProvider() {
 			public String getText(Object element) {
 				return ((ScanRegion<IROI>)element).getName();
@@ -308,7 +307,7 @@ public class ScanRegionView extends ViewPart {
 		
 		var   = new TableViewerColumn(viewer, SWT.LEFT, 1);
 		var.getColumn().setText("Axes");
-		var.getColumn().setWidth(300);
+		var.getColumn().setWidth(500);
 		
 		var.setLabelProvider(new ColumnLabelProvider() {
 			public String getText(Object element) {
@@ -316,6 +315,8 @@ public class ScanRegionView extends ViewPart {
 				return ((ScanRegion<IROI>)element).getScannables().toString();
 			}
 		});
+		IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+		var.setEditingSupport(new AxesEditingSupport(viewer, cservice));
 	}
 
 	

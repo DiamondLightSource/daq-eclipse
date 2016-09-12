@@ -92,7 +92,7 @@ public class ControlView extends ViewPart {
 			viewer = new ControlTreeViewer(defaultTree, cservice); // Widget linked to hardware, use ControlViewerMode.INDIRECT_NO_SET_VALUE to edit without setting hardware.
 			
 			ControlTree stashedTree = stash.unstash(ControlTree.class); // Or null if couldn't
-			stashedTree.build();
+			if (stashedTree!=null) stashedTree.build();
 			viewer.createPartControl(parent, stashedTree, getViewSite().getActionBars().getMenuManager(), getViewSite().getActionBars().getToolBarManager());
 		
 		    getSite().setSelectionProvider(viewer.getSelectionProvider());
