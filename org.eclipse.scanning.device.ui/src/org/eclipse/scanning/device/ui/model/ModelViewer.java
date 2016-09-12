@@ -220,7 +220,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			
 			if (model==null) { // Go and look for the model on a view
 				final IViewPart part  = PageUtil.getPage().findView(ScanView.ID);
-				final Object    model = part.getAdapter(IScanPathModel.class);
+				final Object    model = part!=null ? part.getAdapter(IScanPathModel.class) : null;
 				processObject(model);
 			}
 		}
@@ -361,6 +361,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 				setValidator(dservice.getRunnableDevice(((DeviceInformation<?>)ob).getName()));
 			}
 			if (ob instanceof IModelProvider) setModel(((IModelProvider<?>)ob).getModel());
+			if (ob instanceof IScanPathModel) setModel(ob);
 			
 			if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
 

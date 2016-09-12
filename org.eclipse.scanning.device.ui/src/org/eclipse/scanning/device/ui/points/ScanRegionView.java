@@ -2,12 +2,19 @@ package org.eclipse.scanning.device.ui.points;
 
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.preferences.BasePlottingConstants;
@@ -25,13 +32,18 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.richbeans.widgets.file.FileSelectionDialog;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.richbeans.widgets.menu.MenuAction;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
@@ -174,22 +186,12 @@ public class ScanRegionView extends ViewPart {
 		system.addRegionListener(regionListener);
 		
 		if (Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.AUTO_SAVE_REGIONS)) {
-			try {
-				List<ScanRegion<IROI>> regions = stash.unstash(List.class);
-				if (regions!=null && !regions.isEmpty()) {
-					for (ScanRegion<IROI> scanRegion : regions) {
-						IRegion region = createRegion((RegionType)scanRegion.getType(), system.getPlotName(), scanRegion.getRoi());
-						region.setUserObject(scanRegion);
-					}
-				}
-				viewer.refresh();
-			} catch (Exception ne) {
-				logger.error("Unable to read stored regions!", ne);
-			}
+			List<ScanRegion<IROI>> regions = stash.unstash(List.class);
+			createRegions(regions);
 		}
 
 	}
-	
+
 	@Override
     public void saveState(IMemento memento) {
     	super.saveState(memento);
@@ -210,6 +212,10 @@ public class ScanRegionView extends ViewPart {
 		return map.getAdapter(IPlottingSystem.class);
 	}
 
+	private String lastPath = null;
+	private final static String[] extensions = new String[]{"json", "*.*"};
+	private final static String[] files = new String[]{"Region files (json)", "All Files"};
+
 	private void createActions() {
 
 		IToolBarManager toolBarMan = getViewSite().getActionBars().getToolBarManager();
@@ -218,8 +224,54 @@ public class ScanRegionView extends ViewPart {
 		List<IContributionManager> mans = Arrays.asList(toolBarMan, menuMan, rightClick);
 				
 		addGroups("add", mans, createRegionActions());
+		
+		final IAction save = new Action("Save regions", IAction.AS_PUSH_BUTTON) {
+		    public void run() {
+				
+				List<ScanRegion<IROI>> regions = ScanRegionProvider.getScanRegions(system);
+				
+				if (regions == null) return;
+				FileSelectionDialog dialog = new FileSelectionDialog(getViewSite().getShell());
+				if (lastPath != null) dialog.setPath(lastPath);
+				dialog.setExtensions(extensions);
+				dialog.setFiles(files);
+				dialog.setNewFile(true);
+				dialog.setFolderSelector(false);
+				
+				dialog.create();
+				if (dialog.open() == Dialog.CANCEL) return;
+				String path = dialog.getPath();
+				if (!path.endsWith(extensions[0])) { //pipeline should always be saved to .nxs
+					path = path.concat("." + extensions[0]);
+				}
+				saveRegions(path, regions);
+				lastPath = path;
+			}
+		};
+		
+		final IAction load = new Action("Load regions", IAction.AS_PUSH_BUTTON) {
+			public void run() {
+				
+				FileSelectionDialog dialog = new FileSelectionDialog(getViewSite().getShell());
+				dialog.setExtensions(extensions);
+				dialog.setFiles(files);
+				dialog.setNewFile(false);
+				dialog.setFolderSelector(false);
+				if (lastPath != null) dialog.setPath(lastPath);
+				
+				dialog.create();
+				if (dialog.open() == Dialog.CANCEL) return;
+				String path = dialog.getPath();
+				readRegions(path);
+				lastPath = path;
+			}
+		};
+		save.setImageDescriptor(Activator.getImageDescriptor("icons/mask-import-wiz.png"));
+		load.setImageDescriptor(Activator.getImageDescriptor("icons/mask-export-wiz.png"));
+		
+		addGroups("file", mans, save, load);
 
-		IAction autoSave = new Action("Automatically save regions", IAction.AS_CHECK_BOX) {
+		IAction autoSave = new Action("Automatically save regions\nThis will keep the regions as they are\nif the application is restarted.", IAction.AS_CHECK_BOX) {
 			public void run() {
 				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.AUTO_SAVE_REGIONS, isChecked());
 			}
@@ -227,6 +279,20 @@ public class ScanRegionView extends ViewPart {
 		autoSave.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.AUTO_SAVE_REGIONS));
 		autoSave.setImageDescriptor(Activator.getImageDescriptor("icons/autosave.png"));
 		addGroups("auto", mans, autoSave);
+		
+		viewer.getControl().setMenu(rightClick.createContextMenu(viewer.getControl()));
+
+	}
+	
+	private void saveRegions(String filename, List<ScanRegion<IROI>> regions) {	
+		Stashing stash = new Stashing(new File(filename), ServiceHolder.getEventConnectorService());
+		stash.save(regions, getViewSite().getShell());
+	}
+	
+	private void readRegions(String filePath) {
+		Stashing stash = new Stashing(new File(filePath), ServiceHolder.getEventConnectorService());
+		List<ScanRegion<IROI>> regions = stash.load(List.class, getViewSite().getShell());
+		createRegions(regions);
 	}
 	
 	private void createColumns(TableViewer viewer) {
@@ -313,6 +379,21 @@ public class ScanRegionView extends ViewPart {
 		} catch (Exception ne) {
 			logger.error("Cannot get plotting menu for adding regions!", ne);
 			return Activator.getImageDescriptor("icons/ProfileBox.png");
+		}
+	}
+
+	
+	private void createRegions(List<ScanRegion<IROI>> regions) {
+		try {
+			if (regions!=null && !regions.isEmpty()) {
+				for (ScanRegion<IROI> scanRegion : regions) {
+					IRegion region = createRegion((RegionType)scanRegion.getType(), system.getPlotName(), scanRegion.getRoi());
+					region.setUserObject(scanRegion);
+				}
+			}
+			viewer.refresh();
+		} catch (Exception ne) {
+			logger.error("Unable to read stored regions!", ne);
 		}
 	}
 

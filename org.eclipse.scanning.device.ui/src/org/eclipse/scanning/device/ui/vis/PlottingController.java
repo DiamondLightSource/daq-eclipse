@@ -214,7 +214,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		}
 	}
 
-	private void setPathVisible(boolean vis) {
+	void setPathVisible(boolean vis) {
 		ILineTrace pathTrace = (ILineTrace)system.getTrace(MAPPING_PATH_NAME);
         if (pathTrace!=null) pathTrace.setVisible(vis);
 	}

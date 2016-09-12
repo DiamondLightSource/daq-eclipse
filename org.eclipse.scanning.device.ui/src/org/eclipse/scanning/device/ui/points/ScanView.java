@@ -1,13 +1,11 @@
 package org.eclipse.scanning.device.ui.points;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
@@ -17,7 +15,6 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -29,8 +26,12 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.model.ModelView;
 import org.eclipse.scanning.device.ui.util.MarginUtils;
+import org.eclipse.scanning.device.ui.util.PageUtil;
+import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
@@ -41,6 +42,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ResourceTransfer;
@@ -66,7 +68,6 @@ public class ScanView  extends ViewPart {
 	// Thankyou OSGi
 	private IPointGeneratorService pservice;
 	private IEventService          eservice;
-	private IMarshallerService     mservice;
 
 	private SeriesTable  seriesTable;
 	private GeneratorFilter pointsFilter;
@@ -77,7 +78,6 @@ public class ScanView  extends ViewPart {
 	public ScanView() {
 		this.pservice     = ServiceHolder.getGeneratorService();
 		this.eservice     = ServiceHolder.getEventService();
-		this.mservice     = ServiceHolder.getMarshallerService();
 		this.seriesTable  = new SeriesTable();
 		this.pointsFilter = new GeneratorFilter(pservice, eservice.getEventConnectorService(), seriesTable);
 	}
@@ -150,20 +150,27 @@ public class ScanView  extends ViewPart {
 					for (int i = 0; i < obj.length; i++) {
 						if (obj[i] instanceof IFile) {
 							IFile file = (IFile) obj[i];
-							readScans(file.getLocation().toOSString(), site);
+							readScans(file.getLocation().toOSString());
 							return;
 						}
 					}
 				} else if (dropData instanceof String[]) {
 					for (String path : (String[])dropData){
-						readScans(path, site);
+						readScans(path);
 						return;
 					}
 				}
 				
 			}
 		});
-
+		
+		// Try to ensure that the model view and regions view are initialized
+		IViewReference ref = PageUtil.getPage().findViewReference(ScanRegionView.ID);
+		if (ref!=null) ref.getView(true);
+		
+		ref = PageUtil.getPage().findViewReference(ModelView.ID);
+		if (ref!=null) ref.getView(true);
+		
 	}
 
 	@Override
@@ -177,17 +184,19 @@ public class ScanView  extends ViewPart {
 			return getGenerators();
 		}else if (clazz==Object[].class) {
 			return getModels();
+		}else if (clazz==List.class) {
+			return getModels();
 		}
 		return null;
 	}
 
-	private String lastPath = null;
 	private IAction add;
 	private IAction delete;
 	private IAction clear;
 	
-	private final static String[] extensions = new String[]{"json"};
-	private final static String[] files = new String[]{"Scan files"};
+	private String lastPath = null;
+	private final static String[] extensions = new String[]{"json", "*.*"};
+	private final static String[] files = new String[]{"Scan files (json)", "All Files"};
 
 	private void createActions(final IViewSite site) {
 		
@@ -218,10 +227,10 @@ public class ScanView  extends ViewPart {
 		addGroup("manage", tmanager, add, delete, clear);
 		addGroup("manage", mmanager, add, delete, clear);
 		
-		final IAction save = new Action("Save configured scan", IAction.AS_PUSH_BUTTON) {
+		final IAction save = new Action("Save scan", IAction.AS_PUSH_BUTTON) {
 			public void run() {
 				
-				Object[] models = getModels();
+				List<IScanPathModel> models = getModels();
 				
 				if (models == null) return;
 				FileSelectionDialog dialog = new FileSelectionDialog(site.getShell());
@@ -236,12 +245,12 @@ public class ScanView  extends ViewPart {
 				if (!path.endsWith(extensions[0])) { //pipeline should always be saved to .nxs
 					path = path.concat("." + extensions[0]);
 				}
-				saveScans(path, models, site);
+				saveScans(path, models);
 				lastPath = path;
 			}
 		};
 		
-		final IAction load = new Action("Load configured pipeline", IAction.AS_PUSH_BUTTON) {
+		final IAction load = new Action("Load scan", IAction.AS_PUSH_BUTTON) {
 			public void run() {
 				
 				FileSelectionDialog dialog = new FileSelectionDialog(site.getShell());
@@ -254,7 +263,7 @@ public class ScanView  extends ViewPart {
 				dialog.create();
 				if (dialog.open() == Dialog.CANCEL) return;
 				String path = dialog.getPath();
-				readScans(path, site);
+				readScans(path);
 				lastPath = path;
 			}
 		};
@@ -266,7 +275,7 @@ public class ScanView  extends ViewPart {
 		
 		final IAction lock = new Action("Lock scan editing", IAction.AS_CHECK_BOX) {
 			public void run() {
-				Activator.getDefault().getPreferenceStore().setValue(GeneratorConstants.LOCK_PIPELINE, isChecked());
+				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.LOCK_SCAN_SEQUENCE, isChecked());
 				seriesTable.setLockEditing(isChecked());
 				add.setEnabled(!isChecked());
 				delete.setEnabled(!isChecked());
@@ -275,7 +284,7 @@ public class ScanView  extends ViewPart {
 		};
 		lock.setImageDescriptor(Activator.getImageDescriptor("icons/lock.png"));
 
-		lock.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(GeneratorConstants.LOCK_PIPELINE));
+		lock.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.LOCK_SCAN_SEQUENCE));
 		add.setEnabled(!lock.isChecked());
 		delete.setEnabled(!lock.isChecked());
 		clear.setEnabled(!lock.isChecked());
@@ -293,32 +302,20 @@ public class ScanView  extends ViewPart {
 		}
 	}
 	
-	private void saveScans(String filename, Object[] models, IViewSite site) {
-		try {
-			
-			final File file = new File(filename);
-			if (file.exists()) {
-				boolean ok = MessageDialog.openConfirm(site.getShell(), "Confirm Overwrite", "Are you sure that you would like to overwrite '"+file.getName()+"'?");
-				if (ok) return;
-			}
-			
-			final String json = mservice.marshal(models);
-			
-			
-		} catch (Exception e) {
-			ErrorDialog.openError(site.getShell(), "Error Saving Scan Information", "An exception occurred while writing the scans to a file.",
-					              new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", e.getMessage()));
-		    logger.error("Error Saving Scan Information", e);
-		}
+	private void saveScans(String filename, List<IScanPathModel> models) {	
+		Stashing stash = new Stashing(new File(filename), ServiceHolder.getEventConnectorService());
+		stash.save(models, getViewSite().getShell());
 	}
-	private void readScans(String filename, IViewSite site) {
+	
+	private void readScans(String filePath) {
+		Stashing stash = new Stashing(new File(filePath), ServiceHolder.getEventConnectorService());
+		List<IScanPathModel> models = stash.load(List.class, getViewSite().getShell());
 		try {
-			System.out.println("TODO Create way of reading scans from file!");
-			
+			this.saved = pointsFilter.createDescriptors(models);
+			this.seriesTable.setInput(saved, pointsFilter);
 		} catch (Exception e) {
-			MessageDialog.openInformation(site.getShell(), "Exception while reading scans from file", "An exception occurred while reading scans from a file.\n" + e.getMessage());
+			logger.error("Unexpected error refreshing saved models in "+getClass().getSimpleName(), e);
 		}
-		
 	}
 	
 	private IPointGenerator<?>[] getGenerators() {
@@ -342,13 +339,11 @@ public class ScanView  extends ViewPart {
 		}
 		return pipeline;
 	}
-	private Object[] getModels() {
+	private List<IScanPathModel> getModels() {
 		
 		IPointGenerator<?>[] gens = getGenerators();
-		Object[]          mods = new Object[gens.length];
-		for (int i = 0; i < gens.length; i++) {
-			mods[i] = gens[i].getModel();
-		}
+		List<IScanPathModel> mods = new ArrayList<>(gens.length);
+		for (int i = 0; i < gens.length; i++) mods.add((IScanPathModel)gens[i].getModel());
 		return mods;
 	}
 

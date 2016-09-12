@@ -1,27 +1,16 @@
 package org.eclipse.scanning.device.ui.device;
 
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URI;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.scanning.api.ISpringParser;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.device.scannable.ControlTreeViewer;
-import org.eclipse.scanning.device.ui.device.scannable.ControlViewerMode;
 import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IMemento;

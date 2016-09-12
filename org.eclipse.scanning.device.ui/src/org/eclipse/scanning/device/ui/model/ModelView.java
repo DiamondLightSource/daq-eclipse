@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ModelView extends ViewPart implements ISelectionListener {
+
+	public static final String ID = "org.eclipse.scanning.device.ui.modelEditor";
 	
 	private static Logger logger = LoggerFactory.getLogger(ModelView.class);
 

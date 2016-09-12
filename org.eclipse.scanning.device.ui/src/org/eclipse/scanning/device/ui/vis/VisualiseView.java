@@ -76,9 +76,9 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 
 	private void createExampleTrace() {
 		// TODO Correct data source, not this random one!
-		IDataset x = DatasetFactory.createRange(-100d, 0d, 20d/3012, Dataset.FLOAT);
+		IDataset x = DatasetFactory.createRange(-100d, 0d, 100d/3012, Dataset.FLOAT);
 		x.setName("x");
-		IDataset y = DatasetFactory.createRange(100d, 200d, 20d/4096, Dataset.FLOAT);
+		IDataset y = DatasetFactory.createRange(100d, 200d, 100d/4096, Dataset.FLOAT);
 		y.setName("y");
 		IImageTrace it = system.createImageTrace("image");
 		it.setData(Random.rand(4096, 3012), Arrays.asList(new IDataset[]{x,y}), false);
