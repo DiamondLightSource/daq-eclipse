@@ -66,4 +66,9 @@ public class SpiralModel extends AbstractBoundingBoxModel {
 			return false;
 		return true;
 	}
+	@Override
+	public String toString() {
+		return "SpiralModel [scale=" + scale + ", getFastAxisName()=" + getFastAxisName() + ", getSlowAxisName()="
+				+ getSlowAxisName() + "]";
+	}
 }

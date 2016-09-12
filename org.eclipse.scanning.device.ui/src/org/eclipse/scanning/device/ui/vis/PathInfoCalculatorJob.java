@@ -91,7 +91,14 @@ class PathInfoCalculatorJob extends Job {
 			vservice.validate(scanPathModel); // Throws exception if invalid.
 			
 			final Collection<IROI> rois = pointGeneratorFactory.findRegions(scanPathModel, scanRegions); // Out of the regions defined finds in the ones for this model.
-			if (rois==null || rois.isEmpty()) return Status.CANCEL_STATUS;// No path to draw.
+			if (rois==null || rois.isEmpty()) {
+				Display.getDefault().syncExec(new Runnable() {
+					public void run() {
+						controller.setPathVisible(false);
+					}
+				});
+				return Status.CANCEL_STATUS;// No path to draw.
+			}
 			
 			final Iterable<IPosition> pointIterable = pointGeneratorFactory.createGenerator(scanPathModel, rois);
 			double lastX = Double.NaN;

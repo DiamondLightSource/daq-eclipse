@@ -2,6 +2,7 @@ package org.eclipse.scanning.device.ui.vis;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IAdaptable;
@@ -142,7 +143,15 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		if (!(region.getUserObject() instanceof ScanRegion)) return; // Must be another region.
 		roi.setName(region.getName());
 		setSelection(new StructuredSelection(roi));
-		if (drawPath) job.schedule(model, ScanRegionProvider.getScanRegions(system));
+		
+		List<ScanRegion<IROI>> sregions = ScanRegionProvider.getScanRegions(system);
+		if (drawPath) {
+			if (sregions==null) {
+				setPathVisible(false);
+			} else {
+				job.schedule(model, sregions);
+			}
+		}
 	}
 
 	
@@ -205,7 +214,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		}
 	}
 
-	private void setPathVisible(boolean vis) {
+	void setPathVisible(boolean vis) {
 		ILineTrace pathTrace = (ILineTrace)system.getTrace(MAPPING_PATH_NAME);
         if (pathTrace!=null) pathTrace.setVisible(vis);
 	}
