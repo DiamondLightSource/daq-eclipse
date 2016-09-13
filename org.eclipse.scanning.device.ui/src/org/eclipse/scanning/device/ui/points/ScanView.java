@@ -167,8 +167,8 @@ public class ScanView  extends ViewPart {
 		this.startTree = createControlTree(DevicePreferenceConstants.START_POSITION, "Start Position");
 		this.endTree   = createControlTree(DevicePreferenceConstants.END_POSITION, "End Position");
 
-        createMouseListener(startButton, endButton, selectionProvider, startTree);
-        createMouseListener(endButton, startButton, selectionProvider, endTree);
+        createMouseListener(startButton, endButton, DevicePreferenceConstants.START_POSITION, selectionProvider, startTree);
+        createMouseListener(endButton, startButton, DevicePreferenceConstants.END_POSITION, selectionProvider, endTree);
 		
 		createActions(site);
 		final MenuManager rightClick = new MenuManager("#PopupMenu");
@@ -254,27 +254,49 @@ public class ScanView  extends ViewPart {
 		return tree;
 	}
 
-	private void createMouseListener(Composite position, Composite otherPosition, DelegatingSelectionProvider prov, ControlTree tree) {
+	private void createMouseListener(Composite position, Composite otherPosition, String propName, DelegatingSelectionProvider prov, ControlTree tree) {
 		
 		position.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
-				
-				position.setFocus();
-				seriesTable.deselectAll();
-				position.setBackground(position.getDisplay().getSystemColor(SWT.COLOR_TITLE_BACKGROUND));
-				otherPosition.setBackground(position.getDisplay().getSystemColor(SWT.COLOR_WHITE));
-				
-				seriesTable.addSelectionListener(new ISelectionChangedListener() {	
-					@Override
-					public void selectionChanged(SelectionChangedEvent event) {
-						position.setBackground(position.getDisplay().getSystemColor(SWT.COLOR_WHITE));
-						seriesTable.removeSelectionListener(this);
-					}
-				});
-				
-				prov.fireSelection(new StructuredSelection(tree));
+				setPositionSelected(position, otherPosition, prov, tree);
 			}
 		});	
+		
+		store.addPropertyChangeListener(new IPropertyChangeListener() {		
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (position.isDisposed()) {
+					store.removePropertyChangeListener(this);
+					return;
+				}
+				boolean show = store.getBoolean(propName);
+				GridUtils.setVisible(position, show);
+				position.getParent().layout(new Control[]{position});
+				
+				if (show) {
+					setPositionSelected(position, otherPosition, prov, tree);
+				}
+			}
+		});
+
+	}
+
+	protected void setPositionSelected(Composite position, Composite otherPosition, DelegatingSelectionProvider prov, ControlTree tree) {
+		
+		position.setFocus();
+		seriesTable.deselectAll();
+		position.setBackground(position.getDisplay().getSystemColor(SWT.COLOR_TITLE_BACKGROUND));
+		otherPosition.setBackground(position.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+		
+		seriesTable.addSelectionListener(new ISelectionChangedListener() {	
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				position.setBackground(position.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+				seriesTable.removeSelectionListener(this);
+			}
+		});
+		
+		prov.fireSelection(new StructuredSelection(tree));
 	}
 
 	private Composite createPositionButton(final Composite content, final String propName, String label, String iconPath) {
@@ -285,19 +307,7 @@ public class ScanView  extends ViewPart {
 		position.setText(label);
 		position.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		GridUtils.setVisible(position, store.getBoolean(propName));
-		
-		store.addPropertyChangeListener(new IPropertyChangeListener() {		
-			@Override
-			public void propertyChange(PropertyChangeEvent event) {
-				if (position.isDisposed() || content.isDisposed()) {
-					store.removePropertyChangeListener(this);
-					return;
-				}
-				GridUtils.setVisible(position, store.getBoolean(propName));
-				content.layout(new Control[]{position});
-			}
-		});
-		
+			
 		return position;
 	}
 
