@@ -1,7 +1,7 @@
 package org.eclipse.scanning.device.ui.vis;
 
-import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IAdaptable;
@@ -26,7 +26,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IBoundingLineModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
-import org.eclipse.scanning.device.ui.points.ScanRegionProvider;
+import org.eclipse.scanning.device.ui.points.ScanRegionContentProvider;
 import org.eclipse.swt.graphics.Color;
 
 /**
@@ -108,7 +108,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		
 		// If there are no scan regions at all, no trace to draw
 		// If the model is not one we draw scan paths for, no trace to draw.
-		if (!isScanPathModel() || ScanRegionProvider.getScanRegions(system)==null) {
+		if (!isScanPathModel() || ScanRegionContentProvider.getScanRegions(system)==null) {
 			if (pathTrace!=null) pathTrace.setVisible(false);
 			return;
 		}	
@@ -142,7 +142,15 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		if (!(region.getUserObject() instanceof ScanRegion)) return; // Must be another region.
 		roi.setName(region.getName());
 		setSelection(new StructuredSelection(roi));
-		if (drawPath) job.schedule(model, ScanRegionProvider.getScanRegions(system));
+		
+		List<ScanRegion<IROI>> sregions = ScanRegionContentProvider.getScanRegions(system);
+		if (drawPath) {
+			if (sregions==null) {
+				setPathVisible(false);
+			} else {
+				job.schedule(model, sregions);
+			}
+		}
 	}
 
 	
@@ -181,15 +189,17 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		if (listeners!=null) listeners.clear();
 	}
 
+	public void refresh() {
+		job.schedule(model, ScanRegionContentProvider.getScanRegions(system));
+	}
+	
 	public void setModel(Object model) throws Exception {
 		
 		this.model = model;
 		if (isScanPathModel()) {			
-			setRegionsVisible(true);
-			job.schedule(model, ScanRegionProvider.getScanRegions(system));
+			job.schedule(model, ScanRegionContentProvider.getScanRegions(system));
 		} else {
 			setPathVisible(false);
-			setRegionsVisible(false);
 		}
 	}
 	
@@ -198,14 +208,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		return model instanceof IBoundingBoxModel || model instanceof IBoundingLineModel;
 	}
 
-	private void setRegionsVisible(boolean vis) {
-		Collection<IRegion> regions = system.getRegions();
-		for (IRegion iRegion : regions) {
-			if (iRegion.getUserObject() instanceof ScanRegion) iRegion.setVisible(vis);
-		}
-	}
-
-	private void setPathVisible(boolean vis) {
+	void setPathVisible(boolean vis) {
 		ILineTrace pathTrace = (ILineTrace)system.getTrace(MAPPING_PATH_NAME);
         if (pathTrace!=null) pathTrace.setVisible(vis);
 	}

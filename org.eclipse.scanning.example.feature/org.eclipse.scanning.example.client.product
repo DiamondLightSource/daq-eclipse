@@ -12,6 +12,7 @@
       <vmArgs>-Dorg.eclipse.scanning.broker.uri=&quot;failover:(tcp://localhost:61616)?startupMaxReconnectAttempts=3&quot;
 -Dosgi.locking=none
 -Dlogback.configurationFile=${project_loc:org.eclipse.scanning.event}/config/logback.xml
+-Dorg.eclipse.scanning.points.initJython=true
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
       </vmArgsMac>

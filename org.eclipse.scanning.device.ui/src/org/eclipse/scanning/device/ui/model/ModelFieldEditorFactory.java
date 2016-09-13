@@ -49,6 +49,7 @@ import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
+import org.eclipse.scanning.device.ui.util.SortNatural;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;

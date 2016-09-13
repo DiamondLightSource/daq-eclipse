@@ -58,12 +58,7 @@ public class ControlTree extends AbstractControl {
 	public INamedNode insert(INamedNode parent, INamedNode child) {
 		
 		child.setParentName(parent.getName());
-		
-		final INamedNode[] onodes = parent.getChildren();
-		final INamedNode[] nnodes = new INamedNode[onodes!=null ? onodes.length+1 : 1];
-		if (onodes!=null) System.arraycopy(onodes, 0, nnodes, 0, onodes.length);
-		nnodes[nnodes.length-1] = child;
-		parent.setChildren(nnodes);
+		((AbstractControl)parent).addChild(child);
 		
 		return child;
 	}
@@ -71,9 +66,8 @@ public class ControlTree extends AbstractControl {
 	public void delete(INamedNode node) {
 		if (node.getParentName()==null) return;
 		INamedNode parent = getNode(node.getParentName());
-		List<INamedNode> nodes = new ArrayList<INamedNode>(Arrays.asList(parent.getChildren()));
-		nodes.remove(node);
-		parent.setChildren(nodes.toArray(new INamedNode[nodes.size()]));
+		((AbstractControl)parent).removeChild(node);
+
 		content.remove(node.getName());
 	}
 	
@@ -93,8 +87,6 @@ public class ControlTree extends AbstractControl {
 	 */
 	public boolean build() {
 		
-		if (getChildren()!=null) return false;
-		
 		final List<INamedNode> children = new ArrayList<>();
 		
 		for (String name : content.keySet()) {
@@ -105,6 +97,15 @@ public class ControlTree extends AbstractControl {
 				children.add(iNameable);
 				iNameable.setParentName(getName());
 			}
+			if (iNameable instanceof ControlNode) {
+				final String parName = iNameable.getParentName();
+				final INamedNode par = content.get(parName);
+				if (!((AbstractControl)par).containsChild(iNameable)) {
+					AbstractControl gpar = (AbstractControl)par;
+					gpar.addChild(iNameable);
+				}
+			}
+
 		}
 		setChildren(children.toArray(new INamedNode[children.size()]));
 		return true;

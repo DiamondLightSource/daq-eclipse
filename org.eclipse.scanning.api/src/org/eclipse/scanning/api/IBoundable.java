@@ -19,6 +19,7 @@ public interface IBoundable<T> {
 	 * The position is the value which should be:
 	 * 1. Greater than or equal to the lower
 	 * 2. Less than or equal to the upper.
+	 * 3. One of the permitted values, if they are not null.
 	 * 
 	 * @return
 	 * @throws Exception

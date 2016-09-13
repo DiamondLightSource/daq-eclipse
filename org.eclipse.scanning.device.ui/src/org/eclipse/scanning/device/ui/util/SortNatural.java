@@ -7,7 +7,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  */ 
 
-package org.eclipse.scanning.device.ui.model;
+package org.eclipse.scanning.device.ui.util;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -16,7 +16,7 @@ import java.util.Comparator;
 /**
  *
  */
-class SortNatural<E> implements Comparator<E> {
+public class SortNatural<E> implements Comparator<E> {
 	
 	private final boolean isCaseSensitive;
 	/**

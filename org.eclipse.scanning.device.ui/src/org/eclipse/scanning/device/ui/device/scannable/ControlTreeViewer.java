@@ -225,6 +225,7 @@ public class ControlTreeViewer {
 	}
 
 	private void createColumns(TreeViewer viewer) {
+		
 		viewer.setColumnProperties(new String[] { "Name", "Value"});
 		ColumnViewerToolTipSupport.enableFor(viewer);
 		

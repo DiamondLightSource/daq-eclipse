@@ -63,8 +63,13 @@ final class GeneratorFilter implements ISeriesItemFilter {
 
 	public List<GeneratorDescriptor<?>> createDescriptors(String key) throws Exception {
 		
-	    List<GeneratorDescriptor<?>> descriptions = new ArrayList<>();
 		List<? extends IScanPathModel>  models = cservice.unmarshal(key, ArrayList.class);
+		return createDescriptors(models);
+	}
+	
+	public List<GeneratorDescriptor<?>> createDescriptors(List<? extends IScanPathModel> models) throws Exception {
+		
+	    List<GeneratorDescriptor<?>> descriptions = new ArrayList<>();
 		if (models!=null && models.size()>0) {
 			for (IScanPathModel model : models) {
 				final GeneratorDescriptor<?> des = new GeneratorDescriptor<>(table, model, pservice);
@@ -74,6 +79,7 @@ final class GeneratorFilter implements ISeriesItemFilter {
 		}
 		return descriptions;
 	}
+
 	
 	public String createKey(List<ISeriesItemDescriptor> seriesItems) throws Exception {
 		List<Object> models = new ArrayList<>();

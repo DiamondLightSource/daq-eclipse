@@ -110,4 +110,10 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 		return Arrays.asList(getFastAxisName(), getSlowAxisName());
 	}
 
+	@Override
+	public String toString() {
+		return getClass().getSimpleName()+" [boundingBox=" + boundingBox + ", fastAxisName=" + fastAxisName
+				+ ", slowAxisName=" + slowAxisName + "]";
+	}
+
 }
