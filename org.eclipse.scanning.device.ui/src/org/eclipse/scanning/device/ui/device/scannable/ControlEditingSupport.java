@@ -3,82 +3,19 @@ package org.eclipse.scanning.device.ui.device.scannable;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
-import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
-import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ControlEditingSupport extends EditingSupport {
 	
-	/**
-	 * Cell Editor for controls that have a string value, but do not have a list
-	 * of permitted values.
-	 */
-	private static final class ControlStringCellEditor extends TextCellEditor {
-		
-		// TODO for Matt G.: in direct mode need to update scannable when value changed
-		
-		private final ControlNode controlNode;
-		
-		public ControlStringCellEditor(Composite parent, ControlNode controlNode) {
-			super(parent);
-			this.controlNode = controlNode;
-		}
-
-		protected void doSetValue(final Object value) {
-			Assert.isTrue(value == controlNode);
-			super.doSetValue(controlNode.getValue());
-		}
-
-		@Override
-		protected Object doGetValue() {
-			final String value = (String) super.doGetValue();
-			controlNode.setValue(value);
-			return controlNode;
-		}
-		
-	}
-	
-	private static final class ControlStringComboCellEditor extends ComboBoxCellEditor {
-		
-		// TODO for Matt G.: in direct mode need to update scannable when value changed
-		
-		private final ControlNode controlNode;
-		
-		public ControlStringComboCellEditor(Composite parent, ControlNode controlNode,
-				String[] permittedValues) {
-			super(parent, permittedValues);
-			this.controlNode = controlNode;
-		}
-		
-		protected void doSetValue(final Object value) {
-			Assert.isTrue(value == controlNode);
-			// Need to set the index of the selected item in the superclass method
-			final String stringValue = (String) controlNode.getValue();
-			final String[] items = getItems();
-			int itemIndex = 0;
-			for (int i = 0; i < items.length; i++) {
-				if (items[i].equals(stringValue)) {
-					itemIndex = i;
-					break;
-				}
-			}
-			super.doSetValue(itemIndex);
-		}
-		
-		protected Object doGetValue() {
-			final int selectionIndex = ((Integer) super.doGetValue()).intValue();
-			final String stringValue = getItems()[selectionIndex];
-			controlNode.setValue(stringValue);
-			return controlNode;
-		}
-		
-	}
+	private static final Logger logger = LoggerFactory.getLogger(ControlEditingSupport.class);
 	
 	private IScannableDeviceService cservice;
 	private ControlViewerMode       mode;
@@ -96,7 +33,15 @@ class ControlEditingSupport extends EditingSupport {
 		final Composite parent = (Composite) getViewer().getControl();
 		
 		final ControlNode controlNode = (ControlNode) element; 
-		final Object value = controlNode.getValue();
+		Object value = controlNode.getValue();
+		if (value==null && mode.isDirectlyConnected()) {
+			try {
+				value = cservice.getScannable(controlNode.getName()).getPosition();
+			} catch (Exception e) {
+				logger.error("Unable to connect to server!", e);
+				value = "Error connecting to server";
+			}
+		}
 		if (value instanceof Number) {
 			return new ControlValueCellEditor(parent, cservice, mode);
 		} else if (value instanceof String) {
@@ -123,10 +68,13 @@ class ControlEditingSupport extends EditingSupport {
 
 	@Override
 	protected boolean canEdit(Object element) {
+		
+		if (mode.isDirectlyConnected()) return true;
 		// can only edit ControlNodes and only when the value is not null
 		// (the value could be null if the scannable doesn't exist)
 		if (element instanceof ControlNode) {
 			Object value = ((ControlNode) element).getValue();
+			
 			// can only edit where value is a number or string
 			// (in particular cannot edit where value is null, or where it is an array of any kind)
 			return value instanceof Number || value instanceof String;

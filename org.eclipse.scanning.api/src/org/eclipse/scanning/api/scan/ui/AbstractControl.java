@@ -1,6 +1,8 @@
 package org.eclipse.scanning.api.scan.ui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.scanning.api.INamedNode;
 
@@ -94,6 +96,26 @@ abstract class AbstractControl implements INamedNode {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName()+" [name=" + name + "]";
+	}
+
+	public void addChild(INamedNode child) {
+		
+		final INamedNode[] onodes = getChildren();
+		final INamedNode[] nnodes = new INamedNode[onodes!=null ? onodes.length+1 : 1];
+		if (onodes!=null) System.arraycopy(onodes, 0, nnodes, 0, onodes.length);
+		nnodes[nnodes.length-1] = child;
+		setChildren(nnodes);
+	}
+
+	public void removeChild(INamedNode node) {
+		List<INamedNode> nodes = new ArrayList<INamedNode>(Arrays.asList(getChildren()));
+		nodes.remove(node);
+		setChildren(nodes.toArray(new INamedNode[nodes.size()]));
+	}
+
+	public boolean containsChild(INamedNode iNameable) {
+		if (children==null) return false;
+		return Arrays.asList(children).contains(iNameable);
 	}
 
 }
