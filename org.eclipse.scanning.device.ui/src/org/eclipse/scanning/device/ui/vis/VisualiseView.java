@@ -17,6 +17,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
+import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.ISelectionListener;
@@ -101,6 +102,8 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 			processModel(((FieldValue)object).getModel());
 		} else if (object instanceof IModelProvider<?>) {
 			processModel(((IModelProvider)object).getModel());
+		} else if (object instanceof ScanRegion) {
+			controller.refresh(); // Axes might have changed
 		}
 	}
 	

@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.points.models.ScanRegion;
@@ -25,12 +26,15 @@ import org.eclipse.swt.widgets.Label;
 public class AxesCellEditor extends CellEditor {
 
 	private ScanRegion<IROI>        region;
-	private IScannableDeviceService cservice;
 	private CCombo                  fast, slow;
+	private DelegatingSelectionProvider prov;
+	private List<String>            names;
 	
-	public AxesCellEditor(Composite control, IScannableDeviceService cservice) {
+	public AxesCellEditor(Composite control, DelegatingSelectionProvider prov, IScannableDeviceService cservice) throws ScanningException {
 		super();
-		this.cservice = cservice;
+		this.prov   = prov;
+		this.names = cservice.getScannableNames();
+		Collections.sort(names, new SortNatural<>(false));
 		create(control);
 	}
 
@@ -46,6 +50,7 @@ public class AxesCellEditor extends CellEditor {
         fast.addSelectionListener(new SelectionAdapter() {
         	public void widgetSelected(SelectionEvent e) {
         		if (region!=null) region.getScannables().set(0, fast.getItem(fast.getSelectionIndex()));
+        		fireWorkbenchSelection();
         	}
         });
         
@@ -53,11 +58,16 @@ public class AxesCellEditor extends CellEditor {
         slow.addSelectionListener(new SelectionAdapter() {
         	public void widgetSelected(SelectionEvent e) {
         		if (region!=null) region.getScannables().set(1, slow.getItem(slow.getSelectionIndex()));
+        		fireWorkbenchSelection();
         	}
         });
         
 		return content;
 
+	}
+
+	protected void fireWorkbenchSelection() {
+		if (prov!=null) prov.fireSelection(new StructuredSelection(region));
 	}
 
 	private CCombo createLabelledCombo(Composite content, String slabel) {
@@ -78,7 +88,6 @@ public class AxesCellEditor extends CellEditor {
 
 	private String[] getNames() {
 		try {
-			List<String> names = getScannableNames();
 			return names.toArray(new String[names.size()]);
 		} catch (Exception ne) {
 			ne.printStackTrace();
@@ -87,18 +96,11 @@ public class AxesCellEditor extends CellEditor {
 	}
 	private int getIndex(String name) {
 		try {
-			List<String> names = getScannableNames();
 			return names.indexOf(name);
 		} catch (Exception ne) {
 			ne.printStackTrace();
 			return 0;
 		}
-	}
-
-	private List<String> getScannableNames() throws ScanningException {
-		List<String> names = cservice.getScannableNames();
-		Collections.sort(names, new SortNatural<>(false));
-		return names;
 	}
 
 	@Override

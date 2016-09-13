@@ -11,7 +11,7 @@ import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 
-public class ScanRegionProvider implements IStructuredContentProvider {
+public class ScanRegionContentProvider implements IStructuredContentProvider {
 
 	
 	private IPlottingSystem<?> system;
