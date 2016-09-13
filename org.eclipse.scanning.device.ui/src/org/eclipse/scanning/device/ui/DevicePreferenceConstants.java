@@ -26,4 +26,9 @@ public class DevicePreferenceConstants {
 	 * Stores if the user should not be able to edit the scan sequence. They can still use the UI to switch this back on.
 	 */
 	public static final String LOCK_SCAN_SEQUENCE = "org.eclipse.scanning.device.ui.control.lockScanPipeline";
+
+	/**
+	 * Property to store if we are showing scan regions or not.
+	 */
+	public static final String SHOW_SCAN_REGIONS = "org.eclipse.scanning.device.ui.vis.showScanRegions";
 }

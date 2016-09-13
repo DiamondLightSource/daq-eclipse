@@ -75,6 +75,7 @@ class PathInfoCalculatorJob extends Job {
 		
 		if (scanPathModel==null) return Status.CANCEL_STATUS;
 		if (scanRegions==null || scanRegions.isEmpty())    {
+			setPathVisible(false);
 			return Status.CANCEL_STATUS;
 		}
 		
@@ -84,6 +85,10 @@ class PathInfoCalculatorJob extends Job {
 		monitor.beginTask("Calculating points for scan path", IProgressMonitor.UNKNOWN);
 		
 		PathInfo pathInfo = new PathInfo();
+		if (!(scanPathModel instanceof AbstractBoundingBoxModel)) {
+			setPathVisible(false);
+			return Status.CANCEL_STATUS;// No path to draw.
+		}
 		AbstractBoundingBoxModel boxModel = (AbstractBoundingBoxModel) scanPathModel;
 		String xAxisName = boxModel.getFastAxisName();
 		String yAxisName = boxModel.getSlowAxisName();
@@ -92,11 +97,7 @@ class PathInfoCalculatorJob extends Job {
 			
 			final Collection<IROI> rois = pointGeneratorFactory.findRegions(scanPathModel, scanRegions); // Out of the regions defined finds in the ones for this model.
 			if (rois==null || rois.isEmpty()) {
-				Display.getDefault().syncExec(new Runnable() {
-					public void run() {
-						controller.setPathVisible(false);
-					}
-				});
+				setPathVisible(false);
 				return Status.CANCEL_STATUS;// No path to draw.
 			}
 			
@@ -149,6 +150,14 @@ class PathInfoCalculatorJob extends Job {
 			return new Status(IStatus.WARNING, Activator.PLUGIN_ID, "Error calculating scan path", e);
 		}
 		return Status.OK_STATUS;
+	}
+
+	private void setPathVisible(boolean b) {
+		Display.getDefault().syncExec(new Runnable() {
+			public void run() {
+				controller.setPathVisible(b);
+			}
+		});
 	}
 
 }

@@ -31,7 +31,9 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.richbeans.widgets.file.FileSelectionDialog;
@@ -46,6 +48,8 @@ import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
@@ -110,6 +114,7 @@ public class ScanRegionView extends ViewPart {
 	public ScanRegionView() {
 		
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.AUTO_SAVE_REGIONS, true);
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_REGIONS, true);
 		this.stash = new Stashing("org.eclipse.scanning.device.ui.scan.regions.json", ServiceHolder.getEventConnectorService());
 		
 		this.regionListener = new IRegionListener.Stub() {
@@ -131,7 +136,7 @@ public class ScanRegionView extends ViewPart {
 		GridUtils.removeMargins(control);
 		
 		this.viewer = new TableViewer(control, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
-		viewer.setContentProvider(new ScanRegionProvider());
+		viewer.setContentProvider(new ScanRegionContentProvider());
 		
 		viewer.getTable().setLinesVisible(true);
 		viewer.getTable().setHeaderVisible(true);
@@ -175,12 +180,14 @@ public class ScanRegionView extends ViewPart {
 
 		
 		createActions();
+		DelegatingSelectionProvider prov = new DelegatingSelectionProvider(viewer);
 		try {
-			createColumns(viewer);
+ 			createColumns(viewer, prov);
 		} catch (EventException | URISyntaxException e1) {
 			logger.error("Serious internal error trying to create table columns!", e1);
 		}
 		
+		getSite().setSelectionProvider(prov);
 		viewer.setInput(system);
 		system.addRegionListener(regionListener);
 		
@@ -188,7 +195,38 @@ public class ScanRegionView extends ViewPart {
 			List<ScanRegion<IROI>> regions = stash.unstash(List.class);
 			createRegions(regions);
 		}
+		
+		viewer.addSelectionChangedListener(new ISelectionChangedListener() {		
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				try {
+					ScanRegion<IROI> region = (ScanRegion<IROI>)((IStructuredSelection)event.getSelection()).getFirstElement();
+					if (region!=null) setSelectedRegion(region);
+				} catch (Exception ne) {
+					logger.warn("Cannot select scan region", ne); // Not serious.
+				}
+			}
+		});
+		viewer.getControl().addFocusListener(new FocusAdapter() {
+			public void focusLost(FocusEvent e) {
+				setSelectedRegion(null);
+			}
+		});
 
+	}
+	private void setSelectedRegion(ScanRegion<IROI> sregion){
+		
+		Collection<IRegion> regions = system.getRegions();
+		for (IRegion iRegion : regions) {
+			if (!(iRegion.getUserObject() instanceof ScanRegion)) continue;
+			if (sregion!=null && sregion.getName().equals(iRegion.getName())){
+				iRegion.setRegionColor(ColorConstants.red);
+				iRegion.setAlpha(30);
+			} else {
+				iRegion.setRegionColor(ColorConstants.blue);
+				iRegion.setAlpha(25);
+			}
+		}
 	}
 
 	@Override
@@ -197,7 +235,7 @@ public class ScanRegionView extends ViewPart {
     	
     	if (!Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.AUTO_SAVE_REGIONS)) return;
     	try {
-    		stash.stash(ScanRegionProvider.getScanRegions(system));
+    		stash.stash(ScanRegionContentProvider.getScanRegions(system));
 		} catch (Exception e) {
 			logger.error("Problem stashing control factory!", e);
 		}
@@ -222,12 +260,21 @@ public class ScanRegionView extends ViewPart {
 		MenuManager     rightClick     = new MenuManager();
 		List<IContributionManager> mans = Arrays.asList(toolBarMan, menuMan, rightClick);
 				
-		addGroups("add", mans, createRegionActions());
+		final IAction showRegions = new Action("Show regions", IAction.AS_CHECK_BOX) {
+		    public void run() {
+				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.SHOW_SCAN_REGIONS, isChecked());
+				setRegionsVisible(isChecked());
+		    }
+		};
+		showRegions.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_REGIONS));
+		showRegions.setImageDescriptor(Activator.getImageDescriptor("icons/show-regions.png"));
+		
+		addGroups("add", mans, showRegions, createRegionActions());
 		
 		final IAction save = new Action("Save regions", IAction.AS_PUSH_BUTTON) {
 		    public void run() {
 				
-				List<ScanRegion<IROI>> regions = ScanRegionProvider.getScanRegions(system);
+				List<ScanRegion<IROI>> regions = ScanRegionContentProvider.getScanRegions(system);
 				
 				if (regions == null) return;
 				FileSelectionDialog dialog = new FileSelectionDialog(getViewSite().getShell());
@@ -283,6 +330,13 @@ public class ScanRegionView extends ViewPart {
 
 	}
 	
+	private void setRegionsVisible(boolean vis) {
+		Collection<IRegion> regions = system.getRegions();
+		for (IRegion iRegion : regions) {
+			if (iRegion.getUserObject() instanceof ScanRegion) iRegion.setVisible(vis);
+		}
+	}
+
 	private void saveRegions(String filename, List<ScanRegion<IROI>> regions) {	
 		Stashing stash = new Stashing(new File(filename), ServiceHolder.getEventConnectorService());
 		stash.save(regions, getViewSite().getShell());
@@ -294,7 +348,7 @@ public class ScanRegionView extends ViewPart {
 		createRegions(regions);
 	}
 	
-	private void createColumns(TableViewer viewer) throws EventException, URISyntaxException {
+	private void createColumns(TableViewer viewer, DelegatingSelectionProvider prov) throws EventException, URISyntaxException {
 		
         TableViewerColumn var   = new TableViewerColumn(viewer, SWT.LEFT, 0);
 		var.getColumn().setText("Name");
@@ -316,7 +370,7 @@ public class ScanRegionView extends ViewPart {
 			}
 		});
 		IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
-		var.setEditingSupport(new AxesEditingSupport(viewer, cservice));
+		var.setEditingSupport(new AxesEditingSupport(viewer, prov, cservice));
 	}
 
 	

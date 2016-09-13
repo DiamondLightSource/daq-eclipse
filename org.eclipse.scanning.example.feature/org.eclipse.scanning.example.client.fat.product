@@ -13,6 +13,7 @@
 -Dosgi.locking=none
 -Dlogback.configurationFile=${project_loc:org.eclipse.scanning.event}/config/logback.xml
 -Dosgi.framework.extensions=org.eclipse.fx.osgi
+-Dorg.eclipse.scanning.points.initJython=true
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
       </vmArgsMac>
