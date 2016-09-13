@@ -134,5 +134,10 @@ public class Stashing {
      
 	}
 
+	@Override
+	public String toString() {
+		return file.getAbsolutePath();
+	}
+
 
 }

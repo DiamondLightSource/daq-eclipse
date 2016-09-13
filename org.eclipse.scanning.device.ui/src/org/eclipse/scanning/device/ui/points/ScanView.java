@@ -16,31 +16,44 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.LocalSelectionTransfer;
+import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.richbeans.widgets.file.FileSelectionDialog;
+import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.SeriesTable;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.device.ControlTreeUtils;
 import org.eclipse.scanning.device.ui.model.ModelView;
-import org.eclipse.scanning.device.ui.util.MarginUtils;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IViewSite;
@@ -65,32 +78,47 @@ public class ScanView  extends ViewPart {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ScanView.class);
 	
-	// Thankyou OSGi
+	// Services
 	private IPointGeneratorService pservice;
 	private IEventService          eservice;
 
+	// UI
 	private SeriesTable  seriesTable;
 	private GeneratorFilter pointsFilter;
 
+	// Data
 	private List<GeneratorDescriptor<?>> saved;
+	private ControlTree startTree, endTree;
+
+	// File
+	private Stashing stash;
+
+	// Preferences
+	private IPreferenceStore store;
 
 	
 	public ScanView() {
+		
 		this.pservice     = ServiceHolder.getGeneratorService();
 		this.eservice     = ServiceHolder.getEventService();
 		this.seriesTable  = new SeriesTable();
 		this.pointsFilter = new GeneratorFilter(pservice, eservice.getEventConnectorService(), seriesTable);
+		this.stash = new Stashing("org.eclipse.scanning.device.ui.scan.models.json", ServiceHolder.getEventConnectorService());
+
+		this.store        = Activator.getDefault().getPreferenceStore();
+		store.setDefault(DevicePreferenceConstants.START_POSITION, false);
+		store.setDefault(DevicePreferenceConstants.END_POSITION, false);
 	}
 	
 	@Override
-    public void init(IViewSite site, IMemento memento) throws PartInitException {
-		
+	public void init(IViewSite site, IMemento memento) throws PartInitException {
+
 		super.init(site, memento);
 
-		final String key = memento!=null ? memento.getString(GeneratorConstants.GENERATOR_IDS) : null;
-        if (key!=null && !"".equals(key)) {
+		if (stash.isStashed()) {
 			try {
-				this.saved = pointsFilter.createDescriptors(key);
+				final List<IScanPathModel> models = stash.unstash(List.class);
+				this.saved = pointsFilter.createDescriptors(models);
 			} catch (Exception e) {
 				logger.error("Cannot load generators to memento!", e);
 			}
@@ -100,8 +128,14 @@ public class ScanView  extends ViewPart {
 	@Override
     public void saveState(IMemento memento) {
 		try {
-			final String json = pointsFilter.createKey(seriesTable.getSeriesItems());
-	    	memento.putString(GeneratorConstants.GENERATOR_IDS, json);
+			final List<Object> models = pointsFilter.getModels(seriesTable.getSeriesItems());
+	    	stash.stash(models);
+	    	
+			Stashing tstash = new Stashing(DevicePreferenceConstants.START_POSITION+".json", ServiceHolder.getEventConnectorService());
+			tstash.stash(startTree);
+			tstash = new Stashing(DevicePreferenceConstants.END_POSITION+".json", ServiceHolder.getEventConnectorService());
+			tstash.stash(endTree);
+
 		} catch (Exception ne) {
 			logger.error("Cannot save generators to memento!", ne);
 		}
@@ -111,14 +145,30 @@ public class ScanView  extends ViewPart {
 	public void createPartControl(Composite parent) {
 		
 		final Composite content = new Composite(parent, SWT.NONE);
-		content.setLayout(new GridLayout(1, false));
-		MarginUtils.removeMargins(content);
+		GridLayout layout = new GridLayout(1, false);
+		content.setLayout(layout);
+		GridUtils.removeMargins(content);
+		layout.marginTop        = 10;
+	
+		Composite startButton = createPositionButton(content, DevicePreferenceConstants.START_POSITION, "Start Position", "icons/position-start.png");
 		
 		final GeneratorLabelProvider prov = new GeneratorLabelProvider(0);
-		seriesTable.createControl(content, prov);
+		seriesTable.createControl(content, prov, SWT.FULL_SELECTION | SWT.SINGLE);
+		seriesTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		seriesTable.setHeaderVisible(false);
+		
+		Composite endButton = createPositionButton(content, DevicePreferenceConstants.END_POSITION, "End Position", "icons/position-end.png");
 		
 		final IViewSite site = getViewSite();
-		site.setSelectionProvider(seriesTable.getSelectionProvider());
+		
+		final DelegatingSelectionProvider selectionProvider = new DelegatingSelectionProvider(seriesTable.getSelectionProvider());
+		site.setSelectionProvider(selectionProvider);
+		
+		this.startTree = createControlTree(DevicePreferenceConstants.START_POSITION, "Start Position");
+		this.endTree   = createControlTree(DevicePreferenceConstants.END_POSITION, "End Position");
+
+        createMouseListener(startButton, endButton, selectionProvider, startTree);
+        createMouseListener(endButton, startButton, selectionProvider, endTree);
 		
 		createActions(site);
 		final MenuManager rightClick = new MenuManager("#PopupMenu");
@@ -172,6 +222,84 @@ public class ScanView  extends ViewPart {
 		if (ref!=null) ref.getView(true);
 		
 	}
+	
+
+	private ControlTree createControlTree(String id, String name) {
+		
+		// TODO FIXME The default control tree for the start and end positions should have their own definitions
+		// or the ability to create them. This code remembers what the user sets for start/end but
+		// the initial fields simply come from the same as the ControlView ones.
+		Stashing stash = new Stashing(id+".json", ServiceHolder.getEventConnectorService());
+		
+		ControlTree tree = null;
+		try {
+			if (stash.isStashed()) tree = stash.unstash(ControlTree.class);
+		} catch (Exception ne) {
+			logger.warn("Getting tree from "+stash, ne);
+			tree = null;
+		}
+		if (tree == null) {
+			tree = ControlTreeUtils.parseDefaultXML();
+			try {
+				tree = ControlTreeUtils.clone(tree);
+			} catch (Exception e) {
+				logger.warn("Getting tree from default XML", e);
+			}
+		}
+		
+		if (tree==null) return null;
+		tree.setName(id);
+		tree.setDisplayName(name);
+		tree.build();
+		return tree;
+	}
+
+	private void createMouseListener(Composite position, Composite otherPosition, DelegatingSelectionProvider prov, ControlTree tree) {
+		
+		position.addMouseListener(new MouseAdapter() {
+			public void mouseDown(MouseEvent e) {
+				
+				position.setFocus();
+				seriesTable.deselectAll();
+				position.setBackground(position.getDisplay().getSystemColor(SWT.COLOR_TITLE_BACKGROUND));
+				otherPosition.setBackground(position.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+				
+				seriesTable.addSelectionListener(new ISelectionChangedListener() {	
+					@Override
+					public void selectionChanged(SelectionChangedEvent event) {
+						position.setBackground(position.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+						seriesTable.removeSelectionListener(this);
+					}
+				});
+				
+				prov.fireSelection(new StructuredSelection(tree));
+			}
+		});	
+	}
+
+	private Composite createPositionButton(final Composite content, final String propName, String label, String iconPath) {
+		
+		final CLabel position = new CLabel(content, SWT.LEFT);
+		position.setBackground(content.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+		position.setImage(Activator.getImageDescriptor(iconPath).createImage());
+		position.setText(label);
+		position.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		GridUtils.setVisible(position, store.getBoolean(propName));
+		
+		store.addPropertyChangeListener(new IPropertyChangeListener() {		
+			@Override
+			public void propertyChange(PropertyChangeEvent event) {
+				if (position.isDisposed() || content.isDisposed()) {
+					store.removePropertyChangeListener(this);
+					return;
+				}
+				GridUtils.setVisible(position, store.getBoolean(propName));
+				content.layout(new Control[]{position});
+			}
+		});
+		
+		return position;
+	}
 
 	@Override
 	public Object getAdapter(Class clazz) {
@@ -203,6 +331,25 @@ public class ScanView  extends ViewPart {
 		
 		IToolBarManager tmanager = site.getActionBars().getToolBarManager();
 		IMenuManager    mmanager = site.getActionBars().getMenuManager();
+		
+		IAction start = new Action("Set start position\nThis is the position before a scan", IAction.AS_CHECK_BOX) {
+			public void run() {
+				store.setValue(DevicePreferenceConstants.START_POSITION, isChecked());
+			}
+		};
+		start.setChecked(store.getBoolean(DevicePreferenceConstants.START_POSITION));
+		start.setImageDescriptor(Activator.getImageDescriptor("icons/position-start.png"));
+		
+		IAction end = new Action("Set end position\nThe position after a scan", IAction.AS_CHECK_BOX) {
+			public void run() {
+				store.setValue(DevicePreferenceConstants.END_POSITION, isChecked());
+			}
+		};
+		end.setChecked(store.getBoolean(DevicePreferenceConstants.END_POSITION));
+		end.setImageDescriptor(Activator.getImageDescriptor("icons/position-end.png"));
+       
+		addGroup("location", tmanager, start, end);
+		addGroup("location", mmanager, start, end);
 		
 		add = new Action("Insert", Activator.getImageDescriptor("icons/clipboard-list.png")) {
 			public void run() {
@@ -275,7 +422,7 @@ public class ScanView  extends ViewPart {
 		
 		final IAction lock = new Action("Lock scan editing", IAction.AS_CHECK_BOX) {
 			public void run() {
-				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.LOCK_SCAN_SEQUENCE, isChecked());
+				store.setValue(DevicePreferenceConstants.LOCK_SCAN_SEQUENCE, isChecked());
 				seriesTable.setLockEditing(isChecked());
 				add.setEnabled(!isChecked());
 				delete.setEnabled(!isChecked());
@@ -284,7 +431,7 @@ public class ScanView  extends ViewPart {
 		};
 		lock.setImageDescriptor(Activator.getImageDescriptor("icons/lock.png"));
 
-		lock.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.LOCK_SCAN_SEQUENCE));
+		lock.setChecked(store.getBoolean(DevicePreferenceConstants.LOCK_SCAN_SEQUENCE));
 		add.setEnabled(!lock.isChecked());
 		delete.setEnabled(!lock.isChecked());
 		clear.setEnabled(!lock.isChecked());
