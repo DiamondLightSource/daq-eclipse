@@ -269,6 +269,7 @@ public class ScanView  extends ViewPart {
 					store.removePropertyChangeListener(this);
 					return;
 				}
+				if (!event.getProperty().equals(propName)) return;
 				boolean show = store.getBoolean(propName);
 				GridUtils.setVisible(position, show);
 				position.getParent().layout(new Control[]{position});
