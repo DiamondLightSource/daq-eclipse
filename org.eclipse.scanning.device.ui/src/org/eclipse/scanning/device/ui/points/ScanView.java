@@ -167,8 +167,8 @@ public class ScanView  extends ViewPart {
 		this.startTree = createControlTree(DevicePreferenceConstants.START_POSITION, "Start Position");
 		this.endTree   = createControlTree(DevicePreferenceConstants.END_POSITION, "End Position");
 
-        createMouseListener(startButton, endButton, DevicePreferenceConstants.START_POSITION, selectionProvider, startTree);
-        createMouseListener(endButton, startButton, DevicePreferenceConstants.END_POSITION, selectionProvider, endTree);
+        createListeners(startButton, endButton, DevicePreferenceConstants.START_POSITION, selectionProvider, startTree);
+        createListeners(endButton, startButton, DevicePreferenceConstants.END_POSITION, selectionProvider, endTree);
 		
 		createActions(site);
 		final MenuManager rightClick = new MenuManager("#PopupMenu");
@@ -254,7 +254,7 @@ public class ScanView  extends ViewPart {
 		return tree;
 	}
 
-	private void createMouseListener(Composite position, Composite otherPosition, String propName, DelegatingSelectionProvider prov, ControlTree tree) {
+	private void createListeners(Composite position, Composite otherPosition, String propName, DelegatingSelectionProvider prov, ControlTree tree) {
 		
 		position.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
