@@ -31,4 +31,15 @@ public class DevicePreferenceConstants {
 	 * Property to store if we are showing scan regions or not.
 	 */
 	public static final String SHOW_SCAN_REGIONS = "org.eclipse.scanning.device.ui.vis.showScanRegions";
+
+	/**
+	 * If a start position should be set when the user edits the value.
+	 */
+	public static final String START_POSITION = "org.eclipse.scanning.device.ui.scan.startPosition";
+	
+	/**
+	 * If an end position should be set when the user edits the value.
+	 */
+	public static final String END_POSITION = "org.eclipse.scanning.device.ui.scan.endPosition";
+
 }

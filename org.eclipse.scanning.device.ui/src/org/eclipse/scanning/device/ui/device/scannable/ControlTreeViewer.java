@@ -8,7 +8,6 @@ import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
@@ -35,7 +34,6 @@ import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.ISubscriber;
-import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.ILocationListener;
 import org.eclipse.scanning.api.scan.event.Location.LocationType;
 import org.eclipse.scanning.api.scan.event.LocationEvent;
@@ -45,6 +43,7 @@ import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.device.ControlTreeUtils;
 import org.eclipse.scanning.device.ui.util.ViewerUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -177,15 +176,15 @@ public class ControlTreeViewer {
 	 * @param managers
 	 * @throws Exception 
 	 */
-	public void createPartControl(Composite parent, ControlTree tree, IContributionManager... managers) throws Exception {
+	public Composite createPartControl(Composite parent, ControlTree tree, IContributionManager... managers) throws Exception {
 		
 		if (viewer!=null) throw new IllegalArgumentException("The createPartControl() method must only be called once!");
 
 		if (defaultTree==null && tree==null) throw new IllegalArgumentException("No control tree has been defined!");
 		
 		// Clone this tree so that they can reset it!
-		if (defaultTree==null) defaultTree = clone(tree);
-        if (tree == null)      tree        = clone(defaultTree);
+		if (defaultTree==null) defaultTree = ControlTreeUtils.clone(tree);
+        if (tree == null)      tree        = ControlTreeUtils.clone(defaultTree);
 		
 
     	viewer = new FilteredTree(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, new NamedNodeFilter(), true);
@@ -215,13 +214,11 @@ public class ControlTreeViewer {
 			logger.error("Cannot listen to motor values changing...");
 		}
 
+		return viewer;
 	}
-	
-	private ControlTree clone(ControlTree tree) throws Exception {
-		IMarshallerService mservice = ServiceHolder.getMarshallerService();
-		String      json = mservice.marshal(tree);
-		ControlTree clone = mservice.unmarshal(json, ControlTree.class);
-		return clone;
+
+	public Control getControl() {
+		return viewer;
 	}
 
 	private void createColumns(TreeViewer viewer) {
@@ -347,7 +344,7 @@ public class ControlTreeViewer {
 				boolean ok = MessageDialog.openConfirm(viewer.getShell(), "Confirm Reset Controls", "Are you sure that you want to reset all controls to default?");
 				if (!ok) return;
 				try {
-					viewer.getViewer().setInput(ControlTreeViewer.this.clone(defaultTree));
+					viewer.getViewer().setInput(ControlTreeUtils.clone(defaultTree));
 				} catch (Exception e) {
 					logger.error("Unable to set input back to default!", e);
 				}

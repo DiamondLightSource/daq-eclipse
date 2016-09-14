@@ -98,12 +98,14 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 	private Object             model;
 	private IValidator<Object> validator; // The generator or runnable device etc. for which we are editing the model 
 
+	private Composite content;
 	private Composite validationComposite;
 	private Label     validationMessage;
 	private boolean   validationError = false;
 	private ModelValidationException validationException;
 
 	private IRunnableDeviceService dservice;
+
 	
 	public ModelViewer() throws EventException, URISyntaxException {
 		this(true);
@@ -132,11 +134,12 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 
 	public Composite createPartControl(Composite ancestor) {
 		
-		final Composite parent = new Composite(ancestor, SWT.NONE);
-		parent.setLayout(new GridLayout(1, false));
-		GridUtils.removeMargins(parent);
+		this.content = new Composite(ancestor, SWT.NONE);
+		content.setLayout(new GridLayout(1, false));
+		content.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		GridUtils.removeMargins(content);
 		
-		this.viewer = new TableViewer(parent, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
+		this.viewer = new TableViewer(content, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
 		viewer.setContentProvider(createContentProvider());
 		
 		viewer.getTable().setLinesVisible(true);
@@ -155,7 +158,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 	            event.height=24;
 	        }
 	    });		
-		this.validationComposite = new Composite(parent, SWT.NONE);
+		this.validationComposite = new Composite(content, SWT.NONE);
 		validationComposite.setLayout(new GridLayout(2, false));
 		validationComposite.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
 		
@@ -225,7 +228,11 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			}
 		}
 		
-		return parent;
+		return content;
+	}
+
+	public Control getControl() {
+		return content;
 	}
 
 	private void createDropTarget(TableViewer viewer) {

@@ -44,36 +44,6 @@ public class ControlView extends ViewPart {
 			logger.error("Problem stashing control factory!", e);
 		}
     }
-
-	/** 
-	 * We ensure that the xml is parsed, if any
-	 * Hopefully this has already been done by
-	 * the client spring xml configuration but
-	 * if not we check if there is an xml argument
-	 * here and attempt to load its path.
-	 * This step is done for testing and to make
-	 * the example client work. 
-	 **/
-	private ControlTree parseDefaultXML() {
-		
-		if (ControlTree.getInstance()!=null) return ControlTree.getInstance();
-		String[] args = Platform.getApplicationArgs();
-		for (int i = 0; i < args.length; i++) {
-			final String arg = args[i];
-			if (arg.equals("-xml")) {
-				String path = args[i+1];
-				ISpringParser parser = ServiceHolder.getSpringParser();
-				try {
-					parser.parse(path);
-				} catch (Exception e) {
-					logger.error("Unabled to parse: "+path, e);
-				}
-				break;
-			}
-		}
-		return ControlTree.getInstance();
-	}
-
 	/**
 	 * Create contents of the view part.
 	 * @param parent
@@ -84,7 +54,7 @@ public class ControlView extends ViewPart {
 		try {
 			IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
 
-			ControlTree defaultTree = parseDefaultXML();
+			ControlTree defaultTree = ControlTreeUtils.parseDefaultXML();
 			if (defaultTree==null) {
 				defaultTree = new ControlTree();
 				defaultTree.globalize();
