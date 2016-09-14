@@ -23,7 +23,11 @@ public interface IScriptService {
 	 * Execute a script on the server. This can be used for instance inside scanning to run
 	 * a script before and after a scan.
 	 * 
-	 * @param req
+	 * @param req the script request
+	 * @return a {@link ScriptResponse} object describing the result of running the script
+	 * @throws UnsupportedLanguageException if the script language specified by
+	 *   {@link ScriptRequest#getLanguage()} is not supported by this script service.
+	 * @throws ScriptExecutionException if an error occurred running the script
 	 */
-	ScriptResponse execute(ScriptRequest req) throws UnsupportedLanguageException, ScriptExecutionException;
+	ScriptResponse<?> execute(ScriptRequest req) throws UnsupportedLanguageException, ScriptExecutionException;
 }
