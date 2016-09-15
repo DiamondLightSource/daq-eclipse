@@ -33,15 +33,7 @@ class ControlEditingSupport extends EditingSupport {
 		final Composite parent = (Composite) getViewer().getControl();
 		
 		final ControlNode controlNode = (ControlNode) element; 
-		Object value = controlNode.getValue();
-		if (value==null && mode.isDirectlyConnected()) {
-			try {
-				value = cservice.getScannable(controlNode.getName()).getPosition();
-			} catch (Exception e) {
-				logger.error("Unable to connect to server!", e);
-				value = "Error connecting to server";
-			}
-		}
+		Object value = getValue(controlNode);
 		if (value instanceof Number) {
 			return new ControlValueCellEditor(parent, cservice, mode);
 		} else if (value instanceof String) {
@@ -73,13 +65,34 @@ class ControlEditingSupport extends EditingSupport {
 		// can only edit ControlNodes and only when the value is not null
 		// (the value could be null if the scannable doesn't exist)
 		if (element instanceof ControlNode) {
-			Object value = ((ControlNode) element).getValue();
+			ControlNode node = (ControlNode) element;
+			Object value = getValue(node);
 			
 			// can only edit where value is a number or string
 			// (in particular cannot edit where value is null, or where it is an array of any kind)
 			return value instanceof Number || value instanceof String;
 		}
 		return false;
+	}
+	
+	private Object getValue(ControlNode node) {
+		
+		if (mode.isDirectlyConnected()) {
+			return getScannableValue(node);
+		} else {
+			Object value = node.getValue();
+			if (value == null) value = getScannableValue(node);
+			return value;
+		}
+	}
+
+	private Object getScannableValue(ControlNode node) {
+		try {
+			return cservice.getScannable(node.getName()).getPosition();
+		} catch (Exception e) {
+			logger.warn("Problem getting scannable value for "+node.getName()+". This might not be a problem.", e);
+			return null;
+		}
 	}
 
 	@Override

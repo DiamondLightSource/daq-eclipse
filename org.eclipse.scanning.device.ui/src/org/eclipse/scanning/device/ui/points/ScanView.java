@@ -1,11 +1,16 @@
 package org.eclipse.scanning.device.ui.points;
 
+import java.awt.MouseInfo;
+import java.awt.PointerInfo;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
+import org.eclipse.dawnsci.plotting.api.region.IRegion;
+import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
@@ -28,9 +33,12 @@ import org.eclipse.richbeans.widgets.file.FileSelectionDialog;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.SeriesTable;
+import org.eclipse.richbeans.widgets.table.event.SeriesItemEvent;
+import org.eclipse.richbeans.widgets.table.event.SeriesItemListener;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.device.ui.Activator;
@@ -39,6 +47,8 @@ import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.device.ControlTreeUtils;
 import org.eclipse.scanning.device.ui.model.ModelView;
 import org.eclipse.scanning.device.ui.util.PageUtil;
+import org.eclipse.scanning.device.ui.util.PlotUtil;
+import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -54,6 +64,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.ToolTip;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IViewSite;
@@ -72,7 +83,7 @@ import org.slf4j.LoggerFactory;
  * TODO Convert to e4 view.
  *
  */
-public class ScanView  extends ViewPart {
+public class ScanView  extends ViewPart implements SeriesItemListener {
 	
 	public static final String ID = "org.eclipse.scanning.device.ui.scanEditor";
 	
@@ -108,6 +119,7 @@ public class ScanView  extends ViewPart {
 		this.store        = Activator.getDefault().getPreferenceStore();
 		store.setDefault(DevicePreferenceConstants.START_POSITION, false);
 		store.setDefault(DevicePreferenceConstants.END_POSITION, false);
+		store.setDefault(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, true);
 	}
 	
 	@Override
@@ -221,6 +233,7 @@ public class ScanView  extends ViewPart {
 		ref = PageUtil.getPage().findViewReference(ModelView.ID);
 		if (ref!=null) ref.getView(true);
 		
+		seriesTable.addSeriesEventListener(this);
 	}
 	
 
@@ -545,12 +558,60 @@ public class ScanView  extends ViewPart {
 
 	@Override
 	public void dispose() {
+		if (tip!=null) tip.dispose();
+		seriesTable.removeSeriesEventListener(this);
 		seriesTable.dispose();
     }
 	
 	@Override
 	public void setFocus() {
 		seriesTable.setFocus();
+	}
+
+    
+   	@Override
+	public void itemAdded(SeriesItemEvent evt) {
+   		
+		final IPlottingSystem<?> system = PlotUtil.getRegionSystem();
+		if (system==null) return;
+		
+ 		if (ScanRegions.getScanRegions(system)!=null) {
+ 			IViewReference ref = PageUtil.getPage().findViewReference(ScanRegionView.ID);
+ 			String name = ref!=null ? ref.getPartName() : "regions";
+            showTip("There are already scan regions defined.\nGo to '"+name+"' to edit and create others.");
+ 			return; // They already have some
+ 		}
+		
+		try {
+			final IPointGenerator<?> generator = (IPointGenerator<?>)evt.getDescriptor().getSeriesObject();
+			final Object model     = generator.getModel();
+			if (model instanceof IBoundingBoxModel) {
+                IRegion created = ScanRegions.createRegion(system, RegionType.BOX, system.getPlotName(), null);
+                if (created!=null) showTip("Click and drag in '"+system.getPlotName()+"' to add a region for '"+generator.getLabel()+"'");
+			}
+		} catch (Exception e) {
+			logger.error("Problem creating a plotted region!", e);
+		}
+
+	}
+   	
+   	private ToolTip         tip;
+
+   	private void showTip(String message) {
+		if (!store.getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS)) return;
+        if (tip==null) this.tip = new ToolTip(seriesTable.getControl().getShell(), SWT.BALLOON);
+        tip.setMessage(message);
+        PointerInfo a = MouseInfo.getPointerInfo();
+        java.awt.Point loc = a.getLocation();
+
+        tip.setLocation(loc.x, loc.y+20);
+        tip.setVisible(true);
+   	}
+
+	@Override
+	public void itemRemoved(SeriesItemEvent evt) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

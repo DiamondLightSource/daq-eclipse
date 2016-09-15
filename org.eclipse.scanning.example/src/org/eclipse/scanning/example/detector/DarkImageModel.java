@@ -8,7 +8,7 @@ public class DarkImageModel {
 	private int    frequency;
 	
 	public DarkImageModel() {
-		name          = "dark";
+		name          = "darkImageExample";
 		columns       = 64;
 		rows          = 60;
 		frequency     = 10;

@@ -1,15 +1,15 @@
 package org.eclipse.scanning.device.ui.util;
 
-import org.eclipse.dawnsci.plotting.api.region.IRegionSystem;
+import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.scanning.device.ui.vis.PlottingController;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 
 public class PlotUtil {
     
-	public static IRegionSystem getRegionSystem() {
+	public static IPlottingSystem<?> getRegionSystem() {
     	IViewPart part = getRegionView();
-    	if (part !=null) return part.getAdapter(IRegionSystem.class);
+    	if (part !=null) return part.getAdapter(IPlottingSystem.class);
     	return null;
     }
 
