@@ -2,6 +2,7 @@ package org.eclipse.scanning.device.ui;
 
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionService;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
+import org.eclipse.dawnsci.analysis.api.io.IRemoteDatasetService;
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.plotting.api.IPlottingService;
 import org.eclipse.scanning.api.ISpringParser;
@@ -24,6 +25,7 @@ public class ServiceHolder {
 	private static ISpringParser          springParser;
 	private static IMarshallerService     marshallerService;
 	private static IPlottingService       plottingService;
+	private static IRemoteDatasetService  remoteDatasetService;
 	private static EventAdmin             eventAdmin;
 	
 	private static BundleContext context;
@@ -129,6 +131,15 @@ public class ServiceHolder {
 
 	public static void setPlottingService(IPlottingService plottingService) {
 		ServiceHolder.plottingService = plottingService;
+	}
+
+	public static IRemoteDatasetService getRemoteDatasetService() {
+		if (remoteDatasetService==null) remoteDatasetService = getService(IRemoteDatasetService.class);
+		return remoteDatasetService;
+	}
+
+	public static void setRemoteDatasetService(IRemoteDatasetService remoteDatasetService) {
+		ServiceHolder.remoteDatasetService = remoteDatasetService;
 	}
 
 	public static EventAdmin getEventAdmin() {

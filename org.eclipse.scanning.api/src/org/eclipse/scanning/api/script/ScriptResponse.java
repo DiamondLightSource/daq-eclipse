@@ -5,7 +5,7 @@ package org.eclipse.scanning.api.script;
  * information may be set.
  * 
  * @author Matthew Gerring
- * @param T must be type of object that the script returns. 
+ * @param <T> must be type of object that the script returns. 
  *        Many script types cannot return an object, so this is optional to declare.
  *        The object returned should json serialize, it may be sent in events to the client
  *        and should ideally encode information rather than provide callable server methods. 

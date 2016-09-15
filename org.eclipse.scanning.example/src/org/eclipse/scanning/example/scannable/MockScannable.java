@@ -258,6 +258,10 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		throw new Exception("No call to setPosition had value="+value+" and position="+point);
 	}
 	
+	public List<Number> getValues() {
+		return values;
+	}
+	
 	protected static boolean equalsWithinTolerance(Number foo, Number bar, Number tolerance) {
 		if (foo==null || bar==null || tolerance==null) return false;
 		final double a = foo.doubleValue();

@@ -78,7 +78,7 @@ public class EpicsV4MessageMapper {
 	
 	private static String ERROR_TYPE = "malcolm:core/Error:";
 	
-	private static String TYPE_ID_KEY = "type"; // TODO change to 'typeid' when change is made in the toDict
+	private static String TYPE_ID_KEY = "typeid";
 	
 	public EpicsV4MessageMapper() {
 		marshaller = new PVMarshaller();

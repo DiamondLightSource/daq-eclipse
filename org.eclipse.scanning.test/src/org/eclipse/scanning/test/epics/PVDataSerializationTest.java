@@ -175,7 +175,7 @@ public class PVDataSerializationTest {
 					addArray("stop", ScalarType.pvDouble).
 					addArray("name", ScalarType.pvString).
 					add("alternate_direction", ScalarType.pvBoolean).
-					setId("LineGenerator").					
+					setId("scanpointgenerator:generator/LineGenerator:1.0").					
 					createStructure();
 
 			Union union = fieldCreate.createVariantUnion();
@@ -184,7 +184,7 @@ public class PVDataSerializationTest {
 					addArray("mutators", union).				
 					addArray("generators", union).				
 					addArray("excluders", union).	
-					setId("CompoundGenerator").
+					setId("scanpointgenerator:generator/CompoundGenerator:1.0").
 					createStructure();
 			
 			PVStructure expectedGeneratorsPVStructure = pvDataCreate.createPVStructure(expectedGeneratorsStructure);
@@ -213,7 +213,7 @@ public class PVDataSerializationTest {
 					
 			generators.put(0, unionArray.length, unionArray, 0);
 			
-			// Marshall and check against expected
+			// Marshal and check against expected
 			PVStructure pvStructure = connectorService.pvMarshal(scan);
 
 			System.out.println(pvStructure);
