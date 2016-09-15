@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -148,11 +149,13 @@ public class DetectorView extends EventConnectionView {
 	 * Create the actions.
 	 */
 	private void createActions() {
-		getViewSite().getActionBars().getToolBarManager().add(new Action("Refresh") {
+		IAction refresh = new Action("Refresh", Activator.getImageDescriptor("icons/recycle.png")) {
 			public void run() {
 				viewer.refresh();
 			}
-		});
+		};
+		getViewSite().getActionBars().getToolBarManager().add(refresh);
+		getViewSite().getActionBars().getMenuManager().add(refresh);
 	}
 
 	/**

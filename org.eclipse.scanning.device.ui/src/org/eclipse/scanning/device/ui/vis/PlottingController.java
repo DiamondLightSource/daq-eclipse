@@ -26,7 +26,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IBoundingLineModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
-import org.eclipse.scanning.device.ui.points.ScanRegionContentProvider;
+import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.swt.graphics.Color;
 
 /**
@@ -108,7 +108,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		
 		// If there are no scan regions at all, no trace to draw
 		// If the model is not one we draw scan paths for, no trace to draw.
-		if (!isScanPathModel() || ScanRegionContentProvider.getScanRegions(system)==null) {
+		if (!isScanPathModel() || ScanRegions.getScanRegions(system)==null) {
 			if (pathTrace!=null) pathTrace.setVisible(false);
 			return;
 		}	
@@ -143,7 +143,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		roi.setName(region.getName());
 		setSelection(new StructuredSelection(roi));
 		
-		List<ScanRegion<IROI>> sregions = ScanRegionContentProvider.getScanRegions(system);
+		List<ScanRegion<IROI>> sregions = ScanRegions.getScanRegions(system);
 		if (drawPath) {
 			if (sregions==null) {
 				setPathVisible(false);
@@ -190,14 +190,14 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 	}
 
 	public void refresh() {
-		job.schedule(model, ScanRegionContentProvider.getScanRegions(system));
+		job.schedule(model, ScanRegions.getScanRegions(system));
 	}
 	
 	public void setModel(Object model) throws Exception {
 		
 		this.model = model;
 		if (isScanPathModel()) {			
-			job.schedule(model, ScanRegionContentProvider.getScanRegions(system));
+			job.schedule(model, ScanRegions.getScanRegions(system));
 		} else {
 			setPathVisible(false);
 		}

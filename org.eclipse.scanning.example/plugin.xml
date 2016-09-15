@@ -17,7 +17,8 @@
             description="Device to do CV scan"
             id="org.eclipse.scanning.example.detector.constantVelocityDevice"
             label="Constant Velocity Example"
-            model="org.eclipse.scanning.example.detector.ConstantVelocityModel">
+            model="org.eclipse.scanning.example.detector.ConstantVelocityModel"
+            name="constantVelocityExample">
       </device>
       <device
             class="org.eclipse.scanning.example.detector.DarkImageDetector"
@@ -25,7 +26,8 @@
             icon="icons/darkcurrent.png"
             id="org.eclipse.scanning.example.detector.darkImageDetector"
             label="Dark Current Example"
-            model="org.eclipse.scanning.example.detector.DarkImageModel">
+            model="org.eclipse.scanning.example.detector.DarkImageModel"
+            name="darkImageExample">
       </device>
    </extension>
 
