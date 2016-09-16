@@ -52,8 +52,8 @@ public class ScanRegions {
 		if (system==null) return null;
 		IRegion region = system.createRegion(RegionUtils.getUniqueName("Scan "+regionType.getName(), system), regionType);
 
-		String x = system.getAxes().get(0).getTitle();
-		String y = system.getAxes().get(1).getTitle();
+		String x = system.getSelectedXAxis().getTitle();
+		String y = system.getSelectedYAxis().getTitle();
 		region.setUserObject(new ScanRegion<IROI>(region.getName(), regionType, Arrays.asList(x,y))); 
 		region.setRegionColor(ColorConstants.blue);
 		region.setAlpha(25);

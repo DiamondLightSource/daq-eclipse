@@ -58,4 +58,9 @@ public class DelegatingSelectionProvider implements ISelectionProvider, ISelecti
 		wrapped.setSelection(selection); // Causes listeners to fire
 	}
 
+	public void dispose() {
+		wrapped.removeSelectionChangedListener(this);
+		listeners.clear();
+	}
+
 }

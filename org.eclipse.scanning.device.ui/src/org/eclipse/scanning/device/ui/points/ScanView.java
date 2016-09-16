@@ -38,6 +38,7 @@ import org.eclipse.richbeans.widgets.table.event.SeriesItemListener;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
@@ -64,6 +65,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolTip;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewReference;
@@ -234,6 +236,10 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 		if (ref!=null) ref.getView(true);
 		
 		seriesTable.addSeriesEventListener(this);
+		
+		final List<ISeriesItemDescriptor> desi = seriesTable.getSeriesItems();
+        if (desi!=null && desi.size()>0) seriesTable.setSelection(desi.get(desi.size()-1));
+      
 	}
 	
 
@@ -328,6 +334,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	@Override
 	public Object getAdapter(Class clazz) {
 		
+		if (CompoundModel.class == clazz) return new CompoundModel(getModels());
 		if (clazz==IScanPathModel.class) {
 			ISeriesItemDescriptor selected = seriesTable.getSelected();
 			if (!(selected instanceof GeneratorDescriptor)) return null;

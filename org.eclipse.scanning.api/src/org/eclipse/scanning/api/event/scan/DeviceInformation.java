@@ -6,7 +6,7 @@ import org.eclipse.scanning.api.IModelProvider;
 
 /**
  * 
- * Information about a given device.
+ * Information about a given device. It may be an IRunnabDevice or an IScannableDevice.
  * 
  * @author Matthew Gerring
  *
@@ -77,7 +77,18 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	 */
 	private Object lower;
 	
+	/**
+	 * Allowed values if value has discrete options
+	 */
 	private Object[] permittedValues;
+
+	/**
+	 * Holds activated state of device, if any.
+	 * Activated devices are used when a scan is constructed
+	 * and the state is saved. 
+	 */
+	private boolean activated = false;
+
 
 	public DeviceInformation() {
 
@@ -271,4 +282,15 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	public void setPermittedValues(Object[] permittedValues) {
 		this.permittedValues = permittedValues;
 	}
+	
+	public boolean isActivated() {
+		return activated;
+	}
+	
+	public boolean setActivated(boolean activated) {
+		boolean wasactivated = this.activated;
+		this.activated = activated;
+		return wasactivated;
+	}
+
 }

@@ -91,11 +91,13 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 			validate(model); // Probably does nothing depending on what validation is chosen for compound models.
 
 			final StringBuilder buf = new StringBuilder();
-			buf.append("A scan of "+size()+" points\n");
+			buf.append("A scan of "+size()+" points, ");
 			IPosition first = iterator().next();
-			buf.append("Scanning motors: ");
-			for (String name : first.getNames()) {
+			buf.append("scanning motors: ");
+			for (Iterator<String> it = first.getNames().iterator(); it.hasNext();) {
+				String name = it.next();
 				buf.append(name);
+				if(it.hasNext()) buf.append(",");
 				buf.append(" ");
 			}
 			buf.append('\n');

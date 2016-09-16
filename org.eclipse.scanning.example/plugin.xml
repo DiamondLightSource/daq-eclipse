@@ -10,7 +10,7 @@
             id="org.eclipse.scanning.example.detector.mandelbrotDetector"
             label="Mandelbrot Example"
             model="org.eclipse.scanning.example.detector.MandelbrotModel"
-            name="mandelbrot_detector">
+            name="mandelbrot">
       </device>
       <device
             class="org.eclipse.scanning.example.detector.ConstantVelocityDevice"
@@ -18,7 +18,7 @@
             id="org.eclipse.scanning.example.detector.constantVelocityDevice"
             label="Constant Velocity Example"
             model="org.eclipse.scanning.example.detector.ConstantVelocityModel"
-            name="constantVelocityExample">
+            name="cvExmpl">
       </device>
       <device
             class="org.eclipse.scanning.example.detector.DarkImageDetector"
@@ -27,7 +27,7 @@
             id="org.eclipse.scanning.example.detector.darkImageDetector"
             label="Dark Current Example"
             model="org.eclipse.scanning.example.detector.DarkImageModel"
-            name="darkImageExample">
+            name="dkExmpl">
       </device>
    </extension>
 

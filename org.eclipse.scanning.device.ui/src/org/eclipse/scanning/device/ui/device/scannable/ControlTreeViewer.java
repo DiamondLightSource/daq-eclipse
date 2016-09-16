@@ -12,7 +12,6 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewer;
@@ -44,6 +43,7 @@ import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.device.ControlTreeUtils;
+import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.scanning.device.ui.util.ViewerUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -277,7 +277,7 @@ public class ControlTreeViewer {
 		};
 		removeNode.setEnabled(false);
 			
-		addGroups("add", mans, addGroup, addNode, removeNode);
+		ViewUtil.addGroups("add", mans, addGroup, addNode, removeNode);
 
 		// Action to fully expand the control tree
 		IAction expandAll = new Action("Expand All", Activator.getImageDescriptor("icons/expand_all.png")) {
@@ -314,7 +314,7 @@ public class ControlTreeViewer {
 			}
 		};
 		
-		addGroups("refresh", mans, expandAll, showSearch, edit);
+		ViewUtil.addGroups("refresh", mans, expandAll, showSearch, edit);
 		
 		IAction setToCurrentValue;
 		IAction setAllToCurrentValue;
@@ -335,7 +335,7 @@ public class ControlTreeViewer {
 					setAllToCurrentValue();
 				}
 			};
-			addGroups("setToCurrentValue", mans, setToCurrentValue, setAllToCurrentValue);
+			ViewUtil.addGroups("setToCurrentValue", mans, setToCurrentValue, setAllToCurrentValue);
 		}
 	
 		// Action to reset all controls to their default value
@@ -351,7 +351,7 @@ public class ControlTreeViewer {
 				expandAll.run();
 			}
 		};
-		addGroups("reset", mans, resetAll);
+		ViewUtil.addGroups("reset", mans, resetAll);
 				
 		// Toggles whether to show tooltips on edit
 		IAction setShowTip = new Action("Show tooltip on edit", IAction.AS_CHECK_BOX) {
@@ -361,7 +361,7 @@ public class ControlTreeViewer {
 		};
 		setShowTip.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS));
 		setShowTip.setImageDescriptor(Activator.getImageDescriptor("icons/balloon.png"));
-		addGroups("tip", mans, setShowTip);
+		ViewUtil.addGroups("tip", mans, setShowTip);
 
 		tviewer.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -376,17 +376,6 @@ public class ControlTreeViewer {
 		});
 
 		viewer.getViewer().getControl().setMenu(rightClick.createContextMenu(viewer.getViewer().getControl()));
-	}
-	
-	private void addGroups(String id, List<IContributionManager> managers, IAction... actions) {
-		for (IContributionManager man : managers) addGroup(id, man, actions);
-	}
-	
-	private void addGroup(String id, IContributionManager manager, IAction... actions) {
-		manager.add(new Separator(id));
-		for (IAction action : actions) {
-			manager.add(action);
-		}
 	}
 
 	public void setSearchVisible(boolean b) {

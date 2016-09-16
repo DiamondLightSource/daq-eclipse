@@ -42,4 +42,9 @@ public class DevicePreferenceConstants {
 	 */
 	public static final String END_POSITION = "org.eclipse.scanning.device.ui.scan.endPosition";
 
+	/**
+	 * Record if the user would like to see scan information
+	 */
+	public static final String SHOW_SCAN_INFO = "org.eclipse.scanning.device.ui.scan.showScanSummary";
+
 }

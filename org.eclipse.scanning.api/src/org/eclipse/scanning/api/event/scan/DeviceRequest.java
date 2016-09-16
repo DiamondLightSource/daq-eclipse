@@ -70,7 +70,6 @@ public class DeviceRequest extends IdBean {
 	 */
 	private Object deviceValue;
 
-	
 	/**
 	 * Set wether a create call (one where the model is non-null)
 	 * should call configure on the device.
@@ -168,6 +167,13 @@ public class DeviceRequest extends IdBean {
 	public DeviceRequest(String name, DeviceType type) {
 		this.deviceName  = name;
 		this.deviceType  = type;
+	}
+
+
+	public DeviceRequest(String name, DeviceType type, DeviceAction action, boolean activated) {
+		this(name, type);
+		this.deviceAction = action;
+		this.deviceValue  = activated;
 	}
 
 

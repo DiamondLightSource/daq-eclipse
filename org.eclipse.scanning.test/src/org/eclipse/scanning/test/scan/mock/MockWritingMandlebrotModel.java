@@ -30,7 +30,7 @@ public class MockWritingMandlebrotModel {
 		rows          = 241;
 		maxx          = 1.5;
 		maxy          = 1.2;
-		name          = "mandelbrot_detector";
+		name          = "mandelbrot";
 		xName         = "x";
 		yName         = "y";
 		xSize         = -1;

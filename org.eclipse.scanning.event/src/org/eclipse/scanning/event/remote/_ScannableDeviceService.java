@@ -10,6 +10,7 @@ import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
@@ -29,6 +30,11 @@ class _ScannableDeviceService extends AbstractRemoteService implements IScannabl
 	@Override
 	public void disconnect() throws EventException {
 		requester.disconnect(); // Requester can still be used again after a disconnect
+		for (String name : scannables.keySet()) {
+			IScannable<?> scannable = scannables.remove(name);
+			if (scannable instanceof IDisconnectable) ((IDisconnectable)scannable).disconnect();
+		}
+		scannables.clear();
 	}
 	
 	@Override

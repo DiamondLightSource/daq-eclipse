@@ -34,10 +34,10 @@
       </view>
       <view
             category="org.eclipse.scanning.device.ui"
-            class="org.eclipse.scanning.device.ui.points.SummaryView"
+            class="org.eclipse.scanning.device.ui.points.ExecuteView"
             icon="icons/scanner--info.png"
-            id="org.eclipse.scanning.device.ui.scan.SummaryView"
-            name="Summary">
+            id="org.eclipse.scanning.device.ui.scan.executeView"
+            name="Run">
       </view>
       <view
             category="org.eclipse.scanning.device.ui"
