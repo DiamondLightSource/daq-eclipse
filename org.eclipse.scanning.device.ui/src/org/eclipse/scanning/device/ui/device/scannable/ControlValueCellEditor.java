@@ -194,6 +194,7 @@ class ControlValueCellEditor extends CellEditor implements IPositionListener {
  	}
 
 	protected void setPosition(Number value) {
+		if (tip!=null) tip.setVisible(false);
 		if (cmode.isDirectlyConnected()) {
 		    job.setPosition(scannable, value);
 		} else {
@@ -301,6 +302,11 @@ class ControlValueCellEditor extends CellEditor implements IPositionListener {
 				text.setText(message);
 			}
 		});
+	}
+	
+	public void dispose() {
+		super.dispose();
+		if (tip!=null) tip.dispose();
 	}
 
 	/**
