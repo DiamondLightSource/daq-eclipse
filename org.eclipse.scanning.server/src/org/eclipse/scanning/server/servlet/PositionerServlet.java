@@ -1,6 +1,10 @@
 package org.eclipse.scanning.server.servlet;
 
+import static org.eclipse.scanning.api.event.EventConstants.POSITIONER_REQUEST_TOPIC;
+import static org.eclipse.scanning.api.event.EventConstants.POSITIONER_RESPONSE_TOPIC;
+
 import org.eclipse.scanning.api.device.PositionerResponse;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
@@ -27,6 +31,10 @@ import org.eclipse.scanning.api.event.scan.PositionerRequest;
  *
  */
 public class PositionerServlet extends AbstractResponderServlet<PositionerRequest> {
+	
+	public PositionerServlet() {
+		super(POSITIONER_REQUEST_TOPIC, POSITIONER_RESPONSE_TOPIC);
+	}
 
 	@Override
 	public IResponseProcess<PositionerRequest> createResponder(PositionerRequest bean, IPublisher<PositionerRequest> response) throws EventException {

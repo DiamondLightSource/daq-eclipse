@@ -42,8 +42,8 @@ public abstract class AbstractResponderServlet<B extends IdBean> implements IRes
 	
 	
 	// Recommended to configure these as
-	protected String        requestTopic  = IEventService.DEVICE_REQUEST_TOPIC;
-	protected String        responseTopic = IEventService.DEVICE_RESPONSE_TOPIC;
+	protected String        requestTopic;
+	protected String        responseTopic;
 	
 	// The responder for requests to this servlet.
 	protected IResponder<B>   responder;
