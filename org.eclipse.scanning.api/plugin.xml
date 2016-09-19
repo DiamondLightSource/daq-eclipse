@@ -6,5 +6,6 @@
    <extension-point id="resultsHandler" name="Open Results" schema="schema/resultsHandler.exsd"/>
    <extension-point id="rerunHandler" name="Rerun" schema="schema/rerunHandler.exsd"/>
    <extension-point id="modifyHandler" name="Modify Submitted Run" schema="schema/modifyHandler.exsd"/>
+   <extension-point id="stream" name="Stream Source" schema="schema/stream.exsd"/>
 
 </plugin>

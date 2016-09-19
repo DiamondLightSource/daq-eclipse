@@ -1,55 +1,62 @@
 package org.eclipse.scanning.device.ui.vis;
 
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.dawnsci.analysis.api.io.IRemoteDatasetService;
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.dawnsci.plotting.api.IPlottingService;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.PlotType;
-import org.eclipse.dawnsci.plotting.api.axis.IAxis;
 import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
-import org.eclipse.january.dataset.DataEvent;
-import org.eclipse.january.dataset.IDataListener;
 import org.eclipse.january.dataset.IDataset;
-import org.eclipse.january.dataset.IDatasetConnector;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.richbeans.widgets.menu.CheckableActionGroup;
+import org.eclipse.richbeans.widgets.menu.MenuAction;
+import org.eclipse.scanning.api.streams.IStreamConnection;
+import org.eclipse.scanning.api.streams.StreamConnectionException;
+import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * A view which displays a view of a stream, either MJpeg or Epics array.
  * 
+ * TODO: Matt Taylor this needs to be your absolute best commented and organised code
+ * please, because it will go in the open source scanning project!
+ * 
  * @author Matthew Taylor
+ * @author Matthew Gerring
  *
  */
 public class StreamView extends ViewPart implements IAdaptable {
 	
 	public static final String ID = "org.eclipse.scanning.device.ui.vis.StreamView";
 	
-	private static final long DEFAULT_SLEEP_TIME = 50; // ms i.e. 20 fps
-	
-	private static final int DEFAULT_CACHE_SIZE = 3; // frames
-	
 	private static final Logger logger = LoggerFactory.getLogger(StreamView.class);
-			
+		
+	// UI
 	protected IPlottingSystem<Composite> system;
 	
-	protected IRemoteDatasetService service;
-	
-	protected IDatasetConnector datasetConenctor;
+	// Connectors
+	private IStreamConnection<IDataset>       selected;
+	private List<IStreamConnection<IDataset>> connectors;
 	
 	public StreamView() {
 		try {
-			service = ServiceHolder.getRemoteDatasetService();
-			
+			this.connectors = new ArrayList<>();
 			IPlottingService plottingService = ServiceHolder.getPlottingService();
 			system = plottingService.createPlottingSystem();
 			
@@ -61,25 +68,101 @@ public class StreamView extends ViewPart implements IAdaptable {
 
 	@Override
 	public void createPartControl(Composite parent) {
-		system.createPlotPart(parent, getPartName(), getViewSite().getActionBars(), PlotType.IMAGE, this); 
-		
-		for (IAxis axis : system.getAxes()) {
-			axis.setVisible(false);
-		}
-				
-		try {
-			
-			URL url = new URL("http://ws137.diamond.ac.uk:8080/ADSIM.mjpg.mjpg"); // TODO hard coded for now. Replace with user setting.
-			
-			// TODO determine if colour or grayscale somehow, and create different dataset type depending on that
-			datasetConenctor = service.createGrayScaleMJPGDataset(url, DEFAULT_SLEEP_TIME, DEFAULT_CACHE_SIZE);
+		createConnectionActions();
 
-			datasetConenctor.connect();
+		system.createPlotPart(parent, getPartName(), getViewSite().getActionBars(), PlotType.IMAGE, this);
+		connect(findLastConnection()); // TODO Should it be the first one in the list.
+	}
+	
+	private IStreamConnection<IDataset> findLastConnection() {
+		
+		String id = Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.STREAM_ID);
+		if (id==null) return connectors.get(0);
+		
+		for (IStreamConnection<IDataset> connector : connectors) {
+			if (connector.getId().equals(id)) return connector;
+		}
+		return connectors.get(0);
+	}
+
+	private void createConnectionActions() {
+		
+		connectors.clear();
+		
+		String lastId = Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.STREAM_ID);
+
+		
+		final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.stream");
+		for (IConfigurationElement e : eles) {
+
+			CheckableActionGroup group = new CheckableActionGroup();
+			try {
+				final IStreamConnection<IDataset> connection = (IStreamConnection<IDataset>)e.createExecutableExtension("stream");
+				connectors.add(connection);
+				connection.setId(e.getAttribute("id"));
+				connection.setLabel(e.getAttribute("label"));
+				
+				final String iconPath = e.getAttribute("icon");
+				ImageDescriptor icon=null;
+		    	if (iconPath!=null) {
+			    	final String   id    = e.getContributor().getName();
+			    	final Bundle   bundle= Platform.getBundle(id);
+			    	final URL      entry = bundle.getEntry(iconPath);
+			    	icon = ImageDescriptor.createFromURL(entry);
+		    	}
+
+		    	final MenuAction menu = new MenuAction(connection.getLabel());
+		    	final IAction connect = new Action(connection.getLabel(), IAction.AS_CHECK_BOX) {
+		    		public void run() {
+		    			connect(connection);
+		    		}
+		    	};
+		    	connect.setImageDescriptor(icon);
+		    	connect.setChecked(lastId!=null && lastId.equals(connection.getId()));
+		    	group.add(connect);
+		    	menu.add(connect);
+		    	menu.setSelectedAction(connect);
+		    	
+		    	final IAction configure = new Action("Configure...") {
+		    		public void run() {
+		    			configure(connection);
+		    		}
+		    	};
+		    	menu.add(configure);
+
+		    	getViewSite().getActionBars().getToolBarManager().add(menu);
 			
-			IDataset image = datasetConenctor.getSlice();
-			if (image.getShape()==null || image.getShape().length==0) {
-				throw new IllegalArgumentException("There is no data to prepare, is the device turned on?");
+			} catch (Exception ne) {
+				logger.error("Problem creating stream connection for "+e, ne);
 			}
+			
+			getViewSite().getActionBars().getToolBarManager().add(new Separator());
+		}
+		
+	}
+
+	private void configure(IStreamConnection<IDataset> connection) {
+		try {
+			connection.configure();
+			if (selected == connection) connect(connection);
+		} catch (StreamConnectionException sce) {			
+			logger.error("Internal error, connection cannot be configured!", sce);
+		}
+	}
+
+	private void connect(IStreamConnection<IDataset> connection) {
+		
+		try {
+			if (selected!=null) {
+				try {
+					selected.disconnect();
+				} catch (StreamConnectionException sce) {				
+					logger.error("Internal error, connection cannot be disconnected!", sce);
+				}
+			}
+			IDataset image = connection.connect();
+			selected = connection;
+			Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.STREAM_ID, selected.getId());
 			
 			IImageTrace trace = (IImageTrace)system.createPlot2D(image, null, null);
 			
@@ -93,34 +176,12 @@ public class StreamView extends ViewPart implements IAdaptable {
 			// Disable auto rescale as the live stream is constantly refreshing
 			system.setRescale(false);
 			
-			datasetConenctor.addDataListener(new IDataListener() {	
-				int[] oldShape;
-				@Override
-				public void dataChangePerformed(DataEvent evt) {
-					if (!Arrays.equals(evt.getShape(), oldShape)) {
-						oldShape = evt.getShape();
-						// Need to be in the UI thread to do rescaling
-						PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-							@Override
-							public void run() {
-								system.autoscaleAxes();
-								trace.rehistogram();
-							}
-						});
-					}
-				}
-			});
-
-		} catch (MalformedURLException e) {
-			// TODO Handle URL exception
-			//e.printStackTrace();
-		} catch (Exception e) {
-			// TODO handle exception
-			//e.printStackTrace();
+		} catch (StreamConnectionException sce) {			
+			logger.error("Internal error, connection cannot be reached!", sce);
 		}
-		 
+		
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public  <T> T getAdapter(Class<T> adapter) {
@@ -137,12 +198,11 @@ public class StreamView extends ViewPart implements IAdaptable {
 	@Override
 	public void dispose() {
 		if (system!=null) system.dispose();
-		if (datasetConenctor != null) {
+		for (IStreamConnection<IDataset> iStreamConnection : connectors) {
 			try {
-				datasetConenctor.disconnect();
-				datasetConenctor = null;
-			} catch (Exception e) {
-				logger.error("Error disconnecting remote data stream", e);
+				iStreamConnection.disconnect();
+			} catch (StreamConnectionException e) {
+				logger.error("Cannot disconnect "+iStreamConnection.getLabel(), e);
 			}
 		}
 		super.dispose();
