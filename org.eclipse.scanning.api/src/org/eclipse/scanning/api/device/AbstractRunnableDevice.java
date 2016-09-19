@@ -33,7 +33,11 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
  *
  * @param <T>
  */
-public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, IModelProvider<T>, IScanAttributeContainer, IPositionListenable {
+public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<T>, 
+                                                           IModelProvider<T>, 
+                                                           IScanAttributeContainer, 
+                                                           IPositionListenable,
+                                                           IActivatable {
 
 	// Data
 	protected T                          model;
@@ -347,6 +351,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		deviceInformation.setState(getDeviceState());
 		if (getName()!=null) deviceInformation.setName(getName());
 		deviceInformation.setLevel(getLevel());
+		deviceInformation.setActivated(isActivated());
  		return deviceInformation;
 	}
 
@@ -369,8 +374,22 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void validate(T model) throws Exception {
 		if (model instanceof IDetectorModel) {
 			IDetectorModel dmodel = (IDetectorModel)model;
-			if (dmodel.getExposureTime()<=0) throw new ModelValidationException("The exposure time must be non-zero!", model, "exposureTime");
+			if (dmodel.getExposureTime()<=0) throw new ModelValidationException("The exposure time for '"+getName()+"' must be non-zero!", model, "exposureTime");
 		}
+	}
+	
+	private boolean activated = false;
+
+	@Override
+	public boolean isActivated() {
+		return activated;
+	}
+	
+	@Override
+	public boolean setActivated(boolean activated) {
+		boolean wasactivated = this.activated;
+		this.activated = activated;
+		return wasactivated;
 	}
 
 }

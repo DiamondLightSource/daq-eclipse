@@ -13,13 +13,13 @@ import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
+import org.eclipse.dawnsci.plotting.api.axis.IAxis;
 import org.eclipse.dawnsci.plotting.api.preferences.BasePlottingConstants;
 import org.eclipse.dawnsci.plotting.api.region.ColorConstants;
 import org.eclipse.dawnsci.plotting.api.region.IRegion;
 import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
 import org.eclipse.dawnsci.plotting.api.region.IRegionListener;
 import org.eclipse.dawnsci.plotting.api.region.RegionEvent;
-import org.eclipse.dawnsci.plotting.api.region.RegionUtils;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
@@ -46,6 +46,7 @@ import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
+import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
@@ -59,7 +60,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ToolTip;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.part.ViewPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,6 +110,8 @@ public class ScanRegionView extends ViewPart {
 	
 	// File
 	private Stashing stash;
+
+	private DelegatingSelectionProvider selectionDelegate;
 	
 	public ScanRegionView() {
 		
@@ -129,7 +131,7 @@ public class ScanRegionView extends ViewPart {
 	public void createPartControl(Composite ancestor) {
 		
 		// TODO Action to choose a different plotting system?
-		this.system = getPlottingSystem();
+		this.system = PlotUtil.getRegionSystem();
 
 		Composite control = new Composite(ancestor, SWT.NONE);
 		control.setLayout(new GridLayout(1, false));
@@ -180,22 +182,24 @@ public class ScanRegionView extends ViewPart {
 
 		
 		createActions();
-		DelegatingSelectionProvider prov = new DelegatingSelectionProvider(viewer);
+		this.selectionDelegate = new DelegatingSelectionProvider(viewer);
 		try {
- 			createColumns(viewer, prov);
+ 			createColumns(viewer, selectionDelegate);
 		} catch (EventException | URISyntaxException e1) {
 			logger.error("Serious internal error trying to create table columns!", e1);
 		}
 		
-		getSite().setSelectionProvider(prov);
+		getSite().setSelectionProvider(selectionDelegate);
 		viewer.setInput(system);
 		system.addRegionListener(regionListener);
 		
 		if (Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.AUTO_SAVE_REGIONS)) {
 			List<ScanRegion<IROI>> regions = stash.unstash(List.class);
 			createRegions(regions);
+			viewer.refresh();
 		}
 		
+		// Called when user clicks on UI
 		viewer.addSelectionChangedListener(new ISelectionChangedListener() {		
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
@@ -207,6 +211,21 @@ public class ScanRegionView extends ViewPart {
 				}
 			}
 		});
+		
+		// Called when user clicks on UI and when axes change.
+		selectionDelegate.addSelectionChangedListener(new ISelectionChangedListener() {		
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				try {
+					ScanRegion<IROI> region = (ScanRegion<IROI>)((IStructuredSelection)event.getSelection()).getFirstElement();
+					checkAxes(Arrays.asList(region));
+				} catch (Exception ne) {
+					logger.warn("Cannot select scan region", ne); // Not serious.
+				}
+			}
+		});
+
+		
 		viewer.getControl().addFocusListener(new FocusAdapter() {
 			public void focusLost(FocusEvent e) {
 				setSelectedRegion(null);
@@ -214,6 +233,25 @@ public class ScanRegionView extends ViewPart {
 		});
 
 	}
+	
+	private void checkAxes(Collection<ScanRegion<IROI>> regions) {
+		for (ScanRegion<IROI> region : regions) {
+			if (region!=null) {
+				IRegion iregion = system.getRegion(region.getName());
+				if (iregion!=null) {
+					List<String> axes = getAxisNames(system);
+					iregion.setVisible(axes.containsAll(region.getScannables()));
+				}
+			}
+		}
+	}
+
+	private List<String> getAxisNames(IPlottingSystem<?> system) {
+		List<String> axes = new ArrayList<>();
+		for (IAxis axis : system.getAxes()) axes.add(axis.getTitle());
+		return axes;
+	}
+
 	private void setSelectedRegion(ScanRegion<IROI> sregion){
 		
 		Collection<IRegion> regions = system.getRegions();
@@ -235,19 +273,12 @@ public class ScanRegionView extends ViewPart {
     	
     	if (!Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.AUTO_SAVE_REGIONS)) return;
     	try {
-    		stash.stash(ScanRegionContentProvider.getScanRegions(system));
+    		stash.stash(ScanRegions.getScanRegions(system));
 		} catch (Exception e) {
 			logger.error("Problem stashing control factory!", e);
 		}
     }
 
-
-	private IPlottingSystem<?> getPlottingSystem() {
-        // We search for a view which has a PlottingController attached to its plotting system
-		// Then we know that this view is designed to respond to mapping.
-		IViewPart map = PlotUtil.getRegionView();
-		return map.getAdapter(IPlottingSystem.class);
-	}
 
 	private String lastPath = null;
 	private final static String[] extensions = new String[]{"json", "*.*"};
@@ -274,7 +305,7 @@ public class ScanRegionView extends ViewPart {
 		final IAction save = new Action("Save regions", IAction.AS_PUSH_BUTTON) {
 		    public void run() {
 				
-				List<ScanRegion<IROI>> regions = ScanRegionContentProvider.getScanRegions(system);
+				List<ScanRegion<IROI>> regions = ScanRegions.getScanRegions(system);
 				
 				if (regions == null) return;
 				FileSelectionDialog dialog = new FileSelectionDialog(getViewSite().getShell());
@@ -346,8 +377,18 @@ public class ScanRegionView extends ViewPart {
 		Stashing stash = new Stashing(new File(filePath), ServiceHolder.getEventConnectorService());
 		List<ScanRegion<IROI>> regions = stash.load(List.class, getViewSite().getShell());
 		createRegions(regions);
+		viewer.refresh();
 	}
 	
+	private void createRegions(List<ScanRegion<IROI>> regions) {
+		try {
+			ScanRegions.createRegions(system, regions);
+			checkAxes(regions);
+		} catch (Exception e) {
+			logger.error("Problem reading regions", e);
+		}
+	}
+
 	private void createColumns(TableViewer viewer, DelegatingSelectionProvider prov) throws EventException, URISyntaxException {
 		
         TableViewerColumn var   = new TableViewerColumn(viewer, SWT.LEFT, 0);
@@ -381,6 +422,7 @@ public class ScanRegionView extends ViewPart {
 	
 	@Override
 	public void dispose() {
+		if (selectionDelegate!=null) selectionDelegate.dispose();
 		if (viewer!=null) viewer.getTable().dispose();
 		if (system!=null) system.removeRegionListener(regionListener);
 		super.dispose();
@@ -410,7 +452,11 @@ public class ScanRegionView extends ViewPart {
 			
             IAction action = new Action("Press to click and drag a "+regionType.getName()+" on '"+PlotUtil.getRegionViewName()+"'") {
             	public void run() {
-            		createRegion(regionType, regionViewName, null);
+            		try {
+						ScanRegions.createRegion(system, regionType, regionViewName, null);
+					} catch (Exception e) {
+						logger.error("Unable to create region!", e);
+					}
     				showTip(tip, "Drag a box in the '"+regionViewName+"' to create a scan region.");
             		rois.setSelectedAction(this);
             	}
@@ -435,47 +481,6 @@ public class ScanRegionView extends ViewPart {
 			logger.error("Cannot get plotting menu for adding regions!", ne);
 			return Activator.getImageDescriptor("icons/ProfileBox.png");
 		}
-	}
-
-	
-	private void createRegions(List<ScanRegion<IROI>> regions) {
-		try {
-			if (regions!=null && !regions.isEmpty()) {
-				for (ScanRegion<IROI> scanRegion : regions) {
-					IRegion region = createRegion((RegionType)scanRegion.getType(), system.getPlotName(), scanRegion.getRoi());
-					region.setUserObject(scanRegion);
-				}
-			}
-			viewer.refresh();
-		} catch (Exception ne) {
-			logger.error("Unable to read stored regions!", ne);
-		}
-	}
-
-	private IRegion createRegion(RegionType regionType, final String regionViewName, IROI roi) {
-		
-		if (system!=null) {
-			try {
-				IRegion region = system.createRegion(RegionUtils.getUniqueName("Scan "+regionType.getName(), system), regionType);
-				
-				String x = system.getAxes().get(0).getTitle();
-				String y = system.getAxes().get(1).getTitle();
-				region.setUserObject(new ScanRegion<IROI>(region.getName(), regionType, Arrays.asList(x,y))); 
-				region.setRegionColor(ColorConstants.blue);
-				region.setAlpha(25);
-				region.setLineWidth(1);
-				if (roi!=null) {
-					region.setROI(roi);
-					system.addRegion(region);
-					region.repaint();
-				}
-				return region;
-
-			} catch (Exception e1) {
-				logger.error("Cannot create a bounding box!", e1);
-			}
-		}
-		return null;
 	}
 
 	private void showTip(ToolTip tip, String message) {

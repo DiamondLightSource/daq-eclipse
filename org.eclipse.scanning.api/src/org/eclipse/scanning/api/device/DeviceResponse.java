@@ -162,6 +162,13 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 					device.abort();
 				} else if (action==DeviceAction.RESET) {
 					device.reset();
+				} else if (action==DeviceAction.ACTIVATE) {
+					if (device instanceof IActivatable) {
+						IActivatable adevice = (IActivatable)device;
+						adevice.setActivated((Boolean)request.getDeviceValue());
+					} else {
+						throw new EventException("The device '"+device.getName()+"' is not "+IActivatable.class.getSimpleName());
+					}
 				}
 			}
 			

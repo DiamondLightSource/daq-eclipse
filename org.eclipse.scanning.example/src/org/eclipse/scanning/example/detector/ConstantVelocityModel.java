@@ -5,7 +5,7 @@ import org.eclipse.scanning.api.ITimeoutable;
 public class ConstantVelocityModel implements ITimeoutable {
 
 	private double start,stop,step;
-	private String name      = "cvDevice";
+	private String name      = "cvExmpl";
 	private int lineSize     = 1;
 	private int channelCount = 64;
 	private int spectraSize  = 46;

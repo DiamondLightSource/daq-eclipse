@@ -6,18 +6,29 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.scanning.api.device.IActivatable;
+import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.EventConnectionView;
+import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TableItem;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,19 +45,26 @@ public class DetectorView extends EventConnectionView {
 	private static final Logger logger = LoggerFactory.getLogger(DetectorView.class);
 	public  static final String ID     = "org.eclipse.scanning.device.ui.detectorView";
 	
-	private TableViewer viewer;
-	private Image defaultIcon;
+	// UI
+	private TableViewer       viewer;
+	private Image             ticked, unticked, defaultIcon;
 	private Map<String,Image> iconMap;
+
+	// Services
+	private IRunnableDeviceService dservice;
 	
 	public DetectorView() {
 		try {
 		    this.defaultIcon = Activator.getImageDescriptor("icons/camera-lens.png").createImage();
+		    this.ticked      = Activator.getImageDescriptor("icons/ticked.png").createImage();
+		    this.unticked    = Activator.getImageDescriptor("icons/unticked.gif").createImage();
 		} catch (Throwable ne) {
-			this.defaultIcon = null;
+			ne.printStackTrace(); // Should not happen
 		}
 		this.iconMap     = new HashMap<>(7);
 	}
 	
+            
 	@Override
 	public void createPartControl(Composite parent) {
 		
@@ -58,8 +76,10 @@ public class DetectorView extends EventConnectionView {
 
 		createColumns(viewer, "", "Name");
 		
+
 		try {
-			viewer.setContentProvider(new DetectorContentProvider(getUri()));
+			this.dservice = ServiceHolder.getEventService().createRemoteService(getUri(), IRunnableDeviceService.class);
+			viewer.setContentProvider(new DetectorContentProvider(dservice));
 		} catch (Exception e) {
 			logger.error("Cannot create content provider", e);
 		}
@@ -73,16 +93,54 @@ public class DetectorView extends EventConnectionView {
 
 	}
 
+;
+	
 	private void createColumns(TableViewer tableViewer, String icon, String name) {
 		
-		TableViewerColumn iconColumn = new TableViewerColumn(tableViewer, SWT.NONE);
-		iconColumn.getColumn().setWidth(20);
+		TableViewerColumn tickedColumn = new TableViewerColumn(tableViewer, SWT.CENTER);
+		tickedColumn.getColumn().setWidth(24);
+		tickedColumn.getColumn().setMoveable(false);
+		tickedColumn.setLabelProvider(new ColumnLabelProvider() {
+			public Image getImage(Object element) {
+				
+				if (!(element instanceof DeviceInformation)) return null;
+				DeviceInformation<?> info = (DeviceInformation<?>)element;
+				
+				return info.isActivated() ? ticked : unticked;
+			}
+		});
+		
+        MouseAdapter mouseClick = new MouseAdapter() {
+			@Override
+			public void mouseDown(MouseEvent e) {
+			    Point pt = new Point(e.x, e.y);
+				TableItem item = viewer.getTable().getItem(pt);
+				if (item == null) return;
+				Rectangle rect = item.getBounds(0);
+				if (rect.contains(pt)) {
+					final DeviceInformation<?> info = (DeviceInformation<?>)item.getData();
+					try {
+						IActivatable device = (IActivatable)dservice.getRunnableDevice(info.getName());
+						device.setActivated(!info.isActivated());
+						info.setActivated(!info.isActivated());
+					} catch (ScanningException e1) {
+						logger.error("Unable to set activated state!", e1);
+					}
+					tableViewer.refresh(info);
+				}
+			}
+        };
+		tableViewer.getTable().addMouseListener(mouseClick);
+
+		
+		TableViewerColumn iconColumn = new TableViewerColumn(tableViewer, SWT.CENTER);
+		iconColumn.getColumn().setWidth(24);
 		iconColumn.getColumn().setMoveable(false);
 		iconColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public Image getImage(Object element) {
 				if (!(element instanceof DeviceInformation)) return null;
-				DeviceInformation info = (DeviceInformation)element;
+				DeviceInformation<?> info = (DeviceInformation<?>)element;
 				if (info.getIcon()==null) return defaultIcon;
 				try {
 					return getIcon(info.getIcon());
@@ -93,14 +151,14 @@ public class DetectorView extends EventConnectionView {
 			}
 		});
 
-		TableViewerColumn nameColumn = new TableViewerColumn(tableViewer, SWT.NONE);
+		TableViewerColumn nameColumn = new TableViewerColumn(tableViewer, SWT.LEFT);
 		nameColumn.getColumn().setWidth(300);
 		nameColumn.getColumn().setMoveable(false);
 		nameColumn.getColumn().setText(name);
 		nameColumn.setLabelProvider(new ColumnLabelProvider() {
 			public String getText(Object element) {
 				if (!(element instanceof DeviceInformation)) return null;
-				DeviceInformation info = (DeviceInformation)element;
+				DeviceInformation<?> info = (DeviceInformation<?>)element;
 				String label = info.getLabel();
 				if (label==null) label = info.getName();
 				if (label==null) label = info.getId();
@@ -148,11 +206,13 @@ public class DetectorView extends EventConnectionView {
 	 * Create the actions.
 	 */
 	private void createActions() {
-		getViewSite().getActionBars().getToolBarManager().add(new Action("Refresh") {
+		IAction refresh = new Action("Refresh", Activator.getImageDescriptor("icons/recycle.png")) {
 			public void run() {
 				viewer.refresh();
 			}
-		});
+		};
+		getViewSite().getActionBars().getToolBarManager().add(refresh);
+		getViewSite().getActionBars().getMenuManager().add(refresh);
 	}
 
 	/**
@@ -176,7 +236,9 @@ public class DetectorView extends EventConnectionView {
 	
 	public void dispose() {
 		super.dispose();
-		defaultIcon.dispose();
+		if (ticked!=null)   ticked.dispose();
+		if (unticked!=null) unticked.dispose();
+		if (defaultIcon!=null) defaultIcon.dispose();
 		for (String path : iconMap.keySet()) iconMap.get(path).dispose();
 		iconMap.clear();
 	}

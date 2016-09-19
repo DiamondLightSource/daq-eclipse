@@ -2,6 +2,8 @@ package org.eclipse.scanning.event.remote;
 
 import java.net.URI;
 
+import org.eclipse.scanning.api.annotation.ui.DeviceType;
+import org.eclipse.scanning.api.device.IActivatable;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -14,7 +16,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDevice<M> {
+class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDevice<M>, IActivatable {
 	
 	private final static Logger logger = LoggerFactory.getLogger(_RunnableDevice.class);
 
@@ -94,6 +96,17 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 		} catch (Exception ne) {
 			throw new ScanningException(ne);
 		}
+	}
+
+	public boolean isActivated() {
+		update();
+		return info.isActivated();
+	}
+	
+	public boolean setActivated(boolean activated) throws ScanningException {
+		boolean wasactivated = info.isActivated();
+		method(new DeviceRequest(info.getName(), DeviceType.RUNNABLE, DeviceAction.ACTIVATE, activated));
+		return wasactivated;
 	}
 
 }

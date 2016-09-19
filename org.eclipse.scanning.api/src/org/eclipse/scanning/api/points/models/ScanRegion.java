@@ -97,4 +97,22 @@ public class ScanRegion<T> implements INameable {
 	public void setType(Object type) {
 		this.type = type;
 	}
+	@Override
+	public String toString() {
+		StringBuilder buf = new StringBuilder();
+		if (name!=null) {
+			buf.append(name);
+			buf.append(" ");
+		}
+		if (roi!=null) {
+			buf.append("Type: [");
+			buf.append(roi.getClass().getSimpleName());
+			buf.append("] ");
+		}
+		if (scannables!=null) {
+			buf.append("Axes: ");
+			buf.append(scannables);
+		}
+		return buf.toString();
+	}
 }

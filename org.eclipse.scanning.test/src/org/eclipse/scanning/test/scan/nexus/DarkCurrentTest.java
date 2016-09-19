@@ -198,7 +198,7 @@ public class DarkCurrentTest extends NexusTest {
 		NXentry entry = rootNode.getEntry();
 
 		LinkedHashMap<String, List<String>> detectorDataFields = new LinkedHashMap<>();
-		if (detectorName.equals("dark")) {
+		if (detectorName.equals("dkExmpl")) {
 			detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("."));
 		} else if (detectorName.equals("mandelbrot")) {
 			detectorDataFields.put(NXdetector.NX_DATA, Arrays.asList("real", "imaginary"));

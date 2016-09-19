@@ -77,17 +77,18 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 		
 		if (IPointGenerator.class==clazz) return generator;
 		if (List.class == clazz)          return getGenerators();
-		if (CompoundModel.class == clazz) return new CompoundModel(getModels()); // TODO Regions?
+		if (CompoundModel.class == clazz) return new CompoundModel(getModels());
 		return null;
 	}
 	
-	private List getModels() {
+	private List<? extends IScanPathModel> getModels() {
 		
 		List<IPointGenerator<?>> gens = getGenerators();
-		List     ret  = new ArrayList<>(gens.size());
-		for (IPointGenerator<?> gen : gens) ret.add(gen.getModel());
+		List<IScanPathModel>  ret  = new ArrayList<>(gens.size());
+		for (IPointGenerator<?> gen : gens) ret.add((IScanPathModel)gen.getModel());
 		return ret;
 	}
+	
 	private List<IPointGenerator<?>> getGenerators() {
 		// They can only ask for a list of the series of 
 		// generators which we are editing.

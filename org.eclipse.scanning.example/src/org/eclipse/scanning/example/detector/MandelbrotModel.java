@@ -72,7 +72,7 @@ public class MandelbrotModel implements IDetectorModel {
 		points = 1000;
 		maxRealCoordinate = 1.5;
 		maxImaginaryCoordinate = 1.2;
-		name = "mandelbrot_detector";
+		name = "mandelbrot";
 		realAxisName = "x";
 		imaginaryAxisName = "y";
 	}

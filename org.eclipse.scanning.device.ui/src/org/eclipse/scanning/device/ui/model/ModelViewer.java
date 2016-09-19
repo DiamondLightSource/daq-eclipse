@@ -44,10 +44,10 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
-import org.eclipse.scanning.device.ui.points.ScanRegionContentProvider;
 import org.eclipse.scanning.device.ui.points.ScanView;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
+import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -373,7 +373,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
 
         		IPlottingSystem<?>     system  = (IPlottingSystem<?>)PlotUtil.getRegionSystem();
-	    		List<ScanRegion<IROI>> regions = ScanRegionContentProvider.getScanRegions(system);
+	    		List<ScanRegion<IROI>> regions = ScanRegions.getScanRegions(system);
 	    		List<IROI> rois = ServiceHolder.getGeneratorService().findRegions(getModel(), regions);
 	    		BoundingBox      box  = bounds(rois);
 	    		((IBoundingBoxModel)getModel()).setBoundingBox(box);

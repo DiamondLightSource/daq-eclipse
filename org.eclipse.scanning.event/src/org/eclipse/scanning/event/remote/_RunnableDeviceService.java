@@ -2,12 +2,15 @@ package org.eclipse.scanning.event.remote;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.core.ResponseConfiguration;
@@ -26,16 +29,22 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 
 	private IRequester<DeviceRequest> requester;
 	private IScannableDeviceService   cservice;
+	private Map<String, IRunnableDevice<?>> runnables;
 	
 	public void init() throws EventException {
 		requester = eservice.createRequestor(uri, IEventService.DEVICE_REQUEST_TOPIC, IEventService.DEVICE_RESPONSE_TOPIC);
-		// TODO ResponseType.ONE_OR_MORE
-		requester.setResponseConfiguration(new ResponseConfiguration(ResponseType.ONE, RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()));
+		requester.setResponseConfiguration(new ResponseConfiguration(ResponseType.ONE, 500, RemoteServiceFactory.getTimeUnit()));
+		runnables = new HashMap<>();
 	}
 	
 	@Override
 	public void disconnect() throws EventException {
 		requester.disconnect(); // Requester can still be used again after a disconnect
+		for (String name : runnables.keySet()) {
+			IRunnableDevice<?> runnable = runnables.remove(name);
+			if (runnable instanceof IDisconnectable) ((IDisconnectable)runnable).disconnect();
+		}
+		runnables.clear();
 	}
 
 	@Override
@@ -74,7 +83,10 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 	@Override
 	public <T> IRunnableDevice<T> getRunnableDevice(String name, IPublisher<ScanBean> publisher) throws ScanningException {
 		try {
-			return new _RunnableDevice(new DeviceRequest(name), uri, eservice);
+			if (runnables.containsKey(name)) return (IRunnableDevice<T>)runnables.get(name);
+			IRunnableDevice<T> device = new _RunnableDevice(new DeviceRequest(name), uri, eservice);
+			runnables.put(name, device);
+			return device;
 		} catch (EventException | InterruptedException e) {
 			throw new ScanningException(e);
 		}

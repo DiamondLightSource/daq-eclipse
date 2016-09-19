@@ -29,8 +29,8 @@ class DetectorContentProvider implements IStructuredContentProvider {
 	 */
 	private IRunnableDeviceService dservice;
 	
-	public DetectorContentProvider(URI uri) throws EventException {
-		dservice = ServiceHolder.getEventService().createRemoteService(uri, IRunnableDeviceService.class);
+	public DetectorContentProvider(IRunnableDeviceService dservice) throws EventException {
+		this.dservice = dservice;
 	}
 
 	@Override
