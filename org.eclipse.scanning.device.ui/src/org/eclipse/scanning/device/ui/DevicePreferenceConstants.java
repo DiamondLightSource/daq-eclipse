@@ -47,4 +47,9 @@ public class DevicePreferenceConstants {
 	 */
 	public static final String SHOW_SCAN_INFO = "org.eclipse.scanning.device.ui.scan.showScanSummary";
 
+	/**
+	 * The preference which the stream choice is saved under.
+	 */
+	public static final String STREAM_ID = "org.eclipse.scanning.device.ui.streams.selectedStreamConnection";
+
 }
