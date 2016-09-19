@@ -174,7 +174,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		bean.setPosition(pos);
 		bean.setPreviousDeviceState(bean.getDeviceState());
 		if (size>-1) bean.setPercentComplete(((double)(count+1)/size)*100);
-
+		bean.setMessage("Point "+pos.getStepIndex()+" of "+size);
 		if (publisher != null) {
 			publisher.broadcast(bean);
 		}
@@ -346,7 +346,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	}
 
 	public DeviceInformation<T> getDeviceInformation() throws ScanningException {
-		if (deviceInformation==null) return null;
+		if (deviceInformation==null) deviceInformation = new DeviceInformation<T>();
 		deviceInformation.setModel(getModel());
 		deviceInformation.setState(getDeviceState());
 		if (getName()!=null) deviceInformation.setName(getName());

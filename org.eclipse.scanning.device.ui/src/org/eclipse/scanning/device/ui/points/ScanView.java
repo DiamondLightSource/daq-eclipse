@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.region.IRegion;
 import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
@@ -38,6 +39,7 @@ import org.eclipse.richbeans.widgets.table.event.SeriesItemListener;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
@@ -65,7 +67,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolTip;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewReference;
@@ -115,7 +116,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 		this.pservice     = ServiceHolder.getGeneratorService();
 		this.eservice     = ServiceHolder.getEventService();
 		this.seriesTable  = new SeriesTable();
-		this.pointsFilter = new GeneratorFilter(pservice, eservice.getEventConnectorService(), seriesTable);
+		this.pointsFilter = new GeneratorFilter(pservice, seriesTable, this);
 		this.stash = new Stashing("org.eclipse.scanning.device.ui.scan.models.json", ServiceHolder.getEventConnectorService());
 
 		this.store        = Activator.getDefault().getPreferenceStore();
@@ -332,19 +333,25 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	}
 
 	@Override
-	public Object getAdapter(Class clazz) {
+	public <T> T getAdapter(Class<T> clazz) {
 		
-		if (CompoundModel.class == clazz) return new CompoundModel(getModels());
+		if (CompoundModel.class == clazz) return (T)new CompoundModel<IROI>(getModels());
 		if (clazz==IScanPathModel.class) {
 			ISeriesItemDescriptor selected = seriesTable.getSelected();
 			if (!(selected instanceof GeneratorDescriptor)) return null;
-			return ((GeneratorDescriptor)selected).getModel();
+			return (T)((GeneratorDescriptor)selected).getModel();
+			
 		} else if (clazz==IPointGenerator.class || clazz==IPointGenerator[].class) {
-			return getGenerators();
-		}else if (clazz==Object[].class) {
-			return getModels();
-		}else if (clazz==List.class) {
-			return getModels();
+			return (T)getGenerators();
+			
+		} else if (clazz==Object[].class||clazz==List.class) {
+			return (T)getModels();
+			
+		} else if (clazz==IPosition[].class) {
+			IPosition[] ret = new IPosition[2];
+			if (store.getBoolean(DevicePreferenceConstants.START_POSITION)) ret[0] = this.startTree.toPosition();
+			if (store.getBoolean(DevicePreferenceConstants.END_POSITION))   ret[1] = this.endTree.toPosition();
+			return (T)ret;
 		}
 		return null;
 	}

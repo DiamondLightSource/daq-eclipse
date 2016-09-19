@@ -2,6 +2,7 @@ package org.eclipse.scanning.device.ui.util;
 
 import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.scanning.device.ui.vis.PlottingController;
+import org.eclipse.scanning.device.ui.vis.VisualiseView;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 
@@ -30,6 +31,13 @@ public class PlotUtil {
 			final PlottingController controller = part.getAdapter(PlottingController.class);
 			if (controller!=null) return part;
 		}
+    	// We know that there might be a view with the right plot on
+    	IViewReference ref = PageUtil.getPage().findViewReference(VisualiseView.ID);
+    	if (ref!=null) {
+    		IViewPart part = ref.getView(true);
+			final PlottingController controller = part.getAdapter(PlottingController.class);
+			if (controller!=null) return part;
+    	}
     	return null;
     }
 

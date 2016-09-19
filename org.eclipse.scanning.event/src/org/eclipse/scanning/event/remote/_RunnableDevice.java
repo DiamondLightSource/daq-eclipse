@@ -104,6 +104,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	}
 	
 	public boolean setActivated(boolean activated) throws ScanningException {
+		if (info==null) update();
 		boolean wasactivated = info.isActivated();
 		method(new DeviceRequest(info.getName(), DeviceType.RUNNABLE, DeviceAction.ACTIVATE, activated));
 		return wasactivated;

@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.ISeriesItemFilter;
 import org.eclipse.richbeans.widgets.table.SeriesTable;
-import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.slf4j.Logger;
@@ -25,14 +25,14 @@ final class GeneratorFilter implements ISeriesItemFilter {
 	
 	private static final Logger logger = LoggerFactory.getLogger(GeneratorFilter.class);
 	
-	private IPointGeneratorService pservice;
-	private IEventConnectorService cservice;
-	private SeriesTable            table; // Gets the table which provides access the series via getAdapter(...)
+	private final IPointGeneratorService pservice;
+	private final SeriesTable            table; // Gets the table which provides access the series via getAdapter(...)
+	private final IAdaptable             parent;
 
-	public GeneratorFilter(IPointGeneratorService pservice, IEventConnectorService cservice, SeriesTable table) {
+	public GeneratorFilter(IPointGeneratorService pservice, SeriesTable table, IAdaptable parent) {
 		this.pservice     = pservice;
-		this.cservice     = cservice;
 		this.table        = table;
+		this.parent       = parent;
 	}
 	
 	@Override
@@ -47,7 +47,7 @@ final class GeneratorFilter implements ISeriesItemFilter {
 			
 			for (String id : ids) {
 									
-				final GeneratorDescriptor des = new GeneratorDescriptor(table, id, pservice);
+				final GeneratorDescriptor des = new GeneratorDescriptor(table, id, pservice, parent);
 				if (!des.isVisible()) continue;
 				if (contents!=null && !des.matches(contents)) continue;
 				ret.add(des);
@@ -66,7 +66,7 @@ final class GeneratorFilter implements ISeriesItemFilter {
 	    List<GeneratorDescriptor<?>> descriptions = new ArrayList<>();
 		if (models!=null && models.size()>0) {
 			for (IScanPathModel model : models) {
-				final GeneratorDescriptor<?> des = new GeneratorDescriptor<>(table, model, pservice);
+				final GeneratorDescriptor<?> des = new GeneratorDescriptor<>(table, model, pservice, parent);
 				if (!des.isVisible()) continue;
 				descriptions.add(des);
 			}

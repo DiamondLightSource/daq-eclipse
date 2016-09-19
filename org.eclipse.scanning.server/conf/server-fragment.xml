@@ -63,9 +63,12 @@
         <property name="bundle"  value="org.eclipse.scanning.example"/> <!-- TODO Delete for real spring? -->
         <property name="broker"  value="${org.eclipse.scanning.broker.uri}" />
 	</bean>
-	
     <osgi:service ref="scannableDeviceService" interface="org.eclipse.scanning.api.device.IScannableDeviceService"/>
-
+	
+    <bean id="filePathService" class="org.eclipse.scanning.example.file.MockFilePathService">
+        <property name="bundle"  value="org.eclipse.scanning.example"/> <!-- TODO Delete for real spring? -->
+	</bean>
+    <osgi:service ref="filePathService" interface="org.eclipse.scanning.api.scan.IFilePathService"/>
 	
 	<!--  End testing/example only-->
 

@@ -41,7 +41,7 @@ public class ScanRequest<T> implements Serializable {
 	 * 
 	 * e.g. a StepModel
 	 */
-	private CompoundModel compoundModel;
+	private CompoundModel<T> compoundModel;
 
 	/** 
 	 * The names of the detectors to use in the scan, may be null.

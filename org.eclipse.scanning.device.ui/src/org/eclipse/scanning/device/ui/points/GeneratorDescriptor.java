@@ -6,8 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.SeriesTable;
@@ -22,18 +24,27 @@ import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.swt.graphics.Image;
 import org.osgi.framework.Bundle;
 
+/**
+ * 
+ * @author Matthew Gerring
+ *
+ * @param <T>
+ */
 public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesItemDescriptor, IValidator<T>, IModelProvider<T> {
 	
 	private final IPointGenerator<T> generator;
 	private final SeriesTable        table;
+	private final IAdaptable         parent;
 
-	public GeneratorDescriptor(SeriesTable table, String id, IPointGeneratorService pservice) throws GeneratorException {
+	public GeneratorDescriptor(SeriesTable table, String id, IPointGeneratorService pservice, IAdaptable parent) throws GeneratorException {
 		this.generator = (IPointGenerator<T>)pservice.createGenerator(id);
 		this.table = table;
+		this.parent = parent;
 	}
-	public GeneratorDescriptor(SeriesTable table, T model, IPointGeneratorService pservice) throws GeneratorException {
+	public GeneratorDescriptor(SeriesTable table, T model, IPointGeneratorService pservice, IAdaptable parent) throws GeneratorException {
 		this.generator = pservice.createGenerator(model);
 		this.table = table;
+		this.parent = parent;
 	}
 
 	@Override
@@ -73,12 +84,10 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 	}
 
 	@Override
-	public Object getAdapter(Class clazz) {
+	public <C> C getAdapter(Class<C> clazz) {
 		
-		if (IPointGenerator.class==clazz) return generator;
-		if (List.class == clazz)          return getGenerators();
-		if (CompoundModel.class == clazz) return new CompoundModel(getModels());
-		return null;
+		if (IPointGenerator.class==clazz) return (C)generator;
+		return parent.getAdapter(clazz);
 	}
 	
 	private List<? extends IScanPathModel> getModels() {
