@@ -134,12 +134,11 @@ public class ControlTreeViewer {
 	
 	// UI
 	private FilteredTree viewer;
+	private List<IAction> editActions;
 	
 	// Data
 	private ControlTree       defaultTree;
-	
-	private String defaultGroupName = null;
-	
+	private String            defaultGroupName = null;
 	private final ControlViewerMode controlViewerMode;
 
 	
@@ -205,7 +204,7 @@ public class ControlTreeViewer {
 		tviewer.setInput(tree);
 		tviewer.expandAll();
 		
-		createActions(tviewer, managers);
+		createActions(tviewer, tree, managers);
 		setSearchVisible(false);
 		
 		try {
@@ -247,7 +246,7 @@ public class ControlTreeViewer {
 	/**
 	 * Create the actions.
 	 */
-	private void createActions(final TreeViewer tviewer, IContributionManager... managers) {
+	private void createActions(final TreeViewer tviewer, ControlTree tree, IContributionManager... managers) {
 		
 		List<IContributionManager> mans = new ArrayList<>(Arrays.asList(managers));
 		MenuManager     rightClick     = new MenuManager();
@@ -344,7 +343,7 @@ public class ControlTreeViewer {
 				boolean ok = MessageDialog.openConfirm(viewer.getShell(), "Confirm Reset Controls", "Are you sure that you want to reset all controls to default?");
 				if (!ok) return;
 				try {
-					viewer.getViewer().setInput(ControlTreeUtils.clone(defaultTree));
+					setControlTree(ControlTreeUtils.clone(defaultTree));
 				} catch (Exception e) {
 					logger.error("Unable to set input back to default!", e);
 				}
@@ -367,15 +366,24 @@ public class ControlTreeViewer {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				INamedNode selectedNode = getSelection();
-				removeNode.setEnabled(selectedNode != null); // can only remove node if one is selected
-				addNode.setEnabled(selectedNode != null || defaultGroupName != null); // can only add a node if one is selected (can still add a group)
+				ControlTree tree = (ControlTree)viewer.getViewer().getInput(); // They might have called setControlTree()!
+				removeNode.setEnabled(tree.isTreeEditable() && selectedNode != null); // can only remove node if one is selected
+				addNode.setEnabled(tree.isTreeEditable() && selectedNode != null || defaultGroupName != null); // can only add a node if one is selected (can still add a group)
 				if (setToCurrentValue != null) {
 					setToCurrentValue.setEnabled(selectedNode instanceof ControlNode);
 				}
 			}
 		});
 
+		this.editActions = Arrays.asList(addGroup, removeNode, addNode, edit, resetAll);
+		setNodeActionsEnabled(tree.isTreeEditable());
 		viewer.getViewer().getControl().setMenu(rightClick.createContextMenu(viewer.getViewer().getControl()));
+	}
+
+	private void setNodeActionsEnabled(boolean treeEditable) {
+		for (IAction action : editActions) {
+			action.setEnabled(treeEditable);
+		}
 	}
 
 	public void setSearchVisible(boolean b) {
@@ -435,7 +443,9 @@ public class ControlTreeViewer {
 	}
 
 	public void setControlTree(ControlTree controlTree) {
+		controlTree.build();
 		viewer.getViewer().setInput(controlTree);
+		setNodeActionsEnabled(controlTree.isTreeEditable());
 	}
 	
 	public void setDefaultGroupName(String defaultGroupName) {

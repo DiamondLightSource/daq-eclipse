@@ -1,15 +1,12 @@
 package org.eclipse.scanning.api.scan.ui;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.INamedNode;
-import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.MapPosition;
 
 /**
  * This is the top node for a control tree. It is both
@@ -30,11 +27,17 @@ public class ControlTree extends AbstractControl {
 	private static ControlTree instance;
 	
 	private Map<String, INamedNode> content;
+	private boolean treeEditable = true;
 
 	public ControlTree() {
 		this.content = new LinkedHashMap<>(37); // Ordered by insertion
 		setName("Control Tree");
 	}
+	public ControlTree(String name) {
+		this.content = new LinkedHashMap<>(37); // Ordered by insertion
+		setName(name);
+	}
+
 	
 	public static ControlTree getInstance() {
 		return instance;
@@ -97,17 +100,22 @@ public class ControlTree extends AbstractControl {
 				children.add(iNameable);
 				iNameable.setParentName(getName());
 			}
-			if (iNameable instanceof ControlNode) {
+		}
+		setChildren(children.toArray(new INamedNode[children.size()])); // All the groups.
+
+		for (String name : content.keySet()) {
+			INamedNode iNameable = content.get(name);
+
+			if (!(iNameable instanceof ControlGroup)) {
 				final String parName = iNameable.getParentName();
-				final INamedNode par = content.get(parName);
-				if (!((AbstractControl)par).containsChild(iNameable)) {
+				final INamedNode par = getNode(parName);
+				if (par!=null && !((AbstractControl)par).containsChild(iNameable)) {
 					AbstractControl gpar = (AbstractControl)par;
 					gpar.addChild(iNameable);
 				}
 			}
-
 		}
-		setChildren(children.toArray(new INamedNode[children.size()]));
+	
 		return true;
 	}
 	
@@ -123,11 +131,6 @@ public class ControlTree extends AbstractControl {
 	public INamedNode getNode(String name) {
 		if (getName().equals(name)) return this;
 		return content.get(name);
-	}
-
-	public boolean contains(String name) {
-		if (getName().equals(name)) return true;
-		return content.containsKey(name);
 	}
 
 
@@ -161,22 +164,13 @@ public class ControlTree extends AbstractControl {
 		content.put(name, node);
 	}
 
-	/**
-	 * 
-	 * @return
-	 */
-	public IPosition toPosition() {
-		
-		MapPosition ret = new MapPosition();
-		
-		final Iterator<INamedNode> it = iterator();
-		while(it.hasNext()) {
-			INamedNode node = it.next();
-			if (node instanceof ControlNode) {
-				ControlNode cnode = (ControlNode)node;
-				if (cnode.getValue()!=null) ret.put(cnode.getScannableName(), cnode.getValue());
-			}
-		}
-		return ret;
+	public boolean isTreeEditable() {
+		return treeEditable;
 	}
+
+	public void setTreeEditable(boolean treeEditable) {
+		this.treeEditable = treeEditable;
+	}
+
+
 }

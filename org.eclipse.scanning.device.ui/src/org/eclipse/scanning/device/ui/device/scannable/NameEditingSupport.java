@@ -67,16 +67,16 @@ class NameEditingSupport extends EditingSupport {
 		String name = (String)value;
 		INamedNode node = (INamedNode)element;
 		
-		if (node.getName()==null || "".equals(node.getName())) {
-			ControlTree tree = controlView.getControlTree();
-			if (tree.contains(name)) {
-				INamedNode other = tree.getNode(name);
-				MessageDialog.openError(getViewer().getControl().getShell(), "Invalid Name '"+name+"'", "The name '"+name+"' is already used for another control.\n\n"
-						+ "The control has a label of '"+other.getDisplayName()+"' and is linked to '"+other.getName()+"' and cannot be redefined.");
-			    return;
-			}
-			tree.setName(node, name);
+		ControlTree tree = controlView.getControlTree();
+		if (tree.contains(name)) {
+			INamedNode other = tree.getNode(name);
+			MessageDialog.openError(getViewer().getControl().getShell(), "Invalid Name '"+name+"'", "The name '"+name+"' is already used for another control.\n\n"
+					+ "The control has a label of '"+other.getDisplayName()+"' and is linked to '"+other.getName()+"' and cannot be redefined.");
+			return;
+			
 		}
+		tree.setName(node, name);
+		
 		node.setDisplayName(name);
 		getViewer().refresh();
 	}

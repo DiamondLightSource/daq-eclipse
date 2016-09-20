@@ -34,6 +34,7 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
@@ -326,6 +327,25 @@ public class SerializationTest {
 		
 		assertEquals(factory, ControlTree.getInstance());
 	}
+	
+	@Test
+	public void testControlFactorySerialize2() throws Exception {
+		
+		ControlTree tree = new ControlTree("fred");
+		tree.add(new ControlNode("fred", "x", 0.1));
+		tree.add(new ControlFileNode("fred", "File"));
+		tree.build();
+		
+		String json = service.marshal(tree);
+		
+		assertTrue(json!=null);
+		
+		ControlTree eert = service.unmarshal(json, ControlTree.class);
+		eert.build();
+	
+		assertEquals(eert, tree);
+	}
+
 
 	@Test
 	public void testControlFactoryToPosition() throws Exception {
@@ -345,6 +365,7 @@ public class SerializationTest {
 			}
 		}
 
+        tree.build();
         IPosition pos = tree.toPosition();
         assertTrue(pos.size()>0);
         it = tree.iterator();

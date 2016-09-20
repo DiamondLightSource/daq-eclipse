@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 
 
 /**
@@ -100,8 +100,8 @@ public final class ScanBean extends StatusBean {
 		buf.append("Scan [");
 		for (Iterator<Object> it = req.getCompoundModel().getModels().iterator(); it.hasNext();) {
 			Object model = it.next();
-			if (model instanceof IScanPathModel) {
-				buf.append(((IScanPathModel)model).getName());
+			if (model instanceof AbstractPointsModel) {
+				buf.append(((AbstractPointsModel)model).getSummary());
 			} else {
 				buf.append(model);
 			}

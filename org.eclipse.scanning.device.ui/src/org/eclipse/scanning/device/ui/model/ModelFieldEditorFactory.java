@@ -24,8 +24,6 @@ import org.eclipse.jface.fieldassist.IContentProposalProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CheckboxCellEditor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.ColumnViewer;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.window.DefaultToolTip;
@@ -44,8 +42,6 @@ import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.annotation.ui.FileType;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
@@ -86,13 +82,7 @@ public class ModelFieldEditorFactory {
 	}
 	
 	public void dispose() {
-		if (cservice instanceof IDisconnectable) {
-			try {
-				((IDisconnectable)cservice).disconnect();
-			} catch (EventException e) {
-				logger.error("Unable to disconnect remote service!", e);
-			}
-		}
+
 	}
 	
 	/**
@@ -201,14 +191,6 @@ public class ModelFieldEditorFactory {
 		} catch (Exception ne) {
 			logger.error("Cannot get devices for "+DeviceType.SCANNABLE, ne);
 			items = null;
-		} finally {
-			if (cservice!=null) {
-				try {
-					if (cservice instanceof IDisconnectable) ((IDisconnectable)cservice).disconnect();
-				} catch (EventException e) {
-					logger.error("Cannot disconnect "+cservice);
-				}
-			}
 		}
 		
 		if (items != null) {

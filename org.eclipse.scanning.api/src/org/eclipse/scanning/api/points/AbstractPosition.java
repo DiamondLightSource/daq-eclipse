@@ -154,18 +154,16 @@ public abstract class AbstractPosition implements IPosition, Serializable {
 	
 	public String toString() {
 		StringBuilder buf = new StringBuilder("[");
-		buf.append(getClass().getSimpleName());
-		buf.append(": ");
-		buf.append("stepIndex=");
-		buf.append(stepIndex);
-		buf.append(", ");
 		final Collection<String> names   = getNames();
         for (Iterator<String> it = names.iterator(); it.hasNext();) {
 			String name = it.next();
         	buf.append(name);
-        	buf.append("(");
-        	buf.append(getIndex(name));
-        	buf.append(")");
+        	int index = getIndex(name);
+        	if(index>-1) {
+	        	buf.append("(");
+	        	buf.append(index);
+	        	buf.append(")");
+        	}
          	buf.append("=");
         	buf.append(get(name));
         	if (it.hasNext()) buf.append(", ");

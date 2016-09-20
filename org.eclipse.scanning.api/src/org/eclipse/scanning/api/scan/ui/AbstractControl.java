@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.scanning.api.INamedNode;
+import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.MapPosition;
 
 abstract class AbstractControl implements INamedNode {
 	
@@ -116,6 +118,42 @@ abstract class AbstractControl implements INamedNode {
 	public boolean containsChild(INamedNode iNameable) {
 		if (children==null) return false;
 		return Arrays.asList(children).contains(iNameable);
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public IPosition toPosition() {
+		
+		MapPosition ret = new MapPosition();
+		toPosition(ret);
+		return ret;
+	}
+	
+	private IPosition toPosition(MapPosition toFill) {
+		if (this instanceof ControlNode) {
+			ControlNode cnode = (ControlNode)this;
+			toFill.put(cnode.getScannableName(), cnode.getValue());
+		} else {
+			if (children!=null) for (INamedNode child : children) {
+				if (child instanceof AbstractControl) ((AbstractControl)child).toPosition(toFill);
+			}
+		}
+		return toFill;
+	}
+
+
+	public boolean contains(String name) {
+		if (getName().equals(name)) return true;
+		if (children!=null) for (INamedNode child : children) {
+			if (child instanceof AbstractControl) {
+				if (((AbstractControl)child).contains(name)) return true;
+			} else {
+			    if (child.getName().equals(name)) return true;
+			}
+		}
+		return false;
 	}
 
 }

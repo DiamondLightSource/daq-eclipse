@@ -43,6 +43,18 @@ public abstract class AbstractPointsModel implements IScanPathModel {
 		return Arrays.asList(getName());
 	}
 	
+	public String getSummary() {
+		StringBuilder buf = new StringBuilder();
+		String sname = getClass().getSimpleName();
+		if (sname.toLowerCase().endsWith("model")) sname = sname.substring(0, sname.length()-5);
+		buf.append(sname);
+		String names = getScannableNames().toString();
+		names = names.replace('[', '(');
+		names = names.replace(']', ')');
+		buf.append(names);
+		return buf.toString();
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

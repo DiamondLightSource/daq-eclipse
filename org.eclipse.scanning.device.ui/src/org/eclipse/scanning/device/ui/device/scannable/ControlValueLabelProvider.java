@@ -73,13 +73,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 					return "";
 				}
 
-				Object value = null;
-				if (!mode.isDirectlyConnected() && cnode.getValue()!=null) {
-					value = cnode.getValue();
-				} else {
-					final IScannable<Number> scannable = cservice.getScannable(scannableName);
-					value = scannable.getPosition();
-				}
+				Object value = cnode.getValue(mode.isDirectlyConnected(), cservice);
 				
 				if (value == null) return "!VALUE";
 				if (value instanceof Number) {
