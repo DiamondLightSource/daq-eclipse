@@ -161,6 +161,7 @@ public class BenchmarkScanTest extends BrokerTest {
 		model.setColumns(imageSize);
 		model.setRows(imageSize);
 		model.setMaxIterations(1);
+		model.setExposureTime(0.0);
 
 		IRunnableDevice<MandelbrotModel> detector = dservice.createRunnableDevice(model);
 
@@ -230,7 +231,8 @@ public class BenchmarkScanTest extends BrokerTest {
 			model.setColumns(imageSize);
 			model.setRows(imageSize);
 			model.setMaxIterations(1);
-			
+			model.setExposureTime(0.0);
+		
 			IRunnableDevice<MandelbrotModel> detector = dservice.createRunnableDevice(model);
 	
 			final BenchmarkBean bean = new BenchmarkBean(256, 5000l, 1, true, detector);
