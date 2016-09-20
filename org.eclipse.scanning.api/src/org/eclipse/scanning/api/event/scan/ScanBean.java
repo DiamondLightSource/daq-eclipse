@@ -1,11 +1,15 @@
 package org.eclipse.scanning.api.event.scan;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
 
 
 /**
@@ -81,6 +85,46 @@ public final class ScanBean extends StatusBean {
         super();
 	}
 	
+	public ScanBean(ScanRequest<?> req) throws UnknownHostException {
+        super();
+        this.scanRequest = req;
+        this.status = Status.SUBMITTED;
+		setHostName(InetAddress.getLocalHost().getHostName());
+		setName(createNameFromRequest(req));
+	}
+
+	
+	private String createNameFromRequest(ScanRequest<?> req) {
+		
+		StringBuilder buf = new StringBuilder();
+		buf.append("Scan [");
+		for (Iterator<Object> it = req.getCompoundModel().getModels().iterator(); it.hasNext();) {
+			Object model = it.next();
+			if (model instanceof IScanPathModel) {
+				buf.append(((IScanPathModel)model).getName());
+			} else {
+				buf.append(model);
+			}
+			if (it.hasNext()) buf.append(", ");
+		}
+		
+		if (req.getDetectors()==null || req.getDetectors().isEmpty()) {
+			buf.append("] ");
+
+		} else {
+			buf.append("] with Detectors [");
+			for (Iterator<String> it = req.getDetectors().keySet().iterator(); it.hasNext();) {
+				String name = it.next();
+				buf.append(name);
+				if (it.hasNext()) buf.append(", ");
+			}
+			buf.append("] ");
+		}
+		
+	    return buf.toString();
+
+	}
+
 	public ScanBean(DeviceState state, String message) {
 		this(state);
 		this.message = message;

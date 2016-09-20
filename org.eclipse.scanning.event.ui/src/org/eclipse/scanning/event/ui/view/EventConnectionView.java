@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event.ui.view;
 
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.Properties;
 
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -33,7 +34,7 @@ public abstract class EventConnectionView extends ViewPart {
 
     protected URI getUri() throws Exception {
 		final String uri = getSecondaryIdAttribute("uri");
-		if (uri != null) return new URI(uri.replace("%3A", ":"));
+		if (uri != null) return new URI(URLDecoder.decode(uri, "UTF-8"));
 		return new URI(getCommandPreference(CommandConstants.JMS_URI));
 	}
     
@@ -81,40 +82,6 @@ public abstract class EventConnectionView extends ViewPart {
 	public void setIdProperties(Properties properties) {
 		idProperties = properties;
 	}
-
-	public static String createSecondaryId(final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
-        return createSecondaryId(null, beanBundleName, beanClassName, queueName, topicName, submissionQueueName);
-	}
-	
-	public static String createSecondaryId(final String uri, final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
-		
-		final StringBuilder buf = new StringBuilder();
-		if (uri!=null) append(buf, "uri",      uri);
-		append(buf, "beanBundleName",      beanBundleName);
-		append(buf, "beanClassName",       beanClassName);
-		append(buf, "queueName",           queueName);
-		append(buf, "topicName",           topicName);
-		append(buf, "submissionQueueName", submissionQueueName);
-		return buf.toString();
-	}
-	
-
-	protected static String createSecondaryId(String uri, String requestName, String responseName) {
-		final StringBuilder buf = new StringBuilder();
-		if (uri!=null) append(buf, "uri",  uri);
-		append(buf, "requestName",  requestName);
-		append(buf, "responseName", responseName);
-		return buf.toString();
-	}
-
-
-	protected static void append(StringBuilder buf, String name, String value) {
-		buf.append(name);
-		buf.append("=");
-		buf.append(value);
-		buf.append(";");
-	}
-	
 	
 	/**
 	 * String to be parsed to properties. In the form of key=value pairs

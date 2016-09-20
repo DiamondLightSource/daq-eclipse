@@ -1,8 +1,11 @@
 package org.eclipse.scanning.event.ui.view;
 
+import java.io.UnsupportedEncodingException;
+
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.scanning.api.event.queues.QueueViews;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -68,7 +71,11 @@ public class StatusQueueLaunchView extends ViewPart {
 		launch.setLayoutData(new GridData(SWT.RIGHT, SWT.FILL, true, false, 2, 1));
 		launch.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				openQueueMonitor();
+				try {
+					openQueueMonitor();
+				} catch (UnsupportedEncodingException e1) {
+					logger.error("Cannot open monitor", e1);
+				}
 			}
 		});
 	}
@@ -98,7 +105,7 @@ public class StatusQueueLaunchView extends ViewPart {
 	}
 
 	
-	private void openQueueMonitor() {
+	private void openQueueMonitor() throws UnsupportedEncodingException {
 		
 		final IPreferenceStore store = Activator.getDefault().getPreferenceStore();
 		String bundle = store.getString(BUNDLE);
@@ -108,7 +115,7 @@ public class StatusQueueLaunchView extends ViewPart {
 		String submit = store.getString(SUBMIT_QUEUE);
 		String part   = store.getString(PART_NAME);
 
-		String queueViewId = StatusQueueView.createSecondaryId(bundle,bean, sqn, stn, submit);
+		String queueViewId = QueueViews.createSecondaryId(bundle,bean, sqn, stn, submit);
 		queueViewId = queueViewId+"partName="+part;
 		try {
 			Util.getPage().showView(StatusQueueView.ID, queueViewId, IWorkbenchPage.VIEW_VISIBLE);

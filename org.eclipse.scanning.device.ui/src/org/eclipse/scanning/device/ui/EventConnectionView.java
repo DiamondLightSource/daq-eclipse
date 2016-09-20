@@ -1,6 +1,7 @@
 package org.eclipse.scanning.device.ui;
 
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.Properties;
 
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -32,7 +33,7 @@ public abstract class EventConnectionView extends ViewPart {
 
     protected URI getUri() throws Exception {
 		final String uri = getSecondaryIdAttribute("uri");
-		if (uri != null) return new URI(uri.replace("%3A", ":"));
+		if (uri != null) return new URI(URLDecoder.decode(uri, "UTF-8"));
 		return new URI(getCommandPreference(CommandConstants.JMS_URI));
 	}
     

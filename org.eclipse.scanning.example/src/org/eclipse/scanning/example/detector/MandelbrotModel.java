@@ -75,6 +75,7 @@ public class MandelbrotModel implements IDetectorModel {
 		name = "mandelbrot";
 		realAxisName = "x";
 		imaginaryAxisName = "y";
+		exposureTime = 0.1d;
 	}
 	
 	public MandelbrotModel(String r, String i) {

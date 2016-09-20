@@ -1,13 +1,16 @@
 package org.eclipse.scanning.device.ui.points;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -19,6 +22,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
@@ -29,8 +33,12 @@ import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
+import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -49,7 +57,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.TextStyle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -59,6 +66,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,7 +142,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		execute.setText("Execute");
 		execute.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				execute();
+				submit();
 			}
 		});
 		execute.setImage(Activator.getImageDescriptor("icons/shoe--arrow.png").createImage());
@@ -151,8 +159,54 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		updateJob.schedule();
 	}
 	
-	protected void execute() {
-		System.out.println("TODO!");
+	protected void submit() {
+		try {
+			
+			// Send it off
+			ScanBean bean = new ScanBean(createScanRequest());
+			bean.setStatus(org.eclipse.scanning.api.event.status.Status.SUBMITTED);
+			
+			ISubmitter<ScanBean> submitter = ServiceHolder.getEventService().createSubmitter(new URI(Activator.getJmsUri()), EventConstants.SUBMISSION_QUEUE);
+			submitter.submit(bean);
+			
+			showQueue();
+			
+		} catch (Exception ne) {
+			ErrorDialog.openError(getViewSite().getShell(), "Cannot Submit Scan", "There was a problem submitting the scan.\n\nPlease contact your support representative.", new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage(), ne));
+		    logger.error("Unable to submit scan", ne);
+		}
+	}
+
+	private void showQueue() {
+		// Make sure a view is opened that looks at it.
+		try {
+			ViewUtil.openQueueMonitor(ScanBean.class, "Scans");
+		} catch (PartInitException | UnsupportedEncodingException ne) {
+			ErrorDialog.openError(getViewSite().getShell(), "Cannot Show Queue", "There was a problem showing the queue.\n\nPlease contact your support representative.", new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage(), ne));
+		    logger.error("Unable to show scan queue", ne);
+		}
+	}
+
+	private ScanRequest<IROI> createScanRequest() {
+		try {
+			ScanRequest<IROI> ret = new ScanRequest<IROI>();
+	        CompoundModel<IROI> cm = modelAdaptable.getAdapter(CompoundModel.class);
+	        vservice.validate(cm);
+	        ret.setCompoundModel(cm);
+
+	        IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
+	        ret.setStart(pos[0]);
+	        ret.setEnd(pos[1]);
+	        
+	        ret.setDetectors(getDetectors());
+	        
+			return ret;
+			
+		} catch (Exception ne) {
+			ErrorDialog.openError(getViewSite().getShell(), "Cannot Create Scan Request", "Unable to create a legal scan request.\nThere is something invalid in your current configuration of the scan.\n\nPlease contact your support representative.", new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage(), ne));
+		    logger.error("Unable to create a legal scan request!", ne);
+		    return null;
+		}
 	}
 
 	@Override
@@ -297,6 +351,24 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
     	if (buf.length()>0) return buf.toString();
     	return "None";
 	}
+	
+	private Map<String,Object> getDetectors() throws Exception {
+		
+		Map<String,Object> detectors = new HashMap<>();
+		Collection<DeviceInformation<?>> infos = dservice.getDeviceInformation();
+		Collection<DeviceInformation<?>> activated = new ArrayList<>();
+    	for (Iterator<DeviceInformation<?>> it = infos.iterator(); it.hasNext();) {
+			DeviceInformation<?> deviceInformation = it.next();
+			if (deviceInformation.isActivated()) activated.add(deviceInformation);
+    	}
+    	for (Iterator<DeviceInformation<?>> it = activated.iterator(); it.hasNext();) {
+    		DeviceInformation<?> info = it.next();
+    		detectors.put(info.getName(), info.getModel());
+    	}
+
+    	return detectors;
+	}
+
 
 	private String getMotorNames(IPointGenerator<?> gen) {
 
@@ -333,11 +405,16 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		
 		IAction run = new Action("Execute current scan\n(Submits it to the queue of scans to be run.)", Activator.getImageDescriptor("icons/shoe--arrow.png")) {
 			public void run() {
-				execute();
+				submit();
+			}
+		};
+		IAction showQueue = new Action("Show the scan queue", Activator.getImageDescriptor("icons/cards-stack.png")) {
+			public void run() {
+				showQueue();
 			}
 		};
 	
-		ViewUtil.addGroups("execute", mans, run);
+		ViewUtil.addGroups("execute", mans, run, showQueue);
 
 		
 		text.setMenu(rightClick.createContextMenu(text));
