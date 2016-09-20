@@ -133,4 +133,10 @@ public class MockOperationService implements IOperationService {
 		return new DummyOperationBean();
 	}
 
+	@Override
+	public String getOperationDialogId(String operationId) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
