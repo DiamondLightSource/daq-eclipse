@@ -73,7 +73,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,37 +94,43 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModelViewer.class);
 	
-	private TableViewer        viewer;
+	// UI
+	private TableViewer viewer;
+	private Composite   content;
+	private Composite   validationComposite;
+	private Label       validationMessage;
+	
+	/**
+	 * Caution, the view site may be null.
+	 */
+	private IViewSite   site;
+	
+	// Model
 	private Object             model;
+	
+	// Validation
 	private IValidator<Object> validator; // The generator or runnable device etc. for which we are editing the model 
-
-	private Composite content;
-	private Composite validationComposite;
-	private Label     validationMessage;
 	private boolean   validationError = false;
 	private ModelValidationException validationException;
 
+	// Services
 	private IRunnableDeviceService dservice;
 
 	
 	public ModelViewer() throws EventException, URISyntaxException {
-		this(true);
-	}
-	
-	public ModelViewer(boolean addListener) throws EventException, URISyntaxException {
-		this(addListener ? PageUtil.getPage() : null);
-	}
-	
-	public ModelViewer(IWorkbenchPage page) throws EventException, URISyntaxException {
 		super();
-		if (page != null) page.addSelectionListener(this);
 		dservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IRunnableDeviceService.class);
+	}
+		
+	public ModelViewer(IViewSite site) throws EventException, URISyntaxException {
+		this();
+		if (site != null) site.getPage().addSelectionListener(this);
+		this.site = site;
 	}
 	
 
 	public void dispose() {
 		if (PageUtil.getPage()!=null) PageUtil.getPage().removeSelectionListener(this);
-
 		try {
 			if (dservice instanceof IDisconnectable) ((IDisconnectable)dservice).disconnect();
 		} catch (EventException e) {
@@ -360,6 +366,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 		
 		if (ob==null) return;
 		try {
+			if (site != null) site.getActionBars().getStatusLineManager().setErrorMessage(null);
 			if (ob instanceof IValidator) setValidator((IValidator<?>)ob);
 			
 			// Special case for device information, we read the latest
@@ -382,6 +389,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			
 		} catch (Exception ne) {
 			logger.error("Cannot set model for object "+ob);
+			if (site != null) site.getActionBars().getStatusLineManager().setErrorMessage("Cannot connect to server "+ne.getMessage());
 		}
 	}
 

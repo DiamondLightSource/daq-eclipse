@@ -18,6 +18,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.device.ui.ScanningPerspective;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.ISelectionListener;
@@ -73,6 +74,9 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
         getSite().setSelectionProvider(controller);
         
         getSite().getPage().addSelectionListener(this);
+        
+		ScanningPerspective.createKeyPlayers();
+
 	}
 
 	private void createExampleTrace() {

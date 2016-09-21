@@ -94,6 +94,6 @@ public class ScriptRequest {
 
 	@Override
 	public String toString() {
-		return "ScriptRequest [file=" + file + ", language=" + language + ", environment=" + environment + "]";
+		return file+" ("+language+")";
 	}
 }

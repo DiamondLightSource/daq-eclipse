@@ -34,7 +34,7 @@ public class ModelDialog extends Dialog {
 		main.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		try {
-			modelEditor = new ModelViewer(false);
+			modelEditor = new ModelViewer();
 			Control created = modelEditor.createPartControl(main);
 			created.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		} catch (Exception e) {

@@ -569,5 +569,12 @@ public class ControlTreeViewer {
 			}
 		}
 	}
+	
+	public void addSelectionChangedListener(ISelectionChangedListener i) {
+		viewer.getViewer().addSelectionChangedListener(i);
+	}
+	public void removeSelectionChangedListener(ISelectionChangedListener i) {
+		viewer.getViewer().removeSelectionChangedListener(i);
+	}
 
 }

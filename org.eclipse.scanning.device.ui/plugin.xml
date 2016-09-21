@@ -67,8 +67,15 @@
             class="org.eclipse.scanning.device.ui.vis.StreamView"
             icon="icons/image.png"
             id="org.eclipse.scanning.device.ui.vis.StreamView"
-            name="StreamView"
+            name="Streams"
             restorable="true">
+      </view>
+      <view
+            category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.scanning.device.ui.device.MonitorView"
+            icon="icons/magnifier.png"
+            id="org.eclipse.scanning.device.ui.device.MonitorView"
+            name="Monitors">
       </view>
    </extension>
     <extension

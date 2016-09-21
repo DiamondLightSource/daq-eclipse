@@ -4,8 +4,10 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.richbeans.widgets.file.FileDialogCellEditor;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
@@ -29,7 +31,33 @@ class ControlEditingSupport extends EditingSupport {
 
 	@Override
 	protected CellEditor getCellEditor(Object element) {
-		Assert.isTrue(element instanceof ControlNode);
+		if (element instanceof ControlNode)     return getControlNodeEditor((ControlNode)element);
+		if (element instanceof ControlFileNode) return getFileEditor((ControlFileNode)element);
+		return null;
+	}
+	
+	private CellEditor getFileEditor(final ControlFileNode element) {
+    	FileDialogCellEditor fe = new FileDialogCellEditor((Composite) getViewer().getControl()) {
+    		@Override
+    		protected Object doGetValue() {
+    			String file = (String)super.doGetValue();
+    			element.setFile(file);
+    			return element;
+    		}
+
+    		@Override
+    		protected void doSetValue(Object value) {
+    			ControlFileNode node = (ControlFileNode)value;
+    			super.doSetValue(node.getFile());
+    		}
+    	};
+    	fe.setNewFile(false);
+    	fe.setDirectory(false);
+		return fe;
+	}
+
+	private CellEditor getControlNodeEditor(ControlNode element) {
+
 		final Composite parent = (Composite) getViewer().getControl();
 		
 		final ControlNode controlNode = (ControlNode) element; 
@@ -47,7 +75,7 @@ class ControlEditingSupport extends EditingSupport {
 			throw new RuntimeException("Unsupported type: " + value.getClass().getName());
 		}
 	}
-	
+
 	private String[] getPermittedValues(ControlNode controlNode) {
 		final String scannableName = controlNode.getScannableName();
 		try {
@@ -62,6 +90,7 @@ class ControlEditingSupport extends EditingSupport {
 	protected boolean canEdit(Object element) {
 		
 		if (mode.isDirectlyConnected()) return true;
+		if (element instanceof ControlFileNode) return true;
 		// can only edit ControlNodes and only when the value is not null
 		// (the value could be null if the scannable doesn't exist)
 		if (element instanceof ControlNode) {

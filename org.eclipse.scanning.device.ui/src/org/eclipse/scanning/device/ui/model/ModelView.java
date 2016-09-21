@@ -6,7 +6,9 @@ import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
@@ -16,6 +18,7 @@ import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.device.scannable.ControlTreeViewer;
 import org.eclipse.scanning.device.ui.device.scannable.ControlViewerMode;
+import org.eclipse.scanning.device.ui.points.DelegatingSelectionProvider;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -49,15 +52,23 @@ public class ModelView extends ViewPart implements ISelectionListener {
 			content.setLayout(new GridLayout(1, false));
 			GridUtils.removeMargins(content);
 			
-			modelEditor = new ModelViewer(PageUtil.getPage(getSite()));
+			modelEditor = new ModelViewer(getViewSite());
 			modelEditor.createPartControl(content);
 			GridUtils.setVisible(modelEditor.getControl(), true);
-			getSite().setSelectionProvider(modelEditor);
+			
+			final DelegatingSelectionProvider prov = new DelegatingSelectionProvider(modelEditor);
+			getSite().setSelectionProvider(prov);
 			
 			IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);			
 			treeViewer = new ControlTreeViewer(cservice, ControlViewerMode.INDIRECT_NO_SET_VALUE);
 			treeViewer.createPartControl(content, new ControlTree(), getViewSite().getActionBars().getMenuManager(), getViewSite().getActionBars().getToolBarManager());
 			GridUtils.setVisible(treeViewer.getControl(), false);
+			treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {				
+				@Override
+				public void selectionChanged(SelectionChangedEvent event) {
+					prov.fireSelection(event.getSelection());
+				}
+			});
 				
 			setActionsVisible(false);
 			

@@ -17,6 +17,7 @@
             restorable="true">
       </view>
       <view
+            allowMultiple="true"
             category="org.dawnsci.commandserver.category"
             class="org.eclipse.scanning.event.ui.view.ConsumerView"
             icon="icons/hand-share.png"

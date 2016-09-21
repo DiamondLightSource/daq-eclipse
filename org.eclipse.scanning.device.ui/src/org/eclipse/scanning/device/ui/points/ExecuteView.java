@@ -45,9 +45,11 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
-import org.eclipse.scanning.api.scan.ui.ControlTree;
+import org.eclipse.scanning.api.scan.ui.AbstractControl;
+import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
+import org.eclipse.scanning.device.ui.ScanningPerspective;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
@@ -155,8 +157,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		
 		// We force the scan view to exist. It might be the one to return the compound model
 		// that we will use.
-		IViewReference ref = PageUtil.getPage().findViewReference(ScanView.ID);
-		if (ref!=null) ref.getView(true);
+		ScanningPerspective.createKeyPlayers();
 
 		updateJob.schedule();
 	}
@@ -200,6 +201,10 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	        ret.setStart(pos[0]);
 	        ret.setEnd(pos[1]);
 	        
+	        ScriptRequest[] req = modelAdaptable.getAdapter(ScriptRequest[].class);
+	        ret.setBefore(req[0]);
+	        ret.setAfter(req[1]);
+
 	        ret.setDetectors(getDetectors());
 	        
 			return ret;
@@ -242,7 +247,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		if (ob instanceof DeviceInformation)   return true; // Device changed.
 		if (ob instanceof ScanRegion)          return true; // Region changed.
 		if (ob instanceof IROI)                return true; // Region changed.
-		if (ob instanceof ControlTree)         return true; // Position changed.
+		if (ob instanceof AbstractControl)     return true; // Position changed.
 		return false;
 	}
 
@@ -282,16 +287,28 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	        	styledString.append(getMotorNames(gen), FontStyler.BOLD);
 
 		        IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
-		        if (pos[0]!=null) {
+		        if (pos!=null && pos[0]!=null) {
 					if (monitor.isCanceled()) return;
 		        	styledString.append("\nStart: "+pos[0]);
+		        }
+		        
+		        ScriptRequest[] req = modelAdaptable.getAdapter(ScriptRequest[].class);
+		        if (req!=null && req[0]!=null) {
+					if (monitor.isCanceled()) return;
+		        	styledString.append("\nBefore: ");
+		        	styledString.append(req[0].toString(), StyledString.DECORATIONS_STYLER);
 		        }
 	        	
 				if (monitor.isCanceled()) return;
 	        	styledString.append("\nScan: ");
 	        	styledString.append(getModelNames(cm), StyledString.DECORATIONS_STYLER);
 
-		        if (pos[1]!=null) {
+		        if (req!=null && req[1]!=null) {
+					if (monitor.isCanceled()) return;
+		        	styledString.append("\nAfter: ");
+		        	styledString.append(req[1].toString(), StyledString.DECORATIONS_STYLER);
+		        }
+		        if (pos!=null && pos[1]!=null) {
 					if (monitor.isCanceled()) return;
 		        	styledString.append("\nEnd: "+pos[1]);
 		        }

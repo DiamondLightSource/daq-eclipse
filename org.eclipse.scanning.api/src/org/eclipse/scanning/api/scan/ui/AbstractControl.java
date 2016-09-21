@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 
-abstract class AbstractControl implements INamedNode {
+public abstract class AbstractControl implements INamedNode {
 	
 	// Should not serialize parent.
 	private String parentName;
@@ -156,4 +156,11 @@ abstract class AbstractControl implements INamedNode {
 		return false;
 	}
 
+	
+	public <T extends INamedNode> T findChild(String name) {
+		if (children!=null) for (INamedNode child : children) {
+			if (child.getName().equals(name)) return (T)child;
+		}
+		return null;
+	}
 }

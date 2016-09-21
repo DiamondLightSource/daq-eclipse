@@ -122,7 +122,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	    // Intentionally do not catch EventException, that passes straight up.
 		} catch (ScanningException | InterruptedException | UnsupportedLanguageException | ScriptExecutionException ne) {
 			ne.printStackTrace();
-			logger.error("Cannot exexute run "+getBean().getUniqueId(), ne);
+			logger.error("Cannot execute run "+getBean().getName()+" "+getBean().getUniqueId(), ne);
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.FAILED);
 			bean.setMessage(ne.getMessage());
@@ -134,7 +134,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 
 	private ScriptResponse<?> runScript(ScriptRequest req) throws EventException, UnsupportedLanguageException, ScriptExecutionException {
 		if (req==null) return null; // Nothing to do
-		if (scriptService==null) throw new EventException("No script service is available, cannot run script request "+req);
+		if (scriptService==null) throw new ScriptExecutionException("No script service is available, cannot run script request "+req);
 		return scriptService.execute(req);		
 	}
 
