@@ -38,6 +38,7 @@ public class ViewUtil {
 	public static  void addGroup(String id, IContributionManager manager, IAction... actions) {
 		manager.add(new Separator(id));
 		for (IAction action : actions) {
+			if (action==null) continue;
 			manager.add(action);
 		}
 	}

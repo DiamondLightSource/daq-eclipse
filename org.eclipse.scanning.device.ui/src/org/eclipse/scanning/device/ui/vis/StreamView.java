@@ -14,6 +14,7 @@ import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
 import org.eclipse.dawnsci.plotting.api.trace.IImageTrace.DownsampleType;
 import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.Separator;
@@ -51,8 +52,8 @@ public class StreamView extends ViewPart implements IAdaptable {
 	protected IPlottingSystem<Composite> system;
 	
 	// Connectors
-	private IStreamConnection<IDataset>       selected;
-	private List<IStreamConnection<IDataset>> connectors;
+	private IStreamConnection<ILazyDataset>       selected;
+	private List<IStreamConnection<ILazyDataset>> connectors;
 	
 	public StreamView() {
 		try {
@@ -74,12 +75,12 @@ public class StreamView extends ViewPart implements IAdaptable {
 		connect(findLastConnection()); // TODO Should it be the first one in the list.
 	}
 	
-	private IStreamConnection<IDataset> findLastConnection() {
+	private IStreamConnection<ILazyDataset> findLastConnection() {
 		
 		String id = Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.STREAM_ID);
 		if (id==null) return connectors.get(0);
 		
-		for (IStreamConnection<IDataset> connector : connectors) {
+		for (IStreamConnection<ILazyDataset> connector : connectors) {
 			if (connector.getId().equals(id)) return connector;
 		}
 		return connectors.get(0);
@@ -97,7 +98,7 @@ public class StreamView extends ViewPart implements IAdaptable {
 
 			CheckableActionGroup group = new CheckableActionGroup();
 			try {
-				final IStreamConnection<IDataset> connection = (IStreamConnection<IDataset>)e.createExecutableExtension("stream");
+				final IStreamConnection<ILazyDataset> connection = (IStreamConnection<ILazyDataset>)e.createExecutableExtension("stream");
 				connectors.add(connection);
 				connection.setId(e.getAttribute("id"));
 				connection.setLabel(e.getAttribute("label"));
@@ -141,7 +142,7 @@ public class StreamView extends ViewPart implements IAdaptable {
 		
 	}
 
-	private void configure(IStreamConnection<IDataset> connection) {
+	private void configure(IStreamConnection<ILazyDataset> connection) {
 		try {
 			connection.configure();
 			if (selected == connection) connect(connection);
@@ -150,7 +151,7 @@ public class StreamView extends ViewPart implements IAdaptable {
 		}
 	}
 
-	private void connect(IStreamConnection<IDataset> connection) {
+	private void connect(IStreamConnection<ILazyDataset> connection) {
 		
 		try {
 			if (selected!=null) {
@@ -160,11 +161,13 @@ public class StreamView extends ViewPart implements IAdaptable {
 					logger.error("Internal error, connection cannot be disconnected!", sce);
 				}
 			}
-			IDataset image = connection.connect();
+			ILazyDataset image = connection.connect();
 			selected = connection;
 			Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.STREAM_ID, selected.getId());
 			
-			IImageTrace trace = (IImageTrace)system.createPlot2D(image, null, null);
+			IImageTrace trace = system.createImageTrace("Image"); // TODO
+			trace.setData(image, null, false);
+			system.addTrace(trace);
 			
 			// Settings to increase the render speed
 			trace.setDownsampleType(DownsampleType.POINT);
@@ -198,7 +201,7 @@ public class StreamView extends ViewPart implements IAdaptable {
 	@Override
 	public void dispose() {
 		if (system!=null) system.dispose();
-		for (IStreamConnection<IDataset> iStreamConnection : connectors) {
+		for (IStreamConnection<ILazyDataset> iStreamConnection : connectors) {
 			try {
 				iStreamConnection.disconnect();
 			} catch (StreamConnectionException e) {

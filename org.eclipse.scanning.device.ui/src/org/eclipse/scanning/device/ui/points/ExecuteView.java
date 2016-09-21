@@ -42,8 +42,10 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
@@ -240,6 +242,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		if (ob instanceof DeviceInformation)   return true; // Device changed.
 		if (ob instanceof ScanRegion)          return true; // Region changed.
 		if (ob instanceof IROI)                return true; // Region changed.
+		if (ob instanceof ControlTree)         return true; // Position changed.
 		return false;
 	}
 
@@ -278,8 +281,23 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	        	styledString.append(" points, scanning motors: ");
 	        	styledString.append(getMotorNames(gen), FontStyler.BOLD);
 
+		        IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
+		        if (pos[0]!=null) {
+					if (monitor.isCanceled()) return;
+		        	styledString.append("\nStart: "+pos[0]);
+		        }
+	        	
 				if (monitor.isCanceled()) return;
-	        	styledString.append("\nUsing detectors: ");
+	        	styledString.append("\nScan: ");
+	        	styledString.append(getModelNames(cm), StyledString.DECORATIONS_STYLER);
+
+		        if (pos[1]!=null) {
+					if (monitor.isCanceled()) return;
+		        	styledString.append("\nEnd: "+pos[1]);
+		        }
+
+				if (monitor.isCanceled()) return;
+	        	styledString.append("\nDetectors: ");
 	        	styledString.append(getDetectorNames(), FontStyler.BOLD);
 	        	
 				if (monitor.isCanceled()) return;
@@ -299,6 +317,20 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 				setThreadSafeText(text, ne.toString());
 			}
 		}
+	}
+
+	private String getModelNames(CompoundModel<IROI> compound) {
+		StringBuilder buf = new StringBuilder();
+		for (Iterator<Object> it = compound.getModels().iterator(); it.hasNext();) {
+			Object model = it.next();
+			if (model instanceof AbstractPointsModel) {
+				buf.append(((AbstractPointsModel)model).getSummary());
+			} else {
+				buf.append(model);
+			}
+			if (it.hasNext()) buf.append(", ");
+		}
+		return buf.toString();
 	}
 
 	private void setThreadSafeText(StyledText text, String string) {

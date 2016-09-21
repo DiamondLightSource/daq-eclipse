@@ -52,4 +52,14 @@ public class DevicePreferenceConstants {
 	 */
 	public static final String STREAM_ID = "org.eclipse.scanning.device.ui.streams.selectedStreamConnection";
 
+	/**
+	 * True if a before script should be run with the UI scan.
+	 */
+	public static final String BEFORE_SCRIPT = "org.eclipse.scanning.device.ui.scan.beforeScript";
+
+	/**
+	 * True if a before script should be run with the UI scan.
+	 */
+	public static final String AFTER_SCRIPT = "org.eclipse.scanning.device.ui.scan.afterScript";
+
 }

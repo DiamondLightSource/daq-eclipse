@@ -6,13 +6,14 @@ import org.eclipse.dawnsci.analysis.api.io.IRemoteDatasetService;
 import org.eclipse.january.DatasetException;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.IDatasetConnector;
+import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.scanning.api.streams.AbstractStreamConnection;
 import org.eclipse.scanning.api.streams.StreamConnectionException;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.swt.widgets.Display;
 
-public class SimulationConnection extends AbstractStreamConnection<IDataset> {
+public class SimulationConnection extends AbstractStreamConnection<ILazyDataset> {
 
 	// Data for connecting.
 	private long DEFAULT_SLEEP_TIME = 50; // ms i.e. 20 fps
@@ -30,7 +31,7 @@ public class SimulationConnection extends AbstractStreamConnection<IDataset> {
 	}
 	
 	@Override
-	public IDataset connect() throws StreamConnectionException {
+	public ILazyDataset connect() throws StreamConnectionException {
 		
 		URL url = null;
 		try {
@@ -40,7 +41,7 @@ public class SimulationConnection extends AbstractStreamConnection<IDataset> {
 			datasetConenctor = service.createGrayScaleMJPGDataset(url, DEFAULT_SLEEP_TIME, DEFAULT_CACHE_SIZE);
 			datasetConenctor.connect();
 			
-			IDataset image = datasetConenctor.getSlice();
+			ILazyDataset image = datasetConenctor.getDataset();
 			if (image.getShape()==null || image.getShape().length==0) {
 				throw new IllegalArgumentException("There is no data to prepare, is the device turned on?");
 			}
