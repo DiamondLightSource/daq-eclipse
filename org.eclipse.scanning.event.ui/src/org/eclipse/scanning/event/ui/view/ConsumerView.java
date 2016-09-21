@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-public class ConsumerView extends ViewPart {
+public class ConsumerView extends EventConnectionView {
 	
 	public static final String ID = "org.eclipse.scanning.event.ui.consumerView";
 	
@@ -110,6 +110,9 @@ public class ConsumerView extends ViewPart {
 		} catch (Exception e) {
 			logger.error("Cannot listen to topic of command server!", e);
 		}
+        
+        final String partName = getSecondaryIdAttribute("partName");
+        if (partName!=null) setPartName(partName);
 	}
 	
 	/**

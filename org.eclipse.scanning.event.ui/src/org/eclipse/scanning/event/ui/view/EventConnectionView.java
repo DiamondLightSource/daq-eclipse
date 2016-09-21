@@ -1,5 +1,6 @@
 package org.eclipse.scanning.event.ui.view;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Properties;
@@ -7,7 +8,6 @@ import java.util.Properties;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.QueueViews;
-import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.ui.part.ViewPart;
 
@@ -34,11 +34,21 @@ public abstract class EventConnectionView extends ViewPart {
 	}
 
     protected URI getUri() throws Exception {
-		final String uri = getSecondaryIdAttribute("uri");
-		if (uri != null) return new URI(URLDecoder.decode(uri, "UTF-8"));
-		return new URI(getCommandPreference(CommandConstants.JMS_URI));
+		return new URI(getUriString());
 	}
     
+    protected String getUriString() {
+		final String uri = getSecondaryIdAttribute("uri");
+		if (uri != null) {
+			try {
+				return URLDecoder.decode(uri, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				return uri;
+			}
+		}
+		return Activator.getJmsUri();
+	}
+  
     protected String getUserName() {
 		final String name = getSecondaryIdAttribute("userName");
 		if (name != null) return name;
@@ -65,15 +75,6 @@ public abstract class EventConnectionView extends ViewPart {
 	protected String getSubmitOverrideSetName() {
 		return getSubmissionQueueName()+".overrideSet";
 	}
-	
-	protected String getSecondaryIdAttribute(String key) {
-		if (idProperties!=null) return idProperties.getProperty(key);
-		if (getViewSite()==null) return null;
-		final String secondId = getViewSite().getSecondaryId();
-		if (secondId == null) return null;
-		idProperties = parseString(secondId);
-		return idProperties.getProperty(key);
-	}
 
 	public void setIdProperties(String propertiesId) {
 		Properties idProperties = parseString(propertiesId);
@@ -90,6 +91,16 @@ public abstract class EventConnectionView extends ViewPart {
 	
 	public static String createSecondaryId(final String uri, final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
 		return QueueViews.createSecondaryId(uri, beanBundleName, beanClassName, queueName, topicName, submissionQueueName);
+	}
+
+	
+	protected String getSecondaryIdAttribute(String key) {
+		if (idProperties!=null) return idProperties.getProperty(key);
+		if (getViewSite()==null) return null;
+		final String secondId = getViewSite().getSecondaryId();
+		if (secondId == null) return null;
+		idProperties = parseString(secondId);
+		return idProperties.getProperty(key);
 	}
 
 	/**

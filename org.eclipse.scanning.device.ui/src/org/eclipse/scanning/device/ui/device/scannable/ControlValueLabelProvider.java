@@ -9,6 +9,8 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.scan.ui.ControlEnumNode;
+import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
@@ -33,7 +35,8 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 
 		if(!(element instanceof INamedNode)) return new StyledString();
 
-		final StyledString styledText = new StyledString(getText(element));
+		final String       text       = getText(element);
+		final StyledString styledText = new StyledString(text!=null?text:"");
 		
 		INamedNode node = (INamedNode)element;
 		try {
@@ -45,8 +48,9 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 						styledText.append("    ");
 						styledText.append(scannable.getUnit(), StyledString.DECORATIONS_STYLER);
 					}
-				}
+				}				
 			} else {
+		
 				// Intentionally do nothing!
 			}
 		} catch (Exception ne) {
@@ -92,6 +96,14 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 				}
 				
 				return value.toString();
+				
+			} else if (node instanceof ControlFileNode) {
+				final ControlFileNode fnode = (ControlFileNode)node;
+				return fnode.getFile();
+			} else if (node instanceof ControlEnumNode) {
+				final ControlEnumNode fnode = (ControlEnumNode)node;
+				return fnode.getValue().toString();
+				
 			} else {
 				return ""; // Only controls have values...
 			}

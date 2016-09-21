@@ -123,8 +123,10 @@ public class DetectorView extends EventConnectionView {
 						IActivatable device = (IActivatable)dservice.getRunnableDevice(info.getName());
 						device.setActivated(!info.isActivated());
 						info.setActivated(!info.isActivated());
+						getViewSite().getActionBars().getStatusLineManager().setErrorMessage(null);
 					} catch (ScanningException e1) {
 						logger.error("Unable to set activated state!", e1);
+						getViewSite().getActionBars().getStatusLineManager().setErrorMessage("Server is not available: "+e1.getLocalizedMessage());
 					}
 					tableViewer.refresh(info);
 				}

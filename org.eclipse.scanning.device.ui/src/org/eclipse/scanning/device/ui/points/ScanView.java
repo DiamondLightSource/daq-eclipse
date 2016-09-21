@@ -45,13 +45,16 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.scan.ui.ControlEnumNode;
 import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
+import org.eclipse.scanning.api.script.ScriptLanguage;
+import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
+import org.eclipse.scanning.device.ui.ScanningPerspective;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.device.ControlTreeUtils;
-import org.eclipse.scanning.device.ui.model.ModelView;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
@@ -240,12 +243,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 			}
 		});
 		
-		// Try to ensure that the model view and regions view are initialized
-		IViewReference ref = PageUtil.getPage().findViewReference(ScanRegionView.ID);
-		if (ref!=null) ref.getView(true);
-		
-		ref = PageUtil.getPage().findViewReference(ModelView.ID);
-		if (ref!=null) ref.getView(true);
+		ScanningPerspective.createKeyPlayers();
 		
 		seriesTable.addSeriesEventListener(this);
 		
@@ -272,6 +270,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 		if (tree == null) {
 			tree = new ControlTree(propName);
 			tree.add(new ControlFileNode(propName, "Script file"));
+			tree.add(new ControlEnumNode(propName, "Script type", ScriptLanguage.JYTHON));
 		}
 		
 		tree.setName(propName);
@@ -398,8 +397,32 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 				ret[1] = tree!=null ? tree.toPosition() : null;
 			}
 			return (T)ret;
+			
+		} else if (clazz==ScriptRequest[].class) {
+			ScriptRequest[] scripts = new ScriptRequest[2];
+			if (store.getBoolean(DevicePreferenceConstants.BEFORE_SCRIPT)) {
+				ControlTree tree = trees.get(DevicePreferenceConstants.BEFORE_SCRIPT);
+				scripts[0] = tree!=null ? createScriptRequest(tree) : null;
+			}
+			if (store.getBoolean(DevicePreferenceConstants.AFTER_SCRIPT))   {
+				ControlTree tree = trees.get(DevicePreferenceConstants.AFTER_SCRIPT);
+				scripts[1] = tree!=null ? createScriptRequest(tree) : null;
+			}
+			return (T)scripts;
 		}
+
 		return null;
+	}
+
+	private ScriptRequest createScriptRequest(ControlTree tree) {
+		
+		ControlFileNode fnode = tree.findChild("Script file");
+		final String filePath = fnode.getFile();
+		
+		ControlEnumNode enode = tree.findChild("Script type");
+		final ScriptLanguage lang = enode!=null ? (ScriptLanguage)enode.getValue() : ScriptLanguage.JYTHON;
+
+		return new ScriptRequest(filePath, lang);
 	}
 
 	private IAction add;
@@ -595,6 +618,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	private List<IScanPathModel> getModels() {
 		
 		IPointGenerator<?>[] gens = getGenerators();
+		if (gens==null || gens.length<1) return null;
 		List<IScanPathModel> mods = new ArrayList<>(gens.length);
 		for (int i = 0; i < gens.length; i++) mods.add((IScanPathModel)gens[i].getModel());
 		return mods;

@@ -1,6 +1,7 @@
 package org.eclipse.scanning.device.ui.util;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.runtime.Status;
@@ -12,7 +13,10 @@ import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.queues.QueueViews;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.model.ModelView;
+import org.eclipse.scanning.device.ui.points.ScanRegionView;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.osgi.framework.FrameworkUtil;
@@ -68,6 +72,18 @@ public class ViewUtil {
 			ErrorDialog.openError(Display.getDefault().getActiveShell(), "Cannot open view", "Cannot open view "+queueViewId, 
 					new Status(Status.ERROR, "org.eclipse.scanning.event.ui", e.getMessage()));
 			throw e;
+		}
+	}
+
+	/**
+	 * Ensures that certain views exist and work has been done to load them.
+	 * @param ids
+	 */
+	public static void createViews(String... ids) {
+		for (String id : ids) {
+			// Try to ensure that the model view and regions view are initialized
+			IViewReference ref = PageUtil.getPage().findViewReference(id);
+			if (ref!=null) ref.getView(true);
 		}
 	}
 

@@ -888,7 +888,7 @@ public class StatusQueueView extends EventConnectionView {
 			        logger.error("Updating changed bean from topic", e);
 			        getSite().getShell().getDisplay().syncExec(new Runnable() {
 			        	public void run() {
-							ErrorDialog.openError(getViewSite().getShell(), "Cannot connect to queue", "The command server is unavailable.\n\nPlease contact your support representative.", 
+							ErrorDialog.openError(getViewSite().getShell(), "Cannot connect to queue", "The server is unavailable at "+getUriString()+".\n\nPlease contact your support representative.", 
 						              new Status(IStatus.ERROR, Activator.PLUGIN_ID, e.getMessage()));
 			        	}
 			        });
