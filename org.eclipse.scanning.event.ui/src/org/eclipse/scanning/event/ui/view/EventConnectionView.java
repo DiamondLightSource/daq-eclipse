@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.queues.QueueViews;
 import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.ui.part.ViewPart;
@@ -83,6 +84,14 @@ public abstract class EventConnectionView extends ViewPart {
 		idProperties = properties;
 	}
 	
+	public static String createSecondaryId(final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
+        return QueueViews.createSecondaryId(beanBundleName, beanClassName, queueName, topicName, submissionQueueName);
+	}
+	
+	public static String createSecondaryId(final String uri, final String beanBundleName, final String beanClassName, final String queueName, final String topicName, final String submissionQueueName) {
+		return QueueViews.createSecondaryId(uri, beanBundleName, beanClassName, queueName, topicName, submissionQueueName);
+	}
+
 	/**
 	 * String to be parsed to properties. In the form of key=value pairs
 	 * separated by semi colons. You may not use semi-colons in the 
