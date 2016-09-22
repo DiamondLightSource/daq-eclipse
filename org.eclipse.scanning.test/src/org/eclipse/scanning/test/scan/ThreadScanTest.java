@@ -164,7 +164,7 @@ public class ThreadScanTest extends BrokerTest {
 
 		// Wait for end of run for 30 seconds, otherwise we carry on (test will then likely fail)
 		if (device.getDeviceState()!=DeviceState.READY) {
-			latch(30, TimeUnit.SECONDS, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.PAUSING); // Wait until not running.
+			latch(30, TimeUnit.SECONDS, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.SEEKING); // Wait until not running.
 		}
 
 		if (exceptions.size()>0) throw exceptions.get(0);

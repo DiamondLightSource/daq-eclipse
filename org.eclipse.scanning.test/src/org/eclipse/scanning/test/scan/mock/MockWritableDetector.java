@@ -62,7 +62,7 @@ public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorMod
 	@Override
 	public void pause() throws ScanningException {
         try {
-	        setDeviceState(DeviceState.PAUSING);
+	        setDeviceState(DeviceState.SEEKING);
 	        Thread.sleep(100);
 	        setDeviceState(DeviceState.PAUSED);
 		} catch (Exception e) {

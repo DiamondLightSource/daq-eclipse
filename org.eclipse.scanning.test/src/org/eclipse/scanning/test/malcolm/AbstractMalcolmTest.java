@@ -238,7 +238,7 @@ public abstract class AbstractMalcolmTest {
 
         // Wait for end of run for 30 seconds, otherwise we carry on (test will then likely fail)
         if (doLatch && device.getDeviceState()!=DeviceState.IDLE) {
-        	device.latch(30, TimeUnit.SECONDS, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.PAUSING); // Wait until not running.
+        	device.latch(30, TimeUnit.SECONDS, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.SEEKING); // Wait until not running.
         }
 
 		if (exceptions.size()>0) throw exceptions.get(0);

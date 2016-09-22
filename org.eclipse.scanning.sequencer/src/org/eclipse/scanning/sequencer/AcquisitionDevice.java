@@ -402,7 +402,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			throw new ScanningException(ne);
 		}
 		
-		setDeviceState(DeviceState.PAUSING);
+		setDeviceState(DeviceState.SEEKING);
 		try {
 			awaitPaused = true;
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {

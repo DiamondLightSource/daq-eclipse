@@ -149,7 +149,7 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 		} finally {
 		}
 		
-		if (!states.containsAll(Arrays.asList(new DeviceState[]{DeviceState.READY, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.PAUSING}))){
+		if (!states.containsAll(Arrays.asList(new DeviceState[]{DeviceState.READY, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.SEEKING}))){
 			throw new Exception("Not all expected states encountered during run! States found were "+states);
 		}
 		
