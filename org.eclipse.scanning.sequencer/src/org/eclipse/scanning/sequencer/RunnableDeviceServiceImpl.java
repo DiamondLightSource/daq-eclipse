@@ -22,9 +22,7 @@ import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
-import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
-import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
 import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorConfiguration;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -87,18 +85,11 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 			e.printStackTrace(); // Static block, intentionally do not use logging.
 		}
 	}
-	
-	
-	/**
-	 * Map of malcolm connections made.
-	 */
-	private final Map<URI, IMalcolmConnection> connections;
 
 	/**
 	 * Main constructor used in the running server by OSGi (only)
 	 */
 	public RunnableDeviceServiceImpl() {
-		connections        = new HashMap<>(3);
 	}
 	
 	// Test
@@ -232,12 +223,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		if (model instanceof MalcolmDetectorConfiguration) {
 			MalcolmConnectionInfo info = ((MalcolmDetectorConfiguration) model).getConnectionInfo();
 			URI            uri = createMalcolmURI(info);
-			IMalcolmConnection conn = connections.get(uri);
-			if (conn==null || !conn.isConnected()) {
-				conn = malcolmService.createConnection(uri);
-				connections.put(uri, conn);
-			}
-			return conn.getDevice(info.getDeviceName());
+			return malcolmService.getDevice(info.getDeviceName());
 			
 		} else if (modelledDevices.containsKey(model.getClass())) {
 			@SuppressWarnings("unchecked")
@@ -290,14 +276,6 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	
 	public void stop() {
 		this.context = null;
-		for (URI uri : connections.keySet()) {
-			try {
-				connections.get(uri).dispose();
-			} catch (MalcolmDeviceException e) {
-				e.printStackTrace();
-				logger.error("Problem closing malcolm connection to "+uri, e);
-			}
-		}
 	}
 	
     /**
@@ -341,15 +319,6 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	 */
 	public void _register(String name, IRunnableDevice<?> device) {
 		namedDevices.put(name, device);
-	}
-	
-	/**
-	 * Used for testing only
-	 * @param uri
-	 * @param connection
-	 */
-	public void _registerConnection(URI uri, IMalcolmConnection connection) {
-		connections.put(uri, connection);
 	}
 
 	@Override

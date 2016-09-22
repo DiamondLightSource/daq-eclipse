@@ -5,7 +5,6 @@ import java.util.Collection;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
-import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;

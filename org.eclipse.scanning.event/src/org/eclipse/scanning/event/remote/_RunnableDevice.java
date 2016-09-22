@@ -89,6 +89,11 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 		method(new DeviceRequest(info.getName(), DeviceAction.ABORT));
 	}
 
+	@Override
+	public void disable() throws ScanningException {
+		method(new DeviceRequest(info.getName(), DeviceAction.DISABLE));
+	}
+
 	private void method(DeviceRequest deviceRequest) throws ScanningException {
 		try {
 			DeviceRequest req = requester.post(deviceRequest);

@@ -1,10 +1,7 @@
 package org.eclipse.scanning.api.malcolm;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
-import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 
 /**
  * An OSGi service for creating Malcolm connections
@@ -32,30 +29,31 @@ import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
  *
  */
 public interface IMalcolmService {
-
-	/**
-	 * Method to create a direct connection to a malcolm instance. Used by the server to 
-	 * connect to Malcolm and do scans.
-	 * 
-	 * Finds the connector by looking for an OSGi service which implements IConnectorService
-	 * 
-	 * @param malcolmUri 
-	 * @return the connection, should not return null, an exception will be thrown on error
-	 * @throws URISyntaxException - if invalid URL
-	 * @throws MalcolmDeviceException - if the connection is not ready or another error occurs connection
-	 */
-	public IMalcolmConnection createConnection(URI malcolmUri) throws URISyntaxException, MalcolmDeviceException;
 	
 	/**
-	 * Convenience method used mostly by testing when OSGi is not available.
-	 * The connectorService must be used only once for each connection URI.
+	 * Get a device by name. At the point where the device is retrieved the
+	 * caller may know the type of device and use a generic to declare its model.
 	 * 
-	 * @param malcolmUri
-	 * @param connectorService - used to override the connector, useful for tests.
+	 * @param name
 	 * @return
-	 * @throws URISyntaxException
 	 * @throws MalcolmDeviceException
 	 */
-	public IMalcolmConnection createConnection(URI malcolmUri, IMalcolmConnectorService<MalcolmMessage> connectorService) throws URISyntaxException, MalcolmDeviceException;
-		
+	public <T> IMalcolmDevice<T> getDevice(String name) throws MalcolmDeviceException;
+	
+	/**
+	 * Get a device by name. At the point where the device is retrieved the
+	 * caller may know the type of device and use a generic to declare it.
+	 * 
+	 * @param name
+	 * @param publisher
+	 * @return
+	 * @throws MalcolmDeviceException
+	 */
+	public <T> IMalcolmDevice<T> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException;	
+
+	/**
+	 * Disposes the service
+	 * @throws MalcolmDeviceException
+	 */
+	public void dispose() throws MalcolmDeviceException;
 }

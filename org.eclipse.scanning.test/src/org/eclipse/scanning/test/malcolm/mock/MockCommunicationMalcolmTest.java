@@ -13,16 +13,14 @@ public class MockCommunicationMalcolmTest extends AbstractCommunicationMalcolmTe
 	@Before
 	public void create() throws Exception {
 		this.connectorService = new EpicsV4ConnectorService(); // Just for ActiveMQ connection!
-		this.service      = new MockedMalcolmService();
-		this.connection   = service.createConnection(PAUSABLE);
-		this.device       =  connection.getDevice("zebra");
+		this.service      = new MockedMalcolmService(true);
+		this.device       =  service.getDevice("zebra");
 	}
 
 	@Override
 	@After
 	public void dispose() throws Exception {
 		if (device!=null)     device.dispose();
-		if (connection!=null) connection.dispose();
 		((MockedMalcolmService)service).dispose();
 	}
 

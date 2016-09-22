@@ -81,21 +81,18 @@ class EpicsV4MalcolmMessageGenerator implements MessageGenerator<MalcolmMessage>
 		return reply;
 	}
 	
-	private static final String getMethodName ( StackTraceElement ste[] ) {  
-		   
-	    String methodName = "";  
-	    boolean flag = false;  
+	private static final String getMethodName(StackTraceElement ste[]) {
+	    String methodName = "";
+	    boolean flag = false;
 	   
-	    for ( StackTraceElement s : ste ) {  
-	   
-	        if ( flag ) {  
-	   
-	            methodName = s.getMethodName();  
-	            break;  
-	        }  
-	        flag = s.getMethodName().equals( "getStackTrace" );  
-	    }  
-	    return methodName;  
+	    for (StackTraceElement s : ste) {
+	        if (flag) {
+	            methodName = s.getMethodName();
+	            break;
+	        }
+	        flag = s.getMethodName().equals("getStackTrace");
+	    }
+	    return methodName;
 	}
 	
 

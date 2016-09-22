@@ -11,7 +11,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
@@ -34,9 +33,8 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 		// We get an instance to the device separately to test two 
 		// device connections (although MockService will not do this)
 		final Collection<DeviceState> states = new HashSet<DeviceState>();
-		IMalcolmConnection    connection = service.createConnection(null); // TODO real URL
 		try {
-			IMalcolmDevice zebra = connection.getDevice("zebra");
+			IMalcolmDevice zebra = service.getDevice("zebra");
 			zebra.addMalcolmListener(new IMalcolmListener<MalcolmEventBean>() {				
 				@Override
 				public void eventPerformed(MalcolmEvent<MalcolmEventBean> e) {
@@ -52,7 +50,6 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 				Thread.sleep(1000);
 			}
 		} finally {
-			connection.dispose();
 		}
 		
 		if (!states.containsAll(Arrays.asList(new DeviceState[]{DeviceState.READY, DeviceState.RUNNING}))){
@@ -83,10 +80,8 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 			exec.execute(new Runnable() {
 				public void run() {
 
-					IMalcolmConnection connection = null;
 					try {
-						connection = service.createConnection(null); // TODO real URL
-						IMalcolmDevice zebra = connection.getDevice("zebra");
+						IMalcolmDevice zebra = service.getDevice("zebra");
 						zebra.addMalcolmListener(new IMalcolmListener<MalcolmEventBean>() {				
 							@Override
 							public void eventPerformed(MalcolmEvent<MalcolmEventBean> e) {
@@ -103,14 +98,6 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 						}
 					} catch (Exception ne) {
 						exceptions.add(ne);
-					} finally {
-						if (connection!=null) {
-							try {
-								connection.dispose();
-							} catch (MalcolmDeviceException e) {
-								exceptions.add(e);
-							}
-						}
 					}
 				}
 			});
@@ -136,10 +123,9 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 		final List<Throwable> exceptions = new ArrayList<>(1);
 		
 		final Collection<DeviceState> states = new HashSet<DeviceState>();
-		IMalcolmConnection    connection = service.createConnection(PAUSABLE); // TODO real URL
 		try {
 			// Add listener
-			IMalcolmDevice zebra = connection.getDevice("zebra");
+			IMalcolmDevice zebra = service.getDevice("zebra");
 			zebra.addMalcolmListener(new IMalcolmListener<MalcolmEventBean>() {				
 				@Override
 				public void eventPerformed(MalcolmEvent<MalcolmEventBean> e) {
@@ -161,7 +147,6 @@ public abstract class AbstractMultipleClientMalcolmTest extends AbstractMalcolmT
 				Thread.sleep(1000);
 			}
 		} finally {
-			connection.dispose();
 		}
 		
 		if (!states.containsAll(Arrays.asList(new DeviceState[]{DeviceState.READY, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.PAUSING}))){

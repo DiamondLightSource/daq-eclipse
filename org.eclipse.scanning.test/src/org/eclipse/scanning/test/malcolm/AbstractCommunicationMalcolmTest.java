@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
@@ -115,8 +114,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 	public void testAbortIdleRunnableDevice() throws Throwable {
 
 		try {
-			IMalcolmConnection  connection = service.createConnection(null);
-			final IMalcolmDevice     zebra =  connection.getDevice("zebra");
+			final IMalcolmDevice     zebra =  service.getDevice("zebra");
 			zebra.abort();
 		} catch (Exception expected) {
 			return;
@@ -128,8 +126,7 @@ public abstract class AbstractCommunicationMalcolmTest extends AbstractMalcolmTe
 	public void testAbortIdlePausableDevice() throws Throwable {
 
 		try {
-			IMalcolmConnection  connection = service.createConnection(PAUSABLE);
-			final IMalcolmDevice     zebra =  connection.getDevice("zebra");
+			final IMalcolmDevice     zebra =  service.getDevice("zebra");
 			zebra.abort();
 		} catch (Exception expected) {
 			return;

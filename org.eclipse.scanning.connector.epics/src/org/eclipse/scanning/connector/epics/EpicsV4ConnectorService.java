@@ -42,7 +42,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
     static final PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
     static final double REQUEST_TIMEOUT = 3.0;
 	
-	private static final Logger logger = LoggerFactory.getLogger(EpicsV4ConnectorService.class);
+	private static final Logger logger = LoggerFactory.getLogger(EpicsV4ConnectorService.class); // TODO use
 	
 	private EpicsV4MessageMapper mapper;
 	
@@ -96,7 +96,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		MalcolmMessage result = new MalcolmMessage();
 				
 		try {
-			// Convert message to request structure.
 
 			switch (message.getType()) {
 			case CALL:
@@ -111,7 +110,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 			default:
 				throw new Exception("Unexpected MalcolmMessage type: " + message.getType());
 			}
-			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -136,7 +134,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
 	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
-	        	System.out.println(errMEssage); // TODO remove
+	        	System.err.println(errMEssage); // TODO remove or log
 	        	throw new Exception(errMEssage);
 	        }
 			
@@ -153,7 +151,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 			ls.add(monitorListener);
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			System.out.println("TODO REINSTATE THIS"); // TODO
+			System.out.println("TODO REINSTATE THIS WHEN MONITOR IS IMPLEMENTED"); // TODO and log
 			//throw new MalcolmDeviceException(device, ex.getMessage());
 		}
 	}
@@ -216,7 +214,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
 	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
-	        	System.out.println(errMEssage); // TODO remove
+	        	System.err.println(errMEssage); // TODO remove or log
 	        	throw new Exception(errMEssage);
 	        }
 			String requestString = message.getEndpoint();
@@ -225,12 +223,11 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        status = pvaGet.waitConnect();
 	        if(!status.isOK()) {
 	        	String errMEssage = "CreateGet failed for " + requestString + "(" + status.getType() + ": " + status.getMessage() + ")";
-	        	System.out.println(errMEssage); // TODO remove
+	        	System.err.println(errMEssage); // TODO remove or log
 	        	throw new Exception(errMEssage);
 	    	}
 	        PvaClientGetData pvaData = pvaGet.getData();
 			pvResult = pvaData.getPVStructure();
-			System.out.println("Res from send: " + pvResult.toString());
 	        returnMessage = mapper.convertGetPVStructureToMalcolmMessage(pvResult, message);
 		} catch (Exception ex) {
 			returnMessage.setType(Type.ERROR);
@@ -265,7 +262,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
 	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
-	        	System.out.println(errMEssage); // TODO remove
+	        	System.err.println(errMEssage); // TODO remove or log
 	        	throw new Exception(errMEssage);
 	        }
 	        PvaClientPut pvaPut = pvaChannel.createPut(requestString);
@@ -273,7 +270,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        status = pvaPut.waitConnect();
 	        if(!status.isOK()) {
 	        	String errMEssage = "CreatePut failed for " + requestString + "(" + status.getType() + ": " + status.getMessage() + ")";
-	        	System.out.println(errMEssage); // TODO remove
+	        	System.err.println(errMEssage); // TODO remove or log
 	        	throw new Exception(errMEssage);
 	    	}
 	        PvaClientPutData putData = pvaPut.getData();
@@ -314,7 +311,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
 	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
-	        	System.out.println(errMEssage); // TODO remove
+	        	System.err.println(errMEssage); // TODO remove or log
 	        	throw new Exception(errMEssage);
 	        }
 			
@@ -323,13 +320,10 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        status = rpc.waitConnect();
 	        if(!status.isOK()) {
 	        	String errMEssage = "CreateRPC failed for " + message.getMethod() + "(" + status.getType() + ": " + status.getMessage() + ")";
-	        	System.out.println(errMEssage); // TODO remove
+	        	System.err.println(errMEssage); // TODO remove or log
 	        	throw new Exception(errMEssage);
 	    	}
 	        pvResult = rpc.request(parametersStructure);
-			if (pvResult != null) {
-				System.out.println("Res from call: " + pvResult.toString());  // TODO remove
-			}
 			returnMessage = mapper.convertCallPVStructureToMalcolmMessage(pvResult, message);
 			pvaChannel.destroy();
 		} catch (Exception ex) {
@@ -373,11 +367,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		public void event(PvaClientMonitor monitor) {
 			while (monitor.poll()) {
 				PvaClientMonitorData monitorData = monitor.getData();
-				System.out.println("EVCcmr - monitor event");
-				System.out.println("changed");
-				System.out.println(monitorData.showChanged());
-				System.out.println("overrun");
-				System.out.println(monitorData.showOverrun());
 
 				MalcolmMessage message = new MalcolmMessage();
 				try {

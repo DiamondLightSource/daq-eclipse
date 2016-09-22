@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
@@ -28,7 +27,6 @@ public abstract class AbstractMalcolmTest {
 	// In Mock mode, these come from Java
 	// In Real mode they come from the connection to the python server.
 	protected IMalcolmService    service;
-	protected IMalcolmConnection connection;
 	protected IMalcolmDevice     device;
 	protected IMalcolmConnectorService<MalcolmMessage> connectorService;
 
