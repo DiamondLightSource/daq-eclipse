@@ -47,6 +47,7 @@ import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.scan.ui.AbstractControl;
 import org.eclipse.scanning.api.script.ScriptRequest;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ScanningPerspective;
@@ -106,7 +107,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		this.pservice = ServiceHolder.getGeneratorService();
 		this.vservice = ServiceHolder.getValidatorService();
 		try {
-			this.dservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IRunnableDeviceService.class);
+			this.dservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IRunnableDeviceService.class);
 		} catch (EventException  | URISyntaxException e) {
 			logger.error("Unable to get remote device service!", e);
 		}
@@ -169,7 +170,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 			ScanBean bean = new ScanBean(createScanRequest());
 			bean.setStatus(org.eclipse.scanning.api.event.status.Status.SUBMITTED);
 			
-			ISubmitter<ScanBean> submitter = ServiceHolder.getEventService().createSubmitter(new URI(Activator.getJmsUri()), EventConstants.SUBMISSION_QUEUE);
+			ISubmitter<ScanBean> submitter = ServiceHolder.getEventService().createSubmitter(new URI(CommandConstants.getScanningBrokerUri()), EventConstants.SUBMISSION_QUEUE);
 			submitter.submit(bean);
 			
 			showQueue();

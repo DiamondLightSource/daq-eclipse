@@ -3,6 +3,7 @@ package org.eclipse.scanning.device.ui;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.QueueViews;
 import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.device.DetectorView;
 import org.eclipse.scanning.device.ui.model.ModelView;
 import org.eclipse.scanning.device.ui.points.ScanRegionView;
@@ -25,14 +26,21 @@ public class ScanningPerspective implements IPerspectiveFactory {
 		addViewShortcuts(layout);
 		addPerspectiveShortcuts(layout);
 		{
-			IFolderLayout folderLayout = layout.createFolder("folder", IPageLayout.RIGHT, 0.57f, IPageLayout.ID_EDITOR_AREA);
+			IFolderLayout folderLayout = layout.createFolder("folder", IPageLayout.RIGHT, 0.7f, IPageLayout.ID_EDITOR_AREA);
 			folderLayout.addView("org.eclipse.scanning.device.ui.scanEditor");
 			final String detectorId = DetectorView.createId(getUriString(), IEventService.DEVICE_REQUEST_TOPIC, IEventService.DEVICE_RESPONSE_TOPIC);
 			folderLayout.addView(detectorId);
 			folderLayout.addView("org.eclipse.scanning.device.ui.device.MonitorView");
 		}
+		
+		IFolderLayout folder = layout.createFolder("folder_3", IPageLayout.LEFT, 0.22f, IPageLayout.ID_EDITOR_AREA);
+		folder.addView("org.dawnsci.mapping.ui.mappeddataview:mapview=org.eclipse.scanning.device.ui.vis.visualiseView;spectrumview=org.eclipse.scanning.device.ui.spectrumview");
+		
+		folder = layout.createFolder("folder_4", IPageLayout.RIGHT, 0.05f, IPageLayout.ID_EDITOR_AREA);
+		folder.addView("org.eclipse.scanning.device.ui.spectrumview");
+		folder.addView(getQueueViewId());
 		{
-			IFolderLayout folderLayout = layout.createFolder("folder_0", IPageLayout.TOP, 0.78f, IPageLayout.ID_EDITOR_AREA);
+			IFolderLayout folderLayout = layout.createFolder("folder_0", IPageLayout.TOP, 0.66f, "org.eclipse.scanning.device.ui.spectrumview");
 			folderLayout.addView("org.eclipse.scanning.device.ui.vis.visualiseView");
 			folderLayout.addView("org.eclipse.scanning.device.ui.vis.StreamView");
 		}
@@ -45,7 +53,6 @@ public class ScanningPerspective implements IPerspectiveFactory {
 		{
 			IFolderLayout folderLayout = layout.createFolder("folder_2", IPageLayout.BOTTOM, 0.54f, "org.eclipse.scanning.device.ui.modelEditor");
 			folderLayout.addView("org.eclipse.scanning.device.ui.scan.executeView");
-			folderLayout.addView(getQueueViewId());
 			folderLayout.addView(getConsumerViewId());
 		}
 	}
@@ -83,12 +90,16 @@ public class ScanningPerspective implements IPerspectiveFactory {
 	}
 	
 	private static String getQueueViewId() {
-		String bundle = FrameworkUtil.getBundle(ScanBean.class).getSymbolicName();
-		return QueueViews.createId(Activator.getJmsUri(), bundle, ScanBean.class.getName(), "Scans");
+		try {
+			String bundle = FrameworkUtil.getBundle(ScanBean.class).getSymbolicName();
+			return QueueViews.createId(CommandConstants.getScanningBrokerUri(), bundle, ScanBean.class.getName(), "Scans");
+		} catch (Exception ne) {
+			return QueueViews.getQueueViewID();
+		}
 	}
 	
 	private static String getConsumerViewId() {
-		return "org.eclipse.scanning.event.ui.consumerView:partName=Scan Consumers";
+		return "org.eclipse.scanning.event.ui.consumerView:partName=Consumers";
 	}
 
 }

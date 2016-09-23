@@ -12,7 +12,7 @@ import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.queues.QueueViews;
 import org.eclipse.scanning.api.event.status.StatusBean;
-import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.model.ModelView;
 import org.eclipse.scanning.device.ui.points.ScanRegionView;
 import org.eclipse.swt.widgets.Display;
@@ -64,7 +64,7 @@ public class ViewUtil {
 		String stn    = topicName;
 		String submit = submissionQueueName;
 
-		String queueViewId = QueueViews.createSecondaryId(Activator.getJmsUri(), bundle,bean, sqn, stn, submit);
+		String queueViewId = QueueViews.createSecondaryId(CommandConstants.getScanningBrokerUri(), bundle,bean, sqn, stn, submit);
 		if (partName!=null) queueViewId = queueViewId+"partName="+partName;
 		try {
 			PageUtil.getPage().showView(QueueViews.getQueueViewID(), queueViewId, IWorkbenchPage.VIEW_ACTIVATE);
