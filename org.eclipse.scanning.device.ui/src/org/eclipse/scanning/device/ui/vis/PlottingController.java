@@ -243,6 +243,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 	}
 
 	public IImageTrace getImageTrace() {
+		if (system.getTraces()==null || system.getTraces().isEmpty()) return null;
 		IImageTrace it = (IImageTrace)system.getTraces(IImageTrace.class).iterator().next();
 		return it;
 	}
