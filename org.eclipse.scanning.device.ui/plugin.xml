@@ -77,6 +77,15 @@
             id="org.eclipse.scanning.device.ui.device.MonitorView"
             name="Monitors">
       </view>
+      <view
+            category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.dawnsci.plotting.api.VanillaPlottingSystemView"
+            icon="icons/layers-stack.png"
+            id="org.eclipse.scanning.device.ui.spectrumview"
+            name="Detector Data"
+            restorable="true">
+      </view>
+      
    </extension>
     <extension
          point="org.eclipse.ui.perspectives">

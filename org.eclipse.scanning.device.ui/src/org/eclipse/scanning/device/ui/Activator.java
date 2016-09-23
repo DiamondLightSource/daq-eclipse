@@ -51,31 +51,5 @@ public class Activator extends AbstractUIPlugin {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 
-    public static final String getJmsUri() {
-    	String uri = null;
-		if (uri == null) uri = getNovelCommandPreference(CommandConstants.JMS_URI);
-	    if (uri == null) uri = System.getProperty("org.eclipse.scanning.broker.uri");
-	    if (uri == null) uri = System.getProperty("gda.activemq.broker.uri"); // GDA specific but not a compilation dependency.
-		if (uri == null) {
-			throw new RuntimeException("URI not set for JMS. Please set system property org.eclipse.scanning.broker.uri or gda.activemq.broker.uri");
-		}
-		
-		return uri;
-	}
-
-
-    /**
-     * Get the command value if it has been changed by the user.
-     * @param key
-     * @return
-     */
-    private static final String getNovelCommandPreference(String key) {
-		final IPreferenceStore store = getDefault().getPreferenceStore();
-    	String val = store.getString(key);
-    	String def = store.getDefaultString(key);
-    	if (!val.equals(def)) return val;
-    	return null;
-     }
-
 
 }

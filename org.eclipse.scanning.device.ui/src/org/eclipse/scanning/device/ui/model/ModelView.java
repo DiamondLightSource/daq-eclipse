@@ -14,7 +14,7 @@ import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
-import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.device.scannable.ControlTreeViewer;
 import org.eclipse.scanning.device.ui.device.scannable.ControlViewerMode;
@@ -59,7 +59,7 @@ public class ModelView extends ViewPart implements ISelectionListener {
 			final DelegatingSelectionProvider prov = new DelegatingSelectionProvider(modelEditor);
 			getSite().setSelectionProvider(prov);
 			
-			IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);			
+			IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);			
 			treeViewer = new ControlTreeViewer(cservice, ControlViewerMode.INDIRECT_NO_SET_VALUE);
 			treeViewer.createPartControl(content, new ControlTree(), getViewSite().getActionBars().getMenuManager(), getViewSite().getActionBars().getToolBarManager());
 			GridUtils.setVisible(treeViewer.getControl(), false);

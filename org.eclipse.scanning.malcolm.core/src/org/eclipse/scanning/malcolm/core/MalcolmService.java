@@ -11,8 +11,12 @@ import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MalcolmService implements IMalcolmService {
+	
+	private static Logger logger = LoggerFactory.getLogger(MalcolmService.class);
 
 	private IMalcolmConnectorService<MalcolmMessage> connector;	
 	private Map<String, IMalcolmDevice<?>>        devices;
@@ -20,7 +24,7 @@ public class MalcolmService implements IMalcolmService {
 	/**
 	 * Used by OSGi to make the service.
 	 */
-	public MalcolmService() throws MalcolmDeviceException {
+	public MalcolmService() {
 		this(createConnectorService());
 	}
 
@@ -30,7 +34,7 @@ public class MalcolmService implements IMalcolmService {
 	 * @param malcolmUri - 
 	 * @throws MalcolmDeviceException
 	 */
-	public MalcolmService(IMalcolmConnectorService<MalcolmMessage> connector) throws MalcolmDeviceException {
+	public MalcolmService(IMalcolmConnectorService<MalcolmMessage> connector) {
 		
 		this.connector = connector; // Usually null unless we are in testing mode.
 		this.devices   = new ConcurrentHashMap<String, IMalcolmDevice<?>>(4);
@@ -40,7 +44,7 @@ public class MalcolmService implements IMalcolmService {
 			if (connector==null) throw new MalcolmDeviceException("Cannot find an implementation of IConnectorService!");
 			connector.connect(null);
 		} catch (Exception e) {
-			throw new MalcolmDeviceException(null, "Cannot get connection services!", e);
+			logger.error("Cannot get connection services!", e);
 		}
 	}
 
@@ -49,7 +53,7 @@ public class MalcolmService implements IMalcolmService {
 	 * @return The connector service
 	 * @throws MalcolmDeviceException
 	 */
-	private static IMalcolmConnectorService<MalcolmMessage> createConnectorService() throws MalcolmDeviceException {
+	private static IMalcolmConnectorService<MalcolmMessage> createConnectorService() {
 		
 		try {
 			Collection<IMalcolmConnectorService<MalcolmMessage>> services = MalcolmActivator.getConnectionServices();
@@ -57,7 +61,8 @@ public class MalcolmService implements IMalcolmService {
 	
 			return services.iterator().next();
 		} catch (Exception ne) {
-			throw new MalcolmDeviceException("Cannot find a service implementing IConnectorService!");
+			logger.error("Cannot find a service implementing IConnectorService!", ne);
+			return null;
 		}
 	}
 	
