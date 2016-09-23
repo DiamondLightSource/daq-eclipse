@@ -1,6 +1,5 @@
 package org.eclipse.scanning.malcolm.core;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,7 +20,7 @@ public class MalcolmService implements IMalcolmService {
 	 * Used by OSGi to make the service.
 	 */
 	public MalcolmService() throws MalcolmDeviceException {
-		this(createConnectorService());
+		this(null);
 	}
 
 	/**
@@ -31,34 +30,8 @@ public class MalcolmService implements IMalcolmService {
 	 * @throws MalcolmDeviceException
 	 */
 	public MalcolmService(IMalcolmConnectorService<MalcolmMessage> connector) throws MalcolmDeviceException {
-		
 		this.connector = connector; // Usually null unless we are in testing mode.
 		this.devices   = new ConcurrentHashMap<String, IMalcolmDevice<?>>(4);
-		
-		// At this point we get OSGi to get the connector service for us.
-		try {
-			if (connector==null) throw new MalcolmDeviceException("Cannot find an implementation of IConnectorService!");
-			connector.connect(null);
-		} catch (Exception e) {
-			throw new MalcolmDeviceException(null, "Cannot get connection services!", e);
-		}
-	}
-
-	/**
-	 * Gets the service from OSGi
-	 * @return The connector service
-	 * @throws MalcolmDeviceException
-	 */
-	private static IMalcolmConnectorService<MalcolmMessage> createConnectorService() throws MalcolmDeviceException {
-		
-		try {
-			Collection<IMalcolmConnectorService<MalcolmMessage>> services = MalcolmActivator.getConnectionServices();
-			if (services.size()>1) throw new Exception("We have more than one connector service and not information to choose between them!"); // TODO
-	
-			return services.iterator().next();
-		} catch (Exception ne) {
-			throw new MalcolmDeviceException("Cannot find a service implementing IConnectorService!");
-		}
 	}
 	
 	/**
@@ -84,12 +57,19 @@ public class MalcolmService implements IMalcolmService {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> IMalcolmDevice<T> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
+
+		// Check that the connector is not null
+		if (connector==null) throw new MalcolmDeviceException("No connector has been set up for this Service");
 		
 		if (devices.containsKey(name)) return (IMalcolmDevice<T>)devices.get(name);
 		
 		IMalcolmDevice<T> device = new MalcolmDevice<T>(name, connector, publisher); // Might throw exception
 		devices.put(name, device);
 		return device;
+	}
+
+	public void setConnectorService(IMalcolmConnectorService<MalcolmMessage> connectorService) {
+		this.connector = connectorService;
 	}
 
 	/**
@@ -99,6 +79,8 @@ public class MalcolmService implements IMalcolmService {
 	@Override
 	public void dispose() throws MalcolmDeviceException {
 		devices.clear();
-		connector.disconnect();
+		if (connector != null) {
+			connector.disconnect();
+		}
 	}
 }
