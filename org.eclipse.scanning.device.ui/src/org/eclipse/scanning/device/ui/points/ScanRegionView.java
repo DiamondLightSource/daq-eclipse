@@ -42,6 +42,7 @@ import org.eclipse.richbeans.widgets.menu.MenuAction;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
@@ -410,7 +411,7 @@ public class ScanRegionView extends ViewPart {
 				return ((ScanRegion<IROI>)element).getScannables().toString();
 			}
 		});
-		IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+		IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
 		var.setEditingSupport(new AxesEditingSupport(viewer, prov, cservice));
 	}
 

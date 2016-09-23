@@ -12,6 +12,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IDisconnectable;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.StringUtils;
@@ -35,7 +36,7 @@ class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 	public ModelFieldLabelProvider(ModelViewer viewer) {
 		this.viewer = viewer;
 		try {
-			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+			cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
 		} catch (Exception e) {
 			logger.error("Unable to make a remote connection to "+IScannableDeviceService.class.getSimpleName());
 		}

@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
-import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.model.ModelFieldEditorFactory;
 import org.eclipse.swt.widgets.Composite;
@@ -32,7 +32,7 @@ class NameEditingSupport extends EditingSupport {
 	protected CellEditor getCellEditor(Object element) {
 		try {
 			if (element instanceof ControlNode) {
-				IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+				IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
 				return ModelFieldEditorFactory.getScannableEditor((Composite)getViewer().getControl(), cservice);
 			} 
 		} catch (Exception ne) {
