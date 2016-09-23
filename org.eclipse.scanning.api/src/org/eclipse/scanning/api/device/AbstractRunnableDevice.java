@@ -295,6 +295,10 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 
 	}
 
+	@Override
+	public void disable() throws ScanningException {
+
+	}
 
 	@Override
 	public void pause() throws ScanningException {

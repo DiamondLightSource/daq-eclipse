@@ -127,6 +127,13 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	public void abort() throws ScanningException;
 	
 	/**
+	 * Call to disable the device, stopping all activity.
+	 * 
+	 * @throws ScanningException
+	 */
+	public void disable() throws ScanningException;
+	
+	/**
 	 * Latches until this run is complete if it was initiated from a start.
 	 * If a device does not have a latch, then this method always throws an exception.
 	 * 

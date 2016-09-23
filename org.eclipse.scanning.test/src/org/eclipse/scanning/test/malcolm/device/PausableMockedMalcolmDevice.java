@@ -140,7 +140,7 @@ public abstract class PausableMockedMalcolmDevice extends MockedMalcolmDevice {
 
 		setRunningStateChangeActive();							// start the state transition to PAUSED
 		
-		setState(DeviceState.PAUSING);
+		setState(DeviceState.SEEKING);
 		try {
 			taskPauseLock.lockInterruptibly();					// Attempt to start task-pause request allowing for abort							
 		} catch (InterruptedException e) {

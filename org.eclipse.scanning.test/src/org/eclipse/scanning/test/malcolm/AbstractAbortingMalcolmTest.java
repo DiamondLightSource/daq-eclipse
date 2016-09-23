@@ -79,7 +79,7 @@ public abstract class AbstractAbortingMalcolmTest extends AbstractMalcolmTest {
 		
 		// Wait for pause
 		if (device.getDeviceState()!=DeviceState.PAUSED) {
-		    device.latch(10, TimeUnit.SECONDS, DeviceState.PAUSING, DeviceState.RUNNING);
+		    device.latch(10, TimeUnit.SECONDS, DeviceState.SEEKING, DeviceState.RUNNING);
 		}
 		
 		System.out.println("Aborting paused run, current state is "+device.getDeviceState());

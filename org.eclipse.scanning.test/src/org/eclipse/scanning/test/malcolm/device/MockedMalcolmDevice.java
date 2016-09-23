@@ -205,6 +205,8 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 	 */
 	protected void run(final Map<String, Object> params) throws Exception {
 
+		setDeviceState(DeviceState.PRERUN); // Devices go into prerun before running
+		
 		setDeviceState(DeviceState.RUNNING); // Will send an event
 
         int amount = (int)params.get("nframes");
@@ -263,6 +265,8 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
     			ne.printStackTrace();
     			
 			}
+    		
+    		setDeviceState(DeviceState.POSTRUN); // Devices go into postrun after running
 			
 			setDeviceState(DeviceState.READY); // State change
 	        sendEvent(new MalcolmEventBean(getState())); // Scan end event

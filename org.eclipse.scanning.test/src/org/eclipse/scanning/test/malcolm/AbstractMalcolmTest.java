@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
@@ -28,7 +27,6 @@ public abstract class AbstractMalcolmTest {
 	// In Mock mode, these come from Java
 	// In Real mode they come from the connection to the python server.
 	protected IMalcolmService    service;
-	protected IMalcolmConnection connection;
 	protected IMalcolmDevice     device;
 	protected IMalcolmConnectorService<MalcolmMessage> connectorService;
 
@@ -240,7 +238,7 @@ public abstract class AbstractMalcolmTest {
 
         // Wait for end of run for 30 seconds, otherwise we carry on (test will then likely fail)
         if (doLatch && device.getDeviceState()!=DeviceState.IDLE) {
-        	device.latch(30, TimeUnit.SECONDS, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.PAUSING); // Wait until not running.
+        	device.latch(30, TimeUnit.SECONDS, DeviceState.RUNNING, DeviceState.PAUSED, DeviceState.SEEKING); // Wait until not running.
         }
 
 		if (exceptions.size()>0) throw exceptions.get(0);

@@ -23,7 +23,6 @@ import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
-import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
 import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
@@ -387,11 +386,7 @@ public class ScanServletPluginTest {
 		Services.setConnector(dservice);
 		
 		// Put a connection in the DeviceServiceImpl which is used for the test
-		IMalcolmService malcolmService = new MockedMalcolmService();
-		
-		// Should create a standard MockedMalcolmDevice and not one of the more complex types.
-		IMalcolmConnection connection   = malcolmService.createConnection(URI.create("tcp://standard"));
-		((RunnableDeviceServiceImpl)Services.getRunnableDeviceService())._registerConnection(URI.create("tcp://standard"), connection);
+		IMalcolmService malcolmService = new MockedMalcolmService(false);
 		
 		// DO NOT COPY TESTING ONLY
 		

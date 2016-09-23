@@ -1,40 +1,50 @@
 package org.eclipse.scanning.test.malcolm.device;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
-import org.eclipse.scanning.api.malcolm.IMalcolmConnection;
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
-import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 
 public class MockedMalcolmService implements IMalcolmService {
+	
+	private Map<String, IMalcolmDevice> devices;
+	private final LatchDelegate latcher;
+	private boolean usePausableDevices;
 
-	private IMalcolmConnection connection;
-    private LatchDelegate      latcher;
-
-	public MockedMalcolmService() {
+	public MockedMalcolmService(final boolean pausable) {
 		super();
 		this.latcher = new LatchDelegate();
-	}
-
-	@Override
-	public IMalcolmConnection createConnection(URI uri) throws URISyntaxException, MalcolmDeviceException {
-		boolean pausable = uri != null && uri.getHost().equalsIgnoreCase("pausable");
-		if (connection==null) connection = new MockedMalcolmConnection(latcher, pausable);
-		return connection;
+		usePausableDevices = pausable;
 	}
 
 	public void dispose() throws MalcolmDeviceException {
-		if (connection!=null) connection.dispose();
-		connection = null;
 	}
-
+	
 	@Override
-	public IMalcolmConnection createConnection(URI malcolmUri, IMalcolmConnectorService<MalcolmMessage> connectorService) throws URISyntaxException, MalcolmDeviceException {
-		throw new MalcolmDeviceException("Method createConnection(URI malcolmUri, IConnectorService<MalcolmMessage> connectorService) not implemented for "+getClass().getName());
+	public <T> IMalcolmDevice<T> getDevice(String name) throws MalcolmDeviceException {
+		return getDevice(name, null);
+	}
+	@Override
+	public <T> IMalcolmDevice<T> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
+		try {
+			if (devices==null || devices.isEmpty()) {
+				devices = new HashMap<String, IMalcolmDevice>(1);
+				IMalcolmDevice device = usePausableDevices ? 
+				 		new MockedWriteInLoopPausableMalcolmDevice("zebra", latcher) : 
+						new MockedMalcolmDevice("zebra");
+				
+				devices.put("zebra", device);
+			}
+			IMalcolmDevice device = devices.get(name);
+			if (device!=null) return device;
+			throw new MalcolmDeviceException("Invalid name "+name);
+		    
+		} catch (Exception ne) {
+			throw new MalcolmDeviceException(null, "Unable to connect to device!", ne);
+		}
 	}
 }
