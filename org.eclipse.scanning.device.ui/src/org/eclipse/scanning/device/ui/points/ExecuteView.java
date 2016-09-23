@@ -165,14 +165,23 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	
 	protected void submit() {
 		try {
-			
+
 			// Send it off
-			ScanBean bean = new ScanBean(createScanRequest());
+			ScanBean bean=null;
+			try {
+				bean = new ScanBean(createScanRequest());
+			} catch (Exception ne) {
+				ErrorDialog.openError(getViewSite().getShell(), "Cannot Create Scan Request", "Unable to create a legal scan request.\nThere is something invalid in your current configuration of the scan.\n\nPlease contact your support representative.", new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage(), ne));
+				logger.error("Unable to create a legal scan request!", ne);
+				return;
+			}
 			bean.setStatus(org.eclipse.scanning.api.event.status.Status.SUBMITTED);
-			
+
 			ISubmitter<ScanBean> submitter = ServiceHolder.getEventService().createSubmitter(new URI(CommandConstants.getScanningBrokerUri()), EventConstants.SUBMISSION_QUEUE);
 			submitter.submit(bean);
+
 			
+			// Show the Queue
 			showQueue();
 			
 		} catch (Exception ne) {
@@ -191,30 +200,38 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		}
 	}
 
-	private ScanRequest<IROI> createScanRequest() {
-		try {
-			ScanRequest<IROI> ret = new ScanRequest<IROI>();
-	        CompoundModel<IROI> cm = modelAdaptable.getAdapter(CompoundModel.class);
-	        vservice.validate(cm);
-	        ret.setCompoundModel(cm);
-
-	        IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
-	        ret.setStart(pos[0]);
-	        ret.setEnd(pos[1]);
-	        
-	        ScriptRequest[] req = modelAdaptable.getAdapter(ScriptRequest[].class);
-	        ret.setBefore(req[0]);
-	        ret.setAfter(req[1]);
-
-	        ret.setDetectors(getDetectors());
-	        
-			return ret;
-			
-		} catch (Exception ne) {
-			ErrorDialog.openError(getViewSite().getShell(), "Cannot Create Scan Request", "Unable to create a legal scan request.\nThere is something invalid in your current configuration of the scan.\n\nPlease contact your support representative.", new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage(), ne));
-		    logger.error("Unable to create a legal scan request!", ne);
-		    return null;
+	private ScanRequest<IROI> createScanRequest() throws Exception {
+		
+		if (modelAdaptable==null) {
+			// We see if there is a view with a compound model adaptable
+			IViewReference[] refs = PageUtil.getPage().getViewReferences();
+			for (IViewReference iViewReference : refs) {
+				IViewPart part = iViewReference.getView(false);
+				if (part==null) continue;
+                CompoundModel<IROI> cm = part.getAdapter(CompoundModel.class);
+                if (cm !=null) {
+                	modelAdaptable = part;
+                }
+			}
 		}
+		if (modelAdaptable==null) return null; // Nothing to update, no view gives us a CompoundModel!
+
+		ScanRequest<IROI> ret = new ScanRequest<IROI>();
+		CompoundModel<IROI> cm = modelAdaptable.getAdapter(CompoundModel.class);
+		vservice.validate(cm);
+		ret.setCompoundModel(cm);
+
+		IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
+		ret.setStart(pos[0]);
+		ret.setEnd(pos[1]);
+
+		ScriptRequest[] req = modelAdaptable.getAdapter(ScriptRequest[].class);
+		ret.setBefore(req[0]);
+		ret.setAfter(req[1]);
+
+		ret.setDetectors(getDetectors());
+
+		return ret;
 	}
 
 	@Override
@@ -257,22 +274,11 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	 * @param monitor
 	 */
 	private void update(IProgressMonitor monitor) {
-		if (modelAdaptable==null) {
-			// We see if there is a view with a compound model adaptable
-			IViewReference[] refs = PageUtil.getPage().getViewReferences();
-			for (IViewReference iViewReference : refs) {
-				IViewPart part = iViewReference.getView(false);
-				if (part==null) continue;
-                CompoundModel<IROI> cm = part.getAdapter(CompoundModel.class);
-                if (cm !=null) {
-                	modelAdaptable = part;
-                }
-			}
-		}
-		if (modelAdaptable==null) return; // Nothing to update, no view gives us a CompoundModel!
+		
 		try {
+			ScanRequest<IROI> req = createScanRequest();
 			if (monitor.isCanceled()) return;
-	        CompoundModel<IROI> cm = modelAdaptable.getAdapter(CompoundModel.class);
+	        CompoundModel<IROI> cm = req.getCompoundModel();
 	        if (cm != null) {
 	        	// Validate
 	        	vservice.validate(cm);
@@ -287,31 +293,33 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	        	styledString.append(" points, scanning motors: ");
 	        	styledString.append(getMotorNames(gen), FontStyler.BOLD);
 
-		        IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
-		        if (pos!=null && pos[0]!=null) {
+		        IPosition start = req.getStart();
+		        if (start!=null) {
 					if (monitor.isCanceled()) return;
-		        	styledString.append("\nStart: "+pos[0]);
+		        	styledString.append("\nStart: "+start);
 		        }
 		        
-		        ScriptRequest[] req = modelAdaptable.getAdapter(ScriptRequest[].class);
-		        if (req!=null && req[0]!=null) {
+		        ScriptRequest before = req.getBefore();
+		        if (before!=null) {
 					if (monitor.isCanceled()) return;
 		        	styledString.append("\nBefore: ");
-		        	styledString.append(req[0].toString(), StyledString.DECORATIONS_STYLER);
+		        	styledString.append(before.toString(), StyledString.DECORATIONS_STYLER);
 		        }
 	        	
 				if (monitor.isCanceled()) return;
 	        	styledString.append("\nScan: ");
 	        	styledString.append(getModelNames(cm), StyledString.DECORATIONS_STYLER);
 
-		        if (req!=null && req[1]!=null) {
+		        ScriptRequest after = req.getAfter();
+		        if (after!=null) {
 					if (monitor.isCanceled()) return;
 		        	styledString.append("\nAfter: ");
-		        	styledString.append(req[1].toString(), StyledString.DECORATIONS_STYLER);
+		        	styledString.append(after.toString(), StyledString.DECORATIONS_STYLER);
 		        }
-		        if (pos!=null && pos[1]!=null) {
+		        IPosition end = req.getEnd();
+		        if (end!=null) {
 					if (monitor.isCanceled()) return;
-		        	styledString.append("\nEnd: "+pos[1]);
+		        	styledString.append("\nEnd: "+end);
 		        }
 
 				if (monitor.isCanceled()) return;
