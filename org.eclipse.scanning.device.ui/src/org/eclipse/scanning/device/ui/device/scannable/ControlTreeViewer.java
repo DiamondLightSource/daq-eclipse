@@ -447,6 +447,7 @@ public class ControlTreeViewer {
 		controlTree.build();
 		viewer.getViewer().setInput(controlTree);
 		setNodeActionsEnabled(controlTree.isTreeEditable());
+		viewer.getParent().layout(new Control[]{viewer});
 	}
 	
 	public void setDefaultGroupName(String defaultGroupName) {

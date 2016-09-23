@@ -3,6 +3,8 @@ package org.eclipse.scanning.device.ui.points;
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,6 +41,8 @@ import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.SeriesTable;
 import org.eclipse.richbeans.widgets.table.event.SeriesItemEvent;
 import org.eclipse.richbeans.widgets.table.event.SeriesItemListener;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -50,6 +54,7 @@ import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.api.script.ScriptLanguage;
 import org.eclipse.scanning.api.script.ScriptRequest;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ScanningPerspective;
@@ -99,7 +104,8 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	private static final Logger logger = LoggerFactory.getLogger(ScanView.class);
 	
 	// Services
-	private IPointGeneratorService pservice;
+	private IPointGeneratorService  pservice;
+	private IScannableDeviceService cservice;
 
 	// UI
 	private SeriesTable  seriesTable;
@@ -115,6 +121,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	// Preferences
 	private IPreferenceStore store;
 
+
 	
 	public ScanView() {
 		
@@ -125,7 +132,9 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 
 		this.store        = Activator.getDefault().getPreferenceStore();
 		store.setDefault(DevicePreferenceConstants.START_POSITION, false);
-		store.setDefault(DevicePreferenceConstants.END_POSITION, false);
+		store.setDefault(DevicePreferenceConstants.END_POSITION,   false);
+		store.setDefault(DevicePreferenceConstants.BEFORE_SCRIPT,  false);
+		store.setDefault(DevicePreferenceConstants.AFTER_SCRIPT,   false);
 		store.setDefault(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, true);
 		
 		this.trees = new HashMap<>(7);
@@ -387,14 +396,21 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 			return (T)getModels();
 			
 		} else if (clazz==IPosition[].class) {
+			
+			if (cservice==null)
+				try {
+					this.cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
+				} catch (EventException | URISyntaxException e) {
+					logger.error("Unable to get remote device service", e);
+				}
 			IPosition[] ret = new IPosition[2];
 			if (store.getBoolean(DevicePreferenceConstants.START_POSITION)) {
 				ControlTree tree = trees.get(DevicePreferenceConstants.START_POSITION);
-				ret[0] = tree!=null ? tree.toPosition() : null;
+				ret[0] = tree!=null ? tree.toPosition(cservice) : null;
 			}
 			if (store.getBoolean(DevicePreferenceConstants.END_POSITION))   {
 				ControlTree tree = trees.get(DevicePreferenceConstants.END_POSITION);
-				ret[1] = tree!=null ? tree.toPosition() : null;
+				ret[1] = tree!=null ? tree.toPosition(cservice) : null;
 			}
 			return (T)ret;
 			
