@@ -42,7 +42,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.annotation.ui.FileType;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.SortNatural;
@@ -75,7 +75,7 @@ public class ModelFieldEditorFactory {
 	public ModelFieldEditorFactory(ColumnLabelProvider labelProvider) {
 		this.labelProvider = labelProvider;
 		try {
-			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+			cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
 		} catch (Exception e) {
 			logger.error("Unable to make a remote connection to "+IScannableDeviceService.class.getSimpleName());
 		}
