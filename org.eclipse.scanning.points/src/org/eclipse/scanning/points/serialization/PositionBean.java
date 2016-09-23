@@ -1,6 +1,5 @@
 package org.eclipse.scanning.points.serialization;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -8,8 +7,6 @@ import java.util.Map;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
-
-import com.fasterxml.jackson.annotation.JsonTypeName;
 
 class PositionBean {
 
