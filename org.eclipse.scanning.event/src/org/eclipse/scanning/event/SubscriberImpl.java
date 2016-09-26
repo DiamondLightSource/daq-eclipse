@@ -40,6 +40,7 @@ import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.scan.event.ILocationListener;
 import org.eclipse.scanning.api.scan.event.Location;
 import org.eclipse.scanning.api.scan.event.LocationEvent;
+import org.eclipse.scanning.event.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +86,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 			}
 		}
 	}
+	
 
 	private MessageConsumer createConsumer(final String    topicName, 
 			                               final Class<?>  beanClass, // Maybe null
@@ -97,28 +99,33 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
     	MessageListener listener = new MessageListener() {
     		public void onMessage(Message message) {
     			
+    			TextMessage txt   = (TextMessage)message;
     			try {
-	    			TextMessage txt   = (TextMessage)message;
 	    			String      json  = txt.getText(); 
-	    			
-	    			Object bean = service.unmarshal(json, beanClass);
-	    			diseminate(bean, listeners); // We simply use the event thread from JMS for this.
-	    			
-    			} catch (Exception ne) {
-    				
-    				if (ne.getClass().getName().contains("com.fasterxml.jackson")) {
-        				logger.error("JSON Serialization Error!", ne);
-	   				} else {
-	    				logger.error("Internal error! - Unable to process an event!", ne);
-	   				}
-    				ne.printStackTrace(); // Unit tests without log4j config show this one.
-     			}
+	    			json = JsonUtil.removeProperties(json, properties);
+	    			try {
+	
+		    			Object bean = service.unmarshal(json, beanClass);
+		    			diseminate(bean, listeners); // We simply use the event thread from JMS for this.
+		    			
+	    			} catch (Exception ne) {
+	    				if (ne.getClass().getName().contains("com.fasterxml.jackson")) {
+	        				logger.error("JSON Serialization Error!", ne);
+		   				} else {
+		    				logger.error("Internal error! - Unable to process an event!", ne);
+		   				}
+	    				ne.printStackTrace(); // Unit tests without log4j config show this one.
+	     			}
+    			} catch (JMSException ne) {
+    				logger.error("Cannot get text from message "+txt, ne);
+    			}
     		}
     	};
     	consumer.setMessageListener(listener);
         return consumer;
 	}
 	
+
 	private void diseminate(Object bean, Map<String, Collection<T>> listeners) throws EventException {
 		diseminate(bean, listeners.get(DEFAULT_KEY));  // general listeners
 		if (bean instanceof IdBean) {
@@ -389,5 +396,26 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 
 	public void setSynchronous(boolean synchronous) {
 		this.synchronous = synchronous;
+	}
+
+	private List<String> properties;
+
+
+	@Override
+	public void addProperty(String name, FilterAction... actions) {
+		for (FilterAction fa : actions) if (fa!=FilterAction.DELETE) throw new IllegalArgumentException("It is only possible to remove properties from the subscribed json right now");
+	    if (properties == null) properties = new ArrayList<>(7);
+	    properties.add(name);
+ 	}
+
+	@Override
+	public void removeProperty(String name) {
+	    if (properties == null) return;
+	    properties.remove(name);
+	}
+
+	@Override
+	public List<String> getProperties() {
+		return properties;
 	}
 }

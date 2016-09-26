@@ -38,6 +38,7 @@ import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
+import org.eclipse.scanning.event.util.JsonUtil;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.server.application.PseudoSpringParser;
@@ -377,6 +378,73 @@ public class SerializationTest {
 				assertEquals(value, pos.get(iNamedNode.getName()));
 			}
         }
+	}
+
+	
+	@Test
+	public void testRemoveDetector() throws Exception {
+		
+		final String json = "{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.event.scan.ScanBean\","+
+		 "\"uniqueId\":\"5f67891f-4f01-48d4-9cab-ce373c5f9807\","+
+		 "\"status\":[\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.event.status.Status\",\"SUBMITTED\"],"+
+		 "\"name\":\"Scan [Grid(x, y)] with Detectors [mandelbrot] \","+
+		 "\"percentComplete\":0.0,\"userName\":\"fcp94556\",\"hostName\":\"DIAMRL5606\",\"submissionTime\":1474893775913,"+
+		 "\"scanRequest\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.event.scan.ScanRequest\","+
+		     "\"compoundModel\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.CompoundModel\","+
+		         "\"models\":[\"bundle=&version=&class=java.util.ArrayList\",[{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.GridModel\",\"name\":\"Grid\",\"boundingBox\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.BoundingBox\",\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisStart\":-84.13637953036218,\"fastAxisLength\":43.356972243563845,\"slowAxisStart\":123.33760426169476,\"slowAxisLength\":42.80505395362201},\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisPoints\":5,\"slowAxisPoints\":5,\"snake\":false}]]},"+
+		     "\"detectors\":{\"@bundle_and_class\":\"bundle=&version=&class=java.util.HashMap\",\"mandelbrot\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.example&version=1.0.0.qualifier&class=org.eclipse.scanning.example.detector.MandelbrotModel\",\"maxIterations\":500,\"escapeRadius\":10.0,\"columns\":301,\"rows\":241,\"points\":1000,\"maxRealCoordinate\":1.5,\"maxImaginaryCoordinate\":1.2,\"realAxisName\":\"x\",\"imaginaryAxisName\":\"y\",\"name\":\"mandelbrot\",\"exposureTime\":0.1,\"timeout\":-1}},"+
+		     "\"ignorePreprocess\":false},"+
+		  "\"point\":0,\"size\":0,\"shapeEstimationRequired\":true,\"scanNumber\":0}";			
+	    
+		ScanBean bean = service.unmarshal(json, ScanBean.class);
+		assertTrue(bean.getScanRequest().getDetectors().size()>0);
+		
+		assertTrue(json.indexOf("\"detectors\":{")>0);
+		assertTrue(json.indexOf("\"uniqueId\":")>0);
+		assertTrue(json.indexOf("\"status\":")>0);
+		assertTrue(json.indexOf("\"scanRequest\":{")>0);
+		assertTrue(json.indexOf("\"compoundModel\":{")>0);
+		assertTrue(json.indexOf("\"models\":")>0);
+		assertTrue(json.indexOf("\"point\":0")>0);
+
+		String jsonNoDet = JsonUtil.removeProperties(json, Arrays.asList("detectors"));
+		assertTrue(jsonNoDet.indexOf("\"detectors\":{")<0);
+		assertTrue(jsonNoDet.indexOf("\"uniqueId\":")>0);
+		assertTrue(jsonNoDet.indexOf("\"status\":")>0);
+		assertTrue(jsonNoDet.indexOf("\"scanRequest\":{")>0);
+		assertTrue(jsonNoDet.indexOf("\"compoundModel\":{")>0);
+		assertTrue(jsonNoDet.indexOf("\"models\":")>0);
+		assertTrue(jsonNoDet.indexOf("\"point\":0")>0);
+		assertTrue(jsonNoDet.endsWith("\"point\":0,\"size\":0,\"shapeEstimationRequired\":true,\"scanNumber\":0}"));
+		assertTrue(jsonNoDet.indexOf(",,")<0);
+		
+		bean = service.unmarshal(jsonNoDet, ScanBean.class);
+		assertTrue(bean.getScanRequest().getDetectors()==null);
+	}
+	
+	
+	@Test
+	public void testRemoveScanRequest() throws Exception {
+		
+		final String json = "{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.event.scan.ScanBean\","+
+		 "\"uniqueId\":\"5f67891f-4f01-48d4-9cab-ce373c5f9807\","+
+		 "\"status\":[\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.event.status.Status\",\"SUBMITTED\"],"+
+		 "\"name\":\"Scan [Grid(x, y)] with Detectors [mandelbrot] \","+
+		 "\"percentComplete\":0.0,\"userName\":\"fcp94556\",\"hostName\":\"DIAMRL5606\",\"submissionTime\":1474893775913,"+
+		 "\"scanRequest\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.event.scan.ScanRequest\","+
+		     "\"compoundModel\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.CompoundModel\","+
+		         "\"models\":[\"bundle=&version=&class=java.util.ArrayList\",[{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.GridModel\",\"name\":\"Grid\",\"boundingBox\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.BoundingBox\",\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisStart\":-84.13637953036218,\"fastAxisLength\":43.356972243563845,\"slowAxisStart\":123.33760426169476,\"slowAxisLength\":42.80505395362201},\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisPoints\":5,\"slowAxisPoints\":5,\"snake\":false}]]},"+
+		     "\"detectors\":{\"@bundle_and_class\":\"bundle=&version=&class=java.util.HashMap\",\"mandelbrot\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.example&version=1.0.0.qualifier&class=org.eclipse.scanning.example.detector.MandelbrotModel\",\"maxIterations\":500,\"escapeRadius\":10.0,\"columns\":301,\"rows\":241,\"points\":1000,\"maxRealCoordinate\":1.5,\"maxImaginaryCoordinate\":1.2,\"realAxisName\":\"x\",\"imaginaryAxisName\":\"y\",\"name\":\"mandelbrot\",\"exposureTime\":0.1,\"timeout\":-1}},"+
+		     "\"ignorePreprocess\":false},"+
+		  "\"point\":0,\"size\":0,\"shapeEstimationRequired\":true,\"scanNumber\":0}";			
+	    
+		ScanBean bean = service.unmarshal(json, ScanBean.class);
+		assertTrue(bean.getScanRequest()!=null);
+
+		String jsonNoReq = JsonUtil.removeProperties(json, Arrays.asList("scanRequest"));
+		
+		bean = service.unmarshal(jsonNoReq, ScanBean.class);
+		assertTrue(bean.getScanRequest()==null);
 	}
 
 }
