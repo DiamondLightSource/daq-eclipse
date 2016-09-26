@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -186,7 +187,7 @@ public class SerializationTest {
 		
 		final ScanRequest<?> req = new ScanRequest<IROI>();
 		req.setCompoundModel(new CompoundModel(new StepModel("fred", 0, 9, 1)));
-		req.setMonitorNames("monitor");
+		req.setMonitorNames(Arrays.asList("monitor"));
 		req.setMetadataScannableNames("metadata");
 
 		final MockDetectorModel dmodel = new MockDetectorModel();
@@ -221,7 +222,7 @@ public class SerializationTest {
 
 		IROI roi = new RectangularROI(0, 0, 3, 3, 0);
 		req.setCompoundModel(new CompoundModel(gmodel, roi));
-		req.setMonitorNames("monitor");
+		req.setMonitorNames(Arrays.asList("monitor"));
 		
 		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
 		tmp.deleteOnExit();
