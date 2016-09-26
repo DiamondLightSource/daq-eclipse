@@ -383,7 +383,11 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	@Override
 	public <T> T getAdapter(Class<T> clazz) {
 		
-		if (CompoundModel.class == clazz) return (T)new CompoundModel<IROI>(getModels());
+		if (CompoundModel.class == clazz) {
+			List<IScanPathModel> models = getModels();
+			if (models==null) return null;
+			return (T)new CompoundModel<IROI>(models);
+		}
 		if (clazz==IScanPathModel.class) {
 			ISeriesItemDescriptor selected = seriesTable.getSelected();
 			if (!(selected instanceof GeneratorDescriptor)) return null;
