@@ -64,7 +64,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 			req.setPosition(position);
 			req = requester.post(req, createResponseWaiter()); // Blocks until position set.
 			if (req.getDeviceInformation()!=null) {
-				info = (DeviceInformation<T>)req.getDeviceInformation();
+				merge((DeviceInformation<T>)req.getDeviceInformation());
 			}
 			
 		} catch (Exception ne) {
@@ -85,7 +85,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 			req = srequestor.post(req);
 			req.checkException();
 			if (req.getDeviceInformation()!=null) {
-				info = (DeviceInformation<T>)req.getDeviceInformation();
+				merge((DeviceInformation<T>)req.getDeviceInformation());
 			}
 		} finally {
 			srequestor.disconnect();
@@ -98,7 +98,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 	protected DeviceRequest update() {
 		try {
 			DeviceRequest req = requester.post(new DeviceRequest(name, DeviceType.SCANNABLE));
-			this.info = req.getDeviceInformation()!=null ? (DeviceInformation<T>)req.getDeviceInformation() : this.info;
+			this.merge(req.getDeviceInformation()!=null ? (DeviceInformation<T>)req.getDeviceInformation() : this.info);
 			return req;
 		} catch (Exception ne) {
 			logger.error("Cannot update device info for "+info, ne);
