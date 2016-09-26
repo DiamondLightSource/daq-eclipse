@@ -135,12 +135,6 @@ public class ScanRequest<T> implements Serializable {
 		this.metadataScannableNames = metadataScannableNames;
 	}
 	
-	// This varargs implementation has been added for convenience of users of ScanRequest objects
-	// However it requires special handling for serialization (since there are two setters) so be careful changing it!
-	public void setMetadataScannableNames(String... metadataScannableNames) {
-		setMetadataScannableNames(Arrays.asList(metadataScannableNames));
-	}
-
 	public String getFilePath() {
 		return filePath;
 	}
