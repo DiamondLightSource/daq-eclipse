@@ -50,7 +50,7 @@ import org.eclipse.scanning.api.event.EventException;
  * 
  * @author Matthew Gerring
  */
-public interface ISubscriber<T> extends ITopicConnection {
+public interface ISubscriber<T> extends ITopicConnection, IPropertyFilter {
 
 	/**
 	 * Adds a listener which is notified when events are broadcast.
