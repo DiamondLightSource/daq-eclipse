@@ -236,6 +236,7 @@ public class ScanRegionView extends ViewPart {
 	}
 	
 	private void checkAxes(Collection<ScanRegion<IROI>> regions) {
+		if (regions==null || regions.isEmpty()) return;
 		for (ScanRegion<IROI> region : regions) {
 			if (region!=null) {
 				IRegion iregion = system.getRegion(region.getName());

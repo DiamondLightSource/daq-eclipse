@@ -101,12 +101,17 @@ public class DetectorView extends EventConnectionView {
 		tickedColumn.getColumn().setWidth(24);
 		tickedColumn.getColumn().setMoveable(false);
 		tickedColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
 			public Image getImage(Object element) {
 				
 				if (!(element instanceof DeviceInformation)) return null;
 				DeviceInformation<?> info = (DeviceInformation<?>)element;
 				
 				return info.isActivated() ? ticked : unticked;
+			}
+			@Override
+			public String getText(Object element) {
+				return null;
 			}
 		});
 		
@@ -150,6 +155,10 @@ public class DetectorView extends EventConnectionView {
 					e.printStackTrace();
 					return null;
 				}
+			}
+			@Override
+			public String getText(Object element) {
+				return null;
 			}
 		});
 

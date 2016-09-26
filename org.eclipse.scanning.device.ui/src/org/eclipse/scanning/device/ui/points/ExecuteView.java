@@ -218,7 +218,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 
 		ScanRequest<IROI> ret = new ScanRequest<IROI>();
 		CompoundModel<IROI> cm = modelAdaptable.getAdapter(CompoundModel.class);
-		vservice.validate(cm);
+		if (cm!=null && cm.getModels()!=null && !cm.getModels().isEmpty()) vservice.validate(cm);
 		ret.setCompoundModel(cm);
 
 		IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
@@ -278,6 +278,13 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		try {
 			ScanRequest<IROI> req = createScanRequest();
 			if (monitor.isCanceled()) return;
+			if (req==null) {
+	    		StyledString styledString = new StyledString();
+	    		String name = modelAdaptable != null && modelAdaptable instanceof IWorkbenchPart ? ((IWorkbenchPart)modelAdaptable).getTitle() : "Scan Editor";
+	        	styledString.append("Please create a model using '"+name+"'", StyledString.COUNTER_STYLER);
+	            setThreadSafeText(text, styledString);
+	            return;
+			}
 	        CompoundModel<IROI> cm = req.getCompoundModel();
 	        if (cm != null) {
 	        	// Validate
