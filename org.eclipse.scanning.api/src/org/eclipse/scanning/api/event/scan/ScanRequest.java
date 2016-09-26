@@ -127,12 +127,6 @@ public class ScanRequest<T> implements Serializable {
 		this.monitorNames = monitorNames;
 	}
 	
-	// This varargs implementation has been added for convenience of users of ScanRequest objects
-	// However it requires special handling for serialization (since there are two setters) so be careful changing it!
-	public void setMonitorNames(String... monitorNames) {
-		setMonitorNames(Arrays.asList(monitorNames));
-	}
-
 	public Collection<String> getMetadataScannableNames() {
 		return metadataScannableNames;
 	}
