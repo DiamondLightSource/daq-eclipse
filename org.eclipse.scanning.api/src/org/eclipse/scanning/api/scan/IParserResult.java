@@ -7,14 +7,14 @@ import java.util.Map;
  * Naive long winded usage of the parser API below to show how it should perform.<br>
  * However in fact the parser will be embedded as a subsystem of the scan.<br>
  * There is a utility for creating a compound points generator for<br>
- * any parser. However not putting this method directly on IParser<br>
+ * any parser. However not putting this method directly on IParserResult<br>
  * means that the parser has a simple and well defined role.<br>
  * <br>
  * <usage><code>
  * IParserService pservice = ...// OSGi<br>
  * <br>
  * // Parse the scan command, throws an exception<br>
- * IParser<StepModel> parser = pservice.createParser(...)<br>
+ * IParserResult<StepModel> parser = pservice.createParser(...)<br>
  * // e.g. "scan x 0 5 0.1 analyser"<br>
  * <br>
  * // Now use the parser to create a generator<br>
@@ -34,7 +34,7 @@ import java.util.Map;
  * @author Matthew Gerring
  *
  */
-public interface IParser<T> {
+public interface IParserResult<T> {
 	
 	/**
 	 * The original scan command which this parser is processing.

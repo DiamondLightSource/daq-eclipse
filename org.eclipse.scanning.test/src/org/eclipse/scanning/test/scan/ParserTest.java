@@ -3,7 +3,7 @@ package org.eclipse.scanning.test.scan;
 import static org.junit.Assert.assertTrue;
 
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.api.scan.IParser;
+import org.eclipse.scanning.api.scan.IParserResult;
 import org.eclipse.scanning.api.scan.IParserService;
 import org.eclipse.scanning.command.ParserServiceImpl;
 import org.eclipse.scanning.test.util.DoubleUtils;
@@ -39,7 +39,7 @@ public class ParserTest {
 	public void testCreateParser() throws Exception {
 		final String scanCommand = "scan x 0 10 0.5 detector 0.1";
 		// TODO how do we know what kind of parser this is?
-		final IParser<?> parser = parserService.createParser(scanCommand);
+		final IParserResult<?> parser = parserService.createParser(scanCommand);
 		assertTrue(parser.getCommand().equals(scanCommand));
 		assertTrue(parser.getScannableNames().contains("x"));
 		final StepModel xModel = (StepModel) parser.getModel("x");

@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.api.scan.IParser;
+import org.eclipse.scanning.api.scan.IParserResult;
 
-class ParserImpl implements IParser<StepModel> {
+class ParserImpl implements IParserResult<StepModel> {
 	
 	static {
 		System.out.println("Started Parser Service");
