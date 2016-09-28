@@ -48,10 +48,10 @@ public class PyExpresserTest {
 		request.setMonitorNames(monitors);
 
 		assertEquals(  // Concise.
-				"scan_request(step('fred', 0.0, 10.0, 1.0), 'someMonitor')",
+				"mscan(step('fred', 0.0, 10.0, 1.0), 'someMonitor')",
 				pyExpress(request, false));
 		assertEquals(  // Verbose.
-				"scan_request(path=[step(axis='fred', start=0.0, stop=10.0, step=1.0)], mon=['someMonitor'])",
+				"mscan(path=[step(axis='fred', start=0.0, stop=10.0, step=1.0)], mon=['someMonitor'])",
 				pyExpress(request, true));
 	}
 
@@ -80,10 +80,10 @@ public class PyExpresserTest {
 		request.setCompoundModel(cmodel);
 
 		assertEquals(  // Concise.
-				"scan_request(grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 12.0), count=(3, 4), snake=False, roi=circ((0.0, 0.0), 1.0)))",
+				"mscan(grid(('myFast', 'mySlow'), (0.0, 1.0), (10.0, 12.0), count=(3, 4), snake=False, roi=circ((0.0, 0.0), 1.0)))",
 				pyExpress(request, false));
 		assertEquals(  // Verbose.
-				"scan_request(path=[grid(axes=('myFast', 'mySlow'), start=(0.0, 1.0), stop=(10.0, 12.0), count=(3, 4), snake=False, roi=[circ(origin=(0.0, 0.0), radius=1.0)])])",
+				"mscan(path=[grid(axes=('myFast', 'mySlow'), start=(0.0, 1.0), stop=(10.0, 12.0), count=(3, 4), snake=False, roi=[circ(origin=(0.0, 0.0), radius=1.0)])])",
 				pyExpress(request, true));
 	}
 
@@ -105,10 +105,10 @@ public class PyExpresserTest {
 		request.setCompoundModel(new CompoundModel(smodel, amodel));
 
 		assertEquals(  // Concise.
-				"scan_request([step('fred', 0.0, 10.0, 1.0), val('fred', 0.1)])",
+				"mscan([step('fred', 0.0, 10.0, 1.0), val('fred', 0.1)])",
 				pyExpress(request, false));
 		assertEquals(  // Verbose.
-				"scan_request(path=[step(axis='fred', start=0.0, stop=10.0, step=1.0), array(axis='fred', values=[0.1])])",
+				"mscan(path=[step(axis='fred', start=0.0, stop=10.0, step=1.0), array(axis='fred', values=[0.1])])",
 				pyExpress(request, true));
 	}
 
