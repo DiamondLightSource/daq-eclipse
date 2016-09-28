@@ -5,12 +5,18 @@ import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.scanning.api.event.scan.ScanRequest;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.api.scan.IParser;
+import org.eclipse.scanning.api.scan.IParserResult;
 import org.eclipse.scanning.api.scan.IParserService;
 import org.eclipse.scanning.api.scan.ParsingException;
 
 public class ParserServiceImpl implements IParserService {
+	
+	static {
+		System.out.println("Starting Parser Service");
+	}
 
 	// TODO clarify valid scan command names and valid scannable/detector names
 	private static final String IDENTIFIER_REGEX = "[a-zA-Z][a-zA-Z0-9_]*";
@@ -28,9 +34,6 @@ public class ParserServiceImpl implements IParserService {
 	private final Pattern detectorsPattern;
 
 	public ParserServiceImpl() {
-		// TODO these classes seem to be named incorrectly
-		// the IParserService is actually the parser and the IParser is
-		// actually the result
 
 		// a scannable takes exactly 3 doubles as arguments - TODO sometimes none
 		// TODO match a single space or multiple, or even general whitespace?
@@ -117,7 +120,7 @@ public class ParserServiceImpl implements IParserService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> IParser<T> createParser(String scan) throws ParsingException {
+	public <T> IParserResult<T> createParser(String scan) throws ParsingException {
 
 		// TODO trim trailing whitespace first?
 		final Matcher scanCommandMatcher = scanCommandPattern.matcher(scan);
@@ -141,7 +144,23 @@ public class ParserServiceImpl implements IParserService {
 		final LinkedHashMap<String, Number> detectorExposures = parseDetectors(detectorsString);
 		parser.setDetectors(detectorExposures);
 
-		return (IParser<T>) parser;
+		return (IParserResult<T>) parser;
+	}
+
+	@Override
+	public <T> String getCommand(ScanRequest<T> req, boolean verbose) throws Exception {
+		return PyExpresser.pyExpress(req, verbose);
+	}
+
+	
+	private static IPointGeneratorService pointGeneratorService;
+
+	public static IPointGeneratorService getPointGeneratorService() {
+		return pointGeneratorService;
+	}
+
+	public static void setPointGeneratorService(IPointGeneratorService pointGeneratorService) {
+		ParserServiceImpl.pointGeneratorService = pointGeneratorService;
 	}
 
 }

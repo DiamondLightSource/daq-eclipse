@@ -15,7 +15,7 @@ import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.command.PyExpresser;
+import org.eclipse.scanning.command.ParserServiceImpl;
 import org.eclipse.scanning.command.PyExpressionNotImplementedException;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.junit.Before;
@@ -26,7 +26,7 @@ public class PyExpresserTest {
 	
 	@Before
 	public void services() {
-		PyExpresser.setPointGeneratorService(new PointGeneratorFactory());
+		ParserServiceImpl.setPointGeneratorService(new PointGeneratorFactory());
 	}
 
 	@Test

@@ -30,8 +30,6 @@ import org.eclipse.scanning.api.scan.rank.IScanSlice;
  */
 public class MockNeXusScannable extends MockScannable implements INexusDevice<NXpositioner> {
 	
-	public static final String FIELD_NAME_DEMAND_VALUE = NXpositioner.NX_VALUE + "_demand";
-	
 	private ILazyWriteableDataset lzDemand;
 	private ILazyWriteableDataset lzValue;
 
@@ -50,11 +48,13 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
+		String fieldNameDemand = getName() + "_demand";
+
 		if (info.isMetadataScannable(getName())) {
-			positioner.setField(FIELD_NAME_DEMAND_VALUE, getPosition().doubleValue());
+			positioner.setField(fieldNameDemand, getPosition().doubleValue());
 			positioner.setValueScalar(getPosition().doubleValue());
 		} else {
-			this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Double.class);
+			this.lzDemand = positioner.initializeLazyDataset(fieldNameDemand, 1, Double.class);
 			lzDemand.setChunking(new int[]{1});
 			
 			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Double.class);
@@ -65,7 +65,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		
 		NexusObjectWrapper<NXpositioner> nexusDelegate = new NexusObjectWrapper<>(
 				getName(), positioner, NXpositioner.NX_VALUE);
-		nexusDelegate.setDefaultAxisDataFieldName(FIELD_NAME_DEMAND_VALUE);
+		nexusDelegate.setDefaultAxisDataFieldName(fieldNameDemand);
 		return nexusDelegate;
 	}	
 
