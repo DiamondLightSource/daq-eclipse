@@ -33,6 +33,7 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -376,19 +377,19 @@ public class AbstractScanTest extends BrokerTest {
 	@Test
 	public void testSimpleScanSetPositionCalls() throws Exception {
 			
-		IScannable<Number> x = connector.getScannable("x");
-		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null);
+		IScannable<Number> p = connector.getScannable("p");
+		IRunnableDevice<ScanModel> scanner = createTestScanner(null, null, null, null, null, new String[]{"p","q"});
 		
 		scanner.run(null);
 		
 		checkRun(scanner);
 		
 		// NOTE Did with Mockito but caused dependency issues.
-		MockScannable ms = (MockScannable)x;
-		ms.verify(0.3, new Point(0,0.3,0,0.3));
-		ms.verify(0.3, new Point(0,0.3,2,1.5));
-		ms.verify(1.5, new Point(2,1.5,0,0.3));
-		ms.verify(1.5, new Point(2,1.5,2,1.5));
+		MockScannable ms = (MockScannable)p;
+		ms.verify(0.3, new Point("p",0,0.3, "q",0,0.3));
+		ms.verify(0.3, new Point("p",0,0.3, "q",2,1.5));
+		ms.verify(1.5, new Point("p",2,1.5, "q",0,0.3));
+		ms.verify(1.5, new Point("p",2,1.5, "q",2,1.5));
 	}
 	
 	@Test
@@ -420,10 +421,19 @@ public class AbstractScanTest extends BrokerTest {
 	}
 
 	private IRunnableDevice<ScanModel> createTestScanner(AbstractPointsModel pmodel,
+			final ScanBean bean,
+			final IPublisher<ScanBean> publisher,
+			IScannable<?> monitor,
+			IRunnableDevice<MockDetectorModel> detector) throws Exception {
+		return createTestScanner(pmodel, bean, publisher, monitor, detector, null);
+	}
+
+	private IRunnableDevice<ScanModel> createTestScanner(AbstractPointsModel pmodel,
 														final ScanBean bean,
 														final IPublisher<ScanBean> publisher,
 														IScannable<?> monitor,
-														IRunnableDevice<MockDetectorModel> detector) throws Exception {
+														IRunnableDevice<MockDetectorModel> detector,
+														String[] axes) throws Exception {
 		
 		// Configure a detector with a collection time.
 		if (detector == null) {
@@ -439,6 +449,13 @@ public class AbstractScanTest extends BrokerTest {
 			((GridModel) pmodel).setSlowAxisPoints(5);
 			((GridModel) pmodel).setFastAxisPoints(5);
 			((GridModel) pmodel).setBoundingBox(new BoundingBox(0,0,3,3));
+			
+		}
+		
+		if (axes!=null && pmodel instanceof AbstractBoundingBoxModel) {
+			AbstractBoundingBoxModel bmodel = (AbstractBoundingBoxModel)pmodel;
+			bmodel.setFastAxisName(axes[0]);
+			bmodel.setSlowAxisName(axes[1]);
 		}
 		
 		IPointGenerator<?> gen = gservice.createGenerator(pmodel);
