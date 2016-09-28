@@ -49,6 +49,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.scan.ui.ControlEnumNode;
 import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
@@ -386,7 +387,10 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 		if (CompoundModel.class == clazz) {
 			List<IScanPathModel> models = getModels();
 			if (models==null) return null;
-			return (T)new CompoundModel<IROI>(models);
+			CompoundModel<IROI> cm = new CompoundModel<IROI>(models);
+			final List<ScanRegion<IROI>> regions = ScanRegions.getScanRegions(PlotUtil.getRegionSystem());
+			cm.setRegions(regions);
+			return (T)cm;
 		}
 		if (clazz==IScanPathModel.class) {
 			ISeriesItemDescriptor selected = seriesTable.getSelected();
@@ -401,12 +405,13 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 			
 		} else if (clazz==IPosition[].class) {
 			
-			if (cservice==null)
+			if (cservice==null) {
 				try {
 					this.cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
 				} catch (EventException | URISyntaxException e) {
 					logger.error("Unable to get remote device service", e);
 				}
+			}
 			IPosition[] ret = new IPosition[2];
 			if (store.getBoolean(DevicePreferenceConstants.START_POSITION)) {
 				ControlTree tree = trees.get(DevicePreferenceConstants.START_POSITION);
