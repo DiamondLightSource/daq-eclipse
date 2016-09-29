@@ -164,7 +164,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 	}
 
-	private void configureBean(ScanModel smodel, ScanBean bean) throws EventException {
+	private void configureBean(ScanModel smodel, ScanBean bean) throws EventException, GeneratorException {
 		
 		ScanRequest<?> req = bean.getScanRequest();
 		
@@ -186,10 +186,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 		bean.setFilePath(smodel.getFilePath());
 		
-		// 
-		ScanEstimator estimator = new ScanEstimator(smodel.getPositionIterable(), bean.isShapeEstimationRequired());
+		ScanEstimator estimator = new ScanEstimator(Services.getGeneratorService(), bean.getScanRequest());
 		bean.setSize(estimator.getSize());
-		bean.setShape(estimator.getShape());
 		
 	}
 

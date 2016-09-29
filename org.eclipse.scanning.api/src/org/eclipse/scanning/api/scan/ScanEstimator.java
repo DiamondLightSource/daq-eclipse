@@ -1,8 +1,12 @@
 package org.eclipse.scanning.api.scan;
 
-import java.util.Iterator;
+import java.util.Map;
 
-import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.event.scan.ScanRequest;
+import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 
 /**
  * 
@@ -19,45 +23,76 @@ import org.eclipse.scanning.api.points.IPosition;
  */
 public class ScanEstimator {
 
+	/**
+	 * Size, number of points in scan
+	 */
 	private int   size;
-	private int[] shape;
+	
+	/**
+	 * 
+	 */
+	private long  timePerPoint = -1;
+	private long  scanTime = -1;
 
 	/**
-	 * This constructor run the loop over the points in order to
-	 * estimate shape and size.
 	 * 
-	 * @param iterable
-	 * @param requireShape Do not set require shape unless you do because it is expensive for huge scans.
+	 * @param pservice
+	 * @param bean
 	 */
-	public ScanEstimator(Iterable<? extends IPosition> iterable, boolean requireShape) {
+	public ScanEstimator(IPointGeneratorService pservice, ScanRequest<?> request) throws GeneratorException{
+		this(pservice, request, Long.MIN_VALUE);
+	}
+
+	/**
+	 * 
+	 * @param pservice
+	 * @param bean
+	 * @param timePerPoint ms
+	 * @throws GeneratorException 
+	 */
+	public ScanEstimator(IPointGeneratorService pservice, ScanRequest<?> request, long timePerPoint) throws GeneratorException {
+		this(pservice.createCompoundGenerator(request.getCompoundModel()), request.getDetectors(), timePerPoint);
+	}
+	/**
+	 * 
+	 * @param pservice
+	 * @param request
+	 * @param timePerPoint
+	 * @throws GeneratorException
+	 */
+	public ScanEstimator(IPointGenerator<?> gen, Map<String, Object> detectors, long timePerPoint) throws GeneratorException {
+
 		
-		this.size  = 0;
-		this.shape = null;
-		for (Iterator<? extends IPosition> it = iterable.iterator(); it.hasNext();) {
-			IPosition pos = it.next();
-			size++; // Fast even for large stuff
-			
-			// Not so fast, can turn off for large scans.
-			if (requireShape) {
-				if (shape==null) shape = new int[pos.getNames().size()];
-				
-				// TODO Inefficient for large stuff - is this right?
-				// We have to do this for every point because they do 
-				// not have to iterate in order.
-				int i = 0;
-				for (String name : pos.getNames()) {
-					shape[i] = Math.max(shape[i], pos.getIndex(name)+1);
-					++i;
-				}
+		// TODO FIXME If some detectors are malcolm, they may have a wait time.
+		// If some are malcolm we may wish to ignore the input point time from the user
+		// in favour of the malcolm time per point or maybe the device tells us how long it will take?
+		if (detectors!=null) for (Object model : detectors.values()) {
+			if (model instanceof IDetectorModel) {
+				timePerPoint = Math.max(timePerPoint, Math.round(1000*((IDetectorModel)model).getExposureTime()));
 			}
 		}
+		this.size = gen.size();
+		this.timePerPoint  = timePerPoint;
+		this.scanTime      = size*timePerPoint;
 	}
 
 	public int getSize() {
 		return size;
 	}
 
-	public int[] getShape() {
-		return shape;
+	public long getTimePerPoint() {
+		return timePerPoint;
+	}
+
+	public void setTimePerPoint(long timePerPoint) {
+		this.timePerPoint = timePerPoint;
+	}
+
+	public long getScanTime() {
+		return scanTime;
+	}
+
+	public void setScanTime(long scanTime) {
+		this.scanTime = scanTime;
 	}
 }

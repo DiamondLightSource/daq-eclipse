@@ -60,7 +60,7 @@ public class MandelbrotModel implements IDetectorModel {
 	 * The exposure time. If calculation is shorter than this, time is artificially added to make the detector respect
 	 * the time that is set.
 	 */
-	@FieldDescriptor(label="Exposure Time")
+	@FieldDescriptor(label="Exposure Time", unit="s")
 	private double exposureTime; // Seconds
 
 	public MandelbrotModel() {

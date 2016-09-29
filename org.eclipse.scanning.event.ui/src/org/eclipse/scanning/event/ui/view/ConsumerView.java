@@ -10,6 +10,7 @@ package org.eclipse.scanning.event.ui.view;
 
 import java.net.URI;
 import java.text.DateFormat;
+import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -293,6 +294,8 @@ public class ConsumerView extends EventConnectionView {
 		};
 	}
 
+	private final static long HOUR_IN_MS = 60*60*1000;
+
 	protected void createColumns() {
 		
 		final TableViewerColumn name = new TableViewerColumn(viewer, SWT.LEFT);
@@ -372,7 +375,9 @@ public class ConsumerView extends EventConnectionView {
 			public String getText(Object element) {
 				try {
 					final HeartbeatBean cbean = (HeartbeatBean)element;
-					return (new SimpleDateFormat("dd'd' mm'm' ss's'")).format(new Date(cbean.getLastAlive()-cbean.getConceptionTime()));
+					long time = cbean.getLastAlive()-cbean.getConceptionTime();
+        			Format format = (time<HOUR_IN_MS) ? new SimpleDateFormat("mm'm' ss's'") : new SimpleDateFormat("dd'd' mm'm' ss's'");
+					return format.format(new Date(time));
 				} catch (Exception e) {
 					return e.getMessage();
 				}
