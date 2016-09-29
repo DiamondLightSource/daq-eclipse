@@ -1,6 +1,5 @@
 package org.eclipse.scanning.example.detector;
 
-import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.UiComesAfter;
 import org.eclipse.scanning.api.annotation.UiSection;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;

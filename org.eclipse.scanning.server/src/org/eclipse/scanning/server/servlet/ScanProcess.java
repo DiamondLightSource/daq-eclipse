@@ -214,7 +214,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			final IRunnableDeviceService service = Services.getRunnableDeviceService();
 			for (String name : detectors.keySet()) {
 				Object dmodel = detectors.get(name);
-				IRunnableDevice<Object> detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
+				IRunnableDevice<Object> detector = service.getRunnableDevice(name);
+				if (detector==null) detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
 				if (detector instanceof AbstractRunnableDevice<?>) {
 					((AbstractRunnableDevice<?>)detector).setBean(bean);
 				}
