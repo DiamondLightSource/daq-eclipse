@@ -34,6 +34,7 @@ public class GridModel extends AbstractBoundingBoxModel {
 	}
 	
 	public GridModel(String fastName, String slowName) {
+		this();
 		setFastAxisName(fastName);
 		setSlowAxisName(slowName);
 	}

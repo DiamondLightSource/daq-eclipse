@@ -349,7 +349,7 @@ public class StatusQueueView extends EventConnectionView {
 		menuMan.add(pause);
 		dropDown.add(pause);
 		
-		this.pauseConsumer = new Action("Pause "+getPartName()+" Queue.\nDoes not pause running job.", IAction.AS_CHECK_BOX) {
+		this.pauseConsumer = new Action("Pause "+getPartName()+" Queue. Does not pause running job.", IAction.AS_CHECK_BOX) {
 			public void run() {
 				togglePausedConsumer(this);
 			}

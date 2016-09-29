@@ -4,7 +4,6 @@ import java.net.URI;
 
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IContributionManager;
-import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -21,7 +20,6 @@ import org.eclipse.scanning.device.ui.device.scannable.ControlViewerMode;
 import org.eclipse.scanning.device.ui.points.DelegatingSelectionProvider;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;

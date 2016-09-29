@@ -379,11 +379,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			if (ob instanceof IScanPathModel) setModel(ob);
 			
 			if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
-
-        		IPlottingSystem<?>     system  = (IPlottingSystem<?>)PlotUtil.getRegionSystem();
-	    		List<ScanRegion<IROI>> regions = ScanRegions.getScanRegions(system);
-	    		List<IROI> rois = ServiceHolder.getGeneratorService().findRegions(getModel(), regions);
-	    		BoundingBox      box  = bounds(rois);
+                BoundingBox box = ScanRegions.createBoxFromPlot(model);
 	    		((IBoundingBoxModel)getModel()).setBoundingBox(box);
 	    		refresh();
 			}
@@ -392,19 +388,6 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			logger.error("Cannot set model for object "+ob);
 			if (site != null) site.getActionBars().getStatusLineManager().setErrorMessage("Cannot connect to server "+ne.getMessage());
 		}
-	}
-
-	private BoundingBox bounds(List<IROI> rois) {
-		
-		IRectangularROI rect = rois.get(0).getBounds();
-		for (IROI roi : rois) rect = rect.bounds(roi);
-
-		BoundingBox box = new BoundingBox();
-		box.setFastAxisStart(rect.getPoint()[0]);
-		box.setSlowAxisStart(rect.getPoint()[1]);
-		box.setFastAxisLength(rect.getLength(0));
-		box.setSlowAxisLength(rect.getLength(1));
-		return box;
 	}
 
 	private DeviceInformation<?> getLatestDeviceInformation(DeviceInformation<?> info) {
