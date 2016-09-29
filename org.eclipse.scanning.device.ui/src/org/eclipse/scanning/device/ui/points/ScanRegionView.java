@@ -1,7 +1,5 @@
 package org.eclipse.scanning.device.ui.points;
 
-import java.awt.MouseInfo;
-import java.awt.PointerInfo;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -49,6 +47,7 @@ import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.Stashing;
+import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
@@ -455,11 +454,11 @@ public class ScanRegionView extends ViewPart {
             IAction action = new Action("Press to click and drag a "+regionType.getName()+" on '"+PlotUtil.getRegionViewName()+"'") {
             	public void run() {
             		try {
-						ScanRegions.createRegion(system, regionType, regionViewName, null);
+						ScanRegions.createRegion(system, regionType, null);
+						ViewUtil.showTip(tip, "Drag a box in the '"+regionViewName+"' to create a scan region.");
 					} catch (Exception e) {
 						logger.error("Unable to create region!", e);
 					}
-    				showTip(tip, "Drag a box in the '"+regionViewName+"' to create a scan region.");
             		rois.setSelectedAction(this);
             	}
             };
@@ -483,17 +482,6 @@ public class ScanRegionView extends ViewPart {
 			logger.error("Cannot get plotting menu for adding regions!", ne);
 			return Activator.getImageDescriptor("icons/ProfileBox.png");
 		}
-	}
-
-	private void showTip(ToolTip tip, String message) {
-		
-		if (tip==null) return;
-    	tip.setMessage(message);
-		PointerInfo a = MouseInfo.getPointerInfo();
-		java.awt.Point loc = a.getLocation();
-		
-		tip.setLocation(loc.x, loc.y+20);
-        tip.setVisible(true);
 	}
 
 }

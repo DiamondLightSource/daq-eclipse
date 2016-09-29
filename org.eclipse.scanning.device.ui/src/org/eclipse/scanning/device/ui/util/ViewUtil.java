@@ -1,7 +1,8 @@
 package org.eclipse.scanning.device.ui.util;
 
+import java.awt.MouseInfo;
+import java.awt.PointerInfo;
 import java.io.UnsupportedEncodingException;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.runtime.Status;
@@ -13,9 +14,8 @@ import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.queues.QueueViews;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.api.ui.CommandConstants;
-import org.eclipse.scanning.device.ui.model.ModelView;
-import org.eclipse.scanning.device.ui.points.ScanRegionView;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.ToolTip;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -23,6 +23,22 @@ import org.osgi.framework.FrameworkUtil;
 
 public class ViewUtil {
 	
+    /**
+     * Show the top where the mouse is.
+     * @param tip
+     * @param message
+     */
+	public static void showTip(ToolTip tip, String message) {
+		
+		if (tip==null) return;
+    	tip.setMessage(message);
+		PointerInfo a = MouseInfo.getPointerInfo();
+		java.awt.Point loc = a.getLocation();
+		
+		tip.setLocation(loc.x, loc.y+20);
+        tip.setVisible(true);
+	}
+
 	/**
 	 * 
 	 * @param id
