@@ -64,7 +64,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		}
 
 		@Override
-		public void createNexusFile() throws ScanningException {
+		public void createNexusFile(boolean async) throws ScanningException {
 			// do nothing
 		}
 
@@ -133,7 +133,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		}
 		
 		nexusFileMgr.configure(model);
-		nexusFileMgr.createNexusFile();
+		nexusFileMgr.createNexusFile(false);
 		
 		return nexusFileMgr;
 	}
@@ -190,14 +190,14 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		nexusObjectProviders.get(ScanRole.MONITOR).add(scanPointsWriter.getNexusProvider(scanInfo));
 	}
 	
-	public void createNexusFile() throws ScanningException {
+	public void createNexusFile(boolean async) throws ScanningException {
 		// We use the new nexus framework to join everything up into the scan
 		// Create a builder
 		fileBuilder = ServiceHolder.getFactory().newNexusFileBuilder(model.getFilePath());
 		try {
 			createEntry(fileBuilder);
 			// create the file from the builder and open it
-			nexusScanFile = fileBuilder.createFile();
+			nexusScanFile = fileBuilder.createFile(async);
 			nexusScanFile.openToWrite();
 		} catch (NexusException e) {
 			throw new ScanningException("Cannot create nexus file", e);
