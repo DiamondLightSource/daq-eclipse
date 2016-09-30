@@ -10,6 +10,8 @@ import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
+import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -65,6 +67,18 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	 * @return the current device State. This is not the same as the Status of the scan.
 	 */
 	public DeviceState getDeviceState() throws ScanningException;
+	
+	/**
+	 * 
+	 * @return the current device Status.
+	 */
+	public String getDeviceStatus() throws ScanningException;
+	
+	/**
+	 * 
+	 * @return the current value of the device 'busy' flag.
+	 */
+	public boolean isDeviceBusy() throws ScanningException;
 
 	/**
 	 * Blocking call to execute the scan. The position specified may be null.
@@ -161,4 +175,14 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	 * @return
 	 */
 	public T getModel();
+	
+	/**
+	 * Gets the value of an attribute on the device
+	 */
+	public Object getAttributeValue(String attribute) throws MalcolmDeviceException;
+	
+	/**
+	 * Gets a list of all attributes on the device
+	 */
+	public List<MalcolmAttribute> getAllAttributes() throws MalcolmDeviceException;
 }

@@ -47,7 +47,7 @@ public class MalcolmMessageSerialiser implements IPVStructureSerialiser<MalcolmM
 					paramMap.setParameters((Map)msg.getArguments());
 					field = serialiser.buildStructure(paramMap).getField("parameters");
 				} else {
-					throw new Exception("Argument to call '" + msg.getMethod() + "' was not a Map (" + msg.getArguments().getClass() + ")");
+					field = serialiser.buildStructure(msg.getArguments());
 				}
 				
 			} else {
@@ -90,10 +90,14 @@ public class MalcolmMessageSerialiser implements IPVStructureSerialiser<MalcolmM
 			method.put(msg.getMethod());
 			
 			if (msg.getArguments() != null) {
-				ParamMap paramMap = new ParamMap();
-				paramMap.setParametersFromObject((Map)msg.getArguments());
-				PVStructure params = serialiser.toPVStructure(paramMap);
-				convert.copyStructure(params.getStructureField("parameters"), parameters);
+				if (msg.getArguments() instanceof Map) {
+					ParamMap paramMap = new ParamMap();
+					paramMap.setParametersFromObject((Map)msg.getArguments());
+					PVStructure params = serialiser.toPVStructure(paramMap);
+					convert.copyStructure(params.getStructureField("parameters"), parameters);
+				} else {
+					serialiser.setValues(msg.getArguments(), parameters);
+				}
 			}
 			break;
 		default:

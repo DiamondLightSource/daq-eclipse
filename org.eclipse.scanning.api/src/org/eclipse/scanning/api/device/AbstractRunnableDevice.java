@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -19,6 +20,8 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
+import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
+import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -64,6 +67,8 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	// Attributes
 	private Map<String, Object>          scanAttributes;
+	
+	private volatile boolean busy = false;
 
 	protected AbstractRunnableDevice() {
 		this.scanId     = UUID.randomUUID().toString();
@@ -349,10 +354,19 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		return (A)scanAttributes.get(attributeName);
 	}
 
-	public DeviceInformation<T> getDeviceInformation() throws ScanningException {
+	/**
+	 * Do not override without calling super.getDeviceInformation()
+	 * Method is final for now to help avoid that problem.
+	 * @return
+	 * @throws ScanningException
+	 */
+	public final DeviceInformation<T> getDeviceInformation() throws ScanningException {
 		if (deviceInformation==null) deviceInformation = new DeviceInformation<T>();
 		deviceInformation.setModel(getModel());
 		deviceInformation.setState(getDeviceState());
+		deviceInformation.setStatus(getDeviceStatus());
+		deviceInformation.setBusy(isDeviceBusy());
+		deviceInformation.setAttributes(getAllAttributes());
 		if (getName()!=null) deviceInformation.setName(getName());
 		deviceInformation.setLevel(getLevel());
 		deviceInformation.setActivated(isActivated());
@@ -395,5 +409,53 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		this.activated = activated;
 		return wasactivated;
 	}
+	
+	/**
+	 * Please override to provide a device status (which a malcolm device will have)
+	 * The default returns null.
+	 * @return the current device Status.
+	 */
+	public String getDeviceStatus() throws ScanningException {
+		return null;
+	}
+	
+	/**
+	 * Gets whether the device is busy or not
+	 * @return the current value of the device 'busy' flag.
+	 */
+	public boolean isDeviceBusy() throws ScanningException {
+		return busy;
+	}
 
+	/**
+	 * Call to set the busy state while the device is running.
+	 * This should not be part of IRunnableDevice, it is derived
+	 * by the device when it is running or set by the scanning when
+	 * it is scanning on CPU devices. This means that the creator of
+	 * a Detector does not have to worry about setting it busy during
+	 * scans.
+	 * 
+	 * @param busy
+	 */
+	public void setBusy(boolean busy) {
+		this.busy = busy;
+	}
+	
+	/**
+	 * Please override to get a value from the device
+	 * The default returns null.
+	 * @return the value of the specified attribute
+	 */
+	public Object getAttributeValue(String attribute) throws MalcolmDeviceException {
+		return null;
+	}
+	
+	/**
+	 * Please override to get all attributes from the device
+	 * The default returns null.
+	 * @return a list of all attributes on the device
+	 */
+	public List<MalcolmAttribute> getAllAttributes() throws MalcolmDeviceException {
+		return null;
+	}
 }
