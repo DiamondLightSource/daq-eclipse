@@ -10,6 +10,7 @@ import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.scan.IParserService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.EventAdmin;
@@ -26,6 +27,7 @@ public class ServiceHolder {
 	private static IMarshallerService     marshallerService;
 	private static IPlottingService       plottingService;
 	private static IRemoteDatasetService  remoteDatasetService;
+	private static IParserService         parserService;
 	private static EventAdmin             eventAdmin;
 	
 	private static BundleContext context;
@@ -149,5 +151,14 @@ public class ServiceHolder {
 
 	public static void setEventAdmin(EventAdmin eventAdmin) {
 		ServiceHolder.eventAdmin = eventAdmin;
+	}
+
+	public static IParserService getParserService() {
+		if (parserService==null) parserService = getService(IParserService.class);
+		return parserService;
+	}
+
+	public static void setParserService(IParserService parserService) {
+		ServiceHolder.parserService = parserService;
 	}
 }

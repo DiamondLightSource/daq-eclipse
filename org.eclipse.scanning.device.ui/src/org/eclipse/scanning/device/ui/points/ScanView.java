@@ -1,8 +1,8 @@
 package org.eclipse.scanning.device.ui.points;
 
-import java.awt.MouseInfo;
-import java.awt.PointerInfo;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,6 +30,7 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -39,17 +40,22 @@ import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.SeriesTable;
 import org.eclipse.richbeans.widgets.table.event.SeriesItemEvent;
 import org.eclipse.richbeans.widgets.table.event.SeriesItemListener;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.scan.ui.ControlEnumNode;
 import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.api.script.ScriptLanguage;
 import org.eclipse.scanning.api.script.ScriptRequest;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ScanningPerspective;
@@ -59,6 +65,7 @@ import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.Stashing;
+import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.dnd.DropTarget;
@@ -99,7 +106,8 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	private static final Logger logger = LoggerFactory.getLogger(ScanView.class);
 	
 	// Services
-	private IPointGeneratorService pservice;
+	private IPointGeneratorService  pservice;
+	private IScannableDeviceService cservice;
 
 	// UI
 	private SeriesTable  seriesTable;
@@ -115,6 +123,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	// Preferences
 	private IPreferenceStore store;
 
+
 	
 	public ScanView() {
 		
@@ -125,7 +134,9 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 
 		this.store        = Activator.getDefault().getPreferenceStore();
 		store.setDefault(DevicePreferenceConstants.START_POSITION, false);
-		store.setDefault(DevicePreferenceConstants.END_POSITION, false);
+		store.setDefault(DevicePreferenceConstants.END_POSITION,   false);
+		store.setDefault(DevicePreferenceConstants.BEFORE_SCRIPT,  false);
+		store.setDefault(DevicePreferenceConstants.AFTER_SCRIPT,   false);
 		store.setDefault(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, true);
 		
 		this.trees = new HashMap<>(7);
@@ -374,7 +385,14 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	@Override
 	public <T> T getAdapter(Class<T> clazz) {
 		
-		if (CompoundModel.class == clazz) return (T)new CompoundModel<IROI>(getModels());
+		if (CompoundModel.class == clazz) {
+			List<IScanPathModel> models = getModels();
+			if (models==null) return null;
+			CompoundModel<IROI> cm = new CompoundModel<IROI>(models);
+			final List<ScanRegion<IROI>> regions = ScanRegions.getScanRegions(PlotUtil.getRegionSystem());
+			cm.setRegions(regions);
+			return (T)cm;
+		}
 		if (clazz==IScanPathModel.class) {
 			ISeriesItemDescriptor selected = seriesTable.getSelected();
 			if (!(selected instanceof GeneratorDescriptor)) return null;
@@ -387,14 +405,22 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 			return (T)getModels();
 			
 		} else if (clazz==IPosition[].class) {
+			
+			if (cservice==null) {
+				try {
+					this.cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
+				} catch (EventException | URISyntaxException e) {
+					logger.error("Unable to get remote device service", e);
+				}
+			}
 			IPosition[] ret = new IPosition[2];
 			if (store.getBoolean(DevicePreferenceConstants.START_POSITION)) {
 				ControlTree tree = trees.get(DevicePreferenceConstants.START_POSITION);
-				ret[0] = tree!=null ? tree.toPosition() : null;
+				ret[0] = tree!=null ? tree.toPosition(cservice) : null;
 			}
 			if (store.getBoolean(DevicePreferenceConstants.END_POSITION))   {
 				ControlTree tree = trees.get(DevicePreferenceConstants.END_POSITION);
-				ret[1] = tree!=null ? tree.toPosition() : null;
+				ret[1] = tree!=null ? tree.toPosition(cservice) : null;
 			}
 			return (T)ret;
 			
@@ -674,26 +700,44 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 		seriesTable.setFocus();
 	}
 
-    
-   	@Override
+
+	@Override
 	public void itemAdded(SeriesItemEvent evt) {
-   		
+
 		final IPlottingSystem<?> system = PlotUtil.getRegionSystem();
 		if (system==null) return;
-		
- 		if (ScanRegions.getScanRegions(system)!=null) {
- 			IViewReference ref = PageUtil.getPage().findViewReference(ScanRegionView.ID);
- 			String name = ref!=null ? ref.getPartName() : "regions";
-            showTip("There are already scan regions defined.\nGo to '"+name+"' to edit and create others.");
- 			return; // They already have some
- 		}
-		
+
+		if (ScanRegions.getScanRegions(system)!=null) {
+			IViewReference ref = PageUtil.getPage().findViewReference(ScanRegionView.ID);
+			String name = ref!=null ? ref.getPartName() : "Scan Regions";
+			if(evt.getDescriptor()!=null && evt.getDescriptor() instanceof GeneratorDescriptor) {
+				try {
+					final IPointGenerator<?> generator = (IPointGenerator<?>)evt.getDescriptor().getSeriesObject();
+					final Object model     = generator.getModel();
+					if (model instanceof IBoundingBoxModel) {
+						BoundingBox box = ScanRegions.createBoxFromPlot(model);
+						((IBoundingBoxModel) model).setBoundingBox(box);
+						showTip("There are already scan regions defined.\n"
+								+ "Drag regions to move them. Go to '"+name+"' to manage them.\n"
+								+ "The bounding box of the existing regions has been used.");
+						
+						ISelectionProvider prov = getViewSite().getSelectionProvider();
+						prov.setSelection(new StructuredSelection(evt.getDescriptor()));
+					}
+
+				} catch (Exception e) {
+					logger.error("Problem creating a plotted region!", e);
+				}
+			}
+			return; // They already have some
+		}
+
 		try {
 			final IPointGenerator<?> generator = (IPointGenerator<?>)evt.getDescriptor().getSeriesObject();
 			final Object model     = generator.getModel();
 			if (model instanceof IBoundingBoxModel) {
-                IRegion created = ScanRegions.createRegion(system, RegionType.BOX, system.getPlotName(), null);
-                if (created!=null) showTip("Click and drag in '"+system.getPlotName()+"' to add a region for '"+generator.getLabel()+"'");
+				IRegion created = ScanRegions.createRegion(system, RegionType.BOX, null);
+				if (created!=null) showTip("Click and drag in '"+system.getPlotName()+"' to add a region for '"+generator.getLabel()+"'");
 			}
 		} catch (Exception e) {
 			logger.error("Problem creating a plotted region!", e);
@@ -706,12 +750,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
    	private void showTip(String message) {
 		if (!store.getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS)) return;
         if (tip==null) this.tip = new ToolTip(seriesTable.getControl().getShell(), SWT.BALLOON);
-        tip.setMessage(message);
-        PointerInfo a = MouseInfo.getPointerInfo();
-        java.awt.Point loc = a.getLocation();
-
-        tip.setLocation(loc.x, loc.y+20);
-        tip.setVisible(true);
+        ViewUtil.showTip(tip, message);
    	}
 
 	@Override

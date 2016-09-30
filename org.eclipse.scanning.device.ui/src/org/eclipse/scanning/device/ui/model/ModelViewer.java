@@ -42,6 +42,7 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.points.ScanView;
@@ -119,7 +120,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 	
 	public ModelViewer() throws EventException, URISyntaxException {
 		super();
-		dservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IRunnableDeviceService.class);
+		dservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IRunnableDeviceService.class);
 	}
 		
 	public ModelViewer(IViewSite site) throws EventException, URISyntaxException {
@@ -378,11 +379,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			if (ob instanceof IScanPathModel) setModel(ob);
 			
 			if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
-
-        		IPlottingSystem<?>     system  = (IPlottingSystem<?>)PlotUtil.getRegionSystem();
-	    		List<ScanRegion<IROI>> regions = ScanRegions.getScanRegions(system);
-	    		List<IROI> rois = ServiceHolder.getGeneratorService().findRegions(getModel(), regions);
-	    		BoundingBox      box  = bounds(rois);
+                BoundingBox box = ScanRegions.createBoxFromPlot(model);
 	    		((IBoundingBoxModel)getModel()).setBoundingBox(box);
 	    		refresh();
 			}
@@ -391,19 +388,6 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			logger.error("Cannot set model for object "+ob);
 			if (site != null) site.getActionBars().getStatusLineManager().setErrorMessage("Cannot connect to server "+ne.getMessage());
 		}
-	}
-
-	private BoundingBox bounds(List<IROI> rois) {
-		
-		IRectangularROI rect = rois.get(0).getBounds();
-		for (IROI roi : rois) rect = rect.bounds(roi);
-
-		BoundingBox box = new BoundingBox();
-		box.setFastAxisStart(rect.getPoint()[0]);
-		box.setSlowAxisStart(rect.getPoint()[1]);
-		box.setFastAxisLength(rect.getLength(0));
-		box.setSlowAxisLength(rect.getLength(1));
-		return box;
 	}
 
 	private DeviceInformation<?> getLatestDeviceInformation(DeviceInformation<?> info) {

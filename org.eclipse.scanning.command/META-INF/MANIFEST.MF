@@ -13,3 +13,4 @@ Export-Package: org.eclipse.scanning.command
 Bundle-ClassPath: .
 Import-Package: org.eclipse.dawnsci.analysis.api.roi,
  org.python.core
+Service-Component: OSGI-INF/*.xml

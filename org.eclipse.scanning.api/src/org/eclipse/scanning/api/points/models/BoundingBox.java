@@ -42,7 +42,7 @@ public class BoundingBox  {
 	@FieldDescriptor(scannable="slowAxisName", validif="slowAxisLength!=0")
 	private double slowAxisLength;
 	
-	@FieldDescriptor(editable=false, hint="Provides information about the visible region we are linked to.")
+	@FieldDescriptor(visible=false, hint="Provides information about the visible region we are linked to.")
 	private String regionName;
 
 

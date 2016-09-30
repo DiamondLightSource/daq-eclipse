@@ -32,7 +32,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	public void configure(M model) throws ScanningException {
 		try {
 			DeviceRequest req = requester.post(new DeviceRequest(info.getName(), model));
-			info = (DeviceInformation<M>)req.getDeviceInformation();
+			merge((DeviceInformation<M>)req.getDeviceInformation());
 		} catch (Exception ne) {
 			throw new ScanningException(ne);
 		}
@@ -68,7 +68,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	public DeviceState getDeviceState() throws ScanningException {
 		try {
 			DeviceRequest req = requester.post(new DeviceRequest(name));
-			info = (DeviceInformation<M>)req.getDeviceInformation();
+			merge((DeviceInformation<M>)req.getDeviceInformation());
 		} catch (Exception ne) {
 			throw new ScanningException(ne);
 		}
@@ -80,7 +80,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	protected DeviceRequest update() {
 		try {
 			DeviceRequest req = requester.post(new DeviceRequest(name));
-			info = (DeviceInformation<M>)req.getDeviceInformation();
+			merge((DeviceInformation<M>)req.getDeviceInformation());
 			return req;
 		} catch (Exception ne) {
 			logger.error("Cannot update device info for "+info.getName(), ne);
@@ -113,7 +113,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	private void method(DeviceRequest deviceRequest) throws ScanningException {
 		try {
 			DeviceRequest req = requester.post(deviceRequest);
-			info = (DeviceInformation<M>)req.getDeviceInformation();
+			merge((DeviceInformation<M>)req.getDeviceInformation());
 		} catch (Exception ne) {
 			throw new ScanningException(ne);
 		}

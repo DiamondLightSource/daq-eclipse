@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.scanning.api.INamedNode;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 
@@ -127,17 +128,39 @@ public abstract class AbstractControl implements INamedNode {
 	public IPosition toPosition() {
 		
 		MapPosition ret = new MapPosition();
-		toPosition(ret);
+		toPosition(null, ret);
+		return ret;
+	}
+	/**
+	 * @param If the value of any devices is null and they have a name, their values will be defaulted
+	 * to the current IScannable.getPosition() value.
+	 * @return
+	 */
+	public IPosition toPosition(IScannableDeviceService cservice) {
+		
+		MapPosition ret = new MapPosition();
+		toPosition(cservice, ret);
 		return ret;
 	}
 	
-	private IPosition toPosition(MapPosition toFill) {
+	
+	private IPosition toPosition(IScannableDeviceService cservice, MapPosition toFill) {
 		if (this instanceof ControlNode) {
 			ControlNode cnode = (ControlNode)this;
-			toFill.put(cnode.getScannableName(), cnode.getValue());
+			Object value = cnode.getValue();
+			if (value == null && cservice!=null) {
+				try {
+					value = cservice.getScannable(cnode.getScannableName()).getPosition();
+				} catch (Exception ignored) {
+					// They do not have to use existing scannables, the tree is totally abstract.
+					// Please implement checking if scannable names are real in a different layer
+					// than the toPosition(...) call.
+				}
+			}
+			if (value!=null) toFill.put(cnode.getScannableName(), value);
 		} else {
 			if (children!=null) for (INamedNode child : children) {
-				if (child instanceof AbstractControl) ((AbstractControl)child).toPosition(toFill);
+				if (child instanceof AbstractControl) ((AbstractControl)child).toPosition(cservice, toFill);
 			}
 		}
 		return toFill;

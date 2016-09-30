@@ -1,17 +1,19 @@
 package org.eclipse.scanning.api.scan;
 
+import org.eclipse.scanning.api.event.scan.ScanRequest;
+
 /**
  * Naive long winded usage of the parser API below to show how it should perform.<br>
  * However in fact the parser will be embedded as a subsystem of the scan.<br>
  * There is a utility for creating a compound points generator for<br>
- * any parser. However not putting this method directly on IParser<br>
+ * any parser. However not putting this method directly on IParserResult<br>
  * means that the parser has a simple and well defined role.<br>
  * <br>
  * <usage><code>
  * IParserService pservice = ...// OSGi<br>
  * <br>
  * // Parse the scan command, throws an exception<br>
- * IParser<StepModel> parser = pservice.createParser(...)<br>
+ * IParserResult<StepModel> parser = pservice.createParser(...)<br>
  * // e.g. "scan x 0 5 0.1 analyser"<br>
  * <br>
  * // Now use the parser to create a generator<br>
@@ -29,6 +31,7 @@ package org.eclipse.scanning.api.scan;
  * 
  * @see http://confluence.diamond.ac.uk/pages/viewpage.action?spaceKey=MAP&title=discussion+item%3A+generality+of+continuous+scans
  * @author Matthew Gerring
+ * @author Nic Bricknell
  *
  */
 public interface IParserService {
@@ -39,12 +42,22 @@ public interface IParserService {
 	 * for instance a Compound generator scan like "scan dcm 1 5 1 spiral(loops=720,expand%=10,rot=ccw,start=perip) detector 0.1"
 	 * will generate different models for dcm and spiral. In this case the
 	 * model for the position generation is undefined. Therefore the parser would simply be:
-	 * IParser<?> parser = pservice.createParser("scan dcm 1 5 1 spiral(loops=720,expand%=10,rot=ccw,start=perip) detector 0.1");
+	 * IParserResult<?> parser = pservice.createParser("scan dcm 1 5 1 spiral(loops=720,expand%=10,rot=ccw,start=perip) detector 0.1");
 	 * Object xmodel = parser.getModel("dcm");
 	 * Object smodel = parser.getModel("spiral");
 	 * 
 	 * @param scan
 	 * @return
 	 */
-	<T> IParser<T> createParser(String scan) throws ParsingException;
+	<T> IParserResult<T> createParser(String scan) throws ParsingException;
+	
+	/**
+	 * Get the scan command for a given scan request which would be submitted to the server.
+	 * @param req
+	 * @param verbose
+	 * @return a command that should work in the python console.
+	 * @throws an exception. This can often happen if features of the scan not supported in the python command are used. 
+	 * For instance generators which do not have a working alternative.
+	 */
+	<T> String getCommand(ScanRequest<T> req, boolean verbose) throws Exception;
 }

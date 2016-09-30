@@ -39,6 +39,7 @@ import org.eclipse.scanning.api.scan.event.LocationEvent;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
@@ -446,6 +447,7 @@ public class ControlTreeViewer {
 		controlTree.build();
 		viewer.getViewer().setInput(controlTree);
 		setNodeActionsEnabled(controlTree.isTreeEditable());
+		viewer.getParent().layout(new Control[]{viewer});
 	}
 	
 	public void setDefaultGroupName(String defaultGroupName) {
@@ -474,7 +476,7 @@ public class ControlTreeViewer {
 		if (subscriber!=null) subscriber.disconnect();
 		
 	    IEventService eservice  = ServiceHolder.getEventService();
-	    this.subscriber = eservice.createSubscriber(new URI(Activator.getJmsUri()), EventConstants.POSITION_TOPIC);
+	    this.subscriber = eservice.createSubscriber(new URI(CommandConstants.getScanningBrokerUri()), EventConstants.POSITION_TOPIC);
 
 	    Iterator<INamedNode> it = getControlTree().iterator();
 	    while(it.hasNext()) register(it.next());

@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.event.scan;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
@@ -114,6 +115,23 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	public DeviceInformation(String name) {
 	    this.name = name;
 	}
+	
+    /**
+     * Merges in any non-null fields.
+     * @param info
+     */
+	public void merge(DeviceInformation<T> info) {
+		Field[] wfields = DeviceInformation.class.getDeclaredFields();
+		for (Field field : wfields) {
+			try {
+				Object value = field.get(info);
+				if (value!=null) field.set(this, value);
+			} catch (Exception ne) {
+				ne.printStackTrace();
+			}
+		}
+	}
+
 
 	public String getName() {
 		return name;

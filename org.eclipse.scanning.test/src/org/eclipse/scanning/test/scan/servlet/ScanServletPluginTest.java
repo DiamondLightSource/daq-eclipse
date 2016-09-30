@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -161,7 +162,7 @@ public class ScanServletPluginTest {
 		
 		final ScanRequest<?> req = new ScanRequest<IROI>();
 		req.setCompoundModel(new CompoundModel(new StepModel("fred", 0, 9, 1)));
-		req.setMonitorNames("monitor");
+		req.setMonitorNames(Arrays.asList("monitor"));
 
 		final MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setName("detector");
@@ -200,7 +201,7 @@ public class ScanServletPluginTest {
 		}
 		models.add(gmodel);
 		req.setCompoundModel(new CompoundModel(models.toArray(new IScanPathModel[models.size()])));
-		req.setMonitorNames("monitor");
+		req.setMonitorNames(Arrays.asList("monitor"));
 		
 		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
 		tmp.deleteOnExit();
@@ -246,7 +247,7 @@ public class ScanServletPluginTest {
 		gmodel.setSlowAxisName("yNex");
 
 		req.setCompoundModel(new CompoundModel(gmodel));
-		req.setMonitorNames("monitor");
+		req.setMonitorNames(Arrays.asList("monitor"));
 		
 		final File tmp = File.createTempFile("scan_servlet_test", ".nxs");
 		tmp.deleteOnExit();
@@ -271,7 +272,7 @@ public class ScanServletPluginTest {
 		
 		final ScanRequest<?> req = new ScanRequest<IROI>();
 		req.setCompoundModel(new CompoundModel(new StepModel("temperature", 0, 9, 1)));
-		req.setMonitorNames("monitor");
+		req.setMonitorNames(Arrays.asList("monitor"));
 		
 		final File tmp = File.createTempFile("scan_servlet_test_malc", ".nxs");
 		tmp.deleteOnExit();

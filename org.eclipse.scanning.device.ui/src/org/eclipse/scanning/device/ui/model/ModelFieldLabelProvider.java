@@ -10,8 +10,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IDisconnectable;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.StringUtils;
@@ -35,7 +34,7 @@ class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 	public ModelFieldLabelProvider(ModelViewer viewer) {
 		this.viewer = viewer;
 		try {
-			cservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IScannableDeviceService.class);
+			cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
 		} catch (Exception e) {
 			logger.error("Unable to make a remote connection to "+IScannableDeviceService.class.getSimpleName());
 		}
@@ -44,13 +43,6 @@ class ModelFieldLabelProvider extends EnableIfColumnLabelProvider {
 	public void dispose() {
 		if (ticked!=null)   ticked.dispose();
 		if (unticked!=null) unticked.dispose();
-		if (cservice instanceof IDisconnectable) {
-			try {
-				((IDisconnectable)cservice).disconnect();
-			} catch (EventException e) {
-				logger.error("Cannot close remote service", e);
-			}
-		}
 		super.dispose();
 	}
 	

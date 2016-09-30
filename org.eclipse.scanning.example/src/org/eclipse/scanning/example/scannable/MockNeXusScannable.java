@@ -8,6 +8,7 @@ import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
+import org.eclipse.dawnsci.nexus.NexusScanInfo.ScanRole;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.january.dataset.Dataset;
@@ -50,7 +51,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
-		if (info.isMetadataScannable(getName())) {
+		if (info.getScanRole(getName()) == ScanRole.METADATA) {
 			positioner.setField(FIELD_NAME_DEMAND_VALUE, getPosition().doubleValue());
 			positioner.setValueScalar(getPosition().doubleValue());
 		} else {

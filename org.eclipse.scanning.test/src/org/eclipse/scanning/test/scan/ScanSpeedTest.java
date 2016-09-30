@@ -58,7 +58,7 @@ import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
-public class AnnotatedScanTest extends BrokerTest {
+public class ScanSpeedTest extends BrokerTest {
 
 	private IRunnableDeviceService      dservice;
 	private IScannableDeviceService     connector;
@@ -97,16 +97,42 @@ public class AnnotatedScanTest extends BrokerTest {
 	}
 	
 	/**
-	 * 1000 scannables, 1000 detectors each divided by into 10 levels.
+	 * 2 scannables, 2 detectors each divided by into 10 levels.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void checkTimes1000PointsNoAnnotations() throws Exception {
+		
+		checkNoAnnoations(1000,2,2,5);
+		
+	}
+
+	/**
+	 * 2 scannables, 2 detectors each divided by into 10 levels.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void checkTimes10000PointsNoAnnotations() throws Exception {
+		
+		checkNoAnnoations(10000,2,2,5);
+		
+	}
+
+	/**
+	 * 100 scannables, 100 detectors each divided by into 10 levels.
 	 * 
 	 * @throws Exception
 	 */
 	@Test
 	public void checkTimes100PointsNoAnnotations() throws Exception {
+				
+		checkNoAnnoations(100,100,100,20);
 		
-		int pointCount     = 100;
-		int scannableCount = 1000;
-		int detectorCount  = 1000;
+	}
+	
+	private void checkNoAnnoations(	int pointCount, int scannableCount, int detectorCount, long pointTime) throws Exception {
 		
 		final List<IScannable<?>> scannables = new ArrayList<>();
 		MockScannableConnector mc = (MockScannableConnector)connector;
@@ -131,20 +157,19 @@ public class AnnotatedScanTest extends BrokerTest {
 		}
 		
 		long time = checkTimes(pointCount, scannables, detectors, "no annotations");
-		assertTrue(time<18);
-		
+		assertTrue(time<pointTime);
 	}
-	
+
 	@Test
 	public void checkTimes100PointsWithAnnotations() throws Exception {
 		
 		int pointCount     = 99;   // Gives 100 points because it's a step model
 		
-		final List<IScannable<?>>     scannables = createAnnotatedScannables("annotatedScannable", 1000, false);
-		final List<IRunnableDevice<?>> detectors = createAnnoatatedDetectors("annotatedDetector", 1000, false);
+		final List<IScannable<?>>     scannables = createAnnotatedScannables("annotatedScannable", 100, false);
+		final List<IRunnableDevice<?>> detectors = createAnnoatatedDetectors("annotatedDetector", 100, false);
 		
 		long time = checkTimes(pointCount, scannables, detectors, "all annotations");
-		assertTrue(time<18);
+		assertTrue(time<30);
 		
 		for (IScannable<?> s : scannables) {
 			AnnotatedMockScannable ams = (AnnotatedMockScannable)s;
@@ -274,7 +299,7 @@ public class AnnotatedScanTest extends BrokerTest {
 		long before = System.currentTimeMillis();
 		device.run(null);
 		long after = System.currentTimeMillis();
-		double single = (after-before)/1000d;
+		double single = (after-before)/(double)pointCount;
 		System.out.println("Time for one point was ("+msg+"): "+Math.round(single)+"ms");
 		
 		return Math.round(single);

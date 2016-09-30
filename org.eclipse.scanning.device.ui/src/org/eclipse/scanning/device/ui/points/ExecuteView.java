@@ -23,6 +23,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
@@ -45,8 +46,10 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.api.scan.IParserService;
 import org.eclipse.scanning.api.scan.ui.AbstractControl;
 import org.eclipse.scanning.api.script.ScriptRequest;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ScanningPerspective;
@@ -57,6 +60,9 @@ import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
@@ -66,6 +72,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
@@ -103,10 +111,11 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	public ExecuteView() {
 		
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_INFO, true);
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_CMD,  true);
 		this.pservice = ServiceHolder.getGeneratorService();
 		this.vservice = ServiceHolder.getValidatorService();
 		try {
-			this.dservice = ServiceHolder.getEventService().createRemoteService(new URI(Activator.getJmsUri()), IRunnableDeviceService.class);
+			this.dservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IRunnableDeviceService.class);
 		} catch (EventException  | URISyntaxException e) {
 			logger.error("Unable to get remote device service!", e);
 		}
@@ -134,24 +143,38 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		this.text = new StyledText(container, SWT.NONE);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		text.setBackground(text.getDisplay().getSystemColor(SWT.COLOR_WHITE));
-		GridUtils.setVisible(text, Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_INFO));
 		text.getParent().layout(new Control[]{text});
 		
 		run = new Composite(container, SWT.NONE);
 		run.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		run.setLayout(new GridLayout(2, false));
+		run.setLayout(new GridLayout(3, false));
 		
 		final Button execute = new Button(run, SWT.PUSH);
 		execute.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		execute.setText("Execute");
+		execute.setText("Submit");
+		execute.setToolTipText("Execute current scan\n(Submits it to the queue of scans to be run.)");
 		execute.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				submit();
 			}
 		});
 		execute.setImage(Activator.getImageDescriptor("icons/shoe--arrow.png").createImage());
-		execute.setToolTipText("Submits scan to the queue of scans to be run.");
 
+		final Label sep = new Label(run, SWT.NONE);
+		sep.setText("      ");
+		sep.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		
+		final Button clipboard = new Button(run, SWT.PUSH);
+		clipboard.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+		clipboard.setText("Copy");
+		clipboard.setToolTipText("Copy the scan command to the clipboard");
+		clipboard.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				clipboard();
+			}
+		});
+		clipboard.setImage(Activator.getImageDescriptor("icons/clipboard-invoice.png").createImage());
+	
 		createActions();
 		PageUtil.getPage(getSite()).addSelectionListener(this);
 		
@@ -164,14 +187,23 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	
 	protected void submit() {
 		try {
-			
+
 			// Send it off
-			ScanBean bean = new ScanBean(createScanRequest());
+			ScanBean bean=null;
+			try {
+				bean = new ScanBean(createScanRequest());
+			} catch (Exception ne) {
+				ErrorDialog.openError(getViewSite().getShell(), "Cannot Create Scan Request", "Unable to create a legal scan request.\nThere is something invalid in your current configuration of the scan.\n\nPlease contact your support representative.", new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage(), ne));
+				logger.error("Unable to create a legal scan request!", ne);
+				return;
+			}
 			bean.setStatus(org.eclipse.scanning.api.event.status.Status.SUBMITTED);
-			
-			ISubmitter<ScanBean> submitter = ServiceHolder.getEventService().createSubmitter(new URI(Activator.getJmsUri()), EventConstants.SUBMISSION_QUEUE);
+
+			ISubmitter<ScanBean> submitter = ServiceHolder.getEventService().createSubmitter(new URI(CommandConstants.getScanningBrokerUri()), EventConstants.SUBMISSION_QUEUE);
 			submitter.submit(bean);
+
 			
+			// Show the Queue
 			showQueue();
 			
 		} catch (Exception ne) {
@@ -190,30 +222,61 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		}
 	}
 
-	private ScanRequest<IROI> createScanRequest() {
-		try {
-			ScanRequest<IROI> ret = new ScanRequest<IROI>();
-	        CompoundModel<IROI> cm = modelAdaptable.getAdapter(CompoundModel.class);
-	        vservice.validate(cm);
-	        ret.setCompoundModel(cm);
+	private ScanRequest<IROI> createScanRequest() throws Exception {
+		return createScanRequest(!Boolean.getBoolean("org.eclipse.scanning.ignore.scan.request.adapters"));
+	}
 
-	        IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
-	        ret.setStart(pos[0]);
-	        ret.setEnd(pos[1]);
-	        
-	        ScriptRequest[] req = modelAdaptable.getAdapter(ScriptRequest[].class);
-	        ret.setBefore(req[0]);
-	        ret.setAfter(req[1]);
-
-	        ret.setDetectors(getDetectors());
-	        
-			return ret;
-			
-		} catch (Exception ne) {
-			ErrorDialog.openError(getViewSite().getShell(), "Cannot Create Scan Request", "Unable to create a legal scan request.\nThere is something invalid in your current configuration of the scan.\n\nPlease contact your support representative.", new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage(), ne));
-		    logger.error("Unable to create a legal scan request!", ne);
-		    return null;
+	/**
+	 * If there is a view which provides the whole ScanRequest. 
+	 * This will be used and returned. Otherwise we cycle through the
+	 * components of the scan request looking for views which provide
+	 * their definitions.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	private ScanRequest<IROI> createScanRequest(boolean lookForScanRequest) throws Exception {
+		
+		if (lookForScanRequest) {
+			IViewReference[] refs = PageUtil.getPage().getViewReferences();
+			for (IViewReference iViewReference : refs) {
+				IViewPart part = iViewReference.getView(false);
+				if (part==null) continue;
+				ScanRequest<IROI> req = part.getAdapter(ScanRequest.class);
+				if (req!=null) return req;
+			}
 		}
+		
+		if (modelAdaptable==null) {
+			// We see if there is a view with a compound model adaptable
+			IViewReference[] refs = PageUtil.getPage().getViewReferences();
+			for (IViewReference iViewReference : refs) {
+				IViewPart part = iViewReference.getView(false);
+				if (part==null) continue;
+                CompoundModel<IROI> cm = part.getAdapter(CompoundModel.class);
+                if (cm !=null) {
+                	modelAdaptable = part;
+                }
+			}
+		}
+		if (modelAdaptable==null) return null; // Nothing to update, no view gives us a CompoundModel!
+
+		ScanRequest<IROI> ret = new ScanRequest<IROI>();
+		CompoundModel<IROI> cm = modelAdaptable.getAdapter(CompoundModel.class);
+		if (cm!=null && cm.getModels()!=null && !cm.getModels().isEmpty()) vservice.validate(cm);
+		ret.setCompoundModel(cm);
+
+		IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
+		ret.setStart(pos[0]);
+		ret.setEnd(pos[1]);
+
+		ScriptRequest[] req = modelAdaptable.getAdapter(ScriptRequest[].class);
+		ret.setBefore(req[0]);
+		ret.setAfter(req[1]);
+
+		ret.setDetectors(getDetectors());
+
+		return ret;
 	}
 
 	@Override
@@ -256,22 +319,18 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	 * @param monitor
 	 */
 	private void update(IProgressMonitor monitor) {
-		if (modelAdaptable==null) {
-			// We see if there is a view with a compound model adaptable
-			IViewReference[] refs = PageUtil.getPage().getViewReferences();
-			for (IViewReference iViewReference : refs) {
-				IViewPart part = iViewReference.getView(false);
-				if (part==null) continue;
-                CompoundModel<IROI> cm = part.getAdapter(CompoundModel.class);
-                if (cm !=null) {
-                	modelAdaptable = part;
-                }
-			}
-		}
-		if (modelAdaptable==null) return; // Nothing to update, no view gives us a CompoundModel!
+		
 		try {
+			ScanRequest<IROI> req = createScanRequest();
 			if (monitor.isCanceled()) return;
-	        CompoundModel<IROI> cm = modelAdaptable.getAdapter(CompoundModel.class);
+			if (req==null) {
+	    		StyledString styledString = new StyledString();
+	    		String name = modelAdaptable != null && modelAdaptable instanceof IWorkbenchPart ? ((IWorkbenchPart)modelAdaptable).getTitle() : "Scan Editor";
+	        	styledString.append("Please create a model using '"+name+"'", StyledString.COUNTER_STYLER);
+	            setThreadSafeText(text, styledString);
+	            return;
+			}
+	        CompoundModel<IROI> cm = req.getCompoundModel();
 	        if (cm != null) {
 	        	// Validate
 	        	vservice.validate(cm);
@@ -286,40 +345,57 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	        	styledString.append(" points, scanning motors: ");
 	        	styledString.append(getMotorNames(gen), FontStyler.BOLD);
 
-		        IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
-		        if (pos!=null && pos[0]!=null) {
+	        	if (Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_INFO)) {
+			        IPosition start = req.getStart();
+			        if (start!=null) {
+						if (monitor.isCanceled()) return;
+			        	styledString.append("\nStart: "+start);
+			        }
+			        
+			        ScriptRequest before = req.getBefore();
+			        if (before!=null) {
+						if (monitor.isCanceled()) return;
+			        	styledString.append("\nBefore: ");
+			        	styledString.append(before.toString(), StyledString.DECORATIONS_STYLER);
+			        }
+		        	
 					if (monitor.isCanceled()) return;
-		        	styledString.append("\nStart: "+pos[0]);
-		        }
-		        
-		        ScriptRequest[] req = modelAdaptable.getAdapter(ScriptRequest[].class);
-		        if (req!=null && req[0]!=null) {
+		        	styledString.append("\nScan: ");
+		        	styledString.append(getModelNames(cm), StyledString.DECORATIONS_STYLER);
+	
+			        ScriptRequest after = req.getAfter();
+			        if (after!=null) {
+						if (monitor.isCanceled()) return;
+			        	styledString.append("\nAfter: ");
+			        	styledString.append(after.toString(), StyledString.DECORATIONS_STYLER);
+			        }
+			        IPosition end = req.getEnd();
+			        if (end!=null) {
+						if (monitor.isCanceled()) return;
+			        	styledString.append("\nEnd: "+end);
+			        }
+	
 					if (monitor.isCanceled()) return;
-		        	styledString.append("\nBefore: ");
-		        	styledString.append(req[0].toString(), StyledString.DECORATIONS_STYLER);
-		        }
+		        	styledString.append("\nDetectors: ");
+		        	styledString.append(getDetectorNames(), FontStyler.BOLD);
+		        	
+					if (monitor.isCanceled()) return;
+		        	styledString.append("\nRegions: ");
+		        	styledString.append(getScanRegions(cm.getRegions()), StyledString.QUALIFIER_STYLER);
+	        	}
 	        	
-				if (monitor.isCanceled()) return;
-	        	styledString.append("\nScan: ");
-	        	styledString.append(getModelNames(cm), StyledString.DECORATIONS_STYLER);
-
-		        if (req!=null && req[1]!=null) {
-					if (monitor.isCanceled()) return;
-		        	styledString.append("\nAfter: ");
-		        	styledString.append(req[1].toString(), StyledString.DECORATIONS_STYLER);
-		        }
-		        if (pos!=null && pos[1]!=null) {
-					if (monitor.isCanceled()) return;
-		        	styledString.append("\nEnd: "+pos[1]);
-		        }
-
-				if (monitor.isCanceled()) return;
-	        	styledString.append("\nDetectors: ");
-	        	styledString.append(getDetectorNames(), FontStyler.BOLD);
-	        	
-				if (monitor.isCanceled()) return;
-	        	styledString.append("\nRegions: ");
-	        	styledString.append(getScanRegions(), StyledString.QUALIFIER_STYLER);
+	        	if (Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_CMD)) {
+	        		try {
+	        			final IParserService pyService = ServiceHolder.getParserService();
+		        		final String cmd = pyService.getCommand(req, true);
+			        	styledString.append("\n\nScan Command:\n");
+			        	styledString.append(cmd, FontStyler.CODE);
+	        		} catch (Exception ne) {
+	        			styledString.append("\n\nCannot print scan command: '"+IParserService.class.getSimpleName()+"' is misconfigured! Ask you support representative to ensure it is there.");
+	        			styledString.append("\n"+ne.toString());
+	        			logger.error("Cannot parse a scan request", ne);
+	        		}
+	        	}
 	        	
                 setThreadSafeText(text, styledString);
 	        }
@@ -364,10 +440,9 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
     	});	
     }
 
-	private String getScanRegions() {
+	private String getScanRegions(Collection<ScanRegion<IROI>> regions) {
 		
 		final StringBuilder buf = new StringBuilder();
-		final List<ScanRegion<IROI>> regions = ScanRegions.getScanRegions(PlotUtil.getRegionSystem());
 		if (regions==null) return "None";
      	for (Iterator<ScanRegion<IROI>> it = regions.iterator(); it.hasNext();) {
     		ScanRegion<IROI> region = it.next();
@@ -443,18 +518,31 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		IAction showInfo = new Action("Show scan information", IAction.AS_CHECK_BOX) {
 			public void run() {
 				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.SHOW_SCAN_INFO, isChecked());
-				GridUtils.setVisible(text, isChecked());
-				text.getParent().layout(new Control[]{text});
+				updateJob.schedule();
 			}
 		};
 		showInfo.setImageDescriptor(Activator.getImageDescriptor("icons/information-white.png"));
 		showInfo.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_INFO));
 	
-		ViewUtil.addGroups("show", mans, showInfo);
+		IAction showCmd = new Action("Show scan command", IAction.AS_CHECK_BOX) {
+			public void run() {
+				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.SHOW_SCAN_CMD, isChecked());
+				updateJob.schedule();
+			}
+		};
+		showCmd.setImageDescriptor(Activator.getImageDescriptor("icons/information-green.png"));
+		showCmd.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_CMD));
+
+		ViewUtil.addGroups("show", mans, showInfo, showCmd);
 		
 		IAction run = new Action("Execute current scan\n(Submits it to the queue of scans to be run.)", Activator.getImageDescriptor("icons/shoe--arrow.png")) {
 			public void run() {
 				submit();
+			}
+		};
+		IAction copy = new Action("Copy scan command to clipboard", Activator.getImageDescriptor("icons/clipboard-invoice.png")) {
+			public void run() {
+				clipboard();
 			}
 		};
 		IAction showQueue = new Action("Show the scan queue", Activator.getImageDescriptor("icons/cards-stack.png")) {
@@ -463,11 +551,32 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 			}
 		};
 	
-		ViewUtil.addGroups("execute", mans, run, showQueue);
+		ViewUtil.addGroups("execute", mans, run);
+		ViewUtil.addGroups("auxilary", mans, copy, showQueue);
 
 		
 		text.setMenu(rightClick.createContextMenu(text));
 
+	}
+
+	private void clipboard() {
+		try {
+		    ScanRequest<IROI> req = createScanRequest();
+		    String cmd = ServiceHolder.getParserService().getCommand(req, true);
+			Clipboard clipboard = new Clipboard(Display.getDefault());
+			clipboard.setContents(new Object[] { cmd }, new Transfer[] { TextTransfer.getInstance() });
+			clipboard.dispose();
+			logger.debug("Copied command to clipboard:");
+			logger.debug(cmd);
+			
+		} catch (Exception ne) {
+			ErrorDialog.openError(getViewSite().getShell(), 
+					"Problem Generating Command", 
+					"The mscan(..) command is currently invalid because of the\n"+
+					"current stepup. Please fix any errors in the setup.\n\n"+
+					"Nothing was copied to the clipboard",
+					new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", ne.getMessage()));
+		}
 	}
 
 	@Override
@@ -477,7 +586,8 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 
 	private static class FontStyler extends Styler {
 		
-		public static Styler BOLD = new FontStyler(new Font(null, "Dialog", 10, SWT.BOLD));
+		public static final Styler CODE = new FontStyler(new Font(null, "Courier", 10, SWT.NONE));
+		public static final Styler BOLD = new FontStyler(new Font(null, "Dialog", 10, SWT.BOLD));
 
 		private Font font;
 

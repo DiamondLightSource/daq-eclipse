@@ -39,7 +39,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * IParserService pservice = ...// OSGi<br>
  * <br>
  * // Parse the scan command, throws an exception<br>
- * IParser<StepModel> parser = pservice.createParser(...)<br>
+ * IParserResult<StepModel> parser = pservice.createParser(...)<br>
  * // e.g. "scan x 0 5 0.1 analyser"<br>
  * <br>
  * // Now use the parser to create a generator<br>

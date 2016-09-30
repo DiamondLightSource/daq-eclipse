@@ -123,7 +123,7 @@ public class EventServiceImpl implements IEventService {
 	private Map<String, SoftReference<?>> cachedServices;
 
 	@Override
-	public <T> T createRemoteService(URI uri, Class<T> serviceClass) throws EventException {
+	public synchronized <T> T createRemoteService(URI uri, Class<T> serviceClass) throws EventException {
 		
 		if (cachedServices==null) cachedServices = new HashMap<>(7);
 		try {

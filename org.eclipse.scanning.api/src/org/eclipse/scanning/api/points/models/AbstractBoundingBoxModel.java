@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
+import org.eclipse.scanning.api.annotation.ui.EditType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 
@@ -18,7 +19,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  */
 public abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
 
-	@FieldDescriptor(editable=false) // We edit this with a popup.
+	@FieldDescriptor(edit=EditType.COMPOUND, hint="The bounding box is automatically calculated from the scan regions shown in the main plot.") // We edit this with a popup.
 	private BoundingBox boundingBox;
 
 	@FieldDescriptor(label="Fast Axis", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'x'.") // TODO Right?

@@ -115,6 +115,14 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 					device.setName(name);
 					devs.put(mod.getClass(), device.getClass());
 					
+	                // If the model has a name we send it from the extension point.
+	                try {
+	                    final Method setName = mod.getClass().getMethod("setName", String.class);
+	                    setName.invoke(mod, name);
+	                } catch (Exception ignored) {
+	                	// getName() is not compulsory in the model
+	                }
+
 					if (device instanceof AbstractRunnableDevice) {
 						AbstractRunnableDevice adevice = (AbstractRunnableDevice)device;
 						final DeviceInformation info   = new DeviceInformation();
@@ -123,6 +131,8 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 						info.setId(e.getAttribute("id"));
 						info.setIcon(e.getContributor().getName()+"/"+e.getAttribute("icon"));
 						adevice.setDeviceInformation(info);
+						
+						if (adevice.getModel()==null) adevice.setModel(mod); // Empty Model
 					}
 					
 					if (!device.isVirtual()) {

@@ -31,6 +31,14 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 
 /**
+ * A device should create its own model when its constructor is called. This
+ * can be done by reading the current hardware state for the device. In this
+ * case the runnable device service does not set its model. If a given device
+ * does not set its own model, when the service makes the device, it will attempt
+ * to create a new empty model and set this empty model as the current model. 
+ * This means that the device does not have a null model and the user can get
+ * the model and configure it.
+ * 
  * @see IRunnableDevice
  * @author Matthew Gerring
  *

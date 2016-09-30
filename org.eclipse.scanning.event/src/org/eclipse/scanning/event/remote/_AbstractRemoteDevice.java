@@ -69,4 +69,13 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 
 	protected abstract DeviceRequest update();
 
+	
+	protected void merge(DeviceInformation<M> info) {
+		if (info == null) return; // Nothing to merge
+		if (this.info == null) {
+			this.info = info;
+			return;
+		}
+		this.info.merge(info);
+	}
 }

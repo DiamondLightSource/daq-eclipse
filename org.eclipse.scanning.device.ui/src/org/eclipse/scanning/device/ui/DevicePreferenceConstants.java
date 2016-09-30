@@ -48,6 +48,11 @@ public class DevicePreferenceConstants {
 	public static final String SHOW_SCAN_INFO = "org.eclipse.scanning.device.ui.scan.showScanSummary";
 
 	/**
+	 * Record if the user would like to see scan command
+	 */
+	public static final String SHOW_SCAN_CMD = "org.eclipse.scanning.device.ui.scan.showScanCommand";
+
+	/**
 	 * The preference which the stream choice is saved under.
 	 */
 	public static final String STREAM_ID = "org.eclipse.scanning.device.ui.streams.selectedStreamConnection";
