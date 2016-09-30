@@ -20,6 +20,7 @@ import org.epics.pvdata.pv.PVDataCreate;
 import org.epics.pvdata.pv.PVDoubleArray;
 import org.epics.pvdata.pv.PVFloat;
 import org.epics.pvdata.pv.PVInt;
+import org.epics.pvdata.pv.PVIntArray;
 import org.epics.pvdata.pv.PVString;
 import org.epics.pvdata.pv.PVStringArray;
 import org.epics.pvdata.pv.PVStructure;
@@ -222,6 +223,15 @@ public class ExampleMalcolmDevice {
         			add("label", ScalarType.pvString).
         			setId("malcolm:core/StringArrayMeta:1.0").
         			createStructure();
+            
+            Structure numberArrayMetaStructure = fieldCreate.createFieldBuilder().
+        			add("dtype", ScalarType.pvString).
+        			add("description", ScalarType.pvString).
+        			addArray("tags", ScalarType.pvString).
+        			add("writeable", ScalarType.pvBoolean).
+        			add("label", ScalarType.pvString).
+        			setId("malcolm:core/NumberArrayMeta:1.0").
+        			createStructure();
 
             Structure mapMetaStructure = fieldCreate.createFieldBuilder().
         			add("description", ScalarType.pvString).
@@ -236,6 +246,7 @@ public class ExampleMalcolmDevice {
         			add("detector", stringArrayMetaStructure).
         			add("filename", stringArrayMetaStructure).
         			add("dataset", stringArrayMetaStructure).
+        			add("users", numberArrayMetaStructure).
         			createStructure();
             
             Structure tableMetaStructure = fieldCreate.createFieldBuilder().
@@ -291,6 +302,7 @@ public class ExampleMalcolmDevice {
         			addArray("detector", ScalarType.pvString).
         			addArray("filename", ScalarType.pvString).
         			addArray("dataset", ScalarType.pvString).
+        			addArray("users", ScalarType.pvInt).
         			createStructure();
             
             Structure tableStructure = fieldCreate.createFieldBuilder().
@@ -398,11 +410,13 @@ public class ExampleMalcolmDevice {
     		String[] detectorArray = new String[] {"panda2", "panda2", "express3"};
     		String[] filenameArray = new String[] {"panda2.h5", "panda2.h5", "express3.h5"};
     		String[] datasetArray = new String[] {"/entry/detector/I200", "/entry/detector/Iref", "/entry/detector/det1"};
+    		int[] usersArray = new int[] {3, 1, 42};
     		PVStructure tableValuePVStructure = datasetsPVStructure.getStructureField("value");
     		tableValuePVStructure.getSubField(PVStringArray.class, "detector").put(0, detectorArray.length, detectorArray, 0);
     		tableValuePVStructure.getSubField(PVStringArray.class, "filename").put(0, filenameArray.length, filenameArray, 0);
     		tableValuePVStructure.getSubField(PVStringArray.class, "dataset").put(0, datasetArray.length, datasetArray, 0);
-    		String[] headingsArray = new String[] {"detector", "filename", "dataset"};
+    		tableValuePVStructure.getSubField(PVIntArray.class, "users").put(0, usersArray.length, usersArray, 0);
+    		String[] headingsArray = new String[] {"detector", "filename", "dataset", "users"};
     		datasetsPVStructure.getSubField(PVStringArray.class, "meta.headings").put(0, headingsArray.length, headingsArray, 0);
     		
     		// current step

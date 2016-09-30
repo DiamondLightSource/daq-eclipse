@@ -136,7 +136,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 		List<MalcolmAttribute> allAttributes = info.getAttributes();
 		for (MalcolmAttribute malcolmAttribute : allAttributes) {
 			if (malcolmAttribute.getName().equals(attribute)) {
-				return malcolmAttribute.getValueAsObject();
+				return malcolmAttribute.getValue();
 			}
 		}
 		return null;

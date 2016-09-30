@@ -12,16 +12,12 @@ public class BooleanArrayAttribute extends MalcolmAttribute {
 	
 	boolean value[];
 
-	public boolean[] getValue() {
-		return value;
-	}
-
 	public void setValue(boolean[] value) {
 		this.value = value;
 	}
 
 	@Override
-	public Object getValueAsObject() {
+	public boolean[] getValue() {
 		return value;
 	}
 	

@@ -22,17 +22,13 @@ public class NumberAttribute extends MalcolmAttribute {
 		this.dtype = dtype;
 	}
 
+	@Override
 	public Number getValue() {
 		return value;
 	}
 
 	public void setValue(Number value) {
 		this.value = value;
-	}
-
-	@Override
-	public Object getValueAsObject() {
-		return value;
 	}
 	
 }

@@ -12,17 +12,13 @@ public class PointGeneratorAttribute extends MalcolmAttribute {
 	
 	Object value;
 
+	@Override
 	public Object getValue() {
 		return value;
 	}
 
 	public void setValue(Object value) {
 		this.value = value;
-	}
-
-	@Override
-	public Object getValueAsObject() {
-		return value;
 	}
 	
 }

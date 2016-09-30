@@ -44,5 +44,5 @@ public abstract class MalcolmAttribute {
 	public void setLabel(String label) {
 		this.label = label;
 	}
-	public abstract Object getValueAsObject();
+	public abstract Object getValue();
 }

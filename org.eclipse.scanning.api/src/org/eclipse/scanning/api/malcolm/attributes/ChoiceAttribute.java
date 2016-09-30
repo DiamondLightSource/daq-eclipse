@@ -21,17 +21,13 @@ public class ChoiceAttribute extends MalcolmAttribute {
 		this.choices = choices;
 	}
 
+	@Override
 	public String getValue() {
 		return value;
 	}
 
 	public void setValue(String value) {
 		this.value = value;
-	}
-
-	@Override
-	public Object getValueAsObject() {
-		return value;
 	}
 	
 }

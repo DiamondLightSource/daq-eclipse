@@ -17,6 +17,7 @@ public class TableAttribute extends MalcolmAttribute {
 	String[] headings;
 	List<MalcolmAttribute> elements = new LinkedList<MalcolmAttribute>();
 	
+	@Override
 	public Object getValue() {
 		return tableValue;
 	}
@@ -34,10 +35,5 @@ public class TableAttribute extends MalcolmAttribute {
 	}
 	public void setElements(List<MalcolmAttribute> elements) {
 		this.elements = elements;
-	}
-
-	@Override
-	public Object getValueAsObject() {
-		return tableValue;
 	}
 }

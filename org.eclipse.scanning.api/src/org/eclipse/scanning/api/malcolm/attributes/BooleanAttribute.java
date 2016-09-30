@@ -12,17 +12,13 @@ public class BooleanAttribute extends MalcolmAttribute {
 	
 	boolean value;
 
-	public boolean getValue() {
+	@Override
+	public Boolean getValue() {
 		return value;
 	}
 
 	public void setValue(boolean value) {
 		this.value = value;
-	}
-
-	@Override
-	public Object getValueAsObject() {
-		return value;
 	}
 	
 }

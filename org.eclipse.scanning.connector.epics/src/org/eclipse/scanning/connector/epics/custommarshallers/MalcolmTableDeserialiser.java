@@ -1,11 +1,16 @@
 package org.eclipse.scanning.connector.epics.custommarshallers;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
+import org.eclipse.scanning.api.malcolm.MalcolmTable;
 import org.eclipse.scanning.api.malcolm.attributes.TableAttribute;
+import org.epics.pvdata.pv.Field;
 import org.epics.pvdata.pv.PVStringArray;
 import org.epics.pvdata.pv.PVStructure;
+import org.epics.pvdata.pv.ScalarArray;
+import org.epics.pvdata.pv.ScalarType;
 import org.epics.pvdata.pv.StringArrayData;
 import org.epics.pvmarshaller.marshaller.api.IPVStructureDeserialiser;
 import org.epics.pvmarshaller.marshaller.deserialisers.Deserialiser;
@@ -36,6 +41,7 @@ public class MalcolmTableDeserialiser implements IPVStructureDeserialiser {
 		StringArrayData tagsArrayData = new StringArrayData();
 		tagsArray.get(0, tagsArray.getLength(), tagsArrayData);
 		
+		// TODO read column meta data?
 		
 		TableAttribute attribute = new TableAttribute();
 		
@@ -52,11 +58,55 @@ public class MalcolmTableDeserialiser implements IPVStructureDeserialiser {
 		
 		PVStructure valuePVStructure = pvStructure.getStructureField(valueField);
 		
-		Map<?, ?> valueMap = deserialiser.getMapDeserialiser().createMapFromPVStructure(valuePVStructure, LinkedHashMap.class, Object.class);
+		Map<String, LinkedList<Object>> valueMap = deserialiser.getMapDeserialiser().createMapFromPVStructure(valuePVStructure, LinkedHashMap.class, Object.class);
 		
-		attribute.setValue(valueMap);
+		Map<String, Class<?>> dataTypeMap = new LinkedHashMap<>();
+		
+		// Use the PVStructure to work out the column classes
+		for (String heading : valueMap.keySet()) {
+			Field field = valuePVStructure.getSubField(heading).getField();
+			if (field instanceof ScalarArray) {
+				ScalarArray scalarArray = (ScalarArray)field;
+				ScalarType scalarType = scalarArray.getElementType();
+				switch (scalarType) {
+					case pvInt:
+						dataTypeMap.put(heading, Integer.class);
+						break;
+					case pvShort:
+						dataTypeMap.put(heading, Short.class);
+						break;
+					case pvLong:
+						dataTypeMap.put(heading, Long.class);
+						break;
+					case pvByte:
+						dataTypeMap.put(heading, Byte.class);
+						break;
+					case pvBoolean:
+						dataTypeMap.put(heading, Boolean.class);
+						break;
+					case pvFloat:
+						dataTypeMap.put(heading, Float.class);
+						break;
+					case pvDouble:
+						dataTypeMap.put(heading, Double.class);
+						break;
+					case pvString:
+						dataTypeMap.put(heading, String.class);
+						break;
+					default:
+						throw new Exception("Unsupported data type: " + scalarType);
+							
+				}
+			}
+		}
+		
+		MalcolmTable malcolmTable = new MalcolmTable(valueMap, dataTypeMap);
+				
+		attribute.setValue(malcolmTable);
 		
 		return attribute;
 		
 	}
+	
+	
 }
