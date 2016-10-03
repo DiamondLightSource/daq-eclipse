@@ -18,6 +18,8 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
  * SubTaskBeans may be nested inside of SubTaskBeans to provide a hierarchy.
  * 
  * TODO Sample metadata?
+ * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
+ * 		this package
  * 
  * @author Michael Wharmby
  * 

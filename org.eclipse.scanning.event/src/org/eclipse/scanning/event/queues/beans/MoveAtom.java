@@ -14,6 +14,9 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
  * positions of one or more motors. Motor moves may occur simultaneously, 
  * depending on the configured level of the motor.
  * 
+ * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
+ * 		this package
+ * 
  * @author Michael Wharmby
  *
  */
