@@ -74,6 +74,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	private ReentrantLock    lock;
 	private Condition        paused;
 	private volatile boolean awaitPaused;
+	private final String heartbeatTopicName;
 
 
 	ConsumerImpl(URI uri, String submitQName, 
@@ -92,22 +93,49 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		consumerId = UUID.randomUUID();
 		name       = "Consumer "+consumerId; // This will hopefully be changed to something meaningful...
 		this.processes       = new Hashtable<>(7); // Synch!
+		this.heartbeatTopicName = heartbeatTName;
+		connect();
+	}
+	
+	private void connect() throws EventException {
 		
-		mover  = eservice.createSubmitter(uri, statusQName);
-		status = eservice.createPublisher(uri, statusTName);
-		status.setStatusSetName(statusQName); // We also update values in a queue.
+		mover  = eservice.createSubmitter(uri, getStatusSetName());
+		status = eservice.createPublisher(uri, getStatusTopicName());
+		status.setStatusSetName(getStatusSetName()); // We also update values in a queue.
 		
-		if (heartbeatTName!=null) { 
-			alive  = eservice.createPublisher(uri, heartbeatTName);
+		if (heartbeatTopicName!=null) { 
+			alive  = eservice.createPublisher(uri, heartbeatTopicName);
 			alive.setConsumer(this);
 		}
 				
-		if (commandTName!=null) {
-			command = eservice.createSubscriber(uri, commandTName);
+		if (getCommandTopicName()!=null) {
+			command = eservice.createSubscriber(uri, getCommandTopicName());
 			command.addListener(new CommandListener());
 		}
 	}
 	
+
+	@Override
+	public void disconnect() throws EventException {
+		
+		if (isActive()) stop();
+		
+		super.disconnect();
+		setActive(false);
+		mover.disconnect();
+		status.disconnect();
+		if (alive!=null)   alive.disconnect();
+		if (command!=null) command.disconnect();
+		if (overrideMap!=null) overrideMap.clear();
+		try {
+			if (connection!=null) connection.close();
+		} catch (JMSException e) {
+			throw new EventException("Cannot close consumer connection!", e);
+		}
+	}
+
+
+
 	protected class CommandListener implements IBeanListener<ConsumerCommandBean> {
 		@Override
 		public void beanChangePerformed(BeanEvent<ConsumerCommandBean> evt) {
@@ -151,6 +179,14 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				logger.error("Unable to pause before exit", e);
 			}
 			System.exit(0); // Normal orderly exit
+		}
+		if (kbean.isRestart()) {
+			try {
+				if (kbean.isDisconnect()) connect();
+			    start();
+			} catch (EventException e) {
+				logger.error("Unable to restart, please contact your support representative.", e);
+			}
 		}
 	}
 
@@ -223,26 +259,6 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 			}
 		}
 	}
-
-	@Override
-	public void disconnect() throws EventException {
-		
-		if (isActive()) stop();
-		
-		super.disconnect();
-		setActive(false);
-		mover.disconnect();
-		status.disconnect();
-		alive.disconnect();
-		command.disconnect();
-		if (overrideMap!=null) overrideMap.clear();
-		try {
-			if (connection!=null) connection.close();
-		} catch (JMSException e) {
-			throw new EventException("Cannot close consumer connection!", e);
-		}
-	}
-
 
 	@Override
 	public List<U> getSubmissionQueue() throws EventException {
@@ -338,6 +354,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 						process.getBean().setMessage(bean.getMessage());
 						if (bean.getStatus()==Status.REQUEST_TERMINATE) {
 							processes.remove(bean.getUniqueId());
+							if (process.isPaused()) process.resume();
 							process.terminate();
 						} else if (bean.getStatus()==Status.REQUEST_PAUSE) {
 							process.pause();
