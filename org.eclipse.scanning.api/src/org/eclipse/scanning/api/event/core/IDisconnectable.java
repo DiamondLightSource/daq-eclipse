@@ -19,4 +19,9 @@ public interface IDisconnectable {
 	 * @throws EventException if resource could not be disconnected. 
 	 */
 	public void disconnect() throws EventException ;
+	
+	/**
+	 * 
+	 */
+	public boolean isDisconnected();
 }

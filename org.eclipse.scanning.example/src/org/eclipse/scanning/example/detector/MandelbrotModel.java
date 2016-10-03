@@ -1,12 +1,11 @@
 package org.eclipse.scanning.example.detector;
 
-import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.UiComesAfter;
 import org.eclipse.scanning.api.annotation.UiSection;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
-import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.device.models.AbstractDetectorModel;
 
-public class MandelbrotModel implements IDetectorModel {
+public class MandelbrotModel extends AbstractDetectorModel {
 
 	// Parameters controlling iteration and termination of the Julia/Mandelbrot algorithm
 	@FieldDescriptor(label="Maximum Iterations", 
@@ -51,18 +50,6 @@ public class MandelbrotModel implements IDetectorModel {
 	@FieldDescriptor(label="Imaginary Axis Name")
 	private String imaginaryAxisName;
 
-	/**
-	 * The name of the detector device
-	 */
-	@FieldDescriptor(label="Name")
-	private String name;
-
-	/**
-	 * The exposure time. If calculation is shorter than this, time is artificially added to make the detector respect
-	 * the time that is set.
-	 */
-	@FieldDescriptor(label="Exposure Time")
-	private double exposureTime; // Seconds
 
 	public MandelbrotModel() {
 		maxIterations = 500;
@@ -72,10 +59,10 @@ public class MandelbrotModel implements IDetectorModel {
 		points = 1000;
 		maxRealCoordinate = 1.5;
 		maxImaginaryCoordinate = 1.2;
-		name = "mandelbrot";
+		setName("mandelbrot");
+		setExposureTime(0.1d);
 		realAxisName = "x";
 		imaginaryAxisName = "y";
-		exposureTime = 0.1d;
 	}
 	
 	public MandelbrotModel(String r, String i) {
@@ -138,68 +125,54 @@ public class MandelbrotModel implements IDetectorModel {
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
+		int result = super.hashCode();
 		result = prime * result + columns;
 		long temp;
 		temp = Double.doubleToLongBits(escapeRadius);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(exposureTime);
+		result = prime * result + ((imaginaryAxisName == null) ? 0 : imaginaryAxisName.hashCode());
+		temp = Double.doubleToLongBits(maxImaginaryCoordinate);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + maxIterations;
 		temp = Double.doubleToLongBits(maxRealCoordinate);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(maxImaginaryCoordinate);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + points;
-		result = prime * result + rows;
 		result = prime * result + ((realAxisName == null) ? 0 : realAxisName.hashCode());
-		result = prime * result + ((imaginaryAxisName == null) ? 0 : imaginaryAxisName.hashCode());
+		result = prime * result + rows;
 		return result;
 	}
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		MandelbrotModel other = (MandelbrotModel) obj;
 		if (columns != other.columns)
 			return false;
-		if (Double.doubleToLongBits(escapeRadius) != Double
-				.doubleToLongBits(other.escapeRadius))
+		if (Double.doubleToLongBits(escapeRadius) != Double.doubleToLongBits(other.escapeRadius))
 			return false;
-		if (Double.doubleToLongBits(exposureTime) != Double
-				.doubleToLongBits(other.exposureTime))
+		if (imaginaryAxisName == null) {
+			if (other.imaginaryAxisName != null)
+				return false;
+		} else if (!imaginaryAxisName.equals(other.imaginaryAxisName))
+			return false;
+		if (Double.doubleToLongBits(maxImaginaryCoordinate) != Double.doubleToLongBits(other.maxImaginaryCoordinate))
 			return false;
 		if (maxIterations != other.maxIterations)
 			return false;
-		if (Double.doubleToLongBits(maxRealCoordinate) != Double
-				.doubleToLongBits(other.maxRealCoordinate))
-			return false;
-		if (Double.doubleToLongBits(maxImaginaryCoordinate) != Double
-				.doubleToLongBits(other.maxImaginaryCoordinate))
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
+		if (Double.doubleToLongBits(maxRealCoordinate) != Double.doubleToLongBits(other.maxRealCoordinate))
 			return false;
 		if (points != other.points)
-			return false;
-		if (rows != other.rows)
 			return false;
 		if (realAxisName == null) {
 			if (other.realAxisName != null)
 				return false;
 		} else if (!realAxisName.equals(other.realAxisName))
 			return false;
-		if (imaginaryAxisName == null) {
-			if (other.imaginaryAxisName != null)
-				return false;
-		} else if (!imaginaryAxisName.equals(other.imaginaryAxisName))
+		if (rows != other.rows)
 			return false;
 		return true;
 	}
@@ -207,10 +180,7 @@ public class MandelbrotModel implements IDetectorModel {
 	@UiSection("Device details")
 	@UiComesAfter("maxImaginaryCoordinate")
 	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
+		return super.getName();
 	}
 	@UiComesAfter("name")
 	public String getRealAxisName() {
@@ -229,10 +199,6 @@ public class MandelbrotModel implements IDetectorModel {
 
 	@UiComesAfter("imaginaryAxisName")
 	public double getExposureTime() {
-		return exposureTime;
-	}
-
-	public void setExposureTime(double exposure) {
-		this.exposureTime = exposure;
+		return super.getExposureTime();
 	}
 }

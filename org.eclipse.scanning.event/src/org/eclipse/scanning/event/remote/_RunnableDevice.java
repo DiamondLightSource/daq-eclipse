@@ -31,7 +31,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	@Override
 	public void configure(M model) throws ScanningException {
 		try {
-			DeviceRequest req = requester.post(new DeviceRequest(info.getName(), model));
+			DeviceRequest req = requester.post(new DeviceRequest(info.getName(), DeviceAction.CONFIGURE, model));
 			merge((DeviceInformation<M>)req.getDeviceInformation());
 		} catch (Exception ne) {
 			throw new ScanningException(ne);

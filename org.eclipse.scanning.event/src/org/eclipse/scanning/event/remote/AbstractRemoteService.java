@@ -18,6 +18,11 @@ abstract class AbstractRemoteService implements IDisconnectable, Closeable {
 
 	protected IEventService eservice;
 	protected URI uri;
+	private boolean isDisconnected;
+	
+	protected AbstractRemoteService() {
+		this.isDisconnected = false;
+	}
 
 	protected IEventService getEventService() {
 		return eservice;
@@ -48,5 +53,13 @@ abstract class AbstractRemoteService implements IDisconnectable, Closeable {
 		} catch (EventException e) {
 			throw new IOException(e);
 		}
+	}
+
+	public boolean isDisconnected() {
+		return isDisconnected;
+	}
+
+	public void setDisconnected(boolean isDisconnected) {
+		this.isDisconnected = isDisconnected;
 	}
 }

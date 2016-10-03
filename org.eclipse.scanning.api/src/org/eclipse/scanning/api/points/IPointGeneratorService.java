@@ -83,7 +83,7 @@ public interface IPointGeneratorService {
 	 * @return
 	 * @throws GeneratorException
 	 */
-	IPointGenerator<?> createCompoundGenerator(CompoundModel cmodel) throws GeneratorException;
+	IPointGenerator<?> createCompoundGenerator(CompoundModel<?> cmodel) throws GeneratorException;
 
 	/**
 	 * 

@@ -32,6 +32,7 @@ class _Positioner extends AbstractRemoteService implements IPositioner {
 	@Override
 	public void disconnect() throws EventException {
 		requester.disconnect();
+		setDisconnected(true);
 	}
 	
 	public void init()  throws EventException {

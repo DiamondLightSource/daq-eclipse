@@ -394,7 +394,7 @@ public class SerializationTest {
 		         "\"models\":[\"bundle=&version=&class=java.util.ArrayList\",[{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.GridModel\",\"name\":\"Grid\",\"boundingBox\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.BoundingBox\",\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisStart\":-84.13637953036218,\"fastAxisLength\":43.356972243563845,\"slowAxisStart\":123.33760426169476,\"slowAxisLength\":42.80505395362201},\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisPoints\":5,\"slowAxisPoints\":5,\"snake\":false}]]},"+
 		     "\"detectors\":{\"@bundle_and_class\":\"bundle=&version=&class=java.util.HashMap\",\"mandelbrot\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.example&version=1.0.0.qualifier&class=org.eclipse.scanning.example.detector.MandelbrotModel\",\"maxIterations\":500,\"escapeRadius\":10.0,\"columns\":301,\"rows\":241,\"points\":1000,\"maxRealCoordinate\":1.5,\"maxImaginaryCoordinate\":1.2,\"realAxisName\":\"x\",\"imaginaryAxisName\":\"y\",\"name\":\"mandelbrot\",\"exposureTime\":0.1,\"timeout\":-1}},"+
 		     "\"ignorePreprocess\":false},"+
-		  "\"point\":0,\"size\":0,\"shapeEstimationRequired\":true,\"scanNumber\":0}";			
+		  "\"point\":0,\"size\":0,\"scanNumber\":0}";			
 	    
 		ScanBean bean = service.unmarshal(json, ScanBean.class);
 		assertTrue(bean.getScanRequest().getDetectors().size()>0);
@@ -415,7 +415,7 @@ public class SerializationTest {
 		assertTrue(jsonNoDet.indexOf("\"compoundModel\":{")>0);
 		assertTrue(jsonNoDet.indexOf("\"models\":")>0);
 		assertTrue(jsonNoDet.indexOf("\"point\":0")>0);
-		assertTrue(jsonNoDet.endsWith("\"point\":0,\"size\":0,\"shapeEstimationRequired\":true,\"scanNumber\":0}"));
+		assertTrue(jsonNoDet.endsWith("\"point\":0,\"size\":0,\"scanNumber\":0}"));
 		assertTrue(jsonNoDet.indexOf(",,")<0);
 		
 		bean = service.unmarshal(jsonNoDet, ScanBean.class);
@@ -436,7 +436,7 @@ public class SerializationTest {
 		         "\"models\":[\"bundle=&version=&class=java.util.ArrayList\",[{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.GridModel\",\"name\":\"Grid\",\"boundingBox\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.api&version=1.0.0.qualifier&class=org.eclipse.scanning.api.points.models.BoundingBox\",\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisStart\":-84.13637953036218,\"fastAxisLength\":43.356972243563845,\"slowAxisStart\":123.33760426169476,\"slowAxisLength\":42.80505395362201},\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisPoints\":5,\"slowAxisPoints\":5,\"snake\":false}]]},"+
 		     "\"detectors\":{\"@bundle_and_class\":\"bundle=&version=&class=java.util.HashMap\",\"mandelbrot\":{\"@bundle_and_class\":\"bundle=org.eclipse.scanning.example&version=1.0.0.qualifier&class=org.eclipse.scanning.example.detector.MandelbrotModel\",\"maxIterations\":500,\"escapeRadius\":10.0,\"columns\":301,\"rows\":241,\"points\":1000,\"maxRealCoordinate\":1.5,\"maxImaginaryCoordinate\":1.2,\"realAxisName\":\"x\",\"imaginaryAxisName\":\"y\",\"name\":\"mandelbrot\",\"exposureTime\":0.1,\"timeout\":-1}},"+
 		     "\"ignorePreprocess\":false},"+
-		  "\"point\":0,\"size\":0,\"shapeEstimationRequired\":true,\"scanNumber\":0}";			
+		  "\"point\":0,\"size\":0,\"scanNumber\":0}";			
 	    
 		ScanBean bean = service.unmarshal(json, ScanBean.class);
 		assertTrue(bean.getScanRequest()!=null);

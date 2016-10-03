@@ -129,6 +129,12 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	public void disconnect() throws EventException {
 		if (positionPublisher!=null) positionPublisher.disconnect();
 	}
+	
+	@Override
+	public boolean isDisconnected() {
+		if (positionPublisher!=null) return positionPublisher.isDisconnected(); 
+		return true;
+	}
 
 	public String getBroker() {
 		return broker;

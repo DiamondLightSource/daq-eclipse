@@ -35,6 +35,8 @@ class AbstractConnection {
 	protected QueueConnection        connection;
 	protected QueueSession           qSession;
 	protected Session                session;
+	
+	private boolean disconnected;
 
 	AbstractConnection(URI uri, String topic, IEventConnectorService service) {
 		this.uri = uri;
@@ -133,6 +135,7 @@ class AbstractConnection {
 			session = null;
 			qSession = null;
 		}
+		setDisconnected(true);
 	}
 
 
@@ -264,6 +267,14 @@ class AbstractConnection {
 		}
 		
 		return value;
+	}
+
+	public boolean isDisconnected() {
+		return disconnected;
+	}
+
+	public void setDisconnected(boolean disconnected) {
+		this.disconnected = disconnected;
 	}
 
 }

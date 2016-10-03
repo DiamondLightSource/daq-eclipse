@@ -223,7 +223,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 	}
 
 	@Override
-	public IPointGenerator<?> createCompoundGenerator(CompoundModel cmodel) throws GeneratorException {
+	public IPointGenerator<?> createCompoundGenerator(CompoundModel<?> cmodel) throws GeneratorException {
 		
 		IPointGenerator<?>[] gens = new IPointGenerator<?>[cmodel.getModels().size()];
 		int index = 0;

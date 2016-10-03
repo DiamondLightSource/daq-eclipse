@@ -8,6 +8,12 @@ package org.eclipse.scanning.api.event.alive;
  */
 public class KillBean extends ConsumerCommandBean {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2504956804006283562L;
+	
+	private boolean restart=false;
 	private boolean exitProcess=true;
 	private boolean disconnect=true;
 	@Override
@@ -16,6 +22,7 @@ public class KillBean extends ConsumerCommandBean {
 		int result = super.hashCode();
 		result = prime * result + (disconnect ? 1231 : 1237);
 		result = prime * result + (exitProcess ? 1231 : 1237);
+		result = prime * result + (restart ? 1231 : 1237);
 		return result;
 	}
 
@@ -31,6 +38,8 @@ public class KillBean extends ConsumerCommandBean {
 		if (disconnect != other.disconnect)
 			return false;
 		if (exitProcess != other.exitProcess)
+			return false;
+		if (restart != other.restart)
 			return false;
 		return true;
 	}
@@ -49,5 +58,13 @@ public class KillBean extends ConsumerCommandBean {
 
 	public void setDisconnect(boolean disconnect) {
 		this.disconnect = disconnect;
+	}
+
+	public boolean isRestart() {
+		return restart;
+	}
+
+	public void setRestart(boolean retstart) {
+		this.restart = retstart;
 	}
 }

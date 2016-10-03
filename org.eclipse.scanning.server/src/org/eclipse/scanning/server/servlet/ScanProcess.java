@@ -164,7 +164,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 	}
 
-	private void configureBean(ScanModel smodel, ScanBean bean) throws EventException {
+	private void configureBean(ScanModel smodel, ScanBean bean) throws EventException, GeneratorException {
 		
 		ScanRequest<?> req = bean.getScanRequest();
 		
@@ -186,10 +186,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 		bean.setFilePath(smodel.getFilePath());
 		
-		// 
-		ScanEstimator estimator = new ScanEstimator(smodel.getPositionIterable(), bean.isShapeEstimationRequired());
+		ScanEstimator estimator = new ScanEstimator(Services.getGeneratorService(), bean.getScanRequest());
 		bean.setSize(estimator.getSize());
-		bean.setShape(estimator.getShape());
 		
 	}
 
@@ -214,7 +212,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			final IRunnableDeviceService service = Services.getRunnableDeviceService();
 			for (String name : detectors.keySet()) {
 				Object dmodel = detectors.get(name);
-				IRunnableDevice<Object> detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
+				IRunnableDevice<Object> detector = service.getRunnableDevice(name);
+				if (detector==null) detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
 				if (detector instanceof AbstractRunnableDevice<?>) {
 					((AbstractRunnableDevice<?>)detector).setBean(bean);
 				}
