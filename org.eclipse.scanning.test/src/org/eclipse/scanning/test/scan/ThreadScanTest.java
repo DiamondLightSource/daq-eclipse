@@ -61,7 +61,7 @@ public class ThreadScanTest extends BrokerTest {
 	@Before
 	public void setup() throws Exception {
 		
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		setUpNonOSGIActivemqMarshaller();
 		eservice   = new EventServiceImpl(new ActivemqConnectorService());
 		
 		// We wire things together without OSGi here 

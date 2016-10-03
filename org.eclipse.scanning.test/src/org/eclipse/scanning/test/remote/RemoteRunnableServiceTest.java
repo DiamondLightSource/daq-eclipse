@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventConstants;
@@ -20,7 +19,6 @@ import org.eclipse.scanning.event.remote.RemoteServiceFactory;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
-import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.AbstractResponderServlet;
 import org.eclipse.scanning.server.servlet.DeviceServlet;
@@ -49,7 +47,7 @@ public class RemoteRunnableServiceTest extends BrokerTest {
 
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		setUpNonOSGIActivemqMarshaller();
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 
 		// Set up stuff because we are not in OSGi with a test

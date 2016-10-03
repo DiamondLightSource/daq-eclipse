@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.dawnsci.json.MarshallerService;
@@ -21,10 +22,13 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory;
+import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.test.BrokerTest;
+import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,7 +46,8 @@ public class MappingScanTest extends BrokerTest{
 
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		setUpNonOSGIActivemqMarshaller();
+		
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
 		gservice = new PointGeneratorFactory();
 

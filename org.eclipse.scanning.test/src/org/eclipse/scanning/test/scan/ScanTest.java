@@ -22,7 +22,7 @@ public class ScanTest extends AbstractScanTest {
 	@Before
 	public void setup() throws ScanningException {
 
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		setUpNonOSGIActivemqMarshaller();
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 
 		// We wire things together without OSGi here 
