@@ -68,9 +68,12 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 				((IRunnableEventDevice)detector).fireRunWillPerform(position);
 			}
 			try {
+				if (detector instanceof AbstractRunnableDevice) ((AbstractRunnableDevice)detector).setBusy(true);
 			    detector.run(position);
 			} catch (Exception ne) {
 				abort(detector, null, position, ne);
+			} finally {
+				if (detector instanceof AbstractRunnableDevice) ((AbstractRunnableDevice)detector).setBusy(false);
 			}
 			if (detector instanceof IRunnableEventDevice) {
 				((IRunnableEventDevice)detector).fireRunPerformed(position);
