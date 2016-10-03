@@ -504,6 +504,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	
 	private Map<String,Object> getDetectors() throws Exception {
 		
+		// TODO FIXME - Well how does the user configure the detector then?
 		Map<String,Object> detectors = new HashMap<>();
 		Collection<DeviceInformation<?>> infos = dservice.getDeviceInformation();
 		Collection<DeviceInformation<?>> activated = new ArrayList<>();

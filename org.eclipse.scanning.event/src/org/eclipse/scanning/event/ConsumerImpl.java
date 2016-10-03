@@ -134,7 +134,10 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		}
 	}
 
-
+	@Override
+    public boolean isDisconnected() {
+		return !isActive();
+	}
 
 	protected class CommandListener implements IBeanListener<ConsumerCommandBean> {
 		@Override

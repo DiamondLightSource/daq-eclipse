@@ -55,6 +55,12 @@ public @interface FieldDescriptor {
 	public DeviceType device() default DeviceType.NONE;
 	
 	/**
+	 * 
+	 * @return
+	 */
+	public FieldRole role() default FieldRole.ALL;
+	
+	/**
 	 * Used to specify how the edit of the value should happen.
 	 * @return
 	 */

@@ -24,6 +24,8 @@ public class MockPublisher<T extends StatusBean> implements IPublisher<T> {
 	
 	private List<Queueable> broadcastBeans = new ArrayList<>();
 	
+	private boolean disconnected;
+	
 	private boolean alive;
 	
 	public MockPublisher(URI uri, String topic) {
@@ -47,8 +49,7 @@ public class MockPublisher<T extends StatusBean> implements IPublisher<T> {
 
 	@Override
 	public void disconnect() throws EventException {
-		// TODO Auto-generated method stub
-		
+		setDisconnected(true);
 	}
 
 	@Override
@@ -130,6 +131,14 @@ public class MockPublisher<T extends StatusBean> implements IPublisher<T> {
 
 	public void setConsumer(IConsumer<?> consumer) {
 		this.consumer = consumer;
+	}
+
+	public boolean isDisconnected() {
+		return disconnected;
+	}
+
+	public void setDisconnected(boolean disconnected) {
+		this.disconnected = disconnected;
 	}
 
 }

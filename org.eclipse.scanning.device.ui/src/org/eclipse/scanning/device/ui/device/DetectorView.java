@@ -1,15 +1,26 @@
 package org.eclipse.scanning.device.ui.device;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.scanning.api.device.IActivatable;
@@ -20,6 +31,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.EventConnectionView;
 import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -92,8 +104,6 @@ public class DetectorView extends EventConnectionView {
 		initializeMenu();
 
 	}
-
-;
 	
 	private void createColumns(TableViewer tableViewer, String icon, String name) {
 		
@@ -217,13 +227,79 @@ public class DetectorView extends EventConnectionView {
 	 * Create the actions.
 	 */
 	private void createActions() {
+
+		IMenuManager popup = new MenuManager();
+		List<IContributionManager> mans = Arrays.asList(getViewSite().getActionBars().getToolBarManager(), getViewSite().getActionBars().getMenuManager(), popup);
+
 		IAction refresh = new Action("Refresh", Activator.getImageDescriptor("icons/recycle.png")) {
 			public void run() {
-				viewer.refresh();
+				refresh();
 			}
 		};
-		getViewSite().getActionBars().getToolBarManager().add(refresh);
-		getViewSite().getActionBars().getMenuManager().add(refresh);
+		
+		ViewUtil.addGroups("refresh", mans, refresh);
+		
+		IAction configure = new Action("Configure", Activator.getImageDescriptor("icons/configure.png")) {
+			public void run() {
+				configure();
+			}
+		};
+		ViewUtil.addGroups("camera", mans, configure);
+
+	}
+
+	protected void refresh() {
+		
+		DeviceInformation<?> info = getSelection();
+
+		boolean ok = MessageDialog.openQuestion(getViewSite().getShell(), "Confirm Refresh", 
+				                "This action will go to the devices and re-read their models.\n"+
+				                "It will mean that if you have made local edits, they could be lost.\n\n"+
+				                "Are you sure you want continue?\n\n"+
+				                "(If not the 'Configure' action can be used to send your local edits to a device.)");
+		if (!ok) return;
+		
+		viewer.refresh();
+		if (info!=null) {
+			try {
+			    Collection<DeviceInformation<?>> devices = dservice.getDeviceInformation();
+			    for (DeviceInformation<?> di : devices) {
+					if (di.getName()!=null && info.getName()!=null && di.getName().equals(info.getName())) {
+						viewer.setSelection(new StructuredSelection(di));
+						break;
+					}
+				}
+			} catch (ScanningException se) {
+				logger.error("Problem getting device information", se);
+			}
+		}
+	}
+
+
+	protected void configure() {
+		
+		DeviceInformation<?> info = getSelection();
+		if (info==null) return; // Nothing to configure
+		
+		boolean ok = MessageDialog.openQuestion(getViewSite().getShell(), "Confirm Configure", "Are you sure you want to configure '"+info.getName()+"' now?\n\n"+
+		                                             "If the device is active or being used this will change its behaviour.");
+		if (!ok) return;
+		
+		try {
+			IRunnableDevice<Object> device = dservice.getRunnableDevice(info.getName());
+			Object model = info.getModel();
+			device.configure(model);
+			
+		} catch (ScanningException ne) {
+			ErrorDialog.openError(getViewSite().getShell(), "Configure Failed", "The configure of '"+info.getName()+"' failed", 
+                                            new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", ne.getMessage(), ne));
+			logger.error("Cannot configure '"+info.getName()+"'", ne);
+		}
+	}
+
+	private DeviceInformation<?> getSelection() {
+		if (viewer.getSelection() == null || viewer.getSelection().isEmpty()) return null;
+		return (DeviceInformation<?>)((IStructuredSelection)viewer.getSelection()).getFirstElement();
 	}
 
 	/**
