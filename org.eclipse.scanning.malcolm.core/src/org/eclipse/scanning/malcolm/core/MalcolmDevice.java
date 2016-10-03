@@ -2,6 +2,7 @@ package org.eclipse.scanning.malcolm.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -16,6 +17,7 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
+import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
@@ -50,6 +52,10 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	private IPublisher<ScanBean>             publisher;
 	
 	private static String STATE_ENDPOINT = "state";
+	
+	private static String STATUS_ENDPOINT = "status";
+	
+	private static String BUSY_ENDPOINT = "busy";
 	
 	private static String CURRENT_STEP_ENDPOINT = "currentStep";
 
@@ -177,6 +183,44 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 			}
 
 			return MalcolmUtil.getState(reply);
+			
+		} catch (MalcolmDeviceException mne) {
+			throw mne;
+			
+		} catch (Exception ne) {
+			throw new MalcolmDeviceException(this, "Cannot connect to device "+getName(), ne);
+		}
+	}
+
+	@Override
+	public String getDeviceStatus() throws MalcolmDeviceException {
+		try {
+			final MalcolmMessage message = connectionDelegate.createGetMessage(STATUS_ENDPOINT);
+			final MalcolmMessage reply   = service.send(this, message);
+			if (reply.getType()==Type.ERROR) {
+				throw new MalcolmDeviceException(reply.getMessage());
+			}
+
+			return MalcolmUtil.getStatus(reply);
+			
+		} catch (MalcolmDeviceException mne) {
+			throw mne;
+			
+		} catch (Exception ne) {
+			throw new MalcolmDeviceException(this, "Cannot connect to device "+getName(), ne);
+		}
+	}
+
+	@Override
+	public boolean isDeviceBusy() throws MalcolmDeviceException {
+		try {
+			final MalcolmMessage message = connectionDelegate.createGetMessage(BUSY_ENDPOINT);
+			final MalcolmMessage reply   = service.send(this, message);
+			if (reply.getType()==Type.ERROR) {
+				throw new MalcolmDeviceException(reply.getMessage());
+			}
+
+			return MalcolmUtil.getBusy(reply);
 			
 		} catch (MalcolmDeviceException mne) {
 			throw mne;
@@ -327,5 +371,39 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 			throw new MalcolmDeviceException(this, neOther);
 		}
 
+	}
+	
+	public Object getAttributeValue(String attribute) throws MalcolmDeviceException {
+		String endpoint = attribute + ".value";
+		final MalcolmMessage message = connectionDelegate.createGetMessage(endpoint);
+		final MalcolmMessage reply   = service.send(this, message);
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException(reply.getMessage());
+		}
+		return reply.getValue();
+	}
+	
+	public List<MalcolmAttribute> getAllAttributes() throws MalcolmDeviceException {
+		List<MalcolmAttribute> attributeList = new LinkedList<MalcolmAttribute>();
+		String endpoint = "";
+		final MalcolmMessage message = connectionDelegate.createGetMessage(endpoint);
+		final MalcolmMessage reply   = service.send(this, message);
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException(reply.getMessage());
+		}
+		
+		Object wholeBlock = reply.getValue();
+		
+		if (wholeBlock instanceof Map) {
+			Map wholeBlockMap = (Map)wholeBlock;
+			
+			for (Object entry : wholeBlockMap.values()) {
+				if (entry instanceof MalcolmAttribute) {
+					attributeList.add((MalcolmAttribute)entry);
+				}
+			}
+		}
+		
+		return attributeList;
 	}
 }

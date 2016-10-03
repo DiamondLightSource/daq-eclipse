@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event.remote;
 
 import java.net.URI;
+import java.util.List;
 
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.device.IActivatable;
@@ -11,6 +12,8 @@ import org.eclipse.scanning.api.event.scan.DeviceAction;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
+import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.slf4j.Logger;
@@ -40,6 +43,19 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 		update();
 		return info.getModel();
 	}
+	
+	@Override
+	public String getDeviceStatus() throws ScanningException {
+		update();
+		return info.getStatus();
+	}
+
+	@Override
+	public boolean isDeviceBusy() throws ScanningException {
+		update();
+		return info.isBusy();
+	}
+
 	
 	@Override
 	public void validate(M model) throws Exception {
@@ -113,6 +129,22 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 		boolean wasactivated = info.isActivated();
 		method(new DeviceRequest(info.getName(), DeviceType.RUNNABLE, DeviceAction.ACTIVATE, activated));
 		return wasactivated;
+	}
+
+	@Override
+	public Object getAttributeValue(String attribute) throws MalcolmDeviceException {
+		List<MalcolmAttribute> allAttributes = info.getAttributes();
+		for (MalcolmAttribute malcolmAttribute : allAttributes) {
+			if (malcolmAttribute.getName().equals(attribute)) {
+				return malcolmAttribute.getValue();
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public List<MalcolmAttribute> getAllAttributes() throws MalcolmDeviceException {
+		return info.getAttributes();
 	}
 
 }

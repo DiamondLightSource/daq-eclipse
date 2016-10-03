@@ -2,8 +2,10 @@ package org.eclipse.scanning.api.event.scan;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.scanning.api.IModelProvider;
+import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 
 /**
  * 
@@ -89,6 +91,21 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	 * and the state is saved. 
 	 */
 	private boolean activated = false;
+	
+	/**
+	 * The device status, free text to describe the current status of the device.
+	 */
+	private String status;
+	
+	/**
+	 * Whether the device is busy or not
+	 */
+	private boolean busy;
+	
+	/**
+	 * List of all attributes
+	 */
+	private List<MalcolmAttribute> attributes;
 
 
 	public DeviceInformation() {
@@ -174,6 +191,8 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		result = prime * result + ((unit == null) ? 0 : unit.hashCode());
 		result = prime * result + ((upper == null) ? 0 : upper.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result + ((attributes == null) ? 0 : attributes.hashCode());
 		return result;
 	}
 
@@ -236,6 +255,18 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 			if (other.upper != null)
 				return false;
 		} else if (!upper.equals(other.upper))
+			return false;
+		if (status == null) {
+			if (other.status != null)
+				return false;
+		} else if (!status.equals(other.status))
+			return false;
+		if (busy != other.busy)
+			return false;
+		if (attributes == null) {
+			if (other.attributes != null)
+				return false;
+		} else if (!attributes.equals(other.attributes))
 			return false;
 		return true;
 	}
@@ -309,6 +340,30 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		boolean wasactivated = this.activated;
 		this.activated = activated;
 		return wasactivated;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	
+	public boolean isBusy() {
+		return busy;
+	}
+	
+	public void setBusy(boolean busy) {
+		this.busy = busy;
+	}
+
+	public List<MalcolmAttribute> getAttributes() {
+		return attributes;
+	}
+
+	public void setAttributes(List<MalcolmAttribute> attributes) {
+		this.attributes = attributes;
 	}
 
 }

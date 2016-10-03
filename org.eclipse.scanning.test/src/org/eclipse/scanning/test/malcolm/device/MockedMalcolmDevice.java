@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.malcolm.device;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +23,7 @@ import org.eclipse.january.dataset.LazyWriteableDataset;
 import org.eclipse.january.dataset.Random;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
+import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
@@ -402,5 +404,13 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 	public void reset() throws MalcolmDeviceException {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public Object getAttributeValue(String attribute) {
+		return null;
+	}
+	
+	public List<MalcolmAttribute> getAllAttributes() {
+		return null;
 	}
 }

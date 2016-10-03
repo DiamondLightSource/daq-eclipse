@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.malcolm.attributes.BooleanAttribute;
+import org.eclipse.scanning.api.malcolm.attributes.ChoiceAttribute;
+import org.eclipse.scanning.api.malcolm.attributes.StringAttribute;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 
 public class MalcolmUtil {
@@ -24,9 +27,12 @@ public class MalcolmUtil {
 		try {
 			if (msg.getValue() instanceof String) {
 				return DeviceState.valueOf(msg.getValue().toString().toUpperCase());
+			} else if (msg.getValue() instanceof ChoiceAttribute) {
+				ChoiceAttribute attribute = (ChoiceAttribute)msg.getValue();
+				return DeviceState.valueOf(attribute.getValue().toUpperCase());
 			} else {
 				try {
-				    return getState((Map)msg.getValue());
+				    return DeviceState.valueOf(getStringValueFromMap((Map)msg.getValue(), "state").toUpperCase());
 				} catch (Exception ne) {
 					throw new Exception("Value is not a map containing state!", ne);
 				}
@@ -54,6 +60,105 @@ public class MalcolmUtil {
 			} else if (value.get("value") instanceof String) {
 				final String state = (String)value.get("value");
 				return DeviceState.valueOf(state.toUpperCase());
+			}
+		}
+		
+		throw new Exception("Unable to get state from value Map");
+	}
+	
+	public static String getStatus(MalcolmMessage msg) throws Exception {
+		return getStatus(msg, true);
+	}
+	
+	public static String getStatus(MalcolmMessage msg, boolean requireException) throws Exception {
+
+		try {
+			if (msg.getValue() instanceof String) {
+				return msg.getValue().toString();
+			} else if (msg.getValue() instanceof StringAttribute) {
+				StringAttribute attribute = (StringAttribute)msg.getValue();
+				return attribute.getValue().toString();
+			} else {
+				try {
+				    return getStringValueFromMap((Map)msg.getValue(), "status");
+				} catch (Exception ne) {
+					throw new Exception("Value is not a map containing status!", ne);
+				}
+			}
+		} catch (Exception ne) {
+			if (requireException) throw ne;
+			return null;
+		}
+	}
+	
+	public static boolean getBusy(MalcolmMessage msg) throws Exception {
+		return getBusy(msg, true);
+	}
+	
+	public static boolean getBusy(MalcolmMessage msg, boolean requireException) throws Exception {
+
+		try {
+			if (msg.getValue() instanceof Boolean) {
+				return (boolean)msg.getValue();
+			} else if (msg.getValue() instanceof String) {
+				return Boolean.parseBoolean(msg.getValue().toString());
+			} else if (msg.getValue() instanceof BooleanAttribute) {
+				BooleanAttribute attribute = (BooleanAttribute)msg.getValue();
+				return attribute.getValue();
+			} else {
+				try {
+					return getBooleanValueFromMap((Map)msg.getValue(), "busy");
+				} catch (Exception ne) {
+					throw new Exception("Value is not a map containing busy!", ne);
+				}
+			}
+		} catch (Exception ne) {
+			if (requireException) throw ne;
+			return false;
+		}
+	}
+	
+	private static String getStringValueFromMap(Map<String, ?> map, String key) throws Exception {
+		if (map.containsKey(key)) {
+			final String stringValue = (String)map.get(key);
+			return stringValue;
+		}
+		
+		if (map.containsKey("value") && !map.containsKey("choices")) {
+			if (map.get("value") instanceof Map) {
+				map = (Map<String,Object>)map.get("value");
+				List<String> choices = (List<String>)map.get("choices");
+				int          index   = (int)map.get("index");
+				final String stringValue = choices.get(index);
+				return stringValue;
+			} else if (map.get("value") instanceof String) {
+				final String stringValue = (String)map.get("value");
+				return stringValue;
+			}
+		}
+		
+		throw new Exception("Unable to get state from value Map");
+	}
+	
+	private static boolean getBooleanValueFromMap(Map<String, ?> map, String key) throws Exception {
+		if (map.containsKey(key)) {
+			final boolean booleanValue = (Boolean)map.get(key);
+			return booleanValue;
+		}
+		
+		if (map.containsKey("value") && !map.containsKey("choices")) {
+			if (map.get("value") instanceof Map) {
+				map = (Map<String,Object>)map.get("value");
+				List<String> choices = (List<String>)map.get("choices");
+				int          index   = (int)map.get("index");
+				final String stringValue = choices.get(index);
+				return Boolean.parseBoolean(stringValue);
+			} else if (map.get("value") instanceof Boolean) {
+				final Boolean booleanValue = (Boolean)map.get("value");
+				return booleanValue;
+			} else if (map.get("value") instanceof String) {
+				final String stringValue = (String)map.get("value");
+				return Boolean.parseBoolean(stringValue);
 			}
 		}
 		
