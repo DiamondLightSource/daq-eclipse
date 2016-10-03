@@ -13,7 +13,7 @@ public interface INexusScanFileManager extends IConfigurable<ScanModel> {
 	 * Creates the nexus file.
 	 * @throws ScanningException
 	 */
-	public void createNexusFile() throws ScanningException;
+	public void createNexusFile(boolean async) throws ScanningException;
 
 	/**
 	 * Flushes any pending data into the nexus file.
