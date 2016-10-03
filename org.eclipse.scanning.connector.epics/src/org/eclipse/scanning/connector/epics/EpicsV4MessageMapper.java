@@ -40,6 +40,10 @@ import org.eclipse.scanning.connector.epics.custommarshallers.IPointGeneratorSer
 import org.eclipse.scanning.connector.epics.custommarshallers.LinearROIDeserialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.LinearROISerialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmMessageSerialiser;
+import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmPointGeneratorDeserialiser;
+import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmTableDeserialiser;
+import org.eclipse.scanning.connector.epics.custommarshallers.NTScalarArrayDeserialiser;
+import org.eclipse.scanning.connector.epics.custommarshallers.NTScalarDeserialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.ParabolicROIDeserialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.ParabolicROISerialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.PerimeterBoxROIDeserialiser;
@@ -128,6 +132,12 @@ public class EpicsV4MessageMapper {
 		
 		marshaller.registerSerialiser(BoundingBox.class, new BoundingBoxSerialiser());
 		marshaller.registerDeserialiser("BoundingBox", new BoundingBoxDeserialiser());
+
+		marshaller.registerDeserialiser("epics:nt/NTScalar:1.0", new NTScalarDeserialiser());
+		marshaller.registerDeserialiser("epics:nt/NTScalarArray:1.0", new NTScalarArrayDeserialiser());
+		marshaller.registerDeserialiser("malcolm:core/Table:1.0", new MalcolmTableDeserialiser());
+		marshaller.registerDeserialiser("malcolm:core/PointGenerator:1.0", new MalcolmPointGeneratorDeserialiser());
+		
 	}
 	
 	public PVStructure convertMalcolmMessageToPVStructure(MalcolmMessage malcolmMessage) throws Exception {
