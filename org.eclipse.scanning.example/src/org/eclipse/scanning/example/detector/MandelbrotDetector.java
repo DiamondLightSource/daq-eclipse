@@ -35,7 +35,6 @@ import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
-import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -276,11 +275,6 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		if (spectrumData != null) return false;
 		if (valueData != null) return false;
 		return true;
-	}
-
-	@Override
-	public DeviceInformation<MandelbrotModel> getDeviceInformation() throws ScanningException {
-		return super.getDeviceInformation();
 	}
 
 }
