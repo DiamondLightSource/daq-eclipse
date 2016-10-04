@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -18,17 +20,17 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.e4.ui.model.application.ui.basic.MPart;
+import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
-import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
@@ -55,8 +57,6 @@ import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ScanningPerspective;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
-import org.eclipse.scanning.device.ui.util.PlotUtil;
-import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -79,6 +79,7 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,12 +239,25 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	private ScanRequest<IROI> createScanRequest(boolean lookForScanRequest) throws Exception {
 		
 		if (lookForScanRequest) {
+			// look through the views for one that adapts to ScanRequest
 			IViewReference[] refs = PageUtil.getPage().getViewReferences();
 			for (IViewReference iViewReference : refs) {
 				IViewPart part = iViewReference.getView(false);
 				if (part==null) continue;
 				ScanRequest<IROI> req = part.getAdapter(ScanRequest.class);
 				if (req!=null) return req;
+			}
+		}
+		
+		// Look through E4 parts for one that adapts to ScanRequest
+		EPartService partService = (EPartService) PlatformUI.getWorkbench().getService(EPartService.class);
+		for (MPart part : partService.getParts()) {
+			if (part.isVisible()) {
+				Object partObject = part.getObject();
+				if (partObject instanceof IAdaptable) {
+					ScanRequest<IROI> req = ((IAdaptable) partObject).getAdapter(ScanRequest.class);
+					if (req!=null) return req;
+				}
 			}
 		}
 		
@@ -311,7 +325,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		if (ob instanceof ScanRegion)          return true; // Region changed.
 		if (ob instanceof IROI)                return true; // Region changed.
 		if (ob instanceof AbstractControl)     return true; // Position changed.
-		return false;
+		return true;
 	}
 
 	/**
