@@ -114,6 +114,7 @@ public class BasicScanTest extends NexusTest {
 		nf.openToRead();
 		
 		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
+		nf.close();
 		return (NXroot) nexusTree.getGroupNode();
 	}
 
