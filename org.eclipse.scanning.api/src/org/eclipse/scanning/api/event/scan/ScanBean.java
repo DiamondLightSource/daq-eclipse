@@ -2,7 +2,6 @@ package org.eclipse.scanning.api.event.scan;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.Iterator;
 
 import org.eclipse.scanning.api.event.status.Status;
@@ -53,6 +52,11 @@ public final class ScanBean extends StatusBean {
 	 * In this case size == estimated size!
 	 */
 	private int       size;  
+	
+	/**
+	 * The rank of the scan.
+	 */
+	private int       rank;
 	
 	private IPosition position;
 	

@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Eclipse-BuddyPolicy: global
 Bundle-ManifestVersion: 2
-Bundle-Name: Api
+Bundle-Name: Scanning API
 Bundle-SymbolicName: org.eclipse.scanning.api;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Diamond Light Source

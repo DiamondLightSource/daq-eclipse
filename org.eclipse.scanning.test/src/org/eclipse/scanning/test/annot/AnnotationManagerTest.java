@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.annot;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,10 +14,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.eclipse.scanning.api.annotation.AnnotationManager;
+import org.eclipse.scanning.api.annotation.LevelComparitor;
 import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
@@ -27,8 +31,6 @@ import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.sequencer.AnnotationManager;
-import org.eclipse.scanning.sequencer.LevelComparitor;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -64,7 +66,7 @@ public class AnnotationManagerTest {
 		testServices.put(IPointGeneratorService.class,  new PointGeneratorFactory());
 		testServices.put(IScannableDeviceService.class, new MockScannableConnector(null));
 		testServices.put(IRunnableDeviceService.class,  new RunnableDeviceServiceImpl((IScannableDeviceService)testServices.get(IScannableDeviceService.class)));
-		manager = new AnnotationManager(testServices);
+		manager = new AnnotationManager(null, testServices);
 
 		sdevice   = new SimpleDevice();
 		cdevice   = new CountingDevice();
@@ -88,6 +90,26 @@ public class AnnotationManagerTest {
 		manager.invoke(ScanStart.class); 
 		assertEquals(sdevice.getCount(), 5);
 	}
+	
+	@Test(expected=InvocationTargetException.class)
+	public void countConfigureNoScanInfo() throws Exception {
+		manager.invoke(PreConfigure.class); 
+		assertEquals(1, cdevice.getCount("configure"));
+	}
+
+	@Test
+	public void countConfigure() throws Exception {
+		
+		ScanInformation info = new ScanInformation();
+		try {
+			manager.addContext(info);
+			manager.invoke(PreConfigure.class); 
+			assertEquals(1, cdevice.getCount("configure"));
+		} finally {
+			manager.removeContext(info);
+		}
+	}
+
 	
 	@Test
 	public void countInherited() throws Exception {
@@ -194,14 +216,14 @@ public class AnnotationManagerTest {
 	
 	@Test(expected=Exception.class)
 	public void checkNoDevicesError() throws Exception {
-		AnnotationManager m = new AnnotationManager();
+		AnnotationManager m = new AnnotationManager(null);
 		m.addDevices();
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void checkRepeatedTypes() throws Exception {
 		try {
-			AnnotationManager m = new AnnotationManager();
+			AnnotationManager m = new AnnotationManager(null);
 	        m.addDevices(new RepeatedTypeDevice());
 		} catch(Exception ne) {
 			System.out.println(ne.getMessage());
@@ -276,7 +298,7 @@ public class AnnotationManagerTest {
 	@Test
 	public void checkSimpleOrder() throws Exception {
 		
-		AnnotationManager m = new AnnotationManager();
+		AnnotationManager m = new AnnotationManager(null);
 		
 		List<OrderedDevice> devices = new ArrayList<>();
 		for (int i = 0; i < 100; i++) devices.add(new OrderedDevice("device"+i));
@@ -295,7 +317,7 @@ public class AnnotationManagerTest {
 	@Test
 	public void checkOrderByLevel() throws Exception {
 		
-		AnnotationManager m = new AnnotationManager();
+		AnnotationManager m = new AnnotationManager(null);
 		
 		// We add them not by level
 		List<OrderedDevice> devices = new ArrayList<>();
@@ -324,7 +346,7 @@ public class AnnotationManagerTest {
 	@Test
 	public void checkOrderByCallThenByLevel() throws Exception {
 		
-		AnnotationManager m = new AnnotationManager();
+		AnnotationManager m = new AnnotationManager(null);
 		
 		// We add them not by level
 		List<OrderedDevice> fds = new ArrayList<>();
@@ -363,7 +385,7 @@ public class AnnotationManagerTest {
 		
 		final int size = 1000;
 		
-		AnnotationManager m = new AnnotationManager();
+		AnnotationManager m = new AnnotationManager(null);
 		
 		// We add them not by level
 		for (int i = 0; i < size; i++) {

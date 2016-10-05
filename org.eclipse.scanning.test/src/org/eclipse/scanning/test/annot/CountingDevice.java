@@ -5,9 +5,12 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
+import org.eclipse.scanning.api.annotation.scan.PostConfigure;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanInformation;
 
 /**
  * 
@@ -21,6 +24,18 @@ public class CountingDevice extends AbstractScannable<Double> {
 	
 	public CountingDevice() {
 		
+	}
+	
+	@PreConfigure
+    public final void configure(ScanInformation info) throws Exception {
+		if (info==null) throw new Exception("No information!");
+        count(Thread.currentThread().getStackTrace());
+	}
+
+	@PostConfigure
+    public final void configured(ScanInformation info) throws Exception {
+		if (info==null) throw new Exception("No information!");
+        count(Thread.currentThread().getStackTrace());
 	}
 	
 	@LevelStart

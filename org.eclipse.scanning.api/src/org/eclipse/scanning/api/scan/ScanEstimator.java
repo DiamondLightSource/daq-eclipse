@@ -26,14 +26,23 @@ public class ScanEstimator {
 	/**
 	 * Size, number of points in scan
 	 */
-	private int   size;
+	private final int   size;
 	
+	/**
+	 * The rank of the scan
+	 */
+	private final int rank;
+	
+	/**
+	 * Estimated time of scan
+	 */
+	private final long  scanTime;
+
 	/**
 	 * 
 	 */
 	private long  timePerPoint = -1;
-	private long  scanTime = -1;
-
+	
 	/**
 	 * 
 	 * @param pservice
@@ -72,6 +81,7 @@ public class ScanEstimator {
 			}
 		}
 		this.size = gen.size();
+		this.rank = gen.iterator().next().getScanRank(); // The rank of the scan is constant
 		this.timePerPoint  = timePerPoint;
 		this.scanTime      = size*timePerPoint;
 	}
@@ -92,7 +102,7 @@ public class ScanEstimator {
 		return scanTime;
 	}
 
-	public void setScanTime(long scanTime) {
-		this.scanTime = scanTime;
+	public int getRank() {
+		return rank;
 	}
 }

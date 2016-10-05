@@ -1,4 +1,4 @@
-package org.eclipse.scanning.sequencer;
+package org.eclipse.scanning.api.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -14,11 +14,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.eclipse.scanning.api.IServiceResolver;
 import org.eclipse.scanning.api.annotation.scan.DeviceAnnotations;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanInformation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -43,31 +42,36 @@ import org.slf4j.LoggerFactory;
  */
 public class AnnotationManager {
 	
-
-	private static final Logger logger = LoggerFactory.getLogger(AnnotationManager.class);
-
 	private Map<Class<? extends Annotation>, Collection<MethodWrapper>> annotationMap;
 	private Map<Class<?>, Collection<Class<?>>>                         cachedClasses;
 	private Map<Class<?>, Object>                                       services;
 	private Collection<Object>                                          extraContext;
 
 	private Collection<Class<? extends Annotation>> annotations;
+	private IServiceResolver resolver;
+
 	
-	public AnnotationManager(Collection<Class<? extends Annotation>> a) {
+	public AnnotationManager(IServiceResolver resolver) {
+		this(resolver, DeviceAnnotations.getAllAnnotations());
+	}
+	
+	@SafeVarargs
+	public AnnotationManager(IServiceResolver resolver, Class<? extends Annotation>... a) {
+		this(resolver, Arrays.asList(a));
+	}
+	
+	/**
+	 * 
+	 * @param resolver - may be null
+	 * @param a
+	 */
+	public AnnotationManager(IServiceResolver resolver, Collection<Class<? extends Annotation>> a) {
+		this.resolver = resolver;
 		this.annotationMap = new Hashtable<>(31); // Intentionally synch
 		this.cachedClasses = new Hashtable<>(31); // Intentionally synch
 		this.annotations = a;
 	}
 
-	public AnnotationManager() {
-		this(DeviceAnnotations.getAllAnnotations());
-	}
-	
-	@SafeVarargs
-	public AnnotationManager(Class<? extends Annotation>... a) {
-		this(Arrays.asList(a));
-	}
-	
 	/**
 	 * Set some implementations of types, for instance services.
 	 * Used in addition to the OSGi services available.
@@ -75,8 +79,8 @@ public class AnnotationManager {
 	 * 
 	 * @param services
 	 */
-	public AnnotationManager(Map<Class<?>, Object> services) {
-		this();
+	public AnnotationManager(IServiceResolver resolver, Map<Class<?>, Object> services) {
+		this(resolver);
 		this.services = services;
 	}
 
@@ -280,13 +284,20 @@ public class AnnotationManager {
 		if (extraContext == null) extraContext = new HashSet<>();
 		extraContext.add(object);
 	}
-	
+
+	/**
+	 * 
+	 * @param object
+	 */
+	public void removeContext(Object object) {
+		if (extraContext == null) return;
+		extraContext.remove(object);
+	}
+
 	private Object getService(Class<?> class1) {
 		Object object=null;
-		if (SequencerActivator.isStarted()) {
-			object = SequencerActivator.getService(class1);
-		} 
-		if (object==null) object = services.get(class1);
+		if (resolver!=null) object = resolver.getService(class1);
+		if (object==null)   object = services.get(class1);
 		return object;
 	}
 

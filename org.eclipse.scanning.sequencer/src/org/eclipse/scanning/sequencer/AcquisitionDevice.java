@@ -9,6 +9,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.annotation.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.annotation.scan.ScanAbort;
@@ -127,7 +128,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		// Create the manager and populate it
 		if (manager!=null) manager.dispose(); // It is allowed to configure more than once.
-		manager = new AnnotationManager();
+		manager = new AnnotationManager(SequencerActivator.getInstance());
 		manager.addDevices(getScannables(model));
 		if (model.getMonitors()!=null) manager.addDevices(model.getMonitors());
 		manager.addDevices(model.getDetectors());
@@ -283,7 +284,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		ScanInformation info = new ScanInformation();
 		info.setSize(size);
 		info.setModel(getModel());
-		info.setParent(this);
 		info.setRank(getScanRank(getModel().getPositionIterable()));
 		info.setScannableNames(getScannableNames(getModel().getPositionIterable()));
 		manager.addContext(info);
