@@ -199,7 +199,7 @@ public abstract class AbstractPosition implements IPosition, Serializable {
 	@Override
 	public int getScanRank() {
 		if (dimensionNames!=null) return dimensionNames.size();
-		return 1;
+		return IPosition.super.getScanRank();
 	}
 
 	@Override

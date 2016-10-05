@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.scan;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.scanning.api.device.models.IDetectorModel;
@@ -7,6 +8,7 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.IPosition;
 
 /**
  * 
@@ -17,6 +19,9 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
  * Shape is more expensive to estimate that size. For 10 million points size
  * is ~100ms depending on iterator type. Shape will take longer as more floating 
  * point operations are required.
+ * 
+ * This class is an estimator and not a data holder. Please use ScanInformation
+ * to hold data to be sent around.
  * 
  * @author Matthew Gerring
  *
@@ -42,6 +47,16 @@ public class ScanEstimator {
 	 * 
 	 */
 	private long  timePerPoint = -1;
+
+	/**
+	 * 
+	 */
+	private final IPointGenerator<?> generator;
+	
+	/**
+	 * 
+	 */
+	private int[] shape;
 	
 	/**
 	 * 
@@ -72,6 +87,8 @@ public class ScanEstimator {
 	public ScanEstimator(IPointGenerator<?> gen, Map<String, Object> detectors, long timePerPoint) throws GeneratorException {
 
 		
+		this.generator = gen;
+		
 		// TODO FIXME If some detectors are malcolm, they may have a wait time.
 		// If some are malcolm we may wish to ignore the input point time from the user
 		// in favour of the malcolm time per point or maybe the device tells us how long it will take?
@@ -80,8 +97,8 @@ public class ScanEstimator {
 				timePerPoint = Math.max(timePerPoint, Math.round(1000*((IDetectorModel)model).getExposureTime()));
 			}
 		}
-		this.size = gen.size();
-		this.rank = gen.iterator().next().getScanRank(); // The rank of the scan is constant
+		this.size          = gen.size();
+		this.rank          = gen.iterator().next().getScanRank(); // The rank of the scan is constant
 		this.timePerPoint  = timePerPoint;
 		this.scanTime      = size*timePerPoint;
 	}
@@ -104,5 +121,24 @@ public class ScanEstimator {
 
 	public int getRank() {
 		return rank;
+	}
+	
+	/**
+	 * The estimated scan shape. Clue is in the name, ScanEstimator
+	 * @return
+	 */
+	public int[] getShape() {
+		
+		if (shape!=null) return shape;
+	
+		Iterator<IPosition> iterator = generator.iterator();
+		IPosition last  = null;
+		while(iterator.hasNext()) last = iterator.next(); // Could be large...
+		
+		this.shape = new int[getRank()];
+		for (int i = 0; i < shape.length; i++) {
+			shape[i] = last.getIndex(i)+1;
+		}
+		return shape;
 	}
 }

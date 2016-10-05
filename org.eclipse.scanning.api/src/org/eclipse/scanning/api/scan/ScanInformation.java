@@ -3,7 +3,6 @@ package org.eclipse.scanning.api.scan;
 import java.util.Collection;
 
 import org.eclipse.scanning.api.IModelProvider;
-import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 
 /**
