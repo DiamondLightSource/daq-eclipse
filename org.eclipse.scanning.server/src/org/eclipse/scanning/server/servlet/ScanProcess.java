@@ -177,12 +177,9 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 
 	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, ScanEstimator estimator) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException {
 		
-		ScanInformation info = new ScanInformation();
-		info.setSize(estimator.getSize());
+		ScanInformation info = new ScanInformation(estimator);
 		info.setModel(model);
-		info.setRank(estimator.getRank());
 		info.setScannableNames(getScannableNames(model.getPositionIterable()));
-		
 		
 		for (IRunnableDevice<?> device : model.getDetectors()) {
 			

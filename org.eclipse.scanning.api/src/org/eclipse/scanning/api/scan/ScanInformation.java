@@ -15,11 +15,31 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
  *
  */
 public class ScanInformation implements IModelProvider<ScanModel>{
-
+	
 	private ScanModel          model;
 	private int                size;
 	private int                rank;
 	private Collection<String> scannableNames;
+	private transient ScanEstimator  estimator;
+	private int[] shape;
+	
+	public ScanInformation() {
+		
+	}
+	
+	/**
+	 * Setup the scan information from a ScanEstimator
+	 * NOTE the getShape() method is then delegated to the ScanEstimator
+	 * for speed reasons. It will not be calculated until you call
+	 * getShape() for the first time.
+	 *  
+	 * @param prov
+	 */
+	public ScanInformation(ScanEstimator prov) {
+		this.estimator = prov;
+		setSize(estimator.getSize());
+		setRank(estimator.getRank());
+	}
 
 	public ScanModel getModel() {
 		return model;
@@ -79,5 +99,16 @@ public class ScanInformation implements IModelProvider<ScanModel>{
 	}
 	public void setScannableNames(Collection<String> scannableNames) {
 		this.scannableNames = scannableNames;
+	}
+
+	public int[] getShape() {
+		if (shape!=null) return shape;
+		// We calculate shape on the fly because it can be expensive to estimate.
+		shape = estimator!=null ? estimator.getShape() : null;
+		return shape;
+	}
+
+	public void setShape(int[] shape) {
+		this.shape = shape;
 	}
 }
