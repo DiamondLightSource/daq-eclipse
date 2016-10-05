@@ -16,6 +16,8 @@ import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
+import org.eclipse.scanning.api.annotation.scan.PostConfigure;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.annotation.scan.ScanAbort;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
@@ -168,7 +170,7 @@ public class ScanSpeedTest extends BrokerTest {
 		final List<IRunnableDevice<?>> detectors = createAnnotatedDetectors("annotatedDetector", 100, false);
 		
 		long time = checkTimes(pointCount, scannables, detectors, "all annotations");
-		assertTrue(time<30);
+		assertTrue("Time should be less than 30ms and is: "+time, time<30);
 		
 		for (IScannable<?> s : scannables) {
 			AnnotatedMockScannable ams = (AnnotatedMockScannable)s;
@@ -182,6 +184,8 @@ public class ScanSpeedTest extends BrokerTest {
 		
 		for (IRunnableDevice<?> d : detectors) {
 			AnnotatedMockWritableDetector ams = (AnnotatedMockWritableDetector)d;
+			assertEquals(1,    ams.getCount(PreConfigure.class));
+			assertEquals(1,    ams.getCount(PostConfigure.class));
 			assertEquals(1,    ams.getCount(ScanStart.class));
 			assertEquals(100,  ams.getCount(PointStart.class));
 			assertEquals(100,  ams.getCount(PointEnd.class));

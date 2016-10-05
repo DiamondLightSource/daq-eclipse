@@ -199,6 +199,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 			
 			if (configure) {
 				AnnotationManager manager = new AnnotationManager(SequencerActivator.getInstance());
+				manager.addDevices(scanner);
 				manager.invoke(PreConfigure.class, model);
 				scanner.configure(model);
 				manager.invoke(PostConfigure.class, model);
