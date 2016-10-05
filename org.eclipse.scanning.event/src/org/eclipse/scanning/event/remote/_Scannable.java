@@ -170,6 +170,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 			subscriber.addListener(getName(), new ILocationListener() {
 				@Override
 				public void locationPerformed(LocationEvent evt) {
+					if (listeners == null) return;
 
 					lastActive = System.currentTimeMillis();
 					final Location      loc  = evt.getLocation();
