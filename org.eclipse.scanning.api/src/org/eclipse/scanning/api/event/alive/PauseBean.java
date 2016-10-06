@@ -13,6 +13,11 @@ package org.eclipse.scanning.api.event.alive;
  */
 public class PauseBean extends ConsumerCommandBean {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1152606459228271989L;
+	
 	private boolean pause = true;
 
 	public boolean isPause() {

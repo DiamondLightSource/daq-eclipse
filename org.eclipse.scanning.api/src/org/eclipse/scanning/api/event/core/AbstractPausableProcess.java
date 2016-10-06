@@ -10,12 +10,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
-import org.eclipse.scanning.api.scan.ScanningException;
 
 public abstract class AbstractPausableProcess<T extends StatusBean> implements IConsumerProcess<T> {
 	

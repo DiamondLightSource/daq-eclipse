@@ -1,8 +1,10 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 
@@ -136,7 +138,12 @@ public interface IPosition {
 	 * @return
 	 */
 	default int getScanRank() {
-		return 1;
+		Set<Integer> dims = new HashSet<Integer>();
+		List<String> names = getNames();
+		for (String name : names) {
+			dims.add(getIndex(name));
+		}
+		return dims.size();
 	}
 	
 	/**

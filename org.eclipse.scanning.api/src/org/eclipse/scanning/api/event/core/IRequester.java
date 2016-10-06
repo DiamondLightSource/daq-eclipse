@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IdBean;
+import org.eclipse.scanning.api.event.core.ResponseConfiguration.ResponseType;
 
 /**
  * 

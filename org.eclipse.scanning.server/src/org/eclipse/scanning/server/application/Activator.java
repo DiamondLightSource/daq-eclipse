@@ -1,7 +1,9 @@
 package org.eclipse.scanning.server.application;
 
+import org.eclipse.scanning.api.IServiceResolver;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 public class Activator implements BundleActivator {
 	
@@ -24,5 +26,17 @@ public class Activator implements BundleActivator {
 	public static BundleContext getContext() {
 		return context;
 	}
+	
+	public static IServiceResolver createResolver() {
+		if (context == null) return null;
+		return new IServiceResolver() {
+			@Override
+			public <T> T getService(Class<T> serviceClass) {
+				ServiceReference<T> ref = context.getServiceReference(serviceClass);
+				return context.getService(ref);
+			}
+		};
+	}
+	
 
 }

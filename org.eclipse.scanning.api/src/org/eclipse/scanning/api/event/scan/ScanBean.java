@@ -2,7 +2,6 @@ package org.eclipse.scanning.api.event.scan;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.Iterator;
 
 import org.eclipse.scanning.api.event.status.Status;
@@ -55,20 +54,9 @@ public final class ScanBean extends StatusBean {
 	private int       size;  
 	
 	/**
-	 * For static scans shape is constant and not estimated. However for
-	 * iterators which calculate things to generate the next point, shape 
-	 * becomes an estimation.
+	 * The rank of the scan.
 	 */
-	private int[] shape;
-	
-	/**
-	 * Shape estimation at the start of the scan is slightly
-	 * expensive because it iterates position and the indices
-	 * of the names at that position. It may be turned off to 
-	 * save the CPU for detectors which never need to know 
-	 * shape and simply append in the correct rank per position.
-	 */
-	private boolean shapeEstimationRequired = true;
+	private int       rank;
 	
 	private IPosition position;
 	
@@ -281,8 +269,6 @@ public final class ScanBean extends StatusBean {
 		result = prime * result + ((previousDeviceState == null) ? 0 : previousDeviceState.hashCode());
 		result = prime * result + scanNumber;
 		result = prime * result + ((scanRequest == null) ? 0 : scanRequest.hashCode());
-		result = prime * result + Arrays.hashCode(shape);
-		result = prime * result + (shapeEstimationRequired ? 1231 : 1237);
 		result = prime * result + size;
 		return result;
 	}
@@ -334,10 +320,6 @@ public final class ScanBean extends StatusBean {
 				return false;
 		} else if (!scanRequest.equals(other.scanRequest))
 			return false;
-		if (!Arrays.equals(shape, other.shape))
-			return false;
-		if (shapeEstimationRequired != other.shapeEstimationRequired)
-			return false;
 		if (size != other.size)
 			return false;
 		return true;
@@ -358,21 +340,4 @@ public final class ScanBean extends StatusBean {
 	public void setDeviceName(String deviceName) {
 		this.deviceName = deviceName;
 	}
-
-	public int[] getShape() {
-		return shape;
-	}
-
-	public void setShape(int[] shape) {
-		this.shape = shape;
-	}
-
-	public boolean isShapeEstimationRequired() {
-		return shapeEstimationRequired;
-	}
-
-	public void setShapeEstimationRequired(boolean shapeEstimationRequired) {
-		this.shapeEstimationRequired = shapeEstimationRequired;
-	}
-
 }

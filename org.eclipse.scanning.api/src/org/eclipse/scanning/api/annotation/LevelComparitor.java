@@ -1,4 +1,4 @@
-package org.eclipse.scanning.sequencer;
+package org.eclipse.scanning.api.annotation;
 
 import java.util.Comparator;
 

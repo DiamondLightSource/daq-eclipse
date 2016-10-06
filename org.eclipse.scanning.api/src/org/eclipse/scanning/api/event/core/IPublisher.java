@@ -1,7 +1,6 @@
 package org.eclipse.scanning.api.event.core;
 
 import java.io.PrintStream;
-import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
 

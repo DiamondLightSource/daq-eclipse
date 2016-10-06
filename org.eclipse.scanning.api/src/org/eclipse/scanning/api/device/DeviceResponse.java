@@ -145,8 +145,6 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			IRunnableDevice<Object> device = dservice.getRunnableDevice(request.getDeviceName());
 			if (device==null) throw new EventException("There is no created device called '"+request.getDeviceName()+"'");
 			
-			if (request.getDeviceModel()!=null) device.configure(request.getDeviceModel());
-			
 			// TODO We should have a much more reflection based way of
 			// calling arbitrary methods. 
 			if (request.getDeviceAction()!=null) {
@@ -156,6 +154,8 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 					tdevice.terminate(action.to());
 				} else if (action==DeviceAction.VALIDATE) {
 					device.validate(request.getDeviceModel());
+				} else if (action==DeviceAction.CONFIGURE) {
+					device.configure(request.getDeviceModel());
 				} else if (action==DeviceAction.RUN) {
 					device.run(request.getPosition());
 				} else if (action==DeviceAction.ABORT) {

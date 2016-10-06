@@ -45,6 +45,7 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 			if (runnable instanceof IDisconnectable) ((IDisconnectable)runnable).disconnect();
 		}
 		runnables.clear();
+		setDisconnected(true);
 	}
 
 	@Override

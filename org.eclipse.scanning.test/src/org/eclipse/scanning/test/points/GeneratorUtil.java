@@ -3,6 +3,8 @@
  */
 package org.eclipse.scanning.test.points;
 
+import static org.junit.Assert.assertArrayEquals;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -42,13 +44,12 @@ class GeneratorUtil {
 		
 		// Check the estimator. In this case it is not doing anything
 		// that we don't already know, so we can test it.
-		Iterable<IPosition> iterable = (Iterable<IPosition>)gen;
-		final ScanEstimator estimator = new ScanEstimator(iterable, expectedShape!=null&&expectedShape.length>0);
-		
+		final ScanEstimator estimator = new ScanEstimator(gen, null, 100);
 		if (ponts.size()!=estimator.getSize()) throw new Exception("Different size from shape estimator!");
 
-		if (expectedShape!=null && expectedShape.length>0) {
-		   if (!Arrays.equals(expectedShape, estimator.getShape())) throw new Exception("Different shape from shape estimator! Expected "+Arrays.toString(expectedShape)+" but was "+Arrays.toString(estimator.getShape()));
+		if (expectedShape!=null && expectedShape.length>0) {// They set one
+		    int[] shape = estimator.getShape();
+		    assertArrayEquals(expectedShape, shape);
 		}
  	}
 

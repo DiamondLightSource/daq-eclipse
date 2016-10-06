@@ -3,7 +3,6 @@ package org.eclipse.scanning.api.scan;
 import java.util.Collection;
 
 import org.eclipse.scanning.api.IModelProvider;
-import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 
 /**
@@ -16,19 +15,32 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
  *
  */
 public class ScanInformation implements IModelProvider<ScanModel>{
-
-	private IRunnableDevice<?> parent;
+	
 	private ScanModel          model;
 	private int                size;
 	private int                rank;
 	private Collection<String> scannableNames;
+	private transient ScanEstimator  estimator;
+	private int[] shape;
+	
+	public ScanInformation() {
+		
+	}
+	
+	/**
+	 * Setup the scan information from a ScanEstimator
+	 * NOTE the getShape() method is then delegated to the ScanEstimator
+	 * for speed reasons. It will not be calculated until you call
+	 * getShape() for the first time.
+	 *  
+	 * @param prov
+	 */
+	public ScanInformation(ScanEstimator prov) {
+		this.estimator = prov;
+		setSize(estimator.getSize());
+		setRank(estimator.getRank());
+	}
 
-	public IRunnableDevice<?> getParent() {
-		return parent;
-	}
-	public void setParent(IRunnableDevice<?> parent) {
-		this.parent = parent;
-	}
 	public ScanModel getModel() {
 		return model;
 	}
@@ -46,7 +58,6 @@ public class ScanInformation implements IModelProvider<ScanModel>{
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
-		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
 		result = prime * result + rank;
 		result = prime * result + ((scannableNames == null) ? 0 : scannableNames.hashCode());
 		result = prime * result + size;
@@ -65,11 +76,6 @@ public class ScanInformation implements IModelProvider<ScanModel>{
 			if (other.model != null)
 				return false;
 		} else if (!model.equals(other.model))
-			return false;
-		if (parent == null) {
-			if (other.parent != null)
-				return false;
-		} else if (!parent.equals(other.parent))
 			return false;
 		if (rank != other.rank)
 			return false;
@@ -93,5 +99,16 @@ public class ScanInformation implements IModelProvider<ScanModel>{
 	}
 	public void setScannableNames(Collection<String> scannableNames) {
 		this.scannableNames = scannableNames;
+	}
+
+	public int[] getShape() {
+		if (shape!=null) return shape;
+		// We calculate shape on the fly because it can be expensive to estimate.
+		shape = estimator!=null ? estimator.getShape() : null;
+		return shape;
+	}
+
+	public void setShape(int[] shape) {
+		this.shape = shape;
 	}
 }

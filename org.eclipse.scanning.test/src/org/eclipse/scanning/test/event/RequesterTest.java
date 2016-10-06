@@ -34,6 +34,7 @@ import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.core.ResponseConfiguration;
 import org.eclipse.scanning.api.event.core.ResponseConfiguration.ResponseType;
+import org.eclipse.scanning.api.event.scan.DeviceAction;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -237,6 +238,7 @@ public class RequesterTest extends BrokerTest {
 		model.setExposureTime(100);
 		model.setEscapeRadius(15);
 		req.setDeviceModel(model);
+		req.setDeviceAction(DeviceAction.CONFIGURE);
 		
 		res = requester.post(req);
         
