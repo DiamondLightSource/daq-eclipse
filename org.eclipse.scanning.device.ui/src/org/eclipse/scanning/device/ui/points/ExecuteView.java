@@ -4,9 +4,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -23,12 +26,10 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
-import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
@@ -47,6 +48,7 @@ import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.scan.IParserService;
+import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.api.scan.ui.AbstractControl;
 import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.api.ui.CommandConstants;
@@ -55,8 +57,6 @@ import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ScanningPerspective;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
-import org.eclipse.scanning.device.ui.util.PlotUtil;
-import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -98,6 +98,8 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	
 	// UI
 	private StyledText text;
+	private Composite  run;
+	private Label      timeEstimate;
 
 	// Services
 	private IPointGeneratorService pservice; // Used to create a compound generator
@@ -106,12 +108,12 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 
 	// Job
 	private Job updateJob;
-	private Composite run;
 	
 	public ExecuteView() {
 		
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_INFO, true);
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_CMD,  true);
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_TIME,  true);
 		this.pservice = ServiceHolder.getGeneratorService();
 		this.vservice = ServiceHolder.getValidatorService();
 		try {
@@ -160,9 +162,9 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		});
 		execute.setImage(Activator.getImageDescriptor("icons/shoe--arrow.png").createImage());
 
-		final Label sep = new Label(run, SWT.NONE);
-		sep.setText("      ");
-		sep.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		timeEstimate = new Label(run, SWT.NONE);
+		timeEstimate.setText("                    ");
+		timeEstimate.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
 		
 		final Button clipboard = new Button(run, SWT.PUSH);
 		clipboard.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
@@ -311,9 +313,11 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		if (ob instanceof ScanRegion)          return true; // Region changed.
 		if (ob instanceof IROI)                return true; // Region changed.
 		if (ob instanceof AbstractControl)     return true; // Position changed.
+		if (ob instanceof ScanRequest)         return true; // Whole request changed.
 		return false;
 	}
 
+	private final static long HOUR_IN_MS = 60*60*1000;
 	/**
 	 * Thread safe method for getting the string with should be shown to the user about the scan.
 	 * @param monitor
@@ -396,9 +400,22 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	        			logger.error("Cannot parse a scan request", ne);
 	        		}
 	        	}
+	            setThreadSafeText(text, styledString);
 	        	
-                setThreadSafeText(text, styledString);
-	        }
+	            String timeString = "";
+	        	if (Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_TIME)) {
+
+	        		try {
+	        			final ScanEstimator estimator = new ScanEstimator(ServiceHolder.getGeneratorService(), req);
+	        			long time = estimator.getScanTime();
+	        			Format format = (time<HOUR_IN_MS) ? new SimpleDateFormat("mm'm' ss's'") : new SimpleDateFormat("h'h' mm'm' ss's'");
+	        			timeString = "   "+format.format(new Date(time));
+	        		} catch (Exception ne) {
+	        			timeString = ne.getMessage();
+	        		}
+	        	}
+	        	setThreadSafeLabel(timeEstimate, timeString);
+ 	        }
 		} catch (ModelValidationException ne) {
 			setThreadSafeText(text, ne.getMessage());
 			 
@@ -436,6 +453,15 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
     			if (text.isDisposed()) return;
 	        	text.setText(styledString.toString());
 	        	text.setStyleRanges(styledString.getStyleRanges());
+    		}
+    	});	
+    }
+	private void setThreadSafeLabel(Label label, String message) {
+		if (label.isDisposed()) return;
+		label.getDisplay().syncExec(new Runnable() {
+    		public void run() {
+    			if (label.isDisposed()) return;
+    			label.setText(message);
     		}
     	});	
     }
@@ -478,6 +504,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	
 	private Map<String,Object> getDetectors() throws Exception {
 		
+		// TODO FIXME - Well how does the user configure the detector then?
 		Map<String,Object> detectors = new HashMap<>();
 		Collection<DeviceInformation<?>> infos = dservice.getDeviceInformation();
 		Collection<DeviceInformation<?>> activated = new ArrayList<>();
@@ -515,25 +542,11 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		MenuManager     rightClick     = new MenuManager();
 		mans.add(rightClick);
 		
-		IAction showInfo = new Action("Show scan information", IAction.AS_CHECK_BOX) {
-			public void run() {
-				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.SHOW_SCAN_INFO, isChecked());
-				updateJob.schedule();
-			}
-		};
-		showInfo.setImageDescriptor(Activator.getImageDescriptor("icons/information-white.png"));
-		showInfo.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_INFO));
+		IAction showInfo = createPreferenceAction("Show scan information", DevicePreferenceConstants.SHOW_SCAN_INFO, "icons/information-white.png");
+		IAction showCmd = createPreferenceAction("Show scan command", DevicePreferenceConstants.SHOW_SCAN_CMD, "icons/information-green.png");
+		IAction showTime = createPreferenceAction("Show time estimation", DevicePreferenceConstants.SHOW_SCAN_TIME, "icons/information-red.png");
 	
-		IAction showCmd = new Action("Show scan command", IAction.AS_CHECK_BOX) {
-			public void run() {
-				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.SHOW_SCAN_CMD, isChecked());
-				updateJob.schedule();
-			}
-		};
-		showCmd.setImageDescriptor(Activator.getImageDescriptor("icons/information-green.png"));
-		showCmd.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_CMD));
-
-		ViewUtil.addGroups("show", mans, showInfo, showCmd);
+		ViewUtil.addGroups("show", mans, showInfo, showCmd, showTime);
 		
 		IAction run = new Action("Execute current scan\n(Submits it to the queue of scans to be run.)", Activator.getImageDescriptor("icons/shoe--arrow.png")) {
 			public void run() {
@@ -557,6 +570,18 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		
 		text.setMenu(rightClick.createContextMenu(text));
 
+	}
+
+	private IAction createPreferenceAction(String label, String preference, String icon) {
+		IAction ret = new Action(label, IAction.AS_CHECK_BOX) {
+			public void run() {
+				Activator.getDefault().getPreferenceStore().setValue(preference, isChecked());
+				updateJob.schedule();
+			}
+		};
+		ret.setImageDescriptor(Activator.getImageDescriptor(icon));
+		ret.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(preference));	
+		return ret;
 	}
 
 	private void clipboard() {

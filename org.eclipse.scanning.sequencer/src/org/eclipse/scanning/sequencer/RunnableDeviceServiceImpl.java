@@ -15,6 +15,9 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.scanning.api.annotation.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.PostConfigure;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
@@ -194,7 +197,13 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
                 }
 			}
 			
-			if (configure) scanner.configure(model);
+			if (configure) {
+				AnnotationManager manager = new AnnotationManager(SequencerActivator.getInstance());
+				manager.addDevices(scanner);
+				manager.invoke(PreConfigure.class, model);
+				scanner.configure(model);
+				manager.invoke(PostConfigure.class, model);
+			}
 			
 			if (!scanner.isVirtual()) {
 				namedDevices.put(scanner.getName(), scanner);

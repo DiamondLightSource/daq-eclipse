@@ -6,8 +6,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
-import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
-import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.bindings.keys.IKeyLookup;
 import org.eclipse.jface.bindings.keys.KeyLookupFactory;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -28,26 +29,26 @@ import org.eclipse.jface.viewers.TableViewerEditor;
 import org.eclipse.jface.viewers.TableViewerFocusCellManager;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
+import org.eclipse.richbeans.widgets.menu.CheckableActionGroup;
 import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.annotation.ui.FieldRole;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
-import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.points.ScanView;
 import org.eclipse.scanning.device.ui.util.PageUtil;
-import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -132,11 +133,6 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 
 	public void dispose() {
 		if (PageUtil.getPage()!=null) PageUtil.getPage().removeSelectionListener(this);
-		try {
-			if (dservice instanceof IDisconnectable) ((IDisconnectable)dservice).disconnect();
-		} catch (EventException e) {
-			logger.error("Cannot disconnect remote service!", e);
-		}
 	}
 
 	public Composite createPartControl(Composite ancestor) {
@@ -235,7 +231,37 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			}
 		}
 		
+		createActions();
+		
 		return content;
+	}
+
+	private void createActions() {
+		
+		List<IContributionManager> mans = null;
+		
+		CheckableActionGroup group = new CheckableActionGroup();
+		createFieldRoleActions(group);
+		
+	}
+
+	private void createFieldRoleActions(CheckableActionGroup group) {
+		
+		FieldRole[] roles = FieldRole.values();
+		for (FieldRole role : roles) {
+			IAction action = new Action(role.getLabel(), IAction.AS_CHECK_BOX) {
+				public void run() {
+					setFieldRole(role);
+				}
+			};
+			//action.setImageDescriptor(newImage);
+			group.add(action);
+		}
+	}
+
+	private void setFieldRole(FieldRole simple) {
+		// TODO Filter table!
+		
 	}
 
 	public Control getControl() {
@@ -368,12 +394,14 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 		if (ob==null) return;
 		try {
 			if (site != null) site.getActionBars().getStatusLineManager().setErrorMessage(null);
+						
 			if (ob instanceof IValidator) setValidator((IValidator<?>)ob);
 			
 			// Special case for device information, we read the latest
 			if (ob instanceof DeviceInformation) {
-				ob = getLatestDeviceInformation((DeviceInformation<?>)ob); // Reread the device information.
-				setValidator(dservice.getRunnableDevice(((DeviceInformation<?>)ob).getName()));
+				String name = ((DeviceInformation<?>)ob).getName();
+				IRunnableDevice<?> device = dservice.getRunnableDevice(name);
+				setValidator(device);
 			}
 			if (ob instanceof IModelProvider) setModel(((IModelProvider<?>)ob).getModel());
 			if (ob instanceof IScanPathModel) setModel(ob);
@@ -388,17 +416,6 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 			logger.error("Cannot set model for object "+ob);
 			if (site != null) site.getActionBars().getStatusLineManager().setErrorMessage("Cannot connect to server "+ne.getMessage());
 		}
-	}
-
-	private DeviceInformation<?> getLatestDeviceInformation(DeviceInformation<?> info) {
-		try {
-			// We read the latest, other processes can change the model for the device.
-			info = dservice.getDeviceInformation(info.getName());
-			
-		} catch (Exception ne) {
-			logger.error("Cannot get latest device information for "+info, ne);
-		}
-		return info;
 	}
 
 	/**

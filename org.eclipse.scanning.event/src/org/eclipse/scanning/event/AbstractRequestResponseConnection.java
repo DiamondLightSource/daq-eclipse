@@ -14,6 +14,7 @@ abstract class AbstractRequestResponseConnection implements IRequestResponseConn
 	private   String        requestTopic;
 	private   String        responseTopic;
 	protected IEventService eservice;
+	private boolean disconnected;
 
 	AbstractRequestResponseConnection(URI uri, String reqTopic, String resTopic, IEventService eservice) {
 		this.uri           = uri;
@@ -55,7 +56,7 @@ abstract class AbstractRequestResponseConnection implements IRequestResponseConn
 	 * @throws EventException
 	 */
 	public void disconnect() throws EventException {
-		// does nothing
+		setDisconnected(true);
 	}
 
 
@@ -94,5 +95,13 @@ abstract class AbstractRequestResponseConnection implements IRequestResponseConn
 		} else if (!uri.equals(other.uri))
 			return false;
 		return true;
+	}
+
+	public boolean isDisconnected() {
+		return disconnected;
+	}
+
+	public void setDisconnected(boolean disconnected) {
+		this.disconnected = disconnected;
 	}
 }

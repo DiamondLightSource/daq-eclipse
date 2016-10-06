@@ -6,6 +6,8 @@ import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
+import org.eclipse.scanning.api.annotation.scan.PostConfigure;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.annotation.scan.ScanAbort;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFault;
@@ -13,6 +15,7 @@ import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanPause;
 import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
+import org.eclipse.scanning.api.scan.ScanInformation;
 
 /**
  *
@@ -27,7 +30,16 @@ import org.eclipse.scanning.api.annotation.scan.ScanStart;
  */
 public interface AnnotationRecorder {
 
- 
+	@PreConfigure
+	default void configure(ScanInformation info) {
+		record(PreConfigure.class);
+	}
+	
+	@PostConfigure
+	default void configured(ScanInformation info) {
+		record(PostConfigure.class);
+	}
+
 	@ScanStart
 	default void scanStart() {
 		record(ScanStart.class);

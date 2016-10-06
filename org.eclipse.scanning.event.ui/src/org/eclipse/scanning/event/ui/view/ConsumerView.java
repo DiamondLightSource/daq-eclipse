@@ -10,6 +10,7 @@ package org.eclipse.scanning.event.ui.view;
 
 import java.net.URI;
 import java.text.DateFormat;
+import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,12 +24,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -48,15 +47,12 @@ import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.AdministratorMessage;
-import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.ui.Activator;
 import org.eclipse.scanning.event.ui.ServiceHolder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -203,70 +199,125 @@ public class ConsumerView extends EventConnectionView {
 	private void createActions() {
 		final IContributionManager man = getViewSite().getActionBars().getToolBarManager();
 	
-		final Action refresh = new Action("Refresh", Activator.getDefault().getImageDescriptor("icons/arrow-circle-double-135.png")) {
+		final Action refresh = new Action("Refresh", Activator.getImageDescriptor("icons/arrow-circle-double-135.png")) {
 			public void run() {
+				consumers.clear();
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					logger.error("Refreshing consumers that we can process", e);
+				}
 				viewer.refresh();
 			}
 		};
 		
 		man.add(refresh);
 
-		final Action stop = new Action("Stop consumer", Activator.getDefault().getImageDescriptor("icons/terminate.png")) {
+		final Action restart = new Action("Restart consumer", Activator.getImageDescriptor("icons/control-power.png")) {
 			public void run() {
-				
-				if (  viewer.getSelection() == null || viewer.getSelection().isEmpty()) return;
-				
-			    HeartbeatBean bean = (HeartbeatBean)((IStructuredSelection)viewer.getSelection()).getFirstElement();
-
-			    boolean ok = MessageDialog.openConfirm(getSite().getShell(), "Confirm Stop", "If you stop this consumer it will have to be restarted by an administrator.\n\n"
-						                                                                      + "Are you sure that you want to do this?\n\n"
-						                                                                      + "(NOTE: Long running jobs can be terminated without stopping the consumer!)");
-			    if (!ok) return;
-			    
-			    
-			    boolean notify = MessageDialog.openQuestion(getSite().getShell(), "Warn Users", "Would you like to warn users before stopping the consumer?\n\n"
-								                        + "If you say yes, a popup will open on users clients to warn about the imminent stop.");
-                if (notify) {
-                	
-                	final AdministratorMessage msg = new AdministratorMessage();
-                	msg.setTitle("'"+bean.getConsumerName()+"' will shutdown.");
-                	msg.setMessage("'"+bean.getConsumerName()+"' is about to shutdown.\n\n"+
-                	               "Any runs corrently running may loose progress notification,\n"+
-                			       "however they should complete.\n\n"+
-                	               "Runs yet to be started will be picked up when\n"+
-                	               "'"+bean.getConsumerName()+"' restarts.");
-                	try {
-                		final IPublisher<AdministratorMessage> send = service.createPublisher(new URI(Activator.getJmsUri()), IEventService.ADMIN_MESSAGE_TOPIC);
-                		send.broadcast(msg);
-					} catch (Exception e) {
-						logger.error("Cannot notify of shutdown!", e);
-					}
-                }
-
-			    final KillBean kbean = new KillBean();
-				kbean.setMessage("Requesting a termination of "+bean.getConsumerName());
-			    kbean.setConsumerId(bean.getConsumerId());
-				
- 				try {
- 		       		final IPublisher<KillBean> send = service.createPublisher(new URI(Activator.getJmsUri()), IEventService.CMD_TOPIC);
-					send.broadcast(kbean);
-				} catch (Exception e) {
-					logger.error("Cannot terminate consumer "+bean.getConsumerName(), e);
-				}
-
+				restart();
 			}
 		};
+		man.add(restart);
+	
+		Action stop = null;
+		if (Boolean.getBoolean("org.eclipse.scanning.consumer.view.showHardStop")) {
+		    stop = new Action("Stop consumer", Activator.getImageDescriptor("icons/terminate.png")) {
+				public void run() {
+					stop();
+				}
+			};
+		}
 		
-		man.add(stop);
+		if (stop!=null) man.add(stop);
 
 		final MenuManager menuMan = new MenuManager();
 		menuMan.add(refresh);
-		menuMan.add(stop);
+		menuMan.add(restart);
+		if (stop!=null) menuMan.add(stop);
 		
 		viewer.getControl().setMenu(menuMan.createContextMenu(viewer.getControl()));
 		
 	}
 	
+	private void stop() {
+				
+	    HeartbeatBean bean = getSelection();
+	    if (bean==null) return;
+
+	    boolean ok = MessageDialog.openConfirm(getSite().getShell(), "Confirm Stop", "If you stop this consumer it will have to be restarted by an administrator using a server hard restart.\n\n"
+				                                                                      + "Are you sure that you want to do this?\n\n"
+				                                                                      + "(NOTE: Long running jobs can be terminated without stopping the consumer!)");
+	    if (!ok) return;
+	    
+	    
+	    boolean notify = MessageDialog.openQuestion(getSite().getShell(), "Warn Users", "Would you like to warn users before stopping the consumer?\n\n"
+						                        + "If you say yes, a popup will open on users clients to warn about the imminent stop.");
+        if (notify) {
+        	
+        	final AdministratorMessage msg = new AdministratorMessage();
+        	msg.setTitle("'"+bean.getConsumerName()+"' will shutdown.");
+        	msg.setMessage("'"+bean.getConsumerName()+"' is about to shutdown.\n\n"+
+        	               "Any runs corrently running may loose progress notification,\n"+
+        			       "however they should complete.\n\n"+
+        	               "Runs yet to be started will be picked up when\n"+
+        	               "'"+bean.getConsumerName()+"' restarts.");
+        	try {
+        		final IPublisher<AdministratorMessage> send = service.createPublisher(new URI(Activator.getJmsUri()), IEventService.ADMIN_MESSAGE_TOPIC);
+        		send.broadcast(msg);
+			} catch (Exception e) {
+				logger.error("Cannot notify of shutdown!", e);
+			}
+        }
+
+	    final KillBean kbean = new KillBean();
+		kbean.setMessage("Requesting a termination of "+bean.getConsumerName());
+	    kbean.setConsumerId(bean.getConsumerId());
+		send(bean, kbean);
+
+	}
+	
+	private void restart() {
+		
+	    HeartbeatBean bean = getSelection();
+	    if (bean==null) return;
+	    
+	    boolean ok = MessageDialog.openConfirm(getSite().getShell(), "Confirm Retstart", "If you restart this consumer other people's running jobs may be lost.\n\n"
+				                                                                      + "Are you sure that you want to continue?");
+	    if (!ok) return;
+	    
+	    final KillBean kbean = new KillBean();
+	    kbean.setExitProcess(false);
+		kbean.setMessage("Requesting a restart of "+bean.getConsumerName());
+	    kbean.setConsumerId(bean.getConsumerId());
+	    kbean.setRestart(true);
+		send(bean, kbean); 
+		
+		consumers.clear();
+        viewer.refresh();
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			logger.error("Refreshing consumers that we can process", e);
+		}
+        viewer.refresh();
+	}
+
+	private HeartbeatBean getSelection() {
+		if (viewer.getSelection() == null || viewer.getSelection().isEmpty()) return null;
+		return (HeartbeatBean)((IStructuredSelection)viewer.getSelection()).getFirstElement();
+	}
+
+	private void send(HeartbeatBean bean, KillBean kbean) {
+
+		try {
+			final IPublisher<KillBean> send = service.createPublisher(new URI(Activator.getJmsUri()), IEventService.CMD_TOPIC);
+			send.broadcast(kbean);
+		} catch (Exception e) {
+			logger.error("Cannot terminate consumer "+bean.getConsumerName(), e);
+		}
+	}
+
 	private IContentProvider createContentProvider() {
 		return new IStructuredContentProvider() {
 			
@@ -292,6 +343,8 @@ public class ConsumerView extends EventConnectionView {
 			}
 		};
 	}
+
+	private final static long HOUR_IN_MS = 60*60*1000;
 
 	protected void createColumns() {
 		
@@ -372,7 +425,9 @@ public class ConsumerView extends EventConnectionView {
 			public String getText(Object element) {
 				try {
 					final HeartbeatBean cbean = (HeartbeatBean)element;
-					return (new SimpleDateFormat("dd'd' mm'm' ss's'")).format(new Date(cbean.getLastAlive()-cbean.getConceptionTime()));
+					long time = cbean.getLastAlive()-cbean.getConceptionTime();
+        			Format format = (time<HOUR_IN_MS) ? new SimpleDateFormat("mm'm' ss's'") : new SimpleDateFormat("dd'd' mm'm' ss's'");
+					return format.format(new Date(time));
 				} catch (Exception e) {
 					return e.getMessage();
 				}

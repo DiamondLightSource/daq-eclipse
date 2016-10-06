@@ -16,16 +16,18 @@ import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
+import org.eclipse.scanning.api.annotation.scan.PostConfigure;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.annotation.scan.ScanAbort;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanPause;
 import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
@@ -40,7 +42,6 @@ import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.ServiceHolder;
@@ -104,7 +105,7 @@ public class ScanSpeedTest extends BrokerTest {
 	@Test
 	public void checkTimes1000PointsNoAnnotations() throws Exception {
 		
-		checkNoAnnoations(1000,2,2,5);
+		checkNoAnnotations(1000,2,2,5);
 		
 	}
 
@@ -116,7 +117,7 @@ public class ScanSpeedTest extends BrokerTest {
 	@Test
 	public void checkTimes10000PointsNoAnnotations() throws Exception {
 		
-		checkNoAnnoations(10000,2,2,5);
+		checkNoAnnotations(10000,2,2,5);
 		
 	}
 
@@ -128,11 +129,11 @@ public class ScanSpeedTest extends BrokerTest {
 	@Test
 	public void checkTimes100PointsNoAnnotations() throws Exception {
 				
-		checkNoAnnoations(100,100,100,20);
+		checkNoAnnotations(100,100,100,20);
 		
 	}
 	
-	private void checkNoAnnoations(	int pointCount, int scannableCount, int detectorCount, long pointTime) throws Exception {
+	private void checkNoAnnotations(	int pointCount, int scannableCount, int detectorCount, long pointTime) throws Exception {
 		
 		final List<IScannable<?>> scannables = new ArrayList<>();
 		MockScannableConnector mc = (MockScannableConnector)connector;
@@ -166,10 +167,10 @@ public class ScanSpeedTest extends BrokerTest {
 		int pointCount     = 99;   // Gives 100 points because it's a step model
 		
 		final List<IScannable<?>>     scannables = createAnnotatedScannables("annotatedScannable", 100, false);
-		final List<IRunnableDevice<?>> detectors = createAnnoatatedDetectors("annotatedDetector", 100, false);
+		final List<IRunnableDevice<?>> detectors = createAnnotatedDetectors("annotatedDetector", 100, false);
 		
 		long time = checkTimes(pointCount, scannables, detectors, "all annotations");
-		assertTrue(time<30);
+		assertTrue("Time should be less than 30ms and is: "+time, time<30);
 		
 		for (IScannable<?> s : scannables) {
 			AnnotatedMockScannable ams = (AnnotatedMockScannable)s;
@@ -183,6 +184,8 @@ public class ScanSpeedTest extends BrokerTest {
 		
 		for (IRunnableDevice<?> d : detectors) {
 			AnnotatedMockWritableDetector ams = (AnnotatedMockWritableDetector)d;
+			assertEquals(1,    ams.getCount(PreConfigure.class));
+			assertEquals(1,    ams.getCount(PostConfigure.class));
 			assertEquals(1,    ams.getCount(ScanStart.class));
 			assertEquals(100,  ams.getCount(PointStart.class));
 			assertEquals(100,  ams.getCount(PointEnd.class));
@@ -197,7 +200,7 @@ public class ScanSpeedTest extends BrokerTest {
 	public void abortTest() throws Exception {
 		
 		final List<IScannable<?>>      scannables = createAnnotatedScannables("annotatedSleepingScannable", 10, true);
-		final List<IRunnableDevice<?>> detectors  = createAnnoatatedDetectors("annotatedWritingDetector", 10, true);
+		final List<IRunnableDevice<?>> detectors  = createAnnotatedDetectors("annotatedWritingDetector", 10, true);
 
 		IRunnableDevice<?> device = createDevice(100, scannables, detectors);
 		device.start(null);
@@ -227,7 +230,7 @@ public class ScanSpeedTest extends BrokerTest {
 	public void pauseTest() throws Exception {
 		
 		final List<IScannable<?>>      scannables = createAnnotatedScannables("annotatedSleepingScannable", 10, true);
-		final List<IRunnableDevice<?>> detectors  = createAnnoatatedDetectors("annotatedWritingDetector", 10, true);
+		final List<IRunnableDevice<?>> detectors  = createAnnotatedDetectors("annotatedWritingDetector", 10, true);
 
 		IPausableDevice<?> device = (IPausableDevice<?>)createDevice(10, scannables, detectors);
 		device.start(null);
@@ -261,7 +264,7 @@ public class ScanSpeedTest extends BrokerTest {
 	}
 
 
-	private List<IRunnableDevice<?>> createAnnoatatedDetectors(String namefrag, int detectorCount, boolean createImage) throws ScanningException {
+	private List<IRunnableDevice<?>> createAnnotatedDetectors(String namefrag, int detectorCount, boolean createImage) throws ScanningException {
 		
 		final List<IRunnableDevice<?>> detectors = new ArrayList<>(detectorCount);
 		for (int i = 0; i < detectorCount; i++) {

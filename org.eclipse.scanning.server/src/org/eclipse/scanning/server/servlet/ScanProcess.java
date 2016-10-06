@@ -1,11 +1,15 @@
 package org.eclipse.scanning.server.servlet;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.annotation.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.PostConfigure;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -17,10 +21,12 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.ScanEstimator;
+import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -29,6 +35,7 @@ import org.eclipse.scanning.api.script.ScriptExecutionException;
 import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.api.script.ScriptResponse;
 import org.eclipse.scanning.api.script.UnsupportedLanguageException;
+import org.eclipse.scanning.server.application.Activator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,8 +89,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	@Override
 	public void execute() throws EventException {
 		
-		try {
-			
+		try {		
 			// Move to a position if they set one
 			if (bean.getScanRequest().getStart()!=null) {
 				positioner.setPosition(bean.getScanRequest().getStart());
@@ -108,7 +114,6 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 
 			} else {
 				((AbstractRunnableDevice<ScanModel>)device).start(null);
-				
 				if (bean.getScanRequest().getAfter()!=null) throw new EventException("Cannot run end script when scan is async.");
 				if (bean.getScanRequest().getEnd()!=null) throw new EventException("Cannot perform end position when scan is async.");
 			}
@@ -118,8 +123,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			bean.setPercentComplete(100);
 			broadcast(bean);
 			
-
-	    // Intentionally do not catch EventException, that passes straight up.
+	        // Intentionally do not catch EventException, that passes straight up.
+			
 		} catch (ScanningException | InterruptedException | UnsupportedLanguageException | ScriptExecutionException ne) {
 			ne.printStackTrace();
 			logger.error("Cannot execute run "+getBean().getName()+" "+getBean().getUniqueId(), ne);
@@ -146,14 +151,20 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		try {
 			final ScanModel scanModel = new ScanModel();
 			scanModel.setPositionIterable(getPositionIterable(req));
-			configureBean(scanModel, bean);
+			
+			ScanEstimator estimator = new ScanEstimator(Services.getGeneratorService(), bean.getScanRequest());
+			bean.setSize(estimator.getSize());
+
+			setFilePath(scanModel, bean);
+			
 			scanModel.setDetectors(getDetectors(bean, req.getDetectors()));
 			scanModel.setMonitors(getScannables(req.getMonitorNames()));
 			scanModel.setMetadataScannables(getScannables(req.getMetadataScannableNames()));
 			scanModel.setBean(bean);
 			
-			return (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(
-					scanModel, publisher);
+			configureDetectors(req.getDetectors(), scanModel, estimator);
+			
+			return (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(scanModel, publisher);
 			
 		} catch (Exception e) {
 			bean.setStatus(Status.FAILED);
@@ -164,7 +175,39 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 	}
 
-	private void configureBean(ScanModel smodel, ScanBean bean) throws EventException {
+	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, ScanEstimator estimator) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException {
+		
+		ScanInformation info = new ScanInformation(estimator);
+		info.setModel(model);
+		info.setScannableNames(getScannableNames(model.getPositionIterable()));
+		
+		for (IRunnableDevice<?> device : model.getDetectors()) {
+			
+			AnnotationManager manager = new AnnotationManager(Activator.createResolver());
+			manager.addDevices(device);
+			manager.addContext(info);
+			
+			IRunnableDevice<Object> odevice = (IRunnableDevice<Object>)device;
+			Object dmodel = dmodels.get(odevice.getName());
+			manager.invoke(PreConfigure.class, dmodel);
+			odevice.configure(dmodel);
+			manager.invoke(PostConfigure.class, dmodel);
+		}
+	}
+
+	private Collection<String> getScannableNames(Iterable<IPosition> gen) {
+		
+		Collection<String> names = null;
+		if (gen instanceof IDeviceDependentIterable) {
+			names = ((IDeviceDependentIterable)gen).getScannableNames();	
+		}
+		if (names==null) {
+			names = gen.iterator().next().getNames();
+		}
+		return names;   		
+	}
+
+	private void setFilePath(ScanModel smodel, ScanBean bean) throws EventException, GeneratorException {
 		
 		ScanRequest<?> req = bean.getScanRequest();
 		
@@ -184,13 +227,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		} else {
 		    smodel.setFilePath(req.getFilePath());
 		}
-		bean.setFilePath(smodel.getFilePath());
-		
-		// 
-		ScanEstimator estimator = new ScanEstimator(smodel.getPositionIterable(), bean.isShapeEstimationRequired());
-		bean.setSize(estimator.getSize());
-		bean.setShape(estimator.getShape());
-		
+		bean.setFilePath(smodel.getFilePath());		
 	}
 
 	@SuppressWarnings("unchecked")
@@ -207,21 +244,26 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	}
 	
 	private List<IRunnableDevice<?>> getDetectors(ScanBean bean, Map<String, ?> detectors) throws EventException {
+		
 		if (detectors==null) return null;
 		try {
+			
 			final List<IRunnableDevice<?>> ret = new ArrayList<>(3);
 			
 			final IRunnableDeviceService service = Services.getRunnableDeviceService();
+			
 			for (String name : detectors.keySet()) {
 				Object dmodel = detectors.get(name);
-				IRunnableDevice<Object> detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
-				if (detector instanceof AbstractRunnableDevice<?>) {
-					((AbstractRunnableDevice<?>)detector).setBean(bean);
+				IRunnableDevice<Object> detector = service.getRunnableDevice(name);
+				if (detector==null) {
+					detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
+					detector.setName(name); // Not sure if this is ok. For now name must match that in table
 				}
-				detector.configure(dmodel);
 				ret.add(detector);
 			}
+			
 			return ret;
+			
 		} catch (ScanningException ne) {
 			throw new EventException(ne);
 		}

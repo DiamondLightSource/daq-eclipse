@@ -24,6 +24,8 @@ public class DeviceAnnotations {
 		tmp.add(ScanPause.class);
 		tmp.add(ScanResume.class);
 		tmp.add(ScanStart.class);
+		tmp.add(PreConfigure.class);
+		tmp.add(PostConfigure.class);
 		
 		annotations = Collections.unmodifiableSet(tmp);
 		

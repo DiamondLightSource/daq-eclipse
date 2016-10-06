@@ -51,6 +51,11 @@ public class DevicePreferenceConstants {
 	 * Record if the user would like to see scan command
 	 */
 	public static final String SHOW_SCAN_CMD = "org.eclipse.scanning.device.ui.scan.showScanCommand";
+	
+	/**
+	 * Record if the user would like to see scan time estimate
+	 */
+	public static final String SHOW_SCAN_TIME = "org.eclipse.scanning.device.ui.scan.showScanTime";
 
 	/**
 	 * The preference which the stream choice is saved under.
