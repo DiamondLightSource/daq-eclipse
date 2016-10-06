@@ -148,13 +148,13 @@ public class ScanRankTest {
 
 	private void spiralTest(int nestCount) throws Exception {
 		
-		BoundingBox box = new BoundingBox("x", "y");
+		BoundingBox box = new BoundingBox();
 		box.setFastAxisStart(0);
 		box.setSlowAxisStart(0);
 		box.setFastAxisLength(3);
 		box.setSlowAxisLength(3);
 
-		SpiralModel model = new SpiralModel();
+		SpiralModel model = new SpiralModel("x", "y");
 		model.setBoundingBox(box);
 		
 		// Get the point list
@@ -225,13 +225,13 @@ public class ScanRankTest {
 
 	private void gridTest(int nestCount) throws Exception {
 		
-		BoundingBox box = new BoundingBox("x", "y");
+		BoundingBox box = new BoundingBox();
 		box.setFastAxisStart(0);
 		box.setSlowAxisStart(0);
 		box.setFastAxisLength(3);
 		box.setSlowAxisLength(3);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(20);
 		model.setFastAxisPoints(20);
 		model.setBoundingBox(box);
