@@ -22,11 +22,11 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 	@FieldDescriptor(edit=EditType.COMPOUND, hint="The bounding box is automatically calculated from the scan regions shown in the main plot.") // We edit this with a popup.
 	private BoundingBox boundingBox;
 
-	@FieldDescriptor(label="Fast Axis", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'x'.") // TODO Right?
-	private String      fastAxisName = "x";
+	@FieldDescriptor(label="Fast Axis", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'stage_x'.") // TODO Right?
+	private String      fastAxisName = "stage_x";
 
-	@FieldDescriptor(label="Slow Axis", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'y'.")  // TODO Right?
-	private String      slowAxisName = "y";
+	@FieldDescriptor(label="Slow Axis", device=DeviceType.SCANNABLE, hint="The name of the scannable in the fast direction, for instance 'stage_y'.")  // TODO Right?
+	private String      slowAxisName = "stage_y";
 
 	protected AbstractBoundingBoxModel() {
 		super();

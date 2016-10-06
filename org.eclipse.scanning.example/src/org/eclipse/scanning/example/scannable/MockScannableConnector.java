@@ -73,7 +73,20 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		y.setMoveRate(100); // µm/s, faster than real?
 		register(y);
 		
+		x = new MockNeXusScannable("stage_x", 0d,  3, "µm");
+		x.setRealisticMove(true);
+		x.setRequireSleep(false);
+		x.setMoveRate(10000); // µm/s or 1 cm/s
+		register(x);
+		
+		y = new MockNeXusScannable("stage_y", 0d,  3, "µm");
+		y.setRealisticMove(true);
+		y.setMoveRate(100); // µm/s, faster than real?
+		register(y);
+
+		
 		register(new MockNeXusScannable("z", 2d,  3, "µm"));
+		register(new MockNeXusScannable("stage_z", 2d,  3, "µm"));
 		register(new MockNeXusScannable("xNex", 0d,  3, "µm"));
 		register(new MockNeXusScannable("yNex", 0d,  3, "µm"));
 		register(new MockScannable("benchmark1",  0.0,  -1, false));
