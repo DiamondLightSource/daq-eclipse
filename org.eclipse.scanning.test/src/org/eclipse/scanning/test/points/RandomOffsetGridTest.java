@@ -50,7 +50,7 @@ public class RandomOffsetGridTest {
 		box.setFastAxisLength(5);
 		box.setSlowAxisLength(10);
 
-		RandomOffsetGridModel model = new RandomOffsetGridModel();
+		RandomOffsetGridModel model = new RandomOffsetGridModel("x", "y");
 		model.setSlowAxisPoints(5);
 		model.setFastAxisPoints(5);
 		model.setBoundingBox(box);

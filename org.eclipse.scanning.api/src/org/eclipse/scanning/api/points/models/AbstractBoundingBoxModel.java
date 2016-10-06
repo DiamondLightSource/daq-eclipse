@@ -48,6 +48,8 @@ public abstract class AbstractBoundingBoxModel extends AbstractPointsModel imple
 	public void setBoundingBox(BoundingBox newValue) {
 		BoundingBox oldValue = this.boundingBox;
 		this.boundingBox = newValue;
+		boundingBox.setFastAxisName(getFastAxisName());
+		boundingBox.setSlowAxisName(getSlowAxisName());
 		this.pcs.firePropertyChange("boundingBox", oldValue, newValue);
 	}
 

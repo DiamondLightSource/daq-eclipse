@@ -149,7 +149,7 @@ public class TopupTest {
 	private IRunnableDevice<ScanModel> createTestScanner(IScannable<?> monitor) throws Exception {
 		
 		// Create scan points for a grid and make a generator
-		GridModel gmodel = new GridModel();
+		GridModel gmodel = new GridModel("x", "y");
 		gmodel.setSlowAxisPoints(5);
 		gmodel.setFastAxisPoints(5);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	

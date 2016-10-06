@@ -445,7 +445,7 @@ public class AbstractScanTest extends BrokerTest {
 		
 		// If none passed, create scan points for a grid.
 		if (pmodel == null) {
-			pmodel = new GridModel();
+			pmodel = new GridModel("x", "y");
 			((GridModel) pmodel).setSlowAxisPoints(5);
 			((GridModel) pmodel).setFastAxisPoints(5);
 			((GridModel) pmodel).setBoundingBox(new BoundingBox(0,0,3,3));

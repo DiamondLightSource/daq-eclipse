@@ -85,6 +85,8 @@ public class ScanRankTest {
 
         OneDEqualSpacingModel model = new OneDEqualSpacingModel();
         model.setPoints(10);
+        model.setxName("x");
+        model.setyName("y");
 		
 		// Get the point list
 		IPointGenerator<?> gen = service.createGenerator(model, roi);
@@ -146,7 +148,7 @@ public class ScanRankTest {
 
 	private void spiralTest(int nestCount) throws Exception {
 		
-		BoundingBox box = new BoundingBox();
+		BoundingBox box = new BoundingBox("x", "y");
 		box.setFastAxisStart(0);
 		box.setSlowAxisStart(0);
 		box.setFastAxisLength(3);
@@ -223,7 +225,7 @@ public class ScanRankTest {
 
 	private void gridTest(int nestCount) throws Exception {
 		
-		BoundingBox box = new BoundingBox();
+		BoundingBox box = new BoundingBox("x", "y");
 		box.setFastAxisStart(0);
 		box.setSlowAxisStart(0);
 		box.setFastAxisLength(3);
