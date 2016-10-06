@@ -97,7 +97,7 @@ public class MappingScanTest extends BrokerTest{
 		box.setFastAxisLength(5);
 		box.setSlowAxisLength(2);
 
-		final GridModel model = new GridModel();
+		final GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(2);
 		model.setFastAxisPoints(5);
 		model.setBoundingBox(box);

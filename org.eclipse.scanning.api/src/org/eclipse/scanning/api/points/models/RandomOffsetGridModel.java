@@ -19,6 +19,10 @@ public class RandomOffsetGridModel extends GridModel {
 		setName("Random Offset Grid");
 	}
 
+	public RandomOffsetGridModel(String f, String s) {
+		super(f, s);
+	}
+
 	@Units("%")
 	@UiTooltip("Standard deviation to use for a 2D Gaussian random offset, as a percentage of the X step size")
 	public double getOffset() {

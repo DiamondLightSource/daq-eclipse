@@ -244,7 +244,7 @@ public class CompoundTest {
 		box.setFastAxisLength(3);		
 		box.setSlowAxisLength(3);		
 		
-		GridModel model = new GridModel();		
+		GridModel model = new GridModel("x", "y");		
 		model.setSlowAxisPoints(20);		
 		model.setFastAxisPoints(20);		
 		model.setBoundingBox(box);		

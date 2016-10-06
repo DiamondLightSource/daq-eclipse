@@ -33,6 +33,9 @@ public class SpiralModel extends AbstractBoundingBoxModel {
 		this.scale = scale;
 	}
 
+	public SpiralModel(String fastName, String slowName) {
+		super(fastName, slowName, null);
+	}
 	public double getScale() {
 		return scale;
 	}

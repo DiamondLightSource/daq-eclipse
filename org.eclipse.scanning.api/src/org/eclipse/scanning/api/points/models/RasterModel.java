@@ -34,6 +34,10 @@ public class RasterModel extends AbstractBoundingBoxModel {
 	public RasterModel() {
 		setName( "Raster" );
 	}
+	public RasterModel(String f, String s) {
+		setFastAxisName(f);
+		setSlowAxisName(s);
+	}
 	public double getFastAxisStep() {
 		return fastAxisStep;
 	}

@@ -11,8 +11,8 @@ public class AbstractBoundingLineModel extends AbstractPointsModel implements IB
 	@FieldDescriptor(editable=false) // We edit this with a popup.
 	private BoundingLine boundingLine;
 	
-	private String xName = "x";
-	private String yName = "y";
+	private String xName = "stage_x";
+	private String yName = "stage_y";
 	@UiHidden
 	public String getxName() {
 		return xName;

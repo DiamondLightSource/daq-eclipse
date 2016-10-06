@@ -96,19 +96,19 @@ import org.slf4j.LoggerFactory;
 		</property>
 	</bean>
 	
-	<bean id="x" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add" >
+	<bean id="stage_x" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add" >
 		<property name="displayName" value="Stage X" />
-		<property name="scannableName" value="x" />
+		<property name="scannableName" value="stage_x" />
 		<property name="increment" value="0.1" />
 	</bean>
-	<bean id="y" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add">
+	<bean id="stage_y" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add">
 		<property name="displayName" value="Stage Y" />
-		<property name="scannableName" value="y" />
+		<property name="scannableName" value="stage_y" />
 		<property name="increment" value="0.1" />
 	</bean>
-	<bean id="z" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add">
+	<bean id="stage_z" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add">
 		<property name="displayName" value="Stage Z" />
-		<property name="scannableName" value="z" />
+		<property name="scannableName" value="stage_z" />
 		<property name="increment" value="0.1" />
 	</bean>
 	<bean id="T" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add">

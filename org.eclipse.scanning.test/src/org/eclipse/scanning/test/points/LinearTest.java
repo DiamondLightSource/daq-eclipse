@@ -59,7 +59,7 @@ public class LinearTest {
         OneDEqualSpacingModel model = new OneDEqualSpacingModel();
         model.setPoints(10);
         model.setBoundingLine(line);
-		
+ 		
 		// Get the point list
 		IPointGenerator<OneDEqualSpacingModel> gen = service.createGenerator(model);
 		List<IPosition> pointList = gen.createPoints();
@@ -70,8 +70,8 @@ public class LinearTest {
         
         for (int i = 0; i < pointList.size(); i++) {
 		    IPosition pos = pointList.get(i);
-		    int xIndex = pos.getIndex("x");
-		    int yIndex = pos.getIndex("y");
+		    int xIndex = pos.getIndex(model.getxName());
+		    int yIndex = pos.getIndex(model.getyName());
 		    
 		    assertEquals(i, xIndex);
 		    assertEquals(i, yIndex);
