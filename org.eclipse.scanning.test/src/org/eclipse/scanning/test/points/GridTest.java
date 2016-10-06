@@ -59,7 +59,7 @@ public class GridTest {
 		box.setFastAxisLength(3);
 		box.setSlowAxisLength(3);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(20);
 		model.setFastAxisPoints(20);
 		model.setBoundingBox(box);
@@ -82,7 +82,7 @@ public class GridTest {
 		box.setFastAxisLength(3);
 		box.setSlowAxisLength(3);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(-20);  // An unsigned integer type would solve this problem...
 		model.setFastAxisPoints(20);
 		model.setBoundingBox(box);
@@ -103,7 +103,7 @@ public class GridTest {
 		box.setFastAxisLength(5);
 		box.setSlowAxisLength(5);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(5);
 		model.setFastAxisPoints(5);
 		model.setBoundingBox(box);
@@ -133,7 +133,7 @@ public class GridTest {
 		box.setFastAxisLength(5);
 		box.setSlowAxisLength(5);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(5);
 		model.setFastAxisPoints(5);
 		model.setSnake(true);
@@ -164,7 +164,7 @@ public class GridTest {
 		box.setFastAxisLength(-5);
 		box.setSlowAxisLength(5);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(5);
 		model.setFastAxisPoints(5);
 		model.setBoundingBox(box);
@@ -194,7 +194,7 @@ public class GridTest {
 		box.setFastAxisLength(-5);
 		box.setSlowAxisLength(5);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(5);
 		model.setFastAxisPoints(5);
 		model.setSnake(true);
@@ -225,7 +225,7 @@ public class GridTest {
 		box.setFastAxisLength(-5);
 		box.setSlowAxisLength(-5);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(5);
 		model.setFastAxisPoints(5);
 		model.setBoundingBox(box);
@@ -255,7 +255,7 @@ public class GridTest {
 		box.setFastAxisLength(-5);
 		box.setSlowAxisLength(-5);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(5);
 		model.setFastAxisPoints(5);
 		model.setSnake(true);
@@ -284,9 +284,11 @@ public class GridTest {
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
 		// Create a raster scan path
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(20);
 		model.setFastAxisPoints(20);
+		model.setSlowAxisName("y");
+		model.setFastAxisName("x");
 
 		// Get the point list
 		IPointGenerator<GridModel> gen = service.createGenerator(model, roi);
@@ -305,9 +307,11 @@ public class GridTest {
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
 		// Create a raster scan path
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(20);
 		model.setFastAxisPoints(20);
+		model.setSlowAxisName("y");
+		model.setFastAxisName("x");
 
 		// Get the point list
 		IPointGenerator<GridModel> gen = service.createGenerator(model, roi);
@@ -329,9 +333,11 @@ public class GridTest {
 		CircularROI circle = new CircularROI(1.5, 1.5, 1.5);
 
 		// Create a raster scan path
-		GridModel gridScanPath = new GridModel();
+		GridModel gridScanPath = new GridModel("x", "y");
 		gridScanPath.setSlowAxisPoints(20);
 		gridScanPath.setFastAxisPoints(20);
+		gridScanPath.setSlowAxisName("y");
+		gridScanPath.setFastAxisName("x");
 
 		// Get the point list
 		IPointGenerator<GridModel> gen = service.createGenerator(gridScanPath, circle);
@@ -350,7 +356,7 @@ public class GridTest {
 		CircularROI circle = new CircularROI(1.5, 1.5, 15);
 
 		// Create a raster scan path
-		GridModel gridScanPath = new GridModel();
+		GridModel gridScanPath = new GridModel("x", "y");
 		gridScanPath.setSlowAxisPoints(20);
 		gridScanPath.setFastAxisPoints(200);
 
@@ -384,7 +390,7 @@ public class GridTest {
 		box.setFastAxisLength(3);
 		box.setSlowAxisLength(3);
 
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(20);
 		model.setFastAxisPoints(20);
 		model.setBoundingBox(box);
@@ -435,9 +441,11 @@ public class GridTest {
 		RectangularROI roi = new RectangularROI(-10.0, 5.0, 3.0, 3.0, 0.0);
 
 		// Create a grid scan path
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(3);
 		model.setFastAxisPoints(3);
+		model.setSlowAxisName("y");
+		model.setFastAxisName("x");
 
 		// Get the point list
 		IPointGenerator<GridModel> gen = service.createGenerator(model, roi);
@@ -460,7 +468,7 @@ public class GridTest {
 		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
 
 		// Create a grid scan path
-		GridModel model = new GridModel();
+		GridModel model = new GridModel("x", "y");
 		model.setSlowAxisPoints(3);
 		model.setFastAxisPoints(3);
 		model.setSnake(true);

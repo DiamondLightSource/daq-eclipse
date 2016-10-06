@@ -34,7 +34,7 @@ public class RasterTest {
 		RectangularROI boundingRectangle = new RectangularROI(0, 0, 3, 3, 0);
 
 		// Create a raster scan path
-		RasterModel model = new RasterModel();
+		RasterModel model = new RasterModel("x", "y");
 		model.setFastAxisStep(1);
 		model.setSlowAxisStep(1);
 
@@ -70,7 +70,7 @@ public class RasterTest {
 		box.setFastAxisLength(5);
 		box.setSlowAxisLength(5);
 
-		RasterModel model = new RasterModel();
+		RasterModel model = new RasterModel("x", "y");
 		model.setFastAxisStep(1);
 		model.setSlowAxisStep(1);
 		model.setBoundingBox(box);
@@ -96,7 +96,7 @@ public class RasterTest {
 		box.setFastAxisLength(-5);
 		box.setSlowAxisLength(5);
 
-		RasterModel model = new RasterModel();
+		RasterModel model = new RasterModel("x", "y");
 
 		model.setFastAxisStep(-1);
 		// Okay to do this here because there is "negative width"
@@ -126,7 +126,7 @@ public class RasterTest {
 		box.setFastAxisLength(5);
 		box.setSlowAxisLength(5);
 
-		RasterModel model = new RasterModel();
+		RasterModel model = new RasterModel("x", "y");
 
 		model.setFastAxisStep(-1);
 		// Not okay to do this here because there is no "negative width"
@@ -155,7 +155,7 @@ public class RasterTest {
 		roi.setLengths(Math.abs(xStop - xStart), Math.abs(yStop - yStart));
 
 	
-		RasterModel model = new RasterModel();
+		RasterModel model = new RasterModel("x", "y");
 		model.setFastAxisStep(xStep);
 		model.setSlowAxisStep(yStep);
 
@@ -187,7 +187,7 @@ public class RasterTest {
 		roi.setPoint(xCentre, yCentre);
 		roi.setRadius(radius);
 
-		RasterModel model = new RasterModel();
+		RasterModel model = new RasterModel("x", "y");
 		model.setFastAxisStep(1);
 		model.setSlowAxisStep(1);
 
@@ -215,7 +215,7 @@ public class RasterTest {
 		int[] size = {8,5};
 		
 		// Create scan points for a grid and make a generator
-		RasterModel rmodel = new RasterModel();
+		RasterModel rmodel = new RasterModel("x", "y");
 		rmodel.setFastAxisName("xNex");
 		rmodel.setFastAxisStep(3d/size[1]);
 		rmodel.setSlowAxisName("yNex");
@@ -244,7 +244,7 @@ public class RasterTest {
 		RectangularROI roi = new RectangularROI(-10, 5, 2.5, 3.0, 0.0);
 
 		// Create a raster scan path
-		RasterModel model = new RasterModel();
+		RasterModel model = new RasterModel("x", "y");
 		model.setFastAxisStep(1);
 		model.setSlowAxisStep(1);
 
@@ -268,7 +268,7 @@ public class RasterTest {
 		RectangularROI roi = new RectangularROI(1, 1, 2, 2, 0);
 
 		// Create a raster scan path
-		RasterModel model = new RasterModel();
+		RasterModel model = new RasterModel("x", "y");
 		model.setFastAxisStep(1);
 		model.setSlowAxisStep(1);
 		model.setSnake(true);

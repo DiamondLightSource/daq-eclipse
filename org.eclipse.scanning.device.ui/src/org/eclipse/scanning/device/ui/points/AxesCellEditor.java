@@ -122,7 +122,7 @@ public class AxesCellEditor extends CellEditor {
 	protected void doSetValue(Object value) {
 		this.region = (ScanRegion<IROI>)value;
 		if (region.getScannables()==null) {
-			region.setScannables(new ArrayList<String>(Arrays.asList(new String[]{"x","y"})));
+			region.setScannables(new ArrayList<String>(Arrays.asList(new String[]{"stage_x","stage_y"})));
 		}
 		fast.select(getIndex(region.getScannables().get(0)));
 		slow.select(getIndex(region.getScannables().get(1)));

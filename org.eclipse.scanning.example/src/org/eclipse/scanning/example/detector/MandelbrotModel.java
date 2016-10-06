@@ -61,8 +61,8 @@ public class MandelbrotModel extends AbstractDetectorModel {
 		maxImaginaryCoordinate = 1.2;
 		setName("mandelbrot");
 		setExposureTime(0.1d);
-		realAxisName = "x";
-		imaginaryAxisName = "y";
+		realAxisName = "stage_x";
+		imaginaryAxisName = "stage_y";
 	}
 	
 	public MandelbrotModel(String r, String i) {

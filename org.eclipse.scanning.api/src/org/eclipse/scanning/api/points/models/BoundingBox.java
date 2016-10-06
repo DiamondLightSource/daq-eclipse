@@ -25,10 +25,10 @@ public class BoundingBox  {
 
 	
 	@FieldDescriptor(visible=false)
-	private String fastAxisName="x";
+	private String fastAxisName="stage_x";
 	
 	@FieldDescriptor(visible=false)
-	private String slowAxisName="y";
+	private String slowAxisName="stage_y";
 	
 	@FieldDescriptor(scannable="fastAxisName")
 	private double fastAxisStart;
@@ -48,6 +48,11 @@ public class BoundingBox  {
 
 	public BoundingBox() {
 		
+	}
+
+	public BoundingBox(String fName, String sName) {
+		this.fastAxisName = fName;
+		this.slowAxisName = sName;
 	}
 	
 	public BoundingBox(double fastAxisStart, double slowAxisStart, double fastAxisLength, double slowAxisLength) {

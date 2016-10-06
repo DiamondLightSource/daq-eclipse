@@ -28,7 +28,7 @@ public class SpiralTest {
 		box.setFastAxisLength(3);
 		box.setSlowAxisLength(4);
 
-		SpiralModel model = new SpiralModel();
+		SpiralModel model = new SpiralModel("x", "y");
 		model.setBoundingBox(box);
 		// use default parameters
 
