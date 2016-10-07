@@ -23,8 +23,11 @@ public class MockPublisher<T> implements IPublisher<T> {
 	private IConsumer<?> consumer;
 	
 	private volatile List<Queueable> broadcastBeans = new ArrayList<>();
+<<<<<<< HEAD
 	
 	private boolean disconnected;
+=======
+>>>>>>> 1752c7276fb469d85630de3784673b5143fb9a7e
 	
 	private boolean alive;
 	
