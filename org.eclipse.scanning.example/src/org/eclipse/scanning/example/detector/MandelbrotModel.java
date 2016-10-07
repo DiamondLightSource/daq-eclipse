@@ -50,7 +50,12 @@ public class MandelbrotModel extends AbstractDetectorModel {
 	@FieldDescriptor(label="Imaginary Axis Name")
 	private String imaginaryAxisName;
 
-
+	@FieldDescriptor(label="Enable Noise dependent on exposure")
+	private boolean enableNoise = false;
+	
+	@FieldDescriptor(label="The exposure above which there is no noise")
+	private double noiseFreeExposureTime = 5.0;
+	
 	public MandelbrotModel() {
 		maxIterations = 500;
 		escapeRadius = 10.0;
@@ -86,8 +91,27 @@ public class MandelbrotModel extends AbstractDetectorModel {
 	public void setEscapeRadius(double escapeRadius) {
 		this.escapeRadius = escapeRadius;
 	}
-	@UiSection("Julia set size")
+	
 	@UiComesAfter("escapeRadius")
+	public boolean isEnableNoise() {
+		return enableNoise;
+	}
+
+	public void setEnableNoise(boolean enableNoise) {
+		this.enableNoise = enableNoise;
+	}
+	
+	@UiComesAfter("enableNoise")
+	public double getNoiseFreeExposureTime() {
+		return noiseFreeExposureTime;
+	}
+
+	public void setNoiseFreeExposureTime(double noiseFreeExposureTime) {
+		this.noiseFreeExposureTime = noiseFreeExposureTime;
+	}
+	
+	@UiSection("Julia set size")
+	@UiComesAfter("noiseFreeExposureTime")
 	public int getColumns() {
 		return columns;
 	}
@@ -127,6 +151,7 @@ public class MandelbrotModel extends AbstractDetectorModel {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + columns;
+		result = prime * result + (enableNoise ? 1231 : 1237);
 		long temp;
 		temp = Double.doubleToLongBits(escapeRadius);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -135,6 +160,8 @@ public class MandelbrotModel extends AbstractDetectorModel {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + maxIterations;
 		temp = Double.doubleToLongBits(maxRealCoordinate);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(noiseFreeExposureTime);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + points;
 		result = prime * result + ((realAxisName == null) ? 0 : realAxisName.hashCode());
@@ -152,6 +179,8 @@ public class MandelbrotModel extends AbstractDetectorModel {
 		MandelbrotModel other = (MandelbrotModel) obj;
 		if (columns != other.columns)
 			return false;
+		if (enableNoise != other.enableNoise)
+			return false;
 		if (Double.doubleToLongBits(escapeRadius) != Double.doubleToLongBits(other.escapeRadius))
 			return false;
 		if (imaginaryAxisName == null) {
@@ -164,6 +193,8 @@ public class MandelbrotModel extends AbstractDetectorModel {
 		if (maxIterations != other.maxIterations)
 			return false;
 		if (Double.doubleToLongBits(maxRealCoordinate) != Double.doubleToLongBits(other.maxRealCoordinate))
+			return false;
+		if (Double.doubleToLongBits(noiseFreeExposureTime) != Double.doubleToLongBits(other.noiseFreeExposureTime))
 			return false;
 		if (points != other.points)
 			return false;
