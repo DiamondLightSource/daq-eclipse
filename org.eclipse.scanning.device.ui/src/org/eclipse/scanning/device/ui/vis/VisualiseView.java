@@ -50,6 +50,7 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 		try {
 			IPlottingService service = ServiceHolder.getPlottingService();
 			system = service.createPlottingSystem();
+			system.getPlotActionSystem().setShowCustomPlotActions(false); // Disable the custom plot actions.
 			
             controller = new PlottingController(system);
  
