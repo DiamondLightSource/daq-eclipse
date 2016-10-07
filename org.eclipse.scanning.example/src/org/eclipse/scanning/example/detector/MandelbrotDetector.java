@@ -19,6 +19,7 @@
 package org.eclipse.scanning.example.detector;
 
 import java.io.IOException;
+import java.util.Random;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
@@ -65,6 +66,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	private ILazyWriteableDataset imageData;
 	private ILazyWriteableDataset spectrumData;
 	private ILazyWriteableDataset valueData;
+	private final Random random = new Random();
 
 	public MandelbrotDetector() throws IOException, ScanningException {
 		super();
@@ -262,10 +264,38 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		// If modulus > 1.0, normalise the result
 		// (Theoretically, I think this should make the value roughly independent of MAX_ITERATIONS and ESCAPE_RADIUS)
 		if (modulus > 1.0) {
-			return iteration - (Math.log(Math.log(modulus)) / Math.log(2.0));
+			return addNoise(iteration - (Math.log(Math.log(modulus)) / Math.log(2.0)));
 		}
 		// Otherwise just return the iteration count
-		return iteration;
+		return addNoise(iteration);
+	}
+
+	/**
+	 * Adds random noise to the data if specified by the model.
+	 * <p>
+	 * First checks if noise is enabled, if not just returns the value. Then checks if the exposure is greater than the
+	 * "noise free exposure" if it is, return the value unchanged. Finally if noise is enabled and the exposure time is
+	 * below the noise free exposure time then noise will be added proportional to the exposure time.
+	 * 
+	 * @param value
+	 * @return value with noise added, if model specifies it
+	 */
+	private double addNoise(double value) {
+		// If noise is disabled just return the value
+		if (!model.isEnableNoise()) {
+			return value;
+		}
+		// If the exposure time is longer than the noise free exposure time just return the value
+		else if (model.getExposureTime() >= model.getNoiseFreeExposureTime()) {
+			return value;
+		}
+		// Add noise dependent on the exposure time
+		else {
+			// noiseFraction is between 0 and 1 where 0 is pure signal and 1 means pure noise
+			double noiseFraction = (model.getNoiseFreeExposureTime() - model.getExposureTime())
+					/ model.getNoiseFreeExposureTime();
+			return value * (1 - noiseFraction) + value * random.nextDouble() * noiseFraction;
+		}
 	}
 
 	public boolean _isScanFinallyCalled() {
