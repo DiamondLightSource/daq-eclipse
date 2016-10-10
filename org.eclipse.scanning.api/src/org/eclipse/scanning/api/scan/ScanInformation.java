@@ -2,9 +2,6 @@ package org.eclipse.scanning.api.scan;
 
 import java.util.Collection;
 
-import org.eclipse.scanning.api.IModelProvider;
-import org.eclipse.scanning.api.scan.models.ScanModel;
-
 /**
  * 
  * Holds state of whole scan. May be used in annotated methods like &#64;ScanStart
@@ -14,9 +11,9 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
  * @author Matthew Gerring
  *
  */
-public class ScanInformation implements IModelProvider<ScanModel>{
+public class ScanInformation {
 	
-	private ScanModel          model;
+	private String filePath;
 	private int                size;
 	private int                rank;
 	private Collection<String> scannableNames;
@@ -40,13 +37,15 @@ public class ScanInformation implements IModelProvider<ScanModel>{
 		setSize(estimator.getSize());
 		setRank(estimator.getRank());
 	}
+	
+	public String getFilePath() {
+		return filePath;
+	}
+	
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
 
-	public ScanModel getModel() {
-		return model;
-	}
-	public void setModel(ScanModel model) {
-		this.model = model;
-	}
 	public int getSize() {
 		return size;
 	}
@@ -57,7 +56,7 @@ public class ScanInformation implements IModelProvider<ScanModel>{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((model == null) ? 0 : model.hashCode());
+		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + rank;
 		result = prime * result + ((scannableNames == null) ? 0 : scannableNames.hashCode());
 		result = prime * result + size;
@@ -72,10 +71,10 @@ public class ScanInformation implements IModelProvider<ScanModel>{
 		if (getClass() != obj.getClass())
 			return false;
 		ScanInformation other = (ScanInformation) obj;
-		if (model == null) {
-			if (other.model != null)
+		if (filePath == null) {
+			if (other.filePath != null)
 				return false;
-		} else if (!model.equals(other.model))
+		} else if (!filePath.equals(other.filePath))
 			return false;
 		if (rank != other.rank)
 			return false;

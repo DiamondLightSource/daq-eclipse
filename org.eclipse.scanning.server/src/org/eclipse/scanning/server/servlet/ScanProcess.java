@@ -178,7 +178,6 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, ScanEstimator estimator) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException {
 		
 		ScanInformation info = new ScanInformation(estimator);
-		info.setModel(model);
 		info.setScannableNames(getScannableNames(model.getPositionIterable()));
 		
 		for (IRunnableDevice<?> device : model.getDetectors()) {
@@ -217,7 +216,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			IFilePathService fservice = Services.getFilePathService();
 			if (fservice!=null) {
 				try {
-					smodel.setFilePath(fservice.nextPath());
+					smodel.setFilePath(fservice.getNextPath());
 				} catch (Exception e) {
 					throw new EventException(e);
 				}

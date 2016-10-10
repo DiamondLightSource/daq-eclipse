@@ -283,9 +283,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		ScanInformation info = new ScanInformation();
 		info.setSize(size);
-		info.setModel(getModel());
 		info.setRank(getScanRank(getModel().getPositionIterable()));
 		info.setScannableNames(getScannableNames(getModel().getPositionIterable()));
+		info.setFilePath(getModel().getFilePath());
 		manager.addContext(info);
 		
 		// Setup the bean to sent

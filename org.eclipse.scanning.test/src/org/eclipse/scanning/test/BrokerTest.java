@@ -31,6 +31,7 @@ public class BrokerTest extends TmpTest {
 	@BeforeClass
 	public final static void startBroker() throws Exception {
 		uri = createUri(); // Each test uses a new port if the port is running on another test.
+		System.setProperty("org.eclipse.scanning.broker.uri", uri.toString());
         service = new BrokerService();
         service.addConnector(uri);
         service.setPersistent(false); 

@@ -4,6 +4,9 @@ import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.analysis.api.persistence.IPersistenceService;
 import org.eclipse.dawnsci.analysis.api.processing.IOperationService;
 import org.eclipse.dawnsci.nexus.builder.NexusBuilderFactory;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.scan.IFilePathService;
 
 public class ServiceHolder {
 	
@@ -48,15 +51,60 @@ public class ServiceHolder {
 		ServiceHolder.loaderService = loaderService;
 	}
 
+	private static IEventService eventService;
+	
+	public static IEventService getEventService() {
+		return eventService;
+	}
+	
+	public static void setEventService(IEventService eventService) {
+		ServiceHolder.eventService = eventService;
+	}
+	
+	private static IFilePathService filePathService;
+
+	public static IFilePathService getFilePathService() {
+		return filePathService;
+	}
+	
+	public static void setFilePathService(IFilePathService filePathService) {
+		ServiceHolder.filePathService = filePathService;
+	}
+	
+	private static IRunnableDeviceService runnableDeviceService;
+	
+	public static IRunnableDeviceService getRunnableDeviceService() {
+		return runnableDeviceService;
+	}
+	
+	public static void setRunnableDeviceService(IRunnableDeviceService runnableDeviceService) {
+		ServiceHolder.runnableDeviceService = runnableDeviceService;
+	}
+	
 	/**
-	 * Used to provide servcices when tests running in non-OSGi mode.
+	 * Used to provide services when tests running in non-OSGi mode.
 	 * @param ls
 	 * @param defaultNexusBuilderFactory
 	 */
-	public static void setTestServices(ILoaderService ls, NexusBuilderFactory defaultNexusBuilderFactory, IOperationService oservice) {
+	public static void setTestServices(ILoaderService ls,
+			NexusBuilderFactory defaultNexusBuilderFactory, IOperationService oservice) {
 		loaderService = ls;
 		factory = defaultNexusBuilderFactory;
 		operationService = oservice;
 	}
 	
+	/**
+	 * Used to provide services when tests running in non-OSGi mode.
+	 * @param ls
+	 * @param defaultNexusBuilderFactory
+	 */
+	public static void setTestServices(ILoaderService ls,
+			NexusBuilderFactory defaultNexusBuilderFactory, IOperationService oservice,
+			IFilePathService fpservice) {
+		loaderService = ls;
+		factory = defaultNexusBuilderFactory;
+		operationService = oservice;
+		filePathService = fpservice; 
+	}
+
 }
