@@ -137,7 +137,6 @@ public class TaskBeanProcessorTest {
 		pti.checkLastBroadcastBeanStatuses(tBe, Status.TERMINATED, true);
 		//TODO Should this be the message or the queue-message?
 		assertEquals("Wrong message set after termination.", "Job-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
-		pti.checkLastBroadcastChildBeanStatus(Status.REQUEST_TERMINATE);
 		
 	}
 	
@@ -147,7 +146,10 @@ public class TaskBeanProcessorTest {
 		
 		pti.executeProcessor(tBeProcr, tBe);
 		//Set some arbitrary percent complete
-		tBeProcr.getQueueBroadcaster().broadcast(Status.REQUEST_TERMINATE, 20d);
+		tBeProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 20d);
+		tBeProcr.getProcessorLatch().countDown();
+		//Need to give the post-match analysis time to run
+		Thread.sleep(10);
 		
 		/*
 		 * FAILED is always going to happen underneath.
