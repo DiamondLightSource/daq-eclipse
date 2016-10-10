@@ -6,6 +6,17 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 
+/**
+ * IQueue object contain all the information necessary to interact with and 
+ * control a queue within the {@link IQueueService}. IQueue objects contain an
+ * {@link IConsumer} to runs the queue and all of it's configuration, plus
+ * the current {@link QueueStatus}.
+ * 
+ * @author Michael Wharmby
+ *
+ * @param <T> bean object extending {@link IQueueable} which is passed around 
+ *            this queue. 
+ */
 public interface IQueueNew<T extends IQueueable> {
 	
 	/**
