@@ -23,25 +23,17 @@ interest (ROI) when using grid(). They are: circ(), rect(), poly().
 # - To localStation.py in your <beamline>-config, add the following line:
 #   from mapping_scan_commands import *
 #
-# - For each detector, write a function which fetches the currently active
-#   detector model, updates it with any given arguments, and returns it as the
-#   second element of a tuple whose first element is the detector name. E.g:
-#
-#   def mandelbrot(exposure_time):
-#       """Create mandelbrot detector settings to be passed to mscan().
-#       """
-#       model = _fetch_model_for_detector('mandelbrot_detector')
-#       model.setExposureTime(exposure_time)
-#       return ('mandelbrot_detector', model)
-#
-#   (_fetch_model_for_detector can be imported from the present module.)
-#
-#   Import this detector function into localStation.py. Then your users can do
-#   >>> mscan(step(x, 0, 10, 1), det=mandelbrot(0.1))
+# - For each detector, you amy use keyword arguments to specific arbitrary fields
+#   in their models.
+#   e.g. detector('mandelbrot', 0.1, columns=200)
 #
 #   mscan() will send your updated detector model as part of the ScanRequest.
 
-from java.util import HashMap
+import sys
+
+from java.lang import System
+
+from java.util import HashMap, ArrayList
 from java.net import URI
 from org.eclipse.dawnsci.analysis.dataset.roi import (
     CircularROI, RectangularROI, PolygonalROI, PolylineROI, PointROI)
@@ -59,18 +51,18 @@ from org.eclipse.scanning.server.servlet.Services import (
 # Grepping for 'mscan' in a GDA workspace shows up nothing, so it seems that
 # mscan is a free name.
 def mscan(path=None, mon=None, det=None, now=False, block=True,
-          allow_preprocess=False, broker_uri="tcp://localhost:61616"):
+          allow_preprocess=False, broker_uri=None):
     """Create a ScanRequest and submit it to the GDA server.
 
     A simple usage of this function is as follows:
-    >>> mscan(step(my_scannable, 0, 10, 1), det=mandelbrot(0.1))
+    >>> mscan(step(my_scannable, 0, 10, 1), det=detector('mandelbrot', 0.1))
 
     The above invokation says "please perform a mapping scan over my scannable
     from 0 to 10 with step size 1, collecting data from the 'Mandelbrot'
     detector with an exposure time of 0.1 seconds at each step".
 
-    You can specify multiple detectors with a list (square brackets):
-    >>> mscan(..., det=[mandelbrot(0.1), another_detector(0.4)])
+    You can specify detector and arbitrary fields in their model with keyword arguments
+    >>> mscan(..., det=[detector('mandelbrot', 0.1), detector('another_detector', 0.4, param1='foo', param2='bar')])
 
     You can specify a scannable or list of scannables to monitor:
     >>> mscan(..., mon=my_scannable, ...)  # or:
@@ -96,26 +88,28 @@ def mscan(path=None, mon=None, det=None, now=False, block=True,
     >>> # Skip the queue and return straight after submission.
     >>> mscan(..., ..., now=True, block=False)
     """
+    if (broker_uri is None):
+        broker_uri = getScanningBrokerUri()
+        
     submit(scan_request(path, mon, det, allow_preprocess),
            now, block, broker_uri)
 
 
 def submit(request, now=False, block=True,
-           broker_uri="tcp://localhost:61616"):
+           broker_uri=None):
+    
+    if (broker_uri is None):
+        broker_uri = getScanningBrokerUri()
+
     """Submit an existing ScanRequest to the GDA server.
 
     See the mscan() docstring for details of `now` and `block`.
     """
-    json = getEventService().getEventConnectorService().marshal(request)
-    print "Processing request"
-    print json
-   
     
     scan_bean = ScanBean(request) # Generates a sensible name for the scan from the request.
+   
     # Throws an exception if we made a bad bean
     json = getEventService().getEventConnectorService().marshal(scan_bean)
-    print "Submitting scan"
-    print json
 
     if now:
         raise NotImplementedError()  # TODO: Raise priority.
@@ -128,6 +122,18 @@ def submit(request, now=False, block=True,
         submitter.blockingSubmit(scan_bean)
     else:
         submitter.submit(scan_bean)
+
+def getScanningBrokerUri():
+    
+    uri = System.getProperty("org.eclipse.scanning.broker.uri")
+
+    if (uri is None):
+        uri = System.getProperty("GDA/gda.activemq.broker.uri")
+
+    if (uri is None):
+        uri = System.getProperty("gda.activemq.broker.uri")
+
+    return uri;
 
 
 def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
@@ -146,7 +152,7 @@ def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
     # the monitors so users can pass either a monitor name in quotes or a
     # scannable object from the Jython namespace.
     scan_paths = _listify(path)
-    monitors = map(_stringify, _listify(mon))
+    monitors = ArrayList(map(_stringify, _listify(mon)))
     detectors = _listify(det)
 
     (scan_path_models, _) = zip(*scan_paths)  # zip(* == unzip(
@@ -167,6 +173,32 @@ def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
                          'detectors': detector_map,
                          'ignorePreprocess': not allow_preprocess})
 
+
+"""
+The detector method returns a dictionary of detector name to the detector model.
+You must specific the detector name and exposure time
+You may optionally add keyword arguments which if set will 
+call the appropriate setter methods on the detector model. For instance
+if you want to set 'enableNoise' in the model you would have a keyword argument
+enableNoise=True so the detector function would be detector("mandelbrot", 0.1, enableNoise=True)
+"""
+def detector(name, exposure, **kwargs):
+    
+    detector = getRunnableDeviceService().getRunnableDevice(name)
+
+    try:
+        assert detector is not None
+    except AssertionError:
+        raise ValueError("Detector '"+name+"' not found.")
+
+    model = detector.getModel()
+
+    model.setExposureTime(exposure)
+    
+    for key, value in kwargs.iteritems():
+        setattr(model, key, value)
+
+    return (name, model)
 
 # Scan paths
 # ----------
@@ -493,18 +525,6 @@ def _instantiate(Bean, params):
                 "No setter for param '"+p+"' in "+Bean.__name__+".")
 
     return bean
-
-
-def _fetch_model_for_detector(detector_name):
-
-    detector = getRunnableDeviceService().getRunnableDevice(detector_name)
-
-    try:
-        assert detector is not None
-    except AssertionError:
-        raise ValueError("Detector '"+detector_name+"' not found.")
-
-    return detector.getDeviceInformation().getModel()
 
 
 # Miscellaneous functions
