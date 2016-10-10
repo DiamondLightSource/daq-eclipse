@@ -128,8 +128,6 @@ public class SubTaskAtomProcessorTest {
 		//TODO Should this be the message or the queue-message?
 		assertEquals("Wrong message set after termination.", "Active-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
 		
-		pti.checkLastBroadcastChildBeanStatus(Status.REQUEST_TERMINATE, new String[]{"Hildebrand", "Yuri", "Ingrid"});
-		
 	}
 	
 	@Test
@@ -140,9 +138,13 @@ public class SubTaskAtomProcessorTest {
 		//Set some arbitrary percent complete and release the latch
 		stAtProcr.getQueueBroadcaster().broadcast(Status.RUNNING, 20d);
 		stAtProcr.getProcessorLatch().countDown();
+		//Need to give the post-match analysis time to run
+		Thread.sleep(10);
 		
 		/*
-		 * FAILED is always going to happen underneath.
+		 * FAILED is always going to happen underneath - i.e. process will be 
+		 * running & suddenly latch will be counted down.
+		 * 
 		 * QueueListener sets the message and queueMessage
 		 * We just need to set this bean's status to FAILED.
 		 */

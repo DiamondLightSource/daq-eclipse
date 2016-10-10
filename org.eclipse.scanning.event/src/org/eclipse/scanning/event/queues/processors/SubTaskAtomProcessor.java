@@ -30,6 +30,9 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 			} else if (queueBean.getPercentComplete() >= 99.5) {
 				//Completed successfully
 				broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
+			} else {
+				//Failed: latch released before completion
+				broadcaster.broadcast(Status.FAILED, "Active-queue failed (caused by process Atom)");
 			}
 
 			//This should be run after we've reported the queue final state
