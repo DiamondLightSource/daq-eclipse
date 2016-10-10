@@ -213,6 +213,11 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 		// TODO Auto-generated method stub
 		
 	}
+	@Override
+	public boolean isDisconnected() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 
 }

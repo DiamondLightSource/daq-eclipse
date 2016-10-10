@@ -220,4 +220,10 @@ public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
 		
 	}
 
+	@Override
+	public boolean isDisconnected() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

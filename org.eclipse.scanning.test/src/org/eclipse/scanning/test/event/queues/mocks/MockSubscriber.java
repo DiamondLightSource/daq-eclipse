@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
 import java.util.EventListener;
+import java.util.List;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
@@ -65,6 +66,54 @@ public class MockSubscriber<T extends EventListener> implements ISubscriber<T> {
 	public void removeListener(String id, T listener) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public boolean isDisconnected() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void addProperty(String name, FilterAction... action) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeProperty(String name) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public List<String> getProperties() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void removeListeners(String id) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void clear() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setSynchronous(boolean sync) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isSynchronous() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }
