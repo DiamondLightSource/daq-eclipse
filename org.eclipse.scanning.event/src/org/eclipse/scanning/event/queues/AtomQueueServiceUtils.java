@@ -2,9 +2,11 @@ package org.eclipse.scanning.event.queues;
 
 import java.net.URI;
 import java.util.EventListener;
+import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.IQueueService;
@@ -19,7 +21,7 @@ public class AtomQueueServiceUtils {
 	
 	public static <T extends EventListener> ISubscriber<T> createQueueSubscriber(String queueID) throws EventException {
 		URI uri = queueService.getURI();
-		String topicName = getQueueStatusTopicName(queueID);
+		String topicName = queueService.getQueue(queueID).getStatusTopicName();
 		
 		return eventService.createSubscriber(uri, topicName);
 	}
@@ -27,7 +29,7 @@ public class AtomQueueServiceUtils {
 	public static void terminateQueueProcess(String queueID, IQueueable atomBean) throws EventException {
 		//Get configuration for 
 		URI uri = queueService.getURI();
-		String topicName = getQueueStatusTopicName(queueID);
+		String topicName = queueService.getQueue(queueID).getStatusTopicName();
 		
 		atomBean.setPreviousStatus(atomBean.getPreviousStatus());
 		atomBean.setStatus(Status.REQUEST_TERMINATE);
@@ -37,12 +39,18 @@ public class AtomQueueServiceUtils {
 		terminator.disconnect();
 	}
 	
-	private static String getQueueStatusTopicName(String queueID) {
-		if (queueID == queueService.getJobQueueID()) {
-			return queueService.getJobQueue().getStatusTopicName();
-		} else {
-			return queueService.getActiveQueue(queueID).getStatusTopicName();
-		}
+	public static void pauseQueue(String queueID) throws EventException {
+		URI uri = queueService.getURI();
+		String cmdTopicName = queueService.getCommandTopicName();
+		String cmdQueueName = queueService.getCommandQueueName();
+		UUID consumerID = queueService.getQueue(queueID).getConsumerID();
+		
+		IPublisher<PauseBean> pausenator = eventService.createPublisher(uri, cmdTopicName);
+		pausenator.setStatusSetName(cmdQueueName);
+		PauseBean pauser = new PauseBean();
+		pauser.setConsumerId(consumerID);
+		pausenator.broadcast(pauser);
+		pausenator.disconnect();
 	}
-
+	
 }
