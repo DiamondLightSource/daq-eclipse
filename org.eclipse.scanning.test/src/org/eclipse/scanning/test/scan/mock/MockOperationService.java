@@ -49,7 +49,6 @@ public class MockOperationService implements IOperationService {
 			for (IOperation op : context.getSeries()) {
 				op.dispose();
 			}
-
 		}
 	}
 
@@ -131,8 +130,7 @@ public class MockOperationService implements IOperationService {
 
 	@Override
 	public IOperationBean createBean() {
-		// TODO Auto-generated method stub
-		return null;
+		return new DummyOperationBean();
 	}
 
 }
