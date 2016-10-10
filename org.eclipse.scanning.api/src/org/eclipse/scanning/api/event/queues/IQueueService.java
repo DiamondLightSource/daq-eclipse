@@ -53,6 +53,8 @@ public interface IQueueService {
 	public static final String ACTIVE_QUEUE = "active-queue";
 	
 	public static final String HEARTBEAT_TOPIC_SUFFIX = ".heartbeat.topic";
+	public static final String COMMAND_TOPIC_SUFFIX = ".command.topic";
+	public static final String COMMAND_QUEUE_SUFFIX = ".command.queue";
 	
 	/**
 	 * Initialise the queue service. This should ensure the service is capable
@@ -374,12 +376,20 @@ public interface IQueueService {
 	public String getHeartbeatTopicName();
 	
 	/**
-	 * Return base name for the destination (topic/queue) where commands to 
-	 * consumers associated with this service should be published.
+	 * Return name of topic where commands to consumers associated with this 
+	 * service will be published.
 	 * 
 	 * @return String name of command topic for this service.
 	 */
-	public String getCommandDestinationRoot();
+	public String getCommandTopicName();
+	
+	/**
+	 * Return name of queue (set) where command to consumers associated with 
+	 * this service will be held.
+	 * 
+	 * @return String name of command queue (set) for this service.
+	 */
+	public String getCommandQueueName();
 	
 	/**
 	 * Return the URI of the broker storing the queues.

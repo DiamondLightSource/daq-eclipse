@@ -440,7 +440,7 @@ public abstract class AbstractQueueServiceTest {
 		assertFalse("Command topic name not changed", qServ.getCommandTopicName().equals(initCmdT));
 		
 		assertEquals("Heartbeat topic has an unexpected name", newQRoot + IQueueService.HEARTBEAT_TOPIC_SUFFIX, qServ.getHeartbeatTopicName());
-		assertEquals("Command topic has an unexpected name", newQRoot+IQueueService.COMMAND_TOPIC_SUFFIX, qServ.getCommandTopicName());
+		assertEquals("Command topic has an unexpected name", newQRoot, qServ.getCommandTopicName());
 	}
 	
 	protected void checkProcessFinalStatus(Queueable bean, String queueID, Status expected) throws Exception {
