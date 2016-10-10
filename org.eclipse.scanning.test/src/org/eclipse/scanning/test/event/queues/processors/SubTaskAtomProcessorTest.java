@@ -42,7 +42,7 @@ public class SubTaskAtomProcessorTest {
 		QueueServicesHolder.setQueueService(mockQServ);
 		
 		
-		mockPub = new MockPublisher<>(null,  null);
+		mockPub = new MockPublisher<>(null, null);
 		mockEvServ = new MockEventService();
 		mockEvServ.setMockPublisher(mockPub);
 		QueueServicesHolder.setEventService(mockEvServ);
@@ -127,7 +127,8 @@ public class SubTaskAtomProcessorTest {
 		pti.checkLastBroadcastBeanStatuses(stAt, Status.TERMINATED, true);
 		//TODO Should this be the message or the queue-message?
 		assertEquals("Wrong message set after termination.", "Active-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
-		pti.checkLastBroadcastChildBeanStatus(Status.REQUEST_TERMINATE);
+		
+		pti.checkLastBroadcastChildBeanStatus(Status.REQUEST_TERMINATE, new String[]{"Hildebrand", "Yuri", "Ingrid"});
 		
 	}
 	

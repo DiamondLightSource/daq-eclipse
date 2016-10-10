@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -171,12 +172,26 @@ public class ProcessorTestInfrastructure {
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected void checkLastBroadcastChildBeanStatus(Status state) {
+	protected void checkLastBroadcastChildBeanStatus(Status state, String[] childBeanNames) {
 		MockPublisher<?> mp = (MockPublisher<?>) QueueServicesHolder.getEventService().createPublisher(null, null);
 		List<DummyHasQueue> childBeans = (List<DummyHasQueue>) getPublishedBeans(mp);
 		
-		DummyHasQueue lastBean = childBeans.get(childBeans.size()-1);
-		assertEquals("Last published bean has wrong state", state, lastBean.getStatus());
+		List<String> childNames = Arrays.asList(childBeanNames);
+		boolean childBeanBroadcast = false;
+		for (DummyHasQueue child : childBeans) {
+			//We check that the bean is from the child queue and that it has correct state
+			if (!childNames.contains(child.getName())) continue;
+			//We've got a child bean
+			childBeanBroadcast = true;
+			if (child.getStatus() == state) return;
+		}
+		
+		//If we got child beans, but none final, that's a fail, as is no child beans.
+		if (childBeanBroadcast) {
+			fail("No child bean broadcast with Status "+state);
+		} else {
+			fail("No child beans broadcast");
+		}		
 	}
 	
 	/**
