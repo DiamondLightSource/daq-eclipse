@@ -20,6 +20,14 @@ public interface IQueueNew<T extends IQueueable> {
 	public static final String COMMAND_TOPIC_SUFFIX = ".command.topic";
 	
 	/**
+	 * Get the unique name this queue is registered with in the 
+	 * {@link IQueueServiceNew}.
+	 * 
+	 * @return String Unique queue name.
+	 */
+	public String getQueueID();
+	
+	/**
 	 * Start the Queue consumer.
 	 * 
 	 * @throws EventException
