@@ -429,5 +429,19 @@ public interface IQueueService {
 	 * @return true if queue service running.
 	 */
 	public boolean isActive();
+	
+	/**
+	 * Default method to return any queue based on a supplied queueID
+	 * 
+	 * @param String queueID of the queue to be returned.
+	 * @return IQueue representing the requested queue.
+	 */
+	public default IQueue<? extends Queueable> getQueue(String queueID) {
+		if (queueID == getJobQueueID()) {
+			return getJobQueue();
+		} else {
+			return getActiveQueue(queueID);
+		}
+	}
 
 }
