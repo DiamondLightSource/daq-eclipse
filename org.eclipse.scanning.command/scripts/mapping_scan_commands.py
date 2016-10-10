@@ -105,16 +105,11 @@ def submit(request, now=False, block=True,
 
     See the mscan() docstring for details of `now` and `block`.
     """
-    json = getEventService().getEventConnectorService().marshal(request)
-    #print "Processing request"
-    #print json
-   
     
     scan_bean = ScanBean(request) # Generates a sensible name for the scan from the request.
+   
     # Throws an exception if we made a bad bean
     json = getEventService().getEventConnectorService().marshal(scan_bean)
-    #print "Submitting scan"
-    #print json
 
     if now:
         raise NotImplementedError()  # TODO: Raise priority.
