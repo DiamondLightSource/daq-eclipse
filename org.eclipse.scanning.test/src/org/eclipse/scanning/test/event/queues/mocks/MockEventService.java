@@ -21,6 +21,7 @@ import org.eclipse.scanning.event.queues.QueueServicesHolder;
 
 public class MockEventService implements IEventService {
 	
+	private MockConsumer<? extends StatusBean> mockConsumer;
 	private MockPublisher<?> mockPublisher;
 	private MockPublisher<ConsumerCommandBean> mockCmdPub;
 
@@ -63,11 +64,15 @@ public class MockEventService implements IEventService {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, String submissionQName, String statusQName,
 			String statusTName, String heartbeatTName, String commandTName) throws EventException {
-		// TODO Auto-generated method stub
-		return null;
+		mockConsumer.setCommandTopicName(commandTName);
+		mockConsumer.setStatusTopicName(statusTName);
+		mockConsumer.setStatusSetName(statusQName);
+		mockConsumer.setSubmitQueueName(submissionQName);
+		return (IConsumer<U>) mockConsumer;
 	}
 
 	@Override
@@ -116,5 +121,9 @@ public class MockEventService implements IEventService {
 	
 	public void setMockCmdPublisher(MockPublisher<ConsumerCommandBean> mockCmdPub) {
 		this.mockCmdPub = mockCmdPub;
+	}
+	
+	public void setMockConsumer(MockConsumer<? extends StatusBean> mockCons) {
+		this.mockConsumer = mockCons;
 	}
 }
