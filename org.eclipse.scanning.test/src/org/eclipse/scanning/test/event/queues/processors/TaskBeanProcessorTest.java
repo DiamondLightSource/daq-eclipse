@@ -7,6 +7,7 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
@@ -38,6 +39,7 @@ public class TaskBeanProcessorTest {
 	private static MockSubmitter<QueueAtom> mockSub;
 	private static MockEventService mockEvServ;
 	private static MockPublisher<QueueAtom> mockPub;
+	private static MockPublisher<ConsumerCommandBean> mockCmdPub;
 	private static MockConsumer<QueueBean> mockCons;
 	private static MockQueue<QueueBean> mockJobQ;
 	
@@ -53,8 +55,10 @@ public class TaskBeanProcessorTest {
 		QueueServicesHolder.setQueueService(mockQServ);
 		
 		mockPub = new MockPublisher<>(null,  null);
+		mockCmdPub = new MockPublisher<>(null, null);
 		mockEvServ = new MockEventService();
 		mockEvServ.setMockPublisher(mockPub);
+		mockEvServ.setMockCmdPublisher(mockCmdPub);
 		QueueServicesHolder.setEventService(mockEvServ);
 	}
 	
@@ -160,8 +164,9 @@ public class TaskBeanProcessorTest {
 		pti.checkLastBroadcastBeanStatuses(tBe, Status.FAILED, false);
 		
 		//Check we sent a pause instruction to the job-queue consumer
-		if (pti.getLastPublishedBean(mockPub) instanceof PauseBean) {
-			PauseBean lastBean = (PauseBean)pti.getLastPublishedBean(mockPub);
+		List<ConsumerCommandBean> cmdBeans = mockCmdPub.getCmdBeans();
+		if (cmdBeans.get(cmdBeans.size()-1) instanceof PauseBean) {
+			PauseBean lastBean = (PauseBean)cmdBeans.get(cmdBeans.size()-1);
 			assertEquals("PauseBean does not pause the job-queue consumer", mockCons.getConsumerId(), lastBean.getConsumerId());
 		} else {
 			fail("Last published bean was not a PauseBean");

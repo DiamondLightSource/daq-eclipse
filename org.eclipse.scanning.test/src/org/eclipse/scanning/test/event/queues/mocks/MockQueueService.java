@@ -22,6 +22,8 @@ public class MockQueueService implements IQueueService {
 	private IQueue<QueueBean> jobQueue;
 	private String jobQueueID;
 	
+	private String commandTopicName, commandQueueName;
+	
 	private Map<String, IQueue<QueueAtom>> activeQueues = new HashMap<>();
 	private int nrActiveQueues = 0;
 	
@@ -32,6 +34,8 @@ public class MockQueueService implements IQueueService {
 	public MockQueueService(IQueue<QueueBean> mockOne) {
 		this.jobQueue = mockOne;
 		jobQueueID = mockOne.getQueueID();
+		commandTopicName = mockOne.getCommandTopicName();
+		commandQueueName = mockOne.getCommandQueueName();
 		try {
 			uri = new URI("mock.uri");
 		} catch (URISyntaxException e) {
@@ -43,6 +47,8 @@ public class MockQueueService implements IQueueService {
 	public MockQueueService() {
 		jobQueue = null;
 		jobQueueID = "mock-job-queue";
+		commandTopicName = "mock-command-topic";
+		commandQueueName = "mock-command-queue";
 		try {
 			uri = new URI("mock.uri");
 		} catch (URISyntaxException e) {
@@ -291,8 +297,7 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public String getCommandTopicName() {
-		// TODO Auto-generated method stub
-		return null;
+		return commandTopicName;
 	}
 
 	@Override
@@ -304,6 +309,11 @@ public class MockQueueService implements IQueueService {
 	@SuppressWarnings("unchecked")
 	public void setMockSubmitter(MockSubmitter<? extends Queueable> ms) {
 		mockSubmitter = (MockSubmitter<Queueable>) ms;
+	}
+
+	@Override
+	public String getCommandQueueName() {
+		return commandQueueName;
 	}
 
 }

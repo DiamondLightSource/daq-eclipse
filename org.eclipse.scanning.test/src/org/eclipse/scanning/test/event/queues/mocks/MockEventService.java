@@ -8,6 +8,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.IdBean;
+import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IQueueReader;
@@ -16,10 +17,12 @@ import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.event.queues.QueueServicesHolder;
 
 public class MockEventService implements IEventService {
 	
 	private MockPublisher<?> mockPublisher;
+	private MockPublisher<ConsumerCommandBean> mockCmdPub;
 
 	@Override
 	public <T> IQueueReader<T> createQueueReader(URI uri, String queueName) {
@@ -35,6 +38,9 @@ public class MockEventService implements IEventService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <U> IPublisher<U> createPublisher(URI uri, String topicName) {
+		if (topicName == QueueServicesHolder.getQueueService().getCommandTopicName()) {
+			return (IPublisher<U>) mockCmdPub;
+		}
 		return (IPublisher<U>) mockPublisher;
 	}
 
@@ -106,5 +112,9 @@ public class MockEventService implements IEventService {
 
 	public void setMockPublisher(MockPublisher<?> mockPublisher) {
 		this.mockPublisher = mockPublisher;
+	}
+	
+	public void setMockCmdPublisher(MockPublisher<ConsumerCommandBean> mockCmdPub) {
+		this.mockCmdPub = mockCmdPub;
 	}
 }

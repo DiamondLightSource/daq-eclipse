@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.event.IdBean;
+import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
@@ -22,6 +24,7 @@ public class MockPublisher<T> implements IPublisher<T> {
 	private String queueName;
 	private IConsumer<?> consumer;
 	
+	private volatile List<ConsumerCommandBean> broadcastCmdBeans = new ArrayList<>();
 	private volatile List<Queueable> broadcastBeans = new ArrayList<>();
 	
 	private boolean disconnected;
@@ -63,24 +66,32 @@ public class MockPublisher<T> implements IPublisher<T> {
 	
 	@Override
 	public void broadcast(T bean) throws EventException {
-		final DummyHasQueue broadBean = new DummyHasQueue();
-		StatusBean loBean = (StatusBean)bean;
-		broadBean.setMessage(loBean.getMessage());
-		broadBean.setPreviousStatus(loBean.getPreviousStatus());
-		broadBean.setStatus(loBean.getStatus());
-		broadBean.setPercentComplete(loBean.getPercentComplete());
-		broadBean.setUniqueId(loBean.getUniqueId());
-		broadBean.setName(loBean.getName());
-		
-		if (bean instanceof IAtomWithChildQueue) {
-			broadBean.setQueueMessage(((IAtomWithChildQueue)bean).getQueueMessage());
+		if (bean instanceof ConsumerCommandBean) {
+			broadcastCmdBeans.add((ConsumerCommandBean) bean);
+		} else {
+			final DummyHasQueue broadBean = new DummyHasQueue();
+			StatusBean loBean = (StatusBean)bean;
+			broadBean.setMessage(loBean.getMessage());
+			broadBean.setPreviousStatus(loBean.getPreviousStatus());
+			broadBean.setStatus(loBean.getStatus());
+			broadBean.setPercentComplete(loBean.getPercentComplete());
+			broadBean.setUniqueId(loBean.getUniqueId());
+			broadBean.setName(loBean.getName());
+			
+			if (bean instanceof IAtomWithChildQueue) {
+				broadBean.setQueueMessage(((IAtomWithChildQueue)bean).getQueueMessage());
+			}
+			
+			broadcastBeans.add(broadBean);
 		}
-		
-		broadcastBeans.add(broadBean);
 	}
 	
 	public List<Queueable> getBroadcastBeans() {
 		return broadcastBeans;
+	}
+	
+	public List<ConsumerCommandBean> getCmdBeans() {
+		return broadcastCmdBeans;
 	}
 	
 	public Queueable getLastBean() {
