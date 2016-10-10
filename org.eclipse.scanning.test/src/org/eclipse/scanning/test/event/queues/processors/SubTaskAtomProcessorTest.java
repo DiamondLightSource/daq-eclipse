@@ -131,7 +131,7 @@ public class SubTaskAtomProcessorTest {
 		
 	}
 	
-//	@Test
+	@Test
 	public void testChildFailure() throws Exception {
 		stAtProcr = new SubTaskAtomProcessor();
 		

@@ -141,7 +141,7 @@ public class TaskBeanProcessorTest {
 		
 	}
 	
-	//@Test
+	@Test
 	public void testChildFailure() throws Exception {
 		tBeProcr = new TaskBeanProcessor();
 		
