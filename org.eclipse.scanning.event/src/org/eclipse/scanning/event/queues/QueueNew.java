@@ -12,6 +12,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 public class QueueNew<T extends Queueable> implements IQueueNew<T> {
 
 	private final String queueID;
+	private final URI uri;
 	private final IConsumer<T> consumer;
 
 	private final String submissionQueueName, statusSetName, statusTopicName, 
@@ -63,6 +64,7 @@ public class QueueNew<T extends Queueable> implements IQueueNew<T> {
 	public QueueNew(String queueID, URI uri, String heartbeatTopicName,
 			String commandSetName, String commandTopicName) throws EventException {
 		this.queueID = queueID;
+		this.uri = uri;
 
 		//Record all the destination paths
 		submissionQueueName = queueID+IQueueNew.SUBMISSION_QUEUE_SUFFIX;
@@ -73,7 +75,7 @@ public class QueueNew<T extends Queueable> implements IQueueNew<T> {
 		this.commandTopicName = commandTopicName;
 
 		IEventService eventService = QueueServicesHolder.getEventService();
-		consumer = eventService.createConsumer(uri, getSubmissionQueueName(),
+		consumer = eventService.createConsumer(this.uri, getSubmissionQueueName(),
 				getStatusSetName(), getStatusTopicName(), getHeartbeatTopicName(),
 				getCommandTopicName());
 		consumer.setRunner(new QueueProcessCreator<T>(true));
@@ -142,6 +144,11 @@ public class QueueNew<T extends Queueable> implements IQueueNew<T> {
 	@Override
 	public String getCommandTopicName() {
 		return commandTopicName;
+	}
+
+	@Override
+	public URI getURI() {
+		return uri;
 	}
 
 	@Override

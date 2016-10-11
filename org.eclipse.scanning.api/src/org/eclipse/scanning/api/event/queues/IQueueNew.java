@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.event.queues;
 
+import java.net.URI;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -125,6 +126,13 @@ public interface IQueueNew<T extends IQueueable> {
 	 * @return String command topic name.
 	 */
 	public String getCommandTopicName();
+	
+	/**
+	 * Return the URI of the broker where the consumer is running.
+	 * 
+	 * @return URI of the broker.
+	 */
+	public URI getURI();
 	
 	/**
 	 * Clear both the submission and the status queues of any pending jobs
