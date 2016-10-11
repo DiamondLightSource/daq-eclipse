@@ -1,17 +1,18 @@
 package org.eclipse.scanning.example.malcolm;
 
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.points.IPointGenerator;
 
-public class ExampleMalcolmModel {
+public class ExampleMalcolmModel implements IDetectorModel{
 
-	private float exposure;
+	private double exposure;
 	private IPointGenerator<?> generator;
 
-	public float getExposure() {
+	public double getExposureTime() {
 		return exposure;
 	}
 
-	public void setExposure(float exposure) {
+	public void setExposureTime(double exposure) {
 		this.exposure = exposure;
 	}
 

@@ -39,6 +39,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IBoundingLineModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
@@ -47,10 +49,13 @@ import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.model.ModelDialog;
+import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IViewSite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,6 +182,35 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		createPlot(conf);
 		system.getSelectedXAxis().setTitle(conf.getFastAxisName());
 		system.getSelectedYAxis().setTitle(conf.getSlowAxisName());
+		
+		// If we have to reaxis the regions, try to
+		if (conf.isApplyRegions()) {
+			List<ScanRegion<IROI>> regions = ScanRegions.getScanRegions(system);
+			List<String> axes = Arrays.asList(conf.getFastAxisName(), conf.getSlowAxisName());
+			if (regions!=null) for (ScanRegion<IROI> region : regions) {
+				region.setScannables(axes);
+			}
+		}
+		
+		if (conf.isApplyModels()) {
+			// TODO Use IScanBuilderService
+			IViewReference[] refs = PageUtil.getPage().getViewReferences();
+			for (IViewReference iViewReference : refs) {
+				IViewPart part = iViewReference.getView(false);
+				if (part==null) continue;
+				IPointGenerator<?>[] pa = part.getAdapter(IPointGenerator[].class);
+                if (pa !=null) {
+                	for (int i = 0; i < pa.length; i++) {
+                    	final Object model = pa[i].getModel();
+                    	if (model instanceof IBoundingBoxModel) {
+                    		IBoundingBoxModel bmodel = (IBoundingBoxModel)model;
+                    		bmodel.setFastAxisName(conf.getFastAxisName());
+                    		bmodel.setSlowAxisName(conf.getSlowAxisName());
+                    	}
+					}
+                }
+			}
+		}
 
 		try {
 			IEventService eservice = ServiceHolder.getEventService();
