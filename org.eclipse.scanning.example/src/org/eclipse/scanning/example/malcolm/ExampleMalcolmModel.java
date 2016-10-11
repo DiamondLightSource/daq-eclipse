@@ -4,14 +4,14 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 
 public class ExampleMalcolmModel {
 
-	private double exposure;
+	private float exposure;
 	private IPointGenerator<?> generator;
 
-	public double getExposure() {
+	public float getExposure() {
 		return exposure;
 	}
 
-	public void setExposure(double exposure) {
+	public void setExposure(float exposure) {
 		this.exposure = exposure;
 	}
 
