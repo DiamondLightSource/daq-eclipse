@@ -76,7 +76,7 @@ public class ExampleMalcolmDeviceTest {
 			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
 
 			ExampleMalcolmModel pmac1 = new ExampleMalcolmModel();
-			pmac1.setExposureTime(45f);
+			pmac1.setExposure(45f);
 			pmac1.setGenerator(scan);
 
 			// Call configure
