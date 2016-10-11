@@ -40,7 +40,6 @@ import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.points.IPointGenerator;
-import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IBoundingLineModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
@@ -51,6 +50,7 @@ import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.model.ModelDialog;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
+import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.ui.IActionBars;
@@ -162,11 +162,11 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		    		dialog.create();
 		    		dialog.getShell().setSize(550,450); // As needed
 		    		dialog.getShell().setText("Scan Area");
-		    		dialog.setModel(getPlotConfiguration());
+		    		dialog.setModel(getAxisConfiguration());
 		    		int ok = dialog.open();
 		    		if (ok==dialog.OK) {
 		    			AxisConfiguration conf = dialog.getModel();
-		    			setPlotConfiguration(conf);
+		    			setAxisConfiguration(conf);
 		    		}
 	    		} catch (Exception ne) {
 	    			ErrorDialog.openError(site.getShell(), "Error Showing Plot Configuration", "Please contact your support representative.", new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", ne.getMessage(), ne));
@@ -177,7 +177,8 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		ViewUtil.addGroups("configure", mans, configureAxes);
 	}
 
-	protected void setPlotConfiguration(AxisConfiguration conf) {
+	protected void setAxisConfiguration(AxisConfiguration conf) {
+		
 		this.axisConfig = conf;
 		createPlot(conf);
 		system.getSelectedXAxis().setTitle(conf.getFastAxisName());
@@ -212,18 +213,30 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 			}
 		}
 
+		send(conf);
+		
+		Stashing stash = new Stashing("org.eclipse.scanning.device.ui.axis.configuation.json", ServiceHolder.getEventService().getEventConnectorService());
+		try {
+			stash.stash(conf);          
+		} catch (Exception ne) {
+		    logger.error("Cannot save to "+stash.getFile(), ne);
+		}
+        
+	}
+
+	private void send(AxisConfiguration conf) {
 		try {
 			IEventService eservice = ServiceHolder.getEventService();
             IPublisher<AxisConfiguration> publisher = eservice.createPublisher(new URI(CommandConstants.getScanningBrokerUri()), EventConstants.AXIS_CONFIGURATION_TOPIC);
             publisher.broadcast(axisConfig);
             publisher.disconnect();
+            
 		} catch (Exception ne) {
 		    logger.error("Cannot publish "+axisConfig, ne);
 		}
-        
 	}
 
-	protected AxisConfiguration getPlotConfiguration() {
+	protected AxisConfiguration getAxisConfiguration() {
 		
 		if (axisConfig==null) axisConfig = new AxisConfiguration();		
 		axisConfig.setFastAxisName(system.getSelectedXAxis().getTitle());
@@ -429,12 +442,27 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 	}
 
 	public void connect() {
-	    for (IRegion region : system.getRegions()) {
+		
+	    connectRegions();
+	    connectAxes();
+	}
+
+	private void connectAxes() {
+		
+		Stashing stash = new Stashing("org.eclipse.scanning.device.ui.axis.configuation.json", ServiceHolder.getEventService().getEventConnectorService());
+		if (stash.isStashed()) {
+			this.axisConfig = stash.unstash(AxisConfiguration.class);
+			setAxisConfiguration(axisConfig);
+		}
+		
+	}
+
+	private void connectRegions() {
+		for (IRegion region : system.getRegions()) {
 	    	if (region.getUserObject() instanceof ScanRegion) region.addROIListener(roiListener);
 		}
         system.addRegionListener(regionListener);
 	}
-
 
 	@Override
 	public <T> T getAdapter(Class<T> adapter) {

@@ -199,6 +199,7 @@ public class DetectorView extends EventConnectionView {
 			if (iconMap.containsKey(fullPath)) return iconMap.get(fullPath);
 			final String[] sa = fullPath.split("/");
 			final Bundle bundle = Platform.getBundle(sa[0]);
+			if (bundle==null) return defaultIcon;
 			if (bundle!=null) {
 				Image image = new Image(null, bundle.getResource(sa[1]+"/"+sa[2]).openStream());
 				iconMap.put(fullPath, image);

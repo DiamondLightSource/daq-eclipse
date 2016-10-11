@@ -43,10 +43,10 @@ public class AxisConfiguration {
 	private double slowAxisEnd;
 	
 	@FieldDescriptor(label="Apply to Regions", hint="Find any scan regions and set their axis names to those on this form.", fieldPosition=6)
-	private boolean applyRegions = true;
+	private boolean applyRegions = false;
 
 	@FieldDescriptor(label="Apply to Scan", hint="Find any scan models and set their axis names to those on this form.", fieldPosition=7)
-	private boolean applyModels = true;
+	private boolean applyModels = false;
 
 	@Override
 	public int hashCode() {

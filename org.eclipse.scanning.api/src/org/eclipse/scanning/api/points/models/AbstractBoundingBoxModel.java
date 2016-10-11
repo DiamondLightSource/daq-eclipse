@@ -17,7 +17,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  * @author Colin Palmer
  *
  */
-abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
+public abstract class AbstractBoundingBoxModel extends AbstractPointsModel implements IBoundingBoxModel {
 
 	@FieldDescriptor(edit=EditType.COMPOUND, hint="The bounding box is automatically calculated from the scan regions shown in the main plot.") // We edit this with a popup.
 	private BoundingBox boundingBox;
