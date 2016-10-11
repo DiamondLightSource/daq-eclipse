@@ -145,7 +145,7 @@ public class ExampleMalcolmDeviceTest {
 			Object stateValue = modelledDevice.getAttributeValue("state");
 			if (stateValue instanceof String) {
 				String stateValueStr = (String) stateValue;
-				assertTrue(stateValueStr.equals("IDLE"));
+				assertTrue(stateValueStr.equals("READY"));
 			} else {
 				fail("state value was was expected to be a string but wasn't");
 			}
