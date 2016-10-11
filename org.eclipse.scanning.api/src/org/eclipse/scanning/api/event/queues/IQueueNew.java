@@ -80,9 +80,16 @@ public interface IQueueNew<T extends IQueueable> {
 	/**
 	 * Report the current running state of the Queue.
 	 * 
-	 * @return QueueStatus
+	 * @return {@link QueueStatus}
 	 */
 	public QueueStatus getStatus();
+	
+	/**
+	 * Change the current running state of the Queue.
+	 * 
+	 * @param new {@link QueueStatus}
+	 */
+	public void setStatus(QueueStatus status);
 	
 	/**
 	 * Return the submission queue name.

@@ -117,6 +117,11 @@ public class QueueNew<T extends Queueable> implements IQueueNew<T> {
 	}
 
 	@Override
+	public void setStatus(QueueStatus status) {
+		this.status = status;
+	}
+
+	@Override
 	public String getSubmissionQueueName() {
 		return submissionQueueName;
 	}
