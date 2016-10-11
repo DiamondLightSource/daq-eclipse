@@ -72,4 +72,15 @@ public class DevicePreferenceConstants {
 	 */
 	public static final String AFTER_SCRIPT = "org.eclipse.scanning.device.ui.scan.afterScript";
 
+	/**
+	 * If the user wants to see processing detectors in the UI.
+	 */
+	public static final String SHOW_PROCESSING = "org.eclipse.scanning.device.ui.scan.showProcessing";
+	
+	/**
+	 * If the user wants to see processing detectors in the UI.
+	 */
+	public static final String SHOW_HARDWARE = "org.eclipse.scanning.device.ui.scan.showHardware";
+
+
 }

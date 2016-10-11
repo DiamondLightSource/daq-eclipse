@@ -29,6 +29,7 @@ import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.EventConnectionView;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
@@ -66,6 +67,9 @@ public class DetectorView extends EventConnectionView {
 	private IRunnableDeviceService dservice;
 	
 	public DetectorView() {
+		
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_PROCESSING, true);
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_HARDWARE, true);
 		try {
 		    this.defaultIcon = Activator.getImageDescriptor("icons/camera-lens.png").createImage();
 		    this.ticked      = Activator.getImageDescriptor("icons/ticked.png").createImage();
@@ -232,6 +236,10 @@ public class DetectorView extends EventConnectionView {
 		IMenuManager popup = new MenuManager();
 		List<IContributionManager> mans = Arrays.asList(getViewSite().getActionBars().getToolBarManager(), getViewSite().getActionBars().getMenuManager(), popup);
 
+		IAction showProcessing = createPreferenceAction("Show Processing", DevicePreferenceConstants.SHOW_PROCESSING, "icons/processing.png");
+		IAction showHardware   = createPreferenceAction("Show Devices",   DevicePreferenceConstants.SHOW_HARDWARE,   "icons/camera-lens.png");
+		ViewUtil.addGroups("visibility", mans, showHardware, showProcessing);
+		
 		IAction refresh = new Action("Refresh", Activator.getImageDescriptor("icons/recycle.png")) {
 			public void run() {
 				refresh();
@@ -248,6 +256,19 @@ public class DetectorView extends EventConnectionView {
 		ViewUtil.addGroups("camera", mans, configure);
 
 	}
+	
+	private IAction createPreferenceAction(String label, String preference, String icon) {
+		IAction ret = new Action(label, IAction.AS_CHECK_BOX) {
+			public void run() {
+				Activator.getDefault().getPreferenceStore().setValue(preference, isChecked());
+				viewer.refresh();
+			}
+		};
+		ret.setImageDescriptor(Activator.getImageDescriptor(icon));
+		ret.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(preference));	
+		return ret;
+	}
+
 
 	protected void refresh() {
 		
@@ -260,7 +281,7 @@ public class DetectorView extends EventConnectionView {
 				                "(If not the 'Configure' action can be used to send your local edits to a device.)");
 		if (!ok) return;
 		
-		viewer.refresh();
+		viewer.setInput(new Object());
 		if (info!=null) {
 			try {
 			    Collection<DeviceInformation<?>> devices = dservice.getDeviceInformation();
