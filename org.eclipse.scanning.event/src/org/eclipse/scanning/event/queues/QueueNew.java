@@ -25,7 +25,7 @@ public class QueueNew<T extends Queueable> implements IQueueNew<T> {
 	 * the suffixes in {@link IQueueNew}.
 	 * 
 	 * @param queueID String name of queue.
-	 * @param uri URI where the consumer will be addressable.
+	 * @param uri URI of the broker.
 	 * @throws EventException When consumer cannot be created.
 	 */
 	public QueueNew(String queueID, URI uri) throws EventException {
@@ -38,7 +38,7 @@ public class QueueNew<T extends Queueable> implements IQueueNew<T> {
 	 * suffixes in {@link IQueueNew}.
 	 * 
 	 * @param queueID String name of queue.
-	 * @param uri URI where the consumer will be addressable.
+	 * @param uri URI of the broker
 	 * @param heartbeatTopicName String topic name where heartbeats published.
 	 * @throws EventException When consumer cannot be created.
 	 */
@@ -52,7 +52,7 @@ public class QueueNew<T extends Queueable> implements IQueueNew<T> {
 	 * destinations.
 	 *  
 	 * @param queueID String name of queue.
-	 * @param uri URI where the consumer will be addressable.
+	 * @param uri URI of the broker
 	 * @param heartbeatTopicName String topic name where heartbeats published.
 	 * @param commandSetName String queue name where consumer commands will be 
 	 *                       stored.
