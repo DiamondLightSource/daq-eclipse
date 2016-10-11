@@ -18,6 +18,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.XAxisBoxROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.YAxisBoxROI;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.malcolm.message.Type;
+import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorConfiguration;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -39,6 +40,7 @@ import org.eclipse.scanning.connector.epics.custommarshallers.HyperbolicROISeria
 import org.eclipse.scanning.connector.epics.custommarshallers.IPointGeneratorSerialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.LinearROIDeserialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.LinearROISerialiser;
+import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmDetectorConfigurationSerialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmMessageSerialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmPointGeneratorDeserialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmTableDeserialiser;
@@ -90,6 +92,7 @@ public class EpicsV4MessageMapper {
 		marshaller.registerSerialiser(IPointGenerator.class, new IPointGeneratorSerialiser());
 		marshaller.registerSerialiser(PyDictionary.class, new PyDictionarySerialiser());
 		marshaller.registerSerialiser(MalcolmMessage.class, new MalcolmMessageSerialiser());
+		marshaller.registerSerialiser(MalcolmDetectorConfiguration.class, new MalcolmDetectorConfigurationSerialiser());
 		
 		marshaller.registerSerialiser(SpiralModel.class, new SpiralModelSerialiser());
 		marshaller.registerDeserialiser("SpiralModel", new SpiralModelDeserialiser());
