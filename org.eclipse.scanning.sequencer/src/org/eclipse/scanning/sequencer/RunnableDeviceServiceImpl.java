@@ -60,6 +60,8 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	
 	/**
 	 * Map of device model class to device class.
+	 * NOTE This is not unmodifiable. Entries may be made after service create time. For instance
+	 * when the spring files are parsed.
 	 */
 	private static final Map<Class<?>, Class<? extends IRunnableDevice>> modelledDevices;
 	
@@ -76,14 +78,13 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	// to allow point generators to be dynamically registered. 
 	static {
 		System.out.println("Starting device service");
-		Map<Class<?>, Class<? extends IRunnableDevice>> aqui = new HashMap<>(7);
-		aqui.put(ScanModel.class,         AcquisitionDevice.class);
+		modelledDevices = new HashMap<>(7);
+		modelledDevices.put(ScanModel.class,         AcquisitionDevice.class);
 
-		modelledDevices  = aqui;
-		namedDevices       = new HashMap<>(3);
+		namedDevices     = new HashMap<>(3);
 
 		try {
-			readExtensions(aqui);
+			readExtensions();
 		} catch (CoreException e) {
 			e.printStackTrace(); // Static block, intentionally do not use logging.
 		}
@@ -102,23 +103,21 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	}
 	
 	
-	private static void readExtensions(Map<Class<?>, Class<? extends IRunnableDevice>> devs) throws CoreException {
+	private static void readExtensions() throws CoreException {
 		
 		if (Platform.getExtensionRegistry()!=null) {
 			final IConfigurationElement[] eles = Platform.getExtensionRegistry().getConfigurationElementsFor("org.eclipse.scanning.api.device");
 			for (IConfigurationElement e : eles) {
-				
-				final Object     mod = e.createExecutableExtension("model");
-				
+								
 				if (e.getName().equals("device")) {
 					
 					final IRunnableDevice device = (IRunnableDevice)e.createExecutableExtension("class");
 					String name = e.getAttribute("name");
 					if (name == null) name = e.getAttribute("id");
 					device.setName(name);
-					devs.put(mod.getClass(), device.getClass());
 					
 	                // If the model has a name we send it from the extension point.
+					final Object     mod = e.createExecutableExtension("model");
 	                try {
 	                    final Method setName = mod.getClass().getMethod("setName", String.class);
 	                    setName.invoke(mod, name);
@@ -126,23 +125,25 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	                	// getName() is not compulsory in the model
 	                }
 
-					if (device instanceof AbstractRunnableDevice) {
-						AbstractRunnableDevice adevice = (AbstractRunnableDevice)device;
-						final DeviceInformation info   = new DeviceInformation();
+	                if (!device.isVirtual()) { // We have to make a good instance which will be used in scanning.
+	                	
+						final DeviceInformation<?> info   = new DeviceInformation<>();
 						info.setLabel(e.getAttribute("label"));
 						info.setDescription(e.getAttribute("description"));
 						info.setId(e.getAttribute("id"));
 						info.setIcon(e.getContributor().getName()+"/"+e.getAttribute("icon"));
 						boolean hardware = e.getAttribute("hardware")==null ? true : Boolean.valueOf(e.getAttribute("hardware"));
 						info.setHardware(hardware);
-						adevice.setDeviceInformation(info);
-						
-						if (adevice.getModel()==null) adevice.setModel(mod); // Empty Model
-					}
+	
+						if (device instanceof AbstractRunnableDevice) {
+							AbstractRunnableDevice adevice = (AbstractRunnableDevice)device;
+							adevice.setDeviceInformation(info);
+							
+							if (adevice.getModel()==null) adevice.setModel(mod); // Empty Model
+						}
+	                }
 					
-					if (!device.isVirtual()) {
-						namedDevices.put(device.getName(), device);
-					}
+					registerDevice(mod.getClass(), device);
 
 				} else {
 					throw new CoreException(new Status(IStatus.ERROR, "org.eclipse.scanning.sequencer", "Unrecognized device "+e.getName()));
@@ -151,6 +152,17 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		}
 	}
 	
+	@Override
+	public <T> void register(IRunnableDevice<T> device) {
+		registerDevice(device.getModel().getClass(), device);
+	}
+
+	private static void registerDevice(Class modelClass, IRunnableDevice device) {
+		modelledDevices.put(modelClass, device.getClass());
+		if (!device.isVirtual()) {
+			namedDevices.put(device.getName(), device);
+		}
+	}
 
 	@Override
 	public final IPositioner createPositioner() throws ScanningException {

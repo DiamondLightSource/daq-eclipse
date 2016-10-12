@@ -83,6 +83,22 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		this.scanAttributes = new HashMap<>();
 	}
 
+	protected AbstractRunnableDevice(IRunnableDeviceService dservice) {
+		this();
+		setRunnableDeviceService(dservice);
+	}
+	
+	/**
+	 * Used by spring to register the detector with the Runnable device service
+	 * *WARNING* Before calling register the detector must be given a service to 
+	 * register this. This can be done from the constructor super(IRunnableDeviceService)
+	 * of the detector to make it easy to instantiate a no-argument detector and
+	 * register it from spring.
+	 */
+	public void register() {
+		runnableDeviceService.register(this);
+	}
+
 	public ScanBean getBean() {
 		if (bean==null) bean = new ScanBean();
 		return bean;
