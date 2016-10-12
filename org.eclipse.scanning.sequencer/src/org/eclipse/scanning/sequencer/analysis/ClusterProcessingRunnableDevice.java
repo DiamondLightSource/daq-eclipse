@@ -9,6 +9,7 @@ import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.device.models.ClusterProcessingModel;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -34,6 +35,11 @@ public class ClusterProcessingRunnableDevice extends AbstractRunnableDevice<Clus
 	public static final String NEXUS_FILE_EXTENSION = ".nxs";
 	
 	private static ISubmitter<StatusBean> submitter = null;
+	
+	public ClusterProcessingRunnableDevice() {
+		super(ServiceHolder.getRunnableDeviceService());
+		setRole(DeviceRole.PROCESSING);
+	}
 	
 	@ScanStart
 	public void submitProcessingOperation(ScanInformation scanInfo) {

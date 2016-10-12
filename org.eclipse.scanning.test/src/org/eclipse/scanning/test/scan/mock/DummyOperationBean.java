@@ -89,7 +89,7 @@ public class DummyOperationBean extends StatusBean implements IOperationBean {
 	public void setDataDimensions(int[] dataDimensions) {
 		this.dataDimensions = dataDimensions;
 	}
-	public int getScanRank() {
+	public Integer getScanRank() {
 		return scanRank;
 	}
 	public void setScanRank(Integer scanRank) {

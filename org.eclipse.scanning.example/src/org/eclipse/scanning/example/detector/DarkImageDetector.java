@@ -36,6 +36,7 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.example.Services;
 
 
 /**
@@ -59,7 +60,7 @@ public class DarkImageDetector extends AbstractRunnableDevice<DarkImageModel> im
 
 	
 	public DarkImageDetector() throws IOException {
-		super();
+		super(Services.getRunnableDeviceService()); // So that spring will work.
 		this.model = new DarkImageModel();
 	}
 	

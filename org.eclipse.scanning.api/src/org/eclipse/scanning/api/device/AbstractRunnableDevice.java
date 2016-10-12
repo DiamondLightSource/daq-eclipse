@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -57,7 +58,8 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   String                     scanId;
 	private   ScanBean                   bean;
 	private   DeviceInformation<T>       deviceInformation;
-	
+	private   DeviceRole                 role = DeviceRole.HARDWARE;
+
 	// Devices can either be the top of the scan or somewhere in the
 	// scan tree. By default they are the scan but if used in a nested
 	// scan, their primaryScanDevice will be set to false. This then 
@@ -83,6 +85,14 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		this.scanAttributes = new HashMap<>();
 	}
 
+	/**
+	 * Devices may be created during the cycle of a runnable device service being
+	 * made. Therefore the parameter dservice may be null. This is acceptable 
+	 * because when used in spring the service is going and then the register(...)
+	 * method may be used.
+	 * 
+	 * @param dservice
+	 */
 	protected AbstractRunnableDevice(IRunnableDeviceService dservice) {
 		this();
 		setRunnableDeviceService(dservice);
@@ -388,6 +398,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		if (deviceInformation==null) deviceInformation = new DeviceInformation<T>();
 		deviceInformation.setModel(getModel());
 		deviceInformation.setState(getDeviceState());
+		deviceInformation.setDeviceRole(getRole());
 		deviceInformation.setStatus(getDeviceStatus());
 		deviceInformation.setBusy(isDeviceBusy());
 		deviceInformation.setAttributes(getAllAttributes());
@@ -482,4 +493,13 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public List<MalcolmAttribute> getAllAttributes() throws MalcolmDeviceException {
 		return null;
 	}
+	
+	public DeviceRole getRole() {
+		return role;
+	}
+
+	public void setRole(DeviceRole role) {
+		this.role = role;
+	}
+
 }
