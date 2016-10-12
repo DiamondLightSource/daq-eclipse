@@ -12,12 +12,12 @@ import java.util.List;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
-import org.eclipse.scanning.api.event.queues.IQueueNew;
-import org.eclipse.scanning.api.event.queues.IQueueServiceNew;
+import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
-import org.eclipse.scanning.event.queues.QueueServiceNew;
+import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
@@ -26,7 +26,7 @@ import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.Before;
 import org.junit.Test;
 
-public class QueueServiceNewTest {
+public class QueueServiceTest {
 	
 	private MockConsumer<DummyBean> mockCons;
 	private MockPublisher<ConsumerCommandBean> mockCmdPub;
@@ -53,7 +53,7 @@ public class QueueServiceNewTest {
 	 */
 	@Test
 	public void testServiceInit() throws EventException {
-		IQueueServiceNew testQServ = new QueueServiceNew(qRoot, uri);
+		IQueueService testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		/*
 		 * init should:
@@ -65,13 +65,13 @@ public class QueueServiceNewTest {
 		 */
 		assertEquals("Configured uri & uriString of QueueService differ", uri.toString(), testQServ.getURIString());
 		assertEquals("uriString & uri of QueueService differ", testQServ.getURIString(), testQServ.getURI().toString());
-		assertEquals("Incorrect Heartbeat topic name", qRoot+IQueueServiceNew.HEARTBEAT_TOPIC_SUFFIX, testQServ.getHeartbeatTopicName());
-		assertEquals("Incorrect Command set name", qRoot+IQueueServiceNew.COMMAND_SET_SUFFIX, testQServ.getCommandSetName());
-		assertEquals("Incorrect Command topic name", qRoot+IQueueServiceNew.COMMAND_TOPIC_SUFFIX, testQServ.getCommandTopicName());
+		assertEquals("Incorrect Heartbeat topic name", qRoot+IQueueService.HEARTBEAT_TOPIC_SUFFIX, testQServ.getHeartbeatTopicName());
+		assertEquals("Incorrect Command set name", qRoot+IQueueService.COMMAND_SET_SUFFIX, testQServ.getCommandSetName());
+		assertEquals("Incorrect Command topic name", qRoot+IQueueService.COMMAND_TOPIC_SUFFIX, testQServ.getCommandTopicName());
 		assertTrue("Active-queue ID set should be an empty set", testQServ.getAllActiveQueueIDs().isEmpty());
 		
 		//Create an unconfigured QueueService
-		testQServ = new QueueServiceNew();
+		testQServ = new QueueService();
 		try {
 			testQServ.init();
 			fail("Should not be able to init without a qRoot or uri set.");
@@ -86,7 +86,7 @@ public class QueueServiceNewTest {
 	 */
 	@Test
 	public void testServiceDisposal() throws EventException {
-		IQueueServiceNew testQServ = new QueueServiceNew(qRoot, uri);
+		IQueueService testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		testQServ.start();
 		testQServ.stop(false);
@@ -116,7 +116,7 @@ public class QueueServiceNewTest {
 	 */
 	@Test
 	public void testServiceStart() throws EventException {
-		IQueueServiceNew testQServ = new QueueServiceNew(qRoot, uri);
+		IQueueService testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		testQServ.start();
 		/*
@@ -129,7 +129,7 @@ public class QueueServiceNewTest {
 		assertTrue("QueueService not marked active", testQServ.isActive());
 		
 		//Create a new instance to make sure we can't start without calling init()
-		testQServ = new QueueServiceNew(qRoot, uri);
+		testQServ = new QueueService(qRoot, uri);
 		try {
 			testQServ.start();
 			fail("Should not be able to start QueueService without running init()");
@@ -144,7 +144,7 @@ public class QueueServiceNewTest {
 	 */
 	@Test
 	public void testServiceStop() throws EventException {
-		IQueueServiceNew testQServ = new QueueServiceNew(qRoot, uri);
+		IQueueService testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		testQServ.start();
 		testQServ.registerNewActiveQueue();
@@ -180,7 +180,7 @@ public class QueueServiceNewTest {
 	 */
 	@Test
 	public void testQueueStartStop() throws EventException {
-		IQueueServiceNew testQServ = new QueueServiceNew(qRoot, uri);
+		IQueueService testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		testQServ.start();
 		/*
@@ -191,7 +191,7 @@ public class QueueServiceNewTest {
 		 * - stop queue forcefully
 		 */
 		String aqID = testQServ.registerNewActiveQueue();
-		IQueueNew<QueueAtom> activeQ = testQServ.getActiveQueue(aqID);
+		IQueue<QueueAtom> activeQ = testQServ.getActiveQueue(aqID);
 		assertEquals("Active-queue not initialised", QueueStatus.INITIALISED, activeQ.getStatus());
 		
 		//Start queue & check it looks started
@@ -217,7 +217,7 @@ public class QueueServiceNewTest {
 	 */
 	@Test
 	public void testQueueDisposal() throws EventException {
-		IQueueServiceNew testQServ = new QueueServiceNew(qRoot, uri);
+		IQueueService testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		testQServ.start();
 		/*
@@ -240,7 +240,7 @@ public class QueueServiceNewTest {
 	 */
 	@Test
 	public void testRegistration() throws EventException {
-		IQueueServiceNew testQServ = new QueueServiceNew(qRoot, uri);
+		IQueueService testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		testQServ.start();
 		/*
@@ -295,7 +295,7 @@ public class QueueServiceNewTest {
 		}
 		
 		//Check queue registration not possible without start
-		testQServ = new QueueServiceNew(qRoot, uri);
+		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		try {
 			testQServ.registerNewActiveQueue();
@@ -311,7 +311,7 @@ public class QueueServiceNewTest {
 	 */
 	@Test
 	public void testConfigChange() throws EventException, URISyntaxException {
-		IQueueServiceNew testQServ = new QueueServiceNew(qRoot, uri);
+		IQueueService testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		testQServ.start();
 		
@@ -348,11 +348,11 @@ public class QueueServiceNewTest {
 			
 			//Test changing qRoot
 			testQServ.setQueueRoot("new-test-queue-root");
-			assertEquals("Incorrect Heartbeat topic name", "new-test-queue-root"+IQueueServiceNew.HEARTBEAT_TOPIC_SUFFIX, testQServ.getHeartbeatTopicName());
-			assertEquals("Incorrect Command set name", "new-test-queue-root"+IQueueServiceNew.COMMAND_SET_SUFFIX, testQServ.getCommandSetName());
-			assertEquals("Incorrect Command topic name", "new-test-queue-root"+IQueueServiceNew.COMMAND_TOPIC_SUFFIX, testQServ.getCommandTopicName());
-			assertEquals("Incorrect jobQueueID", "new-test-queue-root"+IQueueServiceNew.JOB_QUEUE_SUFFIX, testQServ.getJobQueueID());
-			IQueueNew<QueueBean> jobQueue = testQServ.getJobQueue();
+			assertEquals("Incorrect Heartbeat topic name", "new-test-queue-root"+IQueueService.HEARTBEAT_TOPIC_SUFFIX, testQServ.getHeartbeatTopicName());
+			assertEquals("Incorrect Command set name", "new-test-queue-root"+IQueueService.COMMAND_SET_SUFFIX, testQServ.getCommandSetName());
+			assertEquals("Incorrect Command topic name", "new-test-queue-root"+IQueueService.COMMAND_TOPIC_SUFFIX, testQServ.getCommandTopicName());
+			assertEquals("Incorrect jobQueueID", "new-test-queue-root"+IQueueService.JOB_QUEUE_SUFFIX, testQServ.getJobQueueID());
+			IQueue<QueueBean> jobQueue = testQServ.getJobQueue();
 			assertEquals("Job queue name in service & on job-queue do not match", testQServ.getJobQueueID(), jobQueue.getQueueID());
 			
 			//Test changing URI

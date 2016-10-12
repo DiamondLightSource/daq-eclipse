@@ -5,7 +5,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
-	AtomQueueServiceTest.class,
+	QueueServiceTest.class,
 	HeartbeatMonitorTest.class,
 	QueueProcessTest.class,
 	QueueProcessCreatorTest.class,

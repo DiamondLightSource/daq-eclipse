@@ -9,38 +9,70 @@ import java.util.Random;
 import java.util.Set;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.queues.IQueueNew;
-import org.eclipse.scanning.api.event.queues.IQueueServiceNew;
-import org.eclipse.scanning.api.event.queues.QueueStatus;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class QueueServiceNew implements IQueueServiceNew {
+/**
+ * AtomQueueService provides an implementation of {@link IQueueService}.
+ * The service requires a URI and a queueRoot String as configuration. The URI
+ * is used to specify the broker which will be used to run create 
+ * {@link IEventService} objects and the queueRoot String is used as a starting
+ * point to name {@link IQueue} objects.
+ * 
+ * On starting, the service creates a job-queue {@link IQueue} object which 
+ * processes {@link QueueBean}s (i.e. {@link TaskBean}s in the design). The 
+ * service has methods to register new active-queue {@link IQueue} object on 
+ * the fly, with the names for these based on the queueRoot String and a random
+ * number to ensure queue names do not collide.
+ * 
+ * All queues are configured to share the same heartbeat & command destinations
+ * to allow control of the service (these are also based on the queueRoot 
+ * String with common suffixes appended).
+ * 
+ * Users should be able to interact with the service directly, and therefore 
+ * the job-queue. However individual active-queues should work autonomously.
+ * Interaction with the queue is provided through 
+ * {@link IQueueServiceController}. //TODO
+ * 
+ * To start the service, after instantiation a queueRoot & URI should be 
+ * provided. init() can then be called, leaving the service in a state where 
+ * the start() and stop() methods can be used to activate/deactivate bean 
+ * processing. To shutdown the service, call disposeService()  
+ * 
+ * 
+ * @author Michael Wharmby
+ *
+ */
+public class QueueService implements IQueueService {
 	
-	private static final Logger logger = LoggerFactory.getLogger(QueueServiceNew.class);
+	private static final Logger logger = LoggerFactory.getLogger(QueueService.class);
 	
 	private String queueRoot, uriString, heartbeatTopicName, commandSetName, 
 		commandTopicName, jobQueueID;
 	private URI uri;
 	private boolean active = false, init = false;
 	
-	private IQueueNew<QueueBean> jobQueue;//FIXME Change QueueBean to an Interface
-	private Map<String, IQueueNew<QueueAtom>> activeQueueRegister;
+	private IQueue<QueueBean> jobQueue;//FIXME Change QueueBean to an Interface
+	private Map<String, IQueue<QueueAtom>> activeQueueRegister;
 	
 	/**
 	 * No argument constructor for OSGi
 	 */
-	public QueueServiceNew() {
+	public QueueService() {
 		
 	}
 	
 	/**
 	 * Constructor for tests
 	 */
-	public QueueServiceNew(String queueRoot, URI uri) {
+	public QueueService(String queueRoot, URI uri) {
 		this.queueRoot = queueRoot;
 		this.uri = uri;
 	}
@@ -59,7 +91,7 @@ public class QueueServiceNew implements IQueueServiceNew {
 		
 		//Now we can set up the job-queue
 		jobQueueID = queueRoot+JOB_QUEUE_SUFFIX;
-		jobQueue = new QueueNew<>(jobQueueID, uri, 
+		jobQueue = new Queue<>(jobQueueID, uri, 
 				heartbeatTopicName, commandSetName, commandTopicName);
 		
 		//Create the active-queues map
@@ -76,11 +108,12 @@ public class QueueServiceNew implements IQueueServiceNew {
 
 		//Remove any remaining active queues
 		for (String aqID : getAllActiveQueueIDs()) {
+			stopActiveQueue(aqID, true);
 			deRegisterActiveQueue(aqID, true);
 		}
 
 		//Dispose the job queue
-		disposeQueue(getJobQueueID(), true);
+		disposeQueue(jobQueue, true);
 		
 		//Mark the service not initialised
 		init = false;
@@ -139,10 +172,14 @@ public class QueueServiceNew implements IQueueServiceNew {
 		//Generate the random name of the queue
 		Random randNrGen = new Random();
 		String randInt = String.format("%03d", randNrGen.nextInt(999));
-		String aqID = queueRoot+ACTIVE_QUEUE_PREFIX+activeQueueRegister.size()+"-"+randInt+ACTIVE_QUEUE_SUFFIX;
+		String aqID = queueRoot+ACTIVE_QUEUE_PREFIX+activeQueueRegister.size()+"-"+randInt+ACTIVE_QUEUE_SUFFIX;;
+		//And really make sure we don't get any name collisions
+		while (activeQueueRegister.containsKey(aqID)) {
+			aqID = queueRoot+ACTIVE_QUEUE_PREFIX+activeQueueRegister.size()+"-"+randInt+ACTIVE_QUEUE_SUFFIX;
+		}
 		
 		//Create active-queue, add to register & return the active-queue ID
-		IQueueNew<QueueAtom> activeQueue = new QueueNew<>(aqID, uri, 
+		IQueue<QueueAtom> activeQueue = new Queue<>(aqID, uri, 
 				heartbeatTopicName, commandSetName, commandTopicName);
 		activeQueue.clearQueues();
 		activeQueueRegister.put(aqID, activeQueue);
@@ -155,13 +192,12 @@ public class QueueServiceNew implements IQueueServiceNew {
 		if (!active) throw new EventException("Queue service not started.");
 		
 		//Get the queue and check that it's not started
-		IQueueNew<QueueAtom> activeQueue = getActiveQueue(queueID);
+		IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
 		if (activeQueue.getStatus().isActive()) {
 			throw new EventException("Active-queue " + queueID +" still running - cannot deregister.");
 		}
 		
-		//Disconnect remaining queue processes and remove from map
-		disposeQueue(queueID, true);
+		//Remove remaining queue processes from map
 		activeQueueRegister.remove(queueID);
 	}
 	
@@ -173,7 +209,7 @@ public class QueueServiceNew implements IQueueServiceNew {
 	@Override
 	public void startActiveQueue(String queueID) throws EventException {
 		//Check active-queue is not already running
-		IQueueNew<QueueAtom> activeQueue = getActiveQueue(queueID);
+		IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
 		if (!activeQueue.getStatus().isStartable()) {
 			throw new EventException("Active-queue "+queueID+" is not startable - Status: " + activeQueue.getStatus());
 		}
@@ -188,7 +224,7 @@ public class QueueServiceNew implements IQueueServiceNew {
 	public void stopActiveQueue(String queueID, boolean force) 
 			throws EventException {
 		//Check active-queue is running
-		IQueueNew<QueueAtom> activeQueue = getActiveQueue(queueID);
+		IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
 		if (!activeQueue.getStatus().isActive()) {
 			logger.warn("Active-queue "+queueID+" is not active.");
 			return;
@@ -200,17 +236,13 @@ public class QueueServiceNew implements IQueueServiceNew {
 		} else {
 			activeQueue.stop();
 		}
+		
+		//And dispose the queue afterwards
+		disposeQueue(activeQueue, false);
 	}
 	
-	@Override
-	public void disposeQueue(String queueID, boolean nullify) throws EventException {
-		//Check active-queue is not already running
-		IQueueNew<? extends Queueable> queue = getQueue(queueID);
-		if (queue.getStatus().isActive()) throw new EventException("Queue is currently running. Cannot dispose.");
-		else if (queue.getStatus() == QueueStatus.DISPOSED) {
-			logger.warn("Active-queue "+queueID+" has already been disposed.");
-			return;
-		}
+	private void disposeQueue(IQueue<? extends IQueueable> queue, boolean nullify) throws EventException {
+		String queueID = queue.getQueueID();
 		
 		//Clear queues: in previous iteration found that...
 		queue.clearQueues(); //...status queue clear, but submit not...
@@ -220,7 +252,7 @@ public class QueueServiceNew implements IQueueServiceNew {
 		
 		//Nullify if required
 		if (nullify) {
-			if (queueID.equals(jobQueue.getQueueID())) { 
+			if (queueID.equals(jobQueueID)) { 
 				jobQueue = null;
 				jobQueueID = null;
 			}
@@ -236,12 +268,12 @@ public class QueueServiceNew implements IQueueServiceNew {
 	}
 	
 	@Override
-	public IQueueNew<QueueBean> getJobQueue() {
+	public IQueue<QueueBean> getJobQueue() {
 		return jobQueue;
 	}
 	
 	@Override
-	public IQueueNew<QueueAtom> getActiveQueue(String queueID) {
+	public IQueue<QueueAtom> getActiveQueue(String queueID) {
 		if (isActiveQueueRegistered(queueID)) return activeQueueRegister.get(queueID);
 		throw new IllegalArgumentException("Queue ID "+queueID+" not found in registry");
 	}
@@ -268,7 +300,7 @@ public class QueueServiceNew implements IQueueServiceNew {
 
 		//Update job-queue
 		jobQueueID = queueRoot+JOB_QUEUE_SUFFIX;
-		jobQueue = new QueueNew<>(jobQueueID, uri, heartbeatTopicName, commandSetName, commandTopicName);
+		jobQueue = new Queue<>(jobQueueID, uri, heartbeatTopicName, commandSetName, commandTopicName);
 	}
 
 	@Override
@@ -303,7 +335,7 @@ public class QueueServiceNew implements IQueueServiceNew {
 		uriString = uri.toString();
 
 		//Update job-queue
-		jobQueue = new QueueNew<>(jobQueueID, uri, 
+		jobQueue = new Queue<>(jobQueueID, uri, 
 				heartbeatTopicName, commandSetName, commandTopicName);
 	}
 
