@@ -1,34 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension
-         point="org.eclipse.scanning.api.device">
-      <device
-            class="org.eclipse.scanning.example.detector.MandelbrotDetector"
-            description="Device which computes and mandelbrot set and images it."
-            icon="icons/mandelbrot.png"
-            id="org.eclipse.scanning.example.detector.mandelbrotDetector"
-            label="Mandelbrot Example"
-            model="org.eclipse.scanning.example.detector.MandelbrotModel"
-            name="mandelbrot">
-      </device>
-      <device
-            class="org.eclipse.scanning.example.detector.ConstantVelocityDevice"
-            description="Device to do CV scan"
-            id="org.eclipse.scanning.example.detector.constantVelocityDevice"
-            label="Constant Velocity Example"
-            model="org.eclipse.scanning.example.detector.ConstantVelocityModel"
-            name="cvExmpl">
-      </device>
-      <device
-            class="org.eclipse.scanning.example.detector.DarkImageDetector"
-            description="A device which writes periodically to record dark current"
-            icon="icons/darkcurrent.png"
-            id="org.eclipse.scanning.example.detector.darkImageDetector"
-            label="Dark Current Example"
-            model="org.eclipse.scanning.example.detector.DarkImageModel"
-            name="dkExmpl">
-      </device>
-   </extension>
 
 </plugin>

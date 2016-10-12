@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.scanning.api.IModelProvider;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 
 /**
@@ -103,16 +104,19 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	private boolean busy;
 	
 	/**
-	 * Devices can be a layer over real hardware such as a detector or
-	 * pure software such as analysis.
-	 */
-	private boolean hardware;
-	
-	/**
 	 * List of all attributes
 	 */
 	private List<MalcolmAttribute> attributes;
 
+	private DeviceRole deviceRole;
+
+	public DeviceRole getDeviceRole() {
+		return deviceRole;
+	}
+
+	public void setDeviceRole(DeviceRole deviceRole) {
+		this.deviceRole = deviceRole;
+	}
 
 	public DeviceInformation() {
 
@@ -187,7 +191,7 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		result = prime * result + ((attributes == null) ? 0 : attributes.hashCode());
 		result = prime * result + (busy ? 1231 : 1237);
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
-		result = prime * result + (hardware ? 1231 : 1237);
+		result = prime * result + ((deviceRole == null) ? 0 : deviceRole.hashCode());
 		result = prime * result + ((icon == null) ? 0 : icon.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
@@ -226,7 +230,7 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 				return false;
 		} else if (!description.equals(other.description))
 			return false;
-		if (hardware != other.hardware)
+		if (deviceRole != other.deviceRole)
 			return false;
 		if (icon == null) {
 			if (other.icon != null)
@@ -375,13 +379,6 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 
 	public void setAttributes(List<MalcolmAttribute> attributes) {
 		this.attributes = attributes;
-	}
-	public boolean isHardware() {
-		return hardware;
-	}
-
-	public void setHardware(boolean hardware) {
-		this.hardware = hardware;
 	}
 
 }

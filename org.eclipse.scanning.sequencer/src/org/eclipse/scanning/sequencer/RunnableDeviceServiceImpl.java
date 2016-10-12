@@ -82,18 +82,17 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		modelledDevices.put(ScanModel.class,         AcquisitionDevice.class);
 
 		namedDevices     = new HashMap<>(3);
-
-		try {
-			readExtensions();
-		} catch (CoreException e) {
-			e.printStackTrace(); // Static block, intentionally do not use logging.
-		}
 	}
 
 	/**
 	 * Main constructor used in the running server by OSGi (only)
 	 */
 	public RunnableDeviceServiceImpl() {
+		try {
+			readExtensions();
+		} catch (CoreException e) {
+			logger.error("Problem reading extension points, non-fatal as spring may be used.", e);
+		}
 	}
 	
 	// Test
@@ -125,16 +124,14 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 	                	// getName() is not compulsory in the model
 	                }
 
-	                if (!device.isVirtual()) { // We have to make a good instance which will be used in scanning.
+	                if (!device.getRole().isVirtual()) { // We have to make a good instance which will be used in scanning.
 	                	
 						final DeviceInformation<?> info   = new DeviceInformation<>();
 						info.setLabel(e.getAttribute("label"));
 						info.setDescription(e.getAttribute("description"));
 						info.setId(e.getAttribute("id"));
 						info.setIcon(e.getContributor().getName()+"/"+e.getAttribute("icon"));
-						boolean hardware = e.getAttribute("hardware")==null ? true : Boolean.valueOf(e.getAttribute("hardware"));
-						info.setHardware(hardware);
-	
+
 						if (device instanceof AbstractRunnableDevice) {
 							AbstractRunnableDevice adevice = (AbstractRunnableDevice)device;
 							adevice.setDeviceInformation(info);
@@ -159,7 +156,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 
 	private static void registerDevice(Class modelClass, IRunnableDevice device) {
 		modelledDevices.put(modelClass, device.getClass());
-		if (!device.isVirtual()) {
+		if (!device.getRole().isVirtual()) {
 			namedDevices.put(device.getName(), device);
 		}
 	}
@@ -219,7 +216,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 				manager.invoke(PostConfigure.class, model);
 			}
 			
-			if (!scanner.isVirtual()) {
+			if (!scanner.getRole().isVirtual()) {
 				namedDevices.put(scanner.getName(), scanner);
 			}
 			
