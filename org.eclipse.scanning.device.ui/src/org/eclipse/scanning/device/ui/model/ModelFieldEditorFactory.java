@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -200,7 +199,7 @@ public class ModelFieldEditorFactory {
 		} else if (deviceType == DeviceType.RUNNABLE) {
 			Collection<DeviceInformation<?>> infos = dservice.getDeviceInformation();
 			items = new ArrayList<String>(infos.size());
-			infos.forEach(info->{if (info.isHardware()) items.add(info.getName());});
+			infos.forEach(info->{if (info.getDeviceRole().isHardware()) items.add(info.getName());});
 		} else {
 			throw new ScanningException("Unrecognised device "+deviceType);
 		}

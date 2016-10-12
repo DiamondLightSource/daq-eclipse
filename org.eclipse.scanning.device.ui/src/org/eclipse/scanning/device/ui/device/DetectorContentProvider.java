@@ -59,9 +59,9 @@ class DetectorContentProvider implements IStructuredContentProvider {
 		    final boolean isDevice     = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_HARDWARE);
 		    final boolean isProcessing = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_PROCESSING);
 		    infos.forEach(info-> {
-		    	if (info.isHardware()) {
+		    	if (info.getDeviceRole().isHardware()) {
 		    		if (isDevice) devices.add(info);
-		    	} else {
+		    	} else if (info.getDeviceRole().isProcessing()) {
 		    		if (isProcessing) devices.add(info);
 		    	}
 		    });

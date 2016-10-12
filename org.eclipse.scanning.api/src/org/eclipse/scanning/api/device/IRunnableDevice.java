@@ -7,8 +7,9 @@ import java.util.List;
 import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.ILevel;
 import org.eclipse.scanning.api.IModelProvider;
-import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.INameable;
+import org.eclipse.scanning.api.IValidator;
+import org.eclipse.scanning.api.device.models.IDeviceRoleActor;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
@@ -60,7 +61,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * @author Matthew Gerring
  *
  */
-public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>, IResettableDevice, IValidator<T>, IModelProvider<T> {
+public interface IRunnableDevice<T> extends INameable, IDeviceRoleActor, ILevel, IConfigurable<T>, IResettableDevice, IValidator<T>, IModelProvider<T> {
 	
 	/**
 	 * 
@@ -155,19 +156,6 @@ public interface IRunnableDevice<T> extends INameable, ILevel, IConfigurable<T>,
 	 */
 	default void latch() throws ScanningException, InterruptedException {
 		throw new ScanningException("Latch is not implemnented for "+getClass().getSimpleName());
-	}
-	
-	/**
-	 * If the device is a virtual device which like a scan device controlling other
-	 * hardware, it will return true for virtual. Normally hardware which is wrapped by
-	 * a single java class will return false. It is not virtual and one instance of the wrapping
-	 * class should exist. For standard non-virtual devices the IDeviceService will 
-	 * cache the connection to the device such that it only has one connection and configuration.
-	 * 
-	 * @return
-	 */
-	default boolean isVirtual() {
-		return false;
 	}
 	
 	/**
