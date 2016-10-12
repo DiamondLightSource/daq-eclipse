@@ -25,6 +25,8 @@ public class MockQueueService implements IQueueService {
 	
 	private URI uri;
 	
+	private boolean active = false, forced = false;
+	
 	public MockQueueService(IQueue<QueueBean> mockOne) {
 		this.jobQueue = mockOne;
 		jobQueueID = mockOne.getQueueID();
@@ -70,12 +72,14 @@ public class MockQueueService implements IQueueService {
 		for (String queueID : activeQueues.keySet()) {
 			activeQueues.get(queueID).getConsumer().start();
 		}
-
+		
+		active = true;
 	}
 
 	@Override
 	public void stop(boolean force) throws EventException {
-		// TODO Auto-generated method stub
+		active = false;
+		forced = force;
 
 	}
 
@@ -192,8 +196,7 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public boolean isActive() {
-		// TODO Auto-generated method stub
-		return false;
+		return active;
 	}
 	
 	@Override
@@ -201,5 +204,7 @@ public class MockQueueService implements IQueueService {
 		return commandQueueName;
 	}
 	
-
+	public boolean isForced() {
+		return forced;
+	}
 }

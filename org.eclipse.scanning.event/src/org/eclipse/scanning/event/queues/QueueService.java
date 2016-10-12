@@ -11,6 +11,7 @@ import java.util.Set;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
@@ -39,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * Users should be able to interact with the service directly, and therefore 
  * the job-queue. However individual active-queues should work autonomously.
  * Interaction with the queue is provided through 
- * {@link IQueueServiceController}. //TODO
+ * {@link IQueueControllerService}.
  * 
  * To start the service, after instantiation a queueRoot & URI should be 
  * provided. init() can then be called, leaving the service in a state where 
@@ -141,7 +142,7 @@ public class QueueService implements IQueueService {
 	@Override
 	public void stop(boolean force) throws EventException {
 		if (!(isActive() || jobQueue.getStatus().isActive())) {
-			logger.warn("Job queue is not active.");
+			logger.warn("Job-queue is not active.");
 			return;
 		}
 
@@ -156,7 +157,8 @@ public class QueueService implements IQueueService {
 		
 		//Kill/stop the job queue
 		if (force) {
-//FIXME			killQueue(getJobQueueID(), true, false);
+//FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
+//			controller.killQueue(queueID, true, false);
 		} else {
 			jobQueue.stop();
 		}
@@ -232,7 +234,8 @@ public class QueueService implements IQueueService {
 		
 		//Kill/stop the job queue
 		if (force) {
-//FIXME			killQueue(queueID, true, false);
+//FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
+//			controller.killQueue(queueID, true, false);
 		} else {
 			activeQueue.stop();
 		}
