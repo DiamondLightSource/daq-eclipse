@@ -56,14 +56,14 @@ public interface IQueueService {
 	public void disposeService() throws EventException;
 	
 	/**
-	 * Start the job queue consumer.
+	 * Start the job-queue consumer.
 	 * 
 	 * @throws EventException in case it was not possible to start the consumer.
 	 */
 	public void start() throws EventException;
 	
 	/**
-	 * Stop the job queue consumer and any dependent active-queue consumers 
+	 * Stop the job-queue consumer and any dependent active-queue consumers 
 	 * gracefully. If force is true, consumers will be killed rather than 
 	 * stopped (this will leave jobs in the submit queues).
 	 * 
