@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -41,7 +42,10 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.annotation.ui.FileType;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
@@ -69,16 +73,28 @@ public class ModelFieldEditorFactory {
 	private static ISelectionListener selectionListener;
 	private static ToolTip            currentHint;
 	private IScannableDeviceService   cservice;
+	private IRunnableDeviceService    dservice;
 
 	private ColumnLabelProvider labelProvider;
 	
-	public ModelFieldEditorFactory(ColumnLabelProvider labelProvider) {
-		this.labelProvider = labelProvider;
+	public ModelFieldEditorFactory() {
+		cservice = getService(IScannableDeviceService.class);
+		dservice = getService(IRunnableDeviceService.class);
+
+	}
+	
+	private <T> T getService(Class<T> clazz) {
 		try {
-			cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
+			return (T)ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), clazz);
 		} catch (Exception e) {
-			logger.error("Unable to make a remote connection to "+IScannableDeviceService.class.getSimpleName());
+			logger.error("Unable to make a remote connection to "+clazz.getSimpleName());
+			return null;
 		}
+	}
+	
+	public ModelFieldEditorFactory(ColumnLabelProvider labelProvider) {
+		this();
+		this.labelProvider = labelProvider;
 	}
 	
 	public void dispose() {
@@ -90,8 +106,9 @@ public class ModelFieldEditorFactory {
 	 * @param field
 	 * 
 	 * @return null if the field is not editable.
+	 * @throws ScanningException 
 	 */
-	public CellEditor createEditor(FieldValue field, Composite parent) {
+	public CellEditor createEditor(FieldValue field, Composite parent) throws ScanningException {
         
 		Object value;
 		try {
@@ -112,7 +129,6 @@ public class ModelFieldEditorFactory {
 			}
 			
 		}
-        
   
 		CellEditor ed = null;
     	final FieldDescriptor anot = field.getAnnotation();
@@ -147,7 +163,7 @@ public class ModelFieldEditorFactory {
         		fe.setNewFile(anot.file().isNewFile());
         	}
         } else if (String.class.equals(clazz) && anot!=null && anot.device() != DeviceType.NONE) {
-        	ed = getDeviceEditor(parent);
+        	ed = getDeviceEditor(anot.device(), parent);
         	
         } else if (String.class.equals(clazz) && anot!=null && anot.dataset() != null &&!anot.dataset().isEmpty()) {
         	ed = getDatasetEditor(field, parent);
@@ -176,28 +192,25 @@ public class ModelFieldEditorFactory {
 
 	}
 	
-	private CellEditor getDeviceEditor(Composite parent) {
-        // TODO Only scannables supported...
-		return getScannableEditor(parent, cservice);
-	}
-
-	public static CellEditor getScannableEditor(Composite parent, IScannableDeviceService cservice) {
-		
-		String[] items = null;
-		try {
-			List<String> names = cservice.getScannableNames();
-			items = names.toArray(new String[names.size()]);
-			
-		} catch (Exception ne) {
-			logger.error("Cannot get devices for "+DeviceType.SCANNABLE, ne);
-			items = null;
+	public CellEditor getDeviceEditor(DeviceType deviceType, Composite parent) throws ScanningException {
+        
+		final List<String> items;
+		if (deviceType == DeviceType.SCANNABLE) {
+			items = cservice.getScannableNames();
+		} else if (deviceType == DeviceType.RUNNABLE) {
+			Collection<DeviceInformation<?>> infos = dservice.getDeviceInformation();
+			items = new ArrayList<String>(infos.size());
+			infos.forEach(info->{if (info.isHardware()) items.add(info.getName());});
+		} else {
+			throw new ScanningException("Unrecognised device "+deviceType);
 		}
-		
+
 		if (items != null) {
-			final List<String> sorted = Arrays.asList(items);
+			final List<String> sorted = new ArrayList<>(items);
 			Collections.sort(sorted, new SortNatural<>(false));
 			final String[] finalItems = sorted.toArray(new String[sorted.size()]);
-			return new CComboCellEditor(parent, items) {
+			
+			return new CComboCellEditor(parent, finalItems) {
 				private Object lastValue;
 	    	    protected void doSetValue(Object value) {
 	                if (value instanceof Integer) value = finalItems[((Integer) value).intValue()];
@@ -222,6 +235,7 @@ public class ModelFieldEditorFactory {
 				}
 			};
 		}
+
 	}
 
 	public static boolean isEnabled(Object model, FieldDescriptor anot) {

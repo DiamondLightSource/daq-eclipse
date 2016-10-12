@@ -9,8 +9,8 @@ public class AxisConfiguration {
 	@FieldDescriptor(file=FileType.EXISTING_FILE, hint="The microscope image to load into the scan as a background.", fieldPosition=-2)
 	private String microscopeImage;
 	
-	@FieldDescriptor(hint="If there is no image, create some random noise for one instead.", fieldPosition=-1, enableif="microscopeImage==null")
-	private boolean randomNoise = true;
+	@FieldDescriptor(label="Random", hint="If there is no image, create some random noise for one instead.", fieldPosition=-1, enableif="microscopeImage==null")
+	private boolean randomNoise = false;
 
 	public boolean isRandomNoise() {
 		return randomNoise;
@@ -42,10 +42,18 @@ public class AxisConfiguration {
 	@FieldDescriptor(scannable="slowAxisName", fieldPosition=5)
 	private double slowAxisEnd;
 	
+	@FieldDescriptor(label="Apply to Regions", hint="Find any scan regions and set their axis names to those on this form.", fieldPosition=6)
+	private boolean applyRegions = false;
+
+	@FieldDescriptor(label="Apply to Scan", hint="Find any scan models and set their axis names to those on this form.", fieldPosition=7)
+	private boolean applyModels = false;
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + (applyModels ? 1231 : 1237);
+		result = prime * result + (applyRegions ? 1231 : 1237);
 		long temp;
 		temp = Double.doubleToLongBits(fastAxisEnd);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -70,6 +78,10 @@ public class AxisConfiguration {
 		if (getClass() != obj.getClass())
 			return false;
 		AxisConfiguration other = (AxisConfiguration) obj;
+		if (applyModels != other.applyModels)
+			return false;
+		if (applyRegions != other.applyRegions)
+			return false;
 		if (Double.doubleToLongBits(fastAxisEnd) != Double.doubleToLongBits(other.fastAxisEnd))
 			return false;
 		if (fastAxisName == null) {
@@ -134,4 +146,17 @@ public class AxisConfiguration {
 		this.slowAxisEnd = slowAxisEnd;
 	}
 	
+	public boolean isApplyRegions() {
+		return applyRegions;
+	}
+	public void setApplyRegions(boolean applyRegions) {
+		this.applyRegions = applyRegions;
+	}
+	public boolean isApplyModels() {
+		return applyModels;
+	}
+	public void setApplyModels(boolean applyModels) {
+		this.applyModels = applyModels;
+	}
+
 }

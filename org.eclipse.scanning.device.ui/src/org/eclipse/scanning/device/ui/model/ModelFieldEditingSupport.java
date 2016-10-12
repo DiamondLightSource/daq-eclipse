@@ -6,24 +6,35 @@ import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.ui.services.IDisposable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ModelFieldEditingSupport extends EditingSupport implements IDisposable {
+
+	private static final Logger logger = LoggerFactory.getLogger(ModelFieldEditingSupport.class);
 
 	/**
 	 * 
 	 */
-	private final ModelViewer modelViewer;
-	private ModelFieldEditorFactory factory;
-	public ModelFieldEditingSupport(ModelViewer modelViewer, ColumnViewer viewer, ColumnLabelProvider prov) {
+	private final ModelViewer<?> modelViewer;
+	private final ModelFieldEditorFactory factory;
+	
+	public ModelFieldEditingSupport(ModelViewer<?> modelViewer, ColumnViewer viewer, ColumnLabelProvider prov) {
 		super(viewer);
 		this.modelViewer = modelViewer;
-		factory = new ModelFieldEditorFactory(prov);
+		this.factory = new ModelFieldEditorFactory(prov);
 	}
 
 	@Override
 	protected CellEditor getCellEditor(Object element) {
-		return factory.createEditor((FieldValue)element, this.modelViewer.getTable());
+		try {
+			return factory.createEditor((FieldValue)element, this.modelViewer.getTable());
+		} catch (ScanningException e) {
+			logger.error("Cannot create an editor! Internal error!", e);
+			return null;
+		}
 	}
 
 	@Override

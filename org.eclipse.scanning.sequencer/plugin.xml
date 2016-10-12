@@ -6,6 +6,7 @@
       <device
             class="org.eclipse.scanning.sequencer.analysis.ProcessingRunnableDevice"
             description="Run processing at each scan point"
+            hardware="false"
             icon="icons/processing.png"
             id="org.eclipse.scanning.sequencer.processingDevice"
             label="Processing"
@@ -15,6 +16,7 @@
       <device
             class="org.eclipse.scanning.sequencer.analysis.ClusterProcessingRunnableDevice"
             description="Run processing on the cluster"
+            hardware="false"
             icon="icons/processing.png"
             id="org.eclipse.scanning.sequencer.clusterProcessingDevice"
             label="Cluster Processing"

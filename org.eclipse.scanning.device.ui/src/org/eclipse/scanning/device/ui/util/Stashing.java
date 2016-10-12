@@ -139,5 +139,9 @@ public class Stashing {
 		return file.getAbsolutePath();
 	}
 
+	public File getFile() {
+		return file;
+	}
+
 
 }

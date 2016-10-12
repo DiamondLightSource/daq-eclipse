@@ -236,10 +236,12 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	 * 
 	 * @return
 	 * @throws Exception
+			// TODO Use IScanBuilderService
 	 */
 	private ScanRequest<IROI> createScanRequest(boolean lookForScanRequest) throws Exception {
 		
 		if (lookForScanRequest) {
+			// TODO Replace with IScanBuilderService to make e4 compatible
 			IViewReference[] refs = PageUtil.getPage().getViewReferences();
 			for (IViewReference iViewReference : refs) {
 				IViewPart part = iViewReference.getView(false);
@@ -251,6 +253,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		
 		if (modelAdaptable==null) {
 			// We see if there is a view with a compound model adaptable
+			// TODO Replace with IScanBuilderService to make e4 compatible
 			IViewReference[] refs = PageUtil.getPage().getViewReferences();
 			for (IViewReference iViewReference : refs) {
 				IViewPart part = iViewReference.getView(false);

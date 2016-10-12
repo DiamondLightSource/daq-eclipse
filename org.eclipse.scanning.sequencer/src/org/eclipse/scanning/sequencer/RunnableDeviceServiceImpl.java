@@ -133,6 +133,8 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 						info.setDescription(e.getAttribute("description"));
 						info.setId(e.getAttribute("id"));
 						info.setIcon(e.getContributor().getName()+"/"+e.getAttribute("icon"));
+						boolean hardware = e.getAttribute("hardware")==null ? true : Boolean.valueOf(e.getAttribute("hardware"));
+						info.setHardware(hardware);
 						adevice.setDeviceInformation(info);
 						
 						if (adevice.getModel()==null) adevice.setModel(mod); // Empty Model

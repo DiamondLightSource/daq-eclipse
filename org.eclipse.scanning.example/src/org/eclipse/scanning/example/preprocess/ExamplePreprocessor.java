@@ -1,8 +1,7 @@
 package org.eclipse.scanning.example.preprocess;
 
 import org.eclipse.scanning.api.event.scan.ScanRequest;
-import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
-import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.process.IPreprocessor;
 import org.eclipse.scanning.api.scan.process.ProcessingException;
@@ -31,9 +30,9 @@ public class ExamplePreprocessor implements IPreprocessor {
 		for (Object model : req.getCompoundModel().getModels()) {
 			if (model instanceof StepModel) {
 				((StepModel)model).setName("xfred");
-			} if (model instanceof AbstractBoundingBoxModel) {
-				((AbstractBoundingBoxModel)model).setFastAxisName("xfred");
-				((AbstractBoundingBoxModel)model).setSlowAxisName("yfred");
+			} if (model instanceof IBoundingBoxModel) {
+				((IBoundingBoxModel)model).setFastAxisName("xfred");
+				((IBoundingBoxModel)model).setSlowAxisName("yfred");
 			}
 		}
 		
