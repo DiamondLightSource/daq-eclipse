@@ -36,13 +36,21 @@
         <property name="port"     value="8690" />
         <property name="bundle"   value="org.eclipse.dawnsci.remotedataset.server" /> <!-- Delete for real spring? -->
     </bean>
+    
 
 	<!--  
 	$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 	Testing/example only section config do not copy to production. 
 	$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 	-->
-
+<!--
+    <bean id="exampleMalcolmModel" class="org.eclipse.scanning.example.malcolm.ExampleMalcolmModel">
+    
+        
+        <property name="bundle"   value="org.eclipse.scanning.example" /> 
+    
+    </bean>
+-->
 	<!--  Something to respond to xcen runs if they use the example xcen perspective -->
 	<bean id="xcenServlet"  class="org.eclipse.scanning.example.xcen.consumer.XcenServlet" init-method="connect">
 
