@@ -23,7 +23,7 @@ public class DummyOperationBean extends StatusBean implements IOperationBean {
 	private boolean deleteProcessingFile;
 	private String xmx;
 	private int[] dataDimensions;
-	private int scanRank;
+	private Integer scanRank;
 	private boolean readable;
 	private String name;
 	private String runDirectory;
@@ -89,10 +89,10 @@ public class DummyOperationBean extends StatusBean implements IOperationBean {
 	public void setDataDimensions(int[] dataDimensions) {
 		this.dataDimensions = dataDimensions;
 	}
-	public int getScanRank() {
+	public Integer getScanRank() {
 		return scanRank;
 	}
-	public void setScanRank(int scanRank) {
+	public void setScanRank(Integer scanRank) {
 		this.scanRank = scanRank;
 	}
 	public boolean isReadable() {
