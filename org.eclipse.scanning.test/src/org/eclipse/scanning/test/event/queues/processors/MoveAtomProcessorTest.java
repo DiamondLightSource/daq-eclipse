@@ -94,7 +94,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 		 * - message with details should be set on bean
 		 * - IPositioner should have received an abort command
 		 */
-		Queueable lastBean = ((MockPublisher<Queueable>)statPub).getLastBean();
+		Queueable lastBean = ((MockPublisher<Queueable>)statPub).getLastQueueable();
 		
 		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) in '"+lastBean.getName()+
 				"' failed: \"The badger apocalypse cometh! (EXPECTED - we pressed the button...)\".", lastBean.getMessage());
