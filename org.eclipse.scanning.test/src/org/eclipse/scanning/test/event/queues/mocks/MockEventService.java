@@ -17,7 +17,7 @@ import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 
 public class MockEventService implements IEventService {
 	
@@ -39,7 +39,7 @@ public class MockEventService implements IEventService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <U> IPublisher<U> createPublisher(URI uri, String topicName) {
-		if (topicName == QueueServicesHolder.getQueueService().getCommandTopicName()) {
+		if (topicName == ServicesHolder.getQueueService().getCommandTopicName()) {
 			return (IPublisher<U>) mockCmdPub;
 		}
 		return (IPublisher<U>) mockPublisher;

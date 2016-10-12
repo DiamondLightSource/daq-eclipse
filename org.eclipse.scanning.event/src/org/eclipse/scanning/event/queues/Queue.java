@@ -86,7 +86,7 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 		this.commandSetName = commandSetName;
 		this.commandTopicName = commandTopicName;
 
-		IEventService eventService = QueueServicesHolder.getEventService();
+		IEventService eventService = ServicesHolder.getEventService();
 		consumer = eventService.createConsumer(this.uri, getSubmissionQueueName(),
 				getStatusSetName(), getStatusTopicName(), getHeartbeatTopicName(),
 				getCommandTopicName());

@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.event.queues.QueueProcess;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +42,11 @@ public class MoveAtomProcessor extends AbstractQueueProcessor<MoveAtom> {
 	 * Create a MoveAtomProcessor which can be used by a {@link QueueProcess}. 
 	 * Constructor configures the device service 
 	 * ({@link IRunnableDeviceService}) using the instance specified in the 
-	 * {@link QueueServicesHolder}.
+	 * {@link ServicesHolder}.
 	 */
 	public MoveAtomProcessor() {
 		//Get the deviceService from the OSGi configured holder.
-		deviceService = QueueServicesHolder.getDeviceService();
+		deviceService = ServicesHolder.getDeviceService();
 	}
 
 	@Override

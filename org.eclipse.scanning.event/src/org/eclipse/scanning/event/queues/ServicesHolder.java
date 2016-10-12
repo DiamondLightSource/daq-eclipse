@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.event.queues.IQueueService;
  * @author Michael Wharmby
  *
  */
-public final class QueueServicesHolder {
+public final class ServicesHolder {
 
 	private static IRunnableDeviceService deviceService;
 	private static IEventService eventService;
@@ -23,12 +23,12 @@ public final class QueueServicesHolder {
 	}
 
 	public static void setDeviceService(IRunnableDeviceService deviceService) {
-		QueueServicesHolder.deviceService = deviceService;
+		ServicesHolder.deviceService = deviceService;
 	}
 
 	public static void unsetDeviceService(IRunnableDeviceService deviceService) {
-		if (QueueServicesHolder.deviceService == deviceService) {
-			QueueServicesHolder.deviceService = null;
+		if (ServicesHolder.deviceService == deviceService) {
+			ServicesHolder.deviceService = null;
 		}
 	}
 
@@ -37,12 +37,12 @@ public final class QueueServicesHolder {
 	}
 
 	public static void setEventService(IEventService eventService) {
-		QueueServicesHolder.eventService = eventService;
+		ServicesHolder.eventService = eventService;
 	}
 
 	public static void unsetEventService(IEventService eventService) {
-		if (QueueServicesHolder.eventService == eventService) {
-			QueueServicesHolder.eventService = null;
+		if (ServicesHolder.eventService == eventService) {
+			ServicesHolder.eventService = null;
 		}
 	}
 
@@ -51,12 +51,12 @@ public final class QueueServicesHolder {
 	}
 
 	public static void setQueueService(IQueueService queueService) {
-		QueueServicesHolder.queueService = queueService;
+		ServicesHolder.queueService = queueService;
 	}
 
 	public static void unsetQueueService(IQueueService queueService) {
-		if (QueueServicesHolder.queueService == queueService) {
-			QueueServicesHolder.queueService = null;
+		if (ServicesHolder.queueService == queueService) {
+			ServicesHolder.queueService = null;
 		}
 	}
 

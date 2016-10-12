@@ -10,7 +10,7 @@ import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.event.queues.Queue;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
@@ -29,7 +29,7 @@ public class QueueTest {
 		mockCons = new MockConsumer<>();
 		mockEvServ.setMockConsumer(mockCons);
 		
-		QueueServicesHolder.setEventService(mockEvServ);
+		ServicesHolder.setEventService(mockEvServ);
 		uri = new URI("file:///foo/bar");
 	}
 	

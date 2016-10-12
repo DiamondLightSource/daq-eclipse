@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.AtomQueueServiceUtils;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 
 /**
  * Generic class for processing a {@link Queueable} composed of an 
@@ -38,7 +38,7 @@ public class AtomQueueProcessor<P extends IAtomBeanWithQueue<Q>, Q extends Queue
 	private String activeQueueName; 
 	
 	public AtomQueueProcessor(IQueueProcessor<P> parentProcessor) {
-		queueService = QueueServicesHolder.getQueueService();	
+		queueService = ServicesHolder.getQueueService();	
 		this.parentProcessor = parentProcessor;
 	}
 		

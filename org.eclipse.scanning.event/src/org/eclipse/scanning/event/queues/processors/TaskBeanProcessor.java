@@ -3,7 +3,7 @@ package org.eclipse.scanning.event.queues.processors;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.AtomQueueServiceUtils;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 
@@ -34,7 +34,7 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 			} else {
 				//Failed: latch released before completion
 				broadcaster.broadcast(Status.FAILED, "Job-queue failed (caused by process Atom)");
-				AtomQueueServiceUtils.pauseQueue(QueueServicesHolder.getQueueService().getJobQueueID());
+				AtomQueueServiceUtils.pauseQueue(ServicesHolder.getQueueService().getJobQueueID());
 			}
 			
 			//This should be run after we've reported the queue final state

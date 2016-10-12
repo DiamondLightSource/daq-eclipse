@@ -9,7 +9,7 @@ import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
 import org.eclipse.scanning.test.event.queues.mocks.MockPositioner;
@@ -27,12 +27,12 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 	@Override
 	protected void localSetup() {
 		mss = new MockScanService();
-		QueueServicesHolder.setDeviceService(mss);
+		ServicesHolder.setDeviceService(mss);
 	}
 
 	@Override
 	protected void localTearDown() {
-		QueueServicesHolder.unsetDeviceService(mss);
+		ServicesHolder.unsetDeviceService(mss);
 		mvProcr = null;
 		mvAt = null;
 		mss = null;

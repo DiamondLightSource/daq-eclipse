@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.eclipse.scanning.event.queues.processors.TaskBeanProcessor;
@@ -52,23 +52,23 @@ public class TaskBeanProcessorTest {
 		mockSub = new MockSubmitter<>();
 		mockQServ = new MockQueueService(mockJobQ);
 		mockQServ.setMockSubmitter(mockSub);
-		QueueServicesHolder.setQueueService(mockQServ);
+		ServicesHolder.setQueueService(mockQServ);
 		
 		mockPub = new MockPublisher<>(null,  null);
 		mockCmdPub = new MockPublisher<>(null, null);
 		mockEvServ = new MockEventService();
 		mockEvServ.setMockPublisher(mockPub);
 		mockEvServ.setMockCmdPublisher(mockCmdPub);
-		QueueServicesHolder.setEventService(mockEvServ);
+		ServicesHolder.setEventService(mockEvServ);
 	}
 	
 	@AfterClass
 	public static void tearDownClass() {
-		QueueServicesHolder.unsetEventService(mockEvServ);
+		ServicesHolder.unsetEventService(mockEvServ);
 		mockEvServ = null;
 		mockPub = null;
 		
-		QueueServicesHolder.unsetQueueService(mockQServ);
+		ServicesHolder.unsetQueueService(mockQServ);
 		mockQServ = null;
 		mockSub = null;
 	}

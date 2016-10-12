@@ -18,7 +18,7 @@ import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.event.queues.QueueService;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
@@ -41,7 +41,7 @@ public class QueueServiceTest {
 		mockCmdPub = new MockPublisher<>(null, null);
 		mockEvServ.setMockConsumer(mockCons);
 		mockEvServ.setMockCmdPublisher(mockCmdPub);
-		QueueServicesHolder.setEventService(mockEvServ);
+		ServicesHolder.setEventService(mockEvServ);
 		
 		qRoot = "test-queue-root";
 		uri = new URI("file:///foo/bar");
