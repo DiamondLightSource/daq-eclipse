@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
+import org.eclipse.scanning.example.Services;
 
 /**
  * This device mimicks telling EPICS to do a constant velcity scan down a line.
@@ -37,6 +38,7 @@ public class ConstantVelocityDevice extends AbstractRunnableDevice<ConstantVeloc
 	private IDataset              data;
 	
 	public ConstantVelocityDevice() throws ScanningException {
+		super(Services.getRunnableDeviceService()); // So that spring will work.
 		this.model = new ConstantVelocityModel();
 		setDeviceState(DeviceState.IDLE);
 	}
