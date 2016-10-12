@@ -1,20 +1,15 @@
 package org.eclipse.scanning.event.queues;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.queues.IHeartbeatMonitor;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Queue is a concrete implementation of {@link IQueue}. It holds details of 
@@ -28,62 +23,76 @@ import org.slf4j.LoggerFactory;
  */
 public class Queue<T extends Queueable> implements IQueue<T> {
 
-	public static final String SUBMISSION_QUEUE_KEY = "submitQ";
-	public static final String SUBMISSION_QUEUE_SUFFIX = ".submission.queue";
-	public static final String STATUS_QUEUE_KEY = "statusQ";
-	public static final String STATUS_QUEUE_SUFFIX = ".status.queue";
-	public static final String STATUS_TOPIC_KEY = "statusT";
-	public static final String STATUS_TOPIC_SUFFIX = ".status.topic";
-	public static final String HEARTBEAT_TOPIC_KEY = "heartbeatT";
-	public static final String HEARTBEAT_TOPIC_SUFFIX = ".heartbeat.topic";
-	public static final String COMMAND_TOPIC_KEY = "commandT";
-	public static final String COMMAND_TOPIC_SUFFIX = ".command.topic";
-	public static final String COMMAND_QUEUE_KEY = "commandQ";
-	public static final String COMMAND_QUEUE_SUFFIX = ".command.queue";
-
-	private static final Logger logger = LoggerFactory.getLogger(Queue.class);
-
-	private final IConsumer<T> consumer;
-	private final IHeartbeatMonitor heartMonitor;
-	private final Map<String, String> queueNames;
 	private final String queueID;
-	private QueueStatus queueStatus;
+	private final URI uri;
+	private final IConsumer<T> consumer;
 
-	public Queue(String qID, URI uri) throws EventException {
-		this(qID, qID+HEARTBEAT_TOPIC_SUFFIX, qID+COMMAND_TOPIC_SUFFIX, qID+COMMAND_QUEUE_SUFFIX, uri);
+	private final String submissionQueueName, statusSetName, statusTopicName, 
+	heartbeatTopicName, commandSetName, commandTopicName;
+
+	private QueueStatus status;
+
+	/**
+	 * Constructs a Queue object from minimal arguments. Names of heartbeat 
+	 * topic and commmand set/topic will be automatically generated, based on 
+	 * the suffixes in {@link IQueue}.
+	 * 
+	 * @param queueID String name of queue.
+	 * @param uri URI of the broker.
+	 * @throws EventException When consumer cannot be created.
+	 */
+	public Queue(String queueID, URI uri) throws EventException {
+		this(queueID, uri, queueID+IQueue.HEARTBEAT_TOPIC_SUFFIX);
 	}
 
-	public Queue(String qID, String heartbeatTopic, String commandTopicName, String commandQueueName, URI uri) throws EventException {
-		this.queueID = qID;
-		queueNames = new HashMap<>(5);
-		queueNames.put(SUBMISSION_QUEUE_KEY, queueID+SUBMISSION_QUEUE_SUFFIX);
-		queueNames.put(STATUS_QUEUE_KEY, queueID+STATUS_QUEUE_SUFFIX);
-		queueNames.put(STATUS_TOPIC_KEY, queueID+STATUS_TOPIC_SUFFIX);
-		queueNames.put(HEARTBEAT_TOPIC_KEY, heartbeatTopic);
-		queueNames.put(COMMAND_TOPIC_KEY, commandTopicName);
-		queueNames.put(COMMAND_QUEUE_KEY, commandQueueName);
+	/**
+	 * Constructs a Queue with heartbeats published to a specific destination. 
+	 * Command set/topics will be automatically generated, based on  the 
+	 * suffixes in {@link IQueue}.
+	 * 
+	 * @param queueID String name of queue.
+	 * @param uri URI of the broker
+	 * @param heartbeatTopicName String topic name where heartbeats published.
+	 * @throws EventException When consumer cannot be created.
+	 */
+	public Queue(String queueID, URI uri, String heartbeatTopicName) throws EventException {
+		this(queueID, uri, heartbeatTopicName, queueID+IQueue.COMMAND_SET_SUFFIX, 
+				queueID+IQueue.COMMAND_TOPIC_SUFFIX);
+	}
+
+	/**
+	 * Constructs a Queue with heartbeats & commands published to specific 
+	 * destinations.
+	 *  
+	 * @param queueID String name of queue.
+	 * @param uri URI of the broker
+	 * @param heartbeatTopicName String topic name where heartbeats published.
+	 * @param commandSetName String queue name where consumer commands will be 
+	 *                       stored.
+	 * @param commandTopicName String topic name where commands will be 
+	 *                         published.
+	 * @throws EventException When consumer cannot be created.
+	 */
+	public Queue(String queueID, URI uri, String heartbeatTopicName,
+			String commandSetName, String commandTopicName) throws EventException {
+		this.queueID = queueID;
+		this.uri = uri;
+
+		//Record all the destination paths
+		submissionQueueName = queueID+IQueue.SUBMISSION_QUEUE_SUFFIX;
+		statusSetName = queueID+IQueue.STATUS_SET_SUFFIX;
+		statusTopicName = queueID+IQueue.STATUS_TOPIC_SUFFIX; 
+		this.heartbeatTopicName = heartbeatTopicName;
+		this.commandSetName = commandSetName;
+		this.commandTopicName = commandTopicName;
 
 		IEventService eventService = QueueServicesHolder.getEventService();
+		consumer = eventService.createConsumer(this.uri, getSubmissionQueueName(),
+				getStatusSetName(), getStatusTopicName(), getHeartbeatTopicName(),
+				getCommandTopicName());
+		consumer.setRunner(new QueueProcessCreator<T>(true));
 
-		try {
-			consumer = eventService.createConsumer(uri, getSubmissionQueueName(),
-					getStatusQueueName(), getStatusTopicName(), getHeartbeatTopicName(),
-					getCommandTopicName());
-			consumer.setRunner(new QueueProcessCreator<T>(true));
-		} catch (EventException eEx) {
-			logger.error("Failed to create consumer for "+queueID+".");
-			throw new EventException(eEx);
-		}
-
-		//This must be called after the consumer has been created.
-		try {
-			heartMonitor = new HeartbeatMonitor(uri, this, true);
-		} catch (EventException eEx) {
-			logger.error("Failed to create HeartbeatMonitor for "+queueID+".");
-			throw new EventException(eEx);
-		}
-
-		queueStatus = QueueStatus.INITIALISED;
+		status = QueueStatus.INITIALISED;
 	}
 
 	@Override
@@ -92,48 +101,21 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 	}
 
 	@Override
-	public QueueStatus getQueueStatus() {
-		return queueStatus;
+	public void start() throws EventException {
+		consumer.start();
+		status = QueueStatus.STARTED;
 	}
 
 	@Override
-	public void setQueueStatus(QueueStatus status) {
-		this.queueStatus = status;
+	public void stop() throws EventException {
+		consumer.stop();
+		status = QueueStatus.STOPPED;
 	}
 
 	@Override
-	public Map<String, String> getQueueNames() {
-		return queueNames;
-	}
-
-	@Override
-	public String getSubmissionQueueName() {
-		return queueNames.get(SUBMISSION_QUEUE_KEY);
-	}
-
-	@Override
-	public String getStatusQueueName() {
-		return queueNames.get(STATUS_QUEUE_KEY);
-	}
-
-	@Override
-	public String getStatusTopicName() {
-		return queueNames.get(STATUS_TOPIC_KEY);
-	}
-
-	@Override
-	public String getHeartbeatTopicName() {
-		return queueNames.get(HEARTBEAT_TOPIC_KEY);
-	}
-
-	@Override
-	public String getCommandTopicName() {
-		return queueNames.get(COMMAND_TOPIC_KEY);
-	}
-
-	@Override
-	public String getCommandQueueName() {
-		return queueNames.get(COMMAND_QUEUE_KEY);
+	public void disconnect() throws EventException {
+		consumer.disconnect();
+		status = QueueStatus.DISPOSED;
 	}
 
 	@Override
@@ -142,28 +124,57 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 	}
 
 	@Override
-	public IHeartbeatMonitor getHeartbeatMonitor() {
-		return heartMonitor;
+	public QueueStatus getStatus() {
+		return status;
+	}
+
+	@Override
+	public void setStatus(QueueStatus status) {
+		this.status = status;
+	}
+
+	@Override
+	public String getSubmissionQueueName() {
+		return submissionQueueName;
+	}
+
+	@Override
+	public String getStatusSetName() {
+		return statusSetName;
+	}
+
+	@Override
+	public String getStatusTopicName() {
+		return statusTopicName;
+	}
+
+	@Override
+	public String getHeartbeatTopicName() {
+		return heartbeatTopicName;
+	}
+
+	@Override
+	public String getCommandSetName() {
+		return commandSetName;
+	}
+
+	@Override
+	public String getCommandTopicName() {
+		return commandTopicName;
+	}
+
+	@Override
+	public URI getURI() {
+		return uri;
 	}
 
 	@Override
 	public boolean clearQueues() throws EventException {
 		consumer.clearQueue(getSubmissionQueueName());
-		consumer.clearQueue(getStatusQueueName());
+		consumer.clearQueue(getStatusSetName());
 
 		if (consumer.getStatusSet().size() == 0 && consumer.getSubmissionQueue().size() == 0) return true;
 		else return false;
-	}
-
-	@Override
-	public void disconnect() throws EventException {
-		heartMonitor.disconnect();
-		consumer.disconnect();
-	}
-
-	@Override
-	public boolean hasSubmittedJobsPending() throws EventException {
-		return !consumer.getSubmissionQueue().isEmpty();
 	}
 
 }
