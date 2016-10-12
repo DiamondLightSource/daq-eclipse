@@ -4,10 +4,29 @@ import java.net.URI;
 import java.util.Set;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
+/**
+ * **
+ * The IQueueService provides an interface for the unattended management of 
+ * {@link IEventService} queues.
+ * 
+ * Two types of queue may be created, started, stopped or destroyed:
+ * - job-queue - acting on {@link QueueBean}s
+ * - active-queue - acting on {@link QueueAtom}s
+ * 
+ * The job-queue is treated as a top-level queue - there should only be one 
+ * created per IQueueService instance. The active-queue is where the actual 
+ * experiment processing should be done; as such there can be any number of 
+ * these in parent-child relationships, with the job-queue at the root of the 
+ * tree.
+ * 
+ * @author Michael Wharmby
+ *
+ */
 public interface IQueueService {
 	
 	/**
