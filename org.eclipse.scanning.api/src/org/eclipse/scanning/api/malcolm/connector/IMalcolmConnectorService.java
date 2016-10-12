@@ -16,8 +16,7 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
  * @author Matthew Gerring
  *
  */
-public interface IMalcolmConnectorService<T> extends IEventConnectorService {
-
+public interface IMalcolmConnectorService<T> {
 	/**
 	 * Method to start the connection. In the case of ZeroMQ this will open the
 	 * socket and throw an exception if the connection cannot be made.
