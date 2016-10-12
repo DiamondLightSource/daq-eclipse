@@ -103,6 +103,12 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	private boolean busy;
 	
 	/**
+	 * Devices can be a layer over real hardware such as a detector or
+	 * pure software such as analysis.
+	 */
+	private boolean hardware;
+	
+	/**
 	 * List of all attributes
 	 */
 	private List<MalcolmAttribute> attributes;
@@ -172,14 +178,16 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	public void setIcon(String icon) {
 		this.icon = icon;
 	}
-	
-	
 
-@Override
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + (activated ? 1231 : 1237);
+		result = prime * result + ((attributes == null) ? 0 : attributes.hashCode());
+		result = prime * result + (busy ? 1231 : 1237);
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + (hardware ? 1231 : 1237);
 		result = prime * result + ((icon == null) ? 0 : icon.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
@@ -189,10 +197,9 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + Arrays.hashCode(permittedValues);
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
 		result = prime * result + ((unit == null) ? 0 : unit.hashCode());
 		result = prime * result + ((upper == null) ? 0 : upper.hashCode());
-		result = prime * result + ((status == null) ? 0 : status.hashCode());
-		result = prime * result + ((attributes == null) ? 0 : attributes.hashCode());
 		return result;
 	}
 
@@ -205,10 +212,21 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		if (getClass() != obj.getClass())
 			return false;
 		DeviceInformation other = (DeviceInformation) obj;
+		if (activated != other.activated)
+			return false;
+		if (attributes == null) {
+			if (other.attributes != null)
+				return false;
+		} else if (!attributes.equals(other.attributes))
+			return false;
+		if (busy != other.busy)
+			return false;
 		if (description == null) {
 			if (other.description != null)
 				return false;
 		} else if (!description.equals(other.description))
+			return false;
+		if (hardware != other.hardware)
 			return false;
 		if (icon == null) {
 			if (other.icon != null)
@@ -246,6 +264,11 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 			return false;
 		if (state != other.state)
 			return false;
+		if (status == null) {
+			if (other.status != null)
+				return false;
+		} else if (!status.equals(other.status))
+			return false;
 		if (unit == null) {
 			if (other.unit != null)
 				return false;
@@ -255,18 +278,6 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 			if (other.upper != null)
 				return false;
 		} else if (!upper.equals(other.upper))
-			return false;
-		if (status == null) {
-			if (other.status != null)
-				return false;
-		} else if (!status.equals(other.status))
-			return false;
-		if (busy != other.busy)
-			return false;
-		if (attributes == null) {
-			if (other.attributes != null)
-				return false;
-		} else if (!attributes.equals(other.attributes))
 			return false;
 		return true;
 	}
@@ -364,6 +375,13 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 
 	public void setAttributes(List<MalcolmAttribute> attributes) {
 		this.attributes = attributes;
+	}
+	public boolean isHardware() {
+		return hardware;
+	}
+
+	public void setHardware(boolean hardware) {
+		this.hardware = hardware;
 	}
 
 }
