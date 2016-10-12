@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.ModelValidationException;
-import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
+import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 
 /**
  * 
@@ -64,8 +64,8 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 	 */
 	protected void validateModel() {
 		T model = getModel();
-		if (model instanceof AbstractBoundingBoxModel) {
-			AbstractBoundingBoxModel bmodel = (AbstractBoundingBoxModel)model;
+		if (model instanceof IBoundingBoxModel) {
+			IBoundingBoxModel bmodel = (IBoundingBoxModel)model;
 			// As implemented, model width and/or height can be negative,
 			// and this flips the slow and/or fast point order.
 			if (bmodel.getBoundingBox() == null) throw new ModelValidationException("The model must have a Bounding Box!", model, "boundingBox");

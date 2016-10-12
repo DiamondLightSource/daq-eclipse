@@ -115,6 +115,13 @@
                </documentation>
             </annotation>
          </attribute>
+         <attribute name="hardware" type="boolean">
+            <annotation>
+               <documentation>
+                  A device may be a hardware device such as a physical detector or a software device such as analysis.
+               </documentation>
+            </annotation>
+         </attribute>
       </complexType>
    </element>
 
