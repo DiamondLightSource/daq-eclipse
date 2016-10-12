@@ -200,7 +200,7 @@ public class QueueServiceTest {
 		
 		//Stop queue nicely & check it looks started
 		testQServ.stopActiveQueue(aqID, false);
-		assertEquals("Active-queue not started", QueueStatus.STOPPED, activeQ.getStatus());
+		assertEquals("Active-queue not disposed after stop", QueueStatus.DISPOSED, activeQ.getStatus());
 		
 //TODO		//Restart queue & stop is forcefully
 //		testQServ.startActiveQueue(aqID);
@@ -209,29 +209,6 @@ public class QueueServiceTest {
 //		List<ConsumerCommandBean> cmds = mockCmdPub.getCmdBeans();
 //		assertTrue("Last command bean is not a KillBean", cmds.get(cmds.size()-1) instanceof KillBean);
 //		assertEquals("KillBean not killing the active-queue consumer", testQServ.getActiveQueue(aqID).getConsumerID(), cmds.get(cmds.size()-1).getConsumerId());
-	}
-	
-	/**
-	 * Tests disposal of queue
-	 * @throws EventException 
-	 */
-	@Test
-	public void testQueueDisposal() throws EventException {
-		IQueueService testQServ = new QueueService(qRoot, uri);
-		testQServ.init();
-		testQServ.start();
-		/*
-		 * Should:
-		 * - call disconnect on queue (indicated by DISPOSED state)
-		 * - nullify queue if requested
-		 */
-		String aqIDA = testQServ.registerNewActiveQueue();
-		testQServ.disposeQueue(aqIDA, false);
-		assertEquals("Dispose not set on disposed Queue", QueueStatus.DISPOSED, testQServ.getQueue(aqIDA).getStatus());
-		
-		String aqIDB = testQServ.registerNewActiveQueue();
-		testQServ.disposeQueue(aqIDB, true);
-		assertTrue("Nullified queue not null", testQServ.getActiveQueue(aqIDB) == null);	
 	}
 	
 	/**
