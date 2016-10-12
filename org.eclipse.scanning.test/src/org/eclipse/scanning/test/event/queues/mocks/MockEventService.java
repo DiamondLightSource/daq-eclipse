@@ -72,6 +72,7 @@ public class MockEventService implements IEventService {
 		mockConsumer.setStatusTopicName(statusTName);
 		mockConsumer.setStatusSetName(statusQName);
 		mockConsumer.setSubmitQueueName(submissionQName);
+		mockConsumer.regenerateID();
 		return (IConsumer<U>) mockConsumer;
 	}
 
