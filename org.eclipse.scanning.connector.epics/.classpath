@@ -13,7 +13,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="jars/PVMarshaller.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/PVMarshaller.jar" sourcepath="/home/vtu42223/git/pvMarshaller"/>
 	<classpathentry exported="true" kind="lib" path="jars/epics-pvaccess-5.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="jars/epics-pvaclient-4.2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="jars/epics-pvdata-6.0.2.jar"/>
