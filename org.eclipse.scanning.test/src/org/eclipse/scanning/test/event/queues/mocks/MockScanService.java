@@ -83,4 +83,10 @@ public class MockScanService implements IRunnableDeviceService {
 		return null;
 	}
 
+	@Override
+	public <T> void register(IRunnableDevice<T> device) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
