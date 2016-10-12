@@ -131,7 +131,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 						info.setDescription(e.getAttribute("description"));
 						info.setId(e.getAttribute("id"));
 						info.setIcon(e.getContributor().getName()+"/"+e.getAttribute("icon"));
-	
+
 						if (device instanceof AbstractRunnableDevice) {
 							AbstractRunnableDevice adevice = (AbstractRunnableDevice)device;
 							adevice.setDeviceInformation(info);

@@ -398,6 +398,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		if (deviceInformation==null) deviceInformation = new DeviceInformation<T>();
 		deviceInformation.setModel(getModel());
 		deviceInformation.setState(getDeviceState());
+		deviceInformation.setDeviceRole(getRole());
 		deviceInformation.setStatus(getDeviceStatus());
 		deviceInformation.setBusy(isDeviceBusy());
 		deviceInformation.setAttributes(getAllAttributes());
