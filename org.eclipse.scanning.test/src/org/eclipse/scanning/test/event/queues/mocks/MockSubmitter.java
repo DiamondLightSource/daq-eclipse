@@ -114,6 +114,9 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	}
 	
 	public List<T> getQueue(String queueName) {
+		if (!submittedBeans.containsKey(queueName)) {
+			submittedBeans.put(queueName, new ArrayList<T>());
+		}
 		return submittedBeans.get(queueName);
 	}
 	
@@ -159,9 +162,9 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 			if (getTimestamp()>0) bean.setSubmissionTime(getTimestamp());
 		}
 		if (submitQ == null) {
-			submittedBeans.get("defaultQ").add(bean);
+			getQueue("defaultQ").add(bean);
 		} else {
-			submittedBeans.get(submitQ).add(bean);
+			getQueue(submitQ).add(bean);
 		}
 	}
 
@@ -185,7 +188,10 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 
 	@Override
 	public boolean reorder(T bean, int amount) throws EventException {
-		if (submittedBeans.get(submitQ).contains(bean)) {
+		if (getQueue(submitQ).contains(bean)) {
+			if (!reorderedBeans.containsKey(submitQ)) {
+				reorderedBeans.put(submitQ, new ArrayList<ReorderedBean>());
+			}
 			reorderedBeans.get(submitQ).add(new ReorderedBean(bean, amount));
 			return true;
 		}
@@ -195,9 +201,9 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	@Override
 	public boolean remove(T bean) throws EventException {
 		if (submitQ == null) {
-			return submittedBeans.get("defaultQ").remove(bean);
+			return getQueue("defaultQ").remove(bean);
 		} else {
-			return submittedBeans.get(submitQ).remove(bean);
+			return getQueue(submitQ).remove(bean);
 		}
 	}
 

@@ -25,31 +25,31 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 
 	@Override
-	public <T extends IQueueable> void remove(T bean, String queueID) {
+	public <T extends IQueueable> void remove(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T extends IQueueable> void reorder(T bean, int move, String queueID) {
+	public <T extends IQueueable> void reorder(T bean, int move, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T extends IQueueable> void pause(T bean, String queueID) {
+	public <T extends IQueueable> void pause(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T extends IQueueable> void resume(T bean, String queueID) {
+	public <T extends IQueueable> void resume(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T extends IQueueable> void terminate(T bean, String queueID) {
+	public <T extends IQueueable> void terminate(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 
 	}
@@ -67,7 +67,7 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 
 	@Override
-	public void killQueue(String queueID) {
+	public void killQueue(String queueID, boolean disconnect, boolean exitProcess) {
 		// TODO Auto-generated method stub
 
 	}
