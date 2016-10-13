@@ -2,7 +2,9 @@ package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -21,24 +23,12 @@ public class MockQueueService implements IQueueService {
 	private String commandTopicName, commandQueueName;
 	
 	private Map<String, IQueue<QueueAtom>> activeQueues = new HashMap<>();
+	private List<String> activeQueueIDs = new ArrayList<>();
 	private int nrActiveQueues = 0;
 	
 	private URI uri;
 	
 	private boolean active = false, forced = false;
-	
-	public MockQueueService(IQueue<QueueBean> mockOne) {
-		this.jobQueue = mockOne;
-		jobQueueID = mockOne.getQueueID();
-		commandTopicName = mockOne.getCommandTopicName();
-		commandQueueName = mockOne.getCommandSetName();
-		try {
-			uri = new URI("mock.uri");
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 	
 	public MockQueueService() {
 		jobQueue = null;
@@ -51,6 +41,26 @@ public class MockQueueService implements IQueueService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public MockQueueService(IQueue<QueueBean> mockJobQueue) {
+		this.jobQueue = mockJobQueue;
+		jobQueueID = mockJobQueue.getQueueID();
+		commandTopicName = mockJobQueue.getCommandTopicName();
+		commandQueueName = mockJobQueue.getCommandSetName();
+		try {
+			uri = new URI("mock.uri");
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public MockQueueService(IQueue<QueueBean> mockJobQueue, IQueue<QueueAtom> mockActiveQueue) {
+		this(mockJobQueue);
+		activeQueues.put(mockActiveQueue.getQueueID(), mockActiveQueue);
+		activeQueueIDs.add(mockActiveQueue.getQueueID());
+		nrActiveQueues = 1;
 	}
 
 	@Override
@@ -85,23 +95,14 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public String registerNewActiveQueue() throws EventException {
-
-		//Get an ID and the queue names for new active queue
-		nrActiveQueues = activeQueues.size();
-		Random randNrGen = new Random();
-		String aqID = "fake"+IQueueService.ACTIVE_QUEUE_PREFIX+"-"+nrActiveQueues+"-"+String.format("%03d", randNrGen.nextInt(999))+IQueueService.ACTIVE_QUEUE_SUFFIX;
-
-		//Add to registry and increment number of registered queues
-		activeQueues.put(aqID, new MockQueue<>(aqID, null));
-		nrActiveQueues = activeQueues.size();
-
+		String aqID = activeQueueIDs.get(nrActiveQueues);
+		nrActiveQueues++;
 		return aqID;
 	}
 
 	@Override
 	public void deRegisterActiveQueue(String queueID, boolean force) throws EventException {
-		// TODO Auto-generated method stub
-
+			nrActiveQueues--;
 	}
 
 	@Override
