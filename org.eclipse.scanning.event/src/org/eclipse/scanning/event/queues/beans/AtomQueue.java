@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * queue used to store {@link QueueAtoms} as they are transferred through the 
  * {@link IQueueService}. Examples of its use in action can be found in classes
  * implementing the {@link IAtomBeanWithQueue} interface (e.g. 
- * {@link SubTaskBean}).
+ * {@link SubTaskAtom}).
  * 
  * @author Michael Wharmby
  *

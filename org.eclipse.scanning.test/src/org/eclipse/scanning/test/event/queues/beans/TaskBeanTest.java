@@ -1,6 +1,6 @@
 package org.eclipse.scanning.test.event.queues.beans;
 
-import org.eclipse.scanning.event.queues.beans.SubTaskBean;
+import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
 import org.junit.Before;
@@ -13,7 +13,7 @@ import org.junit.Before;
  * @author Michael Wharmby
  *
  */
-public class TaskBeanTest extends AbstractAtomQueueTest<TaskBean, SubTaskBean> {
+public class TaskBeanTest extends AbstractAtomQueueTest<TaskBean, SubTaskAtom> {
 	
 	@Before
 	public void buildBeans() throws Exception {

@@ -54,6 +54,7 @@ public interface IQueueService {
 	
 	public static final String HEARTBEAT_TOPIC_SUFFIX = ".heartbeat.topic";
 	public static final String COMMAND_TOPIC_SUFFIX = ".command.topic";
+	public static final String COMMAND_QUEUE_SUFFIX = ".command.queue";
 	
 	/**
 	 * Initialise the queue service. This should ensure the service is capable
@@ -197,6 +198,7 @@ public interface IQueueService {
 	 * @param statusT String status topic to publish termination request to.
 	 * @throws EventException In case termination is unsuccessful.
 	 */
+	@Deprecated
 	public <T extends Queueable> void terminate(T atomBean, String statusT) throws EventException;
 
 	/**
@@ -374,12 +376,20 @@ public interface IQueueService {
 	public String getHeartbeatTopicName();
 	
 	/**
-	 * Return name of topic to where commands to queues associated with this 
-	 * service should be published.
+	 * Return name of topic where commands to consumers associated with this 
+	 * service will be published.
 	 * 
 	 * @return String name of command topic for this service.
 	 */
 	public String getCommandTopicName();
+	
+	/**
+	 * Return name of queue (set) where command to consumers associated with 
+	 * this service will be held.
+	 * 
+	 * @return String name of command queue (set) for this service.
+	 */
+	public String getCommandQueueName();
 	
 	/**
 	 * Return the URI of the broker storing the queues.
@@ -419,5 +429,19 @@ public interface IQueueService {
 	 * @return true if queue service running.
 	 */
 	public boolean isActive();
+	
+	/**
+	 * Default method to return any queue based on a supplied queueID
+	 * 
+	 * @param String queueID of the queue to be returned.
+	 * @return IQueue representing the requested queue.
+	 */
+	public default IQueue<? extends Queueable> getQueue(String queueID) {
+		if (queueID == getJobQueueID()) {
+			return getJobQueue();
+		} else {
+			return getActiveQueue(queueID);
+		}
+	}
 
 }

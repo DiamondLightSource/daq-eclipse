@@ -135,4 +135,10 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 		return null;
 	}
 
+	@Override
+	public String getCommandQueueName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

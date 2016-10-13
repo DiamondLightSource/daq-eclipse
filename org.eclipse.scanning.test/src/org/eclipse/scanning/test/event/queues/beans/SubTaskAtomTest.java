@@ -7,13 +7,13 @@ import static org.junit.Assert.fail;
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
-import org.eclipse.scanning.event.queues.beans.SubTaskBean;
+import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Test the {@link SubTaskBean} class, which contains a queue of QueueAtoms, 
+ * Test the {@link SubTaskAtom} class, which contains a queue of QueueAtoms, 
  * which will form an active-queue when processed. This class creates the POJO. 
  * Tests themselves in {@link AbstractAtomQueueTest}. Additional test of 
  * nesting.
@@ -21,12 +21,12 @@ import org.junit.Test;
  * @author Michael Wharmby
  *
  */
-public class SubTaskBeanTest extends AbstractAtomQueueTest<SubTaskBean, QueueAtom> {
+public class SubTaskAtomTest extends AbstractAtomQueueTest<SubTaskAtom, QueueAtom> {
 	
 	@Before
 	public void buildBeans() throws Exception {
-		beanA = new SubTaskBean(nameA);
-		beanB = new SubTaskBean(nameB);
+		beanA = new SubTaskAtom(nameA);
+		beanB = new SubTaskAtom(nameB);
 		
 		//Create the atoms to be queued
 		atomA = new DummyAtom("Hildebrand", timeA);
@@ -44,7 +44,7 @@ public class SubTaskBeanTest extends AbstractAtomQueueTest<SubTaskBean, QueueAto
 	 */
 	@Test
 	public void testAddingSubTaskBean() throws Exception {
-		SubTaskBean bean = new SubTaskBean();
+		SubTaskAtom bean = new SubTaskAtom();
 		bean.queue().add(atomC);
 		bean.queue().add(atomD);
 		
@@ -61,7 +61,7 @@ public class SubTaskBeanTest extends AbstractAtomQueueTest<SubTaskBean, QueueAto
 			fail("Bad conversion to JSON (first bean)");
 		}
 		
-		SubTaskBean deSerBean = jsonMarshaller.unmarshal(jsonA, null);
+		SubTaskAtom deSerBean = jsonMarshaller.unmarshal(jsonA, null);
 		assertTrue("De-serialized bean differs from serialized", deSerBean.equals(beanA));
 	}
 

@@ -73,7 +73,7 @@ public class AtomQueueService implements IQueueService {
 	private String uriString;
 	private URI uri;
 	
-	private String queueRoot, heartbeatTopicName, commandTopicName;
+	private String queueRoot, heartbeatTopicName, commandTopicName, commandQueueName;
 	private int nrActiveQueues = 0;
 	private IProcessCreator<QueueAtom> activeQueueProcessor = new QueueProcessCreator<QueueAtom>(true);
 	private IProcessCreator<QueueBean> jobQueueProcessor = new QueueProcessCreator<QueueBean>(true);
@@ -109,15 +109,16 @@ public class AtomQueueService implements IQueueService {
 		if (queueRoot == null) throw new IllegalStateException("Queue root has not been specified");
 		if (uri == null) throw new IllegalStateException("URI has not been specified");
 		
-		//Set the service heartbeat topic
+		//Set the service heartbeat & command destinations
 		heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
 		commandTopicName = queueRoot+COMMAND_TOPIC_SUFFIX;
+		commandQueueName = queueRoot+COMMAND_QUEUE_SUFFIX;
 		
 		//Determine ID of Job Queue
 		String jqID = queueRoot+"."+JOB_QUEUE;
 		
 		//Create a fully configured job queue & set the runner
-		jobQueue = new Queue<QueueBean>(jqID, heartbeatTopicName, commandTopicName, uri);
+		jobQueue = new Queue<QueueBean>(jqID, heartbeatTopicName, commandTopicName, commandQueueName, uri);
 		jobQueue.setProcessRunner(jobQueueProcessor);
 	}
 	
@@ -189,7 +190,7 @@ public class AtomQueueService implements IQueueService {
 		String aqID = generateActiveQueueID();
 		
 		//Create a fully configured active queue, purge queues for safety & set runner
-		IQueue<QueueAtom> activeQueue = new Queue<QueueAtom>(aqID, heartbeatTopicName, commandTopicName, uri);
+		IQueue<QueueAtom> activeQueue = new Queue<QueueAtom>(aqID, heartbeatTopicName, commandTopicName, commandQueueName, uri);
 		activeQueue.clearQueues();
 		activeQueue.setProcessRunner(activeQueueProcessor);
 		
@@ -314,6 +315,7 @@ public class AtomQueueService implements IQueueService {
 		submitter.disconnect();
 	}
 
+	@Deprecated
 	@Override
 	public <T extends Queueable> void terminate(T atomBean, String statusT) throws EventException {
 		//Set up a publisher to send terminated beans with
@@ -397,6 +399,7 @@ public class AtomQueueService implements IQueueService {
 	}
 
 	@Override
+	//TODO This can be removed as we have the QueueServicesHolder
 	public IEventService getEventService() {
 		return eventService;
 	}
@@ -413,7 +416,7 @@ public class AtomQueueService implements IQueueService {
 		
 		//Update the command & heartbeat topics too
 		heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
-		commandTopicName = queueRoot+COMMAND_TOPIC_SUFFIX;
+		commandTopicName = queueRoot;
 	}
 
 	@Override
@@ -424,6 +427,11 @@ public class AtomQueueService implements IQueueService {
 	@Override
 	public String getCommandTopicName() {
 		return commandTopicName;
+	}
+	
+	@Override
+	public String getCommandQueueName() {
+		return commandQueueName;
 	}
 
 	@Override

@@ -9,7 +9,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	MonitorAtomTest.class,
 	MoveAtomTest.class,
 	ScanAtomTest.class,
-	SubTaskBeanTest.class,
+	SubTaskAtomTest.class,
 	TaskBeanTest.class
 })
 public class Suite {

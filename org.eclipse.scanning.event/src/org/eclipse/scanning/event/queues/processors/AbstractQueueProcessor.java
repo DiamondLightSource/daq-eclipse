@@ -1,6 +1,8 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
@@ -29,6 +31,16 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	protected P queueBean;
 	protected IQueueBroadcaster<? extends Queueable> broadcaster;
 	protected final CountDownLatch processorLatch = new CountDownLatch(1);
+	
+	//Post-match analysis lock, ensures correct execution order of execute 
+	//method & control (e.g. terminate) methods 
+	protected final ReentrantLock lock;
+	protected final Condition analysisDone;
+	
+	protected AbstractQueueProcessor() {
+		lock = new ReentrantLock();
+		analysisDone = lock.newCondition();
+	}
 
 	@Override
 	public P getProcessBean(){
@@ -74,6 +86,25 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 		executed = true;
 	}
 	
+	@Override//TODO Check implementation on other processors.
+	public void terminate() throws EventException {
+		//Reentrant lock ensures execution method (and hence post-match 
+		//analysis) completes before terminate does
+		try{
+			lock.lockInterruptibly();
+			
+			setTerminated();
+			processorLatch.countDown();
+			
+			//Wait for post-match analysis to finish
+			analysisDone.await();
+		} catch (InterruptedException iEx) {
+			throw new EventException(iEx);
+		} finally {
+			lock.unlock();
+		}
+	}
+
 	@Override
 	public boolean isTerminated() {
 		return terminated;
@@ -82,6 +113,11 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	@Override
 	public void setTerminated() {
 		terminated = true;
+	}
+	
+	@Override
+	public CountDownLatch getProcessorLatch() {
+		return processorLatch;
 	}
 
 }

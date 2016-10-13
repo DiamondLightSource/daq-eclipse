@@ -64,7 +64,7 @@ public interface IQueue<T extends Queueable> {
 	public String getSubmissionQueueName();
 
 	/**
-	 * Return the status queue name.
+	 * Return the status queue (set) name.
 	 * 
 	 * @return String status queue name.
 	 */
@@ -90,6 +90,14 @@ public interface IQueue<T extends Queueable> {
 	 * @return String command topic name.
 	 */
 	public String getCommandTopicName();
+	
+	/**
+	 * Return the name of the queue (set) where commands sent to this queue are
+	 * sent.
+	 * 
+	 * @return String command queue name.
+	 */
+	public String getCommandQueueName();
 
 	/**
 	 * The unique consumer responsible for this queue. Consumer should operate 
