@@ -23,7 +23,7 @@ public class MockPublisher<T> implements IPublisher<T> {
 	private String topicName;
 	private final URI uri;
 	private String queueName;
-	private IConsumer<?> consumer;
+	private MockConsumer<Queueable> mockCons;
 	
 	private volatile List<ConsumerCommandBean> broadcastCmdBeans = new ArrayList<>();
 	private volatile List<Queueable> broadcastStatusBeans = new ArrayList<>();
@@ -87,6 +87,9 @@ public class MockPublisher<T> implements IPublisher<T> {
 				broadBean.setQueueMessage(((IAtomWithChildQueue)bean).getQueueMessage());
 			}
 			broadcastStatusBeans.add(broadBean);
+			if ((loBean.getStatus().isRequest()) && (mockCons != null)) {
+				mockCons.addToStatusSet(broadBean);
+			}
 		}
 	}
 	
@@ -153,12 +156,12 @@ public class MockPublisher<T> implements IPublisher<T> {
 		return null;
 	}
 
-	public IConsumer<?> getConsumer() {
-		return consumer;
+	public MockConsumer<Queueable> getConsumer() {
+		return mockCons;
 	}
 
-	public void setConsumer(IConsumer<?> consumer) {
-		this.consumer = consumer;
+	public void setConsumer(MockConsumer<Queueable> consumer) {
+		this.mockCons = consumer;
 	}
 
 	public boolean isDisconnected() {
@@ -189,6 +192,12 @@ public class MockPublisher<T> implements IPublisher<T> {
 		kBean.setRestart(bean.isRestart());
 		kBean.setUniqueId(bean.getUniqueId());
 		broadcastCmdBeans.add(kBean);
+	}
+
+	@Override
+	public void setConsumer(IConsumer<?> consumer) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -65,8 +65,7 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 
 	@Override
 	public List<T> getQueue(String queueName, String fieldName) throws EventException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new EventException("Wrong reorder");
 	}
 
 	@Override
@@ -116,6 +115,15 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	
 	public List<T> getQueue(String queueName) {
 		return submittedBeans.get(queueName);
+	}
+	
+	public T getLastSubmitted(String queueName) throws EventException {
+		List<T> queue = getQueue(queueName);
+		return queue.get(queue.size()-1);
+	}
+	
+	public int getQueueSize(String queueName) {
+		return getQueue(queueName).size();
 	}
 
 	@Override

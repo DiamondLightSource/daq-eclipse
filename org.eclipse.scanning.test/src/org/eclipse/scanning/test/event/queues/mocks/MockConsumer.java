@@ -246,6 +246,16 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 		consumerId = UUID.randomUUID();
 	}
 	
+	protected void addToStatusSet(U bean) {
+		//No duplicates
+		for (U setBean : statusSet) {
+			if (setBean.getUniqueId().equals(bean.getUniqueId())) {
+				statusSet.remove(setBean);
+			}
+		}
+		statusSet.add(bean);
+	}
+	
 
 }
 	
