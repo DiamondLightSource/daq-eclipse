@@ -93,7 +93,7 @@ public class AtomQueue<T extends QueueAtom> implements IAtomQueue<T> {
 		return result;
 	}
 
-	@Override
+	@Override @Deprecated
 	public boolean addList(Collection<T> atomList) {
 		if(atomList.contains(null) || atomList.isEmpty()) throw new NullPointerException("Attempting to add null or empty list to AtomQueue");
 		if(isAtomInListPresent(atomList)) {

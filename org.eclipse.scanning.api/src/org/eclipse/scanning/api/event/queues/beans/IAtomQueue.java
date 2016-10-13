@@ -32,7 +32,7 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * Change the current queue to the given list.
 	 * 
 	 * @param queue list of {@link QueueAtom} representing new queue.
-	 */
+	 */ @Deprecated
 	public void setQueue(List<T> queue);
 	
 	/**
@@ -47,7 +47,7 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * Update the expected queue run time to the given value (in ms).
 	 * 
 	 * @param runTime long representing time (in ms) for queue to run.
-	 */
+	 */ @Deprecated
 	public void setRunTime(long runTime);
 	
 	/**
@@ -89,7 +89,7 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * 									  in the queue.
 	 * @throws NullPointerException - if the supplied Collection is null.
 	 * @return true if addition was successful.
-	 */
+	 */ @Deprecated
 	public boolean addList(Collection<T> atomList);
 	
 	/**
@@ -104,7 +104,7 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * @throws IndexOutOfBoundsException - if the index is out of range.
 	 * @throws NullPointerException - if the supplied Collection is null.
 	 * @return true if successful.
-	 */
+	 */ @Deprecated
 	public boolean addList(Collection<T> atomList, int index);
 	
 	/**
@@ -114,7 +114,7 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * @param index of {@link QueueAtom} to remove.
 	 * @throws IndexOutOfBoundsException - if the index is out of range.
 	 * @return true if removal successful.
-	 */
+	 */ @Deprecated
 	public boolean remove(int index);
 	
 	/**
@@ -124,7 +124,7 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * @param uid - unique ID of {@link QueueAtom} to be removed.
 	 * @throws IllegalArgumentException - if the supplied UID is not found.
 	 * @return true if removal successful.
-	 */
+	 */ @Deprecated
 	public boolean remove(String uid);
 	
 	/**
@@ -151,7 +151,7 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * @param index - position of {@link QueueAtom} to return.
 	 * @throws IndexOutOfBoundsException - if index is out of range.
 	 * @return {@link QueueAtom} from requested queue position.
-	 */
+	 */ @Deprecated
 	public T view(int index);
 	
 	/**
@@ -161,7 +161,7 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * @param uid - unique ID of {@link QueueAtom}.
 	 * @throws IllegalArgumentException - if the supplied UID is not found.
 	 * @return {@link QueueAtom} with given unique ID.
-	 */
+	 */ @Deprecated
 	public T view(String uid);
 	
 	/**
@@ -187,7 +187,7 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * 
 	 * @throws NoSuchElementException - if there are no items in the queue.
 	 * @return {@link QueueAtom} at the tail of queue.
-	 */
+	 */ @Deprecated
 	public T last();
 	
 	/**
@@ -196,14 +196,14 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * 
 	 * @throws NoSuchElementException - if there are no items in the queue.
 	 * @return {@link QueueAtom} at the tail of queue.
-	 */
+	 */ @Deprecated
 	public T viewLast();
 	
 	/**
 	 * Returns the {@link ListIterator} for the queue.
 	 * 
 	 * @return ListIterator of {@link QueueAtom}s in queue.
-	 */
+	 */ @Deprecated
 	public ListIterator<T> getQueueIterator();
 	
 	/**
@@ -225,20 +225,5 @@ public interface IAtomQueue<T extends QueueAtom> {
 	 * @return true if atom already in given list.
 	 */
 	public boolean isAtomInListPresent(Collection<T> atomSet);
-	
-	/**
-	 * Calculate unique hash for this object.
-	 * 
-	 * @return int Hash of this object.
-	 */
-	public int hashCode();
-	
-	/**
-	 * Detemine whether this IAtomQueue is equal to another object.
-	 * 
-	 * @param obj to be compared with this instance.
-	 * @return true if obj and this instance are the same.
-	 */
-	public boolean equals(Object obj);
 
 }
