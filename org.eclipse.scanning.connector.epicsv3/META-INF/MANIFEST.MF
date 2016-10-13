@@ -8,7 +8,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: org.eclipse.dawnsci.analysis.api.io,
  org.eclipse.dawnsci.nexus,
  org.eclipse.january.dataset,
- org.eclipse.scanning.event.ui,
  org.eclipse.scanning.sequencer,
  org.slf4j;version="1.7.2"
 Service-Component: OSGI-INF/*.xml
