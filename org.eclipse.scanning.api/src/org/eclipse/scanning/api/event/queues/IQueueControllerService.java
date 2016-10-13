@@ -33,10 +33,10 @@ public interface IQueueControllerService {
 	
 	public <T extends IQueueable>void terminate(T bean, String queueID) throws EventException;
 	
-	public void pauseQueue(String queueID);
+	public void pauseQueue(String queueID) throws EventException;
 	
-	public void resumeQueue(String queueID);
+	public void resumeQueue(String queueID) throws EventException;
 	
-	public void killQueue(String queueID, boolean disconnect,boolean exitProcess);
+	public void killQueue(String queueID, boolean disconnect,boolean exitProcess) throws EventException;
 
 }

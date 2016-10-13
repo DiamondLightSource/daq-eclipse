@@ -371,7 +371,7 @@ public class QueueControllerServiceTest {
 	}
 	
 	@Test
-	public void testPauseResumeQueue() {
+	public void testPauseResumeQueue() throws EventException {
 		IQueueControllerService testController = new QueueControllerService();
 		
 		/*
