@@ -18,24 +18,30 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 	private boolean clearSubmitQueue = false, clearStatQueue = false;
 	private boolean started = false, stopped = false, disconnected = false;
 	
-	private String statusQueueName, submitQueueName;
+	private String cmdTopicName, heartTopicName, statusSetName, statusTopicName, submitQueueName;
 	
 	private List<U> statusSet = new ArrayList<>(), submitQueue = new ArrayList<>();
 	
 	@SuppressWarnings("unchecked")
-	public MockConsumer() {
+	public MockConsumer(String queueName) {
 		consumerId = UUID.randomUUID();
 		statusSet.add((U) new StatusBean());
 		submitQueue.add((U) new StatusBean());
+		cmdTopicName = queueName+".cmdT";
+		heartTopicName = queueName+".heartT";
+		statusSetName = queueName+".statusQ";
+		statusTopicName = queueName+".statusT";
+		submitQueueName = queueName;
 	}
+	
 	@Override
 	public String getStatusSetName() {
-		return statusQueueName;
+		return statusSetName;
 	}
 
 	@Override
 	public void setStatusSetName(String queueName) throws EventException {
-		statusQueueName = queueName;
+		statusSetName = queueName;
 	}
 
 	@Override
@@ -59,7 +65,7 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 		if (queueName == submitQueueName) {
 			submitQueue.clear();
 			clearSubmitQueue = true;
-		}else if (queueName == statusQueueName) {
+		}else if (queueName == statusSetName) {
 			statusSet.clear();
 			clearStatQueue = true;
 		}
@@ -131,14 +137,12 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public String getStatusTopicName() {
-		// TODO Auto-generated method stub
-		return null;
+		return statusTopicName;
 	}
 
 	@Override
 	public void setStatusTopicName(String queueName) throws EventException {
-		// TODO Auto-generated method stub
-		
+		this.statusTopicName = queueName;
 	}
 
 	@Override
@@ -171,14 +175,12 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public String getCommandTopicName() {
-		// TODO Auto-generated method stub
-		return null;
+		return cmdTopicName;
 	}
 
 	@Override
 	public void setCommandTopicName(String commandTName) {
-		// TODO Auto-generated method stub
-		
+		this.cmdTopicName = commandTName;
 	}
 
 	@Override
@@ -239,11 +241,6 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 	
 	public boolean isStopped() {
 		return stopped;
-	}
-	
-	protected void regenerateID() {
-		System.out.println("INFO: Updating MockConsumer ID");
-		consumerId = UUID.randomUUID();
 	}
 	
 	protected void addToStatusSet(U bean) {
