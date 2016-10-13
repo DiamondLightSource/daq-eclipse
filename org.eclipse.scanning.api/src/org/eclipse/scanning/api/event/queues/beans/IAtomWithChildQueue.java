@@ -9,7 +9,7 @@ package org.eclipse.scanning.api.event.queues.beans;
  * @author Michael Wharmby
  *
  */
-public interface IAtomWithChildQueue extends IQueueable {
+public interface IAtomWithChildQueue {
 	
 	/**
 	 * Get the string reporting changes in the child queue, affecting this 

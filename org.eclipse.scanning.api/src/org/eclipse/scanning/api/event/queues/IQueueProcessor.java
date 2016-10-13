@@ -4,7 +4,6 @@ import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 
@@ -19,7 +18,7 @@ import org.eclipse.scanning.api.event.status.Status;
  *
  * @param <P> The concrete bean type operated on by this processor.
  */
-public interface IQueueProcessor<P extends IQueueable> {
+public interface IQueueProcessor<P extends Queueable> {
 
 	/**
 	 * Process the configured bean. Bean should be same as that on 

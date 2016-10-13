@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 /**
  * IQueue object contain all the information necessary to interact with and 
@@ -15,10 +15,10 @@ import org.eclipse.scanning.api.event.queues.beans.IQueueable;
  * 
  * @author Michael Wharmby
  *
- * @param <T> bean object extending {@link IQueueable} which is passed around 
+ * @param <T> bean object extending {@link Queueable} which is passed around 
  *            this queue. 
  */
-public interface IQueue<T extends IQueueable> {
+public interface IQueue<T extends Queueable> {
 	
 	/**
 	 * Suffixes to be appended to the names of the destinations within a 

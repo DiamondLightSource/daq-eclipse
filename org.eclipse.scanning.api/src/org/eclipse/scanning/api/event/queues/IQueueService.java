@@ -145,7 +145,7 @@ public interface IQueueService {
 	/**
 	 * Get the job-queue managed by this service.
 	 * 
-	 * @return {@link IQueueNew} job-queue of this service.
+	 * @return {@link IQueue} job-queue of this service.
 	 */
 	public IQueue<QueueBean> getJobQueue();
 

@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * @author Michael Wharmby
  *
  */
-public abstract class Queueable extends StatusBean implements IQueueable {
+public abstract class Queueable extends StatusBean {// implements IQueueable {
 	
 	private static final long serialVersionUID = 5067469791394115873L;
 	
@@ -24,22 +24,18 @@ public abstract class Queueable extends StatusBean implements IQueueable {
 		setPreviousStatus(Status.NONE);
 	}
 	
-	@Override
 	public String getBeamline() {
 		return beamline;
 	}
 	
-	@Override
 	public void setBeamline(String beamline) {
 		this.beamline = beamline;
 	}
 
-	@Override
 	public long getRunTime() {
 		return runTime;
 	}
 
-	@Override
 	public void setRunTime(long runTime) {
 		this.runTime = runTime;
 	}

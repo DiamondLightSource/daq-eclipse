@@ -1,7 +1,7 @@
 package org.eclipse.scanning.api.event.queues;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 public interface IQueueControllerService {
 	
@@ -21,17 +21,17 @@ public interface IQueueControllerService {
 	 */
 	public void stop(boolean force) throws EventException;
 	
-	public <T extends IQueueable> void submit(T bean, String queueID);
+	public <T extends Queueable> void submit(T bean, String queueID);
 	
-	public <T extends IQueueable>void remove(T bean, String queueID) throws EventException;
+	public <T extends Queueable>void remove(T bean, String queueID) throws EventException;
 	
-	public <T extends IQueueable>void reorder(T bean, int move, String queueID) throws EventException;
+	public <T extends Queueable>void reorder(T bean, int move, String queueID) throws EventException;
 	
-	public <T extends IQueueable>void pause(T bean, String queueID) throws EventException;
+	public <T extends Queueable>void pause(T bean, String queueID) throws EventException;
 	
-	public <T extends IQueueable>void resume(T bean, String queueID) throws EventException;
+	public <T extends Queueable>void resume(T bean, String queueID) throws EventException;
 	
-	public <T extends IQueueable>void terminate(T bean, String queueID) throws EventException;
+	public <T extends Queueable>void terminate(T bean, String queueID) throws EventException;
 	
 	public void pauseQueue(String queueID) throws EventException;
 	
