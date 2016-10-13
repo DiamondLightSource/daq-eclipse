@@ -24,8 +24,9 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * 
  * @author Michael Wharmby
  *
- * @param <T> Bean implementing {@link Queueable}, but must be an 
+ * @param <P> Bean implementing {@link Queueable}, but must be an 
  *            {@link IAtomBeanWithQueue}.
+ * @param <Q> TODO (this is the bean from the child?)
  */
 public class AtomQueueProcessor<P extends Queueable & IAtomBeanWithQueue<Q>, Q extends QueueAtom> {
 	
