@@ -9,6 +9,9 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
  * which the current value needs to be recorded at a particular point in an 
  * experiment.
  * 
+ * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
+ * 		this package
+ * 
  * @author Michael Wharmby
  *
  */

@@ -22,6 +22,7 @@ import org.eclipse.scanning.event.queues.Queue;
 import org.eclipse.scanning.event.queues.QueueProcessCreator;
 import org.eclipse.scanning.event.queues.QueueServicesHolder;
 import org.eclipse.scanning.test.BrokerTest;
+import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.junit.After;
 import org.junit.Before;
@@ -53,7 +54,7 @@ public class QueueTest extends BrokerTest {
 	 */
 	@Before
 	public void createQueue() throws Exception {
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService());
+		setUpNonOSGIActivemqMarshaller();
 		evServ = new EventServiceImpl(new ActivemqConnectorService());
 		QueueServicesHolder.setEventService(evServ);
 		

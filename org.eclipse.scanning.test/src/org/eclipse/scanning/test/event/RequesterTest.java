@@ -11,6 +11,7 @@ package org.eclipse.scanning.test.event;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -40,14 +41,17 @@ import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.event.Constants;
 import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
+import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.DeviceServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.BrokerTest;
+import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,7 +77,8 @@ public class RequesterTest extends BrokerTest {
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		setUpNonOSGIActivemqMarshaller();
+		
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// Set up stuff because we are not in OSGi with a test
