@@ -15,10 +15,12 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	
 	private Map<String, List<T>> submittedBeans;
+	private Map<String, List<ReorderedBean>> reorderedBeans;
 	private String uniqueId, submitQ;
 	
 	public MockSubmitter() {
 		submittedBeans = new HashMap<>();
+		reorderedBeans = new HashMap<>();
 		
 		//This is used in case we don't specify a queueName
 		List<T> defaultQueue = new ArrayList<>();
@@ -81,14 +83,12 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 
 	@Override
 	public boolean reorder(T bean, String queueName, int amount) throws EventException {
-		// TODO Auto-generated method stub
-		return false;
+		throw new EventException("Wrong reorder");
 	}
 
 	@Override
 	public boolean remove(T bean, String queueName) throws EventException {
-		// TODO Auto-generated method stub
-		return false;
+		throw new EventException("Wrong remove");
 	}
 
 	@Override
@@ -177,14 +177,20 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 
 	@Override
 	public boolean reorder(T bean, int amount) throws EventException {
-		// TODO Auto-generated method stub
-		return false;
+		if (submittedBeans.get(submitQ).contains(bean)) {
+			reorderedBeans.get(submitQ).add(new ReorderedBean(bean, amount));
+			return true;
+		}
+		else return false;
 	}
 
 	@Override
 	public boolean remove(T bean) throws EventException {
-		// TODO Auto-generated method stub
-		return false;
+		if (submitQ == null) {
+			return submittedBeans.get("defaultQ").remove(bean);
+		} else {
+			return submittedBeans.get(submitQ).remove(bean);
+		}
 	}
 
 	@Override
@@ -245,6 +251,39 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	public boolean isDisconnected() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	public boolean isBeanReordered(T bean) {
+		try {
+			getReorderedBean(bean);
+			return true;
+		} catch (EventException evEx) {
+			//Bean not reordered
+			return false;
+		}
+	}
+	
+	public int getReorderedBeanMove(T bean) throws EventException {
+		return getReorderedBean(bean).move;
+		
+	}
+	
+	private MockSubmitter<T>.ReorderedBean getReorderedBean(T bean) throws EventException {
+		List<ReorderedBean> beanList = reorderedBeans.get(submitQ);
+		for (ReorderedBean reBean : beanList){
+			if (reBean.bean == bean) return reBean;
+		}
+		throw new EventException("Bean not found");
+	}
+	
+	class ReorderedBean {
+		protected final T bean;
+		protected final int move;
+		
+		public ReorderedBean(T bean, int move) {
+			this.bean = bean;
+			this.move = move;
+		}
 	}
 
 }
