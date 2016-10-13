@@ -87,6 +87,7 @@ public class QueueTest extends BrokerTest {
 		assertEquals("Status topic names differ", queueNames.get(Queue.STATUS_TOPIC_KEY), queue.getStatusTopicName());
 		assertEquals("Heartbeat topic names differ", queueNames.get(Queue.HEARTBEAT_TOPIC_KEY), queue.getHeartbeatTopicName());
 		assertEquals("Command topic names differ", queueNames.get(Queue.COMMAND_TOPIC_KEY), queue.getCommandTopicName());
+		assertEquals("Command queue names differ", queueNames.get(Queue.COMMAND_QUEUE_KEY), queue.getCommandQueueName());
 	}
 	
 	/**

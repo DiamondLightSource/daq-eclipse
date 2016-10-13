@@ -127,9 +127,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 			}
 			tidyScanActors();
 			return;
-		}
-		
-		if (queueBean.getPercentComplete() >= 99.5) {
+		} else if (queueBean.getPercentComplete() >= 99.5) {
 			//Completed successfully
 			broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
 		} else {
@@ -137,6 +135,8 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 			//been updated elsewhere
 			broadcaster.broadcast(Status.FAILED);
 		}
+		
+		////This should be run after we've reported the queue final state
 		tidyScanActors();
 	}
 
