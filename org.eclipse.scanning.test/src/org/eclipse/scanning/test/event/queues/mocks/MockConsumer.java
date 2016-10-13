@@ -18,30 +18,24 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 	private boolean clearSubmitQueue = false, clearStatQueue = false;
 	private boolean started = false, stopped = false, disconnected = false;
 	
-	private String cmdTopicName, heartTopicName, statusSetName, statusTopicName, submitQueueName;
+	private String statusQueueName, submitQueueName;
 	
 	private List<U> statusSet = new ArrayList<>(), submitQueue = new ArrayList<>();
 	
 	@SuppressWarnings("unchecked")
-	public MockConsumer(String queueName) {
+	public MockConsumer() {
 		consumerId = UUID.randomUUID();
 		statusSet.add((U) new StatusBean());
 		submitQueue.add((U) new StatusBean());
-		cmdTopicName = queueName+".cmdT";
-		heartTopicName = queueName+".heartT";
-		statusSetName = queueName+".statusQ";
-		statusTopicName = queueName+".statusT";
-		submitQueueName = queueName;
 	}
-	
 	@Override
 	public String getStatusSetName() {
-		return statusSetName;
+		return statusQueueName;
 	}
 
 	@Override
 	public void setStatusSetName(String queueName) throws EventException {
-		statusSetName = queueName;
+		statusQueueName = queueName;
 	}
 
 	@Override
@@ -65,7 +59,7 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 		if (queueName == submitQueueName) {
 			submitQueue.clear();
 			clearSubmitQueue = true;
-		}else if (queueName == statusSetName) {
+		}else if (queueName == statusQueueName) {
 			statusSet.clear();
 			clearStatQueue = true;
 		}
@@ -137,12 +131,14 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public String getStatusTopicName() {
-		return statusTopicName;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public void setStatusTopicName(String queueName) throws EventException {
-		this.statusTopicName = queueName;
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
@@ -175,12 +171,14 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public String getCommandTopicName() {
-		return cmdTopicName;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public void setCommandTopicName(String commandTName) {
-		this.cmdTopicName = commandTName;
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override

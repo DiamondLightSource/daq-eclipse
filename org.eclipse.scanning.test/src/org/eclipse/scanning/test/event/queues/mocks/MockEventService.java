@@ -2,8 +2,6 @@ package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
 import java.util.EventListener;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.EventException;
@@ -22,8 +20,6 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 
 public class MockEventService implements IEventService {
-	
-	private Map<String, MockConsumer<? extends StatusBean>> consumers = new HashMap<>();
 	
 	private MockConsumer<? extends StatusBean> mockConsumer;
 	private MockPublisher<?> mockPublisher;
@@ -128,8 +124,8 @@ public class MockEventService implements IEventService {
 		this.mockCmdPub = mockCmdPub;
 	}
 	
-	public <U extends StatusBean> void addMockConsumer(MockConsumer<U> mockCons) {
-		consumers.put(mockCons.getSubmitQueueName(), mockCons);
+	public <U extends StatusBean> void setMockConsumer(MockConsumer<U> mockCons) {
+		this.mockConsumer = mockCons;
 	}
 	
 	public <U extends StatusBean> void setMockSubmitter(MockSubmitter<U> mockSub) {
