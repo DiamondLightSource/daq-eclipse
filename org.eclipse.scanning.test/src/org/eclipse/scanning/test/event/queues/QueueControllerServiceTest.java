@@ -9,7 +9,6 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
-import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
@@ -34,7 +33,6 @@ public class QueueControllerServiceTest {
 	private MockPublisher<ConsumerCommandBean> mockCmdPub;
 	private MockPublisher<Queueable> mockPub;
 	private MockSubmitter<Queueable> mockSub;
-	private MockConsumer<Queueable> mockJCons, mockACons;
 	private MockEventService mockEvServ;
 	private String jqID, aqID;
 	
@@ -417,7 +415,7 @@ public class QueueControllerServiceTest {
 	 * Test creation of KillBeans to kill queues.
 	 * @throws EventException
 	 */
-	@Test
+	@Test	
 	public void testKillQueue() throws EventException {
 		IQueueControllerService testController = new QueueControllerService();
 		
