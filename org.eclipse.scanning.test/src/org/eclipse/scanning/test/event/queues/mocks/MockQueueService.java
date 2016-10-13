@@ -4,7 +4,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -14,11 +13,13 @@ import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.event.queues.Queue;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 
 public class MockQueueService implements IQueueService {
+	
+	public static final String MOCK_JOB_QUEUE_ID = "mock.job-queue";
+	public static final String MOCK_ACTIVE_QUEUE_ID_PREFIX = "mock.active-queue.";
 	
 	private IQueue<QueueBean> jobQueue;
 	private String jobQueueID;
@@ -47,7 +48,7 @@ public class MockQueueService implements IQueueService {
 	}
 	
 	public MockQueueService() {
-		jobQueueID = "mock.job-queue";
+		jobQueueID = MOCK_JOB_QUEUE_ID;
 		commandTopicName = "mock.command-topic";
 		commandQueueName = "mock.command-queue";
 		heartbeatTopicName = "mock.heartbeat-topic";
@@ -62,7 +63,7 @@ public class MockQueueService implements IQueueService {
 	}
 	
 	public MockQueueService(boolean makeJobQueue) throws EventException {
-		jobQueueID = "mock.job-queue";
+		jobQueueID = MOCK_JOB_QUEUE_ID;
 		commandTopicName = "mock.command-topic";
 		commandQueueName = "mock.command-queue";
 		heartbeatTopicName = "mock.heartbeat-topic";
@@ -116,7 +117,7 @@ public class MockQueueService implements IQueueService {
 
 		//Get an ID and the queue names for new active queue
 		nrActiveQueues = activeQueues.size();
-		String aqID = "mock.active-queue."+nrActiveQueues+".submission.queue";
+		String aqID = MOCK_ACTIVE_QUEUE_ID_PREFIX+nrActiveQueues+IQueue.SUBMISSION_QUEUE_SUFFIX;
 
 		//Add to registry and increment number of registered queues
 		IEventService evServ = ServicesHolder.getEventService();

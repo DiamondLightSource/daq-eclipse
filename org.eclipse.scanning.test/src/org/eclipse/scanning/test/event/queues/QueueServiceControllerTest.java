@@ -9,6 +9,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
+import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
@@ -44,9 +45,10 @@ public class QueueServiceControllerTest {
 		mockEvServ.setMockCmdPublisher(mockCmdPub);
 		mockSub = new MockSubmitter<>();
 		mockEvServ.setMockSubmitter(mockSub);
-		mockJCons = new MockConsumer<>("mock.job-queue.submission.queue"); //DO NOT CHANGE THIS - automatically constructed by MockQueueService & Queue classes
+		 //DO NOT CHANGE QUEUENAMES! - automatically constructed by MockQueueService & Queue classes
+		mockJCons = new MockConsumer<>(MockQueueService.MOCK_JOB_QUEUE_ID+IQueue.SUBMISSION_QUEUE_SUFFIX);
+		mockACons = new MockConsumer<>(MockQueueService.MOCK_ACTIVE_QUEUE_ID_PREFIX+"0"+IQueue.SUBMISSION_QUEUE_SUFFIX);
 		mockEvServ.addMockConsumer(mockJCons);
-		mockACons = new MockConsumer<>("mock.active-queue.0.submission.queue");
 		mockEvServ.addMockConsumer(mockACons);
 		ServicesHolder.setEventService(mockEvServ);
 		
