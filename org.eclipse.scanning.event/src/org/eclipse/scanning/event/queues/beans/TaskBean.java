@@ -15,6 +15,8 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
  * contain all the sample metadata necessary to write the NeXus file. 
  * 
  * TODO Sample metadata holder.
+ * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
+ * 		this package
  * 
  * @author Michael Wharmby
  *

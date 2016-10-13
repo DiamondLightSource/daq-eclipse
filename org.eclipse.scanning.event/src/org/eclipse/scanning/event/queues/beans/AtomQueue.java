@@ -19,6 +19,9 @@ import org.slf4j.LoggerFactory;
  * implementing the {@link IAtomBeanWithQueue} interface (e.g. 
  * {@link SubTaskAtom}).
  * 
+ * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
+ * 		this package
+ * 
  * @author Michael Wharmby
  *
  * @param <T> Type extending {@link QueueAtom} forming the child queue produced

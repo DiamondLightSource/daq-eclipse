@@ -4,10 +4,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Arrays;
+
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.event.classregistry.ScanningEventClassRegistry;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
+import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
+import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +59,13 @@ public class SubTaskAtomTest extends AbstractAtomQueueTest<SubTaskAtom, QueueAto
 		assertEquals(bean, beanA.queue().viewLast());
 		
 		//Check this bean is still serializable
-		IMarshallerService jsonMarshaller = new MarshallerService();
+		IMarshallerService jsonMarshaller = new MarshallerService(
+				Arrays.asList(new ScanningAPIClassRegistry(),
+						new ScanningExampleClassRegistry(),
+						new ScanningTestClassRegistry(),
+						new ScanningEventClassRegistry()),
+				Arrays.asList(new PointsModelMarshaller())
+				);
 		
 		String jsonA = null;
 		try {
