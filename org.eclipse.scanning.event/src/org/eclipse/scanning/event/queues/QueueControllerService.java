@@ -1,6 +1,7 @@
 package org.eclipse.scanning.event.queues;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -43,7 +44,7 @@ public class QueueControllerService implements IQueueControllerService {
 
 	@Override
 	public <T extends IQueueable> void submit(T bean, String queueID) {
-		
+		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -61,6 +62,14 @@ public class QueueControllerService implements IQueueControllerService {
 	@Override
 	public <T extends IQueueable> void pause(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
+		
+//		List<T> statusSet = queueService.getQueue(queueID).getConsumer().getStatusSet();
+//		for (T liveBean : statusSet) {
+//			if (liveBean.getUniqueID().equals(bean.getUniqueID()) && 
+//					liveBean.getStatus().isPaused()) {
+//				throw new EventException()
+//			}
+//		}
 	}
 
 	@Override
@@ -73,6 +82,10 @@ public class QueueControllerService implements IQueueControllerService {
 	public <T extends IQueueable> void terminate(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 
+	}
+	
+	private <T extends IQueueable> boolean isStatusAlreadySet(String queueID, T bean) {
+		return false;
 	}
 
 	@Override
