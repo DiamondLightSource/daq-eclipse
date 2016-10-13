@@ -27,7 +27,7 @@ import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 import org.junit.Before;
 import org.junit.Test;
 
-public class QueueServiceControllerTest {
+public class QueueControllerServiceTest {
 	
 	private MockQueueService mockQServ;
 	private MockPublisher<ConsumerCommandBean> mockCmdPub;
