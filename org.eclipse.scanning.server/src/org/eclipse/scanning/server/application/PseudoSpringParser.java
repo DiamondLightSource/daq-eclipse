@@ -16,9 +16,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.scanning.api.ISpringParser;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.packageadmin.PackageAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -37,10 +40,12 @@ import org.xml.sax.SAXException;
  * @author Matthew Gerring
  *
  */
+@SuppressWarnings("deprecation")
 public class PseudoSpringParser implements ISpringParser {
 	
 	private static final Logger logger = LoggerFactory.getLogger(PseudoSpringParser.class);
 	
+	private static ComponentContext context;
 	
 	private File dir;
 
@@ -154,13 +159,44 @@ public class PseudoSpringParser implements ISpringParser {
 	        final Object obj = objects.get(ref);
 	        
 			final String interfase = service.getAttributes().getNamedItem("interface").getNodeValue();
-			final Bundle bundle    = Platform.getBundle("org.eclipse.scanning.api");
+			final Bundle bundle    = getBundle("org.eclipse.scanning.api");
 			final Class  clazz     = bundle!=null ? bundle.loadClass(interfase) : Class.forName(interfase);
 
 			Activator.registerService(clazz, obj);
 	    }
 		return objects;
 
+	}
+
+	private Bundle getBundle(String bundleName) {
+		if (context==null)    return null;
+		if (bundleName==null) return null;
+		BundleContext bcontext = context.getBundleContext();
+		Bundle[] bundles = bcontext.getBundles();
+		for (Bundle bundle : bundles) {
+			if (bundleName.equals(bundle.getSymbolicName())) {
+				return bundle;
+			}
+		}
+		return getOSGiBundle(bundleName);
+	}
+
+	public Bundle getOSGiBundle(String symbolicName) {
+		
+		ServiceReference<PackageAdmin> ref = context.getBundleContext().getServiceReference(PackageAdmin.class);
+		PackageAdmin packageAdmin = context.getBundleContext().getService(ref);
+		if (packageAdmin == null)
+			return null;
+		Bundle[] bundles = packageAdmin.getBundles(symbolicName, null);
+		if (bundles == null)
+			return null;
+		//Return the first bundle that is not installed or uninstalled
+		for (int i = 0; i < bundles.length; i++) {
+			if ((bundles[i].getState() & (Bundle.INSTALLED | Bundle.UNINSTALLED)) == 0) {
+				return bundles[i];
+			}
+		}
+		return null;
 	}
 
 	private void parseBean(Element bean, Map<String, Object> objects, Map<String, NamedList> lists) throws Exception {
@@ -223,9 +259,14 @@ public class PseudoSpringParser implements ISpringParser {
 		// Must have a bundle
 		String bundleName = (String)conf.remove("bundle");
 		if (bundleName==null) bundleName = "org.eclipse.scanning.server";
-		final Bundle bundle = Platform.getBundle(bundleName);
+		final Bundle bundle    = getBundle(bundleName);
 	
-		final Class<?> clazz = bundle != null ? bundle.loadClass(className) : Class.forName(className);
+		Class<?> clazz;
+		try {
+			clazz = bundle != null ? bundle.loadClass(className) : Class.forName(className);
+		} catch (java.lang.ClassNotFoundException ne) {
+			throw new ClassNotFoundException("Cannot find class "+className+" in bundle "+bundleName+". Bundle is "+bundle, ne);
+		}
 		
 		Object instance = clazz.newInstance();
 		for (String fieldName : conf.keySet()) {
@@ -324,6 +365,10 @@ public class PseudoSpringParser implements ISpringParser {
 	}
 	public String getFieldWithUpperCaseFirstLetter(final String fieldName) {
 		return fieldName.substring(0, 1).toUpperCase(Locale.US) + fieldName.substring(1);
+	}
+
+	public void start(ComponentContext context) {
+		this.context = context;
 	}
 
 }
