@@ -16,6 +16,7 @@ import org.eclipse.scanning.event.queues.QueueControllerService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
+import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
@@ -29,30 +30,35 @@ public class QueueServiceControllerTest {
 	private MockPublisher<ConsumerCommandBean> mockCmdPub;
 	private MockPublisher<Queueable> mockPub;
 	private MockSubmitter<Queueable> mockSub;
+	private MockConsumer<Queueable> mockJCons, mockACons;
 	private MockEventService mockEvServ;
 	private String jqID, aqID;
 	
 	@Before
 	public void setUp() throws EventException {
-		//Configure the MockQueueService
-		mockEvServ = new MockEventService();
-		mockQServ = new MockQueueService();
-		jqID = mockQServ.getJobQueueID();
-		aqID = mockQServ.registerNewActiveQueue();
-		ServicesHolder.setQueueService(mockQServ);
-		//Check that our job- and active-consumers do values which are different IDs
-		assertFalse("job-queue consumer ID should not be null", mockQServ.getQueue(jqID).getConsumerID() == null);
-		assertFalse("active-queue consumer ID should not be null", mockQServ.getQueue(aqID).getConsumerID() == null);
-		assertFalse("job- & active-queue IDs identical", mockQServ.getQueue(jqID).getConsumerID() != mockQServ.getQueue(aqID).getConsumerID());
-		
 		//Configure the MockEventService
+		mockEvServ = new MockEventService();
 		mockPub = new MockPublisher<>(null, null);
+		mockEvServ.setMockPublisher(mockPub);
 		mockCmdPub = new MockPublisher<>(null, null);
 		mockEvServ.setMockCmdPublisher(mockCmdPub);
 		mockSub = new MockSubmitter<>();
 		mockEvServ.setMockSubmitter(mockSub);
-		
+		mockJCons = new MockConsumer<>("mock.job-queue.submission.queue"); //DO NOT CHANGE THIS - automatically constructed by MockQueueService & Queue classes
+		mockEvServ.addMockConsumer(mockJCons);
+		mockACons = new MockConsumer<>("mock.active-queue.0.submission.queue");
+		mockEvServ.addMockConsumer(mockACons);
 		ServicesHolder.setEventService(mockEvServ);
+		
+		//Configure the MockQueueService
+		mockQServ = new MockQueueService(true);
+		jqID = mockQServ.getJobQueueID();
+		aqID = mockQServ.registerNewActiveQueue();
+		//Check that our job- and active-consumers do values which are different IDs
+		assertFalse("job-queue consumer ID should not be null", mockQServ.getQueue(jqID).getConsumerID() == null);
+		assertFalse("active-queue consumer ID should not be null", mockQServ.getQueue(aqID).getConsumerID() == null);
+		assertFalse("job- & active-queue IDs identical", mockQServ.getQueue(jqID).getConsumerID() == mockQServ.getQueue(aqID).getConsumerID());
+		ServicesHolder.setQueueService(mockQServ);
 	}
 		
 	/**
