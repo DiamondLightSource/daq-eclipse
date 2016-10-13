@@ -49,7 +49,7 @@ public class MockEventService implements IEventService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName) {
-		return (ISubmitter<U>) mockSubmitter;
+		return (ISubmitter<U>) mockSubmitter.create(queueName);
 	}
 
 	@Override

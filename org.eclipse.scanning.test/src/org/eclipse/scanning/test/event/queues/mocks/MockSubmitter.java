@@ -2,7 +2,9 @@ package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -12,15 +14,28 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 
 public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	
-	private List<T> submittedBeans;
-	private String uniqueId;
+	private Map<String, List<T>> submittedBeans;
+	private String uniqueId, submitQ;
 	
 	public MockSubmitter() {
-		submittedBeans = new ArrayList<>();
+		submittedBeans = new HashMap<>();
+		
+		//This is used in case we don't specify a queueName
+		List<T> defaultQueue = new ArrayList<>();
+		submittedBeans.put("defaultQ", defaultQueue);
 	}
 	
 	public void resetSubmitter() {
 		submittedBeans.clear();
+	}
+	
+	/**
+	 * Hideous hack to allow changing of the submit queue name by MockEventService
+	 * @param queueName
+	 */
+	protected MockSubmitter<T> create(String queueName) {
+		this.submitQ = queueName;
+		return this;
 	}
 
 	@Override
@@ -43,8 +58,7 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 
 	@Override
 	public void setSubmitQueueName(String queueName) throws EventException {
-		// TODO Auto-generated method stub
-		
+		this.submitQ = queueName;
 	}
 
 	@Override
@@ -97,7 +111,11 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 
 	@Override
 	public List<T> getQueue() throws EventException {
-		return submittedBeans;
+		return getQueue("defaultQ");
+	}
+	
+	public List<T> getQueue(String queueName) {
+		return submittedBeans.get(queueName);
 	}
 
 	@Override
@@ -132,8 +150,11 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 			if (bean.getUniqueId()==null) bean.setUniqueId(uniqueId);
 			if (getTimestamp()>0) bean.setSubmissionTime(getTimestamp());
 		}
-		
-		submittedBeans.add(bean);
+		if (submitQ == null) {
+			submittedBeans.get("defaultQ").add(bean);
+		} else {
+			submittedBeans.get(submitQ).add(bean);
+		}
 	}
 
 	@Override
