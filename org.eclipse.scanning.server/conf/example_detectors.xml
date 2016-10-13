@@ -32,9 +32,9 @@
 		<property name="activated"         value="true"/> <!-- This means it is activated as the default device to use in a scan -->
         <property name="bundle"   value="org.eclipse.scanning.example" /> <!-- Delete for real spring? -->
 	</bean>
-	
-	
-	
+
+
+
 	<!--  Dark Image Example -->
 	<bean id="darkImageModel" class="org.eclipse.scanning.example.detector.DarkImageModel">
 		<property name="name"          value="dkExmpl"/>
@@ -56,9 +56,8 @@
 		<property name="deviceInformation" ref="darkImageInfo"/>
         <property name="bundle"   value="org.eclipse.scanning.example" /> <!-- Delete for real spring? -->
 	</bean>
-	
-	
-	
+
+
 	<!--  Constant Velocity Example -->
 	<bean id="constantVelocityModel" class="org.eclipse.scanning.example.detector.ConstantVelocityModel">
 		<property name="name"           value="cvExmpl"/>
@@ -80,5 +79,5 @@
 		<property name="deviceInformation" ref="constantVelocityInfo"/>
         <property name="bundle"   value="org.eclipse.scanning.example" /> <!-- Delete for real spring? -->
 	</bean>
-	
+
 </beans>
