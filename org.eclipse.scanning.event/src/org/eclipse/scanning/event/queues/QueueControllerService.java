@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
@@ -98,9 +99,18 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 
 	@Override
-	public void killQueue(String queueID, boolean disconnect, boolean exitProcess) {
-		// TODO Auto-generated method stub
-
+	public void killQueue(String queueID, boolean disconnect, boolean exitProcess) throws EventException {
+		IPublisher<KillBean> killenator = eventService.createPublisher(uri, commandTopicName);
+		killenator.setStatusSetName(commandSetName);
+		
+		//Create KillBean & configure
+		KillBean killer = new KillBean();
+		UUID consumerID = queueService.getQueue(queueID).getConsumerID();
+		killer.setConsumerId(consumerID);
+		killer.setDisconnect(disconnect);
+		killer.setExitProcess(exitProcess);
+		killenator.broadcast(killer);
+		killenator.disconnect();
 	}
 
 }
