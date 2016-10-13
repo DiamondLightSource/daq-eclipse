@@ -26,8 +26,6 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 	}
 
 	@Override
-<<<<<<< HEAD
-=======
 	public QueueStatus getStatus() {
 		// TODO Auto-generated method stub
 		return null;
@@ -40,7 +38,6 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 	}
 
 	@Override
->>>>>>> BetterMocks
 	public IConsumer<T> getConsumer() {
 		return cons;
 	}
@@ -64,7 +61,6 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 
 	@Override
 	public String getSubmissionQueueName() {
-<<<<<<< HEAD
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -83,20 +79,11 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 
 	@Override
 	public String getCommandTopicName() {
-=======
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String getStatusTopicName() {
->>>>>>> BetterMocks
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-<<<<<<< HEAD
 	public void start() throws EventException {
 		// TODO Auto-generated method stub
 		
@@ -104,35 +91,6 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 
 	@Override
 	public void stop() throws EventException {
-=======
-	public String getHeartbeatTopicName() {
-		// TODO Auto-generated method stub
-		return IEventService.HEARTBEAT_TOPIC;
-	}
-
-	@Override
-	public String getCommandTopicName() {
->>>>>>> BetterMocks
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-<<<<<<< HEAD
-	public QueueStatus getStatus() {
-=======
-	public void start() throws EventException {
->>>>>>> BetterMocks
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-<<<<<<< HEAD
-	public void setStatus(QueueStatus status) {
-=======
-	public void stop() throws EventException {
->>>>>>> BetterMocks
 		// TODO Auto-generated method stub
 		
 	}
