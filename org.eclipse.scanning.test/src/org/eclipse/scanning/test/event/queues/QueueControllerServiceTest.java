@@ -370,6 +370,10 @@ public class QueueControllerServiceTest {
 		}		
 	}
 	
+	/**
+	 * Test configuration & publishing of PauseBeans to pause/resume whole queues.
+	 * @throws EventException
+	 */
 	@Test
 	public void testPauseResumeQueue() throws EventException {
 		IQueueControllerService testController = new QueueControllerService();
@@ -412,7 +416,7 @@ public class QueueControllerServiceTest {
 	}
 	
 	/**
-	 * Test creation of KillBeans to kill queues.
+	 * Test configuration & publishing of KillBeans to kill queues.
 	 * @throws EventException
 	 */
 	@Test	
