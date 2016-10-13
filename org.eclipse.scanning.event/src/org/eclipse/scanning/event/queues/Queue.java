@@ -38,6 +38,8 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 	public static final String HEARTBEAT_TOPIC_SUFFIX = ".heartbeat.topic";
 	public static final String COMMAND_TOPIC_KEY = "commandT";
 	public static final String COMMAND_TOPIC_SUFFIX = ".command.topic";
+	public static final String COMMAND_QUEUE_KEY = "commandQ";
+	public static final String COMMAND_QUEUE_SUFFIX = ".command.queue";
 
 	private static final Logger logger = LoggerFactory.getLogger(Queue.class);
 
@@ -48,17 +50,18 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 	private QueueStatus queueStatus;
 
 	public Queue(String qID, URI uri) throws EventException {
-		this(qID, qID+HEARTBEAT_TOPIC_SUFFIX, qID+COMMAND_TOPIC_SUFFIX, uri);
+		this(qID, qID+HEARTBEAT_TOPIC_SUFFIX, qID+COMMAND_TOPIC_SUFFIX, qID+COMMAND_QUEUE_SUFFIX, uri);
 	}
 
-	public Queue(String qID, String heartbeatTopic, String commandTopic, URI uri) throws EventException {
+	public Queue(String qID, String heartbeatTopic, String commandTopicName, String commandQueueName, URI uri) throws EventException {
 		this.queueID = qID;
 		queueNames = new HashMap<>(5);
 		queueNames.put(SUBMISSION_QUEUE_KEY, queueID+SUBMISSION_QUEUE_SUFFIX);
 		queueNames.put(STATUS_QUEUE_KEY, queueID+STATUS_QUEUE_SUFFIX);
 		queueNames.put(STATUS_TOPIC_KEY, queueID+STATUS_TOPIC_SUFFIX);
 		queueNames.put(HEARTBEAT_TOPIC_KEY, heartbeatTopic);
-		queueNames.put(COMMAND_TOPIC_KEY, commandTopic);
+		queueNames.put(COMMAND_TOPIC_KEY, commandTopicName);
+		queueNames.put(COMMAND_QUEUE_KEY, commandQueueName);
 
 		IEventService eventService = QueueServicesHolder.getEventService();
 
@@ -126,6 +129,11 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 	@Override
 	public String getCommandTopicName() {
 		return queueNames.get(COMMAND_TOPIC_KEY);
+	}
+
+	@Override
+	public String getCommandQueueName() {
+		return queueNames.get(COMMAND_QUEUE_KEY);
 	}
 
 	@Override
