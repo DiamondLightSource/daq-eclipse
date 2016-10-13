@@ -16,6 +16,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * @author Michael Wharmby
  *
  */
+@Deprecated
 public interface IQueueable {
 	
 	/**
