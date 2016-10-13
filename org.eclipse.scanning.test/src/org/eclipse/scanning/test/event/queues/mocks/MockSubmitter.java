@@ -8,9 +8,9 @@ import java.util.UUID;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.status.StatusBean;
 
-public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
+public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	
 	private List<T> submittedBeans;
 	private String uniqueId;

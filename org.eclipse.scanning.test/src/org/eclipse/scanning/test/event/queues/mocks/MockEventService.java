@@ -23,7 +23,8 @@ public class MockEventService implements IEventService {
 	
 	private MockConsumer<? extends StatusBean> mockConsumer;
 	private MockPublisher<?> mockPublisher;
-	private MockPublisher<ConsumerCommandBean> mockCmdPub;
+	private MockPublisher<? extends ConsumerCommandBean> mockCmdPub;
+	private MockSubmitter<? extends StatusBean> mockSubmitter;
 
 	@Override
 	public <T> IQueueReader<T> createQueueReader(URI uri, String queueName) {
@@ -45,10 +46,10 @@ public class MockEventService implements IEventService {
 		return (IPublisher<U>) mockPublisher;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName) {
-		// TODO Auto-generated method stub
-		return null;
+		return (ISubmitter<U>) mockSubmitter;
 	}
 
 	@Override
@@ -124,7 +125,11 @@ public class MockEventService implements IEventService {
 		this.mockCmdPub = mockCmdPub;
 	}
 	
-	public void setMockConsumer(MockConsumer<? extends StatusBean> mockCons) {
+	public <U extends StatusBean> void setMockConsumer(MockConsumer<U> mockCons) {
 		this.mockConsumer = mockCons;
+	}
+	
+	public <U extends StatusBean> void setMockSubmitter(MockSubmitter<U> mockSub) {
+		this.mockSubmitter = mockSub;
 	}
 }
