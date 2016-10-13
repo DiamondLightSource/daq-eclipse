@@ -40,6 +40,9 @@ import org.xml.sax.SAXException;
 public class PseudoSpringParser implements ISpringParser {
 	
 	private static final Logger logger = LoggerFactory.getLogger(PseudoSpringParser.class);
+	
+	
+	private File dir;
 
 	/**
 	 * Manually parse spring XML to create the objects.
@@ -53,9 +56,16 @@ public class PseudoSpringParser implements ISpringParser {
 	 */
 	@Override
 	public Map<String, Object> parse(String path) throws Exception {
-			
+		final File file = new File(path);
+		if (!file.exists()) throw new IOException("Cannot find file "+file);
+		this.dir = file.getParentFile();
 		Document doc = getDocument(path);
 		return parse(doc);
+	}
+	
+	@Override
+	public void setDirectory(File dir) {
+		this.dir = dir;
 	}
 	
 	/**
@@ -70,7 +80,6 @@ public class PseudoSpringParser implements ISpringParser {
 	 */
 	@Override
 	public Map<String, Object> parse(InputStream in) throws Exception {
-			
 		Document doc = getDocument(in);
 		return parse(doc);
 	}
@@ -89,55 +98,43 @@ public class PseudoSpringParser implements ISpringParser {
 
 	private Map<String, Object> parse(Document doc) throws Exception {
 		
-	    doc.getDocumentElement().normalize();
-	    NodeList  nl = doc.getElementsByTagName("bean");
+		Map<String, Object> objects = parseBeans(doc);
+		return objects;
+	}
+
+	private Map<String, Object> parseBeans(Document doc) throws Exception {
+		
 	    
 	    Map<String, Object>    objects = new HashMap<>();
 	    Map<String, NamedList> lists   = new HashMap<>();
+	    return parseBeans(doc, objects, lists);
+	}
+	
+	private Map<String, Object> parseBeans(Document doc, Map<String, Object> objects, Map<String, NamedList> lists) throws Exception {
 	    
+	    doc.getDocumentElement().normalize();
+		NodeList  nl = doc.getChildNodes().item(0).getChildNodes();
 	    for (int i = 0; i < nl.getLength(); i++) {
-			
-	    	Element bean = (Element)nl.item(i);
-	    	if (!bean.hasChildNodes()) continue;
+			if (!(nl.item(i) instanceof Element)) continue;
+	    	Element element = (Element)nl.item(i);
 	    	
-			final String className = bean.getAttributes().getNamedItem("class").getNodeValue();
-			
-			Node initNode = bean.getAttributes().getNamedItem("init-method");
-			final String init      = initNode!=null ? bean.getAttributes().getNamedItem("init-method").getNodeValue() : null;
-			
-			final String id = bean.getAttributes().getNamedItem("id").getNodeValue();
-
-			// Look for parameters
-			// bundle, broker, submitQueue, statusSet, statusTopic, durable;	
-			NodeList props = bean.getElementsByTagName("property");
-			final Map<String,String> conf = new HashMap<>();
-			for (int j = 0; j < props.getLength(); j++) {
-				Node prop = props.item(j);
-				String name = prop.getAttributes().getNamedItem("name").getNodeValue();
-				Node value = prop.getAttributes().getNamedItem("value");
-				if (value!=null) {
-				    conf.put(name, value.getNodeValue());
-				} else {
-					NodeList children = prop.getChildNodes();
-					final List<String> refs = new ArrayList<>();
-					for (int k = 0; k < children.getLength(); k++) {
-						Node list = children.item(k);
-						if (!list.hasChildNodes()) continue;
-						NodeList rs = list.getChildNodes();
-						for (int l = 0; l < rs.getLength(); l++) {
-							Node item = rs.item(l);
-							NamedNodeMap attr = item.getAttributes();
-							if (attr==null) continue;
-							Node ref  = attr.getNamedItem("bean");
-							refs.add(ref.getNodeValue());
-						}
-					}
-				    lists.put(id, new NamedList(name, refs));
-				}
-			}
-			Object created = createObject(className, init, conf);
-			objects.put(id, created);
-		}
+	    	if ("bean".equals(element.getTagName())) {
+	    		parseBean(element, objects, lists);
+	    		continue;
+	    	}
+	    	if ("osgi:service".equals(element.getTagName())) continue; // Deal with later
+	    	
+	    	if ("import".equals(element.getTagName())) {
+				String link = element.getAttributes().getNamedItem("resource").getNodeValue();
+				final File file = new File(dir, link); // No dir, no links!
+				Document child = getDocument(file.getAbsolutePath());
+				parseBeans(child, objects, lists);
+	    		continue;
+	    	}
+	    	
+	    	throw new Exception("Unrecognised element: "+element+" with tag "+element.getTagName());
+	    }
+	    
 	    
 	    // We process the lists to wire together objects
 	    for (String id : lists.keySet()) {
@@ -154,17 +151,64 @@ public class PseudoSpringParser implements ISpringParser {
 	    	
 	    	Element service = (Element)nl.item(i);
 			final String ref = service.getAttributes().getNamedItem("ref").getNodeValue();
-            final Object obj = objects.get(ref);
-            
+	        final Object obj = objects.get(ref);
+	        
 			final String interfase = service.getAttributes().getNamedItem("interface").getNodeValue();
 			final Bundle bundle    = Platform.getBundle("org.eclipse.scanning.api");
-			final Class  clazz     = bundle.loadClass(interfase);
+			final Class  clazz     = bundle!=null ? bundle.loadClass(interfase) : Class.forName(interfase);
 
 			Activator.registerService(clazz, obj);
 	    }
-	    
 		return objects;
+
 	}
+
+	private void parseBean(Element bean, Map<String, Object> objects, Map<String, NamedList> lists) throws Exception {
+		
+    	if (!bean.hasChildNodes()) return;
+    	
+		final String className = bean.getAttributes().getNamedItem("class").getNodeValue();
+		
+		Node initNode = bean.getAttributes().getNamedItem("init-method");
+		final String init      = initNode!=null ? bean.getAttributes().getNamedItem("init-method").getNodeValue() : null;
+		
+		final String id = bean.getAttributes().getNamedItem("id").getNodeValue();
+
+		// Look for parameters
+		// bundle, broker, submitQueue, statusSet, statusTopic, durable;	
+		NodeList props = bean.getElementsByTagName("property");
+		final Map<String,Object> conf = new HashMap<>();
+		for (int j = 0; j < props.getLength(); j++) {
+			Node prop = props.item(j);
+			String name = prop.getAttributes().getNamedItem("name").getNodeValue();
+			Node value = prop.getAttributes().getNamedItem("value");
+			Node ref = prop.getAttributes().getNamedItem("ref");
+			if (value!=null) {
+			    conf.put(name, value.getNodeValue());
+			} else if (ref!=null && objects.containsKey(ref.getNodeValue())) {
+				conf.put(name, objects.get(ref.getNodeValue()));
+			} else {
+				NodeList children = prop.getChildNodes();
+				final List<String> refs = new ArrayList<>();
+				for (int k = 0; k < children.getLength(); k++) {
+					Node list = children.item(k);
+					if (!list.hasChildNodes()) continue;
+					NodeList rs = list.getChildNodes();
+					for (int l = 0; l < rs.getLength(); l++) {
+						Node item = rs.item(l);
+						NamedNodeMap attr = item.getAttributes();
+						if (attr==null) continue;
+						Node cbean  = attr.getNamedItem("bean");
+						refs.add(cbean.getNodeValue());
+					}
+				}
+			    lists.put(id, new NamedList(name, refs));
+			}
+		}
+		Object created = createObject(className, init, conf);
+		objects.put(id, created);
+	}
+	
 
 	private List<Object> getObjects(Map<String, Object> objects, NamedList namedList) {
 		final List<Object> ret = new ArrayList<>();
@@ -174,10 +218,10 @@ public class PseudoSpringParser implements ISpringParser {
 		return ret;
 	}
 
-	private Object createObject(String className, String initMethod, Map<String, String> conf) throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, SecurityException, NoSuchFieldException {
+	private Object createObject(String className, String initMethod, Map<String, Object> conf) throws ClassNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, NoSuchMethodException, SecurityException, NoSuchFieldException {
 		
 		// Must have a bundle
-		String bundleName = conf.remove("bundle");
+		String bundleName = (String)conf.remove("bundle");
 		if (bundleName==null) bundleName = "org.eclipse.scanning.server";
 		final Bundle bundle = Platform.getBundle(bundleName);
 	
@@ -199,10 +243,12 @@ public class PseudoSpringParser implements ISpringParser {
 		return instance;
 	}
 
-	private Object getValue(Map<String, String> conf, String fieldName) {
+	private Object getValue(Map<String, Object> conf, String fieldName) {
 		
-		String val = conf.get(fieldName);
-		val = replaceProperties(val); // Insert any system properties that the user used.
+		Object vObject = conf.get(fieldName);
+		if (!(vObject instanceof String)) return vObject; // It was a ref!
+		
+		String val = replaceProperties((String)vObject); // Insert any system properties that the user used.
 		
 		if ("true".equalsIgnoreCase(val)) {
 			return Boolean.TRUE;
@@ -245,7 +291,11 @@ public class PseudoSpringParser implements ISpringParser {
 		final String setterName = getSetterName(fieldName);
 		if (valueClass==null) valueClass = value.getClass();
 		Method method = getMethod(clazz, setterName, valueClass);
-		method.invoke(instance, value);
+		try {
+		    method.invoke(instance, value);
+		} catch (IllegalArgumentException are) {
+			throw new IllegalArgumentException("Cannot set "+fieldName+" to "+value+" of class "+valueClass);
+		}
 	}
 
 	private Method getMethod(Class<?> clazz, String setterName, Class<? extends Object> valueClass) throws NoSuchMethodException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
