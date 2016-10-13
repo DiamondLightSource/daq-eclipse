@@ -6,7 +6,6 @@ import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.IAtomBeanWithQueue;
 import org.eclipse.scanning.api.event.queues.beans.IAtomQueue;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
@@ -28,7 +27,7 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * @param <T> Bean implementing {@link Queueable}, but must be an 
  *            {@link IAtomBeanWithQueue}.
  */
-public class AtomQueueProcessor<P extends IAtomBeanWithQueue<Q>, Q extends QueueAtom> {
+public class AtomQueueProcessor<P extends Queueable & IAtomBeanWithQueue<Q>, Q extends QueueAtom> {
 	
 	private IQueueService queueService;
 	private QueueListener<P, Q> queueListener;
@@ -53,7 +52,7 @@ public class AtomQueueProcessor<P extends IAtomBeanWithQueue<Q>, Q extends Queue
 		//Spool beans from bean atom queue to the queue service
 		//(queue empty after this!)
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 1d, "Submitting atoms to active queue.");
-		IQueueable parentBean = parentProcessor.getProcessBean();
+		Queueable parentBean = parentProcessor.getProcessBean();
 		while (atomQueue.queueSize() > 0) {
 			QueueAtom nextAtom = atomQueue.viewNext();
 			if (nextAtom.getBeamline() != parentBean.getBeamline()) {

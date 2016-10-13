@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 public class QueueControllerService implements IQueueControllerService {
 	
@@ -43,24 +43,24 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 
 	@Override
-	public <T extends IQueueable> void submit(T bean, String queueID) {
+	public <T extends Queueable> void submit(T bean, String queueID) {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public <T extends IQueueable> void remove(T bean, String queueID) throws EventException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public <T extends IQueueable> void reorder(T bean, int move, String queueID) throws EventException {
+	public <T extends Queueable> void remove(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <T extends IQueueable> void pause(T bean, String queueID) throws EventException {
+	public <T extends Queueable> void reorder(T bean, int move, String queueID) throws EventException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public <T extends Queueable> void pause(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 		
 //		List<T> statusSet = queueService.getQueue(queueID).getConsumer().getStatusSet();
@@ -73,18 +73,18 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 
 	@Override
-	public <T extends IQueueable> void resume(T bean, String queueID) throws EventException {
+	public <T extends Queueable> void resume(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public <T extends IQueueable> void terminate(T bean, String queueID) throws EventException {
+	public <T extends Queueable> void terminate(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 
 	}
 	
-	private <T extends IQueueable> boolean isStatusAlreadySet(String queueID, T bean) {
+	private <T extends Queueable> boolean isStatusAlreadySet(String queueID, T bean) {
 		return false;
 	}
 

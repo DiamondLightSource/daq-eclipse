@@ -13,9 +13,9 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +92,7 @@ public class QueueService implements IQueueService {
 		
 		//Now we can set up the job-queue
 		jobQueueID = queueRoot+JOB_QUEUE_SUFFIX;
-		jobQueue = new Queue<>(jobQueueID, uri, 
+		jobQueue = new Queue<QueueBean>(jobQueueID, uri, 
 				heartbeatTopicName, commandSetName, commandTopicName);
 		
 		//Create the active-queues map
@@ -244,7 +244,7 @@ public class QueueService implements IQueueService {
 		disposeQueue(activeQueue, false);
 	}
 	
-	private void disposeQueue(IQueue<? extends IQueueable> queue, boolean nullify) throws EventException {
+	private void disposeQueue(IQueue<? extends Queueable> queue, boolean nullify) throws EventException {
 		String queueID = queue.getQueueID();
 		
 		//Clear queues: in previous iteration found that...

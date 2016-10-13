@@ -11,7 +11,6 @@ import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.beans.IAtomBeanWithQueue;
 import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 //TODO Can P now extend IAtomBeanWithQueue?
 //TODO If so, can we update the broadcast mechanism to accept queuemessage updates too?
-public class QueueListener<P extends IQueueable, Q extends StatusBean> implements IBeanListener<Q> {
+public class QueueListener<P extends Queueable, Q extends StatusBean> implements IBeanListener<Q> {
 	
 	private static Logger logger = LoggerFactory.getLogger(QueueListener.class);
 	
