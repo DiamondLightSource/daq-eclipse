@@ -73,7 +73,11 @@ public class MockEventService implements IEventService {
 	@Override
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, String submissionQName, String statusQName,
 			String statusTName, String heartbeatTName, String commandTName) throws EventException {
-		return (IConsumer<U>) consumers.get(submissionQName);
+		mockConsumer.setCommandTopicName(commandTName);
+		mockConsumer.setStatusTopicName(statusTName);
+		mockConsumer.setStatusSetName(statusQName);
+		mockConsumer.setSubmitQueueName(submissionQName);
+		return (IConsumer<U>) mockConsumer;
 	}
 
 	@Override

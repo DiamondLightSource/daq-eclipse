@@ -2,7 +2,9 @@ package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,49 +26,34 @@ public class MockQueueService implements IQueueService {
 	private IQueue<QueueBean> jobQueue;
 	private String jobQueueID;
 	
-	private final String commandTopicName, commandQueueName, heartbeatTopicName;
+	private final String commandTopicName, commandQueueName;
 	
 	private Map<String, IQueue<QueueAtom>> activeQueues = new HashMap<>();
+	private List<String> activeQueueIDs = new ArrayList<>();
 	private int nrActiveQueues = 0;
 	
 	private URI uri;
 	
 	private boolean active = false, forced = false;
 	
-	public MockQueueService(IQueue<QueueBean> mockOne) {
-		this.jobQueue = mockOne;
-		jobQueueID = mockOne.getQueueID();
-		commandTopicName = mockOne.getCommandTopicName();
-		commandQueueName = mockOne.getCommandSetName();
-		heartbeatTopicName = mockOne.getHeartbeatTopicName();
-		try {
-			uri = new URI("mock.uri");
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
 	public MockQueueService() {
-		jobQueueID = MOCK_JOB_QUEUE_ID;
-		commandTopicName = "mock.command-topic";
-		commandQueueName = "mock.command-queue";
-		heartbeatTopicName = "mock.heartbeat-topic";
+		jobQueue = null;
+		jobQueueID = "mock-job-queue";
+		commandTopicName = "mock-command-topic";
+		commandQueueName = "mock-command-queue";
 		try {
 			uri = new URI("mock.uri");
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//Don't make a job-queue
-		jobQueue = null;
 	}
 	
-	public MockQueueService(boolean makeJobQueue) throws EventException {
-		jobQueueID = MOCK_JOB_QUEUE_ID;
-		commandTopicName = "mock.command-topic";
-		commandQueueName = "mock.command-queue";
-		heartbeatTopicName = "mock.heartbeat-topic";
+	public MockQueueService(IQueue<QueueBean> mockJobQueue) {
+		this.jobQueue = mockJobQueue;
+		jobQueueID = mockJobQueue.getQueueID();
+		commandTopicName = mockJobQueue.getCommandTopicName();
+		commandQueueName = mockJobQueue.getCommandSetName();
 		try {
 			uri = new URI("mock.uri");
 		} catch (URISyntaxException e) {
@@ -74,12 +61,13 @@ public class MockQueueService implements IQueueService {
 			e.printStackTrace();
 		}
 		
-		//Only make a job-queue if requested
-		if (makeJobQueue) {
-			jobQueue = new Queue<>(jobQueueID, uri, heartbeatTopicName, commandQueueName, commandTopicName);
-		} else {
-			jobQueue = null;
-		}
+	}
+	
+	public MockQueueService(IQueue<QueueBean> mockJobQueue, IQueue<QueueAtom> mockActiveQueue) {
+		this(mockJobQueue);
+		activeQueues.put(mockActiveQueue.getQueueID(), mockActiveQueue);
+		activeQueueIDs.add(mockActiveQueue.getQueueID());
+		nrActiveQueues = 1;
 	}
 
 	@Override
@@ -114,24 +102,14 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public String registerNewActiveQueue() throws EventException {
-
-		//Get an ID and the queue names for new active queue
-		nrActiveQueues = activeQueues.size();
-		String aqID = MOCK_ACTIVE_QUEUE_ID_PREFIX+nrActiveQueues+IQueue.SUBMISSION_QUEUE_SUFFIX;
-
-		//Add to registry and increment number of registered queues
-		IEventService evServ = ServicesHolder.getEventService();
-		IConsumer<QueueAtom> cons = evServ.createConsumer(null, aqID, null, null, null, null);
-		activeQueues.put(aqID, new MockQueue<>(aqID, cons));
-		nrActiveQueues = activeQueues.size();
-
+		String aqID = activeQueueIDs.get(nrActiveQueues);
+		nrActiveQueues++;
 		return aqID;
 	}
 
 	@Override
 	public void deRegisterActiveQueue(String queueID, boolean force) throws EventException {
-		// TODO Auto-generated method stub
-
+			nrActiveQueues--;
 	}
 
 	@Override
@@ -145,8 +123,6 @@ public class MockQueueService implements IQueueService {
 		// TODO Auto-generated method stub
 
 	}
-
-
 
 	@Override
 	public IQueue<QueueBean> getJobQueue() {
