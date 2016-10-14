@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * @author Michael Wharmby
  *
  */
-public abstract class Queueable extends StatusBean {// implements IQueueable {
+public abstract class Queueable extends StatusBean {
 	
 	private static final long serialVersionUID = 5067469791394115873L;
 	
