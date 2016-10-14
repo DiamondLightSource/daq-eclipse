@@ -129,16 +129,20 @@ public interface IQueueService {
 	public Set<String> getAllActiveQueueIDs();
 	
 	/**
-	 * Default method to return any queue based on a supplied queueID
+	 * Default method to return any queue based on a supplied queueID.
+	 * Note: the IQueue is case to type T which extends {@link Queueable}; both
+	 * {@link QueueBean} & {@link QueueAtom} (expected types) extend Queueable.
 	 * 
 	 * @param String queueID of the queue to be returned.
 	 * @return IQueue representing the requested queue.
 	 */
-	public default IQueue<? extends Queueable> getQueue(String queueID) {//FIXME
+	//OK, since Queueable is a supertype of QueueBean & QueueAtom
+	@SuppressWarnings("unchecked")
+	public default <T extends Queueable> IQueue<T> getQueue(String queueID) {//FIXME
 		if (queueID == getJobQueueID()) {
-			return getJobQueue();
+			return (IQueue<T>) getJobQueue();
 		} else {
-			return getActiveQueue(queueID);
+			return (IQueue<T>) getActiveQueue(queueID);
 		}
 	}
 	
