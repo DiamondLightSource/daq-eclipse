@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IClassRegistry;
+import org.eclipse.scanning.api.device.models.ClusterProcessingModel;
+import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
@@ -73,7 +75,6 @@ import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
-import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.script.ScriptLanguage;
 import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.api.script.ScriptResponse;
@@ -156,6 +157,7 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		
 		// device.models
 		registerClass(tmp, ProcessingModel.class);
+		registerClass(tmp, ClusterProcessingModel.class);
 
 		// script
 		registerClass(tmp, ScriptLanguage.class);
