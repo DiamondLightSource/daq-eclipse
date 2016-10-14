@@ -263,7 +263,6 @@ public class ExampleMalcolmDevice {
         			addArray("tags", ScalarType.pvString).
         			add("writeable", ScalarType.pvBoolean).
         			add("label", ScalarType.pvString).
-        			addArray("headings", ScalarType.pvString).
         			setId("malcolm:core/TableMeta:1.0").
         			createStructure();
             
@@ -315,8 +314,9 @@ public class ExampleMalcolmDevice {
             
             Structure tableStructure = fieldCreate.createFieldBuilder().
         			add("meta", tableMetaStructure).
+        			addArray("labels", ScalarType.pvString).
         			add("value", tableValueStructure).
-        			setId("malcolm:core/Table:1.0").
+        			setId("epics:nt/NTTable:1.0").
         			createStructure();
             
             Structure methodStructure = fieldCreate.createFieldBuilder().
@@ -425,7 +425,7 @@ public class ExampleMalcolmDevice {
     		tableValuePVStructure.getSubField(PVStringArray.class, "dataset").put(0, datasetArray.length, datasetArray, 0);
     		tableValuePVStructure.getSubField(PVIntArray.class, "users").put(0, usersArray.length, usersArray, 0);
     		String[] headingsArray = new String[] {"detector", "filename", "dataset", "users"};
-    		datasetsPVStructure.getSubField(PVStringArray.class, "meta.headings").put(0, headingsArray.length, headingsArray, 0);
+    		datasetsPVStructure.getSubField(PVStringArray.class, "labels").put(0, headingsArray.length, headingsArray, 0);
     		
     		// current step
             blockPVStructure.getSubField(PVInt.class, "completedSteps.value").put(1);

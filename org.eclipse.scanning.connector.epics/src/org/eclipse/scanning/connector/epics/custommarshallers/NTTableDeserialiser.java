@@ -20,10 +20,10 @@ import org.epics.pvmarshaller.marshaller.deserialisers.Deserialiser;
  * @author Matt Taylor
  *
  */
-public class MalcolmTableDeserialiser implements IPVStructureDeserialiser {
+public class NTTableDeserialiser implements IPVStructureDeserialiser {
 	
 	private final String valueField = "value";
-	private final String headingsTagField = "headings";
+	private final String headingsTagField = "labels";
 	private final String metaField = "meta";
 	private final String descriptionField = "description";
 	private final String writeableField = "writeable";
@@ -51,7 +51,7 @@ public class MalcolmTableDeserialiser implements IPVStructureDeserialiser {
 		attribute.setWriteable(writeable);
 		attribute.setName(pvStructure.getFullName());
 		
-		PVStringArray headingsArray = metaStructure.getSubField(PVStringArray.class, headingsTagField);
+		PVStringArray headingsArray = pvStructure.getSubField(PVStringArray.class, headingsTagField);
 		StringArrayData headingsArrayData = new StringArrayData();
 		headingsArray.get(0, headingsArray.getLength(), headingsArrayData);
 		attribute.setHeadings(headingsArrayData.data);
