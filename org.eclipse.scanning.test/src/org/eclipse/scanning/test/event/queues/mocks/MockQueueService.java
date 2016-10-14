@@ -9,14 +9,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
-import org.eclipse.scanning.event.queues.Queue;
-import org.eclipse.scanning.event.queues.ServicesHolder;
 
 public class MockQueueService implements IQueueService {
 	
@@ -26,7 +22,7 @@ public class MockQueueService implements IQueueService {
 	private IQueue<QueueBean> jobQueue;
 	private String jobQueueID;
 	
-	private final String commandTopicName, commandQueueName;
+	private String commandTopicName, commandQueueName;
 	
 	private Map<String, IQueue<QueueAtom>> activeQueues = new HashMap<>();
 	private List<String> activeQueueIDs = new ArrayList<>();
@@ -212,5 +208,13 @@ public class MockQueueService implements IQueueService {
 	
 	public boolean isForced() {
 		return forced;
+	}
+	
+	public void setCommandTopicName(String cmdTopic) {
+		commandTopicName = cmdTopic;
+	}
+	
+	public void setCommandQueueName(String cmdQueue) {
+		commandQueueName = cmdQueue;
 	}
 }

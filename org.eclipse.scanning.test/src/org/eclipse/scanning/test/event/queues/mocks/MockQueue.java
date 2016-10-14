@@ -49,8 +49,9 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 
 	@Override
 	public boolean clearQueues() throws EventException {
-		// TODO Auto-generated method stub
-		return false;
+		cons.clearQueue(cons.getStatusSetName());
+		cons.clearQueue(cons.getSubmitQueueName());
+		return true;
 	}
 
 	@Override
