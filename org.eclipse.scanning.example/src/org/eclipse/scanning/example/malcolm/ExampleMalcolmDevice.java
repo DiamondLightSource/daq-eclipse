@@ -54,7 +54,7 @@ public class ExampleMalcolmDevice {
     	recordName = deviceName;
     }
     
-    public void run() {
+    public void start() {
     	try {
             PVDatabase master = PVDatabaseFactory.getMaster();
             ChannelProvider channelProvider = ChannelProviderLocalFactory.getChannelServer();
@@ -86,7 +86,7 @@ public class ExampleMalcolmDevice {
     public static void main(String[] args)
     {
     	ExampleMalcolmDevice example = new ExampleMalcolmDevice("mydevice");
-    	example.run();
+    	example.start();
     }
     
     private static class DummyMalcolmRecord extends PVRecord {
@@ -377,7 +377,7 @@ public class ExampleMalcolmDevice {
                     add("axes", stringArrayStructure).
                     add("datasets", tableStructure).
                     add("generator", pointGeneratorStructure).
-                    add("currentStep", intStructure).
+                    add("completedSteps", intStructure).
         			setId("malcolm:core/Block:1.0").
                     createStructure();
             
@@ -428,7 +428,7 @@ public class ExampleMalcolmDevice {
     		datasetsPVStructure.getSubField(PVStringArray.class, "meta.headings").put(0, headingsArray.length, headingsArray, 0);
     		
     		// current step
-            blockPVStructure.getSubField(PVInt.class, "currentStep.value").put(1);
+            blockPVStructure.getSubField(PVInt.class, "completedSteps.value").put(1);
             
 
     		

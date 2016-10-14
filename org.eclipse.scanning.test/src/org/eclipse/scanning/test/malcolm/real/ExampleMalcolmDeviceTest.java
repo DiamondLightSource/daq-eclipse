@@ -12,7 +12,10 @@ import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
+import org.eclipse.scanning.api.malcolm.MalcolmTable;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
+import org.eclipse.scanning.api.malcolm.attributes.StringAttribute;
+import org.eclipse.scanning.api.malcolm.attributes.TableAttribute;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.BoundingBox;
@@ -98,7 +101,7 @@ public class ExampleMalcolmDeviceTest {
 			boolean axesFound = false;
 			boolean datasetsFound = false;
 			boolean generatorFound = false;
-			boolean currentStepFound = false;
+			boolean completedStepsFound = false;
 			boolean aIsNotWriteable = false;
 			boolean bIsWriteable = false;
 
@@ -123,8 +126,8 @@ public class ExampleMalcolmDeviceTest {
 					datasetsFound = true;
 				} else if (ma.getName().equals("generator")) {
 					generatorFound = true;
-				} else if (ma.getName().equals("currentStep")) {
-					currentStepFound = true;
+				} else if (ma.getName().equals("completedSteps")) {
+					completedStepsFound = true;
 				}
 			}
 
@@ -139,24 +142,24 @@ public class ExampleMalcolmDeviceTest {
 			assertTrue(axesFound);
 			assertTrue(datasetsFound);
 			assertTrue(generatorFound);
-			assertTrue(currentStepFound);
+			assertTrue(completedStepsFound);
 
 			// Get a specific choice (string) attribute
 			Object stateValue = modelledDevice.getAttributeValue("state");
 			if (stateValue instanceof String) {
 				String stateValueStr = (String) stateValue;
-				assertTrue(stateValueStr.equals("READY"));
+				assertEquals("READY", stateValueStr);
 			} else {
-				fail("state value was was expected to be a string but wasn't");
+				fail("state value was expected to be a string but wasn't");
 			}
 
 			// Get a specific string attribute
 			Object statusValue = modelledDevice.getAttributeValue("status");
 			if (statusValue instanceof String) {
 				String statusValueStr = (String) statusValue;
-				assertTrue(statusValueStr.equals("Test Status"));
+				assertEquals("Test Status", statusValueStr);
 			} else {
-				fail("status value was was expected to be a string but wasn't");
+				fail("status value was expected to be a string but wasn't");
 			}
 
 			// Get a specific boolean attribute
@@ -165,16 +168,46 @@ public class ExampleMalcolmDeviceTest {
 				Boolean busyValueBool = (Boolean) busyValue;
 				assertTrue(busyValueBool.equals(false));
 			} else {
-				fail("busy value was was expected to be a boolean but wasn't");
+				fail("busy value was expected to be a boolean but wasn't");
 			}
 
 			// Get a specific number attribute
 			Object totalStepsValue = modelledDevice.getAttributeValue("totalSteps");
 			if (totalStepsValue instanceof Integer) {
 				Integer totalStepsValueInt = (Integer) totalStepsValue;
-				assertTrue(totalStepsValueInt.equals(123));
+				assertEquals((Integer)123, totalStepsValueInt);
 			} else {
-				fail("totalSteps value was was expected to be an int but wasn't");
+				fail("totalSteps value was expected to be an int but wasn't");
+			}
+
+			// Get a specific string attribute (full attribute)
+			Object statusAttributeValue = modelledDevice.getAttribute("status");
+			if (statusAttributeValue instanceof StringAttribute) {
+				StringAttribute statusAttributeValueStr = (StringAttribute) statusAttributeValue;
+				assertEquals("status", statusAttributeValueStr.getName());
+				assertEquals("Test Status", statusAttributeValueStr.getValue());
+			} else {
+				fail("status value was expected to be a StringAttribute but wasn't");
+			}
+			
+			// Get a specific table attribute (full attribute)
+			Object datasetsAttributeValue = modelledDevice.getAttribute("datasets");
+			if (datasetsAttributeValue instanceof TableAttribute) {
+				TableAttribute datasetAttributeValueTable = (TableAttribute) datasetsAttributeValue;
+				assertEquals("datasets", datasetAttributeValueTable.getName());
+				MalcolmTable malcolmTable = datasetAttributeValueTable.getValue();
+				
+				assertEquals(4, malcolmTable.getHeadings().size());
+				assertEquals("detector", malcolmTable.getHeadings().get(0));
+				assertEquals("filename", malcolmTable.getHeadings().get(1));
+				assertEquals("dataset", malcolmTable.getHeadings().get(2));
+				assertEquals("users", malcolmTable.getHeadings().get(3));
+				assertEquals(3, malcolmTable.getColumn("dataset").size());
+				assertEquals("/entry/detector/I200", malcolmTable.getColumn("dataset").get(0));
+				assertEquals("/entry/detector/Iref", malcolmTable.getColumn("dataset").get(1));
+				assertEquals("/entry/detector/det1", malcolmTable.getColumn("dataset").get(2));
+			} else {
+				fail("datasets value was expected to be a TableAttribute but wasn't");
 			}
 
 			// Check the RPC calls were received correctly by the device
@@ -247,7 +280,7 @@ public class ExampleMalcolmDeviceTest {
 		public void run() {
 			String deviceName = getTestDeviceName();
 			dummyMalcolmDevice = new ExampleMalcolmDevice(deviceName);
-			dummyMalcolmDevice.run();
+			dummyMalcolmDevice.start();
 		}
 
 	}

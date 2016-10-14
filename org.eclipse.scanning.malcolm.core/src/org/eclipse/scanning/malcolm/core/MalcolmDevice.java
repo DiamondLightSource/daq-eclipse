@@ -57,7 +57,7 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	
 	private static String BUSY_ENDPOINT = "busy";
 	
-	private static String CURRENT_STEP_ENDPOINT = "currentStep";
+	private static String CURRENT_STEP_ENDPOINT = "completedSteps";
 
 
 	public MalcolmDevice(String name, IMalcolmConnectorService<MalcolmMessage> service, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
@@ -373,9 +373,8 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 	}
 	
-	public Object getAttributeValue(String attribute) throws MalcolmDeviceException {
-		String endpoint = attribute + ".value";
-		final MalcolmMessage message = connectionDelegate.createGetMessage(endpoint);
+	public Object getAttribute(String attribute) throws MalcolmDeviceException {
+		final MalcolmMessage message = connectionDelegate.createGetMessage(attribute);
 		final MalcolmMessage reply   = service.send(this, message);
 		if (reply.getType()==Type.ERROR) {
 			throw new MalcolmDeviceException(reply.getMessage());
@@ -405,5 +404,17 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		}
 		
 		return attributeList;
+	}
+	
+	/**
+	 * Gets the value of an attribute on the device
+	 */
+	public Object getAttributeValue(String attributeName) throws MalcolmDeviceException {
+		Object attribute = getAttribute(attributeName);
+		if (attribute instanceof MalcolmAttribute) {
+			MalcolmAttribute malcolmAttribute = (MalcolmAttribute)attribute;
+			return malcolmAttribute.getValue();
+		}
+		return attribute;
 	}
 }
