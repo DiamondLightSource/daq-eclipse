@@ -63,13 +63,7 @@ public class QueueControllerService implements IQueueControllerService {
 	public <T extends Queueable> void pause(T bean, String queueID) throws EventException {
 		// TODO Auto-generated method stub
 		
-//		List<T> statusSet = queueService.getQueue(queueID).getConsumer().getStatusSet();
-//		for (T liveBean : statusSet) {
-//			if (liveBean.getUniqueID().equals(bean.getUniqueID()) && 
-//					liveBean.getStatus().isPaused()) {
-//				throw new EventException()
-//			}
-//		}
+
 	}
 
 	@Override
@@ -84,8 +78,16 @@ public class QueueControllerService implements IQueueControllerService {
 
 	}
 	
-	private <T extends Queueable> boolean isStatusAlreadySet(String queueID, T bean) {
-		return false;
+	private <T extends Queueable> Queueable getBeanFromStatusSet(T bean, String queueID) throws EventException {
+		//Search for bean in StatusSet
+		List<Queueable> statusSet = queueService.getQueue(queueID).getConsumer().getStatusSet();
+		for (Queueable liveBean : statusSet) {
+			if (liveBean.getUniqueId().equals(bean.getUniqueId())) {
+					return liveBean;
+			}
+		}
+		//Return null if it's not there
+		return null;
 	}
 
 	@Override
