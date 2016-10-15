@@ -149,12 +149,11 @@ public class QueueControllerService implements IQueueControllerService {
 	private <T extends Queueable> void publishQueueProcessCommand(T bean, String queueID, Status state) throws EventException {
 		//Check bean is right type for the queue
 		if (queueID.equals(queueService.getJobQueueID()) && 
-				(!(bean instanceof QueueBean))) {
+				!(bean instanceof QueueBean)) {
 			throw new IllegalArgumentException("Job-queue cannot handle non-QueueBeans");
-		} else {
-			if (!(bean instanceof QueueAtom)) {
-				throw new IllegalArgumentException("Active-queue cannot handle non-QueueAtoms");
-			}
+		} else if (!(queueID.equals(queueService.getJobQueueID())) && 
+				!(bean instanceof QueueAtom)){
+			throw new IllegalArgumentException("Active-queue cannot handle non-QueueAtoms");
 		}
 		
 		//Set up the publisher

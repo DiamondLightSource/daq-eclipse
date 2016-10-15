@@ -56,6 +56,7 @@ public class QueueControllerServiceTest {
 		MockConsumer<QueueAtom> mockACons = new MockConsumer<>();
 		MockQueue<QueueAtom> mockActiveQ = new MockQueue<>(aqID, mockACons);
 		mockQServ = new MockQueueService(mockJobQ, mockActiveQ);
+		mockQServ.setCommandTopicName("mock-cmd-topic");
 		ServicesHolder.setQueueService(mockQServ);
 		//Check that our job- and active-consumers do values which are different IDs
 		assertFalse("job-queue consumer ID should not be null", mockQServ.getQueue(jqID).getConsumerID() == null);
@@ -229,6 +230,14 @@ public class QueueControllerServiceTest {
 		DummyAtom carlos = new DummyAtom("Carlos", 30);
 		DummyAtom xavier = new DummyAtom("Xavier", 100);
 		
+		//Set up beans in right queues
+		MockConsumer<QueueBean> jCons = (MockConsumer<QueueBean>) mockQServ.getJobQueue().getConsumer();
+		mockQServ.getJobQueue().clearQueues();
+		jCons.addToStatusSet(albert);
+		MockConsumer<QueueAtom> aCons = (MockConsumer<QueueAtom>) mockQServ.getActiveQueue(aqID).getConsumer();
+		mockQServ.getActiveQueue(aqID).clearQueues();
+		aCons.addToStatusSet(carlos);
+		
 		IQueueControllerService testController = new QueueControllerService();
 		/*
 		 * Pause process in job-queue
@@ -269,13 +278,13 @@ public class QueueControllerServiceTest {
 		 * Resume process in active-queue
 		 * - check published bean has REQUEST_RESUME status
 		 */
-		testController.resume(carlos, jqID);
+		testController.resume(carlos, aqID);
 		assertEquals("Published bean has wrong Status", Status.REQUEST_RESUME, mockPub.getLastQueueable().getStatus());
 		
 		
 		/*
 		 * Test wrong bean type to wrong queue & non-existent paused/resumed bean
-		 */
+		 *///TODO These next tests don't work because the bean is not in the queue (as it's the wrong type) - do we need the tests?
 		try {
 			testController.pause(carlos, jqID);
 			fail("Expected IllegalArgumentException when wrong queueable type paused (atom in job-queue)");
