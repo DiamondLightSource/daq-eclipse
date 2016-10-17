@@ -4,9 +4,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.eclipse.dawnsci.analysis.api.persistence.IMarshaller;
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.junit.Test;
 
 /**
@@ -17,7 +18,7 @@ import org.junit.Test;
  *
  * @param <S> POJO type to be serialised.
  */
-public abstract class AbstractBeanTest<S extends IQueueable> {
+public abstract class AbstractBeanTest<S extends Queueable> {
 	
 	protected S beanA, beanB;
 	

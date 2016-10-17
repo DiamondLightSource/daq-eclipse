@@ -4,8 +4,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.IAtomBeanWithQueue;
-import org.eclipse.scanning.api.event.queues.beans.IAtomQueue;
+import org.eclipse.scanning.api.event.queues.beans.IHasAtomQueue;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
@@ -14,7 +13,7 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
 
 /**
  * Generic class for processing a {@link Queueable} composed of an 
- * {@link IAtomQueue}. The processor spools the atoms in the contained queue 
+ * {@link IOLDAtomQueue}. The processor spools the atoms in the contained queue 
  * into a new queue created through the {@link IQueueService}. The new queue is
  * monitored using the {@link QueueListener} and through the queue service.
  * 
@@ -25,10 +24,10 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * @author Michael Wharmby
  *
  * @param <P> Bean implementing {@link Queueable}, but must be an 
- *            {@link IAtomBeanWithQueue}.
+ *            {@link IHasAtomQueue}.
  * @param <Q> TODO (this is the bean from the child?)
  */
-public class AtomQueueProcessor<P extends Queueable & IAtomBeanWithQueue<Q>, Q extends QueueAtom> {
+public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extends QueueAtom> {
 	
 	private IQueueService queueService;
 	private QueueListener<P, Q> queueListener;

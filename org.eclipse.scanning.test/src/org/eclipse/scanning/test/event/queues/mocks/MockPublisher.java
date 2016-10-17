@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
+import org.eclipse.scanning.api.event.queues.beans.IHasChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
@@ -83,8 +83,8 @@ public class MockPublisher<T> implements IPublisher<T> {
 			broadBean.setUniqueId(loBean.getUniqueId());
 			broadBean.setName(loBean.getName());
 			
-			if (bean instanceof IAtomWithChildQueue) {
-				broadBean.setQueueMessage(((IAtomWithChildQueue)bean).getQueueMessage());
+			if (bean instanceof IHasChildQueue) {
+				broadBean.setQueueMessage(((IHasChildQueue)bean).getQueueMessage());
 			}
 			broadcastStatusBeans.add(broadBean);
 			if ((loBean.getStatus().isRequest()) && (mockCons != null)) {
