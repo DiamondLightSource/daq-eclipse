@@ -94,7 +94,7 @@ public class TaskBean extends QueueBean implements IHasAtomQueue<SubTaskAtom> {
 	}
 
 	@Override
-	public int queueSize() {
+	public int atomQueueSize() {
 		return atomQueue.size();
 	}
 

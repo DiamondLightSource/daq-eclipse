@@ -66,7 +66,7 @@ public class TaskBeanTest extends AbstractBeanTest<TaskBean> { //extends Abstrac
 
 		//Check adding atoms to queue works
 		assertTrue("atomD addition failed - already present?", beanA.addAtom(atomD));
-		assertEquals("Queue size did not change after addition", queueSize+1, beanA.queueSize());
+		assertEquals("Queue size did not change after addition", queueSize+1, beanA.atomQueueSize());
 		
 		//Check adding nulls/identical atoms throws an expected error
 		try {
@@ -94,9 +94,9 @@ public class TaskBeanTest extends AbstractBeanTest<TaskBean> { //extends Abstrac
 		//Call nextAtom & viewNextAtom and check that queue changes/does not change
 		assertEquals("atomA not in the next position", atomA, beanB.viewNextAtom());
 		assertEquals("atomA not returned from the next position", atomA, beanB.nextAtom());
-		assertEquals("Queue has not reduced in size on removal", queueSize-1, beanB.queueSize());
+		assertEquals("Queue has not reduced in size on removal", queueSize-1, beanB.atomQueueSize());
 		assertEquals("atomB not in the next position", atomB, beanB.viewNextAtom());
-		assertEquals("Queue has not reduced in size on removal", queueSize-1, beanB.queueSize());
+		assertEquals("Queue has not reduced in size on removal", queueSize-1, beanB.atomQueueSize());
 	}
 	
 	/**

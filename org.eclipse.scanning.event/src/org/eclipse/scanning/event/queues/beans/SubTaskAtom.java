@@ -93,7 +93,7 @@ public class SubTaskAtom extends QueueAtom implements IHasAtomQueue<QueueAtom> {
 	}
 
 	@Override
-	public int queueSize() {
+	public int atomQueueSize() {
 		return atomQueue.size();
 	}
 

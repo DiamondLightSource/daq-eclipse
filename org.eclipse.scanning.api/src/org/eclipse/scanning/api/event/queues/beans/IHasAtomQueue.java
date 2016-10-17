@@ -55,7 +55,7 @@ public interface IHasAtomQueue<T extends QueueAtom> extends IHasChildQueue {
 	 * 
 	 * @return number of {@link QueueAtom}s in the queue.
 	 */
-	public int queueSize();
+	public int atomQueueSize();
 	
 	/**
 	 * Return the index of the {@link QueueAtom} with the given unique ID.
