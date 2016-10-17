@@ -2,6 +2,7 @@ package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.IHasAtomQueue;
@@ -22,9 +23,9 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * 
  * @author Michael Wharmby
  *
- * @param <P> Bean implementing {@link Queueable}, but must be an 
+ * @param <P> Bean implementing {@link Queueable}, but must be an  
  *            {@link IHasAtomQueue}.
- * @param <Q> TODO (this is the bean from the child?)
+ * @param <Q> Bean from within the AtomQueue - implements {@link QueueAtom}.
  */
 public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extends QueueAtom> {
 	
@@ -63,7 +64,8 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 			if (nextAtom.getUserName() != parentBean.getUserName()) {
 				nextAtom.setUserName(parentBean.getUserName());
 			}
-			queueService.submit(atomQueue.nextAtom(), activeQueueName);//FIXME
+			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
+			controller.submit(atomQueue.nextAtom(), activeQueueName);
 		}
 		
 		//Create QueueListener

@@ -1,9 +1,10 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.AtomQueueServiceUtils;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 
 public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
@@ -26,7 +27,9 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 			lock.lockInterruptibly();
 			if (isTerminated()) {
 				queueBean.setMessage("Active-queue aborted before completion (requested)");
-				AtomQueueServiceUtils.terminateQueueProcess(atomQueueProcessor.getActiveQueueName(), queueBean);
+				IQueueControllerService controller = ServicesHolder.getQueueControllerService();
+				controller.terminate(queueBean, atomQueueProcessor.getActiveQueueName());
+
 			} else if (queueBean.getPercentComplete() >= 99.5) {
 				//Completed successfully
 				broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
