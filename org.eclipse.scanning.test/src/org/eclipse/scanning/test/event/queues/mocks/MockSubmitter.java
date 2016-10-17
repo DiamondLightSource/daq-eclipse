@@ -271,7 +271,7 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 		try {
 			getReorderedBean(bean);
 			return true;
-		} catch (EventException evEx) {
+		} catch (EventException | NullPointerException evEx) {
 			//Bean not reordered
 			return false;
 		}

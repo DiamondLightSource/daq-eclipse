@@ -138,8 +138,7 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public boolean isActiveQueueRegistered(String queueID) {
-		// TODO Auto-generated method stub
-		return false;
+		return activeQueues.containsKey(queueID);
 	}
 
 	@Override

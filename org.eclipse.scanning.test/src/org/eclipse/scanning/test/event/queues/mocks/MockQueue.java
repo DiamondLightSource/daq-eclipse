@@ -62,8 +62,7 @@ public class MockQueue<T extends Queueable> implements IQueue<T> {
 
 	@Override
 	public String getSubmissionQueueName() {
-		// TODO Auto-generated method stub
-		return null;
+		return queueID+SUBMISSION_QUEUE_SUFFIX;
 	}
 
 	@Override
