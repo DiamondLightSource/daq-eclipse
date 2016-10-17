@@ -255,8 +255,8 @@ public class QueueControllerServiceTest {
 		assertEquals("Published bean has wrong Status", Status.REQUEST_PAUSE, mockPub.getLastQueueable().getStatus());
 		try {
 			testController.pause(albert, jqID);
-			fail("Expected EventException on repeated pause");
-		} catch (EventException evEx) {
+			fail("Expected IllegalStateException on repeated pause");
+		} catch (IllegalStateException isEx) {
 			//Expected
 		}
 		
@@ -269,8 +269,8 @@ public class QueueControllerServiceTest {
 		assertEquals("Published bean has wrong Status", Status.REQUEST_RESUME, mockPub.getLastQueueable().getStatus());
 		try {
 			testController.resume(albert, jqID);
-			fail("Expected EventException on repeated resume");
-		} catch (EventException evEx) {
+			fail("Expected IllegalStateException on repeated resume");
+		} catch (IllegalStateException isEx) {
 			//Expected
 		}
 		
@@ -353,8 +353,8 @@ public class QueueControllerServiceTest {
 		assertEquals("Published bean has wrong Status", Status.REQUEST_TERMINATE, mockPub.getLastQueueable().getStatus());
 		try {
 			testController.terminate(albert, jqID);
-			fail("Expected EventException on repeated terminate");
-		} catch (EventException evEx) {
+			fail("Expected IllegalStateException on repeated terminate");
+		} catch (IllegalStateException isEx) {
 			//Expected
 		}
 

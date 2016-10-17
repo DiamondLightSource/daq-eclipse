@@ -44,21 +44,25 @@ public interface IQueueService {
 	 * Initialise the queue service. This should ensure the service is capable
 	 * of creating new {@link IQueue} instances and initialise the job queue.
 	 * 
-	 * @throws EventException if it was not possible to create the job queue.
+	 * @throws EventException - if it was not possible to create the job queue.
+	 * @throws IllegalStateException - if the queue-root & URI have not been 
+	 *                                 configured.
 	 */
 	public void init() throws EventException;
 	
 	/**
 	 * Method to tidy up after the method when the service is to be shutdown.
 	 * 
-	 * @throws EventException
+	 * @throws EventException - in case of problems stopping the IQueueService.
 	 */
 	public void disposeService() throws EventException;
 	
 	/**
 	 * Start the job-queue consumer.
 	 * 
-	 * @throws EventException in case it was not possible to start the consumer.
+	 * @throws EventException - in case it was not possible to start the 
+	 *                          consumer.
+	 * @throws IllegalStateException - if service not initialised.
 	 */
 	public void start() throws EventException;
 	
@@ -68,7 +72,7 @@ public interface IQueueService {
 	 * stopped (this will leave jobs in the submit queues).
 	 * 
 	 * @param force True if all consumers are to be killed.
-	 * @throws EventException if consumers could not be stopped.
+	 * @throws EventException - if consumers could not be stopped.
 	 */
 	public void stop(boolean force) throws EventException;
 	
@@ -78,7 +82,8 @@ public interface IQueueService {
 	 * genuinely clean.
 	 * 
 	 * @return String name of the active-queue registered.
-	 * @throws EventException if it was not possible to create the active-queue.
+	 * @throws EventException - if it was not possible to create the 
+	 *                          active-queue.
 	 */
 	public String registerNewActiveQueue() throws EventException;
 	
@@ -89,8 +94,11 @@ public interface IQueueService {
 	 * 
 	 * @param queueID String ID  of queue to be deregistered.
 	 * @param force True if consumer should be killed rather than stopped.
-	 * @throws EventException if the given active-queue could not be found or
-	 * 						  problems were encountered stopping the consumer.
+	 * @throws EventException - if the given active-queue could not be found or
+	 * 						    problems were encountered stopping the 
+	 *                          consumer.
+	 * @throws IllegalStateException - if the IQueueService has not been 
+	 *                                 started.
 	 */
 	public void deRegisterActiveQueue(String queueID, boolean force) throws EventException;
 	
@@ -106,7 +114,7 @@ public interface IQueueService {
 	 * Start a registered active-queue consumer.
 	 * 
 	 * @param queueID String ID of active-queue registered.
-	 * @throws EventException if the active-queue cannot be started.
+	 * @throws EventException - if the active-queue cannot be started.
 	 */
 	public void startActiveQueue(String queueID) throws EventException;
 	
@@ -117,7 +125,7 @@ public interface IQueueService {
 	 * 
 	 * @param queueID String ID of registered queue.
 	 * @param force True if all consumers are to be killed.
-	 * @throws EventException if consumers could not be stopped.
+	 * @throws EventException - if consumers could not be stopped.
 	 */
 	public void stopActiveQueue(String queueID, boolean force) throws EventException;
 	
@@ -135,6 +143,7 @@ public interface IQueueService {
 	 * 
 	 * @param String queueID of the queue to be returned.
 	 * @return IQueue representing the requested queue.
+	 * @throws EventException - if queueID is unknown
 	 */
 	//OK, since Queueable is a supertype of QueueBean & QueueAtom
 	@SuppressWarnings("unchecked")
@@ -162,8 +171,9 @@ public interface IQueueService {
 	 * 
 	 * @param queueID String ID of registered queue.
 	 * @return The requested active-queue instance, implementing {@link IQueue}.
+	 * @throws EventException - if queueID is unknown
 	 */
-	public IQueue<QueueAtom> getActiveQueue(String queueID);
+	public IQueue<QueueAtom> getActiveQueue(String queueID) throws EventException;
 	
 	/**
 	 * Get the queueID of the job-queue managed by this service.

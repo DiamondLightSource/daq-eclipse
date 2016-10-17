@@ -255,7 +255,7 @@ public class QueueServiceTest {
 			try {
 				testQServ.getQueue(activeQIDs.get(i));
 				fail("Queue should no longer exist in registry");
-			} catch (IllegalArgumentException evEx) {
+			} catch (EventException evEx) {
 				//Expected
 			}
 		}

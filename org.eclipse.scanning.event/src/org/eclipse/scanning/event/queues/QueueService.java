@@ -276,9 +276,9 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public IQueue<QueueAtom> getActiveQueue(String queueID) {
+	public IQueue<QueueAtom> getActiveQueue(String queueID) throws EventException {
 		if (isActiveQueueRegistered(queueID)) return activeQueueRegister.get(queueID);
-		throw new IllegalArgumentException("Queue ID "+queueID+" not found in registry");
+		throw new EventException("Queue ID "+queueID+" not found in registry");
 	}
 	
 	@Override

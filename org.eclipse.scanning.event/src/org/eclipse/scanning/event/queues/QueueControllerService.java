@@ -134,10 +134,10 @@ public class QueueControllerService implements IQueueControllerService {
 			throw new EventException("Bean not in this queue.");
 		} else if (queuedBean.getStatus().isPaused()) {
 			logger.warn("Attempted to pause already paused bean '"+bean.getName()+"'.");
-			throw new EventException("Bean is already paused.");
+			throw new IllegalStateException("Bean is already paused.");
 		} else if (queuedBean.getStatus().equals(Status.SUBMITTED)) {
 			logger.warn("Attempted to pause bean '"+bean.getName()+"' still in submission queue.");
-			throw new EventException("Bean not being processed, only submitted.");
+			throw new IllegalStateException("Bean not being processed, only submitted.");
 		}
 		
 		//Command the process (checks bean type first)
@@ -153,10 +153,10 @@ public class QueueControllerService implements IQueueControllerService {
 			throw new EventException("Bean not in this queue.");
 		} else if (queuedBean.getStatus().isResumed() || queuedBean.getStatus().isRunning()) {
 			logger.warn("Attempted to resume already resumed bean '"+bean.getName()+"'.");
-			throw new EventException("Bean is already resumed.");
+			throw new IllegalStateException("Bean is already resumed.");
 		} else if (queuedBean.getStatus().equals(Status.SUBMITTED)) {
 			logger.warn("Attempted to resume bean '"+bean.getName()+"' still in submission queue.");
-			throw new EventException("Bean not being processed, only submitted.");
+			throw new IllegalStateException("Bean not being processed, only submitted.");
 		}
 
 		//Command the process (checks bean type first)
@@ -172,7 +172,7 @@ public class QueueControllerService implements IQueueControllerService {
 			throw new EventException("Bean not in this queue.");
 		} else if (queuedBean.getStatus().isTerminated()) {
 			logger.warn("Attempted to terminate already terminated bean '"+bean.getName()+"'.");
-			throw new EventException("Bean is already terminated.");
+			throw new IllegalStateException("Bean is already terminated.");
 		} else if (queuedBean.getStatus().equals(Status.SUBMITTED)) {
 			logger.warn("Attempted to terminate bean '"+bean.getName()+"' still in submission queue. Will remove instead.");
 			remove(bean, queueID);
