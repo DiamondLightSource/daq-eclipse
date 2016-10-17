@@ -19,6 +19,11 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
  */
 public class MoveAtom extends QueueAtom {
 	
+	/**
+	 * Version ID for serialization. Should be updated when class changed. 
+	 */
+	private static final long serialVersionUID = 20161017L;
+	
 	private Map<String, Object> positionConfig;
 	
 	/**

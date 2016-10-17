@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
  */
 public class TaskBean extends QueueBean implements IHasAtomQueue<SubTaskAtom> {
 
+	/**
+	 * Version ID for serialization. Should be updated when class changed. 
+	 */
 	private static final long serialVersionUID = 20161017L;
 
 	private static final Logger logger = LoggerFactory.getLogger(TaskBean.class);

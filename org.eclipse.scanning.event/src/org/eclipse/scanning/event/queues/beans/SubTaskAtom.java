@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
  */
 public class SubTaskAtom extends QueueAtom implements IHasAtomQueue<QueueAtom> {
 
+	/**
+	 * Version ID for serialization. Should be updated when class changed. 
+	 */
 	private static final long serialVersionUID = 20161017L;
 
 	private static final Logger logger = LoggerFactory.getLogger(SubTaskAtom.class);

@@ -22,6 +22,11 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  */
 public class ScanAtom extends QueueAtom implements IHasChildQueue {
 	
+	/**
+	 * Version ID for serialization. Should be updated when class changed. 
+	 */
+	private static final long serialVersionUID = 20161017L;
+	
 	private List<IScanPathModel> pathModels;
 	private Collection<String> monitors;
 	private Map<String,Object> detectorModels;

@@ -8,6 +8,9 @@ package org.eclipse.scanning.api.event.queues.beans;
  */
 public abstract class QueueAtom extends Queueable {
 
-	private static final long serialVersionUID = -7105340365739662419L;
+	/**
+	 * Version ID for serialization. Should be updated when class changed. 
+	 */
+	private static final long serialVersionUID = 20161017L;
 
 }
