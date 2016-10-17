@@ -138,11 +138,15 @@ public interface IQueueService {
 	 */
 	//OK, since Queueable is a supertype of QueueBean & QueueAtom
 	@SuppressWarnings("unchecked")
-	public default <T extends Queueable> IQueue<T> getQueue(String queueID) {//FIXME
+	public default <T extends Queueable> IQueue<T> getQueue(String queueID) throws EventException {//FIXME
 		if (queueID == getJobQueueID()) {
 			return (IQueue<T>) getJobQueue();
 		} else {
-			return (IQueue<T>) getActiveQueue(queueID);
+			if (isActiveQueueRegistered(queueID)) {
+				return (IQueue<T>) getActiveQueue(queueID);
+			} else {
+				throw new EventException("QueueID does not match any registered queue");
+			}
 		}
 	}
 	

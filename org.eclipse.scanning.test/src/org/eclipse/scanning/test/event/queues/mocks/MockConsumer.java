@@ -18,7 +18,7 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 	private boolean clearSubmitQueue = false, clearStatQueue = false;
 	private boolean started = false, stopped = false, disconnected = false;
 	
-	private String statusQueueName, submitQueueName;
+	private String statusQueueName = "statQ", submitQueueName = "submQ";
 	
 	private List<U> statusSet = new ArrayList<>(), submitQueue = new ArrayList<>();
 	
@@ -241,7 +241,7 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 		return stopped;
 	}
 	
-	protected void addToStatusSet(U bean) {
+	public void addToStatusSet(U bean) {
 		//No duplicates
 		for (U setBean : statusSet) {
 			if (setBean.getUniqueId().equals(bean.getUniqueId())) {
