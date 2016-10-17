@@ -4,17 +4,23 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.event.queues.QueueControllerService;
+import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
+import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
-import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,33 +34,55 @@ public class SubTaskAtomProcessorTest {
 	private SubTaskAtomProcessor stAtProcr;
 	private ProcessorTestInfrastructure pti;
 	
-	private static MockQueueService mockQServ;
+//	private static MockQueueService mockQServ;
+	private static QueueService qServ;
+	private static MockConsumer<Queueable> mockCons;
+	private static MockPublisher<QueueAtom> mockPub;
 	private static MockSubmitter<QueueAtom> mockSub;
 	private static MockEventService mockEvServ;
-	private static MockPublisher<QueueAtom> mockPub;
+	private static IQueueControllerService controller;
 	
 	@BeforeClass
-	public static void setUpClass() {
+	public static void setUpClass() throws Exception {
 		//Configure the processor Mock queue infrastructure
+		mockCons = new MockConsumer<>();
 		mockPub = new MockPublisher<>(null, null);
 		mockSub = new MockSubmitter<>();
 		mockEvServ = new MockEventService();
+		mockEvServ.setMockConsumer(mockCons);
 		mockEvServ.setMockPublisher(mockPub);
 		mockEvServ.setMockSubmitter(mockSub);
 		ServicesHolder.setEventService(mockEvServ);
 		
-		mockQServ = new MockQueueService();
-		ServicesHolder.setQueueService(mockQServ);
+		//This is a real queue service, so we have to do some set up
+		try {
+			URI uri = new URI("file:///foo/bar");
+			qServ = new QueueService("fake-qserv", uri);
+		} catch (URISyntaxException usEx) {
+			//Shouldn't happen...
+			usEx.printStackTrace();
+		}
+		qServ.init();
+		qServ.start();
+		
+		ServicesHolder.setQueueService(qServ);
+		
+		//Once this lot is up, create a queue controller.
+		controller = new QueueControllerService();
+		ServicesHolder.setQueueControllerService(controller);
 	}
 	
 	@AfterClass
 	public static void tearDownClass() {
+		ServicesHolder.unsetQueueControllerService(controller);
+		controller = null;
+		
 		ServicesHolder.unsetEventService(mockEvServ);
 		mockEvServ = null;
 		mockPub = null;
 		
-		ServicesHolder.unsetQueueService(mockQServ);
-		mockQServ = null;
+		ServicesHolder.unsetQueueService(qServ);
+		qServ = null;
 		mockSub = null;
 	}
 	
