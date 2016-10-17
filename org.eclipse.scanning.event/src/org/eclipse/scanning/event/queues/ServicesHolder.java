@@ -2,6 +2,7 @@ package org.eclipse.scanning.event.queues;
 
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 
 /**
@@ -17,6 +18,7 @@ public final class ServicesHolder {
 	private static IRunnableDeviceService deviceService;
 	private static IEventService eventService;
 	private static IQueueService queueService;
+	private static IQueueControllerService controllerService;
 
 	public static IRunnableDeviceService getDeviceService() {
 		return deviceService;
@@ -57,6 +59,16 @@ public final class ServicesHolder {
 	public static void unsetQueueService(IQueueService queueService) {
 		if (ServicesHolder.queueService == queueService) {
 			ServicesHolder.queueService = null;
+		}
+	}
+	
+	public static void setQueueControllerService(IQueueControllerService controllerService) {
+		ServicesHolder.controllerService = controllerService;
+	}
+	
+	public static void unsetQueueControllerService(IQueueControllerService controllerService) {
+		if (ServicesHolder.controllerService == controllerService) {
+			ServicesHolder.controllerService = null;
 		}
 	}
 
