@@ -4,15 +4,13 @@ package org.eclipse.scanning.api.event.queues.beans;
  * Interface allowing messages which are specific to the behaviour & operation
  * of the queue to be passed through the queue hierarchy.
  * 
- * TODO Make IQueueable
- * 
  * @author Michael Wharmby
  *
  */
 public interface IHasChildQueue {
 	
 	/**
-	 * Get the string reporting changes in the child queue, affecting this 
+	 * Get the string reporting changes in the child queue owned by this 
 	 * atom/bean.
 	 * 
 	 * @return String report of child queue state.
@@ -20,7 +18,7 @@ public interface IHasChildQueue {
 	public String getQueueMessage();
 	
 	/**
-	 * Set the string reporting changes in the child queue, affecting this 
+	 * Set the string reporting changes in the child queue owned by this 
 	 * atom/bean.
 	 * 
 	 * @param String report of child queue state.
