@@ -46,20 +46,18 @@ public class TaskBeanProcessorTest {
 	@BeforeClass
 	public static void setUpClass() {
 		//Configure the processor Mock queue infrastructure
+		mockPub = new MockPublisher<>(null, null);
+		mockSub = new MockSubmitter<>();
+		mockEvServ = new MockEventService();
+		mockEvServ.setMockPublisher(mockPub);
+		mockEvServ.setMockSubmitter(mockSub);
+		ServicesHolder.setEventService(mockEvServ);
+		
 		mockCons = new MockConsumer<>();
 		mockJobQ = new MockQueue<>("mock-job-queue", mockCons);
 		
-		mockSub = new MockSubmitter<>();
 		mockQServ = new MockQueueService(mockJobQ);
-		mockQServ.setMockSubmitter(mockSub);
 		ServicesHolder.setQueueService(mockQServ);
-		
-		mockPub = new MockPublisher<>(null,  null);
-		mockCmdPub = new MockPublisher<>(null, null);
-		mockEvServ = new MockEventService();
-		mockEvServ.setMockPublisher(mockPub);
-		mockEvServ.setMockCmdPublisher(mockCmdPub);
-		ServicesHolder.setEventService(mockEvServ);
 	}
 	
 	@AfterClass
@@ -85,9 +83,9 @@ public class TaskBeanProcessorTest {
 		SubTaskAtom atomA = TestAtomQueueBeanMaker.makeDummySubTaskBeanA();
 		SubTaskAtom atomB = TestAtomQueueBeanMaker.makeDummySubTaskBeanB();
 		SubTaskAtom atomC = TestAtomQueueBeanMaker.makeDummySubTaskBeanC();
-		tBe.queue().add(atomA);
-		tBe.queue().add(atomB);
-		tBe.queue().add(atomC);
+		tBe.addAtom(atomA);
+		tBe.addAtom(atomB);
+		tBe.addAtom(atomC);
 		
 		//Reset queue architecture
 		mockSub.resetSubmitter();

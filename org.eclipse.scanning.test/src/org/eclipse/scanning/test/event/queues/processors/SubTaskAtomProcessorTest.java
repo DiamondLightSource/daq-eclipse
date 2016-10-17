@@ -36,16 +36,15 @@ public class SubTaskAtomProcessorTest {
 	@BeforeClass
 	public static void setUpClass() {
 		//Configure the processor Mock queue infrastructure
-		mockSub = new MockSubmitter<>();
-		mockQServ = new MockQueueService();
-		mockQServ.setMockSubmitter(mockSub);
-		ServicesHolder.setQueueService(mockQServ);
-		
-		
 		mockPub = new MockPublisher<>(null, null);
+		mockSub = new MockSubmitter<>();
 		mockEvServ = new MockEventService();
 		mockEvServ.setMockPublisher(mockPub);
+		mockEvServ.setMockSubmitter(mockSub);
 		ServicesHolder.setEventService(mockEvServ);
+		
+		mockQServ = new MockQueueService();
+		ServicesHolder.setQueueService(mockQServ);
 	}
 	
 	@AfterClass
@@ -71,9 +70,9 @@ public class SubTaskAtomProcessorTest {
 		DummyAtom atomA = new DummyAtom("Hildebrand", 300);
 		DummyAtom atomB = new DummyAtom("Yuri", 1534);
 		DummyAtom atomC = new DummyAtom("Ingrid", 654);
-		stAt.queue().add(atomA);
-		stAt.queue().add(atomB);
-		stAt.queue().add(atomC);
+		stAt.addAtom(atomA);
+		stAt.addAtom(atomB);
+		stAt.addAtom(atomC);
 		
 		//Reset queue architecture
 		mockSub.resetSubmitter();
