@@ -57,6 +57,9 @@ public class QueueControllerServiceTest {
 		MockQueue<QueueAtom> mockActiveQ = new MockQueue<>(aqID, mockACons);
 		mockQServ = new MockQueueService(mockJobQ, mockActiveQ);
 		mockQServ.setCommandTopicName("mock-cmd-topic");
+		//Clear queues to avoid class cast errors (a StatusBean is prepopulated for another test elsewhere...)
+		mockQServ.getJobQueue().clearQueues();
+		mockQServ.getActiveQueue(aqID).clearQueues();
 		ServicesHolder.setQueueService(mockQServ);
 		//Check that our job- and active-consumers do values which are different IDs
 		assertFalse("job-queue consumer ID should not be null", mockQServ.getQueue(jqID).getConsumerID() == null);
@@ -130,13 +133,15 @@ public class QueueControllerServiceTest {
 		 */
 		//job-queue
 		testController.remove(bernard, jqID);
-		assertEquals("Should only be one bean left in active-queue", 1, mockSub.getQueueSize(jqID));
-		assertEquals("Wrong bean found in queue", "Albert", mockSub.getLastSubmitted(jqID).getName());
+		submQ = mockQServ.getJobQueue().getSubmissionQueueName();
+		assertEquals("Should only be one bean left in active-queue", 1, mockSub.getQueueSize(submQ));
+		assertEquals("Wrong bean found in queue", "Albert", mockSub.getLastSubmitted(submQ).getName());
 		
 		//active-queue
 		testController.remove(carlos, aqID);
-		assertEquals("Should only be one bean left in active-queue", 1, mockSub.getQueueSize(aqID));
-		assertEquals("Wrong bean found in queue", "Duncan", mockSub.getLastSubmitted(aqID).getName());
+		submQ = mockQServ.getActiveQueue(aqID).getSubmissionQueueName();
+		assertEquals("Should only be one bean left in active-queue", 1, mockSub.getQueueSize(submQ));
+		assertEquals("Wrong bean found in queue", "Duncan", mockSub.getLastSubmitted(submQ).getName());
 		try {
 			testController.remove(carlos, aqID);
 			fail("Expected EventException: Carlos has already been removed");
@@ -184,10 +189,10 @@ public class QueueControllerServiceTest {
 		DummyAtom carlos = new DummyAtom("Carlos", 30);
 		DummyAtom xavier = new DummyAtom("Xavier", 100);
 		
-		//Set up beans in right queues
-		setUpTwoBeanStatusSet(albert, carlos);
-				
 		IQueueControllerService testController = new QueueControllerService();
+		//Add two beans to the queues
+		testController.submit(albert, jqID);
+		testController.submit(carlos, aqID);		
 		/*
 		 * Submit beans & reorder
 		 * - check number of moves correct for given bean
@@ -200,7 +205,7 @@ public class QueueControllerServiceTest {
 		assertFalse("Carlos indicated reordered, but no reordering done", mockSub.isBeanReordered(carlos));
 		testController.reorder(carlos, 3, aqID);
 		assertTrue("Carlos not reordered after reordering done", mockSub.isBeanReordered(carlos));
-		assertEquals("Incorrect number of moves after reordering", 3, mockSub.getReorderedBeanMove(albert));
+		assertEquals("Incorrect number of moves after reordering", 3, mockSub.getReorderedBeanMove(carlos));
 		
 		/*
 		 * Check EventException thrown when bean not present.
@@ -283,10 +288,9 @@ public class QueueControllerServiceTest {
 		testController.resume(carlos, aqID);
 		assertEquals("Published bean has wrong Status", Status.REQUEST_RESUME, mockPub.getLastQueueable().getStatus());
 		
-		
 		/*
 		 * Test wrong bean type to wrong queue & non-existent paused/resumed bean
-		 *///TODO These next tests don't work because the bean is not in the queue (as it's the wrong type) - do we need the tests?
+		 */
 		try {
 			testController.pause(carlos, jqID);
 			fail("Expected IllegalArgumentException when wrong queueable type paused (atom in job-queue)");
@@ -387,10 +391,8 @@ public class QueueControllerServiceTest {
 	private void setUpTwoBeanStatusSet(QueueBean albert, QueueAtom carlos) throws EventException {		
 		//Set up beans in right queues
 		MockConsumer<QueueBean> jCons = (MockConsumer<QueueBean>) mockQServ.getJobQueue().getConsumer();
-		mockQServ.getJobQueue().clearQueues();
 		jCons.addToStatusSet(albert);
 		MockConsumer<QueueAtom> aCons = (MockConsumer<QueueAtom>) mockQServ.getActiveQueue(aqID).getConsumer();
-		mockQServ.getActiveQueue(aqID).clearQueues();
 		aCons.addToStatusSet(carlos);
 	}
 	
