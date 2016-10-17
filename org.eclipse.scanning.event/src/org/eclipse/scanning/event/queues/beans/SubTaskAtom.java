@@ -1,13 +1,17 @@
 package org.eclipse.scanning.event.queues.beans;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.IAtomBeanWithQueue;
-import org.eclipse.scanning.api.event.queues.beans.IAtomQueue;
+import org.eclipse.scanning.api.event.queues.beans.IHasAtomQueue;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * SubTaskBean is a type of {@link QueueAtom} implementing an 
- * {@link IAtomBeanWithQueue}. As a {@link QueueAtom} it can only be passed 
+ * {@link IHasAtomQueue}. As a {@link QueueAtom} it can only be passed 
  * into an active-queue of an {@link IQueueService}.
  * 
  * This class of bean is used to describe a part of an experiment, for example 
@@ -17,61 +21,109 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
  * 
  * SubTaskBeans may be nested inside of SubTaskBeans to provide a hierarchy.
  * 
- * TODO Sample metadata?
+ * TODO Update java-doc 
  * 
  * @author Michael Wharmby
  * 
  */
-public class SubTaskAtom extends QueueAtom implements IAtomBeanWithQueue<QueueAtom> {
-	
-	private IAtomQueue<QueueAtom> atomQueue = new AtomQueue<QueueAtom>();
+public class SubTaskAtom extends QueueAtom implements IHasAtomQueue<QueueAtom> {
+
+	private static final long serialVersionUID = 20161017L;
+
+	private static final Logger logger = LoggerFactory.getLogger(SubTaskAtom.class);
+
+	private LinkedList<QueueAtom> atomQueue;
 	private String queueMessage;
-	
+
 	/**
 	 * No argument constructor for JSON
 	 */
 	public SubTaskAtom() {
 		super();
+		atomQueue = new LinkedList<>();
 	}
-	
+
 	/**
 	 * Basic constructor to set String name of bean
 	 * @param name String user-supplied name
 	 */
 	public SubTaskAtom(String name) {
 		super();
+		atomQueue = new LinkedList<>();
 		setName(name);
 	}
-	
+
 	@Override
-	public IAtomQueue<QueueAtom> getAtomQueue() {
+	public List<QueueAtom> getAtomQueue() {
 		return atomQueue;
 	}
 
 	@Override
-	public void setAtomQueue(IAtomQueue<QueueAtom> atomQueue) {
-		this.atomQueue = atomQueue;
+	public void setAtomQueue(List<QueueAtom> atomQueue) {
+		this.atomQueue = new LinkedList<>(atomQueue);
+		setRunTime(calculateRunTime());
 	}
-	
 
-	/* (non-Javadoc)
-	 * Ensures runTime value reported is that from the queue and not a 
-	 * random value. 
-	 * @see uk.ac.diamond.daq.queues.AbstractQueueAtom#setRunTime(long)
-	 */
 	@Override
-	public void setRunTime(long runTime) {
-		this.runTime = runTime();
+	public long calculateRunTime() {
+		long runTime = 0;
+		for (QueueAtom atom: atomQueue) {
+			runTime = runTime + atom.getRunTime();
+		}
+		return runTime;
 	}
-	
-	/* (non-Javadoc)
-	 * Ensures runTime value reported is that from the queue and not a 
-	 * random value. 
-	 * @see uk.ac.diamond.daq.queues.AbstractQueueAtom#getRunTime()
-	 */
+
 	@Override
-	public long getRunTime() {
-		return runTime();
+	public boolean addAtom(QueueAtom atom) {
+		//Check that we're adding a real, non-duplicate atom to the queue
+		if(atom == null) {
+			logger.error("Attempting to add 'null' to queue.");
+			throw new NullPointerException("Attempting to add null atom to AtomQueue");
+		}
+		if(isAtomPresent(atom)) {
+			logger.error("Identical bean " + atom.getName()
+			+ " (Class: "+ atom.getClass().getSimpleName()
+			+ ") already in queue.");
+			throw new IllegalArgumentException("Bean with identical UID already in queue.");
+		}
+		//Add atom, recalculate the runtime and return
+		boolean result =  atomQueue.add(atom);
+		setRunTime(calculateRunTime());
+		return result;
+	}
+
+	@Override
+	public int queueSize() {
+		return atomQueue.size();
+	}
+
+	@Override
+	public int getIndex(String uid) {
+		for (QueueAtom atom: atomQueue) {
+			if (uid.equals(atom.getUniqueId())) return atomQueue.indexOf(atom);
+		}
+		throw new IllegalArgumentException("No queue element present with given UID");
+	}
+
+	@Override
+	public QueueAtom nextAtom() {
+		//Returns & removes first element of queue or throws NoSuchElementException if null
+		return atomQueue.removeFirst();
+	}
+
+	@Override
+	public QueueAtom viewNextAtom() {
+		//Returns head of queue or throws NoSuchElementException if null.
+		return atomQueue.getFirst();
+	}
+
+	@Override
+	public boolean isAtomPresent(QueueAtom atom) {
+		for (QueueAtom at: atomQueue) {
+			String atomUID = atom.getUniqueId();
+			if (atomUID.equals(at.getUniqueId())) return true;
+		}
+		return false;
 	}
 
 	@Override

@@ -1,12 +1,18 @@
 package org.eclipse.scanning.event.queues.beans;
 
-import org.eclipse.scanning.api.event.queues.beans.IAtomBeanWithQueue;
-import org.eclipse.scanning.api.event.queues.beans.IAtomQueue;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.queues.beans.IHasAtomQueue;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * TaskBean is a type of {@link QueueBean} implementing an 
- * {@link IAtomBeanWithQueue}. As a {@link QueueBean} it can only be passed 
+ * {@link IHasAtomQueue}. As a {@link QueueBean} it can only be passed 
  * into the job-queue of an {@link IQueueService} and as such provides the most
  * abstract description of an experiment. 
  * 
@@ -15,20 +21,27 @@ import org.eclipse.scanning.api.event.queues.beans.QueueBean;
  * contain all the sample metadata necessary to write the NeXus file. 
  * 
  * TODO Sample metadata holder.
+ * FIXME java-doc
  * 
  * @author Michael Wharmby
  *
  */
-public class TaskBean extends QueueBean implements IAtomBeanWithQueue<SubTaskAtom> {
+public class TaskBean extends QueueBean implements IHasAtomQueue<SubTaskAtom> {
+
+	private static final long serialVersionUID = 20161017L;
+
+	private static final Logger logger = LoggerFactory.getLogger(TaskBean.class);
 	
-	private IAtomQueue<SubTaskAtom> atomQueue = new AtomQueue<SubTaskAtom>();
+	private LinkedList<SubTaskAtom> atomQueue;
 	private String queueMessage;
+//	private Object nexusMetadata; TODO!!!!
 	
 	/**
 	 * No argument constructor for JSON
 	 */
 	public TaskBean() {
 		super();
+		atomQueue = new LinkedList<>();
 	}
 	
 	/**
@@ -37,37 +50,81 @@ public class TaskBean extends QueueBean implements IAtomBeanWithQueue<SubTaskAto
 	 */
 	public TaskBean(String name) {
 		super();
+		atomQueue = new LinkedList<>();
 		setName(name);
 	}
 
 	@Override
-	public IAtomQueue<SubTaskAtom> getAtomQueue() {
+	public List<SubTaskAtom> getAtomQueue() {
 		return atomQueue;
 	}
 
 	@Override
-	public void setAtomQueue(IAtomQueue<SubTaskAtom> atomQueue) {
-		this.atomQueue = atomQueue;
+	public void setAtomQueue(List<SubTaskAtom> atomQueue) {
+		this.atomQueue = new LinkedList<>(atomQueue);
+		setRunTime(calculateRunTime());
 	}
-	
-	/* (non-Javadoc)
-	 * Ensures runTime value reported is that from the queue and not a 
-	 * random value. 
-	 * @see uk.ac.diamond.daq.queues.AbstractQueueBean#setRunTime(long)
-	 */
+
 	@Override
-	public void setRunTime(long runTime) {
-		this.runTime = runTime();
+	public long calculateRunTime() {
+		long runTime = 0;
+		for (QueueAtom atom: atomQueue) {
+			runTime = runTime + atom.getRunTime();
+		}
+		return runTime;
 	}
-	
-	/* (non-Javadoc)
-	 * Ensures runTime value reported is that from the queue and not a 
-	 * random value. 
-	 * @see uk.ac.diamond.daq.queues.AbstractQueueBean#getRunTime()
-	 */
+
 	@Override
-	public long getRunTime() {
-		return runTime();
+	public boolean addAtom(SubTaskAtom atom) {
+		//Check that we're adding a real, non-duplicate atom to the queue
+		if(atom == null) {
+			logger.error("Attempting to add 'null' to queue.");
+			throw new NullPointerException("Attempting to add null atom to AtomQueue");
+		}
+		if(isAtomPresent(atom)) {
+			logger.error("Identical bean " + atom.getName()
+					+ " (Class: "+ atom.getClass().getSimpleName()
+					+ ") already in queue.");
+			throw new IllegalArgumentException("Bean with identical UID already in queue.");
+		}
+		//Add atom, recalculate the runtime and return
+		boolean result =  atomQueue.add(atom);
+		setRunTime(calculateRunTime());
+		return result;
+	}
+
+	@Override
+	public int queueSize() {
+		return atomQueue.size();
+	}
+
+	@Override
+	public int getIndex(String uid) {
+		for (SubTaskAtom atom: atomQueue) {
+			if (uid.equals(atom.getUniqueId())) return atomQueue.indexOf(atom);
+		}
+		throw new IllegalArgumentException("No queue element present with given UID");
+	}
+
+	@Override
+	public SubTaskAtom nextAtom() {
+		//Returns & removes first element of queue or throws NoSuchElementException if null
+		return atomQueue.removeFirst();
+	}
+
+	@Override
+	public SubTaskAtom viewNextAtom() {
+		//Returns head of queue or throws NoSuchElementException if null.
+		return atomQueue.getFirst();
+	}
+
+	@Override
+	public boolean isAtomPresent(SubTaskAtom atom) {
+		for (SubTaskAtom at: atomQueue) {
+			String atomUID = atom.getUniqueId();
+			if (atomUID.equals(at.getUniqueId())) return true;
+		}
+		return false;
 	}
 
 	@Override
