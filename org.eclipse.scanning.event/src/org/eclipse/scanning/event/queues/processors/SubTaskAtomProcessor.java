@@ -83,5 +83,12 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 	public Class<SubTaskAtom> getBeanClass() {
 		return SubTaskAtom.class;
 	}
+	
+	/*
+	 * For tests.
+	 */
+	public AtomQueueProcessor<SubTaskAtom, QueueAtom> getAtomQueueProcessor() {
+		return atomQueueProcessor;
+	}
 
 }

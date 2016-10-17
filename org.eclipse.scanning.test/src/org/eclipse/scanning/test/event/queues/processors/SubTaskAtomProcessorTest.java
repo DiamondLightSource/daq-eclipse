@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
@@ -179,11 +180,12 @@ public class SubTaskAtomProcessorTest {
 	}
 	
 	protected void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
-		List<QueueAtom> submittedBeans = ms.getQueue();
+		String qName = stAtProcr.getAtomQueueProcessor().getActiveQueueName()+IQueue.SUBMISSION_QUEUE_SUFFIX;
+		List<QueueAtom> submittedBeans = ms.getQueue(qName);
 		assertTrue("No beans in the final status set", submittedBeans.size() != 0);
 		for (QueueAtom dummy : submittedBeans) {
 			//First check beans are in final state
-			assertTrue("Final bean "+dummy.getName()+" is not final",dummy.getStatus().isFinal());
+			assertEquals("Final bean "+dummy.getName()+" is not submitted (was: "+dummy.getStatus()+")", Status.SUBMITTED ,dummy.getStatus());
 			//Check the properties of the ScanAtom have been correctly passed down
 			assertFalse("No beamline set", dummy.getBeamline() == null);
 			assertEquals("Incorrect beamline", stAt.getBeamline(), dummy.getBeamline());
