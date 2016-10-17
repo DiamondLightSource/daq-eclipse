@@ -17,7 +17,6 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * into a new queue created through the {@link IQueueService}. The new queue is
  * monitored using the {@link QueueListener} and through the queue service.
  * 
- * TODO Implement class!!!
  * TODO Rehash java-doc once implemented
  * TODO Add test of wrong bean type before cast.
  * 
@@ -43,7 +42,7 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 		
 	public void run() throws EventException, InterruptedException {
 		//Everything should be set up by now, so we can get the atomQueue
-		final IAtomQueue<Q> atomQueue = parentProcessor.getProcessBean().getAtomQueue();
+		final P atomQueue = parentProcessor.getProcessBean();
 		
 		//Create a new active queue to submit the atoms into
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 0d, "Registering new active queue.");
@@ -53,8 +52,8 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 		//(queue empty after this!)
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 1d, "Submitting atoms to active queue.");
 		Queueable parentBean = parentProcessor.getProcessBean();
-		while (atomQueue.queueSize() > 0) {
-			QueueAtom nextAtom = atomQueue.viewNext();
+		while (atomQueue.atomQueueSize() > 0) {
+			QueueAtom nextAtom = atomQueue.viewNextAtom();
 			if (nextAtom.getBeamline() != parentBean.getBeamline()) {
 				nextAtom.setBeamline(parentBean.getBeamline());
 			}
@@ -64,7 +63,7 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 			if (nextAtom.getUserName() != parentBean.getUserName()) {
 				nextAtom.setUserName(parentBean.getUserName());
 			}
-			queueService.submit(atomQueue.next(), activeQueueName);
+			queueService.submit(atomQueue.nextAtom(), activeQueueName);//FIXME
 		}
 		
 		//Create QueueListener

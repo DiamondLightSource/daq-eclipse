@@ -59,7 +59,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch) throws EventException {
 		this(broadcaster, parent, procLatch, true);
 		if (parent instanceof IHasAtomQueue<?>) {
-			List<?> children = ((IHasAtomQueue<?>)parent).getAtomQueue().getQueue();
+			List<?> children = ((IHasAtomQueue<?>)parent).getAtomQueue();
 			initChildList((List<Q>) children);//QueueAtom extends StatusBean, so this cast is OK.
 		} else {
 			throw new EventException("Listener has no child beans to monitor. Cannot continue.");
