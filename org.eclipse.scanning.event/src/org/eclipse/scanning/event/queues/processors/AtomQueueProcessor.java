@@ -9,7 +9,6 @@ import org.eclipse.scanning.api.event.queues.beans.IHasAtomQueue;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.AtomQueueServiceUtils;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 
 /**
@@ -30,6 +29,7 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
 public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extends QueueAtom> {
 	
 	private IQueueService queueService;
+	private IQueueControllerService queueController;
 	private QueueListener<P, Q> queueListener;
 	private ISubscriber<QueueListener<P, Q>> queueSubscriber;
 	
@@ -37,7 +37,8 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 	private String activeQueueName; 
 	
 	public AtomQueueProcessor(IQueueProcessor<P> parentProcessor) {
-		queueService = ServicesHolder.getQueueService();	
+		queueService = ServicesHolder.getQueueService();
+		queueController = ServicesHolder.getQueueControllerService();
 		this.parentProcessor = parentProcessor;
 	}
 		
@@ -64,8 +65,7 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 			if (nextAtom.getUserName() != parentBean.getUserName()) {
 				nextAtom.setUserName(parentBean.getUserName());
 			}
-			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
-			controller.submit(atomQueue.nextAtom(), activeQueueName);
+			queueController.submit(atomQueue.nextAtom(), activeQueueName);
 		}
 		
 		//Create QueueListener
@@ -73,7 +73,7 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 				parentProcessor.getQueueBroadcaster(), 
 				parentProcessor.getProcessBean(), 
 				parentProcessor.getProcessorLatch());
-		queueSubscriber = AtomQueueServiceUtils.createQueueSubscriber(activeQueueName);
+		queueSubscriber = queueController.createQueueSubscriber(activeQueueName);
 		queueSubscriber.addListener(queueListener);
 		
 		//Start processing & wait for it to end.

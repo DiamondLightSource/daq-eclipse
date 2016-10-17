@@ -1,6 +1,9 @@
 package org.eclipse.scanning.api.event.queues;
 
+import java.util.EventListener;
+
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 /**
@@ -107,5 +110,13 @@ public interface IQueueControllerService {
 	 * @throws EventException - if the queueID is unknown or underlying queue killing systems fails.
 	 */
 	public void killQueue(String queueID, boolean disconnect,boolean exitProcess) throws EventException;
+	
+	/**
+	 * 
+	 * @param queueID
+	 * @return
+	 * @throws EventException - if the queueID is unknown.
+	 */
+	public <T extends EventListener> ISubscriber<T> createQueueSubscriber(String queueID) throws EventException;
 
 }

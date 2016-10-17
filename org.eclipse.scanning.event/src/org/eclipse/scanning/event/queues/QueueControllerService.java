@@ -3,6 +3,7 @@ package org.eclipse.scanning.event.queues;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.EventListener;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,6 +13,7 @@ import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
+import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
@@ -62,8 +64,8 @@ public class QueueControllerService implements IQueueControllerService {
 			String localhostName = InetAddress.getLocalHost().getHostName();
 			if (bean.getHostName() == null) {
 				logger.warn("Hostname on received bean not set. Now set to '"+localhostName+"'.");
+				bean.setHostName(localhostName);
 			}
-			bean.setHostName(localhostName);
 		} catch (UnknownHostException ex) {
 			throw new EventException("Failed to set hostname on bean. " + ex.getMessage());
 		}
@@ -254,6 +256,12 @@ public class QueueControllerService implements IQueueControllerService {
 		killer.setExitProcess(exitProcess);
 		killenator.broadcast(killer);
 		killenator.disconnect();
+	}
+
+	@Override
+	public <T extends EventListener> ISubscriber<T> createQueueSubscriber(String queueID) throws EventException {
+		String topicName = queueService.getQueue(queueID).getStatusTopicName();
+		return eventService.createSubscriber(uri, topicName);
 	}
 
 }
