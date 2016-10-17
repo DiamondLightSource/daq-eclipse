@@ -90,6 +90,8 @@ public class QueueControllerServiceTest {
 	 */
 	@Test
 	public void testSubmitRemove() throws Exception {
+		String submQ;
+		
 		//Beans for submission
 		DummyBean albert = new DummyBean("Albert", 10),bernard = new DummyBean("Bernard", 20);
 		DummyAtom carlos = new DummyAtom("Carlos", 30), duncan = new DummyAtom("Duncan", 40);
@@ -104,16 +106,18 @@ public class QueueControllerServiceTest {
 		 */
 		//job-queue
 		testController.submit(albert, jqID);
-		assertEquals("No beans in job-queue after 1 submission", 1, mockSub.getQueueSize(jqID));
-		assertEquals("Bean has wrong name", "Albert", mockSub.getLastSubmitted(jqID).getName());
+		submQ = mockQServ.getJobQueue().getSubmissionQueueName();
+		assertEquals("No beans in job-queue after 1 submission", 1, mockSub.getQueueSize(submQ));
+		assertEquals("Bean has wrong name", "Albert", mockSub.getLastSubmitted(submQ).getName());
 		
 		testController.submit(bernard, jqID);
-		assertEquals("Bean has wrong name", "Bernard", mockSub.getLastSubmitted(jqID).getName());
+		assertEquals("Bean has wrong name", "Bernard", mockSub.getLastSubmitted(submQ).getName());
 		
 		//active-queue
+		submQ = mockQServ.getActiveQueue(aqID).getSubmissionQueueName();
 		testController.submit(carlos, aqID);
-		assertEquals("No beans in active-queue after 1 submission", 1, mockSub.getQueueSize(aqID));
-		assertEquals("Bean has wrong name", "Carlos", mockSub.getLastSubmitted(aqID).getName());
+		assertEquals("No beans in active-queue after 1 submission", 1, mockSub.getQueueSize(submQ));
+		assertEquals("Bean has wrong name", "Carlos", mockSub.getLastSubmitted(submQ).getName());
 
 		testController.submit(duncan, aqID);
 		
@@ -179,6 +183,9 @@ public class QueueControllerServiceTest {
 		DummyBean albert = new DummyBean("Albert", 10);
 		DummyAtom carlos = new DummyAtom("Carlos", 30);
 		DummyAtom xavier = new DummyAtom("Xavier", 100);
+		
+		//Set up beans in right queues
+		setUpTwoBeanStatusSet(albert, carlos);
 				
 		IQueueControllerService testController = new QueueControllerService();
 		/*
@@ -231,12 +238,7 @@ public class QueueControllerServiceTest {
 		DummyAtom xavier = new DummyAtom("Xavier", 100);
 		
 		//Set up beans in right queues
-		MockConsumer<QueueBean> jCons = (MockConsumer<QueueBean>) mockQServ.getJobQueue().getConsumer();
-		mockQServ.getJobQueue().clearQueues();
-		jCons.addToStatusSet(albert);
-		MockConsumer<QueueAtom> aCons = (MockConsumer<QueueAtom>) mockQServ.getActiveQueue(aqID).getConsumer();
-		mockQServ.getActiveQueue(aqID).clearQueues();
-		aCons.addToStatusSet(carlos);
+		setUpTwoBeanStatusSet(albert, carlos);
 		
 		IQueueControllerService testController = new QueueControllerService();
 		/*
@@ -310,7 +312,7 @@ public class QueueControllerServiceTest {
 			//Expected
 		}
 		try {
-			testController.pause(xavier, jqID);
+			testController.pause(xavier, aqID);
 			fail("Expected EventException: Xavier not submitted, should not be able to pause");
 		} catch (EventException evEx) {
 			//Expected
@@ -333,6 +335,9 @@ public class QueueControllerServiceTest {
 		DummyBean albert = new DummyBean("Albert", 10);
 		DummyAtom carlos = new DummyAtom("Carlos", 30);
 		DummyAtom xavier = new DummyAtom("Xavier", 100);
+		
+		//Set up beans in right queues
+		setUpTwoBeanStatusSet(albert, carlos);
 
 		IQueueControllerService testController = new QueueControllerService();
 		/*
@@ -372,11 +377,21 @@ public class QueueControllerServiceTest {
 			//Expected
 		}
 		try {
-			testController.terminate(xavier, jqID);
+			testController.terminate(xavier, aqID);
 			fail("Expected EventException: Xavier not submitted, should not be able to terminate");
 		} catch (EventException evEx) {
 			//Expected
 		}		
+	}
+	
+	private void setUpTwoBeanStatusSet(QueueBean albert, QueueAtom carlos) throws EventException {		
+		//Set up beans in right queues
+		MockConsumer<QueueBean> jCons = (MockConsumer<QueueBean>) mockQServ.getJobQueue().getConsumer();
+		mockQServ.getJobQueue().clearQueues();
+		jCons.addToStatusSet(albert);
+		MockConsumer<QueueAtom> aCons = (MockConsumer<QueueAtom>) mockQServ.getActiveQueue(aqID).getConsumer();
+		mockQServ.getActiveQueue(aqID).clearQueues();
+		aCons.addToStatusSet(carlos);
 	}
 	
 	/**
@@ -414,7 +429,7 @@ public class QueueControllerServiceTest {
 		analysePauser(aqID, false);
 	}
 	
-	private void analysePauser(String queueID, boolean pause) {
+	private void analysePauser(String queueID, boolean pause) throws EventException {
 		if (mockCmdPub.getLastCmdBean() instanceof PauseBean) {
 			PauseBean pauser = (PauseBean)mockCmdPub.getLastCmdBean();
 			assertEquals("Kill bean has wrong consumer ID", mockQServ.getQueue(queueID).getConsumerID(), pauser.getConsumerId());
@@ -454,8 +469,9 @@ public class QueueControllerServiceTest {
 	/**
 	 * Checks KillBean configured as expected
 	 * @param queueID
+	 * @throws EventException 
 	 */
-	private void analyseKiller(String queueID, boolean disconnect, boolean exitProc) {
+	private void analyseKiller(String queueID, boolean disconnect, boolean exitProc) throws EventException {
 		if (mockCmdPub.getLastCmdBean() instanceof KillBean) {
 			KillBean killer = (KillBean)mockCmdPub.getLastCmdBean();
 			assertEquals("Kill bean has wrong consumer ID", mockQServ.getQueue(queueID).getConsumerID(), killer.getConsumerId());
