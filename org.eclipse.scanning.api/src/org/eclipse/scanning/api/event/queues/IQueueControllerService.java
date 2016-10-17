@@ -21,7 +21,7 @@ public interface IQueueControllerService {
 	 */
 	public void stop(boolean force) throws EventException;
 	
-	public <T extends Queueable> void submit(T bean, String queueID);
+	public <T extends Queueable> void submit(T bean, String queueID) throws EventException;
 	
 	public <T extends Queueable>void remove(T bean, String queueID) throws EventException;
 	
