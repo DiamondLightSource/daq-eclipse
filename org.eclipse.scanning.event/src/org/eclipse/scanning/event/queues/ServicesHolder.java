@@ -62,6 +62,10 @@ public final class ServicesHolder {
 		}
 	}
 	
+	public static IQueueControllerService getQueueControllerService() {
+		return controllerService;
+	}
+	
 	public static void setQueueControllerService(IQueueControllerService controllerService) {
 		ServicesHolder.controllerService = controllerService;
 	}
