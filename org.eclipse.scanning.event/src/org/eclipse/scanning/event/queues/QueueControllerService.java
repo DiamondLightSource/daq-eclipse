@@ -1,6 +1,8 @@
 package org.eclipse.scanning.event.queues;
 
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,6 +11,7 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
@@ -50,20 +53,76 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 
 	@Override
-	public <T extends Queueable> void submit(T bean, String queueID) {
-		// TODO Auto-generated method stub
+	public <T extends Queueable> void submit(T bean, String queueID) throws EventException {
+		checkBeanType(bean, queueID);
+		
+		//Prepare the bean for submission
+		bean.setStatus(Status.SUBMITTED);
+		try {
+			String localhostName = InetAddress.getLocalHost().getHostName();
+			if (bean.getHostName() == null) {
+				logger.warn("Hostname on received bean not set. Now set to '"+localhostName+"'.");
+			}
+			bean.setHostName(localhostName);
+		} catch (UnknownHostException ex) {
+			throw new EventException("Failed to set hostname on bean. " + ex.getMessage());
+		}
+
+		//Create a submitter and submit the bean
+		String submitQueue = queueService.getQueue(queueID).getSubmissionQueueName();
+		ISubmitter<T> submitter = eventService.createSubmitter(uri, submitQueue);
+		submitter.submit(bean);
+		submitter.disconnect();
 	}
 
 	@Override
 	public <T extends Queueable> void remove(T bean, String queueID) throws EventException {
-		// TODO Auto-generated method stub
+		checkBeanType(bean, queueID);
 
+		//Create a submitter and remove the bean
+		String submitQueue = queueService.getQueue(queueID).getSubmissionQueueName();
+		ISubmitter<T> submitter = eventService.createSubmitter(uri, submitQueue);
+		boolean result = submitter.remove(bean);
+		submitter.disconnect();
+		
+		if (result == false) {
+			if (getBeanFromConsumer(bean, queueID) == null) {
+				throw new EventException("Bean removal failed. It may be in the status set already.");
+			} else {
+				throw new EventException("Bean not found in queue '"+queueID+"'.");
+			}
+		}
 	}
 
 	@Override
 	public <T extends Queueable> void reorder(T bean, int move, String queueID) throws EventException {
-		// TODO Auto-generated method stub
+		checkBeanType(bean, queueID);
+		
+		//Create a submitter and move bean by the given amount
+		String submitQueue = queueService.getQueue(queueID).getSubmissionQueueName();
+		ISubmitter<T> submitter = eventService.createSubmitter(uri, submitQueue);
+		boolean result = submitter.reorder(bean, move);
+		submitter.disconnect();
+		
+		if (result == false) {
+			if (getBeanFromConsumer(bean, queueID) == null) {
+				throw new EventException("Bean removal failed. It may be in the status set already.");
+			} else {
+				throw new EventException("Bean not found in queue '"+queueID+"'.");
+			}
+		}
 
+	}
+	
+	private <T extends Queueable> void checkBeanType(T bean, String queueID) {
+		//Check bean is right type for the queue
+		if (queueID.equals(queueService.getJobQueueID()) && 
+				!(bean instanceof QueueBean)) {
+			throw new IllegalArgumentException("Job-queue cannot handle non-QueueBeans");
+		} else if (!(queueID.equals(queueService.getJobQueueID())) && 
+				!(bean instanceof QueueAtom)){
+			throw new IllegalArgumentException("Active-queue cannot handle non-QueueAtoms");
+		}
 	}
 
 	@Override
@@ -126,6 +185,8 @@ public class QueueControllerService implements IQueueControllerService {
 	private <T extends Queueable> Queueable getBeanFromConsumer(T bean, String queueID) throws EventException {
 		List<Queueable> consumerQueue;
 		
+		checkBeanType(bean, queueID);
+		
 		//Search for bean in StatusSet (do this first as it's more likely for this operation)
 		consumerQueue = queueService.getQueue(queueID).getConsumer().getStatusSet();
 		for (Queueable queuedBean : consumerQueue) {
@@ -147,15 +208,6 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 	
 	private <T extends Queueable> void publishQueueProcessCommand(T bean, String queueID, Status state) throws EventException {
-		//Check bean is right type for the queue
-		if (queueID.equals(queueService.getJobQueueID()) && 
-				!(bean instanceof QueueBean)) {
-			throw new IllegalArgumentException("Job-queue cannot handle non-QueueBeans");
-		} else if (!(queueID.equals(queueService.getJobQueueID())) && 
-				!(bean instanceof QueueAtom)){
-			throw new IllegalArgumentException("Active-queue cannot handle non-QueueAtoms");
-		}
-		
 		//Set up the publisher
 		String statusTopicName = queueService.getQueue(queueID).getStatusTopicName();
 		IPublisher<T> commander = eventService.createPublisher(uri, statusTopicName);
