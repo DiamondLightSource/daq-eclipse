@@ -43,7 +43,7 @@ import org.eclipse.scanning.connector.epics.custommarshallers.LinearROISerialise
 import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmDetectorConfigurationSerialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmMessageSerialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmPointGeneratorDeserialiser;
-import org.eclipse.scanning.connector.epics.custommarshallers.MalcolmTableDeserialiser;
+import org.eclipse.scanning.connector.epics.custommarshallers.NTTableDeserialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.NTScalarArrayDeserialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.NTScalarDeserialiser;
 import org.eclipse.scanning.connector.epics.custommarshallers.ParabolicROIDeserialiser;
@@ -138,7 +138,7 @@ public class EpicsV4MessageMapper {
 
 		marshaller.registerDeserialiser("epics:nt/NTScalar:1.0", new NTScalarDeserialiser());
 		marshaller.registerDeserialiser("epics:nt/NTScalarArray:1.0", new NTScalarArrayDeserialiser());
-		marshaller.registerDeserialiser("malcolm:core/Table:1.0", new MalcolmTableDeserialiser());
+		marshaller.registerDeserialiser("epics:nt/NTTable:1.0", new NTTableDeserialiser());
 		marshaller.registerDeserialiser("malcolm:core/PointGenerator:1.0", new MalcolmPointGeneratorDeserialiser());
 		
 	}

@@ -54,7 +54,7 @@ public class ExampleMalcolmDevice {
     	recordName = deviceName;
     }
     
-    public void run() {
+    public void start() {
     	try {
             PVDatabase master = PVDatabaseFactory.getMaster();
             ChannelProvider channelProvider = ChannelProviderLocalFactory.getChannelServer();
@@ -86,7 +86,7 @@ public class ExampleMalcolmDevice {
     public static void main(String[] args)
     {
     	ExampleMalcolmDevice example = new ExampleMalcolmDevice("mydevice");
-    	example.run();
+    	example.start();
     }
     
     private static class DummyMalcolmRecord extends PVRecord {
@@ -263,7 +263,6 @@ public class ExampleMalcolmDevice {
         			addArray("tags", ScalarType.pvString).
         			add("writeable", ScalarType.pvBoolean).
         			add("label", ScalarType.pvString).
-        			addArray("headings", ScalarType.pvString).
         			setId("malcolm:core/TableMeta:1.0").
         			createStructure();
             
@@ -315,8 +314,9 @@ public class ExampleMalcolmDevice {
             
             Structure tableStructure = fieldCreate.createFieldBuilder().
         			add("meta", tableMetaStructure).
+        			addArray("labels", ScalarType.pvString).
         			add("value", tableValueStructure).
-        			setId("malcolm:core/Table:1.0").
+        			setId("epics:nt/NTTable:1.0").
         			createStructure();
             
             Structure methodStructure = fieldCreate.createFieldBuilder().
@@ -377,7 +377,7 @@ public class ExampleMalcolmDevice {
                     add("axes", stringArrayStructure).
                     add("datasets", tableStructure).
                     add("generator", pointGeneratorStructure).
-                    add("currentStep", intStructure).
+                    add("completedSteps", intStructure).
         			setId("malcolm:core/Block:1.0").
                     createStructure();
             
@@ -425,10 +425,10 @@ public class ExampleMalcolmDevice {
     		tableValuePVStructure.getSubField(PVStringArray.class, "dataset").put(0, datasetArray.length, datasetArray, 0);
     		tableValuePVStructure.getSubField(PVIntArray.class, "users").put(0, usersArray.length, usersArray, 0);
     		String[] headingsArray = new String[] {"detector", "filename", "dataset", "users"};
-    		datasetsPVStructure.getSubField(PVStringArray.class, "meta.headings").put(0, headingsArray.length, headingsArray, 0);
+    		datasetsPVStructure.getSubField(PVStringArray.class, "labels").put(0, headingsArray.length, headingsArray, 0);
     		
     		// current step
-            blockPVStructure.getSubField(PVInt.class, "currentStep.value").put(1);
+            blockPVStructure.getSubField(PVInt.class, "completedSteps.value").put(1);
             
 
     		
