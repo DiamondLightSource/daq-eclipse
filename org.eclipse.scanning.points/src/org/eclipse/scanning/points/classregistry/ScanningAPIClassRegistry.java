@@ -74,12 +74,8 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		Map<String, Class<?>> tmp = new HashMap<String, Class<?>>();
 		
 		// event.scan
-		registerClass(tmp, DeviceAction.class);
-		registerClass(tmp, DeviceInformation.class);
 		registerClass(tmp, DeviceRequest.class);
-		registerClass(tmp, DeviceState.class);
 		registerClass(tmp, PositionerRequest.class);
-		registerClass(tmp, PositionRequestType.class);
 		registerClass(tmp, ScanBean.class);
 		registerClass(tmp, ScanEvent.class);
 		registerClass(tmp, ScanRequest.class);
