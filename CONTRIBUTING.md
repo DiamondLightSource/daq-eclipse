@@ -3,6 +3,8 @@
 ## Basic Ethos
 We try to make the daq-eclipse project the heart of GDA9 at Diamond Light Source. Unlike previous versions of GDA we would like to make this system entirely open and very easy to reuse. To this end there are .product files in the repository to make running a dummy acquisition server and a dummy acquisition client very easy. There are also .target files to define the external repositories which provide the required libraries to run the project.
 
+The dummy server starts a local activemq (which can be switched off from the arguments). This messaging system is the only route for client and server connections for this project. Unlike previous versions of GDA, there is no CORBA or RMI to configure. The ethos of the project is to be code agnostic. Therefore JSON has been chosen with text messages. The text messages may be sent and received in any language, for instance in python STOMP and in Java JMS but activeMQ supports a wide range of languages. No data is sent in the messaging system. The NeXus file format has been used to store data and link information is published using activemq.
+
 If you would like to contribute, you should provide tests for everything that you add to the system. Do not be surprised if your review asks for more tests to be created. The committers to the project are looking for tests which check for success and attempt to break your system. Your tests should also run fast, not create large files and must be junit tests included in a Suite called 'Suite.java' in order for them to be run in travis.
 
 ## Guidlines
