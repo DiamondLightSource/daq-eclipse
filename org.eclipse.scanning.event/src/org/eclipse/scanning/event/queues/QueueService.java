@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.IQueue;
@@ -78,6 +81,7 @@ public class QueueService implements IQueueService {
 		this.uri = uri;
 	}
 
+	@PostConstruct
 	@Override
 	public void init() throws EventException {
 		//Check configuration is present
@@ -101,7 +105,8 @@ public class QueueService implements IQueueService {
 		//Mark initialised
 		init = true;
 	}
-
+	
+	@PreDestroy
 	@Override
 	public void disposeService() throws EventException {
 		//Stop the job queue if service is up
@@ -155,7 +160,7 @@ public class QueueService implements IQueueService {
 			}
 		}
 		
-		//Kill/stop the job queue
+		//Kill/stop the job queuebroker
 		if (force) {
 //FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
 //			controller.killQueue(queueID, true, false);
@@ -296,14 +301,16 @@ public class QueueService implements IQueueService {
 		if (active) throw new UnsupportedOperationException("Cannot change queue root whilst queue service is running");
 		this.queueRoot = queueRoot;
 
-		//Update the destinations
-		heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
-		commandSetName = queueRoot+COMMAND_SET_SUFFIX;
-		commandTopicName = queueRoot+COMMAND_TOPIC_SUFFIX;
+		if (!init) {
+			//Update the destinations
+			heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
+			commandSetName = queueRoot+COMMAND_SET_SUFFIX;
+			commandTopicName = queueRoot+COMMAND_TOPIC_SUFFIX;
 
-		//Update job-queue
-		jobQueueID = queueRoot+JOB_QUEUE_SUFFIX;
-		jobQueue = new Queue<>(jobQueueID, uri, heartbeatTopicName, commandSetName, commandTopicName);
+			//Update job-queue
+			jobQueueID = queueRoot+JOB_QUEUE_SUFFIX;
+			jobQueue = new Queue<>(jobQueueID, uri, heartbeatTopicName, commandSetName, commandTopicName);
+		}
 	}
 
 	@Override
@@ -336,10 +343,12 @@ public class QueueService implements IQueueService {
 		if (active) throw new UnsupportedOperationException("Cannot change URI whilst queue service is running");
 		this.uri = uri;
 		uriString = uri.toString();
-
-		//Update job-queue
-		jobQueue = new Queue<>(jobQueueID, uri, 
-				heartbeatTopicName, commandSetName, commandTopicName);
+		
+		if (!init) {
+			//Update job-queue
+			jobQueue = new Queue<>(jobQueueID, uri, 
+					heartbeatTopicName, commandSetName, commandTopicName);
+		}
 	}
 
 	@Override
