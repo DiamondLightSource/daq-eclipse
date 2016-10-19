@@ -170,13 +170,13 @@ public class MockQueueService implements IQueueService {
 	}
 
 	@Override
-	public void setURI(URI uri) throws EventException {
+	public void setUri(URI uri) throws EventException {
 		// TODO Auto-generated method stub
 
 	}
 	
 	@Override
-	public void setURI(String uri) throws EventException {
+	public void setUri(String uri) throws EventException {
 		// TODO Auto-generated method stub
 	}
 	

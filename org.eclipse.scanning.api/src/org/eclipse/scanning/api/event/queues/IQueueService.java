@@ -244,7 +244,7 @@ public interface IQueueService {
 	 * @param uri URI of new queue server.
 	 * @throws EventException If attempting to change whilst service started.
 	 */
-	public void setURI(URI uri) throws UnsupportedOperationException, EventException;
+	public void setUri(URI uri) throws UnsupportedOperationException, EventException;
 	
 	/**
 	 * Change the URI of the broker storing the queues with a String.
@@ -253,7 +253,7 @@ public interface IQueueService {
 	 * @param uri String URI of new queue server.
 	 * @throws EventException If attempting to change whilst service started.
 	 */
-	public void setURI(String uri) throws UnsupportedOperationException, EventException;
+	public void setUri(String uri) throws UnsupportedOperationException, EventException;
 	
 	/**
 	 * Return whether the queue service is currently running.

@@ -332,7 +332,7 @@ public class QueueService implements IQueueService {
 	}
 
 	@Override
-	public void setURI(URI uri) throws UnsupportedOperationException, EventException {
+	public void setUri(URI uri) throws UnsupportedOperationException, EventException {
 		if (active) throw new UnsupportedOperationException("Cannot change URI whilst queue service is running");
 		this.uri = uri;
 		uriString = uri.toString();
@@ -343,9 +343,9 @@ public class QueueService implements IQueueService {
 	}
 
 	@Override
-	public void setURI(String uri) throws UnsupportedOperationException, EventException {
+	public void setUri(String uri) throws UnsupportedOperationException, EventException {
 		try {
-			setURI(new URI(uri));
+			setUri(new URI(uri));
 		} catch (URISyntaxException usEx) {
 			throw new EventException(usEx);
 		}

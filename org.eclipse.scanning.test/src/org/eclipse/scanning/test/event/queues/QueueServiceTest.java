@@ -308,13 +308,13 @@ public class QueueServiceTest {
 			//Expected
 		}
 		try {
-			testQServ.setURI("file:///foo/bar/baz");
+			testQServ.setUri("file:///foo/bar/baz");
 			fail("Should not be able to change uri whilst active");
 		} catch (UnsupportedOperationException evEx) {
 			//Expected
 		}
 		try {
-			testQServ.setURI(new URI("file:///foo/bar/baz"));
+			testQServ.setUri(new URI("file:///foo/bar/baz"));
 			fail("Should not be able to change uri whilst active");
 		} catch (UnsupportedOperationException evEx) {
 			//Expected
@@ -333,11 +333,11 @@ public class QueueServiceTest {
 			assertEquals("Job queue name in service & on job-queue do not match", testQServ.getJobQueueID(), jobQueue.getQueueID());
 			
 			//Test changing URI
-			testQServ.setURI("file:///foo/bar/baz");
+			testQServ.setUri("file:///foo/bar/baz");
 			assertEquals("Unexpected URI after changing by string", new URI("file:///foo/bar/baz"), testQServ.getURI());
 			jobQueue = testQServ.getJobQueue();
 			assertEquals("Incorrect URI configured in job-queue", "file:///foo/bar/baz", jobQueue.getURI().toString());
-			testQServ.setURI(new URI("file:///baz/foo/bar"));
+			testQServ.setUri(new URI("file:///baz/foo/bar"));
 			assertEquals("Unexpected uriString after changing by URI", "file:///baz/foo/bar", testQServ.getURIString());
 			jobQueue = testQServ.getJobQueue();
 			assertEquals("Incorrect URI configured in job-queue", "file:///baz/foo/bar", jobQueue.getURI().toString());
