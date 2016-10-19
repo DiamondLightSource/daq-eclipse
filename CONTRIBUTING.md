@@ -21,6 +21,7 @@ If you would like to contribute, you should provide tests for everything that yo
 * There is no rule that interfaces should start with the letter 'I'. Some programmers have chosen to follow this methodology but it is not a requirement of the project.
 * Keep interfaces for OSGi services in no (where no means no:) dependency projects. It should be possible to get interfaces from OSGi without making dependencies. Examples of this are that the project ofen uses connector patterns to hide a specific implementation. For instance a connector to scanning devices (EPICSv4) or a JSON API would be created to isolated using services to ensure that the details of the underlying implementation do not leak out. This means that we can swap easily between EPICSv4 and 0MQ or JSON and XML for instance.
 * The travis tests must run with junit not junit plugin
+* Try not to forget the EPL license header (we will automatically add these when the project moves to eclipse)
 
 ## Route 1 - Become a Committer
 * 1 Ask to be a member of the project, you can send a message to the project leader to do this.
