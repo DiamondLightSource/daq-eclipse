@@ -91,6 +91,7 @@ public class ActivemqConnectorService implements IEventConnectorService, IMessag
 			service = new BrokerService();
 	        service.addConnector(uri);
 	        service.setPersistent(false); 
+			service.addConnector("stomp://localhost:61613"); // Allow stomp connections (for Python clients, etc.).
 	        SystemUsage systemUsage = service.getSystemUsage();
 	        systemUsage.getStoreUsage().setLimit(1024 * 1024 * 8);
 	        systemUsage.getTempUsage().setLimit(1024 * 1024 * 8);
