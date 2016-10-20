@@ -1,21 +1,3 @@
-/*-
- * Copyright © 2016 Diamond Light Source Ltd.
- *
- * This file is part of GDA.
- *
- * GDA is free software: you can redistribute it and/or modify it under the
- * terms of the GNU General Public License version 3 as published by the Free
- * Software Foundation.
- *
- * GDA is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License along
- * with GDA. If not, see <http://www.gnu.org/licenses/>.
- */
-
 package org.eclipse.scanning.points.classregistry;
 
 import java.util.Collections;
@@ -44,14 +26,10 @@ import org.eclipse.scanning.api.event.status.AdministratorMessage;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.EmptyPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.Scalar;
-import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
-import org.eclipse.scanning.api.points.models.AbstractBoundingLineModel;
-import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
@@ -68,6 +46,7 @@ import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.api.scan.AxisConfiguration;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.event.Location;
 import org.eclipse.scanning.api.scan.ui.ControlEnumNode;
@@ -79,6 +58,15 @@ import org.eclipse.scanning.api.script.ScriptLanguage;
 import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.api.script.ScriptResponse;
 
+/**
+ * 
+ * The registry is here because it makes dependencies on DAWNSCI
+ * in order to link in beans to the marshaller. 
+ * 
+ * @author Martin Gaughran
+ * @author Matthew Gerring
+ *
+ */
 public class ScanningAPIClassRegistry implements IClassRegistry {
 
 	private static final Map<String, Class<?>> idToClassMap;
@@ -97,16 +85,12 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, ScanRequest.class);
 		
 		// points
-		registerClass(tmp, AbstractPosition.class);
 		registerClass(tmp, EmptyPosition.class);
 		registerClass(tmp, MapPosition.class);
 		registerClass(tmp, Point.class);
 		registerClass(tmp, Scalar.class);
 		
 		// points.models
-		registerClass(tmp, AbstractBoundingBoxModel.class);
-		registerClass(tmp, AbstractBoundingLineModel.class);
-		registerClass(tmp, AbstractPointsModel.class);
 		registerClass(tmp, ArrayModel.class);
 		registerClass(tmp, BoundingBox.class);
 		registerClass(tmp, BoundingLine.class);
@@ -130,6 +114,7 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, ControlGroup.class);
 		registerClass(tmp, ControlNode.class);
 		registerClass(tmp, ControlTree.class);
+		registerClass(tmp, AxisConfiguration.class);
 		
 		// event.alive
 		registerClass(tmp, HeartbeatBean.class);
