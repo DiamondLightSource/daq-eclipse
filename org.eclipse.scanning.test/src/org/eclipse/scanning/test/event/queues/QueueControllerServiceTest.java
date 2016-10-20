@@ -9,11 +9,13 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
+import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.event.queues.Queue;
 import org.eclipse.scanning.event.queues.QueueControllerService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
@@ -21,7 +23,6 @@ import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
-import org.eclipse.scanning.test.event.queues.mocks.MockQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 import org.junit.Before;
@@ -51,10 +52,10 @@ public class QueueControllerServiceTest {
 		//Configure the MockQueueService
 		jqID = "mock-job-queue";
 		aqID = "mock-active-queue";
-		MockConsumer<QueueBean> mockJCons = new MockConsumer<>();
-		MockQueue<QueueBean> mockJobQ = new MockQueue<>(jqID, mockJCons);
-		MockConsumer<QueueAtom> mockACons = new MockConsumer<>();
-		MockQueue<QueueAtom> mockActiveQ = new MockQueue<>(aqID, mockACons);
+//		MockConsumer<QueueBean> mockJCons = new MockConsumer<>();
+		IQueue<QueueBean> mockJobQ = new Queue<>(jqID, null);
+//		MockConsumer<QueueAtom> mockACons = new MockConsumer<>();
+		IQueue<QueueAtom> mockActiveQ = new Queue<>(aqID, null);
 		mockQServ = new MockQueueService(mockJobQ, mockActiveQ);
 		mockQServ.setCommandTopicName("mock-cmd-topic");
 		//Clear queues to avoid class cast errors (a StatusBean is prepopulated for another test elsewhere...)

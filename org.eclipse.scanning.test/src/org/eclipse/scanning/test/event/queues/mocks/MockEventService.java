@@ -69,6 +69,15 @@ public class MockEventService implements IEventService {
 	@Override
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, String submissionQName, String statusQName,
 			String statusTName, String heartbeatTName, String commandTName) throws EventException {
+		
+		//If the test have set a consumer on this event service, return that, otherwise create a new instance
+		MockConsumer<U> mockConsumer;
+		if (this.mockConsumer == null) {
+		mockConsumer = new MockConsumer<>();
+		} else {
+			mockConsumer = (MockConsumer<U>) this.mockConsumer;
+		}
+		
 		mockConsumer.setCommandTopicName(commandTName);
 		mockConsumer.setStatusTopicName(statusTName);
 		mockConsumer.setStatusSetName(statusQName);
