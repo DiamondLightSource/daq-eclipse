@@ -37,7 +37,6 @@ public class SubTaskAtomProcessorTest {
 	private SubTaskAtomProcessor stAtProcr;
 	private ProcessorTestInfrastructure pti;
 	
-//	private static MockQueueService mockQServ;
 	private static QueueService qServ;
 	private static MockConsumer<Queueable> mockCons;
 	private static MockPublisher<QueueAtom> mockPub;
