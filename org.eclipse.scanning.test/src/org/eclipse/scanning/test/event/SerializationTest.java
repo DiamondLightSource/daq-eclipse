@@ -393,15 +393,15 @@ public class SerializationTest {
 	@Test
 	public void testRemoveDetector() throws Exception {
 	    
-		final String json = "{\"@class_id\":\"ScanBean\","+
+		final String json = "{\"@type\":\"ScanBean\","+
 		 "\"uniqueId\":\"5f67891f-4f01-48d4-9cab-ce373c5f9807\","+
 		 "\"status\":[\"Status\",\"SUBMITTED\"],"+
 		 "\"name\":\"Scan [Grid(x, y)] with Detectors [mandelbrot] \","+
 		 "\"percentComplete\":0.0,\"userName\":\"fcp94556\",\"hostName\":\"DIAMRL5606\",\"submissionTime\":1474893775913,"+
-		 "\"scanRequest\":{\"@class_id\":\"ScanRequest\","+
-		     "\"compoundModel\":{\"@class_id\":\"CompoundModel\","+
-		         "\"models\":[{\"@class_id\":\"GridModel\",\"name\":\"Grid\",\"boundingBox\":{\"@class_id\":\"BoundingBox\",\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisStart\":-84.13637953036218,\"fastAxisLength\":43.356972243563845,\"slowAxisStart\":123.33760426169476,\"slowAxisLength\":42.80505395362201},\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisPoints\":5,\"slowAxisPoints\":5,\"snake\":false}]},"+
-		     "\"detectors\":{\"mandelbrot\":{\"@class_id\":\"MandelbrotModel\",\"maxIterations\":500,\"escapeRadius\":10.0,\"columns\":301,\"rows\":241,\"points\":1000,\"maxRealCoordinate\":1.5,\"maxImaginaryCoordinate\":1.2,\"realAxisName\":\"x\",\"imaginaryAxisName\":\"y\",\"name\":\"mandelbrot\",\"exposureTime\":0.1,\"timeout\":-1}},"+
+		 "\"scanRequest\":{\"@type\":\"ScanRequest\","+
+		     "\"compoundModel\":{\"@type\":\"CompoundModel\","+
+		         "\"models\":[{\"@type\":\"GridModel\",\"name\":\"Grid\",\"boundingBox\":{\"@type\":\"BoundingBox\",\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisStart\":-84.13637953036218,\"fastAxisLength\":43.356972243563845,\"slowAxisStart\":123.33760426169476,\"slowAxisLength\":42.80505395362201},\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisPoints\":5,\"slowAxisPoints\":5,\"snake\":false}]},"+
+		     "\"detectors\":{\"mandelbrot\":{\"@type\":\"MandelbrotModel\",\"maxIterations\":500,\"escapeRadius\":10.0,\"columns\":301,\"rows\":241,\"points\":1000,\"maxRealCoordinate\":1.5,\"maxImaginaryCoordinate\":1.2,\"realAxisName\":\"x\",\"imaginaryAxisName\":\"y\",\"name\":\"mandelbrot\",\"exposureTime\":0.1,\"timeout\":-1}},"+
 		     "\"ignorePreprocess\":false},"+
 		  "\"point\":0,\"size\":0,\"scanNumber\":0}";			
 
@@ -435,15 +435,15 @@ public class SerializationTest {
 	@Test
 	public void testRemoveScanRequest() throws Exception {
 		
-		final String json = "{\"@class_id\":\"ScanBean\","+
+		final String json = "{\"@type\":\"ScanBean\","+
 		 "\"uniqueId\":\"5f67891f-4f01-48d4-9cab-ce373c5f9807\","+
 		 "\"status\":[\"Status\",\"SUBMITTED\"],"+
 		 "\"name\":\"Scan [Grid(x, y)] with Detectors [mandelbrot] \","+
 		 "\"percentComplete\":0.0,\"userName\":\"fcp94556\",\"hostName\":\"DIAMRL5606\",\"submissionTime\":1474893775913,"+
-		 "\"scanRequest\":{\"@class_id\":\"ScanRequest\","+
-		     "\"compoundModel\":{\"@class_id\":\"CompoundModel\","+
-		         "\"models\":[{\"@class_id\":\"GridModel\",\"name\":\"Grid\",\"boundingBox\":{\"@class_id\":\"BoundingBox\",\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisStart\":-84.13637953036218,\"fastAxisLength\":43.356972243563845,\"slowAxisStart\":123.33760426169476,\"slowAxisLength\":42.80505395362201},\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisPoints\":5,\"slowAxisPoints\":5,\"snake\":false}]},"+
-		     "\"detectors\":{\"mandelbrot\":{\"@class_id\":\"MandelbrotModel\",\"maxIterations\":500,\"escapeRadius\":10.0,\"columns\":301,\"rows\":241,\"points\":1000,\"maxRealCoordinate\":1.5,\"maxImaginaryCoordinate\":1.2,\"realAxisName\":\"x\",\"imaginaryAxisName\":\"y\",\"name\":\"mandelbrot\",\"exposureTime\":0.1,\"timeout\":-1}},"+
+		 "\"scanRequest\":{\"@type\":\"ScanRequest\","+
+		     "\"compoundModel\":{\"@type\":\"CompoundModel\","+
+		         "\"models\":[{\"@type\":\"GridModel\",\"name\":\"Grid\",\"boundingBox\":{\"@type\":\"BoundingBox\",\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisStart\":-84.13637953036218,\"fastAxisLength\":43.356972243563845,\"slowAxisStart\":123.33760426169476,\"slowAxisLength\":42.80505395362201},\"fastAxisName\":\"x\",\"slowAxisName\":\"y\",\"fastAxisPoints\":5,\"slowAxisPoints\":5,\"snake\":false}]},"+
+		     "\"detectors\":{\"mandelbrot\":{\"@type\":\"MandelbrotModel\",\"maxIterations\":500,\"escapeRadius\":10.0,\"columns\":301,\"rows\":241,\"points\":1000,\"maxRealCoordinate\":1.5,\"maxImaginaryCoordinate\":1.2,\"realAxisName\":\"x\",\"imaginaryAxisName\":\"y\",\"name\":\"mandelbrot\",\"exposureTime\":0.1,\"timeout\":-1}},"+
 		     "\"ignorePreprocess\":false},"+
 		  "\"point\":0,\"size\":0,\"scanNumber\":0}";			
 	    
