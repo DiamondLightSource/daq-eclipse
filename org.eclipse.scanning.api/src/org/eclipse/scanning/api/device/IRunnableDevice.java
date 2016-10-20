@@ -165,9 +165,9 @@ public interface IRunnableDevice<T> extends INameable, IDeviceRoleActor, ILevel,
 	public T getModel();
 	
 	/**
-	 * Gets the value of an attribute on the device
+	 * Gets the an attribute on the device
 	 */
-	public Object getAttributeValue(String attribute) throws MalcolmDeviceException;
+	public Object getAttribute(String attribute) throws MalcolmDeviceException;
 	
 	/**
 	 * Gets a list of all attributes on the device

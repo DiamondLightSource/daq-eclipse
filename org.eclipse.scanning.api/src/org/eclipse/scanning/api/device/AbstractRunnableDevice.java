@@ -477,11 +477,11 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	}
 	
 	/**
-	 * Please override to get a value from the device
+	 * Please override to get an attribute from the device
 	 * The default returns null.
-	 * @return the value of the specified attribute
+	 * @return the specified attribute
 	 */
-	public Object getAttributeValue(String attribute) throws MalcolmDeviceException {
+	public Object getAttribute(String attribute) throws MalcolmDeviceException {
 		return null;
 	}
 	

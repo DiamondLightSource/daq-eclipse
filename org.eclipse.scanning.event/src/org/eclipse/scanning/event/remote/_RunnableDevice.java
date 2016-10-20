@@ -143,11 +143,11 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	}
 
 	@Override
-	public Object getAttributeValue(String attribute) throws MalcolmDeviceException {
+	public Object getAttribute(String attribute) throws MalcolmDeviceException {
 		List<MalcolmAttribute> allAttributes = info.getAttributes();
 		for (MalcolmAttribute malcolmAttribute : allAttributes) {
 			if (malcolmAttribute.getName().equals(attribute)) {
-				return malcolmAttribute.getValue();
+				return malcolmAttribute;
 			}
 		}
 		return null;
