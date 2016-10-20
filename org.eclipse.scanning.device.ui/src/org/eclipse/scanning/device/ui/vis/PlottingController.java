@@ -180,6 +180,8 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 	protected void setAxisConfiguration(AxisConfiguration conf) {
 		
 		this.axisConfig = conf;
+		if (conf==null) return;
+		
 		createPlot(conf);
 		system.getSelectedXAxis().setTitle(conf.getFastAxisName());
 		system.getSelectedYAxis().setTitle(conf.getSlowAxisName());
@@ -266,6 +268,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 	
 	private void createPlot(AxisConfiguration conf) {
 		
+		if (conf==null) return;
 		IDataset image = null;
 		if (conf.getMicroscopeImage()!=null && !"".equals(conf.getMicroscopeImage())) {
 			try {
