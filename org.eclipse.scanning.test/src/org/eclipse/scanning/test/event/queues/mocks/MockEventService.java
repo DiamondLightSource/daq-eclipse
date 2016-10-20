@@ -2,6 +2,8 @@ package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
 import java.util.EventListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.EventException;
@@ -21,7 +23,8 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
 
 public class MockEventService implements IEventService {
 	
-	private MockConsumer<? extends StatusBean> mockConsumer;
+	private Map<String, MockConsumer<? extends StatusBean>> mockConsumers = new HashMap<>(); //Submit Q name, consumer
+	
 	private MockPublisher<?> mockPublisher;
 	private MockPublisher<? extends ConsumerCommandBean> mockCmdPub;
 	private MockSubmitter<? extends StatusBean> mockSubmitter;
@@ -71,17 +74,19 @@ public class MockEventService implements IEventService {
 			String statusTName, String heartbeatTName, String commandTName) throws EventException {
 		
 		//If the test have set a consumer on this event service, return that, otherwise create a new instance
-		MockConsumer<U> mockConsumer;
-		if (this.mockConsumer == null) {
-		mockConsumer = new MockConsumer<>();
+		MockConsumer<? extends StatusBean> mockConsumer;
+		if (mockConsumers.get("defaultCons") == null) {
+			mockConsumer = new MockConsumer<>();
+			mockConsumers.put(submissionQName, mockConsumer);
 		} else {
-			mockConsumer = (MockConsumer<U>) this.mockConsumer;
+			mockConsumer = mockConsumers.get("defaultCons");
 		}
 		
 		mockConsumer.setCommandTopicName(commandTName);
 		mockConsumer.setStatusTopicName(statusTName);
 		mockConsumer.setStatusSetName(statusQName);
 		mockConsumer.setSubmitQueueName(submissionQName);
+		
 		return (IConsumer<U>) mockConsumer;
 	}
 
@@ -134,10 +139,20 @@ public class MockEventService implements IEventService {
 	}
 	
 	public <U extends StatusBean> void setMockConsumer(MockConsumer<U> mockCons) {
-		this.mockConsumer = mockCons;
+		mockConsumers.put("defaultCons", mockCons);
 	}
 	
 	public <U extends StatusBean> void setMockSubmitter(MockSubmitter<U> mockSub) {
 		this.mockSubmitter = mockSub;
+	}
+	
+	public Map<String, MockConsumer<? extends StatusBean>> getRegisteredConsumers() {
+		return mockConsumers;
+	}
+	
+	public void clearRegisteredConsumers() {
+		MockConsumer<? extends StatusBean> mc = mockConsumers.get("defaultCons");
+		mockConsumers = new HashMap<>();
+		mockConsumers.put("defaultCons", mc);
 	}
 }

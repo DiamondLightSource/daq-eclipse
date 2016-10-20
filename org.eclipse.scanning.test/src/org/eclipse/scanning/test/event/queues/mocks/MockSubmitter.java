@@ -10,13 +10,17 @@ import java.util.UUID;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
+import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 
 public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	
 	private Map<String, List<T>> submittedBeans;
 	private Map<String, List<ReorderedBean>> reorderedBeans;
 	private String uniqueId, submitQ;
+	
+	private boolean sendToConsumer = false;
 	
 	public MockSubmitter() {
 		submittedBeans = new HashMap<>();
@@ -165,6 +169,20 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 			getQueue("defaultQ").add(bean);
 		} else {
 			getQueue(submitQ).add(bean);
+			if (sendToConsumer) {
+				//Recover the queueID string from the submit queue
+				String[] queueIDParts = submitQ.split("\\.");
+				String queueID = queueIDParts[0];
+				for (int i = 1; i < queueIDParts.length - 2; i++) {
+					queueID = queueID+"."+queueIDParts[i];
+				}
+				
+				//Get the MockConsumer & pass bean into status set 
+				IQueueService qServ = ServicesHolder.getQueueService();
+				@SuppressWarnings("unchecked")
+				MockConsumer<T> mockCons = (MockConsumer<T>) qServ.getQueue(queueID).getConsumer();
+				mockCons.addToStatusSet(bean);
+			}
 		}
 	}
 
@@ -288,6 +306,10 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 			if (reBean.bean == bean) return reBean;
 		}
 		throw new EventException("Bean not found");
+	}
+	
+	public void setSendToConsumer(boolean send) {
+		sendToConsumer = send;
 	}
 	
 	class ReorderedBean {
