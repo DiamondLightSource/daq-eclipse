@@ -1,4 +1,4 @@
-package org.eclipse.scanning.event.queues.beans;
+package org.eclipse.scanning.api.event.queues.beans;
 
 import java.util.Collection;
 import java.util.List;
@@ -6,8 +6,6 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.IHasChildQueue;
-import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 

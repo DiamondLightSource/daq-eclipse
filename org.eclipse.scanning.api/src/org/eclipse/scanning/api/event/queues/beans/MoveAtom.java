@@ -1,11 +1,9 @@
-package org.eclipse.scanning.event.queues.beans;
+package org.eclipse.scanning.api.event.queues.beans;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 
 /**
  * MoveAtom is a type of {@link QueueAtom} which may be processed within an 

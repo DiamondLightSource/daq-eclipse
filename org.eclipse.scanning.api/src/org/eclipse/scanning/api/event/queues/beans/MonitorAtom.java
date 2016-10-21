@@ -1,7 +1,6 @@
-package org.eclipse.scanning.event.queues.beans;
+package org.eclipse.scanning.api.event.queues.beans;
 
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 
 /**
  * MonitorAtom is a type of {@link QueueAtom} which may be processed within an 
