@@ -10,14 +10,12 @@ import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
-import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
-import org.eclipse.scanning.api.event.queues.beans.QueueBean;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.api.event.scan.DeviceAction;
-import org.eclipse.scanning.api.event.scan.DeviceInformation;
+import org.eclipse.scanning.api.event.queues.beans.MonitorAtom;
+import org.eclipse.scanning.api.event.queues.beans.MoveAtom;
+import org.eclipse.scanning.api.event.queues.beans.ScanAtom;
+import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
+import org.eclipse.scanning.api.event.queues.beans.TaskBean;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
-import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.event.scan.PositionRequestType;
 import org.eclipse.scanning.api.event.scan.PositionerRequest;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
@@ -123,9 +121,11 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, StatusBean.class);
 		
 		// event.queues.beans
-		registerClass(tmp, Queueable.class);
-		registerClass(tmp, QueueAtom.class);
-		registerClass(tmp, QueueBean.class);
+		registerClass(tmp, MonitorAtom.class);
+		registerClass(tmp, MoveAtom.class);
+		registerClass(tmp, ScanAtom.class);
+		registerClass(tmp, SubTaskAtom.class);
+		registerClass(tmp, TaskBean.class);
 		
 		// malcolm.event
 		registerClass(tmp, MalcolmEventBean.class);
