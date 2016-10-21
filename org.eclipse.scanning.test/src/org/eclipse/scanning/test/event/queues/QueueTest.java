@@ -11,7 +11,6 @@ import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.event.queues.Queue;
 import org.eclipse.scanning.event.queues.ServicesHolder;
-import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
@@ -27,7 +26,6 @@ public class QueueTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		setUpNonOSGIActivemqMarshaller(); //TODO is this needed?
 		mockCons = new MockConsumer<>();
 		mockEvServ.setMockConsumer(mockCons);
 		
