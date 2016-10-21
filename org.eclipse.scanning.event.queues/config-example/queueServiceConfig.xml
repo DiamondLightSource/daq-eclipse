@@ -7,10 +7,10 @@
 		This file contains objects which are required to use the new GDA Solstice / Eclipse Scanning scanning system.
 	</description>
 
-	<!-- Data Server -->
+	<!-- Queue Service -->
 	<bean id="queueservice" class="org.eclipse.scanning.event.queues.QueueService" init-method="init">
 		<property name="uri" value="${gda.activemq.broker.uri}" />
-		<property name="queueRoot" value="uk.ac.diamond.i15-1-control" />
+		<property name="queueRoot" value="uk.ac.diamond.i15-1" />
 	</bean>
 
 </beans>
