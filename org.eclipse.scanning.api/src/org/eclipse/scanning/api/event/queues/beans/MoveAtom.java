@@ -12,11 +12,6 @@ import java.util.Map;
  * positions of one or more motors. Motor moves may occur simultaneously, 
  * depending on the configured level of the motor.
  * 
- * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
- * 		this package
- * TODO	MTW: Agreed move to o.e.s.api.queues.beans. Will do this as part of 
- * 		I15_1-136
- * 
  * @author Michael Wharmby
  *
  */
@@ -25,7 +20,7 @@ public class MoveAtom extends QueueAtom {
 	/**
 	 * Version ID for serialization. Should be updated when class changed. 
 	 */
-	private static final long serialVersionUID = 20161017L;
+	private static final long serialVersionUID = 20161021L;
 	
 	private Map<String, Object> positionConfig;
 	

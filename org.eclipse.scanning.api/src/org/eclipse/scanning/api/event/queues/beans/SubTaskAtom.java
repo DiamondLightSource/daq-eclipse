@@ -18,10 +18,6 @@ import org.eclipse.scanning.api.event.queues.IQueueService;
  * SubTaskBeans may be nested inside of SubTaskBeans to provide a hierarchy.
  * 
  * TODO Update java-doc 
- * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
- * 		this package
- * TODO	MTW: Agreed move to o.e.s.api.queues.beans. Will do this as part of 
- * 		I15_1-136
  * 
  * @author Michael Wharmby
  * 
@@ -31,7 +27,7 @@ public class SubTaskAtom extends QueueAtom implements IHasAtomQueue<QueueAtom> {
 	/**
 	 * Version ID for serialization. Should be updated when class changed. 
 	 */
-	private static final long serialVersionUID = 20161017L;
+	private static final long serialVersionUID = 20161021L;
 
 	private LinkedList<QueueAtom> atomQueue;
 	private String queueMessage;

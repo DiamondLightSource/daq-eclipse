@@ -15,11 +15,6 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * necessary to create a {@link ScanBean} which is submitted to the scan 
  * service to actually run the desired scan.
  * 
- * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
- * 		this package
- * TODO	MTW: Agreed move to o.e.s.api.queues.beans. Will do this as part of 
- * 		I15_1-136
- * 
  * @author Michael Wharmby
  *
  */
@@ -28,7 +23,7 @@ public class ScanAtom extends QueueAtom implements IHasChildQueue {
 	/**
 	 * Version ID for serialization. Should be updated when class changed. 
 	 */
-	private static final long serialVersionUID = 20161017L;
+	private static final long serialVersionUID = 20161021L;
 	
 	private List<IScanPathModel> pathModels;
 	private Collection<String> monitors;
