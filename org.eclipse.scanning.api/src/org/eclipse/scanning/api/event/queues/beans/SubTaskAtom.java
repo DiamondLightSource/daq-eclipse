@@ -4,8 +4,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * SubTaskBean is a type of {@link QueueAtom} implementing an 
@@ -34,8 +32,6 @@ public class SubTaskAtom extends QueueAtom implements IHasAtomQueue<QueueAtom> {
 	 * Version ID for serialization. Should be updated when class changed. 
 	 */
 	private static final long serialVersionUID = 20161017L;
-
-	private static final Logger logger = LoggerFactory.getLogger(SubTaskAtom.class);
 
 	private LinkedList<QueueAtom> atomQueue;
 	private String queueMessage;
@@ -82,13 +78,9 @@ public class SubTaskAtom extends QueueAtom implements IHasAtomQueue<QueueAtom> {
 	public boolean addAtom(QueueAtom atom) {
 		//Check that we're adding a real, non-duplicate atom to the queue
 		if(atom == null) {
-			logger.error("Attempting to add 'null' to queue.");
 			throw new NullPointerException("Attempting to add null atom to AtomQueue");
 		}
 		if(isAtomPresent(atom)) {
-			logger.error("Identical bean " + atom.getName()
-			+ " (Class: "+ atom.getClass().getSimpleName()
-			+ ") already in queue.");
 			throw new IllegalArgumentException("Bean with identical UID already in queue.");
 		}
 		//Add atom, recalculate the runtime and return
