@@ -2,8 +2,8 @@ package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 
 public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 	

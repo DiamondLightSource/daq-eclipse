@@ -1,7 +1,7 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.event.queues.beans.MonitorAtom;
+import org.eclipse.scanning.api.event.queues.beans.MonitorAtom;
 
 /**
  * MonitorAtomProcessor reads back a single value from a monitor. It will use 

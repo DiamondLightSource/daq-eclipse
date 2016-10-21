@@ -2,10 +2,10 @@ package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
+import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
+import org.eclipse.scanning.api.event.queues.beans.TaskBean;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.ServicesHolder;
-import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
-import org.eclipse.scanning.event.queues.beans.TaskBean;
 
 public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 	

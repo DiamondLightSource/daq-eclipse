@@ -10,8 +10,8 @@ import java.util.List;
 
 import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
-import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
-import org.eclipse.scanning.event.queues.beans.TaskBean;
+import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
+import org.eclipse.scanning.api.event.queues.beans.TaskBean;
 import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
 import org.junit.Before;
 import org.junit.Test;

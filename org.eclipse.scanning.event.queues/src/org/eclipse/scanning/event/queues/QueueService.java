@@ -19,7 +19,7 @@ import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.event.queues.beans.TaskBean;
+import org.eclipse.scanning.api.event.queues.beans.TaskBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

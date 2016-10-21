@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.event.queues.beans.MoveAtom;
+import org.eclipse.scanning.api.event.queues.beans.MoveAtom;
 import org.junit.Before;
 import org.junit.Test;
 
