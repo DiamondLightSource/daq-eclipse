@@ -5,9 +5,16 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshaller;
+import java.util.Arrays;
+
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.event.classregistry.ScanningEventClassRegistry;
+import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
+import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.junit.Test;
 
 /**
@@ -24,7 +31,13 @@ public abstract class AbstractBeanTest<S extends Queueable> {
 	
 	@Test
 	public void testSerialization() throws Exception {
-		IMarshallerService jsonMarshaller = new MarshallerService();
+		IMarshallerService jsonMarshaller = new MarshallerService(
+				Arrays.asList(new ScanningAPIClassRegistry(),
+						new ScanningExampleClassRegistry(),
+						new ScanningTestClassRegistry(),
+						new ScanningEventClassRegistry()),
+				Arrays.asList(new PointsModelMarshaller())
+				);
 		
 		String jsonA = null, jsonB = null;
 		try {

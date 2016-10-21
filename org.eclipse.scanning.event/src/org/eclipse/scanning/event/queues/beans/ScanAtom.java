@@ -17,6 +17,9 @@ import org.eclipse.scanning.api.points.models.IScanPathModel;
  * necessary to create a {@link ScanBean} which is submitted to the scan 
  * service to actually run the desired scan.
  * 
+ * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
+ * 		this package
+ * 
  * @author Michael Wharmby
  *
  */

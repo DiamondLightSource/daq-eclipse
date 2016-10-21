@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
  * 
  * TODO Sample metadata holder.
  * FIXME java-doc
+ * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
+ * 		this package
  * 
  * @author Michael Wharmby
  *

@@ -83,5 +83,10 @@ public interface EventConstants {
      * It is usually better to use your own topic rather than the default.
      */
 	public static final String POSITIONER_RESPONSE_TOPIC      = "org.eclipse.scanning.response.positioner.topic";
+	
+	/**
+	 * When the user sets up the axes, an AxisConfiguration object will be broadcast on this event.
+	 */
+	public static final String AXIS_CONFIGURATION_TOPIC      = "org.eclipse.scanning.axis.configuration.topic";
 
 }

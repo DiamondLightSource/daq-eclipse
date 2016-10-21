@@ -22,7 +22,7 @@ public class MalcolmTable {
 		if (column != null) {
 			return tableData.get(columnName);
 		}
-		throw new Exception("Uknown column: " + columnName);
+		throw new Exception("Unknown column: " + columnName);
 	}
 	
 	public Class<?> getColumnClass(String columnName) throws Exception {
@@ -30,11 +30,10 @@ public class MalcolmTable {
 		if (column != null) {
 			return tableDataTypes.get(columnName);
 		}
-		throw new Exception("Uknown column: " + columnName);
+		throw new Exception("Unknown column: " + columnName);
 	}
 	
 	public LinkedList<String> getHeadings() {
 		return headings;
 	}
-	
 }

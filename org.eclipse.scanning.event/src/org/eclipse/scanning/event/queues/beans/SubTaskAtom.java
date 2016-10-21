@@ -22,6 +22,10 @@ import org.slf4j.LoggerFactory;
  * SubTaskBeans may be nested inside of SubTaskBeans to provide a hierarchy.
  * 
  * TODO Update java-doc 
+ * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
+ * 		this package
+ *      MTW replies: there shouldn't be any dependencies on dawnsci.analysis.api 
+ *      - I haven't added anything which depends on it.
  * 
  * @author Michael Wharmby
  * 

@@ -51,10 +51,10 @@
 <repository location="http://www.opengda.org/updates/tp_dawnsci/trunk/"/>
 </location>
 <location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="false" type="InstallableUnit">
-<unit id="uk.ac.diamond.scisoft.peema.feature.feature.group" version="1.2.0.v20160928-0943"/>
-<unit id="uk.ac.diamond.dawn.product.feature.feature.group" version="2.3.0.v20160928-1435"/>
+<unit id="uk.ac.diamond.scisoft.peema.feature.feature.group" version="1.2.0.v20161004-1622"/>
+<unit id="uk.ac.diamond.dawn.product.feature.feature.group" version="2.3.0.v20161011-1510"/>
 <unit id="org.eclipse.equinox.executable.feature.group" version="3.6.200.v20150602-1417"/>
-<unit id="org.dawnsci.base.product.feature.feature.group" version="2.3.0.v20160928-1435"/>
+<unit id="org.dawnsci.base.product.feature.feature.group" version="2.3.0.v20161011-1510"/>
 <repository location="http://www.opengda.org/DawnDiamond/master/updates/snapshot/"/>
 </location>
 </locations>

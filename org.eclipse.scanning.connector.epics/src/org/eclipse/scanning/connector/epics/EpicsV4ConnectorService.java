@@ -68,18 +68,8 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
         pvaClient.destroy();
 	}
 	
-	@Override
-	public String marshal(Object anyObject) throws Exception {
-		throw new UnsupportedOperationException();
-	}
-	
 	public PVStructure pvMarshal(Object anyObject) throws Exception {
 		return mapper.pvMarshal(anyObject);
-	}
-
-	@Override
-	public <U> U unmarshal(String anyObject, Class<U> beanClass) throws Exception {
-		throw new UnsupportedOperationException();
 	}
 
 	public <U> U pvUnmarshal(PVStructure anyObject, Class<U> beanClass) throws Exception {
@@ -337,12 +327,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	public MessageGenerator<MalcolmMessage> createConnection() {
 		return (MessageGenerator<MalcolmMessage>) new EpicsV4MalcolmMessageGenerator(this);
 	}
-	
-	@Override
-	public Object createConnectionFactory(URI uri) {
-		return null;
-	}
-	
+		
 	class EpicsV4ClientMonitorRequester implements PvaClientMonitorRequester, PvaClientUnlistenRequester {
 		private IMalcolmListener<MalcolmMessage> listener;
 		private MalcolmMessage subscribeMessage;

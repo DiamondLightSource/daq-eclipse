@@ -73,7 +73,7 @@ public class LinearScanTest extends BrokerTest{
 	public void setup() throws Exception {
 		
 
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		setUpNonOSGIActivemqMarshaller();
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 
 		this.lservice = new LoaderServiceMock();

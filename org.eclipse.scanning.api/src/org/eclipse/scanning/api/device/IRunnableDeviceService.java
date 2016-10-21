@@ -54,6 +54,15 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
 public interface IRunnableDeviceService {
 	
 	/**
+	 * Used to register a device. This is required so that spring may create
+	 * detectors and call the register method by telling the detector to register
+	 * itself.
+	 * 
+	 * @param device
+	 */
+	<T> void register(IRunnableDevice<T> device);
+	
+	/**
 	 * This method sets the value of the scannables named to this position.
 	 * It takes into account the levels of the scannbles. 
 	 * It is blocking until all the scannables have reached the desired location.

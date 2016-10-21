@@ -138,4 +138,9 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 		}
 	    return req.getDeviceInformation();
 	}
+
+	@Override
+	public <T> void register(IRunnableDevice<T> device) {
+		throw new IllegalArgumentException("New devices may not be registered on a remote service implementation!");
+	}
 }
