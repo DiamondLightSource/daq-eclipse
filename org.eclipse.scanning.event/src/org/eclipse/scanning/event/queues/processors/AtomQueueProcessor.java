@@ -34,7 +34,7 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 	private ISubscriber<QueueListener<P, Q>> queueSubscriber;
 	
 	private IQueueProcessor<P> parentProcessor;
-	private String activeQueueName; 
+	private String activeQueueID; 
 	
 	public AtomQueueProcessor(IQueueProcessor<P> parentProcessor) {
 		queueService = ServicesHolder.getQueueService();
@@ -48,7 +48,7 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 		
 		//Create a new active queue to submit the atoms into
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 0d, "Registering new active queue.");
-		activeQueueName = queueService.registerNewActiveQueue();
+		activeQueueID = queueService.registerNewActiveQueue();
 		
 		//Spool beans from bean atom queue to the queue service
 		//(queue empty after this!)
@@ -65,7 +65,7 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 			if (nextAtom.getUserName() != parentBean.getUserName()) {
 				nextAtom.setUserName(parentBean.getUserName());
 			}
-			queueController.submit(atomQueue.nextAtom(), activeQueueName);
+			queueController.submit(atomQueue.nextAtom(), activeQueueID);
 		}
 		
 		//Create QueueListener
@@ -73,24 +73,31 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 				parentProcessor.getQueueBroadcaster(), 
 				parentProcessor.getProcessBean(), 
 				parentProcessor.getProcessorLatch());
-		queueSubscriber = queueController.createQueueSubscriber(activeQueueName);
+		queueSubscriber = queueController.createQueueSubscriber(activeQueueID);
 		queueSubscriber.addListener(queueListener);
 		
 		//Start processing & wait for it to end.
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 4d, "Beans submitted. Starting active queue...");
-		queueService.startActiveQueue(activeQueueName);
+		queueService.startActiveQueue(activeQueueID);
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 5d, "Waiting for active queue to complete");
 		parentProcessor.getProcessorLatch().await();
 	}
 	
-	public void tidyQueue() throws EventException {
+	protected void terminate() throws EventException {
+		//Calling IConsumer.stop() causes all jobs being processed to terminate 
+		queueService.stopActiveQueue(activeQueueID, false);
+	}
+	
+	protected void tidyQueue() throws EventException {
 		//Tidy up our processes, before handing back control
-		queueService.stopActiveQueue(activeQueueName, false);
-		queueService.deRegisterActiveQueue(activeQueueName, true);
+		if (queueService.getActiveQueue(activeQueueID).getStatus().isActive()) {
+			queueService.stopActiveQueue(activeQueueID, false);
+		}
+		queueService.deRegisterActiveQueue(activeQueueID, true);
 		queueSubscriber.disconnect();
 	}
 
-	public String getActiveQueueName() {
-		return activeQueueName;
+	public String getActiveQueueID() {
+		return activeQueueID;
 	}
 }

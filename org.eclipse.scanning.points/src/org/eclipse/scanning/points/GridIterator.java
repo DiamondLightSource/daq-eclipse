@@ -6,8 +6,8 @@ import java.util.Iterator;
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
-import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
@@ -17,7 +17,7 @@ import org.python.core.PyObject;
 
 class GridIterator extends AbstractScanPointIterator {
 
-	private final AbstractGenerator<? extends AbstractBoundingBoxModel> gen;
+	private final AbstractGenerator<? extends IBoundingBoxModel> gen;
 	private final int columns;
 	private final int rows;
 	private final String xName;

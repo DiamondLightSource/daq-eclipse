@@ -27,5 +27,12 @@
             model="org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel">
       </device>
    </extension>
+   <extension
+         point="org.eclipse.dawnsci.analysis.api.classregistry">
+      <classregistry
+            class="org.eclipse.scanning.test.ScanningTestClassRegistry"
+            id="org.eclipse.scanning.test.ScanningTestClassRegistry">
+      </classregistry>
+   </extension>
 
 </plugin>

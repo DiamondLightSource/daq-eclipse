@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.device.models;
 
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.ITimeoutable;
 import org.eclipse.scanning.api.annotation.MinimumValue;
 
@@ -10,7 +11,7 @@ import org.eclipse.scanning.api.annotation.MinimumValue;
  * @author Colin Palmer
  *
  */
-public interface IDetectorModel extends ITimeoutable {
+public interface IDetectorModel extends ITimeoutable, INameable {
 
 	/**
 	 * Get the exposure time to be used for the detector, in seconds.

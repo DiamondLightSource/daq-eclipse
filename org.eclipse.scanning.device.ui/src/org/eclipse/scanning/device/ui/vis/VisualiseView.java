@@ -1,6 +1,7 @@
 package org.eclipse.scanning.device.ui.vis;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.dawnsci.plotting.api.IPlottingService;
@@ -8,18 +9,18 @@ import org.eclipse.dawnsci.plotting.api.IPlottingSystem;
 import org.eclipse.dawnsci.plotting.api.PlotType;
 import org.eclipse.dawnsci.plotting.api.region.IRegionSystem;
 import org.eclipse.dawnsci.plotting.api.tool.IToolPageSystem;
-import org.eclipse.dawnsci.plotting.api.trace.IImageTrace;
-import org.eclipse.january.dataset.Dataset;
-import org.eclipse.january.dataset.DatasetFactory;
-import org.eclipse.january.dataset.IDataset;
-import org.eclipse.january.dataset.Random;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ScanningPerspective;
 import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -47,12 +48,12 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 	private   IPlottingSystem<Object> system;
 
 	public VisualiseView() {
+		
 		try {
 			IPlottingService service = ServiceHolder.getPlottingService();
 			system = service.createPlottingSystem();
 			system.getPlotActionSystem().setShowCustomPlotActions(false); // Disable the custom plot actions.
 			
-            controller = new PlottingController(system);
  
 		} catch (Exception ne) {
 			logger.error("Unable to make plotting system", ne);
@@ -63,11 +64,12 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 
 	@Override
 	public void createPartControl(Composite parent) {
-
+		
+        controller = new PlottingController(system, getViewSite());
+        		
 		system.createPlotPart(parent, getPartName(), getViewSite().getActionBars(), PlotType.IMAGE, this);  
-
-		// Plot a random image
-		createExampleTrace(); // TODO FIXME
+		system.getSelectedXAxis().setTitle("stage_x");
+		system.getSelectedYAxis().setTitle("stage_y");
 		
 		// Connect to existing regions, although they might not be desirable ones
 		controller.connect();
@@ -78,23 +80,6 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
         
 		ScanningPerspective.createKeyPlayers();
 
-	}
-
-	private void createExampleTrace() {
-		// TODO Correct data source, not this random one!
-		IDataset x = DatasetFactory.createRange(-100d, 0d, 100d/3012, Dataset.FLOAT);
-		x.setName("stage_x");
-		IDataset y = DatasetFactory.createRange(100d, 200d, 100d/4096, Dataset.FLOAT);
-		y.setName("stage_y");
-		IImageTrace it = system.createImageTrace("image");
-		it.setData(Random.rand(4096, 3012), Arrays.asList(new IDataset[]{x,y}), false);
-		double[] globalRange = new double[4];
-		globalRange[0] = x.min().doubleValue();
-		globalRange[1] = x.max().doubleValue();
-		globalRange[2] = y.min().doubleValue();
-		globalRange[3] = y.max().doubleValue();
-		it.setGlobalRange(globalRange);
-		system.addTrace(it);
 	}
 
 	@Override
@@ -108,13 +93,13 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 		} else if (object instanceof IModelProvider<?>) {
 			processModel(((IModelProvider)object).getModel());
 		} else if (object instanceof ScanRegion) {
-			controller.refresh(); // Axes might have changed
+			if (controller!=null) controller.refresh(); // Axes might have changed
 		}
 	}
 	
 	private void processModel(Object model) {
 		try {
-			controller.setModel(model);
+			if (controller!=null) controller.setModel(model);
 		} catch (Exception ignored) {
 			logger.trace("Unable to deal with model "+model, ignored);
 		}
@@ -123,7 +108,9 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getAdapter(Class<T> adapter){
-		if (controller.getAdapter(adapter)!=null) return controller.getAdapter(adapter);
+		if (controller!=null) {
+			if (controller.getAdapter(adapter)!=null) return controller.getAdapter(adapter);
+		}
 		if (IPlottingSystem.class == adapter) return (T)system;
 		if (IRegionSystem.class == adapter)   return (T)system;
 		if (IToolPageSystem.class == adapter) return system.getAdapter(adapter);
@@ -138,7 +125,7 @@ public class VisualiseView extends ViewPart implements IAdaptable, ISelectionLis
 	@Override
 	public void dispose() {
 		getSite().getPage().removeSelectionListener(this);
-		controller.dispose();
+		if (controller!=null) controller.dispose();
  		super.dispose();
 	}
 

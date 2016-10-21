@@ -92,7 +92,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-class ModelViewer implements ISelectionListener, ISelectionProvider {
+class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModelViewer.class);
 	
@@ -108,7 +108,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 	private IViewSite   site;
 	
 	// Model
-	private Object             model;
+	private T           model;
 	
 	// Validation
 	private IValidator<Object> validator; // The generator or runnable device etc. for which we are editing the model 
@@ -403,8 +403,8 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 				IRunnableDevice<?> device = dservice.getRunnableDevice(name);
 				setValidator(device);
 			}
-			if (ob instanceof IModelProvider) setModel(((IModelProvider<?>)ob).getModel());
-			if (ob instanceof IScanPathModel) setModel(ob);
+			if (ob instanceof IModelProvider) setModel((T)((IModelProvider<?>)ob).getModel());
+			if (ob instanceof IScanPathModel) setModel((T)ob);
 			
 			if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
                 BoundingBox box = ScanRegions.createBoxFromPlot(model);
@@ -428,7 +428,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 		this.validator = (IValidator<Object>)v;
 	}
 
-	public void setModel(Object model) throws InstantiationException, IllegalAccessException {
+	public void setModel(T model) throws InstantiationException, IllegalAccessException {
 		if (viewer.getTable().isDisposed()) return;
 		if (viewer.isCellEditorActive())    return;
 		this.model = model;
@@ -436,7 +436,7 @@ class ModelViewer implements ISelectionListener, ISelectionProvider {
 		refresh();
 	}
 	
-	public Object getModel() {
+	public T getModel() {
 		return model;
 	}
 	

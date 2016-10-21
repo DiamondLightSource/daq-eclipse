@@ -10,6 +10,7 @@ import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
+@Deprecated
 public class MockQueue<T extends Queueable> implements IQueue<T> {
 	
 	private String queueID;

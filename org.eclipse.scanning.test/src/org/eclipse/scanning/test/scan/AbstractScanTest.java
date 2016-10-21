@@ -33,10 +33,10 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
-import org.eclipse.scanning.api.points.models.AbstractBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.AbstractPointsModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -452,8 +452,8 @@ public class AbstractScanTest extends BrokerTest {
 			
 		}
 		
-		if (axes!=null && pmodel instanceof AbstractBoundingBoxModel) {
-			AbstractBoundingBoxModel bmodel = (AbstractBoundingBoxModel)pmodel;
+		if (axes!=null && pmodel instanceof IBoundingBoxModel) {
+			IBoundingBoxModel bmodel = (IBoundingBoxModel)pmodel;
 			bmodel.setFastAxisName(axes[0]);
 			bmodel.setSlowAxisName(axes[1]);
 		}

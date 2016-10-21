@@ -7,12 +7,14 @@ import static org.junit.Assert.assertTrue;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.queues.QueueControllerService;
 import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
@@ -35,7 +37,6 @@ public class SubTaskAtomProcessorTest {
 	private SubTaskAtomProcessor stAtProcr;
 	private ProcessorTestInfrastructure pti;
 	
-//	private static MockQueueService mockQServ;
 	private static QueueService qServ;
 	private static MockConsumer<Queueable> mockCons;
 	private static MockPublisher<QueueAtom> mockPub;
@@ -49,6 +50,7 @@ public class SubTaskAtomProcessorTest {
 		mockCons = new MockConsumer<>();
 		mockPub = new MockPublisher<>(null, null);
 		mockSub = new MockSubmitter<>();
+		mockSub.setSendToConsumer(true);
 		mockEvServ = new MockEventService();
 		mockEvServ.setMockConsumer(mockCons);
 		mockEvServ.setMockPublisher(mockPub);
@@ -111,6 +113,7 @@ public class SubTaskAtomProcessorTest {
 	@After
 	public void tearDown() {
 		pti = null;
+		mockEvServ.clearRegisteredConsumers();
 	}
 	
 	@Test
@@ -153,9 +156,11 @@ public class SubTaskAtomProcessorTest {
 		pti.exceptionCheck();
 		assertTrue("Terminated flag not set true after termination", stAtProcr.isTerminated());
 		pti.checkLastBroadcastBeanStatuses(stAt, Status.TERMINATED, true);
-		//TODO Should this be the message or the queue-message?
+//		//TODO Should this be the message or the queue-message?
 		assertEquals("Wrong message set after termination.", "Active-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
+		assertEquals("Active queues still registered after terminate", 0, qServ.getAllActiveQueueIDs().size());
 		
+		checkConsumersStopped();	
 	}
 	
 	@Test
@@ -179,8 +184,8 @@ public class SubTaskAtomProcessorTest {
 		pti.checkLastBroadcastBeanStatuses(stAt, Status.FAILED, false);
 	}
 	
-	protected void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
-		String qName = stAtProcr.getAtomQueueProcessor().getActiveQueueName()+IQueue.SUBMISSION_QUEUE_SUFFIX;
+	private void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
+		String qName = stAtProcr.getAtomQueueProcessor().getActiveQueueID()+IQueue.SUBMISSION_QUEUE_SUFFIX;
 		List<QueueAtom> submittedBeans = ms.getQueue(qName);
 		assertTrue("No beans in the final status set", submittedBeans.size() != 0);
 		for (QueueAtom dummy : submittedBeans) {
@@ -194,6 +199,17 @@ public class SubTaskAtomProcessorTest {
 			assertFalse("No username set", dummy.getUserName() == null);
 			assertEquals("Incorrect username", stAt.getUserName(), dummy.getUserName());
 		}
+	}
+	
+	private void checkConsumersStopped() {
+		Map<String, MockConsumer<? extends StatusBean>> consumers = mockEvServ.getRegisteredConsumers();
+		
+		for (Map.Entry<String, MockConsumer<? extends StatusBean>> entry : consumers.entrySet()) {
+			//We don't need to check the job-queue
+			if (entry.getKey().equals(qServ.getJobQueueID())) continue;
+			assertTrue("Consumer was not stopped (this was expected)", entry.getValue().isStopped());
+		}
+		
 	}
 
 }

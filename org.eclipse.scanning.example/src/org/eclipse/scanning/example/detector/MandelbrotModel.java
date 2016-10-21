@@ -50,10 +50,10 @@ public class MandelbrotModel extends AbstractDetectorModel {
 	@FieldDescriptor(label="Imaginary Axis Name")
 	private String imaginaryAxisName;
 
-	@FieldDescriptor(label="Enable Noise dependent on exposure")
+	@FieldDescriptor(hint="Enable Noise dependent on exposure")
 	private boolean enableNoise = false;
 	
-	@FieldDescriptor(label="The exposure above which there is no noise")
+	@FieldDescriptor(hint="The exposure above which there is no noise")
 	private double noiseFreeExposureTime = 5.0;
 	
 	public MandelbrotModel() {

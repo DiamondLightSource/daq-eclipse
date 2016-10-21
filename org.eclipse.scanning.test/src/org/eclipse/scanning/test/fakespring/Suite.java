@@ -1,12 +1,13 @@
-package org.eclipse.scanning.test.event.queues.api;
+package org.eclipse.scanning.test.fakespring;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
-	SizeLimitedRecorderTest.class
+	PseudoSpringParserTest.class
 })
 public class Suite {
 
+	
 }

@@ -41,6 +41,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
+import org.eclipse.scanning.example.Services;
 
 /**
  * A dummy detector which must be set up with references to two Scannables representing X and Y positions. When used in a step scan, this detector generates a
@@ -69,7 +70,7 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	private final Random random = new Random();
 
 	public MandelbrotDetector() throws IOException, ScanningException {
-		super();
+		super(Services.getRunnableDeviceService()); // Necessary if you are going to spring it
 		this.model = new MandelbrotModel();
 		setDeviceState(DeviceState.IDLE);
 	}

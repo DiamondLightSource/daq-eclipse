@@ -49,6 +49,7 @@ public class ResponderImpl<T extends IdBean> extends AbstractRequestResponseConn
 					publisher.broadcast(response);
 					
 				} catch (EventException ne) {
+					if (ne.getCause()!=null) System.out.println(ne.getCause().getMessage()); // Sometimes logging not working here!
 					logger.error("Request unable to be processed! "+request, ne);
 				}
 			}

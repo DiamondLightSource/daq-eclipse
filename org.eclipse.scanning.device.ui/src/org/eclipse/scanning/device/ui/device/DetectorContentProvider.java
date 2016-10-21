@@ -1,14 +1,17 @@
 package org.eclipse.scanning.device.ui.device;
 
-import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
-import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +31,9 @@ class DetectorContentProvider implements IStructuredContentProvider {
 	 * Remote device service.
 	 */
 	private IRunnableDeviceService dservice;
+	private Collection<DeviceInformation<?>> infos;
 	
-	public DetectorContentProvider(IRunnableDeviceService dservice) throws EventException {
+	public DetectorContentProvider(IRunnableDeviceService dservice) throws EventException, ScanningException {
 		this.dservice = dservice;
 	}
 
@@ -40,15 +44,27 @@ class DetectorContentProvider implements IStructuredContentProvider {
 
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		// TODO Auto-generated method stub
-
+		try {
+		    infos = dservice.getDeviceInformation();
+		} catch (Exception ne ) {
+			logger.error("Cannot get device information!", ne);
+		}
 	}
 
 	@Override
 	public Object[] getElements(Object inputElement) {
 		
 		try {
-		    Collection<DeviceInformation<?>> devices = dservice.getDeviceInformation();
+		    final List<DeviceInformation<?>> devices = new ArrayList<>(infos.size());
+		    final boolean isDevice     = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_HARDWARE);
+		    final boolean isProcessing = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_PROCESSING);
+		    infos.forEach(info-> {
+		    	if (info.getDeviceRole().isHardware()) {
+		    		if (isDevice) devices.add(info);
+		    	} else if (info.getDeviceRole().isProcessing()) {
+		    		if (isProcessing) devices.add(info);
+		    	}
+		    });
 		    return devices.toArray(new DeviceInformation[devices.size()]);
 		    
 		} catch (Exception ne) {
