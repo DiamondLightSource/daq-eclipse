@@ -27,15 +27,15 @@ public class QueueProcessorFactoryTest {
 	
 	@Test
 	public void testRegisterProcessor() throws EventException {
-		assertEquals("Processors already registered!", 2, QueueProcessorFactory.getProcessors().size());
+		assertEquals("Processors already registered!", 4, QueueProcessorFactory.getProcessors().size());
 		
 		//Register a single processor
 		QueueProcessorFactory.registerProcessor(DummyAtomProcessor.class);
-		assertEquals("Processors already registered!", 3, QueueProcessorFactory.getProcessors().size());
+		assertEquals("Processors already registered!", 5, QueueProcessorFactory.getProcessors().size());
 		
 		//Register multiple processors by varargs
 		QueueProcessorFactory.registerProcessors(DummyBeanProcessor.class, DummyHasQueueProcessor.class);
-		assertEquals("Processors already registered!", 5, QueueProcessorFactory.getProcessors().size());
+		assertEquals("Processors already registered!", 7, QueueProcessorFactory.getProcessors().size());
 	}
 	
 	@Test
