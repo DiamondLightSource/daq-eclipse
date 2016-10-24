@@ -13,6 +13,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcessorFactory;
 import org.eclipse.scanning.event.queues.ServicesHolder;
+import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBeanProcessor;
@@ -20,23 +21,24 @@ import org.eclipse.scanning.test.event.queues.util.EventInfrastructureFactorySer
 import org.junit.Before;
 import org.junit.Test;
 
-public class QueueServicePluginTest {
+public class QueueServicePluginTest extends BrokerTest {
 	
 	private static IQueueService queueService;
 	private static IQueueControllerService queueControl;
-	private EventInfrastructureFactoryService infrastructureServ;
+//	private EventInfrastructureFactoryService infrastructureServ;
 	private static String qRoot = "fake-queue-root";
 	
 	private DummyBean dummyBean;
 	
 	@Before
 	public void setup() throws Exception {
-		infrastructureServ = new EventInfrastructureFactoryService();
-		infrastructureServ.start(false);
+//		infrastructureServ = new EventInfrastructureFactoryService();
+//		infrastructureServ.start(false);
 		
 		queueService = ServicesHolder.getQueueService();
 		queueService.setQueueRoot(qRoot);
-		queueService.setUri(infrastructureServ.getURI());
+//		queueService.setUri(infrastructureServ.getURI());
+		queueService.setUri(uri);
 		
 		queueControl = ServicesHolder.getQueueControllerService();
 		
