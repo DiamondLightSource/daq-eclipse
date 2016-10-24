@@ -251,6 +251,10 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 		statusSet.add(bean);
 	}
 	
+	public void addToSubmitQueue(U bean) {
+		submitQueue.add(bean);
+	}
+	
 
 }
 	
