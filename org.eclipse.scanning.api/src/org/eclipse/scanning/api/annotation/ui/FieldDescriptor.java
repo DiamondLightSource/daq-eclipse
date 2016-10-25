@@ -167,4 +167,9 @@ public @interface FieldDescriptor {
 	 */
 	public int fieldPosition() default Integer.MAX_VALUE;
 
+	/**
+	 * Set to make a validation regular expression that runs on a string field.
+	 * @return
+	 */
+	public String regex() default "";
 }

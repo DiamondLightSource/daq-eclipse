@@ -40,6 +40,7 @@ class ControlValueJob extends Job {
 		try {
 			editor.setSafeEnabled(false);
 		    scannable.setPosition(value); // Blocking call
+		    editor.setSafeValue(value.doubleValue());
 		    return Status.OK_STATUS;
 		    
 		} catch (Exception e) {
