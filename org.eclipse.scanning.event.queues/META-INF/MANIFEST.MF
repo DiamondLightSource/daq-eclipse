@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Queues
-Bundle-SymbolicName: org.eclipse.scanning.event.queues
+Bundle-SymbolicName: org.eclipse.scanning.event.queues;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Diamond Light Source
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -13,3 +13,4 @@ Import-Package: org.osgi.framework;version="1.8.0",
  org.slf4j;version="1.7.18"
 Export-Package: org.eclipse.scanning.event.queues,
  org.eclipse.scanning.event.queues.processors
+Bundle-ActivationPolicy: lazy
