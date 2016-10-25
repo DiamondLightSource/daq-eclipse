@@ -2,22 +2,22 @@ package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.core.IProcessCreator;
-import org.eclipse.scanning.api.event.queues.IHeartbeatMonitor;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 public class MockQueueService implements IQueueService {
+	
+	public static final String MOCK_JOB_QUEUE_ID = "mock.job-queue";
+	public static final String MOCK_ACTIVE_QUEUE_ID_PREFIX = "mock.active-queue.";
 	
 	private IQueue<QueueBean> jobQueue;
 	private String jobQueueID;
@@ -25,24 +25,12 @@ public class MockQueueService implements IQueueService {
 	private String commandTopicName, commandQueueName;
 	
 	private Map<String, IQueue<QueueAtom>> activeQueues = new HashMap<>();
+	private List<String> activeQueueIDs = new ArrayList<>();
 	private int nrActiveQueues = 0;
-	
-	private MockSubmitter<Queueable> mockSubmitter;
 	
 	private URI uri;
 	
-	public MockQueueService(IQueue<QueueBean> mockOne) {
-		this.jobQueue = mockOne;
-		jobQueueID = mockOne.getQueueID();
-		commandTopicName = mockOne.getCommandTopicName();
-		commandQueueName = mockOne.getCommandQueueName();
-		try {
-			uri = new URI("mock.uri");
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+	private boolean active = false, forced = false;
 	
 	public MockQueueService() {
 		jobQueue = null;
@@ -55,6 +43,27 @@ public class MockQueueService implements IQueueService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public MockQueueService(IQueue<QueueBean> mockJobQueue) {
+		this.jobQueue = mockJobQueue;
+		jobQueueID = mockJobQueue.getQueueID();
+		commandTopicName = mockJobQueue.getCommandTopicName();
+		commandQueueName = mockJobQueue.getCommandSetName();
+		try {
+			uri = new URI("mock.uri");
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public MockQueueService(IQueue<QueueBean> mockJobQueue, IQueue<QueueAtom> mockActiveQueue) {
+		this(mockJobQueue);
+		activeQueues.put(mockActiveQueue.getQueueID(), mockActiveQueue);
+		activeQueueIDs.add(mockActiveQueue.getQueueID());
+		nrActiveQueues = 1;
 	}
 
 	@Override
@@ -76,33 +85,27 @@ public class MockQueueService implements IQueueService {
 		for (String queueID : activeQueues.keySet()) {
 			activeQueues.get(queueID).getConsumer().start();
 		}
-
+		
+		active = true;
 	}
 
 	@Override
 	public void stop(boolean force) throws EventException {
-		// TODO Auto-generated method stub
+		active = false;
+		forced = force;
 
 	}
 
 	@Override
 	public String registerNewActiveQueue() throws EventException {
-
-		//Get an ID and the queue names for new active queue
-		nrActiveQueues = activeQueues.size();
-		String aqID = "fake." + ACTIVE_QUEUE + "-" + nrActiveQueues;
-
-		//Add to registry and increment number of registered queues
-		activeQueues.put(aqID, new MockQueue<>(aqID, null));
-		nrActiveQueues = activeQueues.size();
-
+		String aqID = activeQueueIDs.get(nrActiveQueues);
+		nrActiveQueues++;
 		return aqID;
 	}
 
 	@Override
 	public void deRegisterActiveQueue(String queueID, boolean force) throws EventException {
-		// TODO Auto-generated method stub
-
+			nrActiveQueues--;
 	}
 
 	@Override
@@ -118,84 +121,6 @@ public class MockQueueService implements IQueueService {
 	}
 
 	@Override
-	public QueueStatus getQueueStatus(String queueID) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void disposeQueue(String queueID, boolean nullify) throws EventException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void killQueue(String queueID, boolean disconnect, boolean exitProcess) throws EventException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void jobQueueSubmit(QueueBean bean) throws EventException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void activeQueueSubmit(QueueAtom atom, String queueID) throws EventException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void jobQueueTerminate(QueueBean bean) throws EventException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void activeQueueTerminate(QueueAtom atom, String queueID) throws EventException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public IProcessCreator<QueueBean> getJobQueueProcessor() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setJobQueueProcessor(IProcessCreator<QueueBean> procCreate) throws EventException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public IProcessCreator<QueueAtom> getActiveQueueProcessor() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setActiveQueueProcessor(IProcessCreator<QueueAtom> procCreate) throws EventException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public List<QueueBean> getJobQueueStatusSet() throws EventException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<QueueAtom> getActiveQueueStatusSet(String queueID) throws EventException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public IQueue<QueueBean> getJobQueue() {
 		return jobQueue;
 	}
@@ -206,32 +131,19 @@ public class MockQueueService implements IQueueService {
 	}
 
 	@Override
-	public List<String> getAllActiveQueueIDs() {
+	public Set<String> getAllActiveQueueIDs() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean isActiveQueueRegistered(String queueID) {
-		// TODO Auto-generated method stub
-		return false;
+		return activeQueues.containsKey(queueID);
 	}
 
 	@Override
 	public IQueue<QueueAtom> getActiveQueue(String queueID) {
 		return activeQueues.get(queueID);
-	}
-
-	@Override
-	public Map<String, IQueue<QueueAtom>> getAllActiveQueues() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IEventService getEventService() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
@@ -273,23 +185,6 @@ public class MockQueueService implements IQueueService {
 	}
 
 	@Override
-	public <T extends Queueable> void submit(T atomBean, String submitQ) throws EventException {
-		mockSubmitter.submit(atomBean);
-	}
-
-	@Override
-	public <T extends Queueable> void terminate(T atomBean, String statusT) throws EventException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public IHeartbeatMonitor getHeartMonitor(String queueID) throws EventException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public String getHeartbeatTopicName() {
 		// TODO Auto-generated method stub
 		return null;
@@ -302,18 +197,23 @@ public class MockQueueService implements IQueueService {
 
 	@Override
 	public boolean isActive() {
-		// TODO Auto-generated method stub
-		return false;
+		return active;
 	}
 	
-	@SuppressWarnings("unchecked")
-	public void setMockSubmitter(MockSubmitter<? extends Queueable> ms) {
-		mockSubmitter = (MockSubmitter<Queueable>) ms;
-	}
-
 	@Override
-	public String getCommandQueueName() {
+	public String getCommandSetName() {
 		return commandQueueName;
 	}
-
+	
+	public boolean isForced() {
+		return forced;
+	}
+	
+	public void setCommandTopicName(String cmdTopic) {
+		commandTopicName = cmdTopic;
+	}
+	
+	public void setCommandQueueName(String cmdQueue) {
+		commandQueueName = cmdQueue;
+	}
 }

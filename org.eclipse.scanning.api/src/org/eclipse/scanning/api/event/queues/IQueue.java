@@ -1,23 +1,17 @@
 package org.eclipse.scanning.api.event.queues;
 
-import java.util.List;
-import java.util.Map;
+import java.net.URI;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
-import org.eclipse.scanning.api.event.core.IProcessCreator;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.api.event.status.StatusBean;
 
 /**
  * IQueue object contain all the information necessary to interact with and 
- * control a queue within the IQueue service. IQueue objects contain an
- * {@link IConsumer}, which runs the queue, and all of it's configuration, plus
- *  information on whether the queue is currently alive and its 
- *  {@link QueueStatus}.
+ * control a queue within the {@link IQueueService}. IQueue objects contain an
+ * {@link IConsumer} to run the queue and all of it's configuration, plus the
+ * current {@link QueueStatus}.
  * 
  * @author Michael Wharmby
  *
@@ -25,37 +19,78 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  *            this queue. 
  */
 public interface IQueue<T extends Queueable> {
-
+	
 	/**
-	 * Get the unique ID of this queue (should be same as that stored in 
-	 * {@link IQueueService} registry).
+	 * Suffixes to be appended to the names of the destinations within a 
+	 * concrete instance of IQueue
+	 */
+	public static final String SUBMISSION_QUEUE_SUFFIX = ".submission.queue";
+	public static final String STATUS_SET_SUFFIX = ".status.queue";
+	public static final String STATUS_TOPIC_SUFFIX = ".status.topic";
+	public static final String HEARTBEAT_TOPIC_SUFFIX = ".heartbeat.topic";
+	public static final String COMMAND_SET_SUFFIX = ".command.queue";
+	public static final String COMMAND_TOPIC_SUFFIX = ".command.topic";
+	
+	/**
+	 * Get the unique name this queue is registered with in the 
+	 * {@link IQueueServiceNew}.
 	 * 
-	 * @return String Unique name of queue in registry.
+	 * @return String Unique queue name.
 	 */
 	public String getQueueID();
+	
+	/**
+	 * Start the Queue consumer.
+	 * 
+	 * @throws EventException
+	 */
+	public void start() throws EventException;
+	
+	/**
+	 * Stop the running consumer.
+	 * 
+	 * @throws EventException
+	 */
+	public void stop() throws EventException;
+	
+	/**
+	 * Disconnect the consumer (and the heartbeat monitor).
+	 * 
+	 * @throws EventException if cannot access services.
+	 */
+	public void disconnect() throws EventException;
+	
+	/**
+	 * Return unique consumer responsible for this queue. Consumer should 
+	 * operate on objects (T) extending {@link IQueueable}.
+	 * 
+	 * @return IConsumer Queue consumer.
+	 */
+	public IConsumer<T> getConsumer();
 
 	/**
-	 * Return the current operational state of this queue.
+	 * Return the unique UUID of this queue's consumer.
 	 * 
-	 * @return {@link QueueStatus} describing state of queue.
+	 * @return UUID unique to the queue consumer
 	 */
-	public QueueStatus getQueueStatus();
-
+	public default UUID getConsumerID() {
+		return getConsumer().getConsumerId();
+	}
+	
 	/**
-	 * Changes the current operational state of this queue.
+	 * Report the current running state of the Queue.
 	 * 
-	 * @param new {@link QueueStatus} of this queue 
+	 * @return {@link QueueStatus}
 	 */
-	public void setQueueStatus(QueueStatus status);
-
+	public QueueStatus getStatus();
+	
 	/**
-	 * Returns a map containing queue/topic names configured for this queue.
+	 * Change the current running state of the Queue.
 	 * 
-	 * @return {@link QueueNameMap} containing the configured queue names for 
-	 * 		   this queue.
+	 * @param new {@link QueueStatus}
 	 */
-	public Map<String, String> getQueueNames();
-
+	public void setStatus(QueueStatus status);
+	
 	/**
 	 * Return the submission queue name.
 	 * 
@@ -64,11 +99,11 @@ public interface IQueue<T extends Queueable> {
 	public String getSubmissionQueueName();
 
 	/**
-	 * Return the status queue (set) name.
+	 * Return the status set name.
 	 * 
 	 * @return String status queue name.
 	 */
-	public String getStatusQueueName();
+	public String getStatusSetName();
 
 	/**
 	 * Return the status topic name.
@@ -85,6 +120,14 @@ public interface IQueue<T extends Queueable> {
 	public String getHeartbeatTopicName();
 
 	/**
+	 * Return the name of the set where commands sent to this queue are
+	 * sent.
+	 * 
+	 * @return String command queue name.
+	 */
+	public String getCommandSetName();
+
+	/**
 	 * Return the topic name where commands can be passed to this queue.
 	 * 
 	 * @return String command topic name.
@@ -92,97 +135,17 @@ public interface IQueue<T extends Queueable> {
 	public String getCommandTopicName();
 	
 	/**
-	 * Return the name of the queue (set) where commands sent to this queue are
-	 * sent.
+	 * Return the URI of the broker where the consumer is running.
 	 * 
-	 * @return String command queue name.
+	 * @return URI of the broker.
 	 */
-	public String getCommandQueueName();
-
-	/**
-	 * The unique consumer responsible for this queue. Consumer should operate 
-	 * on objects (T) extending both {@link StatusBean} and {@link IQueueable}.
-	 * 
-	 * @return IConsumer Queue consumer.
-	 */
-	public IConsumer<T> getConsumer();
-
-	/**
-	 * Return the unique UUID of this queue's consumer.
-	 * 
-	 * @return UUID unique to the queue consumer
-	 */
-	public default UUID getConsumerID() {
-		return getConsumer().getConsumerId();
-	}
-
-	/**
-	 * Return the {@link IProcessCreator} currently set for use on the consumer.
-	 * 
-	 * @return {@link IProcessCreator} currently set on the consumer.
-	 */
-	public default IProcessCreator<T> getProcessRunner() {
-		return getConsumer().getRunner();
-	}
-
-	/**
-	 * Change the {@link IProcessCreator} which the consumer will use to 
-	 * process queue beans.
-	 * 
-	 * @param processRunner Instance of {@link IProcessCreator} to use.
-	 * @throws EventException If the consumer rejects the offered processor
-	 */
-	public default void setProcessRunner(IProcessCreator<T> processRunner) throws EventException {
-		getConsumer().setRunner(processRunner);
-	}
-
-	/**
-	 * Return the {@link IHeartbeatMonitor} configured to listen for this 
-	 * Queue's consumer.
-	 * 
-	 * @return IHeartbeatMonitor configured for this Queue.
-	 */
-	public IHeartbeatMonitor getHeartbeatMonitor();
-
-	/**
-	 * Return a list of the most recent {@link HeartbeatBean}s heard by 
-	 * this queue.
-	 * 
-	 * @return Size limited queue of the most recent heartbeats. 
-	 */
-	public default List<HeartbeatBean> getLatestHeartbeats() {
-		return getHeartbeatMonitor().getLatestHeartbeats();
-	}
-
-	/**
-	 * Return the most recent {@link HeartbeatBean} heard by the queue.
-	 * 
-	 * @return The last heartbeat observed.
-	 */
-	public default HeartbeatBean getLastHeartbeat() {
-		return getHeartbeatMonitor().getLastHeartbeat();
-	}
-
+	public URI getURI();
+	
 	/**
 	 * Clear both the submission and the status queues of any pending jobs
 	 * 
 	 * @throws EventException if cannot access consumer.
 	 */
 	public boolean clearQueues() throws EventException;
-
-	/**
-	 * Disconnect the heartbeat monitor and the consumer.
-	 * 
-	 * @throws EventException if cannot access services.
-	 */
-	public void disconnect() throws EventException;
-
-	/**
-	 * Determines whether there are jobs pending on the submission queue.
-	 * 
-	 * @return true if there are jobs to process still.
-	 * @throws EventException if cannot access consumer.
-	 */
-	public boolean hasSubmittedJobsPending() throws EventException;
 
 }

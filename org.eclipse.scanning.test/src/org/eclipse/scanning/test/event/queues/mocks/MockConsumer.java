@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,31 +15,37 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	private UUID consumerId;
 	
+	private boolean clearSubmitQueue = false, clearStatQueue = false;
+	private boolean started = false, stopped = false, disconnected = false;
+	
+	private String statusQueueName = "statQ", submitQueueName = "submQ";
+	
+	private List<U> statusSet = new ArrayList<>(), submitQueue = new ArrayList<>();
+	
+	@SuppressWarnings("unchecked")
 	public MockConsumer() {
 		consumerId = UUID.randomUUID();
+		statusSet.add((U) new StatusBean());
+		submitQueue.add((U) new StatusBean());
 	}
 	@Override
 	public String getStatusSetName() {
-		// TODO Auto-generated method stub
-		return null;
+		return statusQueueName;
 	}
 
 	@Override
 	public void setStatusSetName(String queueName) throws EventException {
-		// TODO Auto-generated method stub
-		
+		statusQueueName = queueName;
 	}
 
 	@Override
 	public String getSubmitQueueName() {
-		// TODO Auto-generated method stub
-		return null;
+		return submitQueueName;
 	}
 
 	@Override
 	public void setSubmitQueueName(String queueName) throws EventException {
-		// TODO Auto-generated method stub
-		
+		submitQueueName = queueName;
 	}
 
 	@Override
@@ -49,8 +56,13 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public void clearQueue(String queueName) throws EventException {
-		// TODO Auto-generated method stub
-		
+		if (queueName == submitQueueName) {
+			submitQueue.clear();
+			clearSubmitQueue = true;
+		}else if (queueName == statusQueueName) {
+			statusSet.clear();
+			clearStatQueue = true;
+		}
 	}
 
 	@Override
@@ -109,14 +121,12 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public List<U> getSubmissionQueue() throws EventException {
-		// TODO Auto-generated method stub
-		return null;
+		return submitQueue;
 	}
 
 	@Override
 	public List<U> getStatusSet() throws EventException {
-		// TODO Auto-generated method stub
-		return null;
+		return statusSet;
 	}
 
 	@Override
@@ -139,14 +149,12 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public void start() throws EventException {
-		// TODO Auto-generated method stub
-		
+		started = true;
 	}
 
 	@Override
 	public void stop() throws EventException {
-		// TODO Auto-generated method stub
-		
+		stopped = true;
 	}
 
 	@Override
@@ -192,8 +200,7 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public void disconnect() throws EventException {
-		// TODO Auto-generated method stub
-		
+		disconnected = true;
 	}
 
 	@Override
@@ -215,10 +222,35 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 	}
 	@Override
 	public boolean isDisconnected() {
-		// TODO Auto-generated method stub
-		return false;
+		return disconnected;
 	}
-
+	
+	public boolean isClearSubmitQueue() {
+		return clearSubmitQueue;
+	}
+	
+	public boolean isClearStatQueue() {
+		return clearStatQueue;
+	}
+	
+	public boolean isStarted() {
+		return started;
+	}
+	
+	public boolean isStopped() {
+		return stopped;
+	}
+	
+	public void addToStatusSet(U bean) {
+		//No duplicates
+		for (U setBean : statusSet) {
+			if (setBean.getUniqueId().equals(bean.getUniqueId())) {
+				statusSet.remove(setBean);
+			}
+		}
+		statusSet.add(bean);
+	}
+	
 
 }
 	

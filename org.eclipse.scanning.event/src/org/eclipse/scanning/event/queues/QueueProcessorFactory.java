@@ -8,6 +8,8 @@ import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
+import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcessor;
+import org.eclipse.scanning.event.queues.processors.TaskBeanProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +44,8 @@ public class QueueProcessorFactory {
 		//Register default processors
 		try {
 			QueueProcessorFactory.registerProcessors(MoveAtomProcessor.class,
-					ScanAtomProcessor.class);//AtomQueueProcessor.class, MonitorAtomProcessor.class,
+					ScanAtomProcessor.class, SubTaskAtomProcessor.class, 
+					TaskBeanProcessor.class);// MonitorAtomProcessor.class,
 		} catch (EventException evEx) {
 			logger.error("Initial configuration of QueueProcessorFactory failed. Could not register processor(s): "+evEx.getMessage());
 		}

@@ -1,12 +1,11 @@
 package org.eclipse.scanning.test.event.queues.util;
 
-import org.eclipse.scanning.api.event.queues.beans.IAtomQueue;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 
 /**
- * Factory class to generate classes implementing the {@link IAtomQueue} class.
+ * Factory class to generate classes implementing the {@link IHasAtomQueue} interface.
  * Used within the testing framework.
  * 
  * @author Michael Wharmby
@@ -28,50 +27,50 @@ public class TestAtomQueueBeanMaker {
 	
 	public static SubTaskAtom makeDummySubTaskBeanA() {
 		SubTaskAtom sta = new SubTaskAtom("Dummy SubTask A");
-		sta.queue().add(new DummyAtom("Arnold", 10));
-		sta.queue().add(new DummyAtom("Beatrice", 465));
-		sta.queue().add(new DummyAtom("Carlos", 1245));
-		sta.queue().add(new DummyAtom("Deirdre", 675));
+		sta.addAtom(new DummyAtom("Arnold", 10));
+		sta.addAtom(new DummyAtom("Beatrice", 465));
+		sta.addAtom(new DummyAtom("Carlos", 1245));
+		sta.addAtom(new DummyAtom("Deirdre", 675));
 		
 		return sta;
 	}
 	
 	public static SubTaskAtom makeDummySubTaskBeanB() {
 		SubTaskAtom sta = new SubTaskAtom("Dummy SubTask B");
-		sta.queue().add(new DummyAtom("Edmund", 10));
-		sta.queue().add(new DummyAtom("Francis", 20));
+		sta.addAtom(new DummyAtom("Edmund", 10));
+		sta.addAtom(new DummyAtom("Francis", 20));
 		return sta;
 	}
 	
 	public static SubTaskAtom makeDummySubTaskBeanC() {
 		SubTaskAtom sta = new SubTaskAtom("Dummy SubTask C");
-		sta.queue().add(new DummyAtom("Heinrich", 479));
-		sta.queue().add(new DummyAtom("Imhotep", 236));
-		sta.queue().add(new DummyAtom("Jane", 387));
+		sta.addAtom(new DummyAtom("Heinrich", 479));
+		sta.addAtom(new DummyAtom("Imhotep", 236));
+		sta.addAtom(new DummyAtom("Jane", 387));
 		return sta;
 	}
 	
 	public static SubTaskAtom makeDummySubTaskBeanD() {
 		SubTaskAtom sta = new SubTaskAtom("Dummy SubTask D");
-		sta.queue().add(new DummyAtom("Linda", 7444));
-		sta.queue().add(new DummyAtom("Manuel", 125));
-		sta.queue().add(new DummyAtom("Nicola", 4756));
-		sta.queue().add(new DummyAtom("Olive", 5887));
-		sta.queue().add(new DummyAtom("Pablo", 58));
+		sta.addAtom(new DummyAtom("Linda", 7444));
+		sta.addAtom(new DummyAtom("Manuel", 125));
+		sta.addAtom(new DummyAtom("Nicola", 4756));
+		sta.addAtom(new DummyAtom("Olive", 5887));
+		sta.addAtom(new DummyAtom("Pablo", 58));
 		return sta;
 	}
 	
 	public static SubTaskAtom makeDummySubTaskBeanE() {
 		SubTaskAtom sta = new SubTaskAtom("Dummy SubTask E");
-		sta.queue().add(new DummyAtom("Quentin", 986));
-		sta.queue().add(new DummyAtom("Reginald", 5886));
+		sta.addAtom(new DummyAtom("Quentin", 986));
+		sta.addAtom(new DummyAtom("Reginald", 5886));
 		return sta;
 	}
 	
 	public static TaskBean makeDummyTaskBeanA() {
 		TaskBean tb = new TaskBean("Dummy Task A");
-		tb.queue().add(makeDummySubTaskBeanA());
-		tb.queue().add(makeDummySubTaskBeanB());
+		tb.addAtom(makeDummySubTaskBeanA());
+		tb.addAtom(makeDummySubTaskBeanB());
 		return tb;
 	}
 

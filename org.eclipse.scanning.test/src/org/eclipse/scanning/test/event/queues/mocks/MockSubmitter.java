@@ -2,25 +2,46 @@ package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 
-public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
+public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	
-	private List<T> submittedBeans;
-	private String uniqueId;
+	private Map<String, List<T>> submittedBeans;
+	private Map<String, List<ReorderedBean>> reorderedBeans;
+	private String uniqueId, submitQ;
+	
+	private boolean sendToConsumer = false;
 	
 	public MockSubmitter() {
-		submittedBeans = new ArrayList<>();
+		submittedBeans = new HashMap<>();
+		reorderedBeans = new HashMap<>();
+		
+		//This is used in case we don't specify a queueName
+		List<T> defaultQueue = new ArrayList<>();
+		submittedBeans.put("defaultQ", defaultQueue);
 	}
 	
 	public void resetSubmitter() {
 		submittedBeans.clear();
+	}
+	
+	/**
+	 * Hideous hack to allow changing of the submit queue name by MockEventService
+	 * @param queueName
+	 */
+	protected MockSubmitter<T> create(String queueName) {
+		this.submitQ = queueName;
+		return this;
 	}
 
 	@Override
@@ -43,14 +64,12 @@ public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
 
 	@Override
 	public void setSubmitQueueName(String queueName) throws EventException {
-		// TODO Auto-generated method stub
-		
+		this.submitQ = queueName;
 	}
 
 	@Override
 	public List<T> getQueue(String queueName, String fieldName) throws EventException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new EventException("Wrong reorder");
 	}
 
 	@Override
@@ -67,14 +86,12 @@ public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
 
 	@Override
 	public boolean reorder(T bean, String queueName, int amount) throws EventException {
-		// TODO Auto-generated method stub
-		return false;
+		throw new EventException("Wrong reorder");
 	}
 
 	@Override
 	public boolean remove(T bean, String queueName) throws EventException {
-		// TODO Auto-generated method stub
-		return false;
+		throw new EventException("Wrong remove");
 	}
 
 	@Override
@@ -97,7 +114,23 @@ public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
 
 	@Override
 	public List<T> getQueue() throws EventException {
-		return submittedBeans;
+		return getQueue("defaultQ");
+	}
+	
+	public List<T> getQueue(String queueName) {
+		if (!submittedBeans.containsKey(queueName)) {
+			submittedBeans.put(queueName, new ArrayList<T>());
+		}
+		return submittedBeans.get(queueName);
+	}
+	
+	public T getLastSubmitted(String queueName) throws EventException {
+		List<T> queue = getQueue(queueName);
+		return queue.get(queue.size()-1);
+	}
+	
+	public int getQueueSize(String queueName) {
+		return getQueue(queueName).size();
 	}
 
 	@Override
@@ -132,8 +165,25 @@ public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
 			if (bean.getUniqueId()==null) bean.setUniqueId(uniqueId);
 			if (getTimestamp()>0) bean.setSubmissionTime(getTimestamp());
 		}
-		
-		submittedBeans.add(bean);
+		if (submitQ == null) {
+			getQueue("defaultQ").add(bean);
+		} else {
+			getQueue(submitQ).add(bean);
+			if (sendToConsumer) {
+				//Recover the queueID string from the submit queue
+				String[] queueIDParts = submitQ.split("\\.");
+				String queueID = queueIDParts[0];
+				for (int i = 1; i < queueIDParts.length - 2; i++) {
+					queueID = queueID+"."+queueIDParts[i];
+				}
+				
+				//Get the MockConsumer & pass bean into status set 
+				IQueueService qServ = ServicesHolder.getQueueService();
+				@SuppressWarnings("unchecked")
+				MockConsumer<T> mockCons = (MockConsumer<T>) qServ.getQueue(queueID).getConsumer();
+				mockCons.addToStatusSet(bean);
+			}
+		}
 	}
 
 	@Override
@@ -156,14 +206,23 @@ public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
 
 	@Override
 	public boolean reorder(T bean, int amount) throws EventException {
-		// TODO Auto-generated method stub
-		return false;
+		if (getQueue(submitQ).contains(bean)) {
+			if (!reorderedBeans.containsKey(submitQ)) {
+				reorderedBeans.put(submitQ, new ArrayList<ReorderedBean>());
+			}
+			reorderedBeans.get(submitQ).add(new ReorderedBean(bean, amount));
+			return true;
+		}
+		else return false;
 	}
 
 	@Override
 	public boolean remove(T bean) throws EventException {
-		// TODO Auto-generated method stub
-		return false;
+		if (submitQ == null) {
+			return getQueue("defaultQ").remove(bean);
+		} else {
+			return getQueue(submitQ).remove(bean);
+		}
 	}
 
 	@Override
@@ -224,6 +283,43 @@ public class MockSubmitter<T extends Queueable> implements ISubmitter<T> {
 	public boolean isDisconnected() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	public boolean isBeanReordered(T bean) {
+		try {
+			getReorderedBean(bean);
+			return true;
+		} catch (EventException | NullPointerException evEx) {
+			//Bean not reordered
+			return false;
+		}
+	}
+	
+	public int getReorderedBeanMove(T bean) throws EventException {
+		return getReorderedBean(bean).move;
+		
+	}
+	
+	private MockSubmitter<T>.ReorderedBean getReorderedBean(T bean) throws EventException {
+		List<ReorderedBean> beanList = reorderedBeans.get(submitQ);
+		for (ReorderedBean reBean : beanList){
+			if (reBean.bean == bean) return reBean;
+		}
+		throw new EventException("Bean not found");
+	}
+	
+	public void setSendToConsumer(boolean send) {
+		sendToConsumer = send;
+	}
+	
+	class ReorderedBean {
+		protected final T bean;
+		protected final int move;
+		
+		public ReorderedBean(T bean, int move) {
+			this.bean = bean;
+			this.move = move;
+		}
 	}
 
 }

@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
-import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
+import org.eclipse.scanning.api.event.queues.beans.IHasChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
@@ -132,7 +132,7 @@ public class QueueListenerTest {
 		assertEquals("Parent percentage incorrectly incremented", 28.625d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent Status should not have changed", originalParent.getStatus(), getLastBroadcast().getStatus());
 		assertEquals("Parent has wrong message", "'"+childA.getName()+"': Mushroom", getLastBroadcast().getMessage());
-		assertEquals("Parent has wrong queue message", "Running...", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "Running...", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		//Complete childA percentage & Status
 		childA.setPercentComplete(100d);
@@ -146,7 +146,7 @@ public class QueueListenerTest {
 		//Complete childB percentage & Status
 		childB.setStatus(Status.RUNNING);
 		qList.beanChangePerformed(new BeanEvent<DummyAtom>(childB));
-		assertEquals("Parent has wrong queue message", "Running...", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "Running...", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		childB.setPercentComplete(100d);
 		childB.setStatus(Status.COMPLETE);
@@ -158,7 +158,7 @@ public class QueueListenerTest {
 		assertFalse("Parent Status should not be COMPLETE", parent.getStatus() == Status.COMPLETE);
 		assertEquals("Processor latch not released on completion of all children", 0, latch.getCount(), 0);
 		assertEquals("Parent has wrong message", "Running finished.", getLastBroadcast().getMessage());
-		assertEquals("Parent has wrong queue message", "All child processes complete.", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "All child processes complete.", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 	}
 
 	/**
@@ -183,7 +183,7 @@ public class QueueListenerTest {
 		
 		assertEquals("Parent percentage incorrectly incremented", 75.875d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent Status changed even though child not active", originalParent.getStatus(), getLastBroadcast().getStatus());
-		assertEquals("Parent has wrong queue message", "'"+childA.getName()+"' completed successfully.", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "'"+childA.getName()+"' completed successfully.", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		childB.setPercentComplete(100d);
 		childB.setStatus(Status.COMPLETE);
@@ -192,7 +192,7 @@ public class QueueListenerTest {
 		assertEquals("Parent percentage incorrectly incremented", 99.5d, getLastBroadcast().getPercentComplete(), 0d);
 		assertFalse("Parent Status should not be final", parent.getStatus().isFinal());
 		assertFalse("Parent Status should not be COMPLETE", parent.getStatus() == Status.COMPLETE);
-		assertEquals("Parent has wrong queue message", "All child processes complete.", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "All child processes complete.", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		//All beans now complete, so latch should have been released
 		assertEquals("Processor latch not released on completion of all children", 0, latch.getCount(), 0);
@@ -224,7 +224,7 @@ public class QueueListenerTest {
 			assertEquals("Parent percentage incorrectly incremented", 28.625d, getLastBroadcast().getPercentComplete(), 0d);
 			assertEquals("Parent Status not changed", Status.REQUEST_TERMINATE, getLastBroadcast().getStatus());
 			assertEquals("Parent has wrong message", "'"+childA.getName()+"': "+termMessages[i], getLastBroadcast().getMessage());
-			assertEquals("Parent has wrong queue message", "Termination requested from '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+			assertEquals("Parent has wrong queue message", "Termination requested from '"+childA.getName()+"'", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 			
 			//Termination of the parent is handled within the parent processor NOT by the Listener
 			assertEquals("Latch has been released when it shouldn't have been.", 1, latch.getCount(), 0);
@@ -253,7 +253,7 @@ public class QueueListenerTest {
 		assertEquals("Parent percentage incorrectly incremented", 28.625d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent Status not changed", Status.REQUEST_PAUSE, getLastBroadcast().getStatus());
 		assertEquals("Parent has wrong message", "'"+childA.getName()+"': Badgers", getLastBroadcast().getMessage());
-		assertEquals("Parent has wrong queue message", "Pause requested from '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "Pause requested from '"+childA.getName()+"'", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		assertEquals("Latch has been released when it shouldn't have been.", 1, latch.getCount(), 0);
 		
@@ -267,7 +267,7 @@ public class QueueListenerTest {
 		assertEquals("Parent percentage incorrectly incremented", 28.625d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent Status not changed", Status.REQUEST_RESUME, getLastBroadcast().getStatus());
 		assertEquals("Parent has wrong message", "'"+childA.getName()+"': Badgers", getLastBroadcast().getMessage());
-		assertEquals("Parent has wrong queue message", "Resume requested from '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "Resume requested from '"+childA.getName()+"'", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		assertEquals("Latch has been released when it shouldn't have been.", 1, latch.getCount(), 0);
 		
@@ -279,7 +279,7 @@ public class QueueListenerTest {
 		assertEquals("Parent percentage incorrectly incremented", 42.8d, getLastBroadcast().getPercentComplete(), 0d);
 		assertFalse("Child queue instruction set after RUNNING", qList.isChildCommand());//Child queue should be reset false after a normal pass
 		assertEquals("Parent has wrong message", "'"+childA.getName()+"': Badgers", getLastBroadcast().getMessage());
-		assertEquals("Parent has wrong queue message", "Running...", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "Running...", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		//Mimic effect of processor
 		parent.setStatus(Status.RUNNING);
@@ -291,7 +291,7 @@ public class QueueListenerTest {
 		assertEquals("Parent percentage incorrectly incremented", 42.8d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent Status not changed", Status.REQUEST_PAUSE, getLastBroadcast().getStatus());
 		assertEquals("Parent has wrong message", "'"+childA.getName()+"': Badgers", getLastBroadcast().getMessage());
-		assertEquals("Parent has wrong queue message", "Pause requested from '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "Pause requested from '"+childA.getName()+"'", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		assertEquals("Latch has been released when it shouldn't have been.", 1, latch.getCount(), 0);
 		
@@ -304,7 +304,7 @@ public class QueueListenerTest {
 		assertEquals("Parent percentage incorrectly incremented", 42.8d, getLastBroadcast().getPercentComplete(), 0d);
 		assertEquals("Parent Status not changed", Status.REQUEST_RESUME, getLastBroadcast().getStatus());
 		assertEquals("Parent has wrong message", "'"+childA.getName()+"': Badgers", getLastBroadcast().getMessage());
-		assertEquals("Parent has wrong queue message", "Resume requested from '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "Resume requested from '"+childA.getName()+"'", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		assertEquals("Latch has been released when it shouldn't have been.", 1, latch.getCount(), 0);
 	}
@@ -333,7 +333,7 @@ public class QueueListenerTest {
 		assertEquals("Parent percentage incorrectly incremented", 28.625d, getLastBroadcast().getPercentComplete(), 0d);
 		assertFalse("Parent Status should not be final", parent.getStatus().isFinal());
 		assertEquals("Parent has wrong message", "'"+childA.getName()+"': My old man's a dustman.", getLastBroadcast().getMessage());
-		assertEquals("Parent has wrong queue message", "Failure caused by '"+childA.getName()+"'", ((IAtomWithChildQueue)getLastBroadcast()).getQueueMessage());
+		assertEquals("Parent has wrong queue message", "Failure caused by '"+childA.getName()+"'", ((IHasChildQueue)getLastBroadcast()).getQueueMessage());
 		
 		//Failure setting of the parent is handled within the parent processor NOT by the Listener
 		assertEquals("Latch has not been released when it should have been.", 0, latch.getCount(), 0);

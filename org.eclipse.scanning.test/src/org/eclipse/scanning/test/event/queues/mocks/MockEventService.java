@@ -2,6 +2,8 @@ package org.eclipse.scanning.test.event.queues.mocks;
 
 import java.net.URI;
 import java.util.EventListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.EventException;
@@ -17,12 +19,15 @@ import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 
 public class MockEventService implements IEventService {
 	
+	private Map<String, MockConsumer<? extends StatusBean>> mockConsumers = new HashMap<>(); //Submit Q name, consumer
+	
 	private MockPublisher<?> mockPublisher;
-	private MockPublisher<ConsumerCommandBean> mockCmdPub;
+	private MockPublisher<? extends ConsumerCommandBean> mockCmdPub;
+	private MockSubmitter<? extends StatusBean> mockSubmitter;
 
 	@Override
 	public <T> IQueueReader<T> createQueueReader(URI uri, String queueName) {
@@ -38,16 +43,16 @@ public class MockEventService implements IEventService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <U> IPublisher<U> createPublisher(URI uri, String topicName) {
-		if (topicName == QueueServicesHolder.getQueueService().getCommandTopicName()) {
+		if (topicName == ServicesHolder.getQueueService().getCommandTopicName()) {
 			return (IPublisher<U>) mockCmdPub;
 		}
 		return (IPublisher<U>) mockPublisher;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <U extends StatusBean> ISubmitter<U> createSubmitter(URI uri, String queueName) {
-		// TODO Auto-generated method stub
-		return null;
+		return (ISubmitter<U>) mockSubmitter.create(queueName);
 	}
 
 	@Override
@@ -63,11 +68,26 @@ public class MockEventService implements IEventService {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <U extends StatusBean> IConsumer<U> createConsumer(URI uri, String submissionQName, String statusQName,
 			String statusTName, String heartbeatTName, String commandTName) throws EventException {
-		// TODO Auto-generated method stub
-		return null;
+		
+		//If the test have set a consumer on this event service, return that, otherwise create a new instance
+		MockConsumer<? extends StatusBean> mockConsumer;
+		if (mockConsumers.get("defaultCons") == null) {
+			mockConsumer = new MockConsumer<>();
+			mockConsumers.put(submissionQName, mockConsumer);
+		} else {
+			mockConsumer = mockConsumers.get("defaultCons");
+		}
+		
+		mockConsumer.setCommandTopicName(commandTName);
+		mockConsumer.setStatusTopicName(statusTName);
+		mockConsumer.setStatusSetName(statusQName);
+		mockConsumer.setSubmitQueueName(submissionQName);
+		
+		return (IConsumer<U>) mockConsumer;
 	}
 
 	@Override
@@ -116,5 +136,23 @@ public class MockEventService implements IEventService {
 	
 	public void setMockCmdPublisher(MockPublisher<ConsumerCommandBean> mockCmdPub) {
 		this.mockCmdPub = mockCmdPub;
+	}
+	
+	public <U extends StatusBean> void setMockConsumer(MockConsumer<U> mockCons) {
+		mockConsumers.put("defaultCons", mockCons);
+	}
+	
+	public <U extends StatusBean> void setMockSubmitter(MockSubmitter<U> mockSub) {
+		this.mockSubmitter = mockSub;
+	}
+	
+	public Map<String, MockConsumer<? extends StatusBean>> getRegisteredConsumers() {
+		return mockConsumers;
+	}
+	
+	public void clearRegisteredConsumers() {
+		MockConsumer<? extends StatusBean> mc = mockConsumers.get("defaultCons");
+		mockConsumers = new HashMap<>();
+		mockConsumers.put("defaultCons", mc);
 	}
 }
