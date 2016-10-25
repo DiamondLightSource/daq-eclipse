@@ -16,7 +16,6 @@ import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.example.xcen.beans.XcenBean;
-import org.eclipse.scanning.server.servlet.Services;
 
 /**
  * Rerun of several collections as follows:
@@ -25,10 +24,23 @@ import org.eclipse.scanning.server.servlet.Services;
  * o Progress reported by stating xia2.txt
  * o Runs xia2 html to generate report.
  * 
+ * NOTE:
+ * Most of this has been rewritten using examples from DryRunProcess for 
+ * proper synchronisation, plus corrections and simplifications.
+ * 
+ * This is only to produce a correct series of messages when testing. I
+ * would not trust this code when running more complicated processes.
+ * - Martin
+ * 
  * @author Matthew Gerring
+ * @author Martin Gaughran
  *
  */
 public class XcenProcess extends AbstractPausableProcess<XcenBean>{
+	
+	private boolean terminated;
+
+	private Thread thread;
 	
 	private String processingDir;
 	
@@ -66,30 +78,68 @@ public class XcenProcess extends AbstractPausableProcess<XcenBean>{
 		} catch (Exception e) {
 			e.printStackTrace(out);
 		}
+		
 	}
 
 	@Override
 	public void execute() throws EventException, InterruptedException {
 		
-		// Right we a starting the reconstruction, tell them.
-		bean.setStatus(Status.RUNNING);
-		bean.setPercentComplete(0d);
-		broadcast(bean);
-				
-		// TODO Remove this, it is just to give an idea of how something can report progress to the UI.
-		dryRun(100, false);
+		final Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					XcenProcess.this.run();
+				} catch (EventException ne) {
+					System.out.println("Cannot complete dry run");
+					ne.printStackTrace();
+				}
+			}
+		});
+		thread.setDaemon(true);
+		thread.setPriority(Thread.MAX_PRIORITY);
+		thread.start();	
+	}
+	
+	private void run()  throws EventException {
 		
-		if (!isCancelled()) {
-			XcenBean xbean = (XcenBean)bean;
-			xbean.setStatus(Status.COMPLETE);
-			xbean.setPercentComplete(100);
-			xbean.setMessage("Dry run complete (no software run)");
-			xbean.setX(Math.random()*100);
-			xbean.setY(Math.random()*100);
-			xbean.setZ(Math.random()*100);
-			broadcast(bean);
+		this.thread = Thread.currentThread();
+		getBean().setPreviousStatus(Status.QUEUED);
+		getBean().setStatus(Status.RUNNING);
+		getBean().setPercentComplete(0d);
+
+		terminated = false;
+		for (int i = 0; i < 100; i++) {
+			
+			if (isTerminated())	return;
+			
+			System.out.println("Dry run : "+getBean().getPercentComplete()+" : "+getBean().getName());
+			getBean().setPercentComplete(i);
+			getPublisher().broadcast(getBean());
+			
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				if (isTerminated()) return;
+				System.out.println("Cannot complete dry run");
+				e.printStackTrace();
+			}
+			
+			checkPaused();
 		}
 		
+		if (!isCancelled()) finishRun();
+	}
+	
+	protected void finishRun() throws EventException {
+		
+		XcenBean xbean = (XcenBean)bean;
+		xbean.setPreviousStatus(xbean.getStatus());
+		xbean.setStatus(Status.COMPLETE);
+		xbean.setPercentComplete(100);
+		xbean.setMessage("Dry run complete (no software run)");
+		xbean.setX(Math.random()*100);
+		xbean.setY(Math.random()*100);
+		xbean.setZ(Math.random()*100);
+		broadcast(bean);
 	}
 
 	/**
@@ -103,13 +153,20 @@ public class XcenProcess extends AbstractPausableProcess<XcenBean>{
 		bean.setMessage("Reconstruction run completed normally");
 		bean.setPercentComplete(100);
 		broadcast(bean);
-
-
 	}
 
 	@Override
 	public void doTerminate() throws EventException {
-		setCancelled(true);
+		if (thread!=null) thread.interrupt();
+		terminated = true;
+	}
+
+	public boolean isTerminated() {
+		return terminated;
+	}
+
+	public void setTerminated(boolean terminated) {
+		this.terminated = terminated;
 	}
 
 	public String getProcessingDir() {
