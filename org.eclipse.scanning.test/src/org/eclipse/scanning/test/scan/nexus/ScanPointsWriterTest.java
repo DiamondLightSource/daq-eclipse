@@ -142,6 +142,7 @@ public class ScanPointsWriterTest {
 		scanInfo.setRank(scanRank);
 		int[] expectedChunking = new int[scanInfo.getRank()];
 		Arrays.fill(expectedChunking, 1);
+		expectedChunking[expectedChunking.length-1] = 4096;
 
 		// Act
 		NXcollection scanPointsCollection = scanPointsWriter.createNexusObject(scanInfo);

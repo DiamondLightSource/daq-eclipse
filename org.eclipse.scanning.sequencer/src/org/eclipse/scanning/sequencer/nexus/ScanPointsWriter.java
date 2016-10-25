@@ -79,8 +79,8 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		points = scanPointsCollection.initializeLazyDataset(
 				FIELD_NAME_POINTS, info.getRank(), String.class);
 		// set chunking
-		final int[] chunk = new int[info.getRank()];
-		Arrays.fill(chunk, 1);
+		final int[] chunk = info.createChunk(false, 4096);
+		uniqueKeys.setFillValue(0);
 		uniqueKeys.setChunking(chunk);
 		points.setChunking(chunk);
 		
@@ -92,7 +92,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 //				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
 		// TODO: workaround for bug in HD5 loader, do not set size limit 
 		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, Integer.class, new int[] { 1 },
-				new int[] { -1 }, null, null);
+				new int[] { 1 }, null, null);
 		scanFinished.setFillValue(0);
 		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);
 		
