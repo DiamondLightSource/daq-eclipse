@@ -53,5 +53,10 @@ public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEven
 	 * @return true if not in locked state, otherwise false.
 	 */
 	public boolean isLocked() throws MalcolmDeviceException ;
+	
+	/**
+	 * Gets the value of an attribute on the device
+	 */
+	public Object getAttributeValue(String attribute) throws MalcolmDeviceException;
 
 }

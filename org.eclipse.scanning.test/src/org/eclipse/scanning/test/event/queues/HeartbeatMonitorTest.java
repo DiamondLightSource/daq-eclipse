@@ -18,7 +18,7 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.event.Constants;
 import org.eclipse.scanning.event.queues.HeartbeatMonitor;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockQueue;
@@ -64,7 +64,7 @@ public class HeartbeatMonitorTest {
 		uri = infrastructureServ.getURI();
 		
 		//This is not a plugin-test - need to supply the EventService
-		QueueServicesHolder.setEventService(infrastructureServ.getEventService());
+		ServicesHolder.setEventService(infrastructureServ.getEventService());
 	}
 	
 	@After

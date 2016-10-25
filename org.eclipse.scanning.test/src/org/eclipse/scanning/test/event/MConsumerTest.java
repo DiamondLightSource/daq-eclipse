@@ -8,11 +8,16 @@
  */
 package org.eclipse.scanning.test.event;
 
+import java.util.Arrays;
+
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
+import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.junit.After;
 import org.junit.Before;
 
@@ -32,7 +37,8 @@ public class MConsumerTest extends AbstractMConsumerTest{
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		setUpNonOSGIActivemqMarshaller();
+		
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// We use the long winded constructor because we need to pass in the connector.

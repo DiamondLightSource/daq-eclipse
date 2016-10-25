@@ -9,10 +9,20 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
  * which the current value needs to be recorded at a particular point in an 
  * experiment.
  * 
+ * TODO This ought to be defined in dawnsci.analysis.api, to avoid dependencies in
+ * 		this package
+ * TODO	MTW: Agreed move to o.e.s.api.queues.beans. Will do this as part of 
+ * 		I15_1-136
+ * 
  * @author Michael Wharmby
  *
  */
 public class MonitorAtom extends QueueAtom {
+	
+	/**
+	 * Version ID for serialization. Should be updated when class changed. 
+	 */
+	private static final long serialVersionUID = 20161017L;
 	
 	private String monitor;
 	

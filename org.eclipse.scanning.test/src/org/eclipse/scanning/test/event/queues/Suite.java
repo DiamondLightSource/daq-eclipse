@@ -5,10 +5,11 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
-	AtomQueueServiceTest.class,
-	HeartbeatMonitorTest.class,
-	QueueProcessTest.class,
+	QueueControllerServiceTest.class,
 	QueueProcessCreatorTest.class,
+	QueueProcessorFactoryTest.class,
+	QueueProcessTest.class,
+	QueueServiceTest.class,
 	QueueTest.class
 })
 public class Suite {

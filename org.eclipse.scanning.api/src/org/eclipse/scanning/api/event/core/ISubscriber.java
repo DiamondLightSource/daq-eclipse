@@ -19,7 +19,7 @@ import org.eclipse.scanning.api.event.EventException;
  * 		// Everything that happens ...
  * 		}
  * 	};
- * sub.addScanListener(listener);
+ * sub.addListener(listener);
  * }
  * </pre>
  * 
@@ -32,7 +32,7 @@ import org.eclipse.scanning.api.event.EventException;
  * 		public void scanEventPerformed(ScanEvent evt) {
  * 		// Everything that happens ...
  *  		}
- * sub.addScanListener(<b>id</b>, listener2);
+ * sub.addListener(<b>id</b>, listener2);
  * }
  * </pre>
  * 
@@ -41,12 +41,12 @@ import org.eclipse.scanning.api.event.EventException;
  * instance:
  * 
  * <pre>
- * {@code sub.addScanListener(id, listener); // registers for id but removes it as general listener.}
+ * {@code sub.addListener(id, listener); // registers for id but removes it as general listener.}
  * </pre>
  * 
  * Removes the Object listener from the general listeners and defines it as a
  * listener of the id. This listener would have to be readded using
- * {@code addScanListener(listener)} to use it again as a general listener.
+ * {@code addListener(listener)} to use it again as a general listener.
  * 
  * @author Matthew Gerring
  */

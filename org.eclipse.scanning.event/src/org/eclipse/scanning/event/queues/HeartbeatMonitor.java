@@ -143,7 +143,7 @@ public class HeartbeatMonitor implements IHeartbeatMonitor {
 		}
 		heartbeatRecord = new SizeLimitedRecorder<>(100);
 		
-		IEventService evServ = QueueServicesHolder.getEventService();
+		IEventService evServ = ServicesHolder.getEventService();
 		monitor = evServ.createSubscriber(uri, heartbeatTopic);
 		monitor.addListener(new IHeartbeatListener() {
 			@Override

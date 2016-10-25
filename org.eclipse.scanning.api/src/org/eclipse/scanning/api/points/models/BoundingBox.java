@@ -30,16 +30,16 @@ public class BoundingBox  {
 	@FieldDescriptor(visible=false)
 	private String slowAxisName="stage_y";
 	
-	@FieldDescriptor(scannable="fastAxisName")
+	@FieldDescriptor(scannable="fastAxisName", fieldPosition=0)
 	private double fastAxisStart;
 	
-	@FieldDescriptor(scannable="fastAxisName", validif="fastAxisLength!=0")
+	@FieldDescriptor(scannable="fastAxisName", validif="fastAxisLength!=0", fieldPosition=1)
 	private double fastAxisLength;
 	
-	@FieldDescriptor(scannable="slowAxisName")
+	@FieldDescriptor(scannable="slowAxisName", fieldPosition=2)
 	private double slowAxisStart;
 	
-	@FieldDescriptor(scannable="slowAxisName", validif="slowAxisLength!=0")
+	@FieldDescriptor(scannable="slowAxisName", validif="slowAxisLength!=0", fieldPosition=3)
 	private double slowAxisLength;
 	
 	@FieldDescriptor(visible=false, hint="Provides information about the visible region we are linked to.")

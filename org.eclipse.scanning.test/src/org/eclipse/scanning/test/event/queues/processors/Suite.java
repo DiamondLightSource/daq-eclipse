@@ -7,7 +7,9 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	MoveAtomProcessorTest.class,
 	QueueListenerTest.class,
-	ScanAtomProcessorTest.class
+	ScanAtomProcessorTest.class,
+	SubTaskAtomProcessorTest.class,
+	TaskBeanProcessorTest.class
 })
 public class Suite {
 

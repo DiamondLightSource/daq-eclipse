@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -30,4 +31,9 @@ public interface ISpringParser {
 	 */
 	Map<String, Object> parse(InputStream in) throws UnsupportedOperationException, Exception;
 
+	/**
+	 * Set the directory for import resource
+	 * @param dir
+	 */
+	void setDirectory(File dir);
 }

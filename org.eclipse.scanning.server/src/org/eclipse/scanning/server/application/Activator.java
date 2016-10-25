@@ -20,6 +20,7 @@ public class Activator implements BundleActivator {
 	}
 	
 	static <S> void registerService(Class<S> interfaceClass, S serviceInstance) {
+		if (context==null && Boolean.getBoolean("org.eclipse.scanning.test")) return;
 		context.registerService(interfaceClass, serviceInstance, null);
 	}
 

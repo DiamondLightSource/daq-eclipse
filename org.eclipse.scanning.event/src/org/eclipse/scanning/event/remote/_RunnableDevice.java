@@ -6,6 +6,7 @@ import java.util.List;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.device.IActivatable;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.scan.DeviceAction;
@@ -55,8 +56,18 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 		update();
 		return info.isBusy();
 	}
-
 	
+	@Override
+	public DeviceRole getRole() {
+		update();
+		return info.getDeviceRole();
+	}
+
+	@Override
+	public void setRole(DeviceRole role) {
+		throw new IllegalArgumentException("Clients may not change the role of devices!");
+	}
+
 	@Override
 	public void validate(M model) throws Exception {
 		DeviceRequest res = requester.post(new DeviceRequest(info.getName(), DeviceAction.VALIDATE, model));		
@@ -132,11 +143,11 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	}
 
 	@Override
-	public Object getAttributeValue(String attribute) throws MalcolmDeviceException {
+	public Object getAttribute(String attribute) throws MalcolmDeviceException {
 		List<MalcolmAttribute> allAttributes = info.getAttributes();
 		for (MalcolmAttribute malcolmAttribute : allAttributes) {
 			if (malcolmAttribute.getName().equals(attribute)) {
-				return malcolmAttribute.getValue();
+				return malcolmAttribute;
 			}
 		}
 		return null;

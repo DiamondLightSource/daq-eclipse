@@ -7,6 +7,7 @@ import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.PointROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -30,6 +31,7 @@ public class PyExpresser {
 			boolean verbose)
 					throws Exception {
 
+		// TODO Fragment should be a StringBuilder, it is more efficient.
 		String fragment = "mscan(";
 		boolean scanRequestPartiallyWritten = false;
 
@@ -71,6 +73,31 @@ public class PyExpresser {
 			scanRequestPartiallyWritten |= true;
 		}
 
+		if (request.getDetectors() != null
+				&& request.getDetectors().size() > 0) {
+
+			if (scanRequestPartiallyWritten) fragment += ", ";
+			if (verbose || !scanRequestPartiallyWritten) { fragment += "det="; }
+
+			if (verbose || request.getDetectors().size() > 1) fragment += "[";
+
+			boolean listPartiallyWritten = false;
+			for (String detectorName : request.getDetectors().keySet()) {
+				if (listPartiallyWritten) fragment += ", ";
+				Object model = request.getDetectors().get(detectorName);
+				if (model instanceof IDetectorModel) { // Probably is but does not have to be
+					IDetectorModel dmodel = (IDetectorModel)model;
+					fragment += "detector('"+detectorName+"', "+dmodel.getExposureTime()+")";
+					// TODO We could compute the diffs between this model and the current
+					// server version of it and add these as command line arguments.
+				}
+				listPartiallyWritten |= true;
+			}
+			
+			if (verbose || request.getDetectors().size() > 1) fragment += "]";
+			scanRequestPartiallyWritten |= true;
+		}
+		
 		fragment += ")";
 		return fragment;
 	}

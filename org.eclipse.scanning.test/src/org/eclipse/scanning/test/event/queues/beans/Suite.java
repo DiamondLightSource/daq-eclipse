@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.event.queues.beans;
 
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
@@ -9,7 +8,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	MonitorAtomTest.class,
 	MoveAtomTest.class,
 	ScanAtomTest.class,
-	SubTaskBeanTest.class,
+	SubTaskAtomTest.class,
 	TaskBeanTest.class
 })
 public class Suite {

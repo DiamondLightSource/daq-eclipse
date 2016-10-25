@@ -1,7 +1,11 @@
 package org.eclipse.scanning.api.event.queues;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.status.Status;
 
 /**
  * IQueueProcessors hold the logic used by the QueueProcess (which is itself 
@@ -96,7 +100,7 @@ public interface IQueueProcessor<P extends Queueable> {
 	 * @throws EventException if attempt to change queue process after 
 	 *         execution has started.
 	 */
-	public void setQueueBroadcaster(IQueueBroadcaster<? extends Queueable> broadcaster) throws EventException;
+	public void setQueueBroadcaster(IQueueBroadcaster<? extends Queueable> broadcaster) throws EventException; //TODO T extends Queueable?
 	
 	/**
 	 * Return whether execution has begun.
@@ -122,5 +126,13 @@ public interface IQueueProcessor<P extends Queueable> {
 	 * received & action should be taken.
 	 */
 	public void setTerminated();
+	
+	/**
+	 * Get the latch used to indicate the end of processing (either by 
+	 * completion, termination or failure). 
+	 * 
+	 * @return CountDownLatch indicating end of processing.
+	 */
+	public CountDownLatch getProcessorLatch();
 
 }

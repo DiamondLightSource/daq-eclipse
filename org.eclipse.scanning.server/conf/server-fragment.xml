@@ -36,6 +36,9 @@
         <property name="port"     value="8690" />
         <property name="bundle"   value="org.eclipse.dawnsci.remotedataset.server" /> <!-- Delete for real spring? -->
     </bean>
+    
+
+	<import resource="example_detectors.xml"/>
 
 	<!--  
 	$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$

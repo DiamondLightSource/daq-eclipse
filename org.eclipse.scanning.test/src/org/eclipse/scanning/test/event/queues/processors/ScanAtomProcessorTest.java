@@ -29,7 +29,7 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
@@ -55,7 +55,7 @@ public class ScanAtomProcessorTest extends AbstractQueueProcessorTest {
 		//Start the event infrastructure & put the EventService in the service holder
 		infrastructureServ = new EventInfrastructureFactoryService();
 		infrastructureServ.start(true);
-		QueueServicesHolder.setEventService(infrastructureServ.getEventService());
+		ServicesHolder.setEventService(infrastructureServ.getEventService());
 	}
 	
 	@AfterClass

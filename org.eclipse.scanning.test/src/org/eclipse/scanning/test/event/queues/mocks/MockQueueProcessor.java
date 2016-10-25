@@ -130,6 +130,12 @@ public class MockQueueProcessor <T extends Queueable> implements IQueueProcessor
 	public IQueueBroadcaster<? extends Queueable> getQueueBroadcaster() {
 		return broadcaster;
 	}
+	
+	@Override
+	public CountDownLatch getProcessorLatch() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	/**
 	 * Mark process executed & release the latch.

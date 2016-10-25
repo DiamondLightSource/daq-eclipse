@@ -24,6 +24,7 @@ import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -48,6 +49,7 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 
 	public ProcessingRunnableDevice() {
 		setLevel(100); // Runs at the end of the cycle by default.
+		setRole(DeviceRole.PROCESSING);
 		this.model = new ProcessingModel(); // We start with an empty one in case they want to fill it in the UI.
 	}
 	

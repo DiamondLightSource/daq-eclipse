@@ -1,6 +1,6 @@
 package org.eclipse.scanning.api.event.queues.beans;
 
-import org.eclipse.scanning.api.event.IdBean;
+import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
@@ -11,7 +11,12 @@ import org.eclipse.scanning.api.event.status.StatusBean;
  * @author Michael Wharmby
  *
  */
-public abstract class Queueable extends StatusBean implements IQueueable {
+public abstract class Queueable extends StatusBean {
+	
+	/**
+	 * Version ID for serialization. Should be updated when class changed. 
+	 */
+	private static final long serialVersionUID = 20161017L;
 	
 	protected long runTime;
 	protected String beamline;
@@ -22,22 +27,18 @@ public abstract class Queueable extends StatusBean implements IQueueable {
 		setPreviousStatus(Status.NONE);
 	}
 	
-	@Override
 	public String getBeamline() {
 		return beamline;
 	}
 	
-	@Override
 	public void setBeamline(String beamline) {
 		this.beamline = beamline;
 	}
 
-	@Override
 	public long getRunTime() {
 		return runTime;
 	}
 
-	@Override
 	public void setRunTime(long runTime) {
 		this.runTime = runTime;
 	}

@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.event;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.dawnsci.json.MarshallerService;
@@ -11,8 +12,11 @@ import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
+import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.test.BrokerTest;
+import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +34,7 @@ public class AnyBeanEventTest extends BrokerTest {
 		
 		// We wire things together without OSGi here 
 		// DO NOT COPY THIS IN NON-TEST CODE!
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new AnyBeanClassRegistry()));
 		eservice = new EventServiceImpl(new ActivemqConnectorService()); // Do not copy this get the service from OSGi!
 		
 		// We use the long winded constructor because we need to pass in the connector.

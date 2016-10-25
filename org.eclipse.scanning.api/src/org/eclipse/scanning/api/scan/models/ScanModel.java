@@ -10,6 +10,9 @@ import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
 
+/**
+ * A Model describing a scan to be performed.
+ */
 public class ScanModel {
 
 	/**

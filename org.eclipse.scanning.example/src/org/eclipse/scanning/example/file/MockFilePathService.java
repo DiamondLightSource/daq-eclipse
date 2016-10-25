@@ -7,13 +7,15 @@ import org.eclipse.scanning.api.scan.IFilePathService;
 public class MockFilePathService implements IFilePathService {
 	
 	private final File dir;
+	private String mostRecentPath;
 	public MockFilePathService() {
 		dir = new File(System.getProperty("java.io.tmpdir"));
 	}
 	
 	@Override
-	public String nextPath() throws Exception {
-		return getUnique(dir, "Scan", "nxs").getAbsolutePath();
+	public String getNextPath() throws Exception {
+		mostRecentPath = getUnique(dir, "Scan", "nxs").getAbsolutePath();
+		return mostRecentPath;
 	}
 	
 	/**
@@ -51,6 +53,22 @@ public class MockFilePathService implements IFilePathService {
 		}
 
 		return getUnique(dir, template, ext, ++i);
+	}
+
+	@Override
+	public String getMostRecentPath() throws IllegalStateException {
+		if (mostRecentPath == null) throw new IllegalStateException("Must call getNextPath() first");
+		return mostRecentPath;
+	}
+
+	@Override
+	public String getTempDir() {
+		return dir.toString();
+	}
+
+	@Override
+	public String getProcessedFilesDir() {
+		return new File(dir, "processed").toString();
 	}
 
 }

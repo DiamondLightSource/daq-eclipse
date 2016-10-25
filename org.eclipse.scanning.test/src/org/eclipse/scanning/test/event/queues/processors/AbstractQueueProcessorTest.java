@@ -355,7 +355,7 @@ public abstract class AbstractQueueProcessorTest {
 	}
 	
 	private void waitForBeanState(Queueable bean, Status state, boolean isFinal, long timeout) throws Exception {
-		Queueable lastBean= ((MockPublisher<Queueable>)statPub).getLastBean();
+		Queueable lastBean= ((MockPublisher<Queueable>)statPub).getLastQueueable();
 		long startTime = System.currentTimeMillis();
 		long runTime = 0;
 		
@@ -370,7 +370,7 @@ public abstract class AbstractQueueProcessorTest {
 			if (thrownException != null) {
 				throw new EventException(thrownException);
 			}
-			lastBean = ((MockPublisher<Queueable>)statPub).getLastBean();
+			lastBean = ((MockPublisher<Queueable>)statPub).getLastQueueable();
 		}
 		
 		String beanStatus;

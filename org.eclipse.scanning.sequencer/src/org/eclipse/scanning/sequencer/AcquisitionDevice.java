@@ -22,6 +22,7 @@ import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
@@ -87,6 +88,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		this.paused    = lock.newCondition();
 		setName("solstice_scan");
 		setPrimaryScanDevice(true);
+		setRole(DeviceRole.VIRTUAL);
 	}
 	
 	/**
@@ -283,9 +285,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		ScanInformation info = new ScanInformation();
 		info.setSize(size);
-		info.setModel(getModel());
 		info.setRank(getScanRank(getModel().getPositionIterable()));
 		info.setScannableNames(getScannableNames(getModel().getPositionIterable()));
+		info.setFilePath(getModel().getFilePath());
 		manager.addContext(info);
 		
 		// Setup the bean to sent
@@ -443,12 +445,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			lock.unlock();
 		}
 	}
-	
-	@Override
-	public boolean isVirtual() {
-		return true;
-	}
-	
 
 	private int getSize(Iterable<IPosition> gen) throws GeneratorException {
 		
