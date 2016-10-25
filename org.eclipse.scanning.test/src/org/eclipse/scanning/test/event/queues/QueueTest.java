@@ -1,180 +1,100 @@
 package org.eclipse.scanning.test.event.queues;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-import java.util.List;
-import java.util.Map;
+import java.net.URI;
 
-import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.alive.HeartbeatBean;
-import org.eclipse.scanning.api.event.core.ISubmitter;
-import org.eclipse.scanning.api.event.queues.IHeartbeatMonitor;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
-import org.eclipse.scanning.event.EventServiceImpl;
-import org.eclipse.scanning.event.queues.HeartbeatMonitor;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.event.queues.Queue;
-import org.eclipse.scanning.event.queues.QueueProcessCreator;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
-import org.eclipse.scanning.test.BrokerTest;
-import org.eclipse.scanning.test.ScanningTestClassRegistry;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.junit.After;
+import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
+import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
-
-/**
- * Test of the Queue class (implementation of IQueue)
- * 
- * @author Michael Wharmby
- *
- */
-public class QueueTest extends BrokerTest {
+public class QueueTest {
 	
-	//Used in creating a submitter
-	protected IEventService evServ;
+	private MockConsumer<DummyBean> mockCons;
+	private MockEventService mockEvServ = new MockEventService();
+	private String qRoot = "test-queue";
+	private URI uri;
 	
-	protected IQueue<DummyBean> queue;
-
-	protected static String qID = "uk.ac.diamond.i15-1.test";
-	
-	/**
-	 * Queue creation relies on hard coded creation of EventService. This is OK:
-	 * - it's a test.
-	 * - we don't test any consumer functions.
-	 * 
-	 * @throws Exception
-	 */
 	@Before
-	public void createQueue() throws Exception {
-		setUpNonOSGIActivemqMarshaller();
-		evServ = new EventServiceImpl(new ActivemqConnectorService());
-		QueueServicesHolder.setEventService(evServ);
+	public void setUp() throws Exception {
+		mockCons = new MockConsumer<>();
+		mockEvServ.setMockConsumer(mockCons);
 		
-		queue = new Queue<DummyBean>(qID, uri);
-		queue.setProcessRunner(new QueueProcessCreator<DummyBean>(true));
-	}
-	
-	@After
-	public void cleanup() throws EventException {
-		queue.getConsumer().stop();
-		queue.getConsumer().clearQueue(queue.getSubmissionQueueName());
-		queue.getConsumer().clearQueue(queue.getStatusQueueName());
-		queue.getConsumer().disconnect();
-		queue = null;
+		ServicesHolder.setEventService(mockEvServ);
+		uri = new URI("file:///foo/bar");
 	}
 	
 	/**
-	 * Check the status of the queue is being set correctly on creation.
+	 * Test the correct instantiation of the Queue object.
+	 * @throws EventException 
 	 */
 	@Test
-	public void testQueueStatus() {
-		assertEquals("Initial queue state wrong", QueueStatus.INITIALISED, queue.getQueueStatus());
-	}
-	
-	@Test
-	public void testQueueNameGetterMethods() {
-		Map<String, String> queueNames = queue.getQueueNames();
+	public void testQueueConfig() throws EventException {
+		IQueue<Queueable> testQueue = new Queue<>(qRoot, uri);
+		assertEquals("Queue has wrong status", QueueStatus.INITIALISED, testQueue.getStatus());
 		
-		assertEquals("Submission queue names differ", queueNames.get(Queue.SUBMISSION_QUEUE_KEY), queue.getSubmissionQueueName());
-		assertEquals("Status queue names differ", queueNames.get(Queue.STATUS_QUEUE_KEY), queue.getStatusQueueName());
-		assertEquals("Status topic names differ", queueNames.get(Queue.STATUS_TOPIC_KEY), queue.getStatusTopicName());
-		assertEquals("Heartbeat topic names differ", queueNames.get(Queue.HEARTBEAT_TOPIC_KEY), queue.getHeartbeatTopicName());
-		assertEquals("Command topic names differ", queueNames.get(Queue.COMMAND_TOPIC_KEY), queue.getCommandTopicName());
-		assertEquals("Command queue names differ", queueNames.get(Queue.COMMAND_QUEUE_KEY), queue.getCommandQueueName());
+		//Test we're setting destination names correctly on construction
+		assertEquals("Configured & expected submit queue names differ", qRoot+IQueue.SUBMISSION_QUEUE_SUFFIX, testQueue.getSubmissionQueueName());
+		assertEquals("Configured & expected status set names differ", qRoot+IQueue.STATUS_SET_SUFFIX, testQueue.getStatusSetName());
+		assertEquals("Configured & expected status topic names differ", qRoot+IQueue.STATUS_TOPIC_SUFFIX, testQueue.getStatusTopicName());
+		assertEquals("Configured & expected heartbeat topic names differ", qRoot+IQueue.HEARTBEAT_TOPIC_SUFFIX, testQueue.getHeartbeatTopicName());
+		assertEquals("Configured & expected command set names differ", qRoot+IQueue.COMMAND_SET_SUFFIX, testQueue.getCommandSetName());
+		assertEquals("Configured & expected command topic names differ", qRoot+IQueue.COMMAND_TOPIC_SUFFIX, testQueue.getCommandTopicName());
+		
+		//Test the consumer ID is being set on construction
+		assertEquals(mockCons.getConsumerId(), testQueue.getConsumerID());
 	}
 	
 	/**
-	 * Use the heartbeat monitor to record some queue heartbeats.
-	 * @throws Exception
+	 * Test that queues can be cleared
+	 * @throws EventException 
 	 */
 	@Test
-	public void testHeartbeatMonitors() throws Exception {
-		queue.getConsumer().start();
-		Thread.sleep(4300);
+	public void testClearQueues() throws EventException {
+		IQueue<Queueable> testQueue = new Queue<>(qRoot, uri);
 		
-		List<HeartbeatBean> heartbeats = queue.getLatestHeartbeats();
-		HeartbeatBean lastBeat = queue.getLastHeartbeat();
-		
-		assertEquals("Last heartbeat in latest and lastBeat differ", lastBeat, heartbeats.get(heartbeats.size()-1));
-		for (HeartbeatBean hb : heartbeats) {
-			assertEquals("Heartbeat for an unknown consumerID!", queue.getConsumerID(), hb.getConsumerId());
-		}
-	}
-	
-	@Test
-	public void testDisconnect() throws Exception {
-		queue.getConsumer().start();
-		Thread.sleep(500);
-		
-		IHeartbeatMonitor hbm = new HeartbeatMonitor(uri, queue);
-		queue.getConsumer().stop();
-		
-		queue.disconnect();
-		Thread.sleep(2300); //Need to wait for chance of hearing a beat.
-		
-		HeartbeatBean lastBeat = hbm.getLastHeartbeat();
-		final long now = System.currentTimeMillis();
-		assertTrue("Consumer still alive!", (lastBeat.getPublishTime() - now) <= 2300l);
+		boolean cleared = testQueue.clearQueues();
+		assertTrue("Status queue not cleared", mockCons.isClearStatQueue());
+		assertTrue("Submit queue not cleared", mockCons.isClearSubmitQueue());
+		assertTrue("clearQueues failed to clear", cleared);
 	}
 	
 	/**
-	 * Test that queues can be cleared using the clearQueues method.
-	 * @throws Exception
+	 * Tests starting & stopping the consumer through the Queue
+	 * @throws EventException 
 	 */
 	@Test
-	public void testClear() throws Exception {
-		DummyBean beanA = new DummyBean("Yuri", 5603);
-		DummyBean beanB = new DummyBean("Brian", 5603);
-		ISubmitter<DummyBean> subm = evServ.createSubmitter(uri, queue.getSubmissionQueueName());
-		subm.submit(beanA);
-		subm.submit(beanB);
-		subm.disconnect();
+	public void testStartStop() throws EventException {
+		IQueue<Queueable> testQueue = new Queue<>(qRoot, uri);
 		
-		waitForSubmittedBeans(3000);
+		testQueue.start();
+		assertTrue("Consumer start has not been called", mockCons.isStarted());
+		assertEquals("Queue has wrong status", QueueStatus.STARTED, testQueue.getStatus());
 		
-		assertEquals("More than two bean in the submission queue; one submitted", 2, queue.getConsumer().getSubmissionQueue().size());
-		assertEquals("Non-zero number of beans in status set; none expected.", 0, queue.getConsumer().getStatusSet().size());
-		assertTrue("Failed to clear queues", queue.clearQueues());
-		assertEquals("Non-zero number of beans in submit queue; none expected", 0, queue.getConsumer().getSubmissionQueue().size());
-		assertEquals("Non-zero number of beans in status set; none expected.", 0, queue.getConsumer().getStatusSet().size());
+		testQueue.stop();
+		assertTrue("Consumer stop has not been called", mockCons.isStopped());
+		assertEquals("Queue has wrong status", QueueStatus.STOPPED, testQueue.getStatus());
 	}
 	
 	/**
-	 * Test the queue can correctly identify when jobs are in the submission 
-	 * queue waiting to be consumed by the hasSubmittedJobsPending() method.
-	 * @throws Exception
+	 * Tests disconnecting the consumer (and heartbeat monitor) through the Queue
+	 * @throws EventException 
 	 */
 	@Test
-	public void testHasJobsPending() throws Exception {
-		assertFalse("Jobs found on the consumer, but none submitted", queue.hasSubmittedJobsPending());
+	public void testDisconnect() throws EventException {
+		IQueue<Queueable> testQueue = new Queue<>(qRoot, uri);
 		
-		DummyBean beanA = new DummyBean("Alfred", 5603);
-		ISubmitter<DummyBean> subm = evServ.createSubmitter(uri, queue.getSubmissionQueueName());
-		subm.submit(beanA);
-		subm.disconnect();
-		
-		waitForSubmittedBeans(3000);
-		
-		assertTrue("No jobs found, but one submitted", queue.hasSubmittedJobsPending());
-		queue.getConsumer().start();
-		Thread.sleep(1000);
-		assertFalse("Jobs found on the consumer, but all should be consumed", queue.hasSubmittedJobsPending());
+		testQueue.disconnect();
+		assertTrue("Consumer disconnect has not been called", mockCons.isDisconnected());
+		assertEquals("Queue has wrong status", QueueStatus.DISPOSED, testQueue.getStatus());
 	}
-	
-	private void waitForSubmittedBeans(long timeout) throws Exception {
-		while (timeout > 0) {
-			if (queue.getConsumer().getSubmissionQueue().size() > 0) break;
-			if (timeout <= 0) fail("No beans in queue");
-			timeout -= 100;
-		}
-	}
-
 }

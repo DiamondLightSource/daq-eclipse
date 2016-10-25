@@ -1,9 +1,7 @@
 package org.eclipse.scanning.test.event.queues.util;
 
 import java.net.URI;
-import java.util.Arrays;
 
-import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
@@ -14,12 +12,7 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.EventServiceImpl;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
-import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
-import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
-import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.test.BrokerTest;
-import org.eclipse.scanning.test.ScanningTestClassRegistry;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 

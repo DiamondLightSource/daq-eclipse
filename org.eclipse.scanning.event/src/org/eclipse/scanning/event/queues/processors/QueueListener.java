@@ -9,9 +9,8 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.bean.IBeanListener;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
-import org.eclipse.scanning.api.event.queues.beans.IAtomBeanWithQueue;
-import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
+import org.eclipse.scanning.api.event.queues.beans.IHasAtomQueue;
+import org.eclipse.scanning.api.event.queues.beans.IHasChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 //TODO Can P now extend IAtomBeanWithQueue?
 //TODO If so, can we update the broadcast mechanism to accept queuemessage updates too?
-public class QueueListener<P extends IQueueable, Q extends StatusBean> implements IBeanListener<Q> {
+public class QueueListener<P extends Queueable, Q extends StatusBean> implements IBeanListener<Q> {
 	
 	private static Logger logger = LoggerFactory.getLogger(QueueListener.class);
 	
@@ -59,8 +58,8 @@ public class QueueListener<P extends IQueueable, Q extends StatusBean> implement
 	@SuppressWarnings("unchecked")
 	public QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch) throws EventException {
 		this(broadcaster, parent, procLatch, true);
-		if (parent instanceof IAtomBeanWithQueue<?>) {
-			List<?> children = ((IAtomBeanWithQueue<?>)parent).getAtomQueue().getQueue();
+		if (parent instanceof IHasAtomQueue<?>) {
+			List<?> children = ((IHasAtomQueue<?>)parent).getAtomQueue();
 			initChildList((List<Q>) children);//QueueAtom extends StatusBean, so this cast is OK.
 		} else {
 			throw new EventException("Listener has no child beans to monitor. Cannot continue.");
@@ -156,25 +155,25 @@ public class QueueListener<P extends IQueueable, Q extends StatusBean> implement
 				if (parent.getStatus().isPaused()) {
 					// -parent is paused => unpause it
 					parent.setStatus(Status.REQUEST_RESUME);
-					((IAtomWithChildQueue)parent).setQueueMessage("Resume requested from '"+bean.getName()+"'");
+					((IHasChildQueue)parent).setQueueMessage("Resume requested from '"+bean.getName()+"'");
 					childCommand = true;
 					broadcastUpdate = true;
 				} else {
 					// -DEFAULT for normal running
-					((IAtomWithChildQueue)parent).setQueueMessage("Running...");
+					((IHasChildQueue)parent).setQueueMessage("Running...");
 					childCommand = false;
 					broadcastUpdate = true;
 				}
 			} else if (bean.getStatus().isPaused()) {
 				//PAUSE
 				parent.setStatus(Status.REQUEST_PAUSE);
-				((IAtomWithChildQueue)parent).setQueueMessage("Pause requested from '"+bean.getName()+"'");
+				((IHasChildQueue)parent).setQueueMessage("Pause requested from '"+bean.getName()+"'");
 				childCommand = true;
 				broadcastUpdate = true;
 			} else if (bean.getStatus().isTerminated()) {
 				//TERMINATE
 				parent.setStatus(Status.REQUEST_TERMINATE);
-				((IAtomWithChildQueue)parent).setQueueMessage("Termination requested from '"+bean.getName()+"'");
+				((IHasChildQueue)parent).setQueueMessage("Termination requested from '"+bean.getName()+"'");
 				childCommand = true;
 				broadcastUpdate = true;
 			} else if (bean.getStatus().isFinal()) {
@@ -182,11 +181,11 @@ public class QueueListener<P extends IQueueable, Q extends StatusBean> implement
 				children.get(beanID).setOperating(false);
 				beanCompleted = true;
 				if (bean.getStatus().equals(Status.COMPLETE)) {
-					((IAtomWithChildQueue)parent).setQueueMessage("'"+bean.getName()+"' completed successfully.");
+					((IHasChildQueue)parent).setQueueMessage("'"+bean.getName()+"' completed successfully.");
 					broadcastUpdate = true;
 				} else {
 					//Status.FAILED or unhandled state
-					((IAtomWithChildQueue)parent).setQueueMessage("Failure caused by '"+bean.getName()+"'");
+					((IHasChildQueue)parent).setQueueMessage("Failure caused by '"+bean.getName()+"'");
 					broadcastUpdate = true;
 					childCommand = true;
 					failed = true;
@@ -216,7 +215,7 @@ public class QueueListener<P extends IQueueable, Q extends StatusBean> implement
 			if (concluded && !operating || failed) {
 				if (!failed) {
 					parent.setMessage("Running finished.");
-					((IAtomWithChildQueue)parent).setQueueMessage("All child processes complete.");
+					((IHasChildQueue)parent).setQueueMessage("All child processes complete.");
 				}
 				try {
 					broadcaster.childQueueBroadcast();

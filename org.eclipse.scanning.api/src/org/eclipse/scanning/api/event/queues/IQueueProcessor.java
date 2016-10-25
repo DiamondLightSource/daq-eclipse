@@ -4,7 +4,6 @@ import java.util.concurrent.CountDownLatch;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.queues.beans.IQueueable;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 
@@ -19,7 +18,7 @@ import org.eclipse.scanning.api.event.status.Status;
  *
  * @param <P> The concrete bean type operated on by this processor.
  */
-public interface IQueueProcessor<P extends IQueueable> {
+public interface IQueueProcessor<P extends Queueable> {
 
 	/**
 	 * Process the configured bean. Bean should be same as that on 
@@ -82,14 +81,14 @@ public interface IQueueProcessor<P extends IQueueable> {
 	 * @param bean to be operated on by this processor.
 	 * @throws EventException if the given bean type is not supported.
 	 */
-	public <T extends Queueable> void setProcessBean(T bean) throws EventException; //TODO Change Queueable?
+	public <T extends Queueable> void setProcessBean(T bean) throws EventException;
 
 	/**
 	 * Return the object providing broadcasting methods for this processor.
 	 * 
 	 * @return IQueueBroadcaster to broadcast status of process.
 	 */
-	public IQueueBroadcaster<? extends Queueable> getQueueBroadcaster(); //TODO Change Queueable?
+	public IQueueBroadcaster<? extends Queueable> getQueueBroadcaster();
 	
 	/**
 	 * Configures the queue process which this processor will use to inform of 
@@ -101,7 +100,7 @@ public interface IQueueProcessor<P extends IQueueable> {
 	 * @throws EventException if attempt to change queue process after 
 	 *         execution has started.
 	 */
-	public void setQueueBroadcaster(IQueueBroadcaster<? extends Queueable> broadcaster) throws EventException; //TODO Change Queueable?
+	public void setQueueBroadcaster(IQueueBroadcaster<? extends Queueable> broadcaster) throws EventException; //TODO T extends Queueable?
 	
 	/**
 	 * Return whether execution has begun.

@@ -4,17 +4,26 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 
+import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.event.queues.QueueControllerService;
+import org.eclipse.scanning.event.queues.QueueService;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcessor;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
+import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
-import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,34 +37,55 @@ public class SubTaskAtomProcessorTest {
 	private SubTaskAtomProcessor stAtProcr;
 	private ProcessorTestInfrastructure pti;
 	
-	private static MockQueueService mockQServ;
+	private static QueueService qServ;
+	private static MockConsumer<Queueable> mockCons;
+	private static MockPublisher<QueueAtom> mockPub;
 	private static MockSubmitter<QueueAtom> mockSub;
 	private static MockEventService mockEvServ;
-	private static MockPublisher<QueueAtom> mockPub;
+	private static IQueueControllerService controller;
 	
 	@BeforeClass
-	public static void setUpClass() {
+	public static void setUpClass() throws Exception {
 		//Configure the processor Mock queue infrastructure
-		mockSub = new MockSubmitter<>();
-		mockQServ = new MockQueueService();
-		mockQServ.setMockSubmitter(mockSub);
-		QueueServicesHolder.setQueueService(mockQServ);
-		
-		
+		mockCons = new MockConsumer<>();
 		mockPub = new MockPublisher<>(null, null);
+		mockSub = new MockSubmitter<>();
+		mockSub.setSendToConsumer(true);
 		mockEvServ = new MockEventService();
+		mockEvServ.setMockConsumer(mockCons);
 		mockEvServ.setMockPublisher(mockPub);
-		QueueServicesHolder.setEventService(mockEvServ);
+		mockEvServ.setMockSubmitter(mockSub);
+		ServicesHolder.setEventService(mockEvServ);
+		
+		//This is a real queue service, so we have to do some set up
+		try {
+			URI uri = new URI("file:///foo/bar");
+			qServ = new QueueService("fake-qserv", uri);
+		} catch (URISyntaxException usEx) {
+			//Shouldn't happen...
+			usEx.printStackTrace();
+		}
+		qServ.init();
+		qServ.start();
+		
+		ServicesHolder.setQueueService(qServ);
+		
+		//Once this lot is up, create a queue controller.
+		controller = new QueueControllerService();
+		ServicesHolder.setQueueControllerService(controller);
 	}
 	
 	@AfterClass
 	public static void tearDownClass() {
-		QueueServicesHolder.unsetEventService(mockEvServ);
+		ServicesHolder.unsetQueueControllerService(controller);
+		controller = null;
+		
+		ServicesHolder.unsetEventService(mockEvServ);
 		mockEvServ = null;
 		mockPub = null;
 		
-		QueueServicesHolder.unsetQueueService(mockQServ);
-		mockQServ = null;
+		ServicesHolder.unsetQueueService(qServ);
+		qServ = null;
 		mockSub = null;
 	}
 	
@@ -71,9 +101,9 @@ public class SubTaskAtomProcessorTest {
 		DummyAtom atomA = new DummyAtom("Hildebrand", 300);
 		DummyAtom atomB = new DummyAtom("Yuri", 1534);
 		DummyAtom atomC = new DummyAtom("Ingrid", 654);
-		stAt.queue().add(atomA);
-		stAt.queue().add(atomB);
-		stAt.queue().add(atomC);
+		stAt.addAtom(atomA);
+		stAt.addAtom(atomB);
+		stAt.addAtom(atomC);
 		
 		//Reset queue architecture
 		mockSub.resetSubmitter();
@@ -83,6 +113,7 @@ public class SubTaskAtomProcessorTest {
 	@After
 	public void tearDown() {
 		pti = null;
+		mockEvServ.clearRegisteredConsumers();
 	}
 	
 	@Test
@@ -125,9 +156,11 @@ public class SubTaskAtomProcessorTest {
 		pti.exceptionCheck();
 		assertTrue("Terminated flag not set true after termination", stAtProcr.isTerminated());
 		pti.checkLastBroadcastBeanStatuses(stAt, Status.TERMINATED, true);
-		//TODO Should this be the message or the queue-message?
+//		//TODO Should this be the message or the queue-message?
 		assertEquals("Wrong message set after termination.", "Active-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
+		assertEquals("Active queues still registered after terminate", 0, qServ.getAllActiveQueueIDs().size());
 		
+		checkConsumersStopped();	
 	}
 	
 	@Test
@@ -151,12 +184,13 @@ public class SubTaskAtomProcessorTest {
 		pti.checkLastBroadcastBeanStatuses(stAt, Status.FAILED, false);
 	}
 	
-	protected void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
-		List<QueueAtom> submittedBeans = ms.getQueue();
+	private void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
+		String qName = stAtProcr.getAtomQueueProcessor().getActiveQueueID()+IQueue.SUBMISSION_QUEUE_SUFFIX;
+		List<QueueAtom> submittedBeans = ms.getQueue(qName);
 		assertTrue("No beans in the final status set", submittedBeans.size() != 0);
 		for (QueueAtom dummy : submittedBeans) {
 			//First check beans are in final state
-			assertTrue("Final bean "+dummy.getName()+" is not final",dummy.getStatus().isFinal());
+			assertEquals("Final bean "+dummy.getName()+" is not submitted (was: "+dummy.getStatus()+")", Status.SUBMITTED ,dummy.getStatus());
 			//Check the properties of the ScanAtom have been correctly passed down
 			assertFalse("No beamline set", dummy.getBeamline() == null);
 			assertEquals("Incorrect beamline", stAt.getBeamline(), dummy.getBeamline());
@@ -165,6 +199,17 @@ public class SubTaskAtomProcessorTest {
 			assertFalse("No username set", dummy.getUserName() == null);
 			assertEquals("Incorrect username", stAt.getUserName(), dummy.getUserName());
 		}
+	}
+	
+	private void checkConsumersStopped() {
+		Map<String, MockConsumer<? extends StatusBean>> consumers = mockEvServ.getRegisteredConsumers();
+		
+		for (Map.Entry<String, MockConsumer<? extends StatusBean>> entry : consumers.entrySet()) {
+			//We don't need to check the job-queue
+			if (entry.getKey().equals(qServ.getJobQueueID())) continue;
+			assertTrue("Consumer was not stopped (this was expected)", entry.getValue().isStopped());
+		}
+		
 	}
 
 }

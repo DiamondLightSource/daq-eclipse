@@ -7,11 +7,12 @@ import java.util.List;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
-import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
+import org.eclipse.scanning.api.event.alive.KillBean;
+import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.queues.beans.IAtomWithChildQueue;
+import org.eclipse.scanning.api.event.queues.beans.IHasChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
@@ -22,10 +23,10 @@ public class MockPublisher<T> implements IPublisher<T> {
 	private String topicName;
 	private final URI uri;
 	private String queueName;
-	private IConsumer<?> consumer;
+	private MockConsumer<Queueable> mockCons;
 	
 	private volatile List<ConsumerCommandBean> broadcastCmdBeans = new ArrayList<>();
-	private volatile List<Queueable> broadcastBeans = new ArrayList<>();
+	private volatile List<Queueable> broadcastStatusBeans = new ArrayList<>();
 	
 	private boolean disconnected;
 	
@@ -40,7 +41,7 @@ public class MockPublisher<T> implements IPublisher<T> {
 	}
 	
 	public void resetPublisher() {
-		broadcastBeans.clear();
+		broadcastStatusBeans.clear();
 	}
 
 	@Override
@@ -67,7 +68,11 @@ public class MockPublisher<T> implements IPublisher<T> {
 	@Override
 	public void broadcast(T bean) throws EventException {
 		if (bean instanceof ConsumerCommandBean) {
-			broadcastCmdBeans.add((ConsumerCommandBean) bean);
+			if (bean instanceof PauseBean) {
+				addPauseBean((PauseBean) bean);
+			} else if (bean instanceof KillBean) {
+				addKillBean((KillBean) bean);
+			}
 		} else {
 			final DummyHasQueue broadBean = new DummyHasQueue();
 			StatusBean loBean = (StatusBean)bean;
@@ -78,25 +83,35 @@ public class MockPublisher<T> implements IPublisher<T> {
 			broadBean.setUniqueId(loBean.getUniqueId());
 			broadBean.setName(loBean.getName());
 			
-			if (bean instanceof IAtomWithChildQueue) {
-				broadBean.setQueueMessage(((IAtomWithChildQueue)bean).getQueueMessage());
+			if (bean instanceof IHasChildQueue) {
+				broadBean.setQueueMessage(((IHasChildQueue)bean).getQueueMessage());
 			}
-			
-			broadcastBeans.add(broadBean);
+			broadcastStatusBeans.add(broadBean);
+			if ((loBean.getStatus().isRequest()) && (mockCons != null)) {
+				mockCons.addToStatusSet(broadBean);
+			}
 		}
 	}
 	
 	public List<Queueable> getBroadcastBeans() {
-		return broadcastBeans;
+		return broadcastStatusBeans;
 	}
 	
 	public List<ConsumerCommandBean> getCmdBeans() {
 		return broadcastCmdBeans;
 	}
 	
-	public Queueable getLastBean() {
-		if (broadcastBeans.size() > 0) {
-			return broadcastBeans.get(broadcastBeans.size()-1);
+	public Queueable getLastQueueable() {
+		if (broadcastStatusBeans.size() > 0) {
+			return broadcastStatusBeans.get(broadcastStatusBeans.size()-1);
+		} else {
+			return null;
+		}
+	}
+	
+	public ConsumerCommandBean getLastCmdBean() {
+		if (broadcastCmdBeans.size() > 0) {
+			return broadcastCmdBeans.get(broadcastCmdBeans.size()-1);
 		} else {
 			return null;
 		}
@@ -141,12 +156,12 @@ public class MockPublisher<T> implements IPublisher<T> {
 		return null;
 	}
 
-	public IConsumer<?> getConsumer() {
-		return consumer;
+	public MockConsumer<Queueable> getConsumer() {
+		return mockCons;
 	}
 
-	public void setConsumer(IConsumer<?> consumer) {
-		this.consumer = consumer;
+	public void setConsumer(MockConsumer<Queueable> consumer) {
+		this.mockCons = consumer;
 	}
 
 	public boolean isDisconnected() {
@@ -155,6 +170,34 @@ public class MockPublisher<T> implements IPublisher<T> {
 
 	public void setDisconnected(boolean disconnected) {
 		this.disconnected = disconnected;
+	}
+	
+	private void addPauseBean(PauseBean bean) {
+		final PauseBean pbean = new PauseBean();
+		pbean.setConsumerId(bean.getConsumerId());
+		pbean.setMessage(bean.getMessage());
+		pbean.setPause(bean.isPause());
+		pbean.setQueueName(bean.getQueueName());
+		pbean.setUniqueId(bean.getUniqueId());
+		broadcastCmdBeans.add(pbean);
+	}
+	
+	private void addKillBean(KillBean bean) {
+		final KillBean kBean = new KillBean();
+		kBean.setConsumerId(bean.getConsumerId());
+		kBean.setDisconnect(bean.isDisconnect());
+		kBean.setExitProcess(bean.isExitProcess());
+		kBean.setMessage(bean.getMessage());
+		kBean.setQueueName(bean.getQueueName());
+		kBean.setRestart(bean.isRestart());
+		kBean.setUniqueId(bean.getUniqueId());
+		broadcastCmdBeans.add(kBean);
+	}
+
+	@Override
+	public void setConsumer(IConsumer<?> consumer) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

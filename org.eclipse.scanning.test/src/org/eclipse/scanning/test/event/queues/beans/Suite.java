@@ -1,6 +1,5 @@
 package org.eclipse.scanning.test.event.queues.beans;
 
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 

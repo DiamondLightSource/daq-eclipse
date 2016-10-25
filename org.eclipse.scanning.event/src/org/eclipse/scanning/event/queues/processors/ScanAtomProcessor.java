@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.event.queues.QueueProcess;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,12 +46,12 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	/**
 	 * Create a ScanAtomProcessor which can be used by a {@link QueueProcess}. 
 	 * Constructor configures the {@link IEventService} using the instance 
-	 * specified in the {@link QueueServicesHolder}. Additionally, a new 
+	 * specified in the {@link ServicesHolder}. Additionally, a new 
 	 * {@link ScanBean} is created which will be configured with the details 
 	 * of from the {@link ScanAtom}.
 	 */
 	public ScanAtomProcessor() {
-		eventService = QueueServicesHolder.getEventService();
+		eventService = ServicesHolder.getEventService();
 		scanBean = new ScanBean();
 		scanBean.setStatus(Status.NONE);
 	}
@@ -206,7 +206,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		if (uri == null) uri = System.getProperty("org.eclipse.scanning.broker.uri");
 		if (uri == null) uri = System.getProperty("gda.activemq.broker.uri");
 		if (uri == null) uri = System.getProperty("org.eclipse.scanning.queueservice.broker.uri");
-		if (uri == null) uri = QueueServicesHolder.getQueueService().getURIString();
+		if (uri == null) uri = ServicesHolder.getQueueService().getURIString();
 		
 		try {
 			if (uri == null) {

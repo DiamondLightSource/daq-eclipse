@@ -64,7 +64,7 @@ public class KillBean extends ConsumerCommandBean {
 		return restart;
 	}
 
-	public void setRestart(boolean retstart) {
-		this.restart = retstart;
+	public void setRestart(boolean restart) {
+		this.restart = restart;
 	}
 }

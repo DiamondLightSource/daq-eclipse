@@ -16,7 +16,7 @@ import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 
@@ -173,7 +173,7 @@ public class ProcessorTestInfrastructure {
 	
 	@SuppressWarnings("unchecked")
 	protected void checkLastBroadcastChildBeanStatus(Status state, String[] childBeanNames) {
-		MockPublisher<?> mp = (MockPublisher<?>) QueueServicesHolder.getEventService().createPublisher(null, null);
+		MockPublisher<?> mp = (MockPublisher<?>) ServicesHolder.getEventService().createPublisher(null, null);
 		List<DummyHasQueue> childBeans = (List<DummyHasQueue>) getPublishedBeans(mp);
 		
 		List<String> childNames = Arrays.asList(childBeanNames);

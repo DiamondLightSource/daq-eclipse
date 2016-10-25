@@ -5,22 +5,27 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
+import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
-import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.QueueServicesHolder;
+import org.eclipse.scanning.event.queues.QueueControllerService;
+import org.eclipse.scanning.event.queues.QueueService;
+import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.eclipse.scanning.event.queues.processors.TaskBeanProcessor;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
-import org.eclipse.scanning.test.event.queues.mocks.MockQueue;
-import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
 import org.junit.After;
@@ -35,41 +40,55 @@ public class TaskBeanProcessorTest {
 	private TaskBeanProcessor tBeProcr;
 	private ProcessorTestInfrastructure pti;
 	
-	private static MockQueueService mockQServ;
-	private static MockSubmitter<QueueAtom> mockSub;
-	private static MockEventService mockEvServ;
+	private static QueueService qServ;
+	private static MockConsumer<Queueable> mockCons;
 	private static MockPublisher<QueueAtom> mockPub;
 	private static MockPublisher<ConsumerCommandBean> mockCmdPub;
-	private static MockConsumer<QueueBean> mockCons;
-	private static MockQueue<QueueBean> mockJobQ;
+	private static MockSubmitter<QueueAtom> mockSub;
+	private static MockEventService mockEvServ;
+	private static IQueueControllerService controller;
 	
 	@BeforeClass
-	public static void setUpClass() {
+	public static void setUpClass() throws EventException {
 		//Configure the processor Mock queue infrastructure
 		mockCons = new MockConsumer<>();
-		mockJobQ = new MockQueue<>("mock-job-queue", mockCons);
-		
-		mockSub = new MockSubmitter<>();
-		mockQServ = new MockQueueService(mockJobQ);
-		mockQServ.setMockSubmitter(mockSub);
-		QueueServicesHolder.setQueueService(mockQServ);
-		
-		mockPub = new MockPublisher<>(null,  null);
+		mockPub = new MockPublisher<>(null, null);
 		mockCmdPub = new MockPublisher<>(null, null);
+		mockSub = new MockSubmitter<>();
+		mockSub.setSendToConsumer(true);
 		mockEvServ = new MockEventService();
+		mockEvServ.setMockConsumer(mockCons);
 		mockEvServ.setMockPublisher(mockPub);
 		mockEvServ.setMockCmdPublisher(mockCmdPub);
-		QueueServicesHolder.setEventService(mockEvServ);
+		mockEvServ.setMockSubmitter(mockSub);
+		ServicesHolder.setEventService(mockEvServ);
+		
+		//This is a real queue service, so we have to do some set up
+		try {
+			URI uri = new URI("file:///foo/bar");
+			qServ = new QueueService("fake-qserv", uri);
+		} catch (URISyntaxException usEx) {
+			//Shouldn't happen...
+			usEx.printStackTrace();
+		}
+		qServ.init();
+		qServ.start();
+		
+		ServicesHolder.setQueueService(qServ);
+		
+		//Once this lot is up, create a queue controller.
+		controller = new QueueControllerService();
+		ServicesHolder.setQueueControllerService(controller);
 	}
 	
 	@AfterClass
 	public static void tearDownClass() {
-		QueueServicesHolder.unsetEventService(mockEvServ);
+		ServicesHolder.unsetEventService(mockEvServ);
 		mockEvServ = null;
 		mockPub = null;
 		
-		QueueServicesHolder.unsetQueueService(mockQServ);
-		mockQServ = null;
+		ServicesHolder.unsetQueueService(qServ);
+		qServ = null;
 		mockSub = null;
 	}
 	
@@ -85,9 +104,9 @@ public class TaskBeanProcessorTest {
 		SubTaskAtom atomA = TestAtomQueueBeanMaker.makeDummySubTaskBeanA();
 		SubTaskAtom atomB = TestAtomQueueBeanMaker.makeDummySubTaskBeanB();
 		SubTaskAtom atomC = TestAtomQueueBeanMaker.makeDummySubTaskBeanC();
-		tBe.queue().add(atomA);
-		tBe.queue().add(atomB);
-		tBe.queue().add(atomC);
+		tBe.addAtom(atomA);
+		tBe.addAtom(atomB);
+		tBe.addAtom(atomC);
 		
 		//Reset queue architecture
 		mockSub.resetSubmitter();
@@ -173,12 +192,13 @@ public class TaskBeanProcessorTest {
 		}
 	}
 	
-	protected void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
-		List<QueueAtom> submittedBeans = ms.getQueue();
+	private void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
+		String qName = tBeProcr.getAtomQueueProcessor().getActiveQueueID()+IQueue.SUBMISSION_QUEUE_SUFFIX;
+		List<QueueAtom> submittedBeans = ms.getQueue(qName);
 		assertTrue("No beans in the final status set", submittedBeans.size() != 0);
 		for (QueueAtom dummy : submittedBeans) {
 			//First check beans are in final state
-			assertTrue("Final bean "+dummy.getName()+" is not final",dummy.getStatus().isFinal());
+			assertEquals("Final bean "+dummy.getName()+" is not submitted (was: "+dummy.getStatus()+")", Status.SUBMITTED ,dummy.getStatus());
 			//Check the properties of the ScanAtom have been correctly passed down
 			assertFalse("No beamline set", dummy.getBeamline() == null);
 			assertEquals("Incorrect beamline", tBe.getBeamline(), dummy.getBeamline());

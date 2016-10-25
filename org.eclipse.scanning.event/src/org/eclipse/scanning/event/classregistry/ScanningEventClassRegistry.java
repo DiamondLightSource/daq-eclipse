@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IClassRegistry;
-import org.eclipse.scanning.event.queues.beans.AtomQueue;
 import org.eclipse.scanning.event.queues.beans.MonitorAtom;
 import org.eclipse.scanning.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.event.queues.beans.ScanAtom;
@@ -37,7 +36,6 @@ public class ScanningEventClassRegistry implements IClassRegistry {
 		Map<String, Class<?>> tmp = new HashMap<String, Class<?>>();
 		
 		// queues.beans
-		registerClass(tmp, AtomQueue.class);
 		registerClass(tmp, MonitorAtom.class);
 		registerClass(tmp, MoveAtom.class);
 		registerClass(tmp, ScanAtom.class);
