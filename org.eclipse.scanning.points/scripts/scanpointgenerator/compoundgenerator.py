@@ -1,5 +1,12 @@
 import logging
-from threading import Lock
+import sys
+if sys.platform.startswith('java'):
+    from pkg_resources import require
+    require("mock")
+    from mock import MagicMock
+    Lock = MagicMock()
+else:
+    from threading import Lock
 
 from scanpointgenerator.compat import range_
 from scanpointgenerator import Generator
