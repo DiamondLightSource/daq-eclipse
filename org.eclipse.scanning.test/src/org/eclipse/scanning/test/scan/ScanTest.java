@@ -20,6 +20,7 @@ public class ScanTest extends AbstractScanTest {
 	@Before
 	public void setup() throws ScanningException {
 
+		System.setProperty("org.eclipse.scanning.sequencer.AcquisitionDevice.Metrics", "true");
 		setUpNonOSGIActivemqMarshaller();
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 
