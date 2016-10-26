@@ -354,6 +354,11 @@ public class QueueService implements IQueueService {
 			throw new EventException(usEx);
 		}
 	}
+	
+	@Override
+	public boolean isInitialized() {
+		return init;
+	}
 
 	@Override
 	public boolean isActive() {
