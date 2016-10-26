@@ -216,4 +216,10 @@ public class MockQueueService implements IQueueService {
 	public void setCommandQueueName(String cmdQueue) {
 		commandQueueName = cmdQueue;
 	}
+
+	@Override
+	public boolean isInitialized() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

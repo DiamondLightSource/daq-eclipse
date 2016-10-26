@@ -121,7 +121,7 @@ public class RemoteRunnableServiceTest extends BrokerTest {
 	}
 
 	@Test
-	public void testAbort() throws Exception {
+	public void testThatAbortDoesNotChangeHardware() throws Exception {
         
 		IPositioner pos1 = dservice.createPositioner();
 		if (rservice==null) rservice = eservice.createRemoteService(uri, IRunnableDeviceService.class);

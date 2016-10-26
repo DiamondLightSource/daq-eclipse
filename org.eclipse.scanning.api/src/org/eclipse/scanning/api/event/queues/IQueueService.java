@@ -256,6 +256,13 @@ public interface IQueueService {
 	public void setUri(String uri) throws UnsupportedOperationException, EventException;
 	
 	/**
+	 * Return whether the service has been initialised.
+	 * 
+	 * @return true if initialised.
+	 */
+	public boolean isInitialized();
+	
+	/**
 	 * Return whether the queue service is currently running.
 	 * 
 	 * @return true if queue service running.

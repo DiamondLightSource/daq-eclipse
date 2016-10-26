@@ -301,7 +301,7 @@ public class QueueService implements IQueueService {
 		if (active) throw new UnsupportedOperationException("Cannot change queue root whilst queue service is running");
 		this.queueRoot = queueRoot;
 
-		if (!init) {
+		if (init) {
 			//Update the destinations
 			heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
 			commandSetName = queueRoot+COMMAND_SET_SUFFIX;
@@ -343,8 +343,8 @@ public class QueueService implements IQueueService {
 		if (active) throw new UnsupportedOperationException("Cannot change URI whilst queue service is running");
 		this.uri = uri;
 		uriString = uri.toString();
-		
-		if (!init) {
+
+		if (init) {
 			//Update job-queue
 			jobQueue = new Queue<>(jobQueueID, uri, 
 					heartbeatTopicName, commandSetName, commandTopicName);
@@ -358,6 +358,11 @@ public class QueueService implements IQueueService {
 		} catch (URISyntaxException usEx) {
 			throw new EventException(usEx);
 		}
+	}
+	
+	@Override
+	public boolean isInitialized() {
+		return init;
 	}
 
 	@Override

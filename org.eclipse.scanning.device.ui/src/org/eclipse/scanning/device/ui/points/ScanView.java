@@ -159,6 +159,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	
 	@Override
     public void saveState(IMemento memento) {
+		super.saveState(memento);
 		try {
 			final List<Object> models = pointsFilter.getModels(seriesTable.getSeriesItems());
 	    	stash.stash(models);

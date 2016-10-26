@@ -55,11 +55,16 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			positioner.setField(FIELD_NAME_DEMAND_VALUE, getPosition().doubleValue());
 			positioner.setValueScalar(getPosition().doubleValue());
 		} else {
+			String floatFill = System.getProperty("GDA/gda.nexus.floatfillvalue", "nan");
+			double fill = floatFill.equalsIgnoreCase("nan") ? Double.NaN : Double.parseDouble(floatFill);
+			
 			this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Double.class);
-			lzDemand.setChunking(new int[]{1});
+			lzDemand.setFillValue(fill);
+			lzDemand.setChunking(new int[]{4096}); // Faster than looking at the shape of the scan for this dimension because slow to iterate.
 			
 			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Double.class);
-			lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
+			lzValue.setFillValue(fill);
+			lzValue.setChunking(info.createChunk(false, 4096)); // TODO Might be slow, need to check this
 		}
 
 		registerAttributes(positioner, this);
