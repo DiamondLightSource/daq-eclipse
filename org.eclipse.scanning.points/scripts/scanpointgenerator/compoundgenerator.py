@@ -1,10 +1,7 @@
 import logging
 import sys
 if sys.platform.startswith('java'):
-    from pkg_resources import require
-    require("mock")
-    from mock import MagicMock
-    Lock = MagicMock()
+    Lock = object
 else:
     from threading import Lock
 
