@@ -6,7 +6,6 @@ import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,6 +27,7 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		
 		//Configure the queue controller service
 		queueControl = ServicesHolder.getQueueControllerService();
+		queueControl.init();
 		queueControl.startQueueService();
 	}
 	

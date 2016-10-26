@@ -30,6 +30,7 @@ public class QueueControllerService implements IQueueControllerService {
 	private final IEventService eventService;
 	private final IQueueService queueService;
 	
+	private boolean init = false;
 	private String commandSetName, commandTopicName;
 	private URI uri;
 	
@@ -49,10 +50,13 @@ public class QueueControllerService implements IQueueControllerService {
 		commandSetName = queueService.getCommandSetName();
 		commandTopicName = queueService.getCommandTopicName();
 		uri = queueService.getURI();
+		
+		init = true;
 	}
 
 	@Override
 	public void startQueueService() throws EventException {
+		if (!init) throw new IllegalStateException("Queue Controller must be initialised before starting Queue Service.");
 		queueService.start();
 	}
 
