@@ -89,7 +89,7 @@ public final class MapPosition extends AbstractPosition {
 	
 	public void putAll(IPosition pos) {
 		final Collection<String> names = pos.getNames();
-		if (names==null) return; // EmptyPosition allowed.
+		if (names==null) return; // StaticPosition allowed.
 		for (String name : names) {
 			values.put(name, pos.get(name));
 			indices.put(name, pos.getIndex(name));
