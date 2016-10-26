@@ -27,21 +27,30 @@ public class QueueControllerService implements IQueueControllerService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueueControllerService.class);
 	
-	private final IEventService eventService;
-	private final IQueueService queueService;
+	private static IEventService eventService;
+	private static IQueueService queueService;
 	
 	private boolean init = false;
 	private String commandSetName, commandTopicName;
 	private URI uri;
 	
+	static {
+		System.out.println("Created " + IQueueControllerService.class.getSimpleName());
+	}
+	
+	/**
+	 * No argument constructor for OSGi
+	 */
 	public QueueControllerService() {
-		//Set up services
-		eventService = ServicesHolder.getEventService();
-		queueService = ServicesHolder.getQueueService();
+		
 	}
 	
 	@Override
 	public void init() throws EventException {
+		//Set up services
+		eventService = ServicesHolder.getEventService();
+		queueService = ServicesHolder.getQueueService();
+				
 		if (!queueService.isInitialized()) {
 			queueService.init();
 		}
