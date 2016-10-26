@@ -74,7 +74,7 @@ public class NexusAssert {
 	public static void assertSignal(NXdata nxData, String expectedSignalFieldName) {
 		Attribute signalAttr = nxData.getAttribute(ATTR_NAME_SIGNAL);
 		assertNotNull(signalAttr);
-		assertEquals(1, signalAttr.getRank());
+		assertEquals(1, signalAttr.getSize());
 		assertEquals(expectedSignalFieldName, signalAttr.getFirstElement());
 		assertNotNull(nxData.getDataNode(expectedSignalFieldName));
 	}
