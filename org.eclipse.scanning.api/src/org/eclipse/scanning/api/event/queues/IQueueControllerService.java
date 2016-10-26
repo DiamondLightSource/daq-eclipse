@@ -13,6 +13,8 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  */
 public interface IQueueControllerService {
 	
+	public void init();
+	
 	/**
 	 * Start the {@link IQueueService}.
 	 * 

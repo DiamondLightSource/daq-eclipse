@@ -30,14 +30,17 @@ public class QueueControllerService implements IQueueControllerService {
 	private final IEventService eventService;
 	private final IQueueService queueService;
 	
-	private final String commandSetName, commandTopicName;
-	private final URI uri;
+	private String commandSetName, commandTopicName;
+	private URI uri;
 	
 	public QueueControllerService() {
 		//Set up services
 		eventService = ServicesHolder.getEventService();
 		queueService = ServicesHolder.getQueueService();
-		
+	}
+	
+	@Override
+	public void init() {
 		//Get the queue service configuration
 		commandSetName = queueService.getCommandSetName();
 		commandTopicName = queueService.getCommandTopicName();
