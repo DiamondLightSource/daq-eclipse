@@ -296,14 +296,16 @@ public class QueueService implements IQueueService {
 		if (active) throw new UnsupportedOperationException("Cannot change queue root whilst queue service is running");
 		this.queueRoot = queueRoot;
 
-		//Update the destinations
-		heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
-		commandSetName = queueRoot+COMMAND_SET_SUFFIX;
-		commandTopicName = queueRoot+COMMAND_TOPIC_SUFFIX;
+		if (init) {
+			//Update the destinations
+			heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
+			commandSetName = queueRoot+COMMAND_SET_SUFFIX;
+			commandTopicName = queueRoot+COMMAND_TOPIC_SUFFIX;
 
-		//Update job-queue
-		jobQueueID = queueRoot+JOB_QUEUE_SUFFIX;
-		jobQueue = new Queue<>(jobQueueID, uri, heartbeatTopicName, commandSetName, commandTopicName);
+			//Update job-queue
+			jobQueueID = queueRoot+JOB_QUEUE_SUFFIX;
+			jobQueue = new Queue<>(jobQueueID, uri, heartbeatTopicName, commandSetName, commandTopicName);
+		}
 	}
 
 	@Override
@@ -337,9 +339,11 @@ public class QueueService implements IQueueService {
 		this.uri = uri;
 		uriString = uri.toString();
 
-		//Update job-queue
-		jobQueue = new Queue<>(jobQueueID, uri, 
-				heartbeatTopicName, commandSetName, commandTopicName);
+		if (init) {
+			//Update job-queue
+			jobQueue = new Queue<>(jobQueueID, uri, 
+					heartbeatTopicName, commandSetName, commandTopicName);
+		}
 	}
 
 	@Override
