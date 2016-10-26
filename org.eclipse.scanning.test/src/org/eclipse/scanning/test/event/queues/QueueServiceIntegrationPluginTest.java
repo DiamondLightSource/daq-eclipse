@@ -22,7 +22,7 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 	public void setup() throws Exception {
 		//Configure the queue service
 		queueService = ServicesHolder.getQueueService();
-		queueService.setURI(uri);
+		queueService.setUri(uri);
 		queueService.setQueueRoot(qRoot);
 		queueService.init();
 		
