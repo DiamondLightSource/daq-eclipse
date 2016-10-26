@@ -203,7 +203,7 @@ public class AbstractScanTest extends BrokerTest {
 		
 		StepModel model = new StepModel();
 		model.setStart(0);
-		model.setStop(10);
+		model.setStop(100);
 		model.setStep(1);
 		model.setName("myScannable");
 		
@@ -449,7 +449,6 @@ public class AbstractScanTest extends BrokerTest {
 			((GridModel) pmodel).setSlowAxisPoints(5);
 			((GridModel) pmodel).setFastAxisPoints(5);
 			((GridModel) pmodel).setBoundingBox(new BoundingBox(0,0,3,3));
-			
 		}
 		
 		if (axes!=null && pmodel instanceof IBoundingBoxModel) {

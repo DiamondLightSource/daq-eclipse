@@ -79,10 +79,12 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private Map<String, Object>          scanAttributes;
 	
 	private volatile boolean busy = false;
+	private boolean requireMetrics;
 
 	protected AbstractRunnableDevice() {
 		this.scanId     = UUID.randomUUID().toString();
 		this.scanAttributes = new HashMap<>();
+		setRequireMetrics(Boolean.getBoolean(getClass().getName()+".Metrics"));
 	}
 
 	/**
@@ -196,7 +198,8 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	}
 
 	
-	
+	private long lastPositionTime = -1;
+	private long total=0;
 	/**
 	 * 
 	 * @param pos
@@ -206,6 +209,16 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * @throws ScanningException
 	 */
 	protected void positionComplete(IPosition pos, int count, int size) throws EventException, ScanningException {
+		
+		if (requireMetrics) {
+			long currentTime = System.currentTimeMillis();
+			if (lastPositionTime>-1) {
+				long time = currentTime-lastPositionTime;
+				System.out.println("Point "+count+" timed at "+time+" ms");
+				total+=time;
+			}
+			lastPositionTime = currentTime;
+		}
 		firePositionComplete(pos);
 		
 		final ScanBean bean = getBean();
@@ -269,8 +282,15 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		for (IPositionListener l : la) l.positionPerformed(evt);
 	}
 
+	private long startTime;
+	
 	public void fireRunWillPerform(IPosition position) throws ScanningException {
 		
+		if (isRequireMetrics()) {
+			startTime = System.currentTimeMillis();
+			total     = 0;
+		}
+
 		if (rlisteners==null) return;
 		
 		final RunEvent evt = new RunEvent(this, position, getDeviceState());
@@ -281,6 +301,12 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	}
 	
 	public void fireRunPerformed(IPosition position) throws ScanningException {
+		
+		if (isRequireMetrics()) {
+			long time = System.currentTimeMillis()-startTime;
+			System.out.println("Ran "+(position.getStepIndex()+1)+" points in *total* time of "+time+" ms.");
+			System.out.println("Average point time of "+(total/position.getStepIndex())+" ms/pnt");
+		}
 		
 		if (rlisteners==null) return;
 		
@@ -500,6 +526,14 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 
 	public void setRole(DeviceRole role) {
 		this.role = role;
+	}
+
+	public boolean isRequireMetrics() {
+		return requireMetrics;
+	}
+
+	public void setRequireMetrics(boolean requireMetrics) {
+		this.requireMetrics = requireMetrics;
 	}
 
 }
