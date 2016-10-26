@@ -41,6 +41,7 @@ import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.january.dataset.DTypeUtils;
 import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.DatasetUtils;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.PositionIterator;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
@@ -180,13 +181,12 @@ public class ScanMetadataTest extends NexusTest {
 			for (String metadataFieldName : scanMetadata.getMetadataFieldNames()) {
 				Object expectedValue = scanMetadata.getMetadataFieldValue(metadataFieldName);
 
-				Dataset dataset = (Dataset) object.getDataset(metadataFieldName);
+				Dataset dataset = DatasetUtils.convertToDataset(object.getDataset(metadataFieldName));
 				assertNotNull(dataset);
-				assertEquals(1, dataset.getRank());
 				assertEquals(1, dataset.getSize());
 				assertEquals(DTypeUtils.getDTypeFromObject(expectedValue),
 						dataset.getDType());
-				assertEquals(expectedValue, dataset.getObject(0));
+				assertEquals(expectedValue, dataset.getObjectAbs(0));
 			}
 		}
 	}
