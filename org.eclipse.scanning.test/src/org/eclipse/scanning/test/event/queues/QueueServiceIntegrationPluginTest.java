@@ -28,7 +28,7 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		
 		//Configure the queue controller service
 		queueControl = ServicesHolder.getQueueControllerService();
-		queueControl.start();
+		queueControl.startQueueService();
 	}
 	
 	@Test

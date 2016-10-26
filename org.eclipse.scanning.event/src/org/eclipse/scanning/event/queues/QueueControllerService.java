@@ -40,7 +40,11 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 	
 	@Override
-	public void init() {
+	public void init() throws EventException {
+		if (!queueService.isInitialized()) {
+			queueService.init();
+		}
+		
 		//Get the queue service configuration
 		commandSetName = queueService.getCommandSetName();
 		commandTopicName = queueService.getCommandTopicName();
@@ -48,12 +52,12 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 
 	@Override
-	public void start() throws EventException {
+	public void startQueueService() throws EventException {
 		queueService.start();
 	}
 
 	@Override
-	public void stop(boolean force) throws EventException {
+	public void stopQueueService(boolean force) throws EventException {
 		queueService.stop(force);
 	}
 

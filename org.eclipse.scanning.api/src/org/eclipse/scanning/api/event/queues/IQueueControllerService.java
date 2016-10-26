@@ -13,14 +13,19 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  */
 public interface IQueueControllerService {
 	
-	public void init();
+	/**
+	 * Initialise the service with config options specific to the given 
+	 * {@link IQueueService} instance. Attempts to initialise the 
+	 * {@link QueueService} if it hasn't been.
+	 */
+	public void init() throws EventException;
 	
 	/**
 	 * Start the {@link IQueueService}.
 	 * 
 	 * @throws EventException - if it was not possible to start the service.
 	 */
-	public void start() throws EventException;
+	public void startQueueService() throws EventException;
 	
 	/**
 	 * Stop the {@link IQueueService} gracefully. If force is true, consumers 
@@ -29,7 +34,7 @@ public interface IQueueControllerService {
 	 * @param force True if all consumers are to be killed.
 	 * @throws EventException - if the service could not be stopped.
 	 */
-	public void stop(boolean force) throws EventException;
+	public void stopQueueService(boolean force) throws EventException;
 	
 	/**
 	 * 
