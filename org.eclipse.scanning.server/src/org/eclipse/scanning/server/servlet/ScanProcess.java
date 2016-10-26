@@ -216,7 +216,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			IFilePathService fservice = Services.getFilePathService();
 			if (fservice!=null) {
 				try {
-					smodel.setFilePath(fservice.getNextPath());
+					final String template = req.getSampleData()!=null ? req.getSampleData().getName() : null;
+					smodel.setFilePath(fservice.getNextPath(template));
 				} catch (Exception e) {
 					throw new EventException(e);
 				}

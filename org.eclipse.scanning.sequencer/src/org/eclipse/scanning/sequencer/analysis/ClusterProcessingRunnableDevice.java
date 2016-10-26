@@ -101,9 +101,19 @@ public class ClusterProcessingRunnableDevice extends AbstractRunnableDevice<Clus
 		// if this is a file path, we just get the name. If it's a name, no change
 		final String processingName = getFileNameWithoutExtension(getModel().getName());
 		
-		String outputFileName = inputFileNameNoExt + "-" + processingName;
-		String outputDir = ServiceHolder.getFilePathService().getProcessedFilesDir();
-		return outputDir + '/' + outputFileName + NEXUS_FILE_EXTENSION;
+		String outputFileNamePrefix = inputFileNameNoExt + "-" + processingName;
+		String outputDirStr = ServiceHolder.getFilePathService().getProcessedFilesDir();
+		File outputDir = new File(outputDirStr);
+		
+		//  
+		File outputFile = new File(outputDir, outputFileNamePrefix + NEXUS_FILE_EXTENSION);
+		int suffix = 0;
+		while (outputFile.exists()) {
+			suffix++;
+			outputFile = new File(outputDir, outputFileNamePrefix + "-" + suffix + NEXUS_FILE_EXTENSION);
+		}
+		
+		return outputFile.toString();
 	}
 	
 	private String getFileNameWithoutExtension(String filePath) {

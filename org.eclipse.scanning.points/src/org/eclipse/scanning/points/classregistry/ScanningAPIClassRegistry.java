@@ -13,12 +13,9 @@ import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.api.event.scan.DeviceAction;
-import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
-import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.event.scan.PositionRequestType;
 import org.eclipse.scanning.api.event.scan.PositionerRequest;
+import org.eclipse.scanning.api.event.scan.SampleData;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -78,6 +75,7 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, PositionerRequest.class);
 		registerClass(tmp, ScanBean.class);
 		registerClass(tmp, ScanEvent.class);
+		registerClass(tmp, SampleData.class);
 		registerClass(tmp, ScanRequest.class);
 		
 		// points

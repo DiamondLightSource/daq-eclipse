@@ -32,6 +32,7 @@ import org.eclipse.richbeans.widgets.cell.CComboCellEditor;
 import org.eclipse.richbeans.widgets.cell.CComboWithEntryCellEditor;
 import org.eclipse.richbeans.widgets.cell.CComboWithEntryCellEditorData;
 import org.eclipse.richbeans.widgets.cell.NumberCellEditor;
+import org.eclipse.richbeans.widgets.decorator.RegexDecorator;
 import org.eclipse.richbeans.widgets.file.FileDialogCellEditor;
 import org.eclipse.richbeans.widgets.table.TextCellEditorWithContentProposal;
 import org.eclipse.scanning.api.IScannable;
@@ -53,6 +54,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.slf4j.Logger;
@@ -175,6 +177,11 @@ public class ModelFieldEditorFactory {
         	    	super.doSetValue(string);
         	    }
         	};
+        	if (anot!=null && anot.regex().length()>0) {
+        	    Text text = (Text)ed.getControl();
+        	    RegexDecorator deco = new RegexDecorator(text, anot.regex());
+        	    deco.setAllowInvalidValues(false);
+        	}
         }
         
         // Show the tooltip, if there is one

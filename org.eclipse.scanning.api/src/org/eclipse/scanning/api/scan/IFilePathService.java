@@ -13,9 +13,10 @@ public interface IFilePathService {
 	/**
 	 * Determine and return the next file path to write to.
 	 * @return next file path
+	 * @param template, for instance the sample name, may be null or empty string if no template is required.
 	 * @throws Exception if the next path cannot be calculated for any reason
 	 */
-	String getNextPath() throws Exception;
+	String getNextPath(String template) throws Exception;
 	
 	/**
 	 * Returns the name of the path returned by the most recent call to

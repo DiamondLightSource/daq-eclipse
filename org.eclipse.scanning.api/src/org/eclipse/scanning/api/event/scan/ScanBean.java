@@ -84,8 +84,12 @@ public final class ScanBean extends StatusBean {
 	
 	private String createNameFromRequest(ScanRequest<?> req) {
 		
+		String sname = "Scan";
+		if (req.getSampleData()!=null) sname = req.getSampleData().getName();
+		
 		StringBuilder buf = new StringBuilder();
-		buf.append("Scan [");
+		buf.append(sname);
+		buf.append(" [");
 		for (Iterator<Object> it = req.getCompoundModel().getModels().iterator(); it.hasNext();) {
 			Object model = it.next();
 			if (model instanceof AbstractPointsModel) {

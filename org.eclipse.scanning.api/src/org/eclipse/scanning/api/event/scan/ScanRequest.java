@@ -54,6 +54,11 @@ public class ScanRequest<T> implements Serializable {
 	private Collection<String> monitorNames;
 	
 	/**
+	 * The sample data which the user entered (if any) which determines
+	 */
+	private SampleData sampleData;
+	
+	/**
 	 * The names of metadata scannables. These are scannables whose field value(s)
 	 * are written once during the scan, may be null.
 	 */
@@ -117,6 +122,14 @@ public class ScanRequest<T> implements Serializable {
 	public ScanRequest(IScanPathModel m, T region, String filePath, String... monitorNames) {
 		this(m, filePath, monitorNames);
 		compoundModel.setRegions(Arrays.asList(new ScanRegion<T>(region, m.getScannableNames())));
+	}
+
+	public SampleData getSampleData() {
+		return sampleData;
+	}
+
+	public void setSampleData(SampleData sampleData) {
+		this.sampleData = sampleData;
 	}
 
 	public Collection<String> getMonitorNames() {
