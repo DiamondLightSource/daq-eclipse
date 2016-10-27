@@ -289,3 +289,9 @@ class JRandomOffsetMutator(object):
     def __init__(self, seed, axes, max_offset):
         self.py_mutator = RandomOffsetMutator(seed, axes, max_offset)
         logging.debug(self.py_mutator.to_dict())
+        
+class JFixedDurationMutator(object):
+    
+    def __init__(self, duration):
+        self.py_mutator = FixedDurationMutator(duration)
+        logging.debug(self.py_mutator.to_dict())

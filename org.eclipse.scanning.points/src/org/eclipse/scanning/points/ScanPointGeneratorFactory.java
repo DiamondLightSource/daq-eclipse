@@ -94,6 +94,10 @@ public class ScanPointGeneratorFactory {
         return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JRandomOffsetMutator");
     }
     
+    public static JythonObjectFactory JFixedDurationMutatorFactory() {
+        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JFixedDurationMutator");
+    }
+
     // This class creates Java objects from Jython classes
     public static class JythonObjectFactory {
     	
