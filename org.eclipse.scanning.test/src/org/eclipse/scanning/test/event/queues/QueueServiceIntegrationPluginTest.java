@@ -98,7 +98,8 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		queueControl.submit(task, queueService.getJobQueueID());
 		
 		try {
-			Thread.sleep(1000000);
+//			Thread.sleep(1000000);
+			waitForBeanFinalStatus(dummyB, queueService.getJobQueueID());//FIXME Put this on the QueueController
 		} catch (Exception e) {
 			// It's only a test...
 			e.printStackTrace();
@@ -121,7 +122,7 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 	 * Same as below, but checks for isFinal and waits 10s
 	 */
 	private void waitForBeanFinalStatus(Queueable bean, String queueID) throws EventException, InterruptedException {
-		waitForBeanStatus(bean, null, queueID, true, 10000);
+		waitForBeanStatus(bean, null, queueID, true, 1000000);
 	}
 	
 	/**
