@@ -85,7 +85,12 @@ public final class ScanBean extends StatusBean {
 	private String createNameFromRequest(ScanRequest<?> req) {
 		
 		String sname = "Scan";
-		if (req.getSampleData()!=null) sname = req.getSampleData().getName();
+		if (req.getSampleData()!=null               && 
+			req.getSampleData().getName()!=null     && 
+			req.getSampleData().getName().length()>0) {
+			
+			sname = req.getSampleData().getName();
+		}
 		
 		StringBuilder buf = new StringBuilder();
 		buf.append(sname);
