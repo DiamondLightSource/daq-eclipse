@@ -90,6 +90,7 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 		consumer = eventService.createConsumer(this.uri, getSubmissionQueueName(),
 				getStatusSetName(), getStatusTopicName(), getHeartbeatTopicName(),
 				getCommandTopicName());
+		consumer.setName(this.queueID);
 		consumer.setRunner(new QueueProcessCreator<T>(true));
 
 		status = QueueStatus.INITIALISED;
