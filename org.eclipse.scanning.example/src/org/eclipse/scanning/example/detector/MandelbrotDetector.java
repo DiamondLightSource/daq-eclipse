@@ -156,8 +156,12 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		// Find out where we are in the scan. This is unique to the Mandelbrot
 		// detector as it's a dummy in general a detector shouldn't need to get
 		// the position in the scan
-		final double a = (Double) pos.get(model.getRealAxisName());
-		final double b = (Double) pos.get(model.getImaginaryAxisName());
+		double a = 1.0;
+		double b = 1.0;
+		if (pos.size() > 0) {
+			a = (Double) pos.get(model.getRealAxisName());
+			b = (Double) pos.get(model.getImaginaryAxisName());
+		}
 
 		// Calculate the data for the image spectrum and total
 		image = calculateJuliaSet(a, b, model.getColumns(), model.getRows());

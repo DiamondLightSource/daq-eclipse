@@ -37,6 +37,7 @@ import org.eclipse.january.dataset.PositionIterator;
 public class NexusAssert {
 
 	public static void assertAxes(NXdata nxData, String... expectedValues) {
+		if (expectedValues.length == 0) return; // axes not written if no axes to write (a scalar signal field)
 		Attribute axesAttr = nxData.getAttribute(ATTR_NAME_AXES);
 		assertNotNull(axesAttr);
 		assertEquals(1, axesAttr.getRank());
