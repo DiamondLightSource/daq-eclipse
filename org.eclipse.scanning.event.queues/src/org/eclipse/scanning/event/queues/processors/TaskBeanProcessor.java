@@ -38,14 +38,15 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 				IQueueControllerService controller = ServicesHolder.getQueueControllerService();
 				controller.pauseQueue(ServicesHolder.getQueueService().getJobQueueID());
 			}
-			
+		} finally {
 			//This should be run after we've reported the queue final state
 			atomQueueProcessor.tidyQueue();
 			
 			//And we're done, so let other processes continue
 			analysisDone.signal();
-		} finally {
-				lock.unlock();
+			
+			
+			lock.unlock();
 		}
 		
 	}

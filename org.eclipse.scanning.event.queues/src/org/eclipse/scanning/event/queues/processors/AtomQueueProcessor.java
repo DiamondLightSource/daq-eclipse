@@ -53,7 +53,7 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 		//Spool beans from bean atom queue to the queue service
 		//(queue empty after this!)
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 1d, "Submitting atoms to active queue.");
-		Queueable parentBean = parentProcessor.getProcessBean();
+		Queueable parentBean = parentProcessor.getProcessBean();//TODO This is not needed - see atomQueue
 		while (atomQueue.atomQueueSize() > 0) {
 			QueueAtom nextAtom = atomQueue.viewNextAtom();
 			if (nextAtom.getBeamline() != parentBean.getBeamline()) {
