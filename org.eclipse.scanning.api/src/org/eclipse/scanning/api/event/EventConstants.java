@@ -85,6 +85,16 @@ public interface EventConstants {
 	public static final String POSITIONER_RESPONSE_TOPIC      = "org.eclipse.scanning.response.positioner.topic";
 	
 	/**
+	 * The is the topic for requests to acquire data from a detector.
+	 */
+	public static final String ACQUIRE_REQUEST_TOPIC = "org.eclipse.scanning.request.acquire.topic";
+	
+	/**
+	 * The is the topic for responses to acquire data f
+	 */
+	public static final String ACQUIRE_RESPONSE_TOPIC = "org.eclipse.scanning.response.acquire.topic";
+	
+	/**
 	 * When the user sets up the axes, an AxisConfiguration object will be broadcast on this event.
 	 */
 	public static final String AXIS_CONFIGURATION_TOPIC      = "org.eclipse.scanning.axis.configuration.topic";
