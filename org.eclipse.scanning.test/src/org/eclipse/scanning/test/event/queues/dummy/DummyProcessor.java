@@ -23,6 +23,7 @@ public abstract class DummyProcessor <P extends Queueable> extends AbstractQueue
 				broadcaster.broadcast(Status.TERMINATED);
 				return;
 			}
+			logger.debug("DummyProcessor ("+queueBean.getClass().getSimpleName()+" - "+queueBean.getName()+"): "+queueBean.getPercentComplete());
 			System.out.println("DummyProcessor ("+queueBean.getClass().getSimpleName()+" - "+queueBean.getName()+"): "+queueBean.getPercentComplete());
 			broadcaster.broadcast(new Double(i*10));
 
