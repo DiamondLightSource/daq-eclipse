@@ -1,45 +1,25 @@
 package org.eclipse.scanning.test.event.queues;
 
-import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.event.queues.QueueControllerService;
 import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
-import org.eclipse.scanning.test.BrokerTest;
-import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.BeforeClass;
 
-public class QueueServiceIntegrationTest extends BrokerTest {
+import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+
+public class QueueServiceIntegrationTest extends QueueServiceIntegrationPluginTest {
 	
-	private static IQueueService queueService;
-	private static IQueueControllerService queueControl;
-	private String qRoot = "fake-queue-root";
-	
-	//These won't be needed in the plugin test
-	private MockEventService mockEvServ = new MockEventService();
-	
-	private DummyBean dummy;
-	
-	@Before
-	public void setup() throws Exception {
-		setupServicesHolder();
+
+	@BeforeClass
+	public static void fakeOSGiSetup() {
+		setUpNonOSGIActivemqMarshaller();
 		
-		//Configure the queue service
-		queueService = ServicesHolder.getQueueService();
-		queueService.setUri(uri);
-		queueService.setQueueRoot(qRoot);
-		queueService.init();
-		
-		//Configure the queue controller service
-		queueControl = ServicesHolder.getQueueControllerService();
-		queueControl.startQueueService();
-	}
-	
-	private void setupServicesHolder() {
-		ServicesHolder.setEventService(mockEvServ);
+		IEventService evServ =  new EventServiceImpl(new ActivemqConnectorService());
+		ServicesHolder.setEventService(evServ);
 		
 		IQueueService qServ = new QueueService();
 		ServicesHolder.setQueueService(qServ);
@@ -47,11 +27,6 @@ public class QueueServiceIntegrationTest extends BrokerTest {
 		IQueueControllerService qCont = new QueueControllerService();
 		ServicesHolder.setQueueControllerService(qCont);
 		
-	}
-	
-	@Test
-	public void testRunningBean() throws EventException {
-		dummy = new DummyBean("Bob", 50);
 	}
 
 }

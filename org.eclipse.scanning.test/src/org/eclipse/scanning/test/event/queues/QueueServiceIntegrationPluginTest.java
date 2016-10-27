@@ -24,8 +24,8 @@ import org.junit.Test;
 
 public class QueueServiceIntegrationPluginTest extends BrokerTest {
 	
-	private static IQueueService queueService;
-	private static IQueueControllerService queueControl;
+	protected static IQueueService queueService;
+	protected static IQueueControllerService queueControl;
 	private String qRoot = "fake-queue-root";
 	
 	private DummyBean dummyB;
