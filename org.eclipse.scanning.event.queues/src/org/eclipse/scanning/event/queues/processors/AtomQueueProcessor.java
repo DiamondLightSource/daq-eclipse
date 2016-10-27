@@ -50,6 +50,15 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 0d, "Registering new active queue.");
 		activeQueueID = queueService.registerNewActiveQueue();
 		
+		//Create QueueListener - this must happen BEFORE submitting beans, otherwise the QueueListener 
+		//doesn't know about the child beans it has to listen for.
+		queueListener = new QueueListener<>(
+				parentProcessor.getQueueBroadcaster(), 
+				parentProcessor.getProcessBean(), 
+				parentProcessor.getProcessorLatch());
+		queueSubscriber = queueController.createQueueSubscriber(activeQueueID);
+		queueSubscriber.addListener(queueListener);
+		
 		//Spool beans from bean atom queue to the queue service
 		//(queue empty after this!)
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 1d, "Submitting atoms to active queue.");
@@ -68,14 +77,6 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 			queueController.submit(atomQueue.nextAtom(), activeQueueID);
 		}
 		
-		//Create QueueListener
-		queueListener = new QueueListener<>(
-				parentProcessor.getQueueBroadcaster(), 
-				parentProcessor.getProcessBean(), 
-				parentProcessor.getProcessorLatch());
-		queueSubscriber = queueController.createQueueSubscriber(activeQueueID);
-		queueSubscriber.addListener(queueListener);
-		
 		//Start processing & wait for it to end.
 		parentProcessor.getQueueBroadcaster().broadcast(Status.RUNNING, 4d, "Beans submitted. Starting active queue...");
 		queueService.startActiveQueue(activeQueueID);
@@ -89,12 +90,14 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 	}
 	
 	protected void tidyQueue() throws EventException {
+		//This should happen first to avoid spurious messages about termination
+		queueSubscriber.disconnect();
+		
 		//Tidy up our processes, before handing back control
 		if (queueService.getActiveQueue(activeQueueID).getStatus().isActive()) {
 			queueService.stopActiveQueue(activeQueueID, false);
 		}
 		queueService.deRegisterActiveQueue(activeQueueID, true);
-		queueSubscriber.disconnect();
 	}
 
 	public String getActiveQueueID() {
