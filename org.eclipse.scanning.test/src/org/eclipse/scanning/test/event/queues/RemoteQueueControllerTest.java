@@ -5,20 +5,18 @@ import static org.junit.Assert.assertEquals;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IResponseCreator;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
-import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequestType;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.Queue;
 import org.eclipse.scanning.event.queues.QueueService;
+import org.eclipse.scanning.event.queues.ServicesHolder;
+import org.eclipse.scanning.event.queues.remote.QueueResponseCreator;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
-import org.eclipse.scanning.test.event.queues.mocks.MockQueueService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,19 +40,24 @@ public class RemoteQueueControllerTest {
 		mockPub = new MockPublisher<>(null, null);
 		mockEvServ = new MockEventService();
 		mockEvServ.setMockConsumer(mockCons);
+		ServicesHolder.setEventService(mockEvServ);
 		
 		//This is the REAL queue service, because the Mock is too complex
 		qServ = new QueueService();
 		qServ.setQueueRoot("fake-q-root");
 		qServ.setUri("file:///foo/bar");
 		qServ.init();
+		ServicesHolder.setQueueService(qServ);
+		
+		//Create the QueueResponseProcess creator
+		qResponseCreator = new QueueResponseCreator();
 	}
 	
 	@Test
 	public void testResponseGetJobQueueID() throws EventException {
 		//Create bean status request for job-queue ID
 		QueueRequest qReq = new QueueRequest();
-		qReq.setType(QueueRequestType.JOB_QUEUE_ID);
+		qReq.setRequestType(QueueRequestType.JOB_QUEUE_ID);
 		
 		//Create the response & process the request
 		IResponseProcess<QueueRequest> responseProc = qResponseCreator.createResponder(qReq, mockPub);
@@ -72,7 +75,7 @@ public class RemoteQueueControllerTest {
 		
 		//Create bean status request & post
 		QueueRequest qReq = new QueueRequest();
-		qReq.setType(QueueRequestType.BEAN_STATUS);
+		qReq.setRequestType(QueueRequestType.BEAN_STATUS);
 		qReq.setQueueID("fake-q-root"+IQueueService.JOB_QUEUE_SUFFIX);
 		qReq.setBeanID(dummy.getUniqueId());
 		
