@@ -113,32 +113,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	 */
 	private Map<String, Integer> defaultAxisIndexForScannable = null;
 	
-	/**
-	 * Creates the NeXus file for the scan, if the scan is configured to create one.
-	 * Returns an {@link INexusScanFileManager} for further interaction with the file,
-	 * e.g. flush and close()
-	 * @param runnableDevice
-	 * @param model
-	 * @return nexus scan file manager
-	 * @throws ScanningException
-	 */
-	public static INexusScanFileManager createNexusScanFile(
-			AbstractRunnableDevice<ScanModel> runnableDevice, ScanModel model) throws ScanningException {
-		final INexusScanFileManager nexusFileMgr;
-		if (model.getFilePath() == null || ServiceHolder.getFactory() == null) {
-			// nothing wired, don't write a nexus file
-			nexusFileMgr = new DummyNexusScanFileManager();
-		} else {
-			nexusFileMgr = new NexusScanFileManager(runnableDevice);
-		}
-		
-		nexusFileMgr.configure(model);
-		nexusFileMgr.createNexusFile(false);
-		
-		return nexusFileMgr;
-	}
-	 
-	private NexusScanFileManager(AbstractRunnableDevice<ScanModel> scanDevice) {
+	public NexusScanFileManager(AbstractRunnableDevice<ScanModel> scanDevice) {
 		this.scanDevice = scanDevice;
 	}
 	
