@@ -194,7 +194,6 @@ public class TaskBeanProcessorTest {
 		}
 		///...then check it's the right one.
 		if (cmdBeans.get(cmdBeans.size()-1) instanceof PauseBean) {
-			System.out.println("I finished after: "+timeout);
 			PauseBean lastBean = (PauseBean)cmdBeans.get(cmdBeans.size()-1);
 			assertEquals("PauseBean does not pause the job-queue consumer", mockCons.getConsumerId(), lastBean.getConsumerId());
 		} else {
