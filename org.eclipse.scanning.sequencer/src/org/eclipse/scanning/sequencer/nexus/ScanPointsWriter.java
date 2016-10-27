@@ -1,6 +1,5 @@
 package org.eclipse.scanning.sequencer.nexus;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
@@ -79,10 +78,12 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		points = scanPointsCollection.initializeLazyDataset(
 				FIELD_NAME_POINTS, info.getRank(), String.class);
 		// set chunking
-		final int[] chunk = info.createChunk(false, 4096);
-		uniqueKeys.setFillValue(0);
-		uniqueKeys.setChunking(chunk);
-		points.setChunking(chunk);
+		if (info.getRank() > 0) {
+			final int[] chunk = info.createChunk(false, 4096);
+			uniqueKeys.setFillValue(0);
+			uniqueKeys.setChunking(chunk);
+			points.setChunking(chunk);
+		}
 		
 		// add external links to the unique key datasets for each external HD5 file
 		addLinksToExternalFiles(scanPointsCollection);

@@ -13,6 +13,7 @@ import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.scan.AcquireRequest;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.PositionerRequest;
 import org.eclipse.scanning.api.event.scan.SampleData;
@@ -73,6 +74,7 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		// event.scan
 		registerClass(tmp, DeviceRequest.class);
 		registerClass(tmp, PositionerRequest.class);
+		registerClass(tmp, AcquireRequest.class);
 		registerClass(tmp, ScanBean.class);
 		registerClass(tmp, ScanEvent.class);
 		registerClass(tmp, SampleData.class);
