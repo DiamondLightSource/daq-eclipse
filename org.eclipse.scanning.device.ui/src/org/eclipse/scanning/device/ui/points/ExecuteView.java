@@ -51,6 +51,7 @@ import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.scan.IParserService;
 import org.eclipse.scanning.api.scan.ScanEstimator;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.ui.AbstractControl;
 import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.api.ui.CommandConstants;
@@ -357,7 +358,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 			
 			// This slightly funny alg or assign and sometimes update
 			// is correct. Do not change unless sure that UI is working afterwards.
-			if (ob instanceof IAdaptable) {
+			if (ob instanceof IAdaptable) { // TODO Replace with ScanBuilderService
                 CompoundModel<IROI> cm = ((IAdaptable)ob).getAdapter(CompoundModel.class);
                 if (cm !=null) modelAdaptable = (IAdaptable)ob;
 			}
@@ -550,7 +551,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	private String getDetectorNames() throws Exception {
 		
 		final StringBuilder buf = new StringBuilder();
-		Collection<DeviceInformation<?>> infos = dservice.getDeviceInformation();
+		Collection<DeviceInformation<?>> infos = getDeviceInformation();
 		Collection<DeviceInformation<?>> activated = new ArrayList<>();
     	for (Iterator<DeviceInformation<?>> it = infos.iterator(); it.hasNext();) {
 			DeviceInformation<?> deviceInformation = it.next();
@@ -571,9 +572,8 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	
 	private Map<String,Object> getDetectors() throws Exception {
 		
-		// TODO FIXME - Well how does the user configure the detector then?
 		Map<String,Object> detectors = new HashMap<>();
-		Collection<DeviceInformation<?>> infos = dservice.getDeviceInformation();
+		Collection<DeviceInformation<?>> infos = getDeviceInformation();
 		Collection<DeviceInformation<?>> activated = new ArrayList<>();
     	for (Iterator<DeviceInformation<?>> it = infos.iterator(); it.hasNext();) {
 			DeviceInformation<?> deviceInformation = it.next();
@@ -587,6 +587,23 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
     	return detectors;
 	}
 
+
+	private Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException {
+		
+		IViewReference[] refs = PageUtil.getPage().getViewReferences();
+		for (IViewReference iViewReference : refs) {
+			IViewPart part = iViewReference.getView(false);
+			if (part==null) continue;
+			Object info = part.getAdapter(DeviceInformation.class);
+			if (info!=null && info instanceof Collection) { // A collection of device information
+				return (Collection<DeviceInformation<?>>)info;
+			}
+		}
+		
+		// We cannot find a part which has the temp information so
+        // we use the server information.
+		return dservice.getDeviceInformation(); 
+	}
 
 	private String getMotorNames(IPointGenerator<?> gen) {
 

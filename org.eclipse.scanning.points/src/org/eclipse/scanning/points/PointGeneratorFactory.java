@@ -25,7 +25,7 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.CollatedStepModel;
 import org.eclipse.scanning.api.points.models.CompoundModel;
-import org.eclipse.scanning.api.points.models.EmptyModel;
+import org.eclipse.scanning.api.points.models.StaticModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IBoundingLineModel;
@@ -62,7 +62,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		gens.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
 		gens.put(OneDStepModel.class,         OneDStepGenerator.class);
 		gens.put(RasterModel.class,           RasterGenerator.class);
-		gens.put(EmptyModel.class,            EmptyGenerator.class);
+		gens.put(StaticModel.class,            StaticGenerator.class);
 		gens.put(RandomOffsetGridModel.class, RandomOffsetGridGenerator.class);
 		gens.put(SpiralModel.class,           SpiralGenerator.class);
 		gens.put(LissajousModel.class,        LissajousGenerator.class);

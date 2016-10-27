@@ -34,6 +34,8 @@ import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.january.DatasetException;
+import org.eclipse.january.dataset.Dataset;
+import org.eclipse.january.dataset.DatasetUtils;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.PositionIterator;
 import org.eclipse.scanning.api.IScanAttributeContainer;
@@ -174,14 +176,14 @@ public class AttributeTest extends NexusTest{
 		nf.openToRead();
 		
 		DataNode node = nf.getData("/entry/instrument/" + sName + "/"+attrName);
-		IDataset sData = (IDataset)node.getDataset().getSlice();
-		
+		Dataset sData =  DatasetUtils.sliceAndConvertLazyDataset(node.getDataset());
+
 		if ("name".equals(attrName)) {
-			assertEquals(sData.getString(0), sName);
+			assertEquals(sData.getStringAbs(0), sName);
 		} else if (attrValue instanceof Number) {
-			assertTrue(sData.getDouble(0)==((Number)attrValue).doubleValue());
+			assertTrue(sData.getElementDoubleAbs(0)==((Number)attrValue).doubleValue());
 		} else {
-			assertEquals(sData.getString(0), (String)attrValue);
+			assertEquals(sData.getStringAbs(0), (String)attrValue);
 		}
 		
 	}

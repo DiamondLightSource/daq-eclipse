@@ -8,8 +8,8 @@ import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.models.ClusterProcessingModel;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.event.IEventService;
@@ -26,7 +26,6 @@ import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
-import org.eclipse.scanning.sequencer.ServiceHolder;
 import org.eclipse.scanning.sequencer.analysis.ClusterProcessingRunnableDevice;
 import org.eclipse.scanning.sequencer.analysis.ProcessingRunnableDevice;
 import org.eclipse.scanning.server.servlet.Services;
@@ -61,6 +60,7 @@ public class NexusTest extends TmpTest {
 	@BeforeClass
 	public static void setServices() throws Exception {
 		
+		//System.setProperty("org.eclipse.scanning.sequencer.AcquisitionDevice.Metrics", "true");
 		connector   = new MockScannableConnector(null);
 		dservice    = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
 		gservice    = new PointGeneratorFactory();

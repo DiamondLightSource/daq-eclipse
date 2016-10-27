@@ -31,8 +31,7 @@ class LineIterator extends AbstractScanPointIterator {
         int numPoints = (int) ((stop - start) / model.getStep() + 1);
         
 		@SuppressWarnings("unchecked")
-		Iterator<IPosition> iterator = (Iterator<IPosition>)  lineGeneratorFactory.createObject(
-				name, "mm", start, stop, numPoints);
+		Iterator<IPosition> iterator = (Iterator<IPosition>)  lineGeneratorFactory.createObject(name, "mm", start, stop, numPoints);
 		pyIterator = iterator;
 	}
 	
