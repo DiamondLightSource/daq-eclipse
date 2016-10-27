@@ -68,10 +68,10 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 	public void testRunningBean() throws EventException {
 		dummyB = new DummyBean("Bob", 50);
 		
-		queueControl.submit(dummyB, queueService.getJobQueueID());
+		queueControl.submit(dummyB, queueControl.getJobQueueID()););
 		
 		try {
-			waitForBeanFinalStatus(dummyB, queueService.getJobQueueID());//FIXME Put this on the QueueController
+			waitForBeanFinalStatus(dummyB, queueControl.getJobQueueID());
 		} catch (Exception e) {
 			// It's only a test...
 			e.printStackTrace();
@@ -95,11 +95,11 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		subTask.addAtom(dummyA);
 		task.addAtom(subTask);
 		
-		queueControl.submit(task, queueService.getJobQueueID());
+		queueControl.submit(task, queueControl.getJobQueueID());
 		
 		try {
 //			Thread.sleep(1000000);
-			waitForBeanFinalStatus(dummyB, queueService.getJobQueueID());//FIXME Put this on the QueueController
+			waitForBeanFinalStatus(dummyB, queueControl.getJobQueueID());
 		} catch (Exception e) {
 			// It's only a test...
 			e.printStackTrace();

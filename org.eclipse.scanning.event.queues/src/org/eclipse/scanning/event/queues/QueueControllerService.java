@@ -284,4 +284,9 @@ public class QueueControllerService implements IQueueControllerService {
 		return eventService.createSubscriber(uri, topicName);
 	}
 
+	@Override
+	public String getJobQueueID() {
+		return queueService.getJobQueueID();
+	}
+
 }

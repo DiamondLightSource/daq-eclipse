@@ -5,11 +5,13 @@ import static org.junit.Assert.assertEquals;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IResponseCreator;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequestType;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.event.queues.QueueControllerService;
 import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.remote.QueueResponseCreator;
@@ -26,7 +28,9 @@ public class RemoteQueueControllerTest {
 	private MockPublisher<QueueRequest> mockPub;
 	private MockConsumer<Queueable> mockCons = new MockConsumer<>();
 	private MockEventService mockEvServ;
+	
 	private IQueueService qServ;
+	private IQueueControllerService qControl;
 	
 	private IResponseCreator<QueueRequest> qResponseCreator;	
 	
@@ -48,6 +52,9 @@ public class RemoteQueueControllerTest {
 		qServ.setUri("file:///foo/bar");
 		qServ.init();
 		ServicesHolder.setQueueService(qServ);
+		qControl = new QueueControllerService();
+		qControl.init();
+		ServicesHolder.setQueueControllerService(qControl);
 		
 		//Create the QueueResponseProcess creator
 		qResponseCreator = new QueueResponseCreator();
@@ -72,7 +79,6 @@ public class RemoteQueueControllerTest {
 	public void testResponseGetBeanStatus() {
 		dummy.setStatus(Status.SUBMITTED);
 		
-		
 		//Create bean status request & post
 		QueueRequest qReq = new QueueRequest();
 		qReq.setRequestType(QueueRequestType.BEAN_STATUS);
@@ -83,5 +89,8 @@ public class RemoteQueueControllerTest {
 		//Check response from server
 		assertEquals("Response has wrong bean status", Status.SUBMITTED, qReq.getBeanStatus());
 	}
+	
+	//Test getting full queue config
+	//Test starting/stopping queueservice
 
 }
