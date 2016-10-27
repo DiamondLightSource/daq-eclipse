@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -80,8 +82,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -646,7 +651,25 @@ public class StatusQueueView extends EventConnectionView {
 					new Status(IStatus.ERROR, Activator.PLUGIN_ID, ne.getMessage()));
 		}
 
-		openDirectory(bean);
+		if (bean.getRunDirectory()!=null) {
+			openDirectory(bean);
+		} else if (bean instanceof ScanBean) {
+			ScanBean sbean = (ScanBean)bean;
+			if (sbean.getFilePath()!=null) {
+				String filePath = sbean.getFilePath();
+				try {
+					// Set the perspective to Data Browsing Perspective
+					// TODO FIXME When there is a general data viewing perspective from DAWN, use that.
+					PlatformUI.getWorkbench().showPerspective("org.edna.workbench.application.perspective.DataPerspective",       
+					                                          PlatformUI.getWorkbench().getActiveWorkbenchWindow());
+					openExternalEditor(filePath);
+					
+				} catch (Exception e) {
+					ErrorDialog.openError(getSite().getShell(), "Internal Error", "Cannot open "+filePath+".\n\nPlease contact your support representative.", 
+							new Status(IStatus.ERROR, Activator.PLUGIN_ID, e.getMessage()));
+				}
+			}
+		}
 	}
 
 	private void openDirectory(StatusBean bean) {
@@ -1085,5 +1108,34 @@ public class StatusQueueView extends EventConnectionView {
 		buf.append(QueueViews.createSecondaryId(uri, beanBundleName, beanClassName, queueName, topicName, submissionQueueName));
 		return buf.toString();
 	}
+	
+	/**
+	 * Opens an external editor on an IEditorInput containing the file having filePath
+	 * @param editorInput
+	 * @param filePath
+	 * @throws PartInitException
+	 */
+	private IEditorPart openExternalEditor(String filename) throws PartInitException {
+		return openExternalEditor(getExternalFileStoreEditorInput(filename), filename);
+	}
+		
+	/**
+	 * Opens an external editor on an IEditorInput containing the file having filePath
+	 * @param editorInput
+	 * @param filePath
+	 * @throws PartInitException
+	 */
+	private IEditorPart openExternalEditor(IEditorInput editorInput, String filePath) throws PartInitException {
+		//TODO Maybe this method could be improved by omitting filepath which comes from editorInput, but "how?" should be defined here
+		final IWorkbenchPage page = getViewSite().getPage();
+		IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(filePath);
+		if (desc == null) desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(filePath+".txt");
+		return page.openEditor(editorInput, desc.getId());
+	}
+	private static IEditorInput getExternalFileStoreEditorInput(String filename) {
+		final IFileStore externalFile = EFS.getLocalFileSystem().fromLocalFile(new File(filename));
+		return new FileStoreEditorInput(externalFile);
+	}
+
 
 }
