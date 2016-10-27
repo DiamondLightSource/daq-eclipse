@@ -26,6 +26,10 @@ public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorMod
 		} catch (Exception ne) {
 			throw new ScanningException("Cannot to do readout", ne);
 		}
+		
+		if (getModel().getAbortCount()>-1 && getModel().getAbortCount()<=getModel().getRan()) {
+			throw new ScanningException("The detector had a problem running! This exception should stop the scan running!");
+		}
 	}
 	
 	@Override
@@ -37,9 +41,6 @@ public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorMod
 		}
 		
 		getModel().setWritten(getModel().getWritten()+1);
-		if (getModel().getAbortCount()>-1 && getModel().getAbortCount()<=getModel().getWritten()) {
-			throw new ScanningException("The detector had a problem writing! This exception should stop the scan running!");
-		}
 		
 		return true;
 	}

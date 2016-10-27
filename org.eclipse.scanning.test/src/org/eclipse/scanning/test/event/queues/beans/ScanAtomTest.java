@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.event.queues.beans.ScanAtom;
-import org.eclipse.scanning.api.points.models.EmptyModel;
+import org.eclipse.scanning.api.points.models.StaticModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.junit.Before;
@@ -34,10 +34,10 @@ public class ScanAtomTest extends AbstractBeanTest<ScanAtom> {
 		detectorsB.put("Test Detector C", new MockDetectorModel(50.0));
 		
 		modelsA = new ArrayList<>();
-		modelsA.add(new EmptyModel());
+		modelsA.add(new StaticModel());
 		modelsB = new ArrayList<>();
-		modelsB.add(new EmptyModel());
-		modelsB.add(new EmptyModel());
+		modelsB.add(new StaticModel());
+		modelsB.add(new StaticModel());
 		
 		monitors = new ArrayList<>();
 		monitors.add("Fake monitor");

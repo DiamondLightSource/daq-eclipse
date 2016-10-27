@@ -12,7 +12,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	MappingScanTest.class,
 	AnyBeanEventTest.class,
 	HeartbeatTest.class,
-	RequesterTest.class
+	RequesterTest.class,
+	AcquireRequestTest.class
 	// MConsumerTest.class  Takes too long! TODO Make shorter
 })
 public class Suite {

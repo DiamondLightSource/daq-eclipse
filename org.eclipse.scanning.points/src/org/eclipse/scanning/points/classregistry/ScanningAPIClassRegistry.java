@@ -15,6 +15,7 @@ import org.eclipse.scanning.api.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.api.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.api.event.queues.beans.TaskBean;
+import org.eclipse.scanning.api.event.scan.AcquireRequest;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.PositionerRequest;
 import org.eclipse.scanning.api.event.scan.SampleData;
@@ -25,7 +26,7 @@ import org.eclipse.scanning.api.event.status.AdministratorMessage;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.points.EmptyPosition;
+import org.eclipse.scanning.api.points.StaticPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.Scalar;
@@ -34,7 +35,7 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.CollatedStepModel;
 import org.eclipse.scanning.api.points.models.CompoundModel;
-import org.eclipse.scanning.api.points.models.EmptyModel;
+import org.eclipse.scanning.api.points.models.StaticModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.LissajousModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
@@ -75,13 +76,14 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		// event.scan
 		registerClass(tmp, DeviceRequest.class);
 		registerClass(tmp, PositionerRequest.class);
+		registerClass(tmp, AcquireRequest.class);
 		registerClass(tmp, ScanBean.class);
 		registerClass(tmp, ScanEvent.class);
 		registerClass(tmp, SampleData.class);
 		registerClass(tmp, ScanRequest.class);
 		
 		// points
-		registerClass(tmp, EmptyPosition.class);
+		registerClass(tmp, StaticPosition.class);
 		registerClass(tmp, MapPosition.class);
 		registerClass(tmp, Point.class);
 		registerClass(tmp, Scalar.class);
@@ -92,7 +94,7 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, BoundingLine.class);
 		registerClass(tmp, CollatedStepModel.class);
 		registerClass(tmp, CompoundModel.class);
-		registerClass(tmp, EmptyModel.class);
+		registerClass(tmp, StaticModel.class);
 		registerClass(tmp, GridModel.class);
 		registerClass(tmp, LissajousModel.class);
 		registerClass(tmp, OneDEqualSpacingModel.class);

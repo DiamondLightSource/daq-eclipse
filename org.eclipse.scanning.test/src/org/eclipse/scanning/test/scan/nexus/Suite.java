@@ -10,6 +10,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	BasicScanTest.class,
 	ConstantVelocityTest.class,
 	DarkCurrentTest.class,
+	MandelbrotAcquireTest.class,
 	MandelbrotExampleTest.class,
 	MandelbrotRemoteTest.class,
 	MonitorTest.class,

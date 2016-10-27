@@ -78,6 +78,7 @@ public class TaskBeanProcessorTest {
 		
 		//Once this lot is up, create a queue controller.
 		controller = new QueueControllerService();
+		controller.init();
 		ServicesHolder.setQueueControllerService(controller);
 	}
 	
@@ -184,7 +185,16 @@ public class TaskBeanProcessorTest {
 		
 		//Check we sent a pause instruction to the job-queue consumer
 		List<ConsumerCommandBean> cmdBeans = mockCmdPub.getCmdBeans();
+		long timeout = 1000;
+		while (cmdBeans.size() < 1) {
+			//Sit here waiting until a cmd bean lands...
+			Thread.sleep(50);
+			timeout = timeout-50;
+			if (timeout == 0) fail("No cmd bean's heard before timeout");
+		}
+		///...then check it's the right one.
 		if (cmdBeans.get(cmdBeans.size()-1) instanceof PauseBean) {
+			System.out.println("I finished after: "+timeout);
 			PauseBean lastBean = (PauseBean)cmdBeans.get(cmdBeans.size()-1);
 			assertEquals("PauseBean does not pause the job-queue consumer", mockCons.getConsumerId(), lastBean.getConsumerId());
 		} else {
