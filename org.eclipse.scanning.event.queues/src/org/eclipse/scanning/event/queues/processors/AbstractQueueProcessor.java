@@ -26,7 +26,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractQueueProcessor.class);
 
-	private boolean executed = false, terminated = false;
+	private boolean executed = false, terminated = false, finished = false;
 
 	protected P queueBean;
 	protected IQueueBroadcaster<? extends Queueable> broadcaster;
@@ -97,7 +97,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 			processorLatch.countDown();
 			
 			//Wait for post-match analysis to finish
-			analysisDone.await();
+			continueIfExecutionEnded();
 		} catch (InterruptedException iEx) {
 			throw new EventException(iEx);
 		} finally {
@@ -118,6 +118,25 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 	@Override
 	public CountDownLatch getProcessorLatch() {
 		return processorLatch;
+	}
+	
+	/**
+	 * Called at the end of post-match analysis to the process finished
+	 */
+	protected void executionEnded() {
+		finished = true;
+		analysisDone.signal();
+	}
+	
+	/**
+	 * Called when we would need to wait if post-match analysis hasn't yet run.
+	 * @throws InterruptedException 
+	 */
+	protected void continueIfExecutionEnded() throws InterruptedException {
+		if (finished) return;
+		else {
+			analysisDone.await();
+		}
 	}
 
 }
