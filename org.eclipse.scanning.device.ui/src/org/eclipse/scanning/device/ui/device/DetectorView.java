@@ -80,6 +80,15 @@ public class DetectorView extends EventConnectionView {
 		this.iconMap     = new HashMap<>(7);
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public Object getAdapter(Class clazz) {
+		if (clazz == DeviceInformation.class || clazz == DeviceInformation[].class) {
+			DetectorContentProvider prov = (DetectorContentProvider)viewer.getContentProvider();
+			return prov.getInfo();
+		}
+        return super.getAdapter(clazz);
+	}
             
 	@Override
 	public void createPartControl(Composite parent) {

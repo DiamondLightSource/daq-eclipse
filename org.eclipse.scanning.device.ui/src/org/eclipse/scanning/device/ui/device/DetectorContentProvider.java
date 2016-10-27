@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 class DetectorContentProvider implements IStructuredContentProvider {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(DetectorContentProvider.class);
 	
 	/**
@@ -72,6 +72,10 @@ class DetectorContentProvider implements IStructuredContentProvider {
 			logger.error("Cannot get devices!", ne);
 			return new DeviceInformation<?>[]{new DeviceInformation<Object>("No devices found")};
 		}
+	}
+	
+	public Collection<DeviceInformation<?>> getInfo() {
+		return infos;
 	}
 
 }
