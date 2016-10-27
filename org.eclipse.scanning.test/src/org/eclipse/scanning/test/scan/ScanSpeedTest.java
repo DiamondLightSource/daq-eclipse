@@ -189,8 +189,8 @@ public class ScanSpeedTest extends BrokerTest {
 			assertEquals(1,    ams.getCount(ScanStart.class));
 			assertEquals(100,  ams.getCount(PointStart.class));
 			assertEquals(100,  ams.getCount(PointEnd.class));
-			assertEquals(200,  ams.getCount(LevelStart.class)); // Detectors are called once run, once write
-			assertEquals(200,  ams.getCount(LevelEnd.class));   // Detectors are called once run, once write
+			assertEquals(100,  ams.getCount(LevelStart.class)); // run is called, but write is not as no nexus file is configured
+			assertEquals(100,  ams.getCount(LevelEnd.class));   // run is called, but write is not as no nexus file is configured
 			assertEquals(1,    ams.getCount(ScanEnd.class));
 		}
 

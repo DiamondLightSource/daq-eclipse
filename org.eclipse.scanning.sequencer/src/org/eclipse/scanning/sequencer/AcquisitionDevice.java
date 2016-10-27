@@ -36,6 +36,7 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.nexus.INexusScanFileManager;
 import org.eclipse.scanning.sequencer.nexus.NexusScanFileManager;
+import org.eclipse.scanning.sequencer.nexus.NexusScanFileManager.DummyNexusScanFileManager;
 
 /**
  * This device does a standard GDA scan at each point. If a given point is a 
@@ -109,7 +110,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		positioner = runnableDeviceService.createPositioner();
 		if (model.getDetectors()!=null) {
-			
 			// Make sure all devices report the same scan id
 			for (IRunnableDevice<?> device : model.getDetectors()) {
 				if (device instanceof AbstractRunnableDevice<?>) {
@@ -118,15 +118,29 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 					adevice.setPrimaryScanDevice(false);
 				}
 			}
+		}
+		
+		// create the nexus file, if appropriate
+		boolean writesNexus = model.getFilePath() != null && ServiceHolder.getFactory() != null;
+		if (writesNexus) {
+			nexusScanFileManager = new NexusScanFileManager(this);
+		} else { //nothing wired, don't write a nexus file
+			nexusScanFileManager = new DummyNexusScanFileManager();
+		}
+		nexusScanFileManager.configure(model);
+		nexusScanFileManager.createNexusFile(false);
+		
+		if (model.getDetectors()!=null) {
 			runners = new DeviceRunner(model.getDetectors());
-			writers = new DeviceWriter(model.getDetectors());
+			if (writesNexus) {
+				writers = new DeviceWriter(model.getDetectors());
+			} else {
+				writers = LevelRunner.createEmptyRunner();
+			}
 		} else {
 			runners = LevelRunner.createEmptyRunner();
 			writers = LevelRunner.createEmptyRunner();
 		}
-		
-		// create the nexus file, if appropriate
-		nexusScanFileManager = NexusScanFileManager.createNexusScanFile(this, model);
 		
 		// Create the manager and populate it
 		if (manager!=null) manager.dispose(); // It is allowed to configure more than once.
