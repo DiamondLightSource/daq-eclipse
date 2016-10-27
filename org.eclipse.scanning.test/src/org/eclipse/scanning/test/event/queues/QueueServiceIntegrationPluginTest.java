@@ -3,11 +3,19 @@ package org.eclipse.scanning.test.event.queues;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.bean.BeanEvent;
+import org.eclipse.scanning.api.event.bean.IBeanListener;
+import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.api.event.queues.beans.TaskBean;
 import org.eclipse.scanning.api.event.status.Status;
@@ -63,9 +71,9 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		queueControl.submit(dummyB, queueService.getJobQueueID());
 		
 		try {
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			waitForBeanFinalStatus(dummyB, queueService.getJobQueueID());//FIXME Put this on the QueueController
+		} catch (Exception e) {
+			// It's only a test...
 			e.printStackTrace();
 		}
 		
@@ -91,8 +99,8 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		
 		try {
 			Thread.sleep(1000000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
+			// It's only a test...
 			e.printStackTrace();
 		}
 		
@@ -100,6 +108,59 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		assertEquals(1, statusSet.size());
 		assertEquals(Status.COMPLETE, statusSet.get(0).getStatus());
 		assertEquals(task.getUniqueId(), statusSet.get(0).getUniqueId());
+	}
+	
+	/**
+	 * Same as below, but does not check for final state and waits for 10s
+	 */
+	private void waitForBeanStatus(Queueable bean, Status state, String queueID) throws EventException, InterruptedException {
+		waitForBeanStatus(bean, state, queueID, false, 10000);
+	}
+	
+	/**
+	 * Same as below, but checks for isFinal and waits 10s
+	 */
+	private void waitForBeanFinalStatus(Queueable bean, String queueID) throws EventException, InterruptedException {
+		waitForBeanStatus(bean, null, queueID, true, 10000);
+	}
+	
+	/**
+	 * Timeout is in ms
+	 */
+	private void waitForBeanStatus(Queueable bean, Status state, String queueID, boolean isFinal, long timeout) 
+			throws EventException, InterruptedException {
+		final CountDownLatch statusLatch = new CountDownLatch(1);
+		
+		//Get the queue we're interested in
+		IQueue<Queueable> queue = queueService.getQueue(queueID);
+		
+		//Create a subscriber configured to listen for our bean
+		IEventService evServ = ServicesHolder.getEventService();
+		ISubscriber<IBeanListener<Queueable>> statusSubsc = evServ.createSubscriber(uri, queue.getStatusTopicName());
+		statusSubsc.addListener(new IBeanListener<Queueable>() {
+
+			@Override
+			public void beanChangePerformed(BeanEvent<Queueable> evt) {
+				Queueable evtBean = evt.getBean();
+				if (evtBean.getUniqueId().equals(bean.getUniqueId())) {
+					if ((evtBean.getStatus() == state) || (evtBean.getStatus().isFinal() && isFinal)) {
+						statusLatch.countDown();
+					}
+				}
+			}
+			
+		});
+		//We may get stuck if the consumer finishes processing faster than the test works through
+		//If so, we need to test for a non-empty status set with last bean status equal to our expectation
+		
+		//Once finished, check whether the latch was released or timedout
+		boolean released = statusLatch.await(timeout, TimeUnit.MILLISECONDS);
+		if (released) {
+			System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~\n Final state reached\n~~~~~~~~~~~~~~~~~~~~~~~~~");
+		} else {
+			System.out.println("#########################\n No final state reported\n#########################");
+		}
+		statusSubsc.disconnect();
 	}
 
 }
