@@ -27,30 +27,50 @@ public class QueueControllerService implements IQueueControllerService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueueControllerService.class);
 	
-	private final IEventService eventService;
-	private final IQueueService queueService;
+	private static IEventService eventService;
+	private static IQueueService queueService;
 	
-	private final String commandSetName, commandTopicName;
-	private final URI uri;
+	private boolean init = false;
+	private String commandSetName, commandTopicName;
+	private URI uri;
 	
+	static {
+		System.out.println("Created " + IQueueControllerService.class.getSimpleName());
+	}
+	
+	/**
+	 * No argument constructor for OSGi
+	 */
 	public QueueControllerService() {
+		
+	}
+	
+	@Override
+	public void init() throws EventException {
 		//Set up services
 		eventService = ServicesHolder.getEventService();
 		queueService = ServicesHolder.getQueueService();
+				
+		if (!queueService.isInitialized()) {
+			queueService.init();
+		}
 		
 		//Get the queue service configuration
 		commandSetName = queueService.getCommandSetName();
 		commandTopicName = queueService.getCommandTopicName();
 		uri = queueService.getURI();
+		
+		init = true;
 	}
 
 	@Override
-	public void start() throws EventException {
+	public void startQueueService() throws EventException {
+		if (!init) throw new IllegalStateException("Queue Controller must be initialised before starting Queue Service.");
 		queueService.start();
 	}
 
 	@Override
-	public void stop(boolean force) throws EventException {
+	public void stopQueueService(boolean force) throws EventException {
 		queueService.stop(force);
 	}
 

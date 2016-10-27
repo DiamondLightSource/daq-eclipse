@@ -13,8 +13,9 @@ public class MockFilePathService implements IFilePathService {
 	}
 	
 	@Override
-	public String getNextPath() throws Exception {
-		mostRecentPath = getUnique(dir, "Scan", "nxs").getAbsolutePath();
+	public String getNextPath(String template) throws Exception {
+		if (template==null) template = "";
+		mostRecentPath = getUnique(dir, "Scan-"+template, "nxs").getAbsolutePath();
 		return mostRecentPath;
 	}
 	

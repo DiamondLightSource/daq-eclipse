@@ -28,7 +28,7 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 			if (isTerminated()) {
 				queueBean.setMessage("Job-queue aborted before completion (requested)");
 				atomQueueProcessor.terminate();
-			} else if (queueBean.getPercentComplete() >= 99.5) {
+			} else if (queueBean.getPercentComplete() >= 99.49) {//99.49 to catch rounding errors
 				//Completed successfully
 				broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
 			} else {
@@ -38,14 +38,13 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 				IQueueControllerService controller = ServicesHolder.getQueueControllerService();
 				controller.pauseQueue(ServicesHolder.getQueueService().getJobQueueID());
 			}
-			
+			//And we're done, so let other processes continue
+			executionEnded();
+		} finally {
 			//This should be run after we've reported the queue final state
 			atomQueueProcessor.tidyQueue();
 			
-			//And we're done, so let other processes continue
-			analysisDone.signal();
-		} finally {
-				lock.unlock();
+			lock.unlock();
 		}
 		
 	}

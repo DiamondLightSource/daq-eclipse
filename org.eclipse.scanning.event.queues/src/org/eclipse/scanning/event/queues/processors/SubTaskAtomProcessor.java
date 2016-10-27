@@ -26,7 +26,7 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 			if (isTerminated()) {
 				queueBean.setMessage("Active-queue aborted before completion (requested)");
 				atomQueueProcessor.terminate();
-			} else if (queueBean.getPercentComplete() >= 99.5) {
+			} else if (queueBean.getPercentComplete() >= 99.49) {//99.49 to catch rounding errors
 				//Completed successfully
 				broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
 			} else {
@@ -38,7 +38,7 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 			atomQueueProcessor.tidyQueue();
 
 			//And we're done, so let other processes continue
-			analysisDone.signal();
+			executionEnded();
 		} finally {
 			lock.unlock();
 		}

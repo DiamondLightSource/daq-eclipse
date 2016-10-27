@@ -64,7 +64,7 @@ public class ScanEstimator {
 	 * @param bean
 	 */
 	public ScanEstimator(IPointGeneratorService pservice, ScanRequest<?> request) throws GeneratorException{
-		this(pservice, request, Long.MIN_VALUE);
+		this(pservice, request, 0);
 	}
 
 	/**

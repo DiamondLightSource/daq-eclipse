@@ -7,6 +7,7 @@ import java.util.Map;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
@@ -42,6 +43,7 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 	public AbstractMalcolmDevice(IMalcolmConnectorService<MalcolmMessage> connector) throws MalcolmDeviceException {
    		this.connectionDelegate = connector.createDeviceConnection(this);
    		this.eventDelegate = new MalcolmEventDelegate(getName(), connector);
+   		setRole(DeviceRole.MALCOLM);
 	}
 		
 	/**

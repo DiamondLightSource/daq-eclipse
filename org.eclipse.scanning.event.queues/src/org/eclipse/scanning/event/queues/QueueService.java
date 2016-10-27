@@ -58,13 +58,17 @@ public class QueueService implements IQueueService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueueService.class);
 	
-	private String queueRoot, uriString, heartbeatTopicName, commandSetName, 
+	private static String queueRoot, uriString, heartbeatTopicName, commandSetName, 
 		commandTopicName, jobQueueID;
-	private URI uri;
-	private boolean active = false, init = false;
+	private static URI uri;
+	private static boolean active = false, init = false;
 	
-	private IQueue<QueueBean> jobQueue;//FIXME Change QueueBean to an Interface
-	private Map<String, IQueue<QueueAtom>> activeQueueRegister;
+	private static IQueue<QueueBean> jobQueue;
+	private static Map<String, IQueue<QueueAtom>> activeQueueRegister;
+	
+	static {
+		System.out.println("Created " + IQueueService.class.getSimpleName());
+	}
 	
 	/**
 	 * No argument constructor for OSGi
@@ -77,8 +81,8 @@ public class QueueService implements IQueueService {
 	 * Constructor for tests
 	 */
 	public QueueService(String queueRoot, URI uri) {
-		this.queueRoot = queueRoot;
-		this.uri = uri;
+		QueueService.queueRoot = queueRoot;
+		QueueService.uri = uri;
 	}
 
 	@PostConstruct
@@ -299,9 +303,9 @@ public class QueueService implements IQueueService {
 	@Override
 	public void setQueueRoot(String queueRoot) throws UnsupportedOperationException, EventException {
 		if (active) throw new UnsupportedOperationException("Cannot change queue root whilst queue service is running");
-		this.queueRoot = queueRoot;
+		QueueService.queueRoot = queueRoot;
 
-		if (!init) {
+		if (init) {
 			//Update the destinations
 			heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
 			commandSetName = queueRoot+COMMAND_SET_SUFFIX;
@@ -341,10 +345,10 @@ public class QueueService implements IQueueService {
 	@Override
 	public void setUri(URI uri) throws UnsupportedOperationException, EventException {
 		if (active) throw new UnsupportedOperationException("Cannot change URI whilst queue service is running");
-		this.uri = uri;
+		QueueService.uri = uri;
 		uriString = uri.toString();
-		
-		if (!init) {
+
+		if (init) {
 			//Update job-queue
 			jobQueue = new Queue<>(jobQueueID, uri, 
 					heartbeatTopicName, commandSetName, commandTopicName);
@@ -358,6 +362,11 @@ public class QueueService implements IQueueService {
 		} catch (URISyntaxException usEx) {
 			throw new EventException(usEx);
 		}
+	}
+	
+	@Override
+	public boolean isInitialized() {
+		return init;
 	}
 
 	@Override

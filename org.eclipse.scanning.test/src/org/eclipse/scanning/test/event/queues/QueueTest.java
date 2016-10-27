@@ -50,8 +50,9 @@ public class QueueTest {
 		assertEquals("Configured & expected command set names differ", qRoot+IQueue.COMMAND_SET_SUFFIX, testQueue.getCommandSetName());
 		assertEquals("Configured & expected command topic names differ", qRoot+IQueue.COMMAND_TOPIC_SUFFIX, testQueue.getCommandTopicName());
 		
-		//Test the consumer ID is being set on construction
-		assertEquals(mockCons.getConsumerId(), testQueue.getConsumerID());
+		//Test the consumer name & ID are being set on construction
+		assertEquals("Consumer name not set correctly", qRoot, mockCons.getName());
+		assertEquals("Consumer ID not recorded in Queue", mockCons.getConsumerId(), testQueue.getConsumerID());
 	}
 	
 	/**

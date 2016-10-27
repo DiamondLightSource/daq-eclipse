@@ -62,34 +62,35 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		register(new MockScannable("q", 10d, 2, "Âµm"));
 		register(new MockScannable("r", 10d, 2, "Âµm"));
 		
-		MockScannable x = new MockNeXusScannable("x", 0d,  3, "µm");
+		MockScannable x = new MockNeXusScannable("x", 0d,  3, "ï¿½m");
 		x.setRealisticMove(true);
 		x.setRequireSleep(false);
-		x.setMoveRate(10000); // µm/s or 1 cm/s
+		x.setMoveRate(10000); // ï¿½m/s or 1 cm/s
 		register(x);
 		
-		MockScannable y = new MockNeXusScannable("y", 0d,  3, "µm");
+		MockScannable y = new MockNeXusScannable("y", 0d,  3, "ï¿½m");
 		y.setRealisticMove(true);
-		y.setMoveRate(100); // µm/s, faster than real?
+		y.setMoveRate(100); // ï¿½m/s, faster than real?
 		register(y);
 		
-		x = new MockNeXusScannable("stage_x", 0d,  3, "µm");
+		x = new MockNeXusScannable("stage_x", 0d,  3, "ï¿½m");
 		x.setRealisticMove(true);
 		x.setRequireSleep(false);
-		x.setMoveRate(10000); // µm/s or 1 cm/s
+		x.setMoveRate(10000); // ï¿½m/s or 1 cm/s
 		register(x);
 		
-		y = new MockNeXusScannable("stage_y", 0d,  3, "µm");
+		y = new MockNeXusScannable("stage_y", 0d,  3, "ï¿½m");
 		y.setRealisticMove(true);
-		y.setMoveRate(100); // µm/s, faster than real?
+		y.setMoveRate(100); // ï¿½m/s, faster than real?
 		register(y);
 
 		
-		register(new MockNeXusScannable("z", 2d,  3, "µm"));
-		register(new MockNeXusScannable("stage_z", 2d,  3, "µm"));
-		register(new MockNeXusScannable("xNex", 0d,  3, "µm"));
-		register(new MockNeXusScannable("yNex", 0d,  3, "µm"));
+		register(new MockNeXusScannable("z", 2d,  3, "ï¿½m"));
+		register(new MockNeXusScannable("stage_z", 2d,  3, "ï¿½m"));
+		register(new MockNeXusScannable("xNex", 0d,  3, "ï¿½m"));
+		register(new MockNeXusScannable("yNex", 0d,  3, "ï¿½m"));
 		register(new MockScannable("benchmark1",  0.0,  -1, false));
+		register(new MockScannable("myScannable",  0.0,  -1, false));
 		
 		MockNeXusScannable temp= new MockNeXusScannable("T", 295,  3, "K");
 		temp.setRealisticMove(true);

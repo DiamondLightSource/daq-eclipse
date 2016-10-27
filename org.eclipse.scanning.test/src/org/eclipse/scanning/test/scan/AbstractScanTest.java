@@ -203,7 +203,7 @@ public class AbstractScanTest extends BrokerTest {
 		
 		StepModel model = new StepModel();
 		model.setStart(0);
-		model.setStop(10);
+		model.setStop(100);
 		model.setStep(1);
 		model.setName("myScannable");
 		
@@ -283,7 +283,7 @@ public class AbstractScanTest extends BrokerTest {
 		try {
 		    scanner.run(null);
 		} catch (ScanningException expected) {
-			if (!expected.getMessage().equals("The detector had a problem writing! This exception should stop the scan running!")) {
+			if (!expected.getMessage().equals("The detector had a problem running! This exception should stop the scan running!")) {
 				if (expected.getCause()!=null) expected.getCause().printStackTrace();
 				throw new Exception("Expected the precise message from the mock detector not to be lost but it was! It was '"+expected.getMessage()+"'");
 			}
@@ -292,7 +292,7 @@ public class AbstractScanTest extends BrokerTest {
 		if (!ok) throw new Exception("The exception was not thrown by the scan as expected!");
 		
 		// 3. Check that it died after 3 and it is FAULT
-		assertEquals(3, dmodel.getWritten());
+		assertEquals(3, dmodel.getRan());
 		assertTrue(scanner.getDeviceState()==DeviceState.FAULT);
 		
 		// 4. Check that running it again fails
@@ -417,7 +417,7 @@ public class AbstractScanTest extends BrokerTest {
 		IPointGenerator<?> gen = (IPointGenerator<?>)smodel.getPositionIterable();
 		MockDetectorModel dmodel = (MockDetectorModel)((AbstractRunnableDevice)smodel.getDetectors().get(0)).getModel();
 		assertEquals(gen.size(), dmodel.getRan());
-		assertEquals(gen.size(), dmodel.getWritten());
+		assertEquals(0, dmodel.getWritten()); // write() not called as no nexus file set
 	}
 
 	private IRunnableDevice<ScanModel> createTestScanner(AbstractPointsModel pmodel,
@@ -449,7 +449,6 @@ public class AbstractScanTest extends BrokerTest {
 			((GridModel) pmodel).setSlowAxisPoints(5);
 			((GridModel) pmodel).setFastAxisPoints(5);
 			((GridModel) pmodel).setBoundingBox(new BoundingBox(0,0,3,3));
-			
 		}
 		
 		if (axes!=null && pmodel instanceof IBoundingBoxModel) {
