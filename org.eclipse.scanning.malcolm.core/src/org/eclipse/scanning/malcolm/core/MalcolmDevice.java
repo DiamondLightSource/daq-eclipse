@@ -116,7 +116,7 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		detector.addExternalLink(NXdetector.NX_DATA, getFileName(), "/entry/data/det1");
 		
 		for (String axis : info.getScannableNames()) {
-			detector.addExternalLink(axis+"_demand", getFileName(), "/entry/data/"+axis+"_demand");
+			detector.addExternalLink(axis+"_set", getFileName(), "/entry/data/"+axis+"_set");
 		}
 		return detector;
 	}
