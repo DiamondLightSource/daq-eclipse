@@ -36,9 +36,6 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 	protected static IQueueControllerService queueControl;
 	private String qRoot = "fake-queue-root";
 	
-	private DummyBean dummyB;
-	private DummyAtom dummyA;
-	
 	@Before
 	public void setup() throws Exception {
 		//FOR TESTS ONLY
@@ -62,16 +59,17 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 	@After
 	public void tearDown() throws EventException {
 		queueControl.stopQueueService(false);
+		queueService.disposeService();
 	}
 	
 	@Test
 	public void testRunningBean() throws EventException {
-		dummyB = new DummyBean("Bob", 50);
+		DummyBean dummyBean = new DummyBean("Bob", 50);
 		
-		queueControl.submit(dummyB, queueService.getJobQueueID());
+		queueControl.submit(dummyBean, queueService.getJobQueueID());
 		
 		try {
-			waitForBeanFinalStatus(dummyB, queueService.getJobQueueID());//FIXME Put this on the QueueController
+			waitForBeanFinalStatus(dummyBean, queueService.getJobQueueID());//FIXME Put this on the QueueController
 		} catch (Exception e) {
 			// It's only a test...
 			e.printStackTrace();
@@ -80,7 +78,7 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		List<QueueBean> statusSet = queueService.getJobQueue().getConsumer().getStatusSet();
 		assertEquals(1, statusSet.size());
 		assertEquals(Status.COMPLETE, statusSet.get(0).getStatus());
-		assertEquals(dummyB.getUniqueId(), statusSet.get(0).getUniqueId());
+		assertEquals(dummyBean.getUniqueId(), statusSet.get(0).getUniqueId());
 	}
 	
 	@Test
@@ -91,15 +89,15 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		SubTaskAtom subTask = new SubTaskAtom();
 		subTask.setName("Test SubTask");
 		
-		dummyA = new DummyAtom("Gregor", 70);
-		subTask.addAtom(dummyA);
+		DummyAtom dummyAtom = new DummyAtom("Gregor", 70);
+		subTask.addAtom(dummyAtom);
 		task.addAtom(subTask);
 		
 		queueControl.submit(task, queueService.getJobQueueID());
 		
 		try {
 //			Thread.sleep(1000000);
-			waitForBeanFinalStatus(dummyB, queueService.getJobQueueID());//FIXME Put this on the QueueController
+			waitForBeanFinalStatus(task, queueService.getJobQueueID());//FIXME Put this on the QueueController
 		} catch (Exception e) {
 			// It's only a test...
 			e.printStackTrace();
