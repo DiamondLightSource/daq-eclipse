@@ -14,7 +14,7 @@ public abstract class AbstractDetectorModel implements IDetectorModel {
 	 * The exposure time. If calculation is shorter than this, time is artificially added to make the detector respect
 	 * the time that is set.
 	 */
-	@FieldDescriptor(label="Exposure Time", unit="s")
+	@FieldDescriptor(label="Exposure Time", unit="s", minimum=0)
 	private double exposureTime; // Seconds
 
 	public double getExposureTime() {

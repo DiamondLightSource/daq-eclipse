@@ -7,9 +7,18 @@ import java.util.Map;
  * Class representing a table in Malcolm Format (List of columns with data)
  */
 public class MalcolmTable {
+	
+	
 	private Map<String, LinkedList<Object>> tableData = null;
 	private Map<String, Class<?>> tableDataTypes = null;
 	private LinkedList<String> headings;
+	
+	/**
+	 * Must have 
+	 */
+	public MalcolmTable() {
+		
+	}
 	
 	public MalcolmTable(Map<String, LinkedList<Object>> tableAsMap, Map<String, Class<?>> dataTypes) {
 		tableData = tableAsMap;
