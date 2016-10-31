@@ -507,7 +507,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * The default returns null.
 	 * @return the specified attribute
 	 */
-	public Object getAttribute(String attribute) throws MalcolmDeviceException {
+	public Object getAttribute(String attribute) throws ScanningException {
 		return null;
 	}
 	
@@ -516,7 +516,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * The default returns null.
 	 * @return a list of all attributes on the device
 	 */
-	public List<MalcolmAttribute> getAllAttributes() throws MalcolmDeviceException {
+	public <A> List<A> getAllAttributes() throws ScanningException {
 		return null;
 	}
 	

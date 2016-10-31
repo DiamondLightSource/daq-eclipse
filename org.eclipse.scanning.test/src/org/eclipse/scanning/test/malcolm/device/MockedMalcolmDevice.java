@@ -406,10 +406,12 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 		
 	}
 	
+	@Override
 	public Object getAttributeValue(String attribute) {
 		return null;
 	}
 	
+	@Override
 	public List<MalcolmAttribute> getAllAttributes() {
 		return null;
 	}
