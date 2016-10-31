@@ -123,7 +123,14 @@ public class QueueService implements IQueueService {
 		}
 
 		//Dispose the job queue
-		disposeQueue(jobQueue, true);
+		disconnectAndClear(jobQueue);
+		jobQueue = null;
+		jobQueueID = null;
+		
+		
+		//Dispose service config
+		queueRoot = null;
+		uri = null;
 		
 		//Mark the service not initialised
 		init = false;
@@ -167,7 +174,7 @@ public class QueueService implements IQueueService {
 		//Kill/stop the job queuebroker
 		if (force) {
 //FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
-//			controller.killQueue(queueID, true, false);
+//			controller.killQueue(jobQueueID, true, false);
 		} else {
 			jobQueue.stop();
 		}
@@ -208,8 +215,19 @@ public class QueueService implements IQueueService {
 			throw new EventException("Active-queue " + queueID +" still running - cannot deregister.");
 		}
 		
+		//Queue disposal happens here
+		disconnectAndClear(activeQueue);
+		
 		//Remove remaining queue processes from map
 		activeQueueRegister.remove(queueID);
+	}
+	
+	private void disconnectAndClear(IQueue<? extends Queueable> queue) throws EventException {
+		//Clear queues: in previous iteration found that...
+		queue.clearQueues(); //...status queue clear, but submit not...
+		queue.disconnect();
+		boolean isClear = queue.clearQueues();//... submit queue now clear.
+		if (!isClear) throw new EventException("Failed to clear queues when disposing "+queue.getQueueID());
 	}
 	
 	@Override
@@ -247,30 +265,6 @@ public class QueueService implements IQueueService {
 //			controller.killQueue(queueID, true, false);
 		} else {
 			activeQueue.stop();
-		}
-		
-		//And dispose the queue afterwards
-		disposeQueue(activeQueue, false);
-	}
-	
-	private void disposeQueue(IQueue<? extends Queueable> queue, boolean nullify) throws EventException {
-		String queueID = queue.getQueueID();
-		
-		//Clear queues: in previous iteration found that...
-		queue.clearQueues(); //...status queue clear, but submit not...
-		queue.disconnect();
-		boolean isClear = queue.clearQueues();//... submit queue now clear.
-		if (!isClear) throw new EventException("Failed to clear queues when disposing "+queueID);
-		
-		//Nullify if required
-		if (nullify) {
-			if (queueID.equals(jobQueueID)) { 
-				jobQueue = null;
-				jobQueueID = null;
-			}
-			else if (activeQueueRegister.containsKey(queueID)) {//Prevent adding "non-existent queueID" = null
-				activeQueueRegister.put(queueID, null);
-			}
 		}
 	}
 	
