@@ -78,6 +78,7 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		setName(name);
 		this.position = position;
 		this.unit = unit;
+		this.requireSleep = false;
 	}
 	
 	private Number upper = 1000;

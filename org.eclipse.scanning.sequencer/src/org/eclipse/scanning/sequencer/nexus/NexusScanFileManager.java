@@ -309,10 +309,10 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		final Collection<String> scannableNames = firstPosition.getNames();
 		
 		Map<ScanRole, Collection<INexusDevice<?>>> nexusDevices = new EnumMap<>(ScanRole.class);
-		nexusDevices.put(ScanRole.DETECTOR, getNexusDevices(model.getDetectors()));
+		nexusDevices.put(ScanRole.DETECTOR,  getNexusDevices(model.getDetectors()));
 		nexusDevices.put(ScanRole.SCANNABLE, getNexusScannables(scannableNames));
-		nexusDevices.put(ScanRole.MONITOR, getNexusDevices(model.getMonitors()));
-		nexusDevices.put(ScanRole.METADATA, getNexusDevices(model.getMetadataScannables()));
+		nexusDevices.put(ScanRole.MONITOR,   getNexusDevices(model.getMonitors()));
+		nexusDevices.put(ScanRole.METADATA,  getNexusDevices(model.getMetadataScannables()));
 		
 		return nexusDevices;
 	}
