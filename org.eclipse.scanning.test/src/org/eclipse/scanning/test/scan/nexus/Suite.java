@@ -17,7 +17,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	ScanMetadataTest.class,
 	ScanProcessingTest.class,
 	ScanPointsWriterTest.class,
-	LinearScanTest.class
+	LinearScanTest.class,
+	NexusScanSpeedTest.class
 
 })
 public class Suite {

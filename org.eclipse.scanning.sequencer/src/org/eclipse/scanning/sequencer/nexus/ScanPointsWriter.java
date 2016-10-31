@@ -79,7 +79,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 				FIELD_NAME_POINTS, info.getRank(), String.class);
 		// set chunking
 		if (info.getRank() > 0) {
-			final int[] chunk = info.createChunk(false, 4096);
+			final int[] chunk = info.createChunk(false, 8);
 			uniqueKeys.setFillValue(0);
 			uniqueKeys.setChunking(chunk);
 			points.setChunking(chunk);
