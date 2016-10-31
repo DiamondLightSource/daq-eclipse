@@ -6,6 +6,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
@@ -30,16 +31,19 @@ import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.api.script.ScriptResponse;
 import org.eclipse.scanning.api.script.UnsupportedLanguageException;
 import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.ServiceHolder;
 import org.eclipse.scanning.server.servlet.ScanProcess;
 import org.eclipse.scanning.server.servlet.Services;
+import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
@@ -79,10 +83,17 @@ public class ScanProcessTest {
 	protected IEventService               eservice;
 	protected ILoaderService              lservice;
 	protected MockScriptService           sservice;
+	protected MarshallerService           marshaller;
 
 	@Before
 	public void setUp() {
-		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
+		marshaller = new MarshallerService(
+				Arrays.asList(new ScanningAPIClassRegistry(),
+						new ScanningExampleClassRegistry(),
+						new ScanningTestClassRegistry()),
+				Arrays.asList(new PointsModelMarshaller())
+				);
+		ActivemqConnectorService.setJsonMarshaller(marshaller);
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
 		// We wire things together without OSGi here
@@ -158,6 +169,8 @@ public class ScanProcessTest {
 		scanRequest.setEnd(end);
 		
 		scanBean.setScanRequest(scanRequest);
+		
+		String json = marshaller.marshal(scanBean);
 		ScanProcess process = new ScanProcess(scanBean, null, true);
 		
 		// Act
