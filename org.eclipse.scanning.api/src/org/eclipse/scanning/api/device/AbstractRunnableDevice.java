@@ -453,6 +453,9 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void validate(T model) throws Exception {
 		if (model instanceof IDetectorModel) {
 			IDetectorModel dmodel = (IDetectorModel)model;
+		    if (dmodel.getName()==null || dmodel.getName().length()<1) {
+		    	throw new ModelValidationException("The name must be set!", model, "name");
+		    }
 			if (dmodel.getExposureTime()<=0) throw new ModelValidationException("The exposure time for '"+getName()+"' must be non-zero!", model, "exposureTime");
 		}
 	}
