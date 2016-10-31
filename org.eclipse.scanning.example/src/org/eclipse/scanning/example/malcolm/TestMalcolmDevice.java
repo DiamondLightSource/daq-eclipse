@@ -40,8 +40,10 @@ import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.january.dataset.IDataset;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
@@ -204,6 +206,14 @@ public class TestMalcolmDevice extends AbstractRunnableDevice<TestMalcolmModel>
 		datasets.setDescription("Datasets produced in HDF file");
 		datasets.setWriteable(false);
 		allAttributes.add(datasets);
+	}
+
+	@Override
+	public void validate(TestMalcolmModel model) throws Exception {
+		super.validate(model);
+		if (model.getFilePath()==null || model.getFilePath().length()<1) {
+			throw new ModelValidationException("A directory must provided in which to write the test files.", model, "filePath");
+		}
 	}
 
 	@Override
