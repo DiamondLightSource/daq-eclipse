@@ -15,6 +15,7 @@ Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  com.fasterxml.jackson.core.jackson-databind;bundle-version="2.2.0"
 Export-Package: org.eclipse.scanning.points,
  org.eclipse.scanning.points.classregistry,
+ org.eclipse.scanning.points.mutators,
  org.eclipse.scanning.points.serialization,
  org.eclipse.scanning.points.validation
 Service-Component: OSGI-INF/*.xml

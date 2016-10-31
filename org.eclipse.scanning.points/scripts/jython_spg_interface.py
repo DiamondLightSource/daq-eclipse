@@ -10,6 +10,7 @@ from scanpointgenerator import SpiralGenerator
 from scanpointgenerator import LissajousGenerator
 from scanpointgenerator import CompoundGenerator
 from scanpointgenerator import RandomOffsetMutator
+from scanpointgenerator import FixedDurationMutator
 
 ## Logging
 import logging

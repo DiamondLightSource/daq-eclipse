@@ -1,10 +1,13 @@
 package org.eclipse.scanning.points;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
+import org.eclipse.scanning.api.points.IMutator;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
@@ -43,7 +46,7 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
 		
         Object[] excluders = {}; // TODO FIXME excluders not respected?
-        Object[] mutators = {};  // TODO FIXME mutators not respected?
+        Object[] mutators = getMutators(gen.getModel().getMutators());
         
         @SuppressWarnings("unchecked")
 		SerializableIterator<IPosition> iterator = (SerializableIterator<IPosition>)  compoundGeneratorFactory.createObject(
@@ -135,6 +138,16 @@ public class CompoundIterator extends AbstractScanPointIterator {
 
 	public int size() {
 		return pyIterator.size();
+	}
+	
+	private Object[] getMutators(Collection<IMutator> mutators) {
+		LinkedList<Object> pyMutators = new LinkedList<Object>();
+		if (mutators != null) {
+			for (IMutator mutator : mutators) {
+				pyMutators.add(mutator.getMutatorAsJythonObject());
+			}
+		}
+		return pyMutators.toArray();
 	}
 
 }
