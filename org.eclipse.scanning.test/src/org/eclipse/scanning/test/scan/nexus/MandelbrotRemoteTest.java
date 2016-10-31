@@ -255,7 +255,7 @@ public class MandelbrotRemoteTest extends NexusTest {
 	
 			// Append _value_demand to each name in list, then add detector axis fields to result
 			List<String> expectedAxesNames = Stream.concat(
-					names.stream().map(x -> x + "_value_demand"),
+					names.stream().map(x -> x + "_value_set"),
 					detectorDataFields.get(sourceFieldName).stream()).collect(Collectors.toList());
 			assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 			
@@ -266,18 +266,18 @@ public class MandelbrotRemoteTest extends NexusTest {
 			    i++;
 				NXpositioner positioner = instrument.getPositioner(positionerName);
 				assertNotNull(positioner);
-				dataNode = positioner.getDataNode("value_demand");
+				dataNode = positioner.getDataNode("value_set");
 				
 				dataset = dataNode.getDataset().getSlice();
 				shape = dataset.getShape();
 				assertEquals(1, shape.length);
 				assertEquals(sizes[i], shape[0]);
 	
-				String nxDataFieldName = positionerName + "_value_demand";
+				String nxDataFieldName = positionerName + "_value_set";
 				assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
 				assertIndices(nxData, nxDataFieldName, i);
 				assertTarget(nxData, nxDataFieldName, rootNode,
-						"/entry/instrument/" + positionerName + "/value_demand");
+						"/entry/instrument/" + positionerName + "/value_set");
 				
 				// Actual values should be scanD
 				dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);

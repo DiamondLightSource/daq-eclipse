@@ -31,9 +31,9 @@ import org.eclipse.scanning.api.scan.rank.IScanSlice;
  */
 public class MockNeXusScannable extends MockScannable implements INexusDevice<NXpositioner> {
 	
-	public static final String FIELD_NAME_DEMAND_VALUE = NXpositioner.NX_VALUE + "_demand";
+	public static final String FIELD_NAME_SET_VALUE = NXpositioner.NX_VALUE + "_set";
 	
-	private ILazyWriteableDataset lzDemand;
+	private ILazyWriteableDataset lzSet;
 	private ILazyWriteableDataset lzValue;
 
 	public MockNeXusScannable() {
@@ -52,15 +52,15 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		positioner.setNameScalar(getName());
 
 		if (info.getScanRole(getName()) == ScanRole.METADATA) {
-			positioner.setField(FIELD_NAME_DEMAND_VALUE, getPosition().doubleValue());
+			positioner.setField(FIELD_NAME_SET_VALUE, getPosition().doubleValue());
 			positioner.setValueScalar(getPosition().doubleValue());
 		} else {
 			String floatFill = System.getProperty("GDA/gda.nexus.floatfillvalue", "nan");
 			double fill = floatFill.equalsIgnoreCase("nan") ? Double.NaN : Double.parseDouble(floatFill);
 			
-			this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Double.class);
-			lzDemand.setFillValue(fill);
-			lzDemand.setChunking(new int[]{4096}); // Faster than looking at the shape of the scan for this dimension because slow to iterate.
+			this.lzSet = positioner.initializeLazyDataset(FIELD_NAME_SET_VALUE, 1, Double.class);
+			lzSet.setFillValue(fill);
+			lzSet.setChunking(new int[]{4096}); // Faster than looking at the shape of the scan for this dimension because slow to iterate.
 			
 			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Double.class);
 			lzValue.setFillValue(fill);
@@ -71,7 +71,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 		
 		NexusObjectWrapper<NXpositioner> nexusDelegate = new NexusObjectWrapper<>(
 				getName(), positioner, NXpositioner.NX_VALUE);
-		nexusDelegate.setDefaultAxisDataFieldName(FIELD_NAME_DEMAND_VALUE);
+		nexusDelegate.setDefaultAxisDataFieldName(FIELD_NAME_SET_VALUE);
 		return nexusDelegate;
 	}	
 
@@ -100,7 +100,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			lzValue.setSlice(null, newActualPositionData, sliceND);
 		}
 
-		if (lzDemand==null) return;
+		if (lzSet==null) return;
 		if (demand!=null) {
 			int index = loc.getIndex(getName());
 			if (index<0) {
@@ -111,7 +111,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 
 			// write demand position
 			final Dataset newDemandPositionData = DatasetFactory.createFromObject(demand);
-			lzDemand.setSlice(null, newDemandPositionData, startPos, stopPos, null);
+			lzSet.setSlice(null, newDemandPositionData, startPos, stopPos, null);
 		}
 	}
 	

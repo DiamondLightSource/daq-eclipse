@@ -61,7 +61,6 @@ public class AcquireRequestHandler implements IResponseProcess<AcquireRequest> {
 			throw new EventException(e);
 		}
 		
-		// TODO set field in bean to indicate done
 		return bean;
 	}
 	

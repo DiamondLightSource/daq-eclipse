@@ -159,7 +159,7 @@ public class MonitorTest extends NexusTest {
 
         // Append _value_demand to each name in scannable names list, and appends
         // the item "." 3 times to the resulting list
-        String[] expectedAxesNames = Stream.concat(scannableNames.stream().map(x -> x + "_value_demand"),
+        String[] expectedAxesNames = Stream.concat(scannableNames.stream().map(x -> x + "_value_set"),
         		Collections.nCopies(3, ".").stream()).toArray(String[]::new);
         assertAxes(nxData, expectedAxesNames);
         
@@ -171,18 +171,18 @@ public class MonitorTest extends NexusTest {
         	assertNotNull(positioner);
         	String nxDataFieldName;
         	
-    		dataNode = positioner.getDataNode("value_demand");
+    		dataNode = positioner.getDataNode("value_set");
     		dataset = dataNode.getDataset().getSlice();
     		shape = dataset.getShape();
 			assertEquals(1, shape.length);
 			if (i < scannableNames.size()) {
 				// in practise monitors wouldn't have the 'demand' field
 				assertEquals(sizes[i], shape[0]);
-				nxDataFieldName = deviceName + "_value_demand";
+				nxDataFieldName = deviceName + "_value_set";
 				assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
 				assertIndices(nxData, nxDataFieldName, i);
 				assertTarget(nxData, nxDataFieldName, rootNode,
-						"/entry/instrument/" + deviceName + "/value_demand");
+						"/entry/instrument/" + deviceName + "/value_set");
 			}
 			
 			// Actual values should be scanD

@@ -148,7 +148,7 @@ public class ConstantVelocityTest extends NexusTest {
         final Collection<String> scannableNames = pos.getNames();
         
         // Append _value_demand to each name in list, and append items ".", "." to list
-        String[] expectedAxesNames = Stream.concat(scannableNames.stream().map(x -> x + "_value_demand"),
+        String[] expectedAxesNames = Stream.concat(scannableNames.stream().map(x -> x + "_value_set"),
         		Collections.nCopies(3, ".").stream()).toArray(String[]::new);
         assertAxes(nxData, expectedAxesNames);
         
@@ -160,17 +160,17 @@ public class ConstantVelocityTest extends NexusTest {
         	NXpositioner positioner = instrument.getPositioner(scannableName);
         	assertNotNull(positioner);
         	
-        	dataNode = positioner.getDataNode("value_demand");
+        	dataNode = positioner.getDataNode("value_set");
     		dataset = dataNode.getDataset().getSlice();
     		shape = dataset.getShape();
     		assertEquals(1, shape.length);
     		assertEquals(sizes[i], shape[0]);
     		
-    		String nxDataFieldName = scannableName + "_value_demand";
+    		String nxDataFieldName = scannableName + "_value_set";
     		assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
     		assertIndices(nxData, nxDataFieldName, i);
     		assertTarget(nxData, nxDataFieldName, rootNode,
-    				"/entry/instrument/" + scannableName + "/value_demand");
+    				"/entry/instrument/" + scannableName + "/value_set");
         
     		// Actual values should be scanD
 			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);

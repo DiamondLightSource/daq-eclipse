@@ -180,7 +180,7 @@ public class DarkCurrentTest extends NexusTest {
 		    i++;
         	NXpositioner positioner = instrument.getPositioner(positionerName);
         	assertNotNull(positioner);
-        	ds = positioner.getDataNode(NXpositioner.NX_VALUE + "_demand").getDataset().getSlice();
+        	ds = positioner.getDataNode(NXpositioner.NX_VALUE + "_set").getDataset().getSlice();
     		shape = ds.getShape();
 			assertEquals(1, shape.length);
 		    assertEquals(sizes[i], shape[0]);
@@ -234,7 +234,7 @@ public class DarkCurrentTest extends NexusTest {
 
 			// append _value_demand to each name in list
 			List<String> expectedAxesNames = Stream.concat(
-					scannableNames.stream().map(x -> x + "_value_demand"),
+					scannableNames.stream().map(x -> x + "_value_set"),
 					detectorDataFields.get(sourceFieldName).stream()).collect(Collectors.toList());
 			// add placeholder value "." for each additional dimension
 			
@@ -249,12 +249,12 @@ public class DarkCurrentTest extends NexusTest {
 				NXpositioner positioner = entry.getInstrument().getPositioner(positionerName);
 
 				// check value_demand data node
-				String demandFieldName = positionerName + "_" + NXpositioner.NX_VALUE + "_demand";
+				String demandFieldName = positionerName + "_" + NXpositioner.NX_VALUE + "_set";
 				assertSame(nxData.getDataNode(demandFieldName),
-						positioner.getDataNode("value_demand"));
+						positioner.getDataNode("value_set"));
 				assertIndices(nxData, demandFieldName, i);
 				assertTarget(nxData, demandFieldName, rootNode, "/entry/instrument/" + positionerName
-						+ "/value_demand");
+						+ "/value_set");
 
 				// check value data node
 				String valueFieldName = positionerName + "_" + NXpositioner.NX_VALUE;
