@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.eclipse.scanning.api.points.IMutator;
 /**
  * This class is designed to encapsulate the information
  * to required to provide all the locations, with regions
@@ -16,6 +17,7 @@ import java.util.List;
  * CompoundModel {
  *     models:  [ list of models]
  *     regions: [ list of regions]
+ *     mutators: [ list of mutators ]
  * }
  * Region {
  *     roi: geometric roi
@@ -41,6 +43,13 @@ import java.util.List;
  *          scannables: ["x", "y"]
  *        }
  *     ]
+ *     mutators : [
+ *        {
+ *           FixedDurationMutator: {
+ *            duration: 23.1
+ *           }
+ *        }
+ *     ]
  * }   
  *    
  * 
@@ -53,6 +62,7 @@ public class CompoundModel<R> {
 
 	private List<Object>               models;
 	private Collection<ScanRegion<R>>  regions;
+	private List<IMutator>	mutators;
 	
 	public CompoundModel() {
 		// Must have no-arg constructor
@@ -147,12 +157,22 @@ public class CompoundModel<R> {
 	public void setRegionsVarArgs(ScanRegion<R>... regions) {
 		this.regions = Arrays.asList(regions);
 	}
+
+	public List<IMutator> getMutators() {
+		return mutators;
+	}
+
+	public void setMutators(List<IMutator> mutators) {
+		this.mutators = mutators;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((models == null) ? 0 : models.hashCode());
 		result = prime * result + ((regions == null) ? 0 : regions.hashCode());
+		result = prime * result + ((mutators == null) ? 0 : mutators.hashCode());
 		return result;
 	}
 	@Override
@@ -173,6 +193,11 @@ public class CompoundModel<R> {
 			if (other.regions != null)
 				return false;
 		} else if (!equals(regions, other.regions))
+			return false;
+		if (mutators == null) {
+			if (other.mutators != null)
+				return false;
+		} else if (!equals(mutators, other.mutators))
 			return false;
 		return true;
 	}

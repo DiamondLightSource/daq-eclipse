@@ -151,7 +151,7 @@ public class TestMalcolmDevice extends AbstractRunnableDevice<TestMalcolmModel>
 		allAttributes.add(totalSteps);
 
 		axesToMove = new StringArrayAttribute();
-		axesToMove.setValue(new String[0]);
+		axesToMove.setValue(new String[]{"stage_x", "stage_y"});
 		axesToMove.setName("axesToMove");
 		axesToMove.setLabel("axesToMove");
 		axesToMove.setDescription("Default axis names to scan for configure()");
@@ -260,7 +260,9 @@ public class TestMalcolmDevice extends AbstractRunnableDevice<TestMalcolmModel>
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		
+		totalSteps.setValue(64);
+		configuredSteps.setValue(64);
 		// super.configure sets device state to ready
 		super.configure(model);
 	}
@@ -268,7 +270,10 @@ public class TestMalcolmDevice extends AbstractRunnableDevice<TestMalcolmModel>
 	@Override
 	public void run(IPosition pos) throws ScanningException, InterruptedException {
 		setDeviceState(DeviceState.RUNNING);
+		status.setValue("Running");
+		completedSteps.setValue(totalSteps.getValue());
 		write(pos);
+		status.setValue("Finished writing");
 	}
 
 	private void createNexusFiles() throws Exception {
@@ -280,7 +285,7 @@ public class TestMalcolmDevice extends AbstractRunnableDevice<TestMalcolmModel>
 
 		NXroot root0 = NexusNodeFactory.createNXroot();
 		root0.setAttributeFile_name(filename0);
-		root0.setAttributeFile_time("2014-09-08T09:07:11.939912");
+		root0.setAttributeFile_time("2016-10-31T08:45:10.123456");
 		root0.setAttributeNeXus_version("4.3.0");
 		root0.setAttributeHDF5_Version("1.8.9");
 		root0.setAttribute(null, "h5py_version", "2.3.0");
