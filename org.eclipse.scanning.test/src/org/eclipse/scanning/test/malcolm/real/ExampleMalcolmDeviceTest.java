@@ -255,14 +255,14 @@ public class ExampleMalcolmDeviceTest {
 
 			PVStructure spiralGeneratorPVStructure = PVDataFactory.getPVDataCreate()
 					.createPVStructure(spiralGeneratorStructure);
-			double[] centre = new double[] { 5, -2.5 };
+			double[] centre = new double[] { 7.5, 4.5 };
 			spiralGeneratorPVStructure.getSubField(PVDoubleArray.class, "centre").put(0, centre.length, centre, 0);
 			spiralGeneratorPVStructure.getDoubleField("scale").put(2.0);
 			spiralGeneratorPVStructure.getStringField("units").put("mm");
 			String[] names = new String[] { "stage_x", "stage_y" };
 			spiralGeneratorPVStructure.getSubField(PVStringArray.class, "names").put(0, names.length, names, 0);
 			spiralGeneratorPVStructure.getBooleanField("alternate_direction").put(false);
-			spiralGeneratorPVStructure.getDoubleField("radius").put(5.5901699437494745);
+			spiralGeneratorPVStructure.getDoubleField("radius").put(8.276472678623424);
 
 			PVStructure fixedMutatorPVStructure = PVDataFactory.getPVDataCreate()
 					.createPVStructure(fixedMutatorStructure);

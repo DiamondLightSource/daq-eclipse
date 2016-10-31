@@ -89,6 +89,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		try {
 			IPointGenerator<T> gen = (IPointGenerator<T>)generators.get(model.getClass()).newInstance();
 			if (regions != null && !regions.isEmpty())  {
+				setBounds(model, new ArrayList<>(regions));
 				gen.setContainers(wrap(regions));
 			}
 			gen.setModel(model);
