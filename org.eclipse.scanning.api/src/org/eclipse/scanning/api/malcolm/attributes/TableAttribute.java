@@ -32,10 +32,4 @@ public class TableAttribute extends MalcolmAttribute {
 	public void setHeadings(String[] headings) {
 		this.headings = headings;
 	}
-	public List<MalcolmAttribute> getElements() {
-		return elements;
-	}
-	public void setElements(List<MalcolmAttribute> elements) {
-		this.elements = elements;
-	}
 }

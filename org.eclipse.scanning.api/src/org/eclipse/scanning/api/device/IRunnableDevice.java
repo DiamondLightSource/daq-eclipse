@@ -167,10 +167,10 @@ public interface IRunnableDevice<T> extends INameable, IDeviceRoleActor, ILevel,
 	/**
 	 * Gets the an attribute on the device
 	 */
-	public Object getAttribute(String attribute) throws MalcolmDeviceException;
+	public Object getAttribute(String attribute) throws ScanningException;
 	
 	/**
 	 * Gets a list of all attributes on the device
 	 */
-	public List<MalcolmAttribute> getAllAttributes() throws MalcolmDeviceException;
+	public <A> List<A> getAllAttributes() throws ScanningException;
 }

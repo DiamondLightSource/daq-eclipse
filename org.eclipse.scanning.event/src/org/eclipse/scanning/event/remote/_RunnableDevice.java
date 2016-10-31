@@ -154,7 +154,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 	}
 
 	@Override
-	public List<MalcolmAttribute> getAllAttributes() throws MalcolmDeviceException {
+	public List<MalcolmAttribute> getAllAttributes() throws ScanningException {
 		return info.getAttributes();
 	}
 
