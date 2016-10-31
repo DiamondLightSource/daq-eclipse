@@ -109,8 +109,15 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 
 	@Override
 	public void stop() throws EventException {
-		consumer.stop();
-		status = QueueStatus.STOPPED;
+		QueueStatus previousState = status;
+		status = QueueStatus.STOPPING;
+		try {
+			consumer.stop();
+			status = QueueStatus.STOPPED;
+		} catch (EventException evEx) {
+			status = previousState;
+			throw new EventException("Failed to stop queue", evEx);
+		}
 	}
 
 	@Override
@@ -148,7 +155,7 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 	public String getStatusTopicName() {
 		return statusTopicName;
 	}
-
+ 
 	@Override
 	public String getHeartbeatTopicName() {
 		return heartbeatTopicName;
