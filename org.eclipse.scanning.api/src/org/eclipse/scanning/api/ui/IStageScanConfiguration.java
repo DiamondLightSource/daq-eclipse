@@ -20,14 +20,39 @@ package org.eclipse.scanning.api.ui;
 
 import java.beans.PropertyChangeListener;
 
+/**
+ * Interface to allow the current configuration of a mapping scan
+ * (or how it is displayed in the UI) to be determined
+ * 
+ */
 public interface IStageScanConfiguration {
 
-	void addPropertyChangeListener(PropertyChangeListener listener);
-
-	void removePropertyChangeListener(PropertyChangeListener listener);
-
+	/**
+	 * Return the name of the fast scan axis
+	 * @return fastAxisName
+	 */
 	String getActiveFastScanAxis();
 
+	/**
+	 * Return the name of the fast scan axis
+	 * @return slowAxisName
+	 */
 	String getActiveSlowScanAxis();
+	
+	/**
+	 * Add a property change listener
+	 * 
+	 * @param listener
+	 */
+	void addPropertyChangeListener(PropertyChangeListener listener);
+
+	/**
+	 * Remove a property change listener
+	 * 
+	 * @param listener
+	 */
+	void removePropertyChangeListener(PropertyChangeListener listener);
+
+	
 
 }
