@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +21,6 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
-import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.connector.epics.EpicsV4ConnectorService;
 import org.eclipse.scanning.example.malcolm.ExampleMalcolmDevice;
@@ -30,7 +28,6 @@ import org.eclipse.scanning.example.malcolm.ExampleMalcolmModel;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.mutators.FixedDurationMutator;
-import org.eclipse.scanning.points.mutators.RandomOffsetMutator;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.pv.PVDoubleArray;
@@ -51,50 +48,6 @@ public class ExampleMalcolmDeviceTest {
 	IPointGenerator<?> generator = null;
 
 	ExampleMalcolmDevice dummyMalcolmDevice;
-
-	@Test
-	public void excmut() throws Exception {
-		IPointGeneratorService pgService = new PointGeneratorFactory();
-		GridModel gm = new GridModel("stagex", "stagey");
-		gm.setSnake(true);
-		//gm.setBoundingBox(new BoundingBox(-12, -4, 4, -2));
-		gm.setBoundingBox(new BoundingBox(-12 - 4/(2*120.0), -4 + 2/(2*20.0), 4 * 121/120.0, -2 * 21/20.0));
-		gm.setSlowAxisPoints(21);
-		gm.setFastAxisPoints(121);
-
-		List<IROI> regions = new LinkedList<>();
-		regions.add(new CircularROI(1, -10, -5));
-		
-		List<String> axes = new LinkedList();
-		axes.add("x");
-		
-		Map<String,Double> offsets = new LinkedHashMap();
-		
-		RandomOffsetMutator rom = new RandomOffsetMutator(3456, axes, offsets);
-		List<IMutator> mutators = new LinkedList<>();
-		mutators.add(new FixedDurationMutator(23.1));
-		//mutators.add(rom);
-		
-		IPointGenerator<GridModel> generator = pgService.createGenerator(gm, regions);
-		
-		
-		
-		
-		
-					
-		
-		
-		IPointGenerator<?> compGenerator = pgService.createCompoundGenerator(generator);
-		
-		CompoundModel<?> cm = (CompoundModel<?>) compGenerator.getModel();
-		cm.setMutators(mutators);
-		
-		EpicsV4ConnectorService evcs = new EpicsV4ConnectorService();
-		
-		PVStructure cgpvs = evcs.pvMarshal(compGenerator);
-		
-		System.out.println(cgpvs);
-	}
 
 	/**
 	 * Starts an instance of the ExampleMalcolmDevice and then probes it with the configure() and call() methods
