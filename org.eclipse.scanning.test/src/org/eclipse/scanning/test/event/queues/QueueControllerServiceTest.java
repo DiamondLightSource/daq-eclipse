@@ -37,6 +37,8 @@ public class QueueControllerServiceTest {
 	private MockEventService mockEvServ;
 	private String jqID, aqID;
 	
+	private IQueueControllerService testController; 
+	
 	@Before
 	public void setUp() throws EventException {
 		//Configure the MockEventService
@@ -66,6 +68,10 @@ public class QueueControllerServiceTest {
 		assertFalse("job-queue consumer ID should not be null", mockQServ.getQueue(jqID).getConsumerID() == null);
 		assertFalse("active-queue consumer ID should not be null", mockQServ.getQueue(aqID).getConsumerID() == null);
 		assertFalse("job- & active-queue IDs identical", mockQServ.getQueue(jqID).getConsumerID() == mockQServ.getQueue(aqID).getConsumerID());
+		
+		//A bit of boilerplate to start the service under test
+		testController = new QueueControllerService();
+		testController.init();
 	}
 		
 	/**
@@ -75,16 +81,14 @@ public class QueueControllerServiceTest {
 	 */
 	@Test
 	public void testStartStop() throws EventException {
-		IQueueControllerService testController = new QueueControllerService();
-		
-		testController.start();
+		testController.startQueueService();
 		assertTrue("Start didn't push the start button.", mockQServ.isActive());
 		
-		testController.stop(false);
+		testController.stopQueueService(false);
 		assertFalse("Stop didn't push the stop button.", mockQServ.isActive());
 		assertFalse("Stop should not have been forced.", mockQServ.isForced());
 		
-		testController.stop(true);
+		testController.stopQueueService(true);
 		assertTrue("Stop should have been forced.", mockQServ.isForced());
 	}
 	
@@ -101,7 +105,6 @@ public class QueueControllerServiceTest {
 		DummyAtom carlos = new DummyAtom("Carlos", 30), duncan = new DummyAtom("Duncan", 40);
 		DummyAtom xavier = new DummyAtom("Xavier", 100);
 		
-		IQueueControllerService testController = new QueueControllerService();
 		/*
 		 * Submit:
 		 * - new DummyBean in job-queue with a particular name
@@ -190,7 +193,6 @@ public class QueueControllerServiceTest {
 		DummyAtom carlos = new DummyAtom("Carlos", 30);
 		DummyAtom xavier = new DummyAtom("Xavier", 100);
 		
-		IQueueControllerService testController = new QueueControllerService();
 		//Add two beans to the queues
 		testController.submit(albert, jqID);
 		testController.submit(carlos, aqID);		
@@ -246,7 +248,6 @@ public class QueueControllerServiceTest {
 		//Set up beans in right queues
 		setUpTwoBeanStatusSet(albert, carlos);
 		
-		IQueueControllerService testController = new QueueControllerService();
 		/*
 		 * Pause process in job-queue
 		 * - check published bean has REQUEST_PAUSE status
@@ -343,8 +344,7 @@ public class QueueControllerServiceTest {
 		
 		//Set up beans in right queues
 		setUpTwoBeanStatusSet(albert, carlos);
-
-		IQueueControllerService testController = new QueueControllerService();
+		
 		/*
 		 * Pause process in job-queue
 		 * - check published bean has REQUEST_PAUSE status
@@ -403,8 +403,6 @@ public class QueueControllerServiceTest {
 	 */
 	@Test
 	public void testPauseResumeQueue() throws EventException {
-		IQueueControllerService testController = new QueueControllerService();
-		
 		/*
 		 * Pause the job-queue
 		 * - check PauseBean sent
@@ -448,8 +446,6 @@ public class QueueControllerServiceTest {
 	 */
 	@Test	
 	public void testKillQueue() throws EventException {
-		IQueueControllerService testController = new QueueControllerService();
-		
 		/*
 		 * Kill the job-queue
 		 * - check KillBean sent
