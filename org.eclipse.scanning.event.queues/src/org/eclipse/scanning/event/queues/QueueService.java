@@ -16,6 +16,7 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
@@ -113,6 +114,11 @@ public class QueueService implements IQueueService {
 	@PreDestroy
 	@Override
 	public void disposeService() throws EventException {
+		if (!init) {
+			logger.warn("Queue service has already been disposed. Cannot dispose again.");
+			return;
+		}
+		
 		//Stop the job queue if service is up
 		if (active) stop(true);
 
@@ -165,8 +171,13 @@ public class QueueService implements IQueueService {
 		//Deregister all existing active queues.
 		if (!activeQueueRegister.isEmpty()) {
 			//Create a new HashSet here as the deRegister method changes activeQueues
-			Set<String> qIDSet = new HashSet<String>(getAllActiveQueueIDs());
+			Set<String> qIDSet = new HashSet<String>(activeQueueRegister.keySet());
+			
 			for (String qID : qIDSet) {
+				//Stop the queue
+				stopActiveQueue(qID, force);
+				
+				//Deregister the queue
 				deRegisterActiveQueue(qID);
 			}
 		}
@@ -253,7 +264,20 @@ public class QueueService implements IQueueService {
 			throws EventException {
 		//Check active-queue is running
 		IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
-		if (!activeQueue.getStatus().isActive()) {
+		
+		//If another thread has asked the queue to stop already, wait for that attempt to complete.
+		while (activeQueue.getStatus() == QueueStatus.STOPPING) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException iEx) {
+				throw new EventException("Interrupted while waiting for active-queue"+queueID+" to stop", iEx);
+			}
+		}
+		//Is the Queue actually stoppable?
+		if (activeQueue.getStatus() == QueueStatus.STOPPED) {
+			logger.warn("Active-queue "+queueID+" already stopped.");
+			return;
+		} else if (!activeQueue.getStatus().isActive()) {
 			logger.warn("Active-queue "+queueID+" is not active.");
 			return;
 		}
@@ -262,9 +286,10 @@ public class QueueService implements IQueueService {
 		if (force) {
 //FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
 //			controller.killQueue(queueID, true, false);
-		} else {
-			activeQueue.stop();
 		}
+		//Whatever happens we need to mark the queue stopped
+		//TODO Does this need to wait for the kill call to be completed?
+		activeQueue.stop();
 	}
 	
 	@Override
