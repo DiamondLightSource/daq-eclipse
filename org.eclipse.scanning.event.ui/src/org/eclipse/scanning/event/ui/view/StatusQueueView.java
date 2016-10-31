@@ -44,6 +44,7 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -61,6 +62,7 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.QueueViews;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.AdministratorMessage;
+import org.eclipse.scanning.api.event.status.OpenRequest;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.api.ui.IModifyHandler;
 import org.eclipse.scanning.api.ui.IRerunHandler;
@@ -121,6 +123,7 @@ public class StatusQueueView extends EventConnectionView {
 	
 	// UI
 	private TableViewer                       viewer;
+	private DelegatingSelectionProvider       selectionProvider;
 	
 	// Data
 	private Map<String, StatusBean>           queue;
@@ -172,7 +175,8 @@ public class StatusQueueView extends EventConnectionView {
 			logger.error("Cannot listen to topic of command server!", e);
 		}
         
-		getViewSite().setSelectionProvider(viewer);
+        selectionProvider = new DelegatingSelectionProvider(viewer);
+		getViewSite().setSelectionProvider(selectionProvider);
 		viewer.addSelectionChangedListener(new ISelectionChangedListener() {	
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
@@ -393,6 +397,15 @@ public class StatusQueueView extends EventConnectionView {
 		menuMan.add(rerun);
 		dropDown.add(rerun);
 		
+		IAction open = new Action("Open...", Activator.getImageDescriptor("icons/application-dock-090.png")) {
+			public void run() {
+				openSelection();
+			}
+		};
+		toolMan.add(open);
+		menuMan.add(open);
+		dropDown.add(open);
+
 		this.edit = new Action("Edit...", Activator.getImageDescriptor("icons/modify.png")) {
 			public void run() {
 				editSelection();
@@ -697,7 +710,27 @@ public class StatusQueueView extends EventConnectionView {
 					new Status(IStatus.ERROR, Activator.PLUGIN_ID, e1.getMessage()));
 		}
 	}
-	
+
+	/**
+	 * Pushes any previous run back into the UI
+	 */
+	protected void openSelection() {
+		
+		final StatusBean bean = getSelection();
+		if (bean==null) {
+			MessageDialog.openInformation(getViewSite().getShell(), "Please select a run", "Please select a run to open.");
+            return;
+		}
+
+		// TODO FIXME Change to IScanBuilderService not selections so that it works with e4.
+		// We fire a special object into the selection mechanism with the data for this run.
+		// It is then up to parts to respond to this selection and update their contents.
+		selectionProvider.setSelection(new StructuredSelection(new OpenRequest(bean)));
+	}
+
+	/**
+	 * Edits a not run yet selection
+	 */
 	protected void editSelection() {
 		
 		final StatusBean bean = getSelection();
