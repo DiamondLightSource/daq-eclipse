@@ -52,7 +52,6 @@ public class QueueServiceTest {
 	
 	@After
 	public void tearDown() throws Exception {
-		testQServ.stop(false); //Should be true, but this is untested...
 		testQServ.disposeService();
 	}
 	
@@ -260,7 +259,7 @@ public class QueueServiceTest {
 		//Check deregistration works
 		for (i = 0; i < activeQIDs.size()-1; i++) {
 			assertTrue("Active-queue "+activeQIDs.get(i)+" should be registered", testQServ.isActiveQueueRegistered(activeQIDs.get(i)));
-			testQServ.deRegisterActiveQueue(activeQIDs.get(i), true);
+			testQServ.deRegisterActiveQueue(activeQIDs.get(i));
 			assertFalse("Active-queue "+activeQIDs.get(i)+" should not be registered", testQServ.isActiveQueueRegistered(activeQIDs.get(i)));
 			try {
 				testQServ.getQueue(activeQIDs.get(i));
@@ -275,7 +274,7 @@ public class QueueServiceTest {
 		//Check we can't deregister running queues
 		testQServ.startActiveQueue(activeQIDs.get(0));
 		try {
-			testQServ.deRegisterActiveQueue(activeQIDs.get(0), false);
+			testQServ.deRegisterActiveQueue(activeQIDs.get(0));
 			fail("Should not be able to deregister a running active-queue");
 		} catch (EventException evEx) {
 			//Expected
@@ -283,7 +282,7 @@ public class QueueServiceTest {
 		
 		//Check queue registration not possible without start
 		testQServ.disposeService();
-		testQServ = new QueueService();
+		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		try {
 			testQServ.registerNewActiveQueue();

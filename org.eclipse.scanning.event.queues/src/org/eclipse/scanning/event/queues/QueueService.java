@@ -119,7 +119,7 @@ public class QueueService implements IQueueService {
 		//Remove any remaining active queues
 		for (String aqID : getAllActiveQueueIDs()) {
 			stopActiveQueue(aqID, true);
-			deRegisterActiveQueue(aqID, true);
+			deRegisterActiveQueue(aqID);
 		}
 
 		//Dispose the job queue
@@ -167,7 +167,7 @@ public class QueueService implements IQueueService {
 			//Create a new HashSet here as the deRegister method changes activeQueues
 			Set<String> qIDSet = new HashSet<String>(getAllActiveQueueIDs());
 			for (String qID : qIDSet) {
-				deRegisterActiveQueue(qID, force);
+				deRegisterActiveQueue(qID);
 			}
 		}
 		
@@ -205,8 +205,7 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public void deRegisterActiveQueue(String queueID, boolean force) 
-			throws EventException {
+	public void deRegisterActiveQueue(String queueID) throws EventException {
 		if (!active) throw new EventException("Queue service not started.");
 		
 		//Get the queue and check that it's not started
