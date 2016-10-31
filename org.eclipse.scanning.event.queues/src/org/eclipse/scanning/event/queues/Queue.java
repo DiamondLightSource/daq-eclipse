@@ -111,8 +111,13 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 	public void stop() throws EventException {
 		QueueStatus previousState = status;
 		status = QueueStatus.STOPPING;
+		
 		try {
-			consumer.stop();
+			//If the consumer has been killed, we still need to set status STOPPED;
+			//If it's still active, then we need to push the stop button.
+			if (consumer.isActive()) {
+				consumer.stop();
+			}
 			status = QueueStatus.STOPPED;
 		} catch (EventException evEx) {
 			status = previousState;
