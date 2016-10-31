@@ -138,6 +138,7 @@ public class QueueServiceTest {
 		assertTrue("QueueService not marked active", testQServ.isActive());
 		
 		//Create a new instance to make sure we can't start without calling init()
+		testQServ.disposeService();
 		testQServ = new QueueService(qRoot, uri);
 		try {
 			testQServ.start();
