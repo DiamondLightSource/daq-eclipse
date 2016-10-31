@@ -31,7 +31,7 @@ import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.analysis.ClusterProcessingRunnableDevice;
 import org.eclipse.scanning.sequencer.analysis.ProcessingRunnableDevice;
 import org.eclipse.scanning.server.servlet.Services;
-import org.eclipse.scanning.test.TmpTest;
+import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockOperationService;
 import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
@@ -51,7 +51,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  * @author Matthew Gerring
  *
  */
-public class NexusTest extends TmpTest {
+public class NexusTest extends BrokerTest {
 	
 	protected static IScannableDeviceService connector;
 	protected static IRunnableDeviceService  dservice;
@@ -99,7 +99,7 @@ public class NexusTest extends TmpTest {
 	
 	@Before
 	public void createFile() throws IOException {
-		output = File.createTempFile("test_mandel_nexus", ".nxs");
+		output = File.createTempFile("test_nexus", ".nxs");
 		output.deleteOnExit();
 	}
 	

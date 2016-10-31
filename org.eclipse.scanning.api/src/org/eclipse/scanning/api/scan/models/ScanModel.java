@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.scan.models;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -78,6 +79,10 @@ public class ScanModel {
 	public ScanModel(Iterable<IPosition> positionIterator, IRunnableDevice<?>... detectors) {
 		this.positionIterable = positionIterator;
 		if (detectors!=null && detectors.length>0) this.detectors = Arrays.asList(detectors);
+	}
+	public ScanModel(Iterable<IPosition> positionIterator, File file) {
+		this.positionIterable = positionIterator;
+		this.filePath = file.getAbsolutePath();
 	}
 
 	@Override
