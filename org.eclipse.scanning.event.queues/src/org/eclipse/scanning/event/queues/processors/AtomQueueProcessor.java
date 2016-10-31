@@ -97,7 +97,7 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 		if (queueService.getActiveQueue(activeQueueID).getStatus().isActive()) {
 			queueService.stopActiveQueue(activeQueueID, false);
 		}
-		queueService.deRegisterActiveQueue(activeQueueID, true);
+		queueService.deRegisterActiveQueue(activeQueueID);
 	}
 
 	public String getActiveQueueID() {
