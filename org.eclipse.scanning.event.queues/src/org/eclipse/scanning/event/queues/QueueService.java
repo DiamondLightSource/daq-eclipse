@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -62,10 +63,12 @@ public class QueueService implements IQueueService {
 	private static String queueRoot, uriString, heartbeatTopicName, commandSetName, 
 		commandTopicName, jobQueueID;
 	private static URI uri;
-	private static boolean active = false, init = false;
+	private static boolean active = false, init = false, stopped = false;
 	
 	private static IQueue<QueueBean> jobQueue;
 	private static Map<String, IQueue<QueueAtom>> activeQueueRegister;
+	
+	private final ReentrantLock queueControlLock = new ReentrantLock();//TODO Should/could this be a ReadWrite lock?
 	
 	static {
 		System.out.println("Created " + IQueueService.class.getSimpleName());
@@ -157,41 +160,50 @@ public class QueueService implements IQueueService {
 		//Start the job-queue if it can be
 		jobQueue.start();
 		
-		//Mark service as up
+		//Mark service as up & reset stopped (if needed)
 		active = true;
+		stopped = false;
 	}
 
 	@Override
-	public void stop(boolean force) throws EventException {
+	public synchronized void stop(boolean force) throws EventException {
 		if (!(isActive() || jobQueue.getStatus().isActive())) {
 			logger.warn("Job-queue is not active.");
 			return;
 		}
 
-		//Deregister all existing active queues.
-		if (!activeQueueRegister.isEmpty()) {
-			//Create a new HashSet here as the deRegister method changes activeQueues
-			Set<String> qIDSet = new HashSet<String>(activeQueueRegister.keySet());
-			
-			for (String qID : qIDSet) {
-				//Stop the queue
-				stopActiveQueue(qID, force);
-				
-				//Deregister the queue
-				deRegisterActiveQueue(qID);
-			}
-		}
-		
-		//Kill/stop the job queuebroker
-		if (force) {
-//FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
-//			controller.killQueue(jobQueueID, true, false);
-		} else {
-			jobQueue.stop();
-		}
+		try {
+			//Barge to the front of the queue to get the lock & start stopping things. TODO writelock?
+			queueControlLock.tryLock();
 
-		//Mark service as down
-		active = false;
+			//Deregister all existing active queues.
+			if (!activeQueueRegister.isEmpty()) {
+				//Create a new HashSet here as the deRegister method changes activeQueues
+				Set<String> qIDSet = new HashSet<String>(activeQueueRegister.keySet());
+
+				for (String qID : qIDSet) {
+					//Stop the queue
+					stopActiveQueue(qID, force);
+
+					//Deregister the queue
+					deRegisterActiveQueue(qID);
+				}
+			}
+
+			//Kill/stop the job queuebroker
+			if (force) {
+				//FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
+				//			controller.killQueue(jobQueueID, true, false);
+			} else {
+				jobQueue.stop();
+			}
+
+			//Mark service as down & that it was stopped
+			active = false;
+			stopped = true;
+		} finally {
+			queueControlLock.unlock();
+		}
 	}
 	
 	@Override
@@ -216,7 +228,8 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public void deRegisterActiveQueue(String queueID) throws EventException {
+	public synchronized void deRegisterActiveQueue(String queueID) throws EventException {
+		if (stopped) throw new IllegalStateException("Queue service has been stopped");//TODO Should this be EventException?
 		if (!active) throw new EventException("Queue service not started.");
 		
 		//Get the queue and check that it's not started
@@ -228,8 +241,13 @@ public class QueueService implements IQueueService {
 		//Queue disposal happens here
 		disconnectAndClear(activeQueue);
 		
-		//Remove remaining queue processes from map
-		activeQueueRegister.remove(queueID);
+		try {
+			//Lock the queue register & remove queueID requested. TODO Make this a writelock?
+			queueControlLock.lock();
+			activeQueueRegister.remove(queueID);
+		} finally {
+			queueControlLock.unlock();
+		}
 	}
 	
 	private void disconnectAndClear(IQueue<? extends Queueable> queue) throws EventException {
@@ -260,9 +278,10 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public void stopActiveQueue(String queueID, boolean force) 
+	public synchronized void stopActiveQueue(String queueID, boolean force) 
 			throws EventException {
-		//Check active-queue is running
+		//Check QueueService & active-queue is running
+		if (stopped) throw new IllegalStateException("Queue service has been stopped"); //TODO Should this be an EventException?
 		IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
 		
 		//If another thread has asked the queue to stop already, wait for that attempt to complete.
@@ -281,15 +300,21 @@ public class QueueService implements IQueueService {
 			logger.warn("Active-queue "+queueID+" is not active.");
 			return;
 		}
-		
-		//Kill/stop the job queue
-		if (force) {
-//FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
-//			controller.killQueue(queueID, true, false);
+
+		try {
+			//Lock the service against changes while we stop/kill the requested active-queue
+			queueControlLock.lock();//TODO writelock
+			//Kill/stop the job queue
+			if (force) {
+				//FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
+				//			controller.killQueue(queueID, true, false);
+			}
+			//Whatever happens we need to mark the queue stopped
+			//TODO Does this need to wait for the kill call to be completed?
+			activeQueue.stop();
+		} finally {
+			queueControlLock.unlock();
 		}
-		//Whatever happens we need to mark the queue stopped
-		//TODO Does this need to wait for the kill call to be completed?
-		activeQueue.stop();
 	}
 	
 	@Override
