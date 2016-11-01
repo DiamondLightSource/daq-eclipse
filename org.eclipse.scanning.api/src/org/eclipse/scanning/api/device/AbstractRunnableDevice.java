@@ -80,6 +80,15 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	private volatile boolean busy = false;
 	private boolean requireMetrics;
+	
+	/**
+	 * Since making the tree takes a while we measure its
+	 * time and make that available to clients.
+	 * It is optional if a given AbstractRunnableDevice
+	 * saves the configure time.
+	 */
+	private long configureTime;
+
 
 	protected AbstractRunnableDevice() {
 		this.scanId     = UUID.randomUUID().toString();
@@ -540,5 +549,14 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void setRequireMetrics(boolean requireMetrics) {
 		this.requireMetrics = requireMetrics;
 	}
+	public long getConfigureTime() {
+		return configureTime;
+	}
+
+	public void setConfigureTime(long configureTime) {
+		this.configureTime = configureTime;
+	}
+
+
 
 }

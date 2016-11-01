@@ -2,9 +2,15 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 
+import org.eclipse.dawnsci.nexus.builder.NexusBuilderFactory;
+import org.eclipse.dawnsci.nexus.builder.NexusFileBuilder;
+import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
+import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -29,14 +35,27 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  * @author Matthew Gerring
  *
  */
-public class NexusScanSpeedTest extends NexusTest {
+public class NexusStepScanSpeedTest extends NexusTest {
 
 	private static EventServiceImpl eservice;
 	private IPointGenerator<StepModel> gen;
 	
 	@BeforeClass
     public static void createEventService() throws Exception {
+		
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
+		// We publish an event to make sure all these libraries are loaded
+		IPublisher<ScanBean> publisher = eservice.createPublisher(uri, EventConstants.SCAN_TOPIC);
+		publisher.broadcast(new ScanBean());
+		
+		// We write a nexus file to ensure that the library is loaded
+		File file = File.createTempFile("test_nexus", ".nxs");
+		file.deleteOnExit();
+		IPointGenerator<StepModel> gen = gservice.createGenerator(new StepModel("xNex", 0, 3, 1));
+		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen, file));
+		scan.run(null);
+		
+		
 	}
 
 	@Before
@@ -49,7 +68,7 @@ public class NexusScanSpeedTest extends NexusTest {
 		
 		// We create a step scan
 		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen));
-		runAndCheck("No NeXus scan", scan, 5, 1);
+		runAndCheck("No NeXus scan", scan, 5, 1, 100L);
 	}
 	
 	
@@ -62,7 +81,7 @@ public class NexusScanSpeedTest extends NexusTest {
 			xNex.setWritingOn(false);
 			// We create a step scan
 			final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen, output));
-			runAndCheck("Scan no 'setSlice'", scan, 10, 2048);
+			runAndCheck("Scan no 'setSlice'", scan, 10, 2048, 2000L);
 		} finally {
 			xNex.setWritingOn(true);
 		}
@@ -73,7 +92,7 @@ public class NexusScanSpeedTest extends NexusTest {
 		
 		// We create a step scan
 		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen, output));
-		runAndCheck("Normal NeXus Scan", scan, 10, 2048);
+		runAndCheck("Normal NeXus Scan", scan, 10, 2048, 2000L);
 	}
 	
 	@Test
@@ -82,23 +101,29 @@ public class NexusScanSpeedTest extends NexusTest {
 		// We create a step scan
 		IPublisher<ScanBean> publisher = eservice.createPublisher(uri, EventConstants.SCAN_TOPIC);
 		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen, output), publisher);
-		runAndCheck("NeXus with Publish", scan, 10, 2048);
+		runAndCheck("NeXus with Publish", scan, 10, 2048, 2000L);
 	}
 
 	
-	private void runAndCheck(String name, final IRunnableDevice<ScanModel> scan, int pointTime, int fileSizeKB) throws Exception {
+	private void runAndCheck(String name, final IRunnableDevice<ScanModel> scan, int pointTime, int fileSizeKB, long treeTime) throws Exception {
 		
 		long before = System.currentTimeMillis();
 		scan.run(null);
 		long after = System.currentTimeMillis();
 	
 		long time = (after-before);
+		
+		AbstractRunnableDevice<ScanModel> ascan = (AbstractRunnableDevice<ScanModel>)scan;
+		System.out.println("\n------------------------------");
+		System.out.println(name);
 		System.out.println("------------------------------");
-		System.out.println("Ran "+name+" in "+time+"ms including tree write time");
-		System.out.println(gen.size()+" points at "+(time/gen.size())+"ms/pnt");
+		System.out.println("Configure time was "+ascan.getConfigureTime()+" ms");
+		System.out.println("Ran in "+time+"ms not including tree write time");
+		System.out.println("Ran "+gen.size()+" points at "+(time/gen.size())+"ms/pnt");
 		System.out.println("File size is "+output.length()/1024+"kB");
 		System.out.println();
 		
+		assertTrue("The configure time must be less than "+treeTime+"ms", ascan.getConfigureTime()<treeTime);
 		assertTrue("The time must be less than "+pointTime+"ms", (time/gen.size())<pointTime);
 		long sizeKB = (output.length()/1024);
 		assertTrue("The size must be less than "+fileSizeKB+"kB. It is "+sizeKB+"kB", sizeKB<fileSizeKB);
