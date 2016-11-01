@@ -196,7 +196,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 		//If we have an update to broadcast, do it!
 		if (broadcastUpdate) {
 			try {
-				broadcaster.childQueueBroadcast();
+				broadcaster.broadcast();
 			} catch (EventException evEx) {
 				logger.error("Broadcasting '"+bean.getName()+"' failed with: "+evEx.getMessage());
 			}
@@ -218,7 +218,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 					((IHasChildQueue)parent).setQueueMessage("All child processes complete.");
 				}
 				try {
-					broadcaster.childQueueBroadcast();
+					broadcaster.broadcast();
 				} catch (EventException evEx) {
 					logger.error("Broadcasting completed message failed with: "+evEx.getMessage());
 				}
