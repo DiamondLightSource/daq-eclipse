@@ -7,17 +7,22 @@ import static org.junit.Assert.fail;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
+import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
+import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 
 public class ProcessorTestInfrastructure {
@@ -192,6 +197,17 @@ public class ProcessorTestInfrastructure {
 		} else {
 			fail("No child beans broadcast");
 		}		
+	}
+	
+	public void checkConsumersStopped(MockEventService mockEvServ, IQueueService qServ) {
+		Map<String, MockConsumer<? extends StatusBean>> consumers = mockEvServ.getRegisteredConsumers();
+		
+		for (Map.Entry<String, MockConsumer<? extends StatusBean>> entry : consumers.entrySet()) {
+			//We don't need to check the job-queue
+			if (entry.getKey().equals(qServ.getJobQueueID())) continue;
+			assertTrue("Consumer was not stopped (this was expected)", entry.getValue().isStopped());
+		}
+		
 	}
 	
 	/**

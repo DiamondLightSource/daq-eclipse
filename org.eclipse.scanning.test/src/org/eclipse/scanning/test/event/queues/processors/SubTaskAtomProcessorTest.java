@@ -7,15 +7,14 @@ import static org.junit.Assert.assertTrue;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Map;
 
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.queues.QueueControllerService;
 import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
@@ -45,7 +44,7 @@ public class SubTaskAtomProcessorTest {
 	private static IQueueControllerService controller;
 	
 	@BeforeClass
-	public static void setUpClass() throws Exception {
+	public static void setUpClass() throws EventException {
 		//Configure the processor Mock queue infrastructure
 		mockCons = new MockConsumer<>();
 		mockPub = new MockPublisher<>(null, null);
@@ -72,6 +71,7 @@ public class SubTaskAtomProcessorTest {
 		
 		//Once this lot is up, create a queue controller.
 		controller = new QueueControllerService();
+		controller.init();
 		ServicesHolder.setQueueControllerService(controller);
 	}
 	
@@ -160,7 +160,7 @@ public class SubTaskAtomProcessorTest {
 		assertEquals("Wrong message set after termination.", "Active-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
 		assertEquals("Active queues still registered after terminate", 0, qServ.getAllActiveQueueIDs().size());
 		
-		checkConsumersStopped();	
+		pti.checkConsumersStopped(mockEvServ, qServ);
 	}
 	
 	@Test
@@ -199,17 +199,6 @@ public class SubTaskAtomProcessorTest {
 			assertFalse("No username set", dummy.getUserName() == null);
 			assertEquals("Incorrect username", stAt.getUserName(), dummy.getUserName());
 		}
-	}
-	
-	private void checkConsumersStopped() {
-		Map<String, MockConsumer<? extends StatusBean>> consumers = mockEvServ.getRegisteredConsumers();
-		
-		for (Map.Entry<String, MockConsumer<? extends StatusBean>> entry : consumers.entrySet()) {
-			//We don't need to check the job-queue
-			if (entry.getKey().equals(qServ.getJobQueueID())) continue;
-			assertTrue("Consumer was not stopped (this was expected)", entry.getValue().isStopped());
-		}
-		
 	}
 
 }

@@ -84,6 +84,9 @@ public class TaskBeanProcessorTest {
 	
 	@AfterClass
 	public static void tearDownClass() {
+		ServicesHolder.unsetQueueControllerService(controller);
+		controller = null;
+		
 		ServicesHolder.unsetEventService(mockEvServ);
 		mockEvServ = null;
 		mockPub = null;
@@ -162,6 +165,7 @@ public class TaskBeanProcessorTest {
 		//TODO Should this be the message or the queue-message?
 		assertEquals("Wrong message set after termination.", "Job-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
 		
+		pti.checkConsumersStopped(mockEvServ, qServ);
 	}
 	
 	@Test
