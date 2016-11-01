@@ -9,14 +9,18 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
+import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.event.queues.QueueControllerService;
 import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
@@ -34,6 +38,7 @@ public class QueueServiceTest {
 	private MockEventService mockEvServ = new MockEventService();
 	
 	private IQueueService testQServ;
+	private IQueueControllerService controllerServ;
 	
 	private String qRoot;
 	private URI uri;
@@ -46,6 +51,9 @@ public class QueueServiceTest {
 		mockEvServ.setMockCmdPublisher(mockCmdPub);
 		ServicesHolder.setEventService(mockEvServ);
 		
+		controllerServ = new QueueControllerService();
+		ServicesHolder.setQueueControllerService(controllerServ);
+		
 		qRoot = "test-queue-root";
 		uri = new URI("file:///foo/bar");
 	}
@@ -53,6 +61,9 @@ public class QueueServiceTest {
 	@After
 	public void tearDown() throws Exception {
 		testQServ.disposeService();
+		
+		ServicesHolder.unsetQueueService(testQServ);
+		ServicesHolder.unsetQueueControllerService(controllerServ);
 	}
 	
 	/**
@@ -63,6 +74,8 @@ public class QueueServiceTest {
 	public void testServiceInit() throws EventException {
 		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		/*
 		 * init should:
 		 * - check uriString set equal to uri
@@ -127,6 +140,8 @@ public class QueueServiceTest {
 	public void testServiceStart() throws EventException {
 		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		testQServ.start();
 		/*
 		 * Start should:
@@ -156,6 +171,8 @@ public class QueueServiceTest {
 	public void testServiceStop() throws EventException {
 		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		testQServ.start();
 		testQServ.registerNewActiveQueue();
 		testQServ.stop(false);
@@ -170,18 +187,30 @@ public class QueueServiceTest {
 		assertEquals("Active-queues remain after stopping", 0, testQServ.getAllActiveQueueIDs().size());
 		assertEquals("Job-queue still active", QueueStatus.STOPPED, testQServ.getJobQueue().getStatus());
 		assertFalse("Queue service still marked active", testQServ.isActive());
+				
+		//Check forceful stop works
+		testQServ.start();
+		String aqID = testQServ.registerNewActiveQueue();
 		
-//TODO		//Check forceful stop works
-//		testQServ.start();
-//		testQServ.registerNewActiveQueue();
-//		testQServ.stop(true);
+		//Get IDs of consumers in preparation for analysis
+		List<UUID> consIDs = new ArrayList<>();
+		consIDs.add(testQServ.getActiveQueue(aqID).getConsumerID());
+		consIDs.add(testQServ.getJobQueue().getConsumerID());
 		
-//TODO		List<ConsumerCommandBean> cmds = mockCmdPub.getCmdBeans();
-//		assertEquals("Expecting two Killbeans (one for each queue)", 2, cmds.size());
-//		assertTrue("Last command bean is not a KillBean", cmds.get(cmds.size()-1) instanceof KillBean);
-//		assertEquals("KillBean not killing the active-queue consumer", testQServ.getActiveQueue(aqID).getConsumerID(), cmds.get(cmds.size()-1).getConsumerId());
-//		assertFalse("Queue service still marked active", testQServ.isActive());
+		//And stop the queues
+		testQServ.startActiveQueue(aqID);
+		testQServ.stop(true);
+			
+		List<ConsumerCommandBean> cmds = mockCmdPub.getCmdBeans();
+		assertTrue("No command beans recorded", cmds.size() > 0);
+		assertEquals("Expecting two Killbeans (one for each queue)", 2, cmds.size());
+		for (int i = 0; i < 2; i++) {
+			ConsumerCommandBean kb = (KillBean)cmds.get(i);
+			assertTrue("Command bean "+i+"is not a KillBean", kb instanceof KillBean);
+			assertEquals("KillBean has incorrect consumer ID", kb.getConsumerId(), consIDs.get(i));
+		}
 		
+		assertFalse("Queue service still marked active", testQServ.isActive());
 	}
 	
 	/**
@@ -192,6 +221,8 @@ public class QueueServiceTest {
 	public void testQueueStartStop() throws EventException {
 		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		testQServ.start();
 		/*
 		 * Should:
@@ -212,13 +243,14 @@ public class QueueServiceTest {
 		testQServ.stopActiveQueue(aqID, false);
 		assertEquals("Active-queue has wrong state", QueueStatus.STOPPED, activeQ.getStatus());
 		
-//TODO		//Restart queue & stop is forcefully
-//		testQServ.startActiveQueue(aqID);
-//		testQServ.stopActiveQueue(aqID, true);
-//		assertEquals("Active-queue not started", QueueStatus.KILLED, activeQ.getStatus());
-//		List<ConsumerCommandBean> cmds = mockCmdPub.getCmdBeans();
-//		assertTrue("Last command bean is not a KillBean", cmds.get(cmds.size()-1) instanceof KillBean);
-//		assertEquals("KillBean not killing the active-queue consumer", testQServ.getActiveQueue(aqID).getConsumerID(), cmds.get(cmds.size()-1).getConsumerId());
+//TODO		
+		//Restart queue & stop is forcefully
+		testQServ.startActiveQueue(aqID);
+		testQServ.stopActiveQueue(aqID, true);
+		List<ConsumerCommandBean> cmds = mockCmdPub.getCmdBeans();
+		assertTrue("No command beans recorded", cmds.size() > 0);
+		assertTrue("Last command bean is not a KillBean", cmds.get(cmds.size()-1) instanceof KillBean);
+		assertEquals("KillBean not killing the active-queue consumer", testQServ.getActiveQueue(aqID).getConsumerID(), cmds.get(cmds.size()-1).getConsumerId());
 	}
 	
 	/**
@@ -229,6 +261,8 @@ public class QueueServiceTest {
 	public void testRegistration() throws EventException {
 		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		testQServ.start();
 		/*
 		 * Should:
