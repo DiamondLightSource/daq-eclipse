@@ -50,6 +50,14 @@ public class NexusScanSpeedTest extends NexusTest {
 	}
 	
 	@Test
+	public void testBareNexusStepScanSpeedNoNexus() throws Exception {
+		
+		// We create a step scan
+		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen));
+		runAndCheck(scan, 5, 1);
+	}
+	
+	@Test
 	public void testBareNexusStepScanSpeed() throws Exception {
 		
 		// We create a step scan
