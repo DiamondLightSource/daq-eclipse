@@ -101,8 +101,12 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 		try {
 		queueService.stopActiveQueue(activeQueueID, false);
 		queueService.deRegisterActiveQueue(activeQueueID);
-		} catch (IllegalStateException isEx) {
-			logger.warn("QueueService resources already stopped");
+		} catch (EventException evEx) {
+			if (evEx.getMessage().equals("stopped")) {
+				logger.warn("QueueService resources already stopped");
+			} else {
+				throw evEx;
+			}
 		}
 	}
 

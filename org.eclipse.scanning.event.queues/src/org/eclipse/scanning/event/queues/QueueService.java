@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -68,7 +68,7 @@ public class QueueService implements IQueueService {
 	private static IQueue<QueueBean> jobQueue;
 	private static Map<String, IQueue<QueueAtom>> activeQueueRegister;
 	
-	private final ReentrantLock queueControlLock = new ReentrantLock();//TODO Should/could this be a ReadWrite lock?
+	private final ReentrantReadWriteLock queueControlLock = new ReentrantReadWriteLock();
 	
 	static {
 		System.out.println("Created " + IQueueService.class.getSimpleName());
@@ -174,7 +174,7 @@ public class QueueService implements IQueueService {
 
 		try {
 			//Barge to the front of the queue to get the lock & start stopping things. TODO writelock?
-			queueControlLock.tryLock();
+			queueControlLock.writeLock().tryLock();
 
 			//Deregister all existing active queues.
 			if (!activeQueueRegister.isEmpty()) {
@@ -202,51 +202,76 @@ public class QueueService implements IQueueService {
 			active = false;
 			stopped = true;
 		} finally {
-			queueControlLock.unlock();
+			queueControlLock.writeLock().unlock();
 		}
 	}
 	
 	@Override
-	public String registerNewActiveQueue() throws EventException {
+	public synchronized String registerNewActiveQueue() throws EventException {
 		if (!active) throw new IllegalStateException("Queue service not started.");
 		
 		//Generate the random name of the queue
 		Random randNrGen = new Random();
 		String randInt = String.format("%03d", randNrGen.nextInt(999));
 		String aqID = queueRoot+ACTIVE_QUEUE_PREFIX+activeQueueRegister.size()+"-"+randInt+ACTIVE_QUEUE_SUFFIX;;
-		//And really make sure we don't get any name collisions
-		while (activeQueueRegister.containsKey(aqID)) {
-			aqID = queueRoot+ACTIVE_QUEUE_PREFIX+activeQueueRegister.size()+"-"+randInt+ACTIVE_QUEUE_SUFFIX;
+		try {
+			//As we start interacting with the register, lock it so it doesn't change...
+			queueControlLock.readLock().lockInterruptibly();
+			//...and really make sure we don't get any name collisions
+			while (activeQueueRegister.containsKey(aqID)) {
+				aqID = queueRoot+ACTIVE_QUEUE_PREFIX+activeQueueRegister.size()+"-"+randInt+ACTIVE_QUEUE_SUFFIX;
+			}
+
+			//Create active-queue, add to register & return the active-queue ID
+			IQueue<QueueAtom> activeQueue = new Queue<>(aqID, uri, 
+					heartbeatTopicName, commandSetName, commandTopicName);
+			activeQueue.clearQueues();
+			//We need to get the write lock to protect the register for us
+			queueControlLock.readLock().unlock();
+			queueControlLock.writeLock().lockInterruptibly();
+			activeQueueRegister.put(aqID, activeQueue);
+			queueControlLock.readLock().lockInterruptibly();
+			queueControlLock.writeLock().unlock();
+			return aqID;
+		} catch (InterruptedException iEx) {
+			logger.error("Active-queue registration interrupted: "+iEx.getMessage());
+			throw new EventException(iEx);
+		} finally{
+			queueControlLock.readLock().unlock();
 		}
-		
-		//Create active-queue, add to register & return the active-queue ID
-		IQueue<QueueAtom> activeQueue = new Queue<>(aqID, uri, 
-				heartbeatTopicName, commandSetName, commandTopicName);
-		activeQueue.clearQueues();
-		activeQueueRegister.put(aqID, activeQueue);
-		return aqID;
 	}
 	
 	@Override
 	public synchronized void deRegisterActiveQueue(String queueID) throws EventException {
-		if (stopped) throw new IllegalStateException("Queue service has been stopped");//TODO Should this be EventException?
+		//Are we in a state where we can deregister?
+		if (stopped) throw new EventException("stopped");
 		if (!active) throw new EventException("Queue service not started.");
-		
-		//Get the queue and check that it's not started
-		IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
-		if (activeQueue.getStatus().isActive()) {
-			throw new EventException("Active-queue " + queueID +" still running - cannot deregister.");
-		}
-		
-		//Queue disposal happens here
-		disconnectAndClear(activeQueue);
-		
 		try {
-			//Lock the queue register & remove queueID requested. TODO Make this a writelock?
-			queueControlLock.lock();
+			//Acquire a readlock to make sure other processes don't mess with the register
+			queueControlLock.readLock().lockInterruptibly();
+
+			//Get the queue and check that it's not started
+			IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
+			if (activeQueue.getStatus().isActive()) {
+				throw new EventException("Active-queue " + queueID +" still running - cannot deregister.");
+			}
+
+			//Queue disposal happens here
+			disconnectAndClear(activeQueue);
+
+			//Lock the queue register & remove queueID requested
+			queueControlLock.readLock().unlock();
+			queueControlLock.writeLock().lockInterruptibly();
+
+			//Remove remaining queue processes from map
 			activeQueueRegister.remove(queueID);
+			queueControlLock.readLock().lockInterruptibly();
+			queueControlLock.writeLock().unlock();
+		} catch (InterruptedException iEx){
+			logger.error("Deregistration of active-queue "+queueID+" was interrupted.");
+			throw new EventException(iEx);
 		} finally {
-			queueControlLock.unlock();
+			queueControlLock.readLock().unlock();
 		}
 	}
 	
@@ -259,52 +284,76 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public boolean isActiveQueueRegistered(String queueID) {
-		return activeQueueRegister.containsKey(queueID);
+	public synchronized boolean isActiveQueueRegistered(String queueID) {
+		//Use lock to make sure the register isn't being changed by another process
+		try {
+			queueControlLock.readLock().lock();
+			return activeQueueRegister.containsKey(queueID);
+		} finally {
+			queueControlLock.readLock().unlock();
+		}
+		
 	}
 	
 	@Override
 	public void startActiveQueue(String queueID) throws EventException {
-		//Check active-queue is not already running
-		IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
-		if (!activeQueue.getStatus().isStartable()) {
-			throw new EventException("Active-queue "+queueID+" is not startable - Status: " + activeQueue.getStatus());
+		try {
+			//Get read lock to & check active-queue is not already running
+			queueControlLock.readLock().lockInterruptibly();
+			IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
+			if (!activeQueue.getStatus().isStartable()) {
+				throw new EventException("Active-queue "+queueID+" is not startable - Status: " + activeQueue.getStatus());
+			}
+			if (activeQueue.getStatus().isActive()) {
+				logger.warn("Active-queue "+queueID+" is already active.");
+				return;
+			}
+			
+			//We're ready to write the new queue to the register, so get the write lock
+			queueControlLock.readLock().unlock();
+			queueControlLock.writeLock().lock();
+			activeQueue.start();
+			queueControlLock.readLock().lock();
+			queueControlLock.writeLock().unlock();
+		} catch (InterruptedException iEx) {
+			logger.error("Starting of active-queue "+queueID+" stopping was interrupted.");
+			throw new EventException(iEx);
+		} finally {
+			queueControlLock.readLock().unlock();
 		}
-		if (activeQueue.getStatus().isActive()) {
-			logger.warn("Active-queue "+queueID+" is already active.");
-			return;
-		}
-		activeQueue.start();
 	}
 	
 	@Override
 	public synchronized void stopActiveQueue(String queueID, boolean force) 
 			throws EventException {
-		//Check QueueService & active-queue is running
-		if (stopped) throw new IllegalStateException("Queue service has been stopped"); //TODO Should this be an EventException?
-		IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
-		
-		//If another thread has asked the queue to stop already, wait for that attempt to complete.
-		while (activeQueue.getStatus() == QueueStatus.STOPPING) {
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException iEx) {
-				throw new EventException("Interrupted while waiting for active-queue"+queueID+" to stop", iEx);
-			}
-		}
-		//Is the Queue actually stoppable?
-		if (activeQueue.getStatus() == QueueStatus.STOPPED) {
-			logger.warn("Active-queue "+queueID+" already stopped.");
-			return;
-		} else if (!activeQueue.getStatus().isActive()) {
-			logger.warn("Active-queue "+queueID+" is not active.");
-			return;
-		}
-
+		if (stopped) throw new EventException("stopped");
 		try {
-			//Lock the service against changes while we stop/kill the requested active-queue
-			queueControlLock.lock();//TODO writelock
-			//Kill/stop the job queue
+			//Lock the register against changes & check active-queue is running
+			queueControlLock.readLock().lockInterruptibly();
+			IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
+
+			//FIXME I think this is now superfluous...
+			//If another thread has asked the queue to stop already, wait for that attempt to complete.
+			while (activeQueue.getStatus() == QueueStatus.STOPPING) {
+				try {
+					Thread.sleep(500);
+					System.out.println("WAITING...");
+				} catch (InterruptedException iEx) {
+					throw new EventException("Interrupted while waiting for active-queue "+queueID+" to stop", iEx);
+				}
+			}
+			//Is the Queue actually stoppable?
+			if (activeQueue.getStatus() == QueueStatus.STOPPED) {
+				logger.warn("Active-queue "+queueID+" already stopped.");
+				return;
+			} else if (!activeQueue.getStatus().isActive()) {
+				logger.warn("Active-queue "+queueID+" is not active.");
+				return;
+			}
+
+			//Upgrade to write lock while we stop/kill the requested active-queue
+			queueControlLock.readLock().unlock();
+			queueControlLock.writeLock().lockInterruptibly();
 			if (force) {
 				//FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
 				//			controller.killQueue(queueID, true, false);
@@ -312,14 +361,26 @@ public class QueueService implements IQueueService {
 			//Whatever happens we need to mark the queue stopped
 			//TODO Does this need to wait for the kill call to be completed?
 			activeQueue.stop();
+			queueControlLock.readLock().lock();
+			queueControlLock.writeLock().unlock();
+		} catch (InterruptedException iEx){
+			logger.error("Stopping of active-queue "+queueID+" stopping was interrupted.");
+			throw new EventException(iEx);
 		} finally {
-			queueControlLock.unlock();
+			queueControlLock.readLock().unlock();
 		}
 	}
 	
 	@Override
-	public Set<String> getAllActiveQueueIDs() {
-		return activeQueueRegister.keySet();
+	public synchronized Set<String> getAllActiveQueueIDs() {
+		//Use lock to make sure the register isn't being changed by another process
+		try {
+			queueControlLock.readLock().lock();
+			return activeQueueRegister.keySet();
+		} finally {
+			queueControlLock.readLock().unlock();
+		}
+		
 	}
 	
 	@Override
@@ -328,9 +389,15 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public IQueue<QueueAtom> getActiveQueue(String queueID) throws EventException {
-		if (isActiveQueueRegistered(queueID)) return activeQueueRegister.get(queueID);
-		throw new EventException("Queue ID "+queueID+" not found in registry");
+	public synchronized IQueue<QueueAtom> getActiveQueue(String queueID) throws EventException {
+		//Use lock to make sure the register isn't being changed by another process
+		try {
+			queueControlLock.readLock().lock();
+			if (isActiveQueueRegistered(queueID)) return activeQueueRegister.get(queueID);
+			throw new EventException("Queue ID "+queueID+" not found in registry");
+		} finally {
+			queueControlLock.readLock().unlock();
+		}
 	}
 	
 	@Override
