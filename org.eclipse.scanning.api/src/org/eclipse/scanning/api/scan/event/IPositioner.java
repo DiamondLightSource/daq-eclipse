@@ -101,4 +101,11 @@ public interface IPositioner extends IPositionListenable {
      * that were awaiting execution."
 	 */
 	void abort();
+	
+	/**
+	 * Calling this method tells the thread pool to close in the positioner.
+	 * This frees up threads and the positioner may still be used (it will create
+	 * a new thread pool if reused after it has been closed).
+	 */
+	void close();
 }

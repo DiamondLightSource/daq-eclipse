@@ -103,5 +103,15 @@ class _Positioner extends AbstractRemoteService implements IPositioner {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	@Override
+	public void close() {
+		request.setPositionType(PositionRequestType.CLOSE);
+		try {
+			request = requester.post(request);
+		} catch (EventException | InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 }

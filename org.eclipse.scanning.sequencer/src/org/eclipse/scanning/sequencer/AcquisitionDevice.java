@@ -237,6 +237,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private void close(boolean errorFound, IPosition last) throws ScanningException {
 		try {
 			try {
+				positioner.close();
+				runners.close();
+				writers.close();
+				
 				nexusScanFileManager.scanFinished(); // writes scanFinished and closes nexus file
 	        	
 				// We should not fire the run performed until the nexus file is closed.
