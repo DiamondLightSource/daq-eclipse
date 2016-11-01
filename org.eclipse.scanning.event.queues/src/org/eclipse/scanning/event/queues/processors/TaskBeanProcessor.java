@@ -40,11 +40,13 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 			}
 			//And we're done, so let other processes continue
 			executionEnded();
-		} finally {
-			//This should be run after we've reported the queue final state
-			atomQueueProcessor.tidyQueue();
 			
+		} finally {
 			lock.unlock();
+			
+			//This should be run after we've reported the queue final state
+			//This must be after unlock call, otherwise terminate gets stuck.
+			atomQueueProcessor.tidyQueue();
 		}
 		
 	}

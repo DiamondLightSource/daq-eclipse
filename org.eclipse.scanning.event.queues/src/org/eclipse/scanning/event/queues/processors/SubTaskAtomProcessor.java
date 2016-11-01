@@ -33,14 +33,16 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 				//Failed: latch released before completion
 				broadcaster.broadcast(Status.FAILED, "Active-queue failed (caused by process Atom)");
 			}
-
-			//This should be run after we've reported the queue final state
-			atomQueueProcessor.tidyQueue();
-
 			//And we're done, so let other processes continue
 			executionEnded();
+			
+			
 		} finally {
 			lock.unlock();
+			
+			//This should be run after we've reported the queue final state
+			//This must be after unlock call, otherwise terminate gets stuck.
+			atomQueueProcessor.tidyQueue();
 		}
 	}
 
