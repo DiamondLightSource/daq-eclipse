@@ -46,9 +46,12 @@ public class SubTaskAtomProcessor extends AbstractQueueProcessor<SubTaskAtom> {
 			
 			/*
 			 * N.B. Broadcasting needs to be done last; otherwise the next 
-			 * queue may start when we're not ready
+			 * queue may start when we're not ready. Broadcasting should not 
+			 * happen if we've been terminated.
 			 */
-			broadcaster.broadcast();
+			if (!isTerminated()){
+				broadcaster.broadcast();
+			}
 		}
 	}
 
