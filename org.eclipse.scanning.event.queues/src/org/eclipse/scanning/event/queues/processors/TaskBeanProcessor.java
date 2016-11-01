@@ -30,10 +30,10 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 				atomQueueProcessor.terminate();
 			} else if (queueBean.getPercentComplete() >= 99.49) {//99.49 to catch rounding errors
 				//Completed successfully
-				broadcaster.broadcast(Status.COMPLETE, 100d, "Scan completed.");
+				broadcaster.updateBean(Status.COMPLETE, 100d, "Scan completed.");
 			} else {
 				//Failed: latch released before completion
-				broadcaster.broadcast(Status.FAILED, "Job-queue failed (caused by process Atom)");
+				broadcaster.updateBean(Status.FAILED, null, "Job-queue failed (caused by process Atom)");
 				//As we don't know the origin of the failure, pause *this* queue
 				IQueueControllerService controller = ServicesHolder.getQueueControllerService();
 				controller.pauseQueue(ServicesHolder.getQueueService().getJobQueueID());
@@ -47,6 +47,12 @@ public class TaskBeanProcessor extends AbstractQueueProcessor<TaskBean> {
 			//This should be run after we've reported the queue final state
 			//This must be after unlock call, otherwise terminate gets stuck.
 			atomQueueProcessor.tidyQueue();
+			
+			/*
+			 * N.B. Broadcasting needs to be done last; otherwise the next 
+			 * queue may start when we're not ready
+			 */
+			broadcaster.broadcast();
 		}
 		
 	}
