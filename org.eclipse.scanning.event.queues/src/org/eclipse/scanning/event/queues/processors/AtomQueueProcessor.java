@@ -10,6 +10,8 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.ServicesHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generic class for processing a {@link Queueable} composed of an 
@@ -27,6 +29,8 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * @param <Q> Bean from within the AtomQueue - implements {@link QueueAtom}.
  */
 public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extends QueueAtom> {
+	
+	private static Logger logger = LoggerFactory.getLogger(AtomQueueProcessor.class);
 	
 	private IQueueService queueService;
 	private IQueueControllerService queueController;
@@ -94,10 +98,12 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, Q extend
 		queueSubscriber.disconnect();
 		
 		//Tidy up our processes, before handing back control
-		if (queueService.getActiveQueue(activeQueueID).getStatus().isActive()) {
-			queueService.stopActiveQueue(activeQueueID, false);
-		}
+		try {
+		queueService.stopActiveQueue(activeQueueID, false);
 		queueService.deRegisterActiveQueue(activeQueueID);
+		} catch (IllegalStateException isEx) {
+			logger.warn("QueueService resources already stopped");
+		}
 	}
 
 	public String getActiveQueueID() {
