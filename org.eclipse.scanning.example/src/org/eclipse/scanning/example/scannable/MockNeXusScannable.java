@@ -16,6 +16,7 @@ import org.eclipse.january.dataset.DatasetFactory;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.IScanAttributeContainer;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
@@ -45,6 +46,12 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	}
 	public MockNeXusScannable(String name, double d, int level, String unit) {
 		super(name, d, level, unit);
+	}
+	
+	@ScanFinally
+	public void nullify() {
+		lzSet   = null;
+		lzValue = null;
 	}
 
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) throws NexusException {

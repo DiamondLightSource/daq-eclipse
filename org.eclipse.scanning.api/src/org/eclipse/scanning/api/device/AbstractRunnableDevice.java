@@ -305,7 +305,9 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		if (isRequireMetrics()) {
 			long time = System.currentTimeMillis()-startTime;
 			System.out.println("Ran "+(position.getStepIndex()+1)+" points in *total* time of "+time+" ms.");
-			System.out.println("Average point time of "+(total/position.getStepIndex())+" ms/pnt");
+			if (position.getStepIndex()>0) {
+				System.out.println("Average point time of "+(total/position.getStepIndex())+" ms/pnt");
+			}
 		}
 		
 		if (rlisteners==null) return;

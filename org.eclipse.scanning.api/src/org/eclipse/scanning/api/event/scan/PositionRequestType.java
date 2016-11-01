@@ -2,5 +2,5 @@ package org.eclipse.scanning.api.event.scan;
 
 public enum PositionRequestType {
 
-	SET, GET, ABORT;
+	SET, GET, ABORT, CLOSE;
 }

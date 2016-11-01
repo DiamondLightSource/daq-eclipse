@@ -49,8 +49,10 @@ public class PositionerResponse implements IResponseProcess<PositionerRequest>{
 				boolean ok = positioner.setPosition(request.getPosition());
 				if (!ok) throw new EventException("Internal Error: setPosition() did not return ok!");
 				
-			} if (request.getPositionType()==PositionRequestType.ABORT) {
+			} else if (request.getPositionType()==PositionRequestType.ABORT) {
 				positioner.abort();
+			}else if (request.getPositionType()==PositionRequestType.CLOSE) {
+				positioner.close();
 			}
 			// Return the current position.
 			request.setPosition(positioner.getPosition());
