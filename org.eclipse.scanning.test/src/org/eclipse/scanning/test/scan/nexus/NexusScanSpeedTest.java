@@ -2,9 +2,9 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 
+import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
-import org.junit.After;
+import org.eclipse.scanning.example.scannable.MockNeXusScannable;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,12 +41,7 @@ public class NexusScanSpeedTest extends NexusTest {
 
 	@Before
 	public void before() throws GeneratorException, IOException {
-		System.setProperty("org.eclipse.scanning.sequencer.AcquisitionDevice.Metrics", "true");
-		this.gen = gservice.createGenerator(new StepModel("xNex", 0, 25, 1));
-	}
-	@After
-	public void after() {
-		System.setProperty("org.eclipse.scanning.sequencer.AcquisitionDevice.Metrics", "false");
+		this.gen = gservice.createGenerator(new StepModel("xNex", 0, 1000, 1));
 	}
 	
 	@Test
@@ -54,15 +49,31 @@ public class NexusScanSpeedTest extends NexusTest {
 		
 		// We create a step scan
 		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen));
-		runAndCheck(scan, 5, 1);
+		runAndCheck("No NeXus scan", scan, 5, 1);
 	}
 	
+	
+	@Test
+	public void testBareNexusStepNoSetSlice() throws Exception {
+		
+		IScannable<?> scannable = connector.getScannable("xNex");
+		MockNeXusScannable xNex = (MockNeXusScannable)scannable;
+		try {
+			xNex.setWritingOn(false);
+			// We create a step scan
+			final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen, output));
+			runAndCheck("Scan no 'setSlice'", scan, 10, 2048);
+		} finally {
+			xNex.setWritingOn(true);
+		}
+	}
+
 	@Test
 	public void testBareNexusStepScanSpeed() throws Exception {
 		
 		// We create a step scan
 		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen, output));
-		runAndCheck(scan, 10, 256);
+		runAndCheck("Normal NeXus Scan", scan, 10, 2048);
 	}
 	
 	@Test
@@ -71,30 +82,25 @@ public class NexusScanSpeedTest extends NexusTest {
 		// We create a step scan
 		IPublisher<ScanBean> publisher = eservice.createPublisher(uri, EventConstants.SCAN_TOPIC);
 		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen, output), publisher);
-		runAndCheck(scan, 10, 256);
+		runAndCheck("NeXus with Publish", scan, 10, 2048);
 	}
 
 	
-	private void runAndCheck(final IRunnableDevice<ScanModel> scan, int pointTime, int fileSizeKB) throws Exception {
+	private void runAndCheck(String name, final IRunnableDevice<ScanModel> scan, int pointTime, int fileSizeKB) throws Exception {
 		
 		long before = System.currentTimeMillis();
 		scan.run(null);
 		long after = System.currentTimeMillis();
 	
 		long time = (after-before);
-		System.out.println("Ran "+gen.getLabel()+" in "+time+"ms");
+		System.out.println("------------------------------");
+		System.out.println("Ran "+name+" in "+time+"ms including tree write time");
 		System.out.println(gen.size()+" points at "+(time/gen.size())+"ms/pnt");
-		System.out.println("File size is "+getFileSize(output));
+		System.out.println("File size is "+output.length()/1024+"kB");
+		System.out.println();
 		
 		assertTrue("The time must be less than "+pointTime+"ms", (time/gen.size())<pointTime);
-		assertTrue("The size must be less than "+fileSizeKB+"kB", (output.length()/1024)<fileSizeKB);
-	}
-	
-	private String getFileSize(File file) {
-		long bytes = file.length();
-	    int u = 0;
-	    for (;bytes > 1024*1024; bytes >>= 10)  u++;
-	    if (bytes > 1024) u++;
-	    return String.format("%.1f %cB", bytes/1024f, " kMGTPE".charAt(u));
+		long sizeKB = (output.length()/1024);
+		assertTrue("The size must be less than "+fileSizeKB+"kB. It is "+sizeKB+"kB", sizeKB<fileSizeKB);
 	}
 }

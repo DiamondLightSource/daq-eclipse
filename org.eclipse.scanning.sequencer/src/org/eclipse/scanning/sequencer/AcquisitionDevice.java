@@ -128,7 +128,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			nexusScanFileManager = new DummyNexusScanFileManager();
 		}
 		nexusScanFileManager.configure(model);
-		nexusScanFileManager.createNexusFile(false);
+		nexusScanFileManager.createNexusFile(true);
 		
 		if (model.getDetectors()!=null) {
 			runners = new DeviceRunner(model.getDetectors());

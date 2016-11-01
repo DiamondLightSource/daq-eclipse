@@ -32,10 +32,20 @@ import org.eclipse.scanning.api.scan.rank.IScanSlice;
  */
 public class MockNeXusScannable extends MockScannable implements INexusDevice<NXpositioner> {
 	
+	public boolean isWritingOn() {
+		return writingOn;
+	}
+
+	public void setWritingOn(boolean writingOn) {
+		this.writingOn = writingOn;
+	}
+
 	public static final String FIELD_NAME_SET_VALUE = NXpositioner.NX_VALUE + "_set";
 	
 	private ILazyWriteableDataset lzSet;
 	private ILazyWriteableDataset lzValue;
+	
+	private boolean writingOn = true;
 
 	public MockNeXusScannable() {
 		super();
@@ -67,11 +77,13 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			
 			this.lzSet = positioner.initializeLazyDataset(FIELD_NAME_SET_VALUE, 1, Double.class);
 			lzSet.setFillValue(fill);
-			lzSet.setChunking(new int[]{4096}); // Faster than looking at the shape of the scan for this dimension because slow to iterate.
+			lzSet.setChunking(new int[]{8}); // Faster than looking at the shape of the scan for this dimension because slow to iterate.
+			lzSet.setWritingAsync(true);
 			
 			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Double.class);
 			lzValue.setFillValue(fill);
 			lzValue.setChunking(info.createChunk(false, 8)); // TODO Might be slow, need to check this
+			lzValue.setWritingAsync(true);
 		}
 
 		registerAttributes(positioner, this);
@@ -104,7 +116,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
 			IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(loc);
 			SliceND sliceND = new SliceND(lzValue.getShape(), lzValue.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
-			lzValue.setSlice(null, newActualPositionData, sliceND);
+			if (isWritingOn()) lzValue.setSlice(null, newActualPositionData, sliceND);
 		}
 
 		if (lzSet==null) return;
@@ -118,7 +130,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 
 			// write demand position
 			final Dataset newDemandPositionData = DatasetFactory.createFromObject(demand);
-			lzSet.setSlice(null, newDemandPositionData, startPos, stopPos, null);
+			if (isWritingOn()) lzSet.setSlice(null, newDemandPositionData, startPos, stopPos, null);
 		}
 	}
 	
