@@ -125,12 +125,6 @@ public class QueueService implements IQueueService {
 		//Stop the job queue if service is up
 		if (active) stop(true);
 
-		//Remove any remaining active queues
-		for (String aqID : getAllActiveQueueIDs()) {
-			stopActiveQueue(aqID, true);
-			deRegisterActiveQueue(aqID);
-		}
-
 		//Dispose the job queue
 		disconnectAndClear(jobQueue);
 		jobQueue = null;
@@ -345,16 +339,6 @@ public class QueueService implements IQueueService {
 			queueControlLock.readLock().lockInterruptibly();
 			IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
 
-//			//FIXME I think this is now superfluous...
-//			//If another thread has asked the queue to stop already, wait for that attempt to complete.
-//			while (activeQueue.getStatus() == QueueStatus.STOPPING) {
-//				try {
-//					Thread.sleep(500);
-//					System.out.println("WAITING...");
-//				} catch (InterruptedException iEx) {
-//					throw new EventException("Interrupted while waiting for active-queue "+queueID+" to stop", iEx);
-//				}
-//			}
 			//Is the Queue actually stoppable?
 			if (activeQueue.getStatus() == QueueStatus.STOPPED) {
 				logger.warn("Active-queue "+queueID+" already stopped.");
