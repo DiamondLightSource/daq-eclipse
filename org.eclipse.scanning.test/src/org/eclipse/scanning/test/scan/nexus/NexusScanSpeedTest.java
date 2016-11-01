@@ -42,7 +42,7 @@ public class NexusScanSpeedTest extends NexusTest {
 	@Before
 	public void before() throws GeneratorException, IOException {
 		System.setProperty("org.eclipse.scanning.sequencer.AcquisitionDevice.Metrics", "true");
-		this.gen = gservice.createGenerator(new StepModel("xNex", 0, 1000, 1));
+		this.gen = gservice.createGenerator(new StepModel("xNex", 0, 25, 1));
 	}
 	@After
 	public void after() {
@@ -78,8 +78,8 @@ public class NexusScanSpeedTest extends NexusTest {
 		System.out.println(gen.size()+" points at "+(time/gen.size())+"ms/pnt");
 		System.out.println("File size is "+getFileSize(output));
 		
-		assertTrue((time/gen.size())<pointTime);
-		assertTrue((output.length()/1024)<fileSizeKB);
+		assertTrue("The time must be less than "+pointTime+"ms", (time/gen.size())<pointTime);
+		assertTrue("The size must be less than "+fileSizeKB+"kB", (output.length()/1024)<fileSizeKB);
 	}
 	
 	private String getFileSize(File file) {
