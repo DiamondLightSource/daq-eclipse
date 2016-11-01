@@ -160,7 +160,7 @@ public class QueueService implements IQueueService {
 	}
 
 	@Override
-	public synchronized void stop(boolean force) throws EventException {
+	public void stop(boolean force) throws EventException {
 		if (!(isActive() || jobQueue.getStatus().isActive())) {
 			logger.warn("Job-queue is not active.");
 			return;
@@ -201,7 +201,7 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public synchronized String registerNewActiveQueue() throws EventException {
+	public String registerNewActiveQueue() throws EventException {
 		if (!active) throw new IllegalStateException("Queue service not started.");
 		
 		//Generate the random name of the queue
@@ -243,7 +243,7 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public synchronized void deRegisterActiveQueue(String queueID) throws EventException {
+	public void deRegisterActiveQueue(String queueID) throws EventException {
 		//Are we in a state where we can deregister?
 		if (stopped) throw new EventException("stopped");
 		if (!active) throw new EventException("Queue service not started.");
@@ -288,7 +288,7 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public synchronized boolean isActiveQueueRegistered(String queueID) {
+	public boolean isActiveQueueRegistered(String queueID) {
 		//Use lock to make sure the register isn't being changed by another process
 		try {
 			queueControlLock.readLock().lock();
@@ -331,7 +331,7 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public synchronized void stopActiveQueue(String queueID, boolean force) 
+	public void stopActiveQueue(String queueID, boolean force) 
 			throws EventException {
 		if (stopped) throw new EventException("stopped");
 		try {
@@ -372,7 +372,7 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public synchronized Set<String> getAllActiveQueueIDs() {
+	public Set<String> getAllActiveQueueIDs() {
 		//Use lock to make sure the register isn't being changed by another process
 		try {
 			queueControlLock.readLock().lock();
@@ -389,7 +389,7 @@ public class QueueService implements IQueueService {
 	}
 	
 	@Override
-	public synchronized IQueue<QueueAtom> getActiveQueue(String queueID) throws EventException {
+	public IQueue<QueueAtom> getActiveQueue(String queueID) throws EventException {
 		//Use lock to make sure the register isn't being changed by another process
 		try {
 			queueControlLock.readLock().lock();
