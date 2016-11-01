@@ -192,8 +192,8 @@ public class QueueService implements IQueueService {
 
 			//Kill/stop the job queuebroker
 			if (force) {
-				//FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
-				//			controller.killQueue(jobQueueID, true, false);
+				IQueueControllerService controller = ServicesHolder.getQueueControllerService();
+				controller.killQueue(jobQueueID, true, false);
 			} else {
 				jobQueue.stop();
 			}
@@ -226,18 +226,25 @@ public class QueueService implements IQueueService {
 			IQueue<QueueAtom> activeQueue = new Queue<>(aqID, uri, 
 					heartbeatTopicName, commandSetName, commandTopicName);
 			activeQueue.clearQueues();
-			//We need to get the write lock to protect the register for us
-			queueControlLock.readLock().unlock();
-			queueControlLock.writeLock().lockInterruptibly();
-			activeQueueRegister.put(aqID, activeQueue);
-			queueControlLock.readLock().lockInterruptibly();
-			queueControlLock.writeLock().unlock();
-			return aqID;
+			try {
+				//We need to get the write lock to protect the register for us
+				queueControlLock.readLock().unlock();
+				queueControlLock.writeLock().lockInterruptibly();
+				activeQueueRegister.put(aqID, activeQueue);
+				return aqID;
+			} finally {
+				queueControlLock.readLock().lockInterruptibly();
+				queueControlLock.writeLock().unlock();
+			}
 		} catch (InterruptedException iEx) {
 			logger.error("Active-queue registration interrupted: "+iEx.getMessage());
 			throw new EventException(iEx);
 		} finally{
-			queueControlLock.readLock().unlock();
+			if (queueControlLock.isWriteLockedByCurrentThread()) {
+				queueControlLock.writeLock().unlock();
+			} else {
+				queueControlLock.readLock().unlock();
+			}
 		}
 	}
 	
@@ -259,14 +266,17 @@ public class QueueService implements IQueueService {
 			//Queue disposal happens here
 			disconnectAndClear(activeQueue);
 
-			//Lock the queue register & remove queueID requested
-			queueControlLock.readLock().unlock();
-			queueControlLock.writeLock().lockInterruptibly();
+			try {
+				//Lock the queue register & remove queueID requested
+				queueControlLock.readLock().unlock();
+				queueControlLock.writeLock().lockInterruptibly();
 
-			//Remove remaining queue processes from map
-			activeQueueRegister.remove(queueID);
-			queueControlLock.readLock().lockInterruptibly();
-			queueControlLock.writeLock().unlock();
+				//Remove remaining queue processes from map
+				activeQueueRegister.remove(queueID);
+			} finally {
+				queueControlLock.readLock().lockInterruptibly();
+				queueControlLock.writeLock().unlock();
+			}
 		} catch (InterruptedException iEx){
 			logger.error("Deregistration of active-queue "+queueID+" was interrupted.");
 			throw new EventException(iEx);
@@ -308,13 +318,16 @@ public class QueueService implements IQueueService {
 				logger.warn("Active-queue "+queueID+" is already active.");
 				return;
 			}
-			
-			//We're ready to write the new queue to the register, so get the write lock
-			queueControlLock.readLock().unlock();
-			queueControlLock.writeLock().lock();
-			activeQueue.start();
-			queueControlLock.readLock().lock();
-			queueControlLock.writeLock().unlock();
+
+			try {
+				//We're ready to write the new queue to the register, so get the write lock
+				queueControlLock.readLock().unlock();
+				queueControlLock.writeLock().lockInterruptibly();
+				activeQueue.start();
+			} finally {
+				queueControlLock.readLock().lockInterruptibly();
+				queueControlLock.writeLock().unlock();
+			}
 		} catch (InterruptedException iEx) {
 			logger.error("Starting of active-queue "+queueID+" stopping was interrupted.");
 			throw new EventException(iEx);
@@ -332,16 +345,16 @@ public class QueueService implements IQueueService {
 			queueControlLock.readLock().lockInterruptibly();
 			IQueue<QueueAtom> activeQueue = getActiveQueue(queueID);
 
-			//FIXME I think this is now superfluous...
-			//If another thread has asked the queue to stop already, wait for that attempt to complete.
-			while (activeQueue.getStatus() == QueueStatus.STOPPING) {
-				try {
-					Thread.sleep(500);
-					System.out.println("WAITING...");
-				} catch (InterruptedException iEx) {
-					throw new EventException("Interrupted while waiting for active-queue "+queueID+" to stop", iEx);
-				}
-			}
+//			//FIXME I think this is now superfluous...
+//			//If another thread has asked the queue to stop already, wait for that attempt to complete.
+//			while (activeQueue.getStatus() == QueueStatus.STOPPING) {
+//				try {
+//					Thread.sleep(500);
+//					System.out.println("WAITING...");
+//				} catch (InterruptedException iEx) {
+//					throw new EventException("Interrupted while waiting for active-queue "+queueID+" to stop", iEx);
+//				}
+//			}
 			//Is the Queue actually stoppable?
 			if (activeQueue.getStatus() == QueueStatus.STOPPED) {
 				logger.warn("Active-queue "+queueID+" already stopped.");
@@ -352,17 +365,20 @@ public class QueueService implements IQueueService {
 			}
 
 			//Upgrade to write lock while we stop/kill the requested active-queue
-			queueControlLock.readLock().unlock();
-			queueControlLock.writeLock().lockInterruptibly();
-			if (force) {
-				//FIXME			IQueueControllerService controller = ServicesHolder.getQueueControllerService();
-				//			controller.killQueue(queueID, true, false);
+			try {
+				queueControlLock.readLock().unlock();
+				queueControlLock.writeLock().lockInterruptibly();
+				if (force) {
+					IQueueControllerService controller = ServicesHolder.getQueueControllerService();
+					controller.killQueue(queueID, true, false);
+				}
+				//Whatever happens we need to mark the queue stopped
+				//TODO Does this need to wait for the kill call to be completed?
+				activeQueue.stop();
+			} finally {
+				queueControlLock.readLock().lockInterruptibly();
+				queueControlLock.writeLock().unlock();
 			}
-			//Whatever happens we need to mark the queue stopped
-			//TODO Does this need to wait for the kill call to be completed?
-			activeQueue.stop();
-			queueControlLock.readLock().lock();
-			queueControlLock.writeLock().unlock();
 		} catch (InterruptedException iEx){
 			logger.error("Stopping of active-queue "+queueID+" stopping was interrupted.");
 			throw new EventException(iEx);
