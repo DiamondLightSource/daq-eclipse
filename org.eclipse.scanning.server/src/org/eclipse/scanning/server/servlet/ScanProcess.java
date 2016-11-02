@@ -14,6 +14,7 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.models.AbstractMalcolmModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -22,6 +23,7 @@ import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.IFilePathService;
@@ -150,7 +152,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		
 		try {
 			final ScanModel scanModel = new ScanModel();
-			scanModel.setPositionIterable(getPositionIterable(req));
+			IPointGenerator<?> generator = getGenerator(req);
+			scanModel.setPositionIterable(generator);
 			
 			ScanEstimator estimator = new ScanEstimator(Services.getGeneratorService(), bean.getScanRequest());
 			bean.setSize(estimator.getSize());
@@ -162,7 +165,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			scanModel.setMetadataScannables(getScannables(req.getMetadataScannableNames()));
 			scanModel.setBean(bean);
 			
-			configureDetectors(req.getDetectors(), scanModel, estimator);
+			configureDetectors(req.getDetectors(), scanModel, estimator, generator);
 			
 			return (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(scanModel, publisher);
 			
@@ -175,7 +178,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 	}
 
-	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, ScanEstimator estimator) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException {
+	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, ScanEstimator estimator, IPointGenerator<?> generator) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException {
 		
 		ScanInformation info = new ScanInformation(estimator);
 		info.setScannableNames(getScannableNames(model.getPositionIterable()));
@@ -188,6 +191,10 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			IRunnableDevice<Object> odevice = (IRunnableDevice<Object>)device;
 			Object dmodel = dmodels.get(odevice.getName());
+			if (dmodel instanceof AbstractMalcolmModel) {
+				AbstractMalcolmModel mmodel = (AbstractMalcolmModel)dmodel;
+				mmodel.setGenerator(generator);
+			}
 			manager.invoke(PreConfigure.class, dmodel);
 			odevice.configure(dmodel);
 			manager.invoke(PostConfigure.class, dmodel);
@@ -231,7 +238,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Iterable<IPosition> getPositionIterable(ScanRequest<?> req) throws GeneratorException {
+	private IPointGenerator<?> getGenerator(ScanRequest<?> req) throws GeneratorException {
 		IPointGeneratorService service = Services.getGeneratorService();
 		return service.createCompoundGenerator(req.getCompoundModel());
 	}
