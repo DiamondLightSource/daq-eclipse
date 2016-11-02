@@ -62,7 +62,7 @@ public class CompoundModel<R> {
 
 	private List<Object>               models;
 	private Collection<ScanRegion<R>>  regions;
-	private List<IMutator>	mutators;
+	private List<IMutator>	           mutators;
 	
 	public CompoundModel() {
 		// Must have no-arg constructor

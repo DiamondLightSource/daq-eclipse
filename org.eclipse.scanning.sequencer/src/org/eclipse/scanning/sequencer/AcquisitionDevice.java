@@ -102,6 +102,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	@Override
 	public void configure(ScanModel model) throws ScanningException {
 		
+		long before = System.currentTimeMillis();
+		
 		setDeviceState(DeviceState.CONFIGURING);
 		setModel(model);
 		setBean(model.getBean()!=null?model.getBean():new ScanBean());
@@ -150,6 +152,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		manager.addDevices(model.getDetectors());
 		
 		setDeviceState(DeviceState.READY); // Notify 
+		
+		long after = System.currentTimeMillis();
+		setConfigureTime(after-before);
 	}
 
 
