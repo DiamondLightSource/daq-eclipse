@@ -15,7 +15,6 @@ import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
-import org.eclipse.scanning.api.malcolm.models.MalcolmModel;
 import org.eclipse.scanning.api.malcolm.models.OneDetectorTestMappingModel;
 import org.eclipse.scanning.api.malcolm.models.TwoDetectorTestMappingModel;
 import org.eclipse.scanning.api.points.IPosition;
@@ -132,8 +131,6 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 	public String getFilePath() {
 		
 		if (model !=null) {
-			if (model instanceof MalcolmModel)return((MalcolmModel)model).getFilePath();
-			
 			// Malcolm v1 hack because the models are not standardised for V1
 			if (model instanceof OneDetectorTestMappingModel)return ((OneDetectorTestMappingModel)model).getHdf5File();
 			// Malcolm v1 hack because the models are not standardised for V1
