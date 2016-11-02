@@ -11,6 +11,14 @@ public class StringArrayAttribute extends MalcolmAttribute {
 	public static final String STRINGARRAY_ID = "malcolm:core/StringArrayMeta:";
 	
 	String[] value;
+	
+	public StringArrayAttribute() {
+		
+	}
+	
+	public StringArrayAttribute(String[] value) {
+		this.value = value;
+	}
 
 	@Override
 	public String[] getValue() {
