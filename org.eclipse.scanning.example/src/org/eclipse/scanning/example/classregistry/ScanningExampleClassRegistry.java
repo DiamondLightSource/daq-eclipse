@@ -36,7 +36,7 @@ import org.eclipse.scanning.api.malcolm.attributes.TableAttribute;
 import org.eclipse.scanning.example.detector.ConstantVelocityModel;
 import org.eclipse.scanning.example.detector.DarkImageModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.example.malcolm.TestMalcolmModel;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.example.scannable.MockBeanOnMonitor;
 import org.eclipse.scanning.example.scannable.MockNeXusScannable;
 import org.eclipse.scanning.example.scannable.MockScannable;
@@ -54,7 +54,7 @@ public class ScanningExampleClassRegistry implements IClassRegistry {
 		registerClass(tmp, ConstantVelocityModel.class);
 		registerClass(tmp, DarkImageModel.class);
 		registerClass(tmp, MandelbrotModel.class);
-		registerClass(tmp, TestMalcolmModel.class);
+		registerClass(tmp, DummyMalcolmModel.class);
 		registerClass(tmp, ChoiceAttribute.class);
 		registerClass(tmp, BooleanArrayAttribute.class);
 		registerClass(tmp, BooleanAttribute.class);

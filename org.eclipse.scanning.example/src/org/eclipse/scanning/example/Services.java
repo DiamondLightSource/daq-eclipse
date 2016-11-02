@@ -1,5 +1,6 @@
 package org.eclipse.scanning.example;
 
+import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 
@@ -23,5 +24,5 @@ public class Services {
 	public static void setEventService(IEventService eventService) {
 		Services.eventService = eventService;
 	}
-	
+
 }

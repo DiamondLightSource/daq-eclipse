@@ -67,7 +67,7 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 	
 	MockedMalcolmDevice(String name, final LatchDelegate latcher) throws ScanningException {
 		
-		super(new EpicsV4ConnectorService()); // Hard coded, that's the way we role in tests.
+		super(new EpicsV4ConnectorService(), null); // Hard coded, that's the way we role in tests.
 		this.latcher = latcher;
 		this.taskRunLock    = new ReentrantLock(true);
 		setDeviceState(DeviceState.IDLE);

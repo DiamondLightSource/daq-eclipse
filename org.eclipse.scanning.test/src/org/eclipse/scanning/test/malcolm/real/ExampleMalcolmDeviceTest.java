@@ -41,13 +41,13 @@ import org.junit.Test;
 
 public class ExampleMalcolmDeviceTest {
 
-	EpicsV4ConnectorService connectorService;
+	private EpicsV4ConnectorService connectorService;
 
-	IMalcolmService service;
+	private IMalcolmService service;
 
-	IPointGenerator<?> generator = null;
+	private IPointGenerator<?> generator = null;
 
-	ExampleMalcolmDevice dummyMalcolmDevice;
+	private ExampleMalcolmDevice dummyMalcolmDevice;
 
 	/**
 	 * Starts an instance of the ExampleMalcolmDevice and then probes it with the configure() and call() methods
@@ -63,7 +63,7 @@ public class ExampleMalcolmDeviceTest {
 
 			// The real service, get it from OSGi outside this test!
 			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
-			this.service = new MalcolmService(connectorService);
+			this.service = new MalcolmService(connectorService, null);
 
 			// Start the dummy test device
 			new Thread(new DeviceRunner()).start();
