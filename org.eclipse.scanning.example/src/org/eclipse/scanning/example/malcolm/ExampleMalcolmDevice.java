@@ -374,7 +374,7 @@ public class ExampleMalcolmDevice {
                     add("validate", methodStructure).
                     add("A", floatStructure).
                     add("B", floatStructure).
-                    add("axes", stringArrayStructure).
+                    add("axesToMove", stringArrayStructure).
                     add("datasets", tableStructure).
                     add("generator", pointGeneratorStructure).
                     add("completedSteps", intStructure).
@@ -410,7 +410,7 @@ public class ExampleMalcolmDevice {
             // axes
     		String[] axesArray = new String[] {"x","y"};
 
-    		PVStringArray axes = blockPVStructure.getSubField(PVStringArray.class, "axes.value");
+    		PVStringArray axes = blockPVStructure.getSubField(PVStringArray.class, "axesToMove.value");
     		axes.put(0, axesArray.length, axesArray, 0);
             
             // datasets
