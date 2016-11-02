@@ -67,7 +67,7 @@ public class SubscanModerator {
 		List<Object> models = new ArrayList<>();
 		
 		boolean reachedOuterScan = false;
-		for (int i = orig.size()-1; i < -1; i--) {
+		for (int i = orig.size()-1; i > -1; i--) {
 			Object model = orig.get(i);
 			if (!reachedOuterScan) {
 				IPointGenerator<?> g = gservice.createGenerator(model);
@@ -91,8 +91,8 @@ public class SubscanModerator {
 			// TODO Deal with the axes of other subscan devices as they arise.
 			if (device instanceof IMalcolmDevice) {
 				IMalcolmDevice<?> mdevice = (IMalcolmDevice<?>)device;
-				StringArrayAttribute axes = mdevice.getAttributeValue("axesToMove");
-				if (axes!=null) ret.addAll(Arrays.asList(axes.getValue()));
+				String[] axes = mdevice.getAttributeValue("axesToMove");
+				if (axes!=null) ret.addAll(Arrays.asList(axes));
 			}
 		}
 		if (ret.isEmpty()) return null;

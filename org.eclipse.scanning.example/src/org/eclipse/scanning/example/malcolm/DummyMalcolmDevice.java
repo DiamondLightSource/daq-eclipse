@@ -19,6 +19,7 @@
 package org.eclipse.scanning.example.malcolm;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -397,6 +398,17 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		updateAttributeswithLatestValues();
 		
 		return allAttributes.get(attribute);
+	}
+	
+	public void setAttributeValue(String attributeName, Object value) throws ScanningException {
+		Object attr = getAttribute(attributeName);
+		if (attr==null) throw new ScanningException("There is no attribute called "+attributeName);
+		try {
+			Method setValue = attr.getClass().getMethod("setValue", value.getClass());
+			setValue.invoke(attr, value);
+		} catch (NoSuchMethodError | Exception ne) {
+			throw new ScanningException(ne);
+		}
 	}
 
 	@Override
