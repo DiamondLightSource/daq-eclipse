@@ -19,8 +19,8 @@
 package org.eclipse.scanning.example.malcolm;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +43,6 @@ import org.eclipse.january.dataset.IDataset;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
-import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
@@ -97,7 +96,7 @@ public class TestMalcolmDevice extends AbstractRunnableDevice<TestMalcolmModel>
 	}
 
 	private void setupAttributes() {
-		allAttributes = new LinkedList<>();
+		allAttributes = new ArrayList<>();
 
 		state = new ChoiceAttribute();
 		state.setChoices(new String[] { "Resetting", "Idle", "Editing", "Editable", "Saving", "Reverting", "Ready",
@@ -161,32 +160,32 @@ public class TestMalcolmDevice extends AbstractRunnableDevice<TestMalcolmModel>
 		allAttributes.add(axesToMove);
 
 		datasets = new TableAttribute();
-		Map<String, LinkedList<Object>> columns = new LinkedHashMap<>();
-		LinkedList<Object> nameColumn = new LinkedList<>();
+		Map<String, ArrayList<Object>> columns = new LinkedHashMap<>();
+		ArrayList<Object> nameColumn = new ArrayList<>();
 		nameColumn.add("mic.StatsTotal");
 		nameColumn.add("mic.detector");
 		nameColumn.add("panda.x");
 		nameColumn.add("panda.y");
 		columns.put("name", nameColumn);
-		LinkedList<Object> filenameColumn = new LinkedList<>();
+		ArrayList<Object> filenameColumn = new ArrayList<>();
 		filenameColumn.add("test_snake_002.h5");
 		filenameColumn.add("test_snake_002.h5");
 		filenameColumn.add("test_panda_001.h5");
 		filenameColumn.add("test_panda_001.h5");
 		columns.put("filename", filenameColumn);
-		LinkedList<Object> typeColumn = new LinkedList<>();
+		ArrayList<Object> typeColumn = new ArrayList<>();
 		typeColumn.add("additional");
 		typeColumn.add("primary");
 		typeColumn.add("additional");
 		typeColumn.add("additional");
 		columns.put("type", typeColumn);
-		LinkedList<Object> pathColumn = new LinkedList<>();
+		ArrayList<Object> pathColumn = new ArrayList<>();
 		pathColumn.add("/entry/StatsTotal/StatsTotal");
 		pathColumn.add("/entry/detector/detector");
 		pathColumn.add("/entry/x/x");
 		pathColumn.add("/entry/y/y");
 		columns.put("path", pathColumn);
-		LinkedList<Object> uniqueidColumn = new LinkedList<>();
+		ArrayList<Object> uniqueidColumn = new ArrayList<>();
 		uniqueidColumn.add("/entry/NDAttributes/NDArrayUniqueId");
 		uniqueidColumn.add("/entry/NDAttributes/NDArrayUniqueId");
 		uniqueidColumn.add("/entry/NDAttributes/NDArrayUniqueId");
