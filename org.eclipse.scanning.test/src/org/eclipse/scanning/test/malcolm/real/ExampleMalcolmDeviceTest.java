@@ -129,7 +129,7 @@ public class ExampleMalcolmDeviceTest {
 				} else if (ma.getName().equals("B")) {
 					bFound = true;
 					bIsWriteable = ma.isWriteable();
-				} else if (ma.getName().equals("axes")) {
+				} else if (ma.getName().equals("axesToMove")) {
 					axesFound = true;
 				} else if (ma.getName().equals("datasets")) {
 					datasetsFound = true;
