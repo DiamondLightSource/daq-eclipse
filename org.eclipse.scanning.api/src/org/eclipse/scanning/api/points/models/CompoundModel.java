@@ -58,7 +58,7 @@ import org.eclipse.scanning.api.points.IMutator;
  * @author Matthew Gerring
  *
  */
-public class CompoundModel<R> {
+public class CompoundModel<R> implements Cloneable {
 
 	private List<Object>               models;
 	private Collection<ScanRegion<R>>  regions;
@@ -66,6 +66,18 @@ public class CompoundModel<R> {
 	
 	public CompoundModel() {
 		// Must have no-arg constructor
+	}
+	
+	/**
+	 * Clones the outer object but not the indder collections
+	 * of models, regions etc.
+	 */
+	public CompoundModel<R> clone() {
+		CompoundModel<R> ret = new CompoundModel();
+		ret.models = models;
+		ret.regions = regions;
+		ret.mutators = mutators;
+		return ret;
 	}
 
 	public CompoundModel(Object... ms) {

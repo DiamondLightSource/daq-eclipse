@@ -166,6 +166,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
 		
+		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), model.getDetectors(), ServiceHolder.getGeneratorService());
+		
 		boolean errorFound = false;
 		IPosition pos = null;
 		try {
@@ -177,7 +179,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		final int size  = getSize(model.getPositionIterable());
+    		final int size  = getSize(moderator.getPositionIterable());
     		int count = 0;
 
     		fireStart(size);    		
@@ -189,7 +191,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		// The scan loop
         	pos = null; // We want the last point when we are done so don't use foreach
         	boolean firedFirst = false;
-	        for (IPosition position : model.getPositionIterable()) {
+	        for (IPosition position : moderator.getPositionIterable()) {
 				
 	        	pos = position;
 	        	pos.setStepIndex(count);
