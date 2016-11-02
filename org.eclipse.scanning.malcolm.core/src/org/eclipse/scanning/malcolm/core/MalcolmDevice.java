@@ -13,6 +13,7 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -60,9 +61,11 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	private static String CURRENT_STEP_ENDPOINT = "completedSteps";
 
 
-	public MalcolmDevice(String name, IMalcolmConnectorService<MalcolmMessage> service, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
-		
-		super(service);
+	public MalcolmDevice(String name,
+			IMalcolmConnectorService<MalcolmMessage> service,
+			IRunnableDeviceService runnableDeviceService,
+			IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
+		super(service, runnableDeviceService);
     	setName(name);
        	this.service   = service;
        	this.publisher = publisher;

@@ -3,6 +3,7 @@ package org.eclipse.scanning.malcolm.core;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
@@ -14,13 +15,14 @@ import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 public class MalcolmService implements IMalcolmService {
 
 	private IMalcolmConnectorService<MalcolmMessage> connector;	
+	private IRunnableDeviceService runnableDeviceService;
 	private Map<String, IMalcolmDevice<?>>        devices;
 	
 	/**
 	 * Used by OSGi to make the service.
 	 */
 	public MalcolmService() throws MalcolmDeviceException {
-		this(null);
+		this(null, null);
 	}
 
 	/**
@@ -29,8 +31,10 @@ public class MalcolmService implements IMalcolmService {
 	 * @param malcolmUri - 
 	 * @throws MalcolmDeviceException
 	 */
-	public MalcolmService(IMalcolmConnectorService<MalcolmMessage> connector) throws MalcolmDeviceException {
+	public MalcolmService(IMalcolmConnectorService<MalcolmMessage> connector,
+			IRunnableDeviceService runnableDeviceService) throws MalcolmDeviceException {
 		this.connector = connector; // Usually null unless we are in testing mode.
+		this.runnableDeviceService = runnableDeviceService;
 		this.devices   = new ConcurrentHashMap<String, IMalcolmDevice<?>>(4);
 	}
 	
@@ -63,7 +67,7 @@ public class MalcolmService implements IMalcolmService {
 		
 		if (devices.containsKey(name)) return (IMalcolmDevice<T>)devices.get(name);
 		
-		IMalcolmDevice<T> device = new MalcolmDevice<T>(name, connector, publisher); // Might throw exception
+		IMalcolmDevice<T> device = new MalcolmDevice<T>(name, connector, runnableDeviceService, publisher); // Might throw exception
 		devices.put(name, device);
 		return device;
 	}

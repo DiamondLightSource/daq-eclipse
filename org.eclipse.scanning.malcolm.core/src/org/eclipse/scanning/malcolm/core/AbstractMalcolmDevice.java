@@ -7,6 +7,7 @@ import java.util.Map;
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
@@ -39,7 +40,9 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 	// Connection to serilization to talk to the remote object
 	protected MessageGenerator<MalcolmMessage> connectionDelegate;
 	
-	public AbstractMalcolmDevice(IMalcolmConnectorService<MalcolmMessage> connector) throws MalcolmDeviceException {
+	public AbstractMalcolmDevice(IMalcolmConnectorService<MalcolmMessage> connector,
+			IRunnableDeviceService runnableDeviceService) throws MalcolmDeviceException {
+		super(runnableDeviceService);
    		this.connectionDelegate = connector.createDeviceConnection(this);
    		this.eventDelegate = new MalcolmEventDelegate(getName(), connector);
    		setRole(DeviceRole.MALCOLM);
