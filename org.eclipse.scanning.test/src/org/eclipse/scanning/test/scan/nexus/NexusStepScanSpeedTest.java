@@ -5,10 +5,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 
-import org.eclipse.dawnsci.nexus.builder.NexusBuilderFactory;
-import org.eclipse.dawnsci.nexus.builder.NexusFileBuilder;
-import org.eclipse.dawnsci.nexus.builder.NexusScanFile;
-import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -21,6 +17,8 @@ import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.scannable.MockNeXusScannable;
+import org.eclipse.scanning.test.BrokerDelegate;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -38,14 +36,18 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class NexusStepScanSpeedTest extends NexusTest {
 
 	private static EventServiceImpl eservice;
+	private static BrokerDelegate delegate;
 	private IPointGenerator<StepModel> gen;
 	
 	@BeforeClass
     public static void createEventService() throws Exception {
 		
+		delegate = new BrokerDelegate();
+		delegate.start();
+
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
 		// We publish an event to make sure all these libraries are loaded
-		IPublisher<ScanBean> publisher = eservice.createPublisher(uri, EventConstants.SCAN_TOPIC);
+		IPublisher<ScanBean> publisher = eservice.createPublisher(delegate.getUri(), EventConstants.SCAN_TOPIC);
 		publisher.broadcast(new ScanBean());
 		
 		// We write a nexus file to ensure that the library is loaded
@@ -54,9 +56,13 @@ public class NexusStepScanSpeedTest extends NexusTest {
 		IPointGenerator<StepModel> gen = gservice.createGenerator(new StepModel("xNex", 0, 3, 1));
 		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen, file));
 		scan.run(null);
-		
-		
+
 	}
+	@AfterClass
+    public static void stop() throws Exception {
+		delegate.stop();
+	}
+
 
 	@Before
 	public void before() throws GeneratorException, IOException {
@@ -99,7 +105,7 @@ public class NexusStepScanSpeedTest extends NexusTest {
 	public void testPublishedNexusStepScanSpeed() throws Exception {
 		
 		// We create a step scan
-		IPublisher<ScanBean> publisher = eservice.createPublisher(uri, EventConstants.SCAN_TOPIC);
+		IPublisher<ScanBean> publisher = eservice.createPublisher(delegate.getUri(), EventConstants.SCAN_TOPIC);
 		final IRunnableDevice<ScanModel> scan = dservice.createRunnableDevice(new ScanModel(gen, output), publisher);
 		runAndCheck("NeXus with Publish", scan, 10, 2048, 2000L);
 	}
