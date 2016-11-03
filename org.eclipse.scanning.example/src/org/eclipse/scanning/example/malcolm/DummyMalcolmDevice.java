@@ -29,10 +29,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
-import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXcollection;
-import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NXinstrument;
 import org.eclipse.dawnsci.nexus.NXobject;
@@ -40,10 +38,8 @@ import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
-import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.NexusScanInfo.ScanRole;
 import org.eclipse.dawnsci.nexus.ServiceHolder;
-import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -72,7 +68,7 @@ import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
  * A dummy Malcolm device for use in dummy mode or tests.
  */
 public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
-		implements INexusDevice<NXdetector>, IMalcolmDevice<DummyMalcolmModel> {
+		implements IMalcolmDevice<DummyMalcolmModel> {
 
 	public static final String TABLE_COLUMN_NAME = "name";
 	public static final String TABLE_COLUMN_FILENAME = "filename";
@@ -180,12 +176,6 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		if (model.getFilePath()==null || model.getFilePath().length()<1) {
 			throw new ModelValidationException("A directory must provided in which to write the test files.", model, "filePath");
 		}
-	}
-
-	@Override
-	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) throws NexusException {
-//		throw new UnsupportedOperationException("Nexus writing not yet implemented");
-		return null;
 	}
 
 	@Override
