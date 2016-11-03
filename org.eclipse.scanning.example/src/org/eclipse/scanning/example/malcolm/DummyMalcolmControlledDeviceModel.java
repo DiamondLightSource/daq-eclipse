@@ -19,8 +19,6 @@ public class DummyMalcolmControlledDeviceModel {
 	
 	private String fileName;
 	
-	private String uniqueId;
-	
 	private ScanRole role;
 	
 	private List<DummyMalcolmDatasetModel> datasets = Collections.emptyList();
@@ -37,22 +35,24 @@ public class DummyMalcolmControlledDeviceModel {
 		return fileName;
 	}
 
+	/**
+	 * The filename for the device. This is an optional attribute. If not specified
+	 * the detector name will be used.
+	 * @param fileName
+	 */
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
 
-	public String getUniqueId() {
-		return uniqueId;
-	}
-
-	public void setUniqueId(String uniqueId) {
-		this.uniqueId = uniqueId;
-	}
-	
 	public ScanRole getRole() {
 		return role;
 	}
 
+	/**
+	 * The role of the device within the scan, one of {@link ScanRole#DETECTOR},
+	 * {@link ScanRole#MONITOR} or {@link ScanRole#SCANNABLE}.
+	 * @param role
+	 */
 	public void setRole(ScanRole role) {
 		this.role = role;
 	}
@@ -61,10 +61,13 @@ public class DummyMalcolmControlledDeviceModel {
 		return datasets;
 	}
 
+	/**
+	 * A collection of {@link DummyMalcolmDatasetModel}s each describing a dataset that
+	 * should be written for this device.
+	 * @param datasets
+	 */
 	public void setDatasets(List<DummyMalcolmDatasetModel> datasets) {
 		this.datasets = datasets;
 	}
-	
-	
 
 }

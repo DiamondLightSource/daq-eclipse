@@ -1,5 +1,10 @@
 package org.eclipse.scanning.test.scan.nexus;
 
+import static org.eclipse.scanning.example.malcolm.DummyMalcolmDevice.TABLE_COLUMN_FILENAME;
+import static org.eclipse.scanning.example.malcolm.DummyMalcolmDevice.TABLE_COLUMN_PATH;
+import static org.eclipse.scanning.example.malcolm.DummyMalcolmDevice.TABLE_COLUMN_RANK;
+import static org.eclipse.scanning.example.malcolm.DummyMalcolmDevice.TABLE_COLUMN_UNIQUEID;
+import static org.eclipse.scanning.example.malcolm.DummyMalcolmDevice.UNIQUE_KEYS_DATASET_PATH;
 import static org.eclipse.scanning.example.malcolm.MalcolmDatasetType.POSITION;
 import static org.eclipse.scanning.example.malcolm.MalcolmDatasetType.PRIMARY;
 import static org.eclipse.scanning.example.malcolm.MalcolmDatasetType.SECONDARY;
@@ -16,6 +21,7 @@ import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
+import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusFile;
@@ -107,8 +113,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmControlledDeviceModel det1Model = new DummyMalcolmControlledDeviceModel();
 		det1Model.setName("detector");
 		det1Model.setRole(ScanRole.DETECTOR);
-		det1Model.setFileName("detector.nxs");
-		det1Model.setUniqueId("/entry/NDAttributes/NDArrayUniqueId");
+		det1Model.setFileName("detector.h5");
 
 		DummyMalcolmDatasetModel detector1dataset1 = new DummyMalcolmDatasetModel();
 		detector1dataset1.setName("detector");
@@ -128,8 +133,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmControlledDeviceModel det2Model = new DummyMalcolmControlledDeviceModel();
 		det2Model.setName("detector2");
 		det2Model.setRole(ScanRole.DETECTOR);
-		det2Model.setFileName("detector2.nxs");
-		det2Model.setUniqueId("/entry/NDAttributes/NDArrayUniqueId");
+		det2Model.setFileName("detector2.h5");
 
 		DummyMalcolmDatasetModel detector2dataset = new DummyMalcolmDatasetModel();
 		detector2dataset.setName("detector2");
@@ -142,8 +146,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmControlledDeviceModel xPosModel = new DummyMalcolmControlledDeviceModel();
 		xPosModel.setName("xPos");
 		xPosModel.setRole(ScanRole.SCANNABLE);
-		xPosModel.setFileName("x_stage.nxs");
-		xPosModel.setUniqueId("/entry/NXAttributes/NDArrayUniqueId");
+		xPosModel.setFileName("x_stage.h5");
 
 		DummyMalcolmDatasetModel xPosDataset = new DummyMalcolmDatasetModel();
 		xPosDataset.setName("value");
@@ -156,8 +159,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmControlledDeviceModel yPosModel = new DummyMalcolmControlledDeviceModel();
 		yPosModel.setName("yPos");
 		yPosModel.setRole(ScanRole.SCANNABLE);
-		yPosModel.setFileName("y_stage.nxs");
-		yPosModel.setUniqueId("/entry/NXAttributes/NDArrayUniqueId");
+		yPosModel.setFileName("y_stage.h5");
 
 		DummyMalcolmDatasetModel yPosDataset = new DummyMalcolmDatasetModel();
 		yPosDataset.setName("value");
@@ -206,7 +208,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 			}
 			System.err.println();
 			
-			String filename = (String) datasetRow.get(DummyMalcolmDevice.TABLE_COLUMN_FILENAME);
+			String filename = (String) datasetRow.get(TABLE_COLUMN_FILENAME);
 			
 			// load the nexus entry for the file (may be cached from a previous dataset)
 			NXentry entry = nexusEntries.get(filename);
@@ -216,7 +218,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 			}
 			assertNotNull(entry);
 			
-			String path = (String) datasetRow.get(DummyMalcolmDevice.TABLE_COLUMN_PATH);
+			String path = (String) datasetRow.get(TABLE_COLUMN_PATH);
 
 			String[] pathSegments = path.split("/");
 			assertEquals("", pathSegments[0]); // first element is empty as path starts with '/'
@@ -230,8 +232,18 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 			DataNode dataNode = groupNode.getDataNode(pathSegments[pathSegments.length - 1]);
 			assertNotNull(dataNode);
 			
-			int datasetRank = ((Integer) datasetRow.get(DummyMalcolmDevice.TABLE_COLUMN_RANK)).intValue();
+			int datasetRank = ((Integer) datasetRow.get(TABLE_COLUMN_RANK)).intValue();
 			assertEquals(dataNode.getRank(), scanRank + datasetRank); 
+			
+			String uniqueIdPath = (String) datasetRow.get(TABLE_COLUMN_UNIQUEID);
+			assertEquals(UNIQUE_KEYS_DATASET_PATH, uniqueIdPath);
+			
+			String[] uniqueIdPathSegments = uniqueIdPath.split("/");
+			NXcollection ndAttributes = entry.getCollection(uniqueIdPathSegments[2]);
+			assertNotNull(ndAttributes);
+			DataNode uniqueIdsDataNode = ndAttributes.getDataNode(uniqueIdPathSegments[3]);
+			assertNotNull(uniqueIdsDataNode);
+			assertEquals(uniqueIdsDataNode.getRank(), scanRank);
 		}
 	}
 
