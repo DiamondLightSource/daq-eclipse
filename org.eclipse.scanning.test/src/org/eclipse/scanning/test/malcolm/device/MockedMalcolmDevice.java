@@ -9,12 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
 import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
-import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NexusFile;
-import org.eclipse.dawnsci.nexus.NexusNodeFactory;
-import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
-import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.january.IMonitor;
 import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.IDataset;
@@ -181,19 +176,6 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmDetectorModel>
 				throw new MalcolmDeviceException(this, "Cannot cleanly close JMS session", e);
 			}
 		}
-	}
-
-
-	@Override
-	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		
-		final NXdetector detector = NexusNodeFactory.createNXdetector();
-		detector.addExternalLink(NXdetector.NX_DATA, getFileName(), "/entry/data");
-		
-		NexusObjectWrapper<NXdetector> prov = new NexusObjectWrapper<>(
-				getName(), detector);
-		prov.setExternalDatasetRank(NXdetector.NX_DATA, 3);
-		return prov;
 	}
 
 	/**

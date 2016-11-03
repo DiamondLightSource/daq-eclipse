@@ -28,7 +28,8 @@ import org.slf4j.LoggerFactory;
  * Base class for Malcolm devices
  *
  */
-public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T> implements IMalcolmDevice<T>, INexusDevice<NXdetector> {
+public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
+		implements IMalcolmDevice<T> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMalcolmDevice.class);
 	

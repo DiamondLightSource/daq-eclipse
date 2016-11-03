@@ -107,8 +107,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmControlledDeviceModel det1Model = new DummyMalcolmControlledDeviceModel();
 		det1Model.setName("detector");
 		det1Model.setRole(ScanRole.DETECTOR);
-		det1Model.setFileName("detector.nxs");
-		det1Model.setUniqueId("/entry/NDAttributes/NDArrayUniqueId");
+		det1Model.setFileName("detector.h5");
 
 		DummyMalcolmDatasetModel detector1dataset1 = new DummyMalcolmDatasetModel();
 		detector1dataset1.setName("detector");
@@ -128,8 +127,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmControlledDeviceModel det2Model = new DummyMalcolmControlledDeviceModel();
 		det2Model.setName("detector2");
 		det2Model.setRole(ScanRole.DETECTOR);
-		det2Model.setFileName("detector2.nxs");
-		det2Model.setUniqueId("/entry/NDAttributes/NDArrayUniqueId");
+		det2Model.setFileName("detector2.h5");
 
 		DummyMalcolmDatasetModel detector2dataset = new DummyMalcolmDatasetModel();
 		detector2dataset.setName("detector2");
@@ -142,8 +140,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmControlledDeviceModel stageXModel = new DummyMalcolmControlledDeviceModel();
 		stageXModel.setName("stage_x");
 		stageXModel.setRole(ScanRole.SCANNABLE);
-		stageXModel.setFileName("stage_x.nxs");
-		stageXModel.setUniqueId("/entry/NXAttributes/NDArrayUniqueId");
+		stageXModel.setFileName("stage_x.h5");
 
 		DummyMalcolmDatasetModel stageXDataset = new DummyMalcolmDatasetModel();
 		stageXDataset.setName("value");
@@ -156,8 +153,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmControlledDeviceModel stageYModel = new DummyMalcolmControlledDeviceModel();
 		stageYModel.setName("stage_y");
 		stageYModel.setRole(ScanRole.SCANNABLE);
-		stageYModel.setFileName("stage_y.nxs");
-		stageYModel.setUniqueId("/entry/NXAttributes/NDArrayUniqueId");
+		stageYModel.setFileName("stage_y.h5");
 
 		DummyMalcolmDatasetModel stageYDataset = new DummyMalcolmDatasetModel();
 		stageYDataset.setName("value");

@@ -29,10 +29,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
-import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXcollection;
-import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NXinstrument;
 import org.eclipse.dawnsci.nexus.NXobject;
@@ -40,10 +38,8 @@ import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
-import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.NexusScanInfo.ScanRole;
 import org.eclipse.dawnsci.nexus.ServiceHolder;
-import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -72,7 +68,7 @@ import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
  * A dummy Malcolm device for use in dummy mode or tests.
  */
 public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
-		implements INexusDevice<NXdetector>, IMalcolmDevice<DummyMalcolmModel> {
+		implements IMalcolmDevice<DummyMalcolmModel> {
 
 	public static final String TABLE_COLUMN_NAME = "name";
 	public static final String TABLE_COLUMN_FILENAME = "filename";
@@ -81,8 +77,9 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	public static final String TABLE_COLUMN_UNIQUEID = "uniqueid";
 	public static final String TABLE_COLUMN_RANK = "rank";
 
-	private static final String UNIQUE_KEYS_COLLECTION_NAME = "NDAttributes";
-	private static final String UNIQUE_KEYS_DATASET_NAME = "NDArrayUniqueId";
+	public static final String UNIQUE_KEYS_DATASET_PATH = "/entry/NDAttributes/NDArrayUniqueId";
+	
+	private static final String FILE_EXTENSION_HDF5 = ".h5";
 	
 	private ChoiceAttribute state;
 	private StringAttribute status;
@@ -182,12 +179,6 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	}
 
 	@Override
-	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) throws NexusException {
-//		throw new UnsupportedOperationException("Nexus writing not yet implemented");
-		return null;
-	}
-
-	@Override
 	public void configure(DummyMalcolmModel model) throws ScanningException {
 		setDeviceState(DeviceState.CONFIGURING);
 
@@ -220,10 +211,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			for (DummyMalcolmDatasetModel datasetModel : dummyDeviceModel.getDatasets()) {
 				Map<String, Object> datasetRow = new HashMap<>();
 				datasetRow.put(TABLE_COLUMN_NAME, deviceName + "." + datasetModel.getName());
-				datasetRow.put(TABLE_COLUMN_FILENAME, dummyDeviceModel.getFileName());
+				datasetRow.put(TABLE_COLUMN_FILENAME, dummyDeviceModel.getFileName() != null ?
+						dummyDeviceModel.getFileName() : dummyDeviceModel.getName() + FILE_EXTENSION_HDF5);
 				datasetRow.put(TABLE_COLUMN_TYPE, datasetModel.getMalcolmType().name().toLowerCase());
 				datasetRow.put(TABLE_COLUMN_PATH, datasetModel.getPath());
-				datasetRow.put(TABLE_COLUMN_UNIQUEID, dummyDeviceModel.getUniqueId());
+				datasetRow.put(TABLE_COLUMN_UNIQUEID, UNIQUE_KEYS_DATASET_PATH);
 				datasetRow.put(TABLE_COLUMN_RANK, datasetModel.getRank());
 				table.addRow(datasetRow);
 			}
@@ -292,9 +284,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		NXinstrument instrument = NexusNodeFactory.createNXinstrument();
 		entry.setInstrument(instrument);
 		
+		String[] uniqueKeysDatasetPathSegments = UNIQUE_KEYS_DATASET_PATH.split("/");
+		
 		NXcollection uniqueIdsCollection = NexusNodeFactory.createNXcollection();
-		entry.setCollection(UNIQUE_KEYS_COLLECTION_NAME, uniqueIdsCollection);
-		uniqueIdsCollection.initializeLazyDataset(UNIQUE_KEYS_DATASET_NAME,
+		entry.setCollection(uniqueKeysDatasetPathSegments[2], uniqueIdsCollection);
+		uniqueIdsCollection.initializeLazyDataset(uniqueKeysDatasetPathSegments[3],
 				scanInformation.getRank(), String.class);
 		
 		final String dummyDeviceName = dummyDeviceModel.getName();

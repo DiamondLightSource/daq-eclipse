@@ -103,28 +103,6 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 	}
 
 
-	@Override
-	public NexusObjectProvider<NXdetector> getNexusProvider(NexusScanInfo info) {
-		NXdetector detector = createNexusObject(info);
-		NexusObjectWrapper<NXdetector> prov = new NexusObjectWrapper<NXdetector>(getName(), detector);
-		// TODO Find this out from the attributes of the device?
-		prov.setExternalDatasetRank(NXdetector.NX_DATA, 4); // FIXME Malcolm1 can only to x and y scanning of a 2D detector.
-		return prov;
-	}
-
-	public NXdetector createNexusObject(NexusScanInfo info) {
-		
-		// TODO Malcolm1 hard codes where the axes and detector write to. We do the same.
-		final NXdetector detector = NexusNodeFactory.createNXdetector();
-		detector.addExternalLink(NXdetector.NX_DATA, getFileName(), "/entry/data/det1");
-		
-		for (String axis : info.getScannableNames()) {
-			detector.addExternalLink(axis+"_set", getFileName(), "/entry/data/"+axis+"_set");
-		}
-		return detector;
-	}
-
-
 	protected void sendScanEvent(MalcolmEvent<MalcolmMessage> e) throws Exception {
 		
 		MalcolmMessage msg      = e.getBean();
