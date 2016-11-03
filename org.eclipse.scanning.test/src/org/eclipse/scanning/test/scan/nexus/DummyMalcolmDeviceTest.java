@@ -139,35 +139,35 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		detector2dataset.setPath("/entry/detector2/detector2");
 		det2Model.setDatasets(Arrays.asList(detector2dataset));
 
-		DummyMalcolmControlledDeviceModel xPosModel = new DummyMalcolmControlledDeviceModel();
-		xPosModel.setName("xPos");
-		xPosModel.setRole(ScanRole.SCANNABLE);
-		xPosModel.setFileName("x_stage.nxs");
-		xPosModel.setUniqueId("/entry/NXAttributes/NDArrayUniqueId");
+		DummyMalcolmControlledDeviceModel stageXModel = new DummyMalcolmControlledDeviceModel();
+		stageXModel.setName("stage_x");
+		stageXModel.setRole(ScanRole.SCANNABLE);
+		stageXModel.setFileName("stage_x.nxs");
+		stageXModel.setUniqueId("/entry/NXAttributes/NDArrayUniqueId");
 
-		DummyMalcolmDatasetModel xPosDataset = new DummyMalcolmDatasetModel();
-		xPosDataset.setName("value");
-		xPosDataset.setRank(0);
-		xPosDataset.setDtype(Double.class);
-		xPosDataset.setMalcolmType(POSITION);
-		xPosDataset.setPath("/entry/instrument/xPos/value");
-		xPosModel.setDatasets(Arrays.asList(xPosDataset));
+		DummyMalcolmDatasetModel stageXDataset = new DummyMalcolmDatasetModel();
+		stageXDataset.setName("value");
+		stageXDataset.setRank(0);
+		stageXDataset.setDtype(Double.class);
+		stageXDataset.setMalcolmType(POSITION);
+		stageXDataset.setPath("/entry/instrument/stage_x/value");
+		stageXModel.setDatasets(Arrays.asList(stageXDataset));
 
-		DummyMalcolmControlledDeviceModel yPosModel = new DummyMalcolmControlledDeviceModel();
-		yPosModel.setName("yPos");
-		yPosModel.setRole(ScanRole.SCANNABLE);
-		yPosModel.setFileName("y_stage.nxs");
-		yPosModel.setUniqueId("/entry/NXAttributes/NDArrayUniqueId");
+		DummyMalcolmControlledDeviceModel stageYModel = new DummyMalcolmControlledDeviceModel();
+		stageYModel.setName("stage_y");
+		stageYModel.setRole(ScanRole.SCANNABLE);
+		stageYModel.setFileName("stage_y.nxs");
+		stageYModel.setUniqueId("/entry/NXAttributes/NDArrayUniqueId");
 
-		DummyMalcolmDatasetModel yPosDataset = new DummyMalcolmDatasetModel();
-		yPosDataset.setName("value");
-		yPosDataset.setRank(0);
-		yPosDataset.setMalcolmType(POSITION);
-		yPosDataset.setDtype(Double.class);
-		yPosDataset.setPath("/entry/instrument/yPos/value");
-		yPosModel.setDatasets(Arrays.asList(yPosDataset));
+		DummyMalcolmDatasetModel stageYDataset = new DummyMalcolmDatasetModel();
+		stageYDataset.setName("value");
+		stageYDataset.setRank(0);
+		stageYDataset.setMalcolmType(POSITION);
+		stageYDataset.setDtype(Double.class);
+		stageYDataset.setPath("/entry/instrument/stage_y/value");
+		stageYModel.setDatasets(Arrays.asList(stageYDataset));
 
-		model.setDummyDeviceModels(Arrays.asList(det1Model, det2Model, xPosModel, yPosModel));
+		model.setDummyDeviceModels(Arrays.asList(det1Model, det2Model, stageXModel, stageYModel));
 
 		return model;
 	}
