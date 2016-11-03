@@ -81,8 +81,9 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	public static final String TABLE_COLUMN_UNIQUEID = "uniqueid";
 	public static final String TABLE_COLUMN_RANK = "rank";
 
-	private static final String UNIQUE_KEYS_COLLECTION_NAME = "NDAttributes";
-	private static final String UNIQUE_KEYS_DATASET_NAME = "NDArrayUniqueId";
+	public static final String UNIQUE_KEYS_DATASET_PATH = "/entry/NDAttributes/NDArrayUniqueId";
+	
+	private static final String FILE_EXTENSION_HDF5 = ".h5";
 	
 	private ChoiceAttribute state;
 	private StringAttribute status;
@@ -220,10 +221,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			for (DummyMalcolmDatasetModel datasetModel : dummyDeviceModel.getDatasets()) {
 				Map<String, Object> datasetRow = new HashMap<>();
 				datasetRow.put(TABLE_COLUMN_NAME, deviceName + "." + datasetModel.getName());
-				datasetRow.put(TABLE_COLUMN_FILENAME, dummyDeviceModel.getFileName());
+				datasetRow.put(TABLE_COLUMN_FILENAME, dummyDeviceModel.getFileName() != null ?
+						dummyDeviceModel.getFileName() : dummyDeviceModel.getName() + FILE_EXTENSION_HDF5);
 				datasetRow.put(TABLE_COLUMN_TYPE, datasetModel.getMalcolmType().name().toLowerCase());
 				datasetRow.put(TABLE_COLUMN_PATH, datasetModel.getPath());
-				datasetRow.put(TABLE_COLUMN_UNIQUEID, dummyDeviceModel.getUniqueId());
+				datasetRow.put(TABLE_COLUMN_UNIQUEID, UNIQUE_KEYS_DATASET_PATH);
 				datasetRow.put(TABLE_COLUMN_RANK, datasetModel.getRank());
 				table.addRow(datasetRow);
 			}
@@ -292,9 +294,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		NXinstrument instrument = NexusNodeFactory.createNXinstrument();
 		entry.setInstrument(instrument);
 		
+		String[] uniqueKeysDatasetPathSegments = UNIQUE_KEYS_DATASET_PATH.split("/");
+		
 		NXcollection uniqueIdsCollection = NexusNodeFactory.createNXcollection();
-		entry.setCollection(UNIQUE_KEYS_COLLECTION_NAME, uniqueIdsCollection);
-		uniqueIdsCollection.initializeLazyDataset(UNIQUE_KEYS_DATASET_NAME,
+		entry.setCollection(uniqueKeysDatasetPathSegments[2], uniqueIdsCollection);
+		uniqueIdsCollection.initializeLazyDataset(uniqueKeysDatasetPathSegments[3],
 				scanInformation.getRank(), String.class);
 		
 		final String dummyDeviceName = dummyDeviceModel.getName();
