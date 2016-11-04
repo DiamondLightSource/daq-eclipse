@@ -3,6 +3,7 @@ package org.eclipse.scanning.test.event.queues.mocks;
 import java.util.Collection;
 
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -87,6 +88,12 @@ public class MockScanService implements IRunnableDeviceService {
 	public <T> void register(IRunnableDevice<T> device) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public Collection<DeviceInformation<?>> getDeviceInformation(DeviceRole role) throws ScanningException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
