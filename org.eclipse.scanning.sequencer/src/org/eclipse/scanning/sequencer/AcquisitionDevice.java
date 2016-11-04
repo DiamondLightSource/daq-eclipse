@@ -35,8 +35,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.nexus.INexusScanFileManager;
-import org.eclipse.scanning.sequencer.nexus.NexusScanFileManager;
-import org.eclipse.scanning.sequencer.nexus.NexusScanFileManager.DummyNexusScanFileManager;
+import org.eclipse.scanning.sequencer.nexus.NexusScanFileManagerFactory;
 
 /**
  * This device does a standard GDA scan at each point. If a given point is a 
@@ -123,18 +122,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		}
 		
 		// create the nexus file, if appropriate
-		boolean writesNexus = model.getFilePath() != null && ServiceHolder.getFactory() != null;
-		if (writesNexus) {
-			nexusScanFileManager = new NexusScanFileManager(this);
-		} else { //nothing wired, don't write a nexus file
-			nexusScanFileManager = new DummyNexusScanFileManager();
-		}
+		nexusScanFileManager = NexusScanFileManagerFactory.createNexusScanFileManager(this);
 		nexusScanFileManager.configure(model);
 		nexusScanFileManager.createNexusFile(true);
 		
 		if (model.getDetectors()!=null) {
 			runners = new DeviceRunner(model.getDetectors());
-			if (writesNexus) {
+			if (nexusScanFileManager.isNexusWritingEnabled()) {
 				writers = new DeviceWriter(model.getDetectors());
 			} else {
 				writers = LevelRunner.createEmptyRunner();
