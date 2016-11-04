@@ -1,8 +1,8 @@
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.scanning.example.malcolm.MalcolmDatasetType.POSITION;
-import static org.eclipse.scanning.example.malcolm.MalcolmDatasetType.PRIMARY;
-import static org.eclipse.scanning.example.malcolm.MalcolmDatasetType.SECONDARY;
+import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.POSITION;
+import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.PRIMARY;
+import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.SECONDARY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -10,17 +10,26 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.GroupNode;
+import org.eclipse.dawnsci.analysis.api.tree.SymbolicNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
+import org.eclipse.dawnsci.nexus.IMultipleNexusDevice;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXentry;
+import org.eclipse.dawnsci.nexus.NXobject;
 import org.eclipse.dawnsci.nexus.NXroot;
+import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusFile;
+import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.NexusScanInfo.ScanRole;
 import org.eclipse.dawnsci.nexus.NexusUtils;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
@@ -35,7 +44,9 @@ import org.eclipse.scanning.example.malcolm.DummyMalcolmControlledDeviceModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
+import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -169,7 +180,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	}
 
 	@Test
-	public void testMalcolmExampleRun() throws Exception {
+	public void testDummyMalcolmNexusFiles() throws Exception {
 
 		DummyMalcolmModel model = createModel();
 		model.setGenerator(getGenerator(2, 2)); // Generator isn't actually used by the test malcolm device
@@ -184,10 +195,37 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		checkMalcolmNexusFiles(model, (IMalcolmDevice<DummyMalcolmModel>) malcolmDevice, scanRank);
 	}
 	
+	@Test
+	public void testMalcolmNexusObjects() throws Exception {
+		DummyMalcolmModel model = createModel();
+		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model);
+		int scanRank = 3;
+		setScanInformation(malcolmDevice, scanRank); // normally called when a scan is run using @ScanStart
+		malcolmDevice.configure(model);
+
+		NexusScanInfo nexusScanInfo = new NexusScanInfo();
+		nexusScanInfo.setRank(scanRank);
+		List<NexusObjectProvider<?>> nexusProviders = ((IMultipleNexusDevice) malcolmDevice).getNexusProviders(nexusScanInfo);
+
+		checkNexusObjectProviders(nexusProviders, model, scanRank);
+	}
+	
 	private void setScanInformation(IRunnableDevice<DummyMalcolmModel> malcolmDevice, int scanRank) {
 		ScanInformation scanInfo = new ScanInformation();
 		scanInfo.setRank(3);
 		((DummyMalcolmDevice) malcolmDevice).setScanInformation(scanInfo);
+	}
+	
+
+	private NXentry getNexusEntry(String filePath) throws Exception {
+		INexusFileFactory fileFactory = org.eclipse.dawnsci.nexus.ServiceHolder
+				.getNexusFileFactory();
+		NexusFile nf = fileFactory.newNexusFile(filePath);
+		nf.openToRead();
+	
+		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
+		NXroot root = (NXroot) nexusTree.getGroupNode();
+		return root.getEntry();
 	}
 
 	private void checkMalcolmNexusFiles(DummyMalcolmModel model,
@@ -202,7 +240,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 			}
 			System.err.println();
 			
-			String filename = (String) datasetRow.get(DummyMalcolmDevice.TABLE_COLUMN_FILENAME);
+			String filename = (String) datasetRow.get(AbstractMalcolmDevice.DATASETS_TABLE_COLUMN_FILENAME);
 			
 			// load the nexus entry for the file (may be cached from a previous dataset)
 			NXentry entry = nexusEntries.get(filename);
@@ -212,7 +250,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 			}
 			assertNotNull(entry);
 			
-			String path = (String) datasetRow.get(DummyMalcolmDevice.TABLE_COLUMN_PATH);
+			String path = (String) datasetRow.get(AbstractMalcolmDevice.DATASETS_TABLE_COLUMN_PATH);
 
 			String[] pathSegments = path.split("/");
 			assertEquals("", pathSegments[0]); // first element is empty as path starts with '/'
@@ -226,21 +264,45 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 			DataNode dataNode = groupNode.getDataNode(pathSegments[pathSegments.length - 1]);
 			assertNotNull(dataNode);
 			
-			int datasetRank = ((Integer) datasetRow.get(DummyMalcolmDevice.TABLE_COLUMN_RANK)).intValue();
+			int datasetRank = ((Integer) datasetRow.get(AbstractMalcolmDevice.DATASETS_TABLE_COLUMN_RANK)).intValue();
 			assertEquals(dataNode.getRank(), scanRank + datasetRank); 
 		}
 	}
 
-	private NXentry getNexusEntry(String filename) throws Exception {
-		String filePath = new File(malcolmOutputDir, filename).getAbsolutePath();
-		INexusFileFactory fileFactory = org.eclipse.dawnsci.nexus.ServiceHolder
-				.getNexusFileFactory();
-		NexusFile nf = fileFactory.newNexusFile(filePath);
-		nf.openToRead();
-
-		TreeFile nexusTree = NexusUtils.loadNexusTree(nf);
-		NXroot root = (NXroot) nexusTree.getGroupNode();
-		return root.getEntry();
+	private void checkNexusObjectProviders(List<NexusObjectProvider<?>> nexusProviders,
+			DummyMalcolmModel model, int scanRank) {
+		// convert list into a map keyed by name
+		Map<String, NexusObjectProvider<?>> nexusObjectMap = nexusProviders.stream().collect(
+				Collectors.toMap(n -> n.getName(), Function.identity()));
+		for (DummyMalcolmControlledDeviceModel device : model.getDummyDeviceModels()) {
+			NexusObjectProvider<?> nexusProvider = nexusObjectMap.get(device.getName());
+			NXobject nexusObject = nexusProvider.getNexusObject();
+			assertNotNull(nexusProvider);
+			assertNotNull(nexusObject);
+			assertEquals(getExpectedNexusClassForRole(device.getRole()), nexusProvider.getNexusBaseClass());
+			String expectedFileName = model.getFilePath() + "/" + device.getFileName();
+			assertEquals(expectedFileName, nexusProvider.getExternalFileName());
+			
+			for (DummyMalcolmDatasetModel dataset : device.getDatasets()) {
+				final String datasetName = dataset.getName();
+				SymbolicNode externalLinkNode = nexusObject.getSymbolicNode(datasetName);
+				assertNotNull(externalLinkNode);
+				assertEquals(scanRank + dataset.getRank(), nexusProvider.getExternalDatasetRank(datasetName));
+				assertEquals(externalLinkNode.getPath(), dataset.getPath());
+				assertEquals(expectedFileName, externalLinkNode.getSourceURI().toString());
+			}
+		}
+		
 	}
-
+	
+	private NexusBaseClass getExpectedNexusClassForRole(ScanRole scanRole) {
+		switch (scanRole) {
+			case DETECTOR: return NexusBaseClass.NX_DETECTOR;
+			case MONITOR: return NexusBaseClass.NX_MONITOR;
+			case SCANNABLE: return NexusBaseClass.NX_POSITIONER;
+			default: Assert.fail("Unexpected scanrole "+ scanRole); return null;
+		}
+		
+	}
+	
 }
