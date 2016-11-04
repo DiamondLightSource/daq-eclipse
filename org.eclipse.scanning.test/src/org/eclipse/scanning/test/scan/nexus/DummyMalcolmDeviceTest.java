@@ -1,10 +1,12 @@
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.POSITION;
+import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.POSITION_SET;
+import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.POSITION_VALUE;
 import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.PRIMARY;
 import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.SECONDARY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -148,36 +150,39 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		detector2dataset.setPath("/entry/detector2/detector2");
 		det2Model.setDatasets(Arrays.asList(detector2dataset));
 
-		DummyMalcolmControlledDeviceModel stageXModel = new DummyMalcolmControlledDeviceModel();
-		stageXModel.setName("stage_x");
-		stageXModel.setRole(ScanRole.SCANNABLE);
-		stageXModel.setFileName("stage_x.h5");
-
-		DummyMalcolmDatasetModel stageXDataset = new DummyMalcolmDatasetModel();
-		stageXDataset.setName("value");
-		stageXDataset.setRank(0);
-		stageXDataset.setDtype(Double.class);
-		stageXDataset.setMalcolmType(POSITION);
-		stageXDataset.setPath("/entry/instrument/stage_x/value");
-		stageXModel.setDatasets(Arrays.asList(stageXDataset));
-
-		DummyMalcolmControlledDeviceModel stageYModel = new DummyMalcolmControlledDeviceModel();
-		stageYModel.setName("stage_y");
-		stageYModel.setRole(ScanRole.SCANNABLE);
-		stageYModel.setFileName("stage_y.h5");
-
-		DummyMalcolmDatasetModel stageYDataset = new DummyMalcolmDatasetModel();
-		stageYDataset.setName("value");
-		stageYDataset.setRank(0);
-		stageYDataset.setMalcolmType(POSITION);
-		stageYDataset.setDtype(Double.class);
-		stageYDataset.setPath("/entry/instrument/stage_y/value");
-		stageYModel.setDatasets(Arrays.asList(stageYDataset));
+		DummyMalcolmControlledDeviceModel stageXModel = createPositionerModel("stage_x");
+		DummyMalcolmControlledDeviceModel stageYModel = createPositionerModel("stage_y");
 
 		model.setDummyDeviceModels(Arrays.asList(det1Model, det2Model, stageXModel, stageYModel));
 
 		return model;
 	}
+	
+	private DummyMalcolmControlledDeviceModel createPositionerModel(String name) {
+		DummyMalcolmControlledDeviceModel posModel = new DummyMalcolmControlledDeviceModel();
+		posModel.setName(name);
+		posModel.setRole(ScanRole.SCANNABLE);
+		posModel.setFileName(name + ".h5");
+
+		DummyMalcolmDatasetModel rbvDataset = new DummyMalcolmDatasetModel();
+		rbvDataset.setName("value");
+		rbvDataset.setRank(0);
+		rbvDataset.setDtype(Double.class);
+		rbvDataset.setMalcolmType(POSITION_VALUE);
+		rbvDataset.setPath("/entry/instrument/" + name +"/value");
+		posModel.setDatasets(Arrays.asList(rbvDataset));
+
+		DummyMalcolmDatasetModel setDataset = new DummyMalcolmDatasetModel();
+		setDataset.setName("value");
+		setDataset.setRank(0);
+		setDataset.setDtype(Double.class);
+		setDataset.setMalcolmType(POSITION_SET);
+		setDataset.setPath("/entry/instrument/" + name +"/value");
+		posModel.setDatasets(Arrays.asList(setDataset));
+
+		return posModel;
+	}
+	
 
 	@Test
 	public void testDummyMalcolmNexusFiles() throws Exception {
@@ -290,6 +295,26 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 				assertEquals(scanRank + dataset.getRank(), nexusProvider.getExternalDatasetRank(datasetName));
 				assertEquals(externalLinkNode.getPath(), dataset.getPath());
 				assertEquals(expectedFileName, externalLinkNode.getSourceURI().toString());
+				
+				// check the nexus provider which describes how to add the device to the tree
+				// (in particular how NXdata groups should be built) is configured correctly 
+				switch (dataset.getMalcolmType()) {
+					case PRIMARY:
+						assertEquals(datasetName, nexusProvider.getPrimaryDataFieldName());
+						break;
+					case SECONDARY:
+						assertTrue(nexusProvider.getAdditionalPrimaryDataFieldNames().contains(datasetName));
+						break;
+					case MONITOR:
+						assertTrue(nexusProvider.getAxisDataFieldNames().contains(datasetName));
+						break;
+					case POSITION_SET:
+						assertEquals(datasetName, nexusProvider.getDefaultAxisDataFieldName());
+						break;
+					case POSITION_VALUE:
+						assertTrue(nexusProvider.getAxisDataFieldNames().contains(datasetName));
+						break;
+				}
 			}
 		}
 		

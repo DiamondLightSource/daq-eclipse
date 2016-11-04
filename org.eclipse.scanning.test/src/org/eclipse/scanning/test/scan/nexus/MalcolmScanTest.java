@@ -1,6 +1,6 @@
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.POSITION;
+import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.POSITION_VALUE;
 import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.PRIMARY;
 import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.SECONDARY;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
@@ -148,7 +148,7 @@ public class MalcolmScanTest extends NexusTest {
 		stageXDataset.setName("value");
 		stageXDataset.setRank(0);
 		stageXDataset.setDtype(Double.class);
-		stageXDataset.setMalcolmType(POSITION);
+		stageXDataset.setMalcolmType(POSITION_VALUE);
 		stageXDataset.setPath("/entry/instrument/stage_x/value");
 		stageXModel.setDatasets(Arrays.asList(stageXDataset));
 
@@ -160,7 +160,7 @@ public class MalcolmScanTest extends NexusTest {
 		DummyMalcolmDatasetModel stageYDataset = new DummyMalcolmDatasetModel();
 		stageYDataset.setName("value");
 		stageYDataset.setRank(0);
-		stageYDataset.setMalcolmType(POSITION);
+		stageYDataset.setMalcolmType(POSITION_VALUE);
 		stageYDataset.setDtype(Double.class);
 		stageYDataset.setPath("/entry/instrument/stage_y/value");
 		stageYModel.setDatasets(Arrays.asList(stageYDataset));
