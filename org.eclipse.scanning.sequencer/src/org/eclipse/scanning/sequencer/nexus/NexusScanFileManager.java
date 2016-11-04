@@ -36,6 +36,7 @@ import org.eclipse.dawnsci.nexus.builder.impl.MapBasedMetadataProvider;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
@@ -55,30 +56,6 @@ import org.slf4j.LoggerFactory;
  * Builds and manages the NeXus file for a scan given a {@link ScanModel}.
  */
 public class NexusScanFileManager implements INexusScanFileManager {
-	
-	public static class DummyNexusScanFileManager implements INexusScanFileManager {
-
-		@Override
-		public void configure(ScanModel model) throws ScanningException {
-			// do nothing
-		}
-
-		@Override
-		public void createNexusFile(boolean async) throws ScanningException {
-			// do nothing
-		}
-
-		@Override
-		public void flushNexusFile() throws ScanningException {
-			// do nothing
-		}
-
-		@Override
-		public void scanFinished() throws ScanningException {
-			// do nothing
-		}
-
-	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(NexusScanFileManager.class);
 
@@ -207,6 +184,10 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		} finally {
 			scanDevice.removePositionListener(scanPointsWriter);
 		}
+	}
+	
+	public boolean isNexusWritingEnabled() {
+		return true;
 	}
 	
 	/**
