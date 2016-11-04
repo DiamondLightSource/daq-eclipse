@@ -79,6 +79,16 @@ public class CompoundModel<R> implements Cloneable {
 		ret.mutators = mutators;
 		return ret;
 	}
+	/**
+	 * Clones the outer object but not the indder collections
+	 * of models, regions etc.
+	 */
+	public CompoundModel<R> clone(List<Object> models) {
+		CompoundModel<R> ret = clone();
+		ret.setModels(models);
+		return ret;
+	}
+
 
 	public CompoundModel(Object... ms) {
 		if (ms!=null && ms.length==1 && ms[0] instanceof List) {

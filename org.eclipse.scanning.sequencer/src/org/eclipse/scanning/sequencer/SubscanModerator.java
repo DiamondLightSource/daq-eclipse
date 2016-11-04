@@ -19,15 +19,20 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * 
  * This class takes a position iterator and it is a compound generator,
  * attempts to remove the inner scans which subscan devices such as Malcolm will take care of
- * from the compound generator and return only the outer scans.
+ * from the compound generator and return the outer scans.
+ * 
+ * 
  * 
  * @author Matthew Gerring
  *
  */
 public class SubscanModerator {
 	
-	private Iterable<IPosition>    positionIterable;
+	private Iterable<IPosition>    outerIterable;
+	private Iterable<IPosition>    innerIterable;
 	private IPointGeneratorService gservice;
+	private List<Object> outer;
+	private List<Object> inner;
 
 	public SubscanModerator(Iterable<IPosition> generator, List<IRunnableDevice<?>> detectors, IPointGeneratorService gservice) throws ScanningException {
 		this.gservice = gservice;
@@ -42,31 +47,32 @@ public class SubscanModerator {
 	private void moderate(Iterable<IPosition> generator, List<IRunnableDevice<?>> detectors) throws GeneratorException, ScanningException {
 		
 		if (detectors==null || detectors.isEmpty()) {
-			positionIterable = generator;
+			outerIterable = generator;
 			return;
 		}
 		if (!(generator instanceof IPointGenerator<?>)) {
-			positionIterable = generator;
+			outerIterable = generator;
 			return;
 		}
 		IPointGenerator<?> gen = (IPointGenerator<?>)generator;
 		if (!(gen.getModel() instanceof CompoundModel)) {
-			positionIterable = gen;
+			outerIterable = gen;
 			return;
 		}
 		
 		List<String> axes = getAxes(detectors);
 		if (axes==null || axes.isEmpty()) {
-			positionIterable = gen;
+			outerIterable = gen;
 			return;
 		}
 		
 		// We need a compound model to moderate this stuff
-		CompoundModel cmodel = ((CompoundModel)gen.getModel()).clone();
-		List<Object> orig   = cmodel.getModels();
+		final CompoundModel<?> compoundModel = (CompoundModel)gen.getModel();
+		List<Object> orig   = compoundModel.getModels();
 		if (orig.isEmpty()) throw new ScanningException("No models are provided in the compound model!");
 		
-		List<Object> models = new ArrayList<>();
+		this.outer = new ArrayList<>();
+		this.inner = new ArrayList<>();
 		
 		boolean reachedOuterScan = false;
 		for (int i = orig.size()-1; i > -1; i--) {
@@ -76,19 +82,24 @@ public class SubscanModerator {
 				IPosition first = g.iterator().next();
 				List<String> names = first.getNames();
 				if (axes.containsAll(names)) {// These will be deal with by malcolm
+					inner.add(0, model);
 					continue; // The device will deal with it.
 				}
 			}
-			reachedOuterScan = true;
-			models.add(0, model);
+			reachedOuterScan = true; // As soon as we reach one outer scan all above are outer.
+			outer.add(0, model);
 		}
-		if (models.isEmpty()) {
-			this.positionIterable = gservice.createGenerator(new StaticModel(1));
+		
+		if (!inner.isEmpty()) {
+			this.innerIterable = gservice.createCompoundGenerator(compoundModel.clone(inner));
+		}
+		
+		if (outer.isEmpty()) {
+			this.outerIterable = gservice.createGenerator(new StaticModel(1));
 			return;
 		}
 		
-		cmodel.setModels(models);
-		this.positionIterable = gservice.createCompoundGenerator(cmodel);
+		this.outerIterable = gservice.createCompoundGenerator(compoundModel.clone(outer));
 	}
 
 	private List<String> getAxes(List<IRunnableDevice<?>> detectors) throws MalcolmDeviceException {
@@ -105,13 +116,24 @@ public class SubscanModerator {
 		return ret;
 	}
 
-	public Iterable<IPosition> getPositionIterable() {
-		return positionIterable;
+	/**
+	 * The outer iterable will not be null normally. Even if 
+	 * all of the scan is deal with by malcolm the outer scan will still
+	 * be a static generator of one point. If there are no subscan devices,
+	 * then the outer scan is the full scan.
+	 * @return
+	 */
+	public Iterable<IPosition> getOuterIterable() {
+		return outerIterable;
 	}
-
-	public void setPositionIterable(Iterable<IPosition> positionIterable) {
-		this.positionIterable = positionIterable;
+	public Iterable<IPosition> getInnerIterable() {
+		return innerIterable;
 	}
-
+	public List<Object> getOuterModels() {
+		return outer;
+	}
+	public List<Object> getInnerModels() {
+		return inner;
+	}
 
 }
