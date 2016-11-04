@@ -79,12 +79,12 @@ class PathInfoCalculatorJob extends Job {
 			return Status.CANCEL_STATUS;
 		}
 		
-		final IImageTrace trace = controller.getImageTrace();
-		if (trace==null) {
-			setPathVisible(false);
-			return Status.CANCEL_STATUS;
+		{ // Put trace out of scope, drawing the line should not depend on it.
+			final IImageTrace trace = controller.getImageTrace();
+			if (trace!=null) {
+				if (!trace.hasTrueAxes()) throw new IllegalArgumentException(getClass().getSimpleName()+" should act on true axis images!");
+			}
 		}
-		if (!trace.hasTrueAxes()) throw new IllegalArgumentException(getClass().getSimpleName()+" should act on true axis images!");
 		
 		monitor.beginTask("Calculating points for scan path", IProgressMonitor.UNKNOWN);
 		
