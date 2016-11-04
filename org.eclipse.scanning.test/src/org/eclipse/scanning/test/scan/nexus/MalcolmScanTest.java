@@ -1,5 +1,8 @@
 package org.eclipse.scanning.test.scan.nexus;
 
+import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.POSITION;
+import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.PRIMARY;
+import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.SECONDARY;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanNotFinished;
@@ -15,6 +18,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +39,7 @@ import org.eclipse.dawnsci.nexus.NXinstrument;
 import org.eclipse.dawnsci.nexus.NXpositioner;
 import org.eclipse.dawnsci.nexus.NXroot;
 import org.eclipse.dawnsci.nexus.NexusFile;
+import org.eclipse.dawnsci.nexus.NexusScanInfo.ScanRole;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.dawnsci.nexus.ServiceHolder;
 import org.eclipse.january.dataset.IDataset;
@@ -52,24 +58,32 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmControlledDeviceModel;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
+import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class MalcolmScanTest extends NexusTest {
 	
+	private File malcolmOutputDir;
+
 	private IRunnableDevice<?> malcolmDevice;
 	
 	@Before
 	public void before() throws Exception {
+		// create a temp directory for the dummy malcolm device to write hdf files into
+		malcolmOutputDir = Files.createTempDirectory(DummyMalcolmDeviceTest.class.getSimpleName()).toFile();
+		
 		DummyMalcolmModel model = new DummyMalcolmModel();
-		model.setFilePath("/tmp");
+		model.setFilePath(malcolmOutputDir.getAbsolutePath());
 		model.setGenerator(null); // TODO set generator?
 		
 		malcolmDevice = dservice.createRunnableDevice(model);
 		assertNotNull(malcolmDevice);
-		((DummyMalcolmDevice) malcolmDevice).addRunListener(new IRunListener() {
+		((AbstractMalcolmDevice<DummyMalcolmModel>) malcolmDevice).addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException {
 				System.out.println("Ran test malcolm device @ " + evt.getPosition());
@@ -78,6 +92,86 @@ public class MalcolmScanTest extends NexusTest {
 		
 	}
 	
+	@After
+	public void teardown() throws Exception {
+		// delete the temp directory and all its files
+		for (File file : malcolmOutputDir.listFiles()) {
+			file.delete();
+		}
+		malcolmOutputDir.delete();
+	}
+
+	private DummyMalcolmModel createModel() {
+		DummyMalcolmModel model = new DummyMalcolmModel();
+		model.setName("testMalcolmDevice");
+		model.setFilePath(malcolmOutputDir.getAbsolutePath());
+
+		DummyMalcolmControlledDeviceModel det1Model = new DummyMalcolmControlledDeviceModel();
+		det1Model.setName("detector");
+		det1Model.setRole(ScanRole.DETECTOR);
+		det1Model.setFileName("detector.nxs");
+
+		DummyMalcolmDatasetModel detector1dataset1 = new DummyMalcolmDatasetModel();
+		detector1dataset1.setName("detector");
+		detector1dataset1.setRank(2);
+		detector1dataset1.setDtype(Double.class);
+		detector1dataset1.setMalcolmType(PRIMARY);
+		detector1dataset1.setPath("/entry/detector/detector");
+		
+		DummyMalcolmDatasetModel detector1dataset2 = new DummyMalcolmDatasetModel();
+		detector1dataset2.setName("sum");
+		detector1dataset2.setRank(1);
+		detector1dataset2.setDtype(Double.class);
+		detector1dataset2.setMalcolmType(SECONDARY);
+		detector1dataset2.setPath("/entry/detector_sum/sum");
+		det1Model.setDatasets(Arrays.asList(detector1dataset1, detector1dataset2));
+
+		DummyMalcolmControlledDeviceModel det2Model = new DummyMalcolmControlledDeviceModel();
+		det2Model.setName("detector2");
+		det2Model.setRole(ScanRole.DETECTOR);
+		det2Model.setFileName("detector2.nxs");
+
+		DummyMalcolmDatasetModel detector2dataset = new DummyMalcolmDatasetModel();
+		detector2dataset.setName("detector2");
+		detector2dataset.setRank(2);
+		detector2dataset.setMalcolmType(PRIMARY);
+		detector2dataset.setDtype(Double.class);
+		detector2dataset.setPath("/entry/detector2/detector2");
+		det2Model.setDatasets(Arrays.asList(detector2dataset));
+
+		DummyMalcolmControlledDeviceModel stageXModel = new DummyMalcolmControlledDeviceModel();
+		stageXModel.setName("stage_x");
+		stageXModel.setRole(ScanRole.SCANNABLE);
+		stageXModel.setFileName("stage_x.nxs");
+
+		DummyMalcolmDatasetModel stageXDataset = new DummyMalcolmDatasetModel();
+		stageXDataset.setName("value");
+		stageXDataset.setRank(0);
+		stageXDataset.setDtype(Double.class);
+		stageXDataset.setMalcolmType(POSITION);
+		stageXDataset.setPath("/entry/instrument/stage_x/value");
+		stageXModel.setDatasets(Arrays.asList(stageXDataset));
+
+		DummyMalcolmControlledDeviceModel stageYModel = new DummyMalcolmControlledDeviceModel();
+		stageYModel.setName("stage_y");
+		stageYModel.setRole(ScanRole.SCANNABLE);
+		stageYModel.setFileName("stage_y.nxs");
+
+		DummyMalcolmDatasetModel stageYDataset = new DummyMalcolmDatasetModel();
+		stageYDataset.setName("value");
+		stageYDataset.setRank(0);
+		stageYDataset.setMalcolmType(POSITION);
+		stageYDataset.setDtype(Double.class);
+		stageYDataset.setPath("/entry/instrument/stage_y/value");
+		stageYModel.setDatasets(Arrays.asList(stageYDataset));
+
+		model.setDummyDeviceModels(Arrays.asList(det1Model, det2Model, stageXModel, stageYModel));
+
+		model.setDummyDeviceModels(Arrays.asList(det1Model, det2Model, stageXModel, stageYModel));
+
+		return model;
+	}
+
 	@Test
 	public void test2DMalcolmScan() throws Exception {
 		testMalcolmScan(8, 5);

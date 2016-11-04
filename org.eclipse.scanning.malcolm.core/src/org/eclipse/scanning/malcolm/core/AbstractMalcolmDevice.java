@@ -4,13 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.dawnsci.nexus.INexusDevice;
-import org.eclipse.dawnsci.nexus.NXdetector;
+import org.eclipse.dawnsci.nexus.IMultipleNexusDevice;
+import org.eclipse.dawnsci.nexus.NexusException;
+import org.eclipse.dawnsci.nexus.NexusScanInfo;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
+import org.eclipse.scanning.api.malcolm.MalcolmTable;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
@@ -26,19 +29,30 @@ import org.slf4j.LoggerFactory;
 /**
  * 
  * Base class for Malcolm devices
+ * 
+ * <T> the model class for this malcolm device
  *
  */
 public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
-		implements IMalcolmDevice<T> {
+		implements IMalcolmDevice<T>, IMultipleNexusDevice {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMalcolmDevice.class);
+	
+	private static final String ATTRIBUTE_NAME_DATASETS = "datasets";
+
+	public static final String DATASETS_TABLE_COLUMN_NAME = "name";
+	public static final String DATASETS_TABLE_COLUMN_FILENAME = "filename";
+	public static final String DATASETS_TABLE_COLUMN_TYPE = "type";
+	public static final String DATASETS_TABLE_COLUMN_PATH = "path";
+	public static final String DATASETS_TABLE_COLUMN_UNIQUEID = "uniqueid";
+	public static final String DATASETS_TABLE_COLUMN_RANK = "rank";
 	
 	private String filePath;
 	
 	// Events
 	protected MalcolmEventDelegate eventDelegate;
 	
-	// Connection to serilization to talk to the remote object
+	// Connection to serialization to talk to the remote object
 	protected MessageGenerator<MalcolmMessage> connectionDelegate;
 	
 	public AbstractMalcolmDevice(IMalcolmConnectorService<MalcolmMessage> connector,
@@ -108,6 +122,17 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 			}
 		} catch (Exception e) {
 			throw new MalcolmDeviceException(this, "Cannot dispose of '"+getName()+"'!", e);
+		}
+	}
+	
+	@Override
+	public List<NexusObjectProvider<?>> getNexusProviders(NexusScanInfo info) throws NexusException {
+		try {
+			MalcolmTable datasetsTable = getAttributeValue(ATTRIBUTE_NAME_DATASETS);
+			MalcolmNexusObjectBuilder malcolmNexusBuilder = new MalcolmNexusObjectBuilder();
+			return malcolmNexusBuilder.buildNexusObjects(datasetsTable, info);
+		} catch (Exception e) {
+			throw new NexusException("Could not create nexus objects for malcolm device " + getName(), e);
 		}
 	}
 
