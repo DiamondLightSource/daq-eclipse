@@ -49,10 +49,39 @@ public class SubscanModeratorTest {
 		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
 		
 		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
-		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
 		
 		assertTrue("The moderated size should be 6 not "+moderated.size(), moderated.size()==6);
+		assertTrue(moderator.getInnerModels().size()==1);
 	}
+	
+	@Test
+	public void testSimpleWrappedScanSubscanOutside() throws Exception {
+		
+		CompoundModel cmodel = new CompoundModel<>();
+		
+		GridModel gmodel = new GridModel("x", "y");
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		
+		cmodel.setModels(Arrays.asList(gmodel, new StepModel("T", 290, 300, 2)));
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(cmodel);
+		
+		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
+		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.setModel(tmodel);
+		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
+		
+		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
+		
+		assertTrue("The moderated size should be 150 not "+moderated.size(), moderated.size()==150);
+		assertTrue(moderator.getOuterModels().size()==2);
+		assertTrue(moderator.getInnerModels().size()==0);
+	}
+
 	
 	@Test
 	public void testSubscanOnlyScan() throws Exception {
@@ -74,9 +103,11 @@ public class SubscanModeratorTest {
 		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
 		
 		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
-		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
 		
 		assertTrue("The moderated size should be 1 not "+moderated.size(), moderated.size()==1);
+		assertTrue(moderator.getOuterModels().size()==0);
+		assertTrue(moderator.getInnerModels().size()==1);
 	}
 	
 	@Test
@@ -98,9 +129,11 @@ public class SubscanModeratorTest {
 		det.setModel(mmodel);
 			
 		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
-		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
 		
 		assertTrue("The moderated size should be 25 not "+moderated.size(), moderated.size()==25);
+		assertTrue(moderator.getOuterModels()==null);
+		assertTrue(moderator.getInnerModels()==null);
 	}
 
 	@Test
@@ -123,9 +156,11 @@ public class SubscanModeratorTest {
 		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
 			
 		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
-		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
 		
 		assertTrue("The moderated size should be 25 not "+moderated.size(), moderated.size()==25);
+		assertTrue(moderator.getOuterModels().size()==1);
+		assertTrue(moderator.getInnerModels().size()==0);
 	}
 	
 	@Test
@@ -148,9 +183,11 @@ public class SubscanModeratorTest {
 		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
 		
 		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
-		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
 		
 		assertTrue("The moderated size should be 150 not "+moderated.size(), moderated.size()==150);
+		assertTrue(moderator.getOuterModels().size()==2);
+		assertTrue(moderator.getInnerModels().size()==0);
 	}
 	
 	@Test
@@ -173,9 +210,11 @@ public class SubscanModeratorTest {
 		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
 		
 		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
-		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
 		
 		assertTrue("The moderated size should be 150 not "+moderated.size(), moderated.size()==150);
+		assertTrue(moderator.getOuterModels().size()==2);
+		assertTrue(moderator.getInnerModels().size()==0);
 	}
 	
 	@Test
@@ -198,9 +237,11 @@ public class SubscanModeratorTest {
 		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
 		
 		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
-		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
 		
 		assertTrue("The moderated size should be 1 not "+moderated.size(), moderated.size()==1);
+		assertTrue(moderator.getOuterModels().size()==0);
+		assertTrue(moderator.getInnerModels().size()==2);
 	}
 
 	@Test
@@ -222,9 +263,11 @@ public class SubscanModeratorTest {
 		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
 		
 		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
-		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
 		
 		assertTrue("The moderated size should be 6 not "+moderated.size(), moderated.size()==6);
+		assertTrue(moderator.getOuterModels().size()==1);
+		assertTrue(moderator.getInnerModels().size()==1);
 	}
 
 

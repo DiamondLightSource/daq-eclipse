@@ -173,7 +173,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		final int size  = getSize(moderator.getPositionIterable());
+    		final int size  = getSize(moderator.getOuterIterable());
     		int count = 0;
 
     		fireStart(size);    		
@@ -185,7 +185,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		// The scan loop
         	pos = null; // We want the last point when we are done so don't use foreach
         	boolean firedFirst = false;
-	        for (IPosition position : moderator.getPositionIterable()) {
+	        for (IPosition position : moderator.getOuterIterable()) {
 				
 	        	pos = position;
 	        	pos.setStepIndex(count);
