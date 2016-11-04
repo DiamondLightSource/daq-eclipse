@@ -67,8 +67,13 @@ class MalcolmNexusObjectBuilder {
 					nexusWrapper.addAxisDataFieldName(datasetName);
 					break;
 				}
-				case POSITION: {
+				case POSITION_VALUE: {
 					nexusWrapper.addAxisDataFieldName(datasetName);
+					break;
+				}
+				case POSITION_SET: {
+					nexusWrapper.addAxisDataFieldName(datasetName);
+					nexusWrapper.setDefaultAxisDataFieldName(datasetName);
 					break;
 				}
 			}
