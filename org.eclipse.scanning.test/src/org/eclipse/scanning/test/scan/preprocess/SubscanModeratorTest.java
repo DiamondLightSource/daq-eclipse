@@ -9,7 +9,10 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.example.detector.MandelbrotDetector;
+import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.points.PointGeneratorFactory;
@@ -50,4 +53,187 @@ public class SubscanModeratorTest {
 		
 		assertTrue("The moderated size should be 6 not "+moderated.size(), moderated.size()==6);
 	}
+	
+	@Test
+	public void testSubscanOnlyScan() throws Exception {
+		
+		CompoundModel cmodel = new CompoundModel<>();
+		
+		GridModel gmodel = new GridModel("x", "y");
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		
+		cmodel.setModels(Arrays.asList(gmodel));
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(cmodel);
+		
+		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
+		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.setModel(tmodel);
+		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
+		
+		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		
+		assertTrue("The moderated size should be 1 not "+moderated.size(), moderated.size()==1);
+	}
+	
+	@Test
+	public void testNoSubscanDevice() throws Exception {
+		
+		CompoundModel cmodel = new CompoundModel<>();
+		
+		GridModel gmodel = new GridModel("x", "y");
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		
+		cmodel.setModels(Arrays.asList(gmodel));
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(cmodel);
+		
+		final MandelbrotModel mmodel = new MandelbrotModel();
+		final MandelbrotDetector det = new MandelbrotDetector();
+		det.setModel(mmodel);
+			
+		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		
+		assertTrue("The moderated size should be 25 not "+moderated.size(), moderated.size()==25);
+	}
+
+	@Test
+	public void testDifferentAxes1() throws Exception {
+		
+		CompoundModel cmodel = new CompoundModel<>();
+		
+		GridModel gmodel = new GridModel("x", "y");
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		
+		cmodel.setModels(Arrays.asList(gmodel));
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(cmodel);
+		
+		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
+		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.setModel(tmodel);
+		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
+			
+		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		
+		assertTrue("The moderated size should be 25 not "+moderated.size(), moderated.size()==25);
+	}
+	
+	@Test
+	public void testDifferentAxes2() throws Exception {
+		
+		CompoundModel cmodel = new CompoundModel<>();
+		
+		GridModel gmodel = new GridModel("x", "y");
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		
+		cmodel.setModels(Arrays.asList(new StepModel("T", 290, 300, 2), gmodel));
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(cmodel);
+		
+		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
+		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.setModel(tmodel);
+		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
+		
+		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		
+		assertTrue("The moderated size should be 150 not "+moderated.size(), moderated.size()==150);
+	}
+	
+	@Test
+	public void testDifferentAxes3() throws Exception {
+		
+		CompoundModel cmodel = new CompoundModel<>();
+		
+		GridModel gmodel = new GridModel("p", "y");
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		
+		cmodel.setModels(Arrays.asList(new StepModel("T", 290, 300, 2), gmodel));
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(cmodel);
+		
+		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
+		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.setModel(tmodel);
+		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
+		
+		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		
+		assertTrue("The moderated size should be 150 not "+moderated.size(), moderated.size()==150);
+	}
+	
+	@Test
+	public void testNestedAxes() throws Exception {
+		
+		CompoundModel cmodel = new CompoundModel<>();
+		
+		GridModel gmodel = new GridModel("p", "y");
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		
+		cmodel.setModels(Arrays.asList(new StepModel("p", 290, 300, 2), gmodel));
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(cmodel);
+		
+		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
+		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.setModel(tmodel);
+		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
+		
+		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		
+		assertTrue("The moderated size should be 1 not "+moderated.size(), moderated.size()==1);
+	}
+
+	@Test
+	public void testSimpleWrappedScanSpiral() throws Exception {
+		
+		CompoundModel cmodel = new CompoundModel<>();
+		
+		SpiralModel gmodel = new SpiralModel("p", "y");
+		gmodel.setScale(2d);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		
+		cmodel.setModels(Arrays.asList(new StepModel("T", 290, 300, 2), gmodel));
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(cmodel);
+		
+		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
+		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.setModel(tmodel);
+		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
+		
+		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getPositionIterable();
+		
+		assertTrue("The moderated size should be 6 not "+moderated.size(), moderated.size()==6);
+	}
+
+
+	/** TODO
+	 * 1. test where all scan is malc
+	 * 2. test where none of the scan is malc
+	 * 3. test scan where all scan is malc
+	 * 4. test scan indices where part of scan is malc.
+	 * 5. test a lot of levels of outer scan
+	 * 6. test errors with malcolm device during execution
+	 */
 }

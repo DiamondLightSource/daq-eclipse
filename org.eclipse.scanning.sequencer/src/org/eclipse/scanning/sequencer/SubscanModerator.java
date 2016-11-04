@@ -7,12 +7,12 @@ import java.util.List;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.attributes.StringArrayAttribute;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
+import org.eclipse.scanning.api.points.models.StaticModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
@@ -39,7 +39,7 @@ public class SubscanModerator {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private void moderate(Iterable<IPosition> generator, List<IRunnableDevice<?>> detectors) throws MalcolmDeviceException, GeneratorException {
+	private void moderate(Iterable<IPosition> generator, List<IRunnableDevice<?>> detectors) throws GeneratorException, ScanningException {
 		
 		if (detectors==null || detectors.isEmpty()) {
 			positionIterable = generator;
@@ -64,6 +64,8 @@ public class SubscanModerator {
 		// We need a compound model to moderate this stuff
 		CompoundModel cmodel = ((CompoundModel)gen.getModel()).clone();
 		List<Object> orig   = cmodel.getModels();
+		if (orig.isEmpty()) throw new ScanningException("No models are provided in the compound model!");
+		
 		List<Object> models = new ArrayList<>();
 		
 		boolean reachedOuterScan = false;
@@ -79,6 +81,10 @@ public class SubscanModerator {
 			}
 			reachedOuterScan = true;
 			models.add(0, model);
+		}
+		if (models.isEmpty()) {
+			this.positionIterable = gservice.createGenerator(new StaticModel(1));
+			return;
 		}
 		
 		cmodel.setModels(models);
