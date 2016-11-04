@@ -8,7 +8,9 @@ public enum MalcolmDatasetType {
 	PRIMARY(ScanRole.DETECTOR, NexusBaseClass.NX_DETECTOR),
 	SECONDARY(ScanRole.DETECTOR, NexusBaseClass.NX_DETECTOR),
 	MONITOR(ScanRole.MONITOR, NexusBaseClass.NX_MONITOR),
-	POSITION(ScanRole.SCANNABLE, NexusBaseClass.NX_POSITIONER);
+	POSITION_VALUE(ScanRole.SCANNABLE, NexusBaseClass.NX_POSITIONER),
+	POSITION_SET(ScanRole.SCANNABLE, NexusBaseClass.NX_POSITIONER);
+	
 	
 	private final ScanRole scanRole;
 	private final NexusBaseClass nexusBaseClass;
