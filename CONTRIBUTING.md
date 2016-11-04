@@ -38,8 +38,8 @@ If you would like to contribute, you should provide tests for everything that yo
 * Follow steps 4-7 above from here.
 * A committer will merge your request once the test passes and the review items are addressed.
 
-# Code of Conduct (Based on HomeBrew)
-The community is made up of members from around the globe with a diverse set of skills, personalities, and experiences. It is through these differences that our community experiences great successes and continued growth. When you're working with members, we encourage you to follow these guidelines which help steer our interactions and strive to keep Homebrew a positive, successful, and growing community.
+# Code of Conduct (Based on HomeBrew CoC)
+The community is made up of members from around the globe with a diverse set of skills, personalities, and experiences. It is through these differences that our community experiences great successes and continued growth. When you're working with members, we encourage you to follow these guidelines which help steer our interactions and strive to keep the project a positive, successful, and growing community.
 
 A member is:
 
@@ -50,7 +50,7 @@ Open to collaboration, whether it's on GitHub, email or otherwise. We're recepti
 Members of the community are considerate of their peers - other users and developers. We're thoughtful when addressing the efforts of others, keeping in mind that oftentimes their labor was completed simply for the good of the community. We're attentive in our communications, whether in person or online, and we're tactful when approaching differing views.
 
 ## Respectful
-Members of the community are respectful. We're respectful of others, their positions, their skills, their commitments, and their efforts. We're respectful of the volunteer efforts that permeate the Homebrew community. We're respectful of the processes set forth in the community, and we work within them. When we disagree, we are courteous in raising our issues.
+Members of the community are respectful. We're respectful of others, their positions, their skills, their commitments, and their efforts. We're respectful of the volunteer efforts that permeate the community. We're respectful of the processes set forth in the community, and we work within them. When we disagree, we are courteous in raising our issues.
 
 Overall, we're good to each other. We contribute to this community not because we have to, but because we want to. If we remember that, these guidelines will come naturally.
 
