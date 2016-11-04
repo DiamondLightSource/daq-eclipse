@@ -70,13 +70,6 @@ import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		implements IMalcolmDevice<DummyMalcolmModel> {
 
-	public static final String TABLE_COLUMN_NAME = "name";
-	public static final String TABLE_COLUMN_FILENAME = "filename";
-	public static final String TABLE_COLUMN_TYPE = "type";
-	public static final String TABLE_COLUMN_PATH = "path";
-	public static final String TABLE_COLUMN_UNIQUEID = "uniqueid";
-	public static final String TABLE_COLUMN_RANK = "rank";
-
 	public static final String UNIQUE_KEYS_DATASET_PATH = "/entry/NDAttributes/NDArrayUniqueId";
 	
 	private static final String FILE_EXTENSION_HDF5 = ".h5";
@@ -198,25 +191,26 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	
 	private TableAttribute createDatasetsAttribute(DummyMalcolmModel model) {
 		Map<String, Class<?>> types = new LinkedHashMap<>();
-		types.put(TABLE_COLUMN_NAME, String.class);
-		types.put(TABLE_COLUMN_FILENAME, String.class);
-		types.put(TABLE_COLUMN_TYPE, String.class);
-		types.put(TABLE_COLUMN_PATH, String.class);
-		types.put(TABLE_COLUMN_UNIQUEID, String.class);
-		types.put(TABLE_COLUMN_RANK, String.class);
+		types.put(DATASETS_TABLE_COLUMN_NAME, String.class);
+		types.put(DATASETS_TABLE_COLUMN_FILENAME, String.class);
+		types.put(DATASETS_TABLE_COLUMN_TYPE, String.class);
+		types.put(DATASETS_TABLE_COLUMN_PATH, String.class);
+		types.put(DATASETS_TABLE_COLUMN_UNIQUEID, String.class);
+		types.put(DATASETS_TABLE_COLUMN_RANK, String.class);
 		
 		MalcolmTable table = new MalcolmTable(types);
 		for (DummyMalcolmControlledDeviceModel dummyDeviceModel : model.getDummyDeviceModels()) {
 			String deviceName = dummyDeviceModel.getName();
 			for (DummyMalcolmDatasetModel datasetModel : dummyDeviceModel.getDatasets()) {
 				Map<String, Object> datasetRow = new HashMap<>();
-				datasetRow.put(TABLE_COLUMN_NAME, deviceName + "." + datasetModel.getName());
-				datasetRow.put(TABLE_COLUMN_FILENAME, dummyDeviceModel.getFileName() != null ?
-						dummyDeviceModel.getFileName() : dummyDeviceModel.getName() + FILE_EXTENSION_HDF5);
-				datasetRow.put(TABLE_COLUMN_TYPE, datasetModel.getMalcolmType().name().toLowerCase());
-				datasetRow.put(TABLE_COLUMN_PATH, datasetModel.getPath());
-				datasetRow.put(TABLE_COLUMN_UNIQUEID, UNIQUE_KEYS_DATASET_PATH);
-				datasetRow.put(TABLE_COLUMN_RANK, datasetModel.getRank());
+				datasetRow.put(DATASETS_TABLE_COLUMN_NAME, deviceName + "." + datasetModel.getName());
+				String filename = dummyDeviceModel.getFileName() != null ?
+						dummyDeviceModel.getFileName() : dummyDeviceModel.getName() + FILE_EXTENSION_HDF5;
+				datasetRow.put(DATASETS_TABLE_COLUMN_FILENAME, model.getFilePath() + "/" + filename); 
+				datasetRow.put(DATASETS_TABLE_COLUMN_TYPE, datasetModel.getMalcolmType().name().toLowerCase());
+				datasetRow.put(DATASETS_TABLE_COLUMN_PATH, datasetModel.getPath());
+				datasetRow.put(DATASETS_TABLE_COLUMN_UNIQUEID, UNIQUE_KEYS_DATASET_PATH);
+				datasetRow.put(DATASETS_TABLE_COLUMN_RANK, datasetModel.getRank());
 				table.addRow(datasetRow);
 			}
 		}

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.example.malcolm;
 
+import org.eclipse.scanning.malcolm.core.MalcolmDatasetType;
+
 /**
  * A model describing a dataset that should be written by a {@link DummyMalcolmDevice}.
  * 
