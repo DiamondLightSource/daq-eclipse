@@ -1,13 +1,13 @@
 package org.eclipse.scanning.test.event.queues;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IResponseCreator;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequestType;
@@ -40,6 +40,10 @@ public class QueueResponseProcessTest {
 	
 	@Before
 	public void setUp() throws EventException {
+		//Make sure we have clear queues before we start
+		mockCons.clearQueue(mockCons.getStatusSetName());
+		mockCons.clearQueue(mockCons.getSubmitQueueName());
+		
 		//A bean to interrogate
 		submDummy = new DummyBean(); //Should have a uID & Status.NONE
 		mockCons.addToSubmitQueue(submDummy);
@@ -126,6 +130,25 @@ public class QueueResponseProcessTest {
 
 		//Check response from server
 		assertEquals("Response has wrong bean status", Status.RUNNING, qAns.getBeanStatus());
+		
+		/*
+		 * Same as above, but with a non-existent bean
+		 */
+		try {
+			DummyBean bilbo = new DummyBean();
+			qReq = new QueueRequest();
+			qReq.setRequestType(QueueRequestType.BEAN_STATUS);
+			qReq.setQueueID("fake-q-root"+IQueueService.JOB_QUEUE_SUFFIX);
+			qReq.setBeanID(bilbo.getUniqueId());
+			
+			//Create the response & process the request
+			responseProc = qResponseCreator.createResponder(qReq, mockPub);
+			qAns = responseProc.process(qReq);
+			
+			fail("Bean 'bilbo' shouldn't be findable in the consumer");
+		} catch (EventException evEx) {
+			//Expected
+		}
 	}
 	
 	//Test getting full queue config
