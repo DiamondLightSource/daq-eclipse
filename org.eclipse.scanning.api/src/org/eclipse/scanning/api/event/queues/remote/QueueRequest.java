@@ -17,15 +17,20 @@ public class QueueRequest extends IdBean {
 	/**
 	 * Version ID for serialization. Should be updated when class changed. 
 	 */
-	private static final long serialVersionUID = 20161027L;
+	private static final long serialVersionUID = 20161107L;
 
+	//Values for request construction
 	private QueueRequestType requestType;
+	private String beanID;//Unique ID of bean to interrogate
+	private String queueID;//ID of queue as set in IQueueService where beanID should be found
+	private Boolean startQueueService;
+	
+	//Values to be completed by responses
+	private String jobQueueID;//jobQueue of IQueueService
+	private String commandSetName, commandTopicName, heartbeatTopicName;//QueueService configured destinations
+	private Status beanStatus;//State of a the bean in the queue
 
-	private String beanID;
-	private String queueID;
-	private String jobQueueID;
-	private Status beanStatus;
-
+	//Request variables
 	public QueueRequestType getRequestType() {
 		return requestType;
 	}
@@ -44,11 +49,40 @@ public class QueueRequest extends IdBean {
 	public void setQueueID(String queueID) {
 		this.queueID = queueID;
 	}
+	public Boolean getStartQueueService() {
+		return startQueueService;
+	}
+	public void setStartQueueService(Boolean startQueueService) {
+		this.startQueueService = startQueueService;
+	}
+	
+	//Response variables
 	public String getJobQueueID() {
 		return jobQueueID;
 	}
 	public void setJobQueueID(String jobQueueID) {
 		this.jobQueueID = jobQueueID;
+	}
+	public String getCommandSetName() {
+		return commandSetName;
+	}
+	public void setCommandSetName(String commandSetName) {
+		this.commandSetName = commandSetName;
+	}
+	public String getCommandTopicName() {
+		return commandTopicName;
+	}
+	public void setCommandTopicName(String commandTopicName) {
+		this.commandTopicName = commandTopicName;
+	}
+	public String getHeartbeatTopicName() {
+		return heartbeatTopicName;
+	}
+	public void setHeartbeatTopicName(String heartbeatTopicName) {
+		this.heartbeatTopicName = heartbeatTopicName;
+	}
+	public void setBeanStatus(Status beanStatus) {
+		this.beanStatus = beanStatus;
 	}
 	public Status getBeanStatus() {
 		return beanStatus;
@@ -60,9 +94,13 @@ public class QueueRequest extends IdBean {
 		int result = super.hashCode();
 		result = prime * result + ((beanID == null) ? 0 : beanID.hashCode());
 		result = prime * result + ((beanStatus == null) ? 0 : beanStatus.hashCode());
+		result = prime * result + ((commandSetName == null) ? 0 : commandSetName.hashCode());
+		result = prime * result + ((commandTopicName == null) ? 0 : commandTopicName.hashCode());
+		result = prime * result + ((heartbeatTopicName == null) ? 0 : heartbeatTopicName.hashCode());
 		result = prime * result + ((jobQueueID == null) ? 0 : jobQueueID.hashCode());
 		result = prime * result + ((queueID == null) ? 0 : queueID.hashCode());
 		result = prime * result + ((requestType == null) ? 0 : requestType.hashCode());
+		result = prime * result + ((startQueueService == null) ? 0 : startQueueService.hashCode());
 		return result;
 	}
 	
@@ -82,6 +120,21 @@ public class QueueRequest extends IdBean {
 			return false;
 		if (beanStatus != other.beanStatus)
 			return false;
+		if (commandSetName == null) {
+			if (other.commandSetName != null)
+				return false;
+		} else if (!commandSetName.equals(other.commandSetName))
+			return false;
+		if (commandTopicName == null) {
+			if (other.commandTopicName != null)
+				return false;
+		} else if (!commandTopicName.equals(other.commandTopicName))
+			return false;
+		if (heartbeatTopicName == null) {
+			if (other.heartbeatTopicName != null)
+				return false;
+		} else if (!heartbeatTopicName.equals(other.heartbeatTopicName))
+			return false;
 		if (jobQueueID == null) {
 			if (other.jobQueueID != null)
 				return false;
@@ -93,6 +146,11 @@ public class QueueRequest extends IdBean {
 		} else if (!queueID.equals(other.queueID))
 			return false;
 		if (requestType != other.requestType)
+			return false;
+		if (startQueueService == null) {
+			if (other.startQueueService != null)
+				return false;
+		} else if (!startQueueService.equals(other.startQueueService))
 			return false;
 		return true;
 	}
