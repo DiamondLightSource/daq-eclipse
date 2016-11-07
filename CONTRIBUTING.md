@@ -8,18 +8,18 @@ The dummy server starts a local activemq (which can be switched off from the arg
 ## Tests!
 If you would like to contribute, you should provide tests for everything that you add to the system. Do not be surprised if your reviewers ask for more tests to be created, in fact in many cases they should. The committers to the project are looking for tests which check for success but attempt to break your new feature. They should attempt to understand the limits that your code works within. Your tests should also run fast - we would like to keep running the build in no more than ten minutes. To help with speed, try not to create large files which travis nodes do not always like. The tests must be junit tests included in a Suite called 'Suite.java' in order for them to be run in travis automatically.
 
-## Guidlines
+## Guidelines
 (In random order.)
 
-* There is no strict format for code, such as your must indent using a tab rather than four spaces or your imports should be in a specific order. Or a line limit other than the one Java suggests. If a riewer asks for this you should refer to this guideline! 
-* Avoid reformatting code just for 'readability' because it creates false diffs. Better to tolerance the original developer's formatting.
+* There is no strict format for code, such as you must indent using a tab rather than four spaces or your imports should be in a specific order. Or a line limit other than the one Java suggests. If a reviewer asks for this you should refer to this guideline! 
+* Avoid reformatting code just for 'readability' because it creates false diffs. Better to tolerate the original developer's formatting.
 * The standard Java class naming (camel case with first upper case letter) and method naming (camel case with a first lower letter) should be followed. 
-* Classes should not comnsist of many lines, for instance if your class grows to 1000's of lines, consider delegating parts of it to other classes. 
+* Classes should not consist of many lines, for instance if your class grows to 1000's of lines, consider delegating parts of it to other classes. 
 * Do make sure that classes which are intended to be used outside a package are public and those concerned with implementing the functionality locally are not! 
 * Ensure that methods which are not part of the intended external API are private or protected. 
 * Consider delegating rather than using inheritance, try to keep inheritance trees short. For instance Interface->Abstract Class->Concrete Class is the maximum.
 * There is no rule that interfaces should start with the letter 'I'. Some programmers have chosen to follow this methodology but it is not a requirement of the project.
-* Keep interfaces for OSGi services in no (where no means no:) dependency projects. It should be possible to get interfaces from OSGi without making dependencies. Examples of this are that the project ofen uses connector patterns to hide a specific implementation. For instance a connector to scanning devices (EPICSv4) or a JSON API would be created to isolated using services to ensure that the details of the underlying implementation do not leak out. This means that we can swap easily between EPICSv4 and 0MQ or JSON and XML for instance.
+* Keep interfaces for OSGi services in no (where no means no:) dependency projects. It should be possible to get interfaces from OSGi without making dependencies. Examples of this are that the project often uses connector patterns to hide a specific implementation. For instance a connector to scanning devices (EPICSv4) or a JSON API would be created to isolated using services to ensure that the details of the underlying implementation do not leak out. This means that we can swap easily between EPICSv4 and 0MQ or JSON and XML for instance.
 * The travis tests must run with junit not junit plugin
 * Try not to forget the EPL license header (we will automatically add these when the project moves to eclipse)
 
