@@ -6,6 +6,7 @@ import org.eclipse.dawnsci.analysis.api.processing.IOperationService;
 import org.eclipse.dawnsci.nexus.builder.NexusBuilderFactory;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.IFilePathService;
 
 public class ServiceHolder {
@@ -67,7 +68,7 @@ public class ServiceHolder {
 		return filePathService;
 	}
 	
-	public static void setFilePathService(IFilePathService filePathService) {
+	public void setFilePathService(IFilePathService filePathService) {
 		ServiceHolder.filePathService = filePathService;
 	}
 	
@@ -77,10 +78,21 @@ public class ServiceHolder {
 		return runnableDeviceService;
 	}
 	
-	public static void setRunnableDeviceService(IRunnableDeviceService runnableDeviceService) {
+	public void setRunnableDeviceService(IRunnableDeviceService runnableDeviceService) {
 		ServiceHolder.runnableDeviceService = runnableDeviceService;
 	}
 	
+	private static IPointGeneratorService generatorService;
+
+	
+	public static IPointGeneratorService getGeneratorService() {
+		return generatorService;
+	}
+
+	public void setGeneratorService(IPointGeneratorService generatorService) {
+		ServiceHolder.generatorService = generatorService;
+	}
+
 	/**
 	 * Used to provide services when tests running in non-OSGi mode.
 	 * @param ls

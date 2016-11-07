@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +46,7 @@ abstract class LevelRunner<L extends ILevel> {
 	private static Logger logger = LoggerFactory.getLogger(LevelRunner.class);
 
     protected IPosition                 position;
-    private volatile ExecutorService    eservice; // Different threads may nullify the service, better to make volatile.
+    private volatile ForkJoinPool       eservice; // Different threads may nullify the service, better to make volatile.
 	private ScanningException           abortException;
 	private PositionDelegate            pDelegate;
 	private boolean                     levelCachingAllowed=true;
@@ -156,10 +155,7 @@ abstract class LevelRunner<L extends ILevel> {
 			throw new ScanningException("Scanning interupted while moving to new position!", ne);
 			
 		} finally {
-			if (block) {
-				if (eservice!=null) eservice.shutdownNow();
-				eservice = null;
-			}
+			if (block) await();
 		}
 		
 		return true;
@@ -204,17 +200,14 @@ abstract class LevelRunner<L extends ILevel> {
 	 * @throws InterruptedException 
 	 */
 	protected void await(long time) throws InterruptedException, ScanningException{
-		try {
-			if (eservice==null)          return;
-			if (eservice.isTerminated()) return;
-			eservice.shutdown();
-			eservice.awaitTermination(time, TimeUnit.SECONDS); 
-			if (eservice!=null && !eservice.isTerminated()) { // Might have nullified service during wait.
-				eservice.shutdownNow();
-			    throw new ScanningException("The timeout of "+timeout+"s has been reached, scan aborting. Please implement ITimeoutable to define how long your device needs to write.");
-			}
-		} finally {
-		    eservice = null;
+		if (eservice==null)          return;
+		if (eservice.isTerminated()) {
+			eservice = null;
+			return;
+		}
+		boolean ok = eservice.awaitQuiescence(time, TimeUnit.SECONDS); 
+		if (!ok) { // Might have nullified service during wait.
+			throw new ScanningException("The timeout of "+timeout+"s has been reached, scan aborting. Please implement ITimeoutable to define how long your device needs to write.");
 		}
 	}
 	
@@ -243,6 +236,21 @@ abstract class LevelRunner<L extends ILevel> {
 		eservice = null;
 	}
 	
+	/**
+	 * Attempts to close the thread pool and log exceptions
+	 */
+	public void close() {
+		if (eservice==null) return; // We are already finished
+		try {
+			eservice.shutdown();
+			eservice.awaitTermination(getTimeout(null), TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			logger.debug("Unexpected forced termination of pool", e);
+		} finally {
+		    eservice = null;
+		}
+	}
+
 	public void reset() {
 		abortException = null;
 	}
@@ -286,12 +294,12 @@ abstract class LevelRunner<L extends ILevel> {
 		if (isLevelCachingAllowed()) sortedManagers = new SoftReference<Map>(ret);
 		return ret;
 	}
+	
 
-
-	protected ExecutorService createService() {
+	protected ForkJoinPool createService() {
 		// TODO Need spring config for this.
 		Integer processors = Integer.getInteger("org.eclipse.scanning.level.runner.pool.count");
-		if (processors==null || processors<0) processors = Runtime.getRuntime().availableProcessors();
+		if (processors==null || processors<1) processors = Runtime.getRuntime().availableProcessors();
 		return new ForkJoinPool(processors);
         // Slightly faster than thread pool executor @see ScanAlgorithmBenchMarkTest
 	}

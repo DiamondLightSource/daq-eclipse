@@ -7,6 +7,8 @@ import java.util.EventListener;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
+
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.KillBean;
@@ -45,6 +47,7 @@ public class QueueControllerService implements IQueueControllerService {
 		
 	}
 	
+	@PostConstruct
 	@Override
 	public void init() throws EventException {
 		//Set up services

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="false" name="EpicsV3 Dynamic Dataset">
-   <implementation class="org.eclipse.scanning.api.streams.EpicsV3DynamicDataset"/>
-   <service>
-   </service>
-</scr:component>

@@ -1,7 +1,7 @@
 package org.eclipse.scanning.connector.epics.custommarshallers;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 import org.eclipse.scanning.api.malcolm.MalcolmTable;
@@ -58,7 +58,7 @@ public class NTTableDeserialiser implements IPVStructureDeserialiser {
 		
 		PVStructure valuePVStructure = pvStructure.getStructureField(valueField);
 		
-		Map<String, LinkedList<Object>> valueMap = deserialiser.getMapDeserialiser().createMapFromPVStructure(valuePVStructure, LinkedHashMap.class, Object.class);
+		Map<String, ArrayList<Object>> valueMap = deserialiser.getMapDeserialiser().createMapFromPVStructure(valuePVStructure, LinkedHashMap.class, Object.class);
 		
 		Map<String, Class<?>> dataTypeMap = new LinkedHashMap<>();
 		

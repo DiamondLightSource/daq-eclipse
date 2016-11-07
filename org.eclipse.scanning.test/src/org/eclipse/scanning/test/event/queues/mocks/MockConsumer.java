@@ -204,8 +204,7 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public boolean isActive() {
-		// TODO Auto-generated method stub
-		return false;
+		return started && !stopped;
 	}
 
 	@Override

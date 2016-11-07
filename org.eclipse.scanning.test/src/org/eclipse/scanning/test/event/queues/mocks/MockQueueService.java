@@ -104,7 +104,7 @@ public class MockQueueService implements IQueueService {
 	}
 
 	@Override
-	public void deRegisterActiveQueue(String queueID, boolean force) throws EventException {
+	public void deRegisterActiveQueue(String queueID) throws EventException {
 			nrActiveQueues--;
 	}
 

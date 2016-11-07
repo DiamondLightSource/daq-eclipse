@@ -16,15 +16,18 @@ import org.eclipse.scanning.api.malcolm.MalcolmTable;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 import org.eclipse.scanning.api.malcolm.attributes.StringAttribute;
 import org.eclipse.scanning.api.malcolm.attributes.TableAttribute;
+import org.eclipse.scanning.api.points.IMutator;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.connector.epics.EpicsV4ConnectorService;
 import org.eclipse.scanning.example.malcolm.ExampleMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.ExampleMalcolmModel;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.mutators.FixedDurationMutator;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.pv.PVDoubleArray;
@@ -38,13 +41,13 @@ import org.junit.Test;
 
 public class ExampleMalcolmDeviceTest {
 
-	EpicsV4ConnectorService connectorService;
+	private EpicsV4ConnectorService connectorService;
 
-	IMalcolmService service;
+	private IMalcolmService service;
 
-	IPointGenerator<?> generator = null;
+	private IPointGenerator<?> generator = null;
 
-	ExampleMalcolmDevice dummyMalcolmDevice;
+	private ExampleMalcolmDevice dummyMalcolmDevice;
 
 	/**
 	 * Starts an instance of the ExampleMalcolmDevice and then probes it with the configure() and call() methods
@@ -60,7 +63,7 @@ public class ExampleMalcolmDeviceTest {
 
 			// The real service, get it from OSGi outside this test!
 			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
-			this.service = new MalcolmService(connectorService);
+			this.service = new MalcolmService(connectorService, null);
 
 			// Start the dummy test device
 			new Thread(new DeviceRunner()).start();
@@ -70,13 +73,19 @@ public class ExampleMalcolmDeviceTest {
 
 			// Setup the model and other configuration items
 			List<IROI> regions = new LinkedList<>();
-			regions.add(new CircularROI(2, 6, 7));
+			regions.add(new CircularROI(2, 6, -1));
 			regions.add(new CircularROI(3, 8, 9));
+			
+			List<IMutator> mutators = new LinkedList<>();
+			mutators.add(new FixedDurationMutator(23.1));
 
 			IPointGeneratorService pgService = new PointGeneratorFactory();
 			IPointGenerator<SpiralModel> temp = pgService
-					.createGenerator(new SpiralModel("x", "y", 2, new BoundingBox(0, -5, 10, 5)), regions);
+					.createGenerator(new SpiralModel("stage_x", "stage_y", 2, new BoundingBox(0, -5, 10, 5)), regions);
 			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
+			
+			CompoundModel<?> cm = (CompoundModel<?>) scan.getModel();
+			cm.setMutators(mutators);
 
 			ExampleMalcolmModel pmac1 = new ExampleMalcolmModel();
 			pmac1.setExposure(45f);
@@ -120,7 +129,7 @@ public class ExampleMalcolmDeviceTest {
 				} else if (ma.getName().equals("B")) {
 					bFound = true;
 					bIsWriteable = ma.isWriteable();
-				} else if (ma.getName().equals("axes")) {
+				} else if (ma.getName().equals("axesToMove")) {
 					axesFound = true;
 				} else if (ma.getName().equals("datasets")) {
 					datasetsFound = true;
@@ -221,35 +230,55 @@ public class ExampleMalcolmDeviceTest {
 			Union union = FieldFactory.getFieldCreate().createVariantUnion();
 
 			Structure generatorStructure = FieldFactory.getFieldCreate().createFieldBuilder()
-					.addArray("mutators", union).addArray("generators", union).addArray("excluders", union)
+					.addArray("mutators", union)
+					.addArray("generators", union)
+					.addArray("excluders", union)
 					.setId("scanpointgenerator:generator/CompoundGenerator:1.0").createStructure();
 
 			Structure spiralGeneratorStructure = FieldFactory.getFieldCreate().createFieldBuilder()
-					.addArray("centre", ScalarType.pvDouble).add("scale", ScalarType.pvDouble)
-					.add("units", ScalarType.pvString).addArray("names", ScalarType.pvString)
-					.add("alternate_direction", ScalarType.pvBoolean).add("radius", ScalarType.pvDouble)
+					.addArray("centre", ScalarType.pvDouble)
+					.add("scale", ScalarType.pvDouble)
+					.add("units", ScalarType.pvString)
+					.addArray("names", ScalarType.pvString)
+					.add("alternate_direction", ScalarType.pvBoolean)
+					.add("radius", ScalarType.pvDouble)
 					.setId("scanpointgenerator:generator/SpiralGenerator:1.0").createStructure();
 
+			Structure fixedMutatorStructure = FieldFactory.getFieldCreate().createFieldBuilder()
+					.add("duration", ScalarType.pvDouble)
+					.setId("scanpointgenerator:mutator/FixedDurationMutator:1.0").createStructure();
+
 			Structure configureStructure = FieldFactory.getFieldCreate().createFieldBuilder()
-					.add("exposure", ScalarType.pvFloat).add("generator", generatorStructure).createStructure();
+					.add("exposure", ScalarType.pvFloat)
+					.add("generator", generatorStructure)
+					.createStructure();
 
 			PVStructure spiralGeneratorPVStructure = PVDataFactory.getPVDataCreate()
 					.createPVStructure(spiralGeneratorStructure);
-			double[] centre = new double[] { 7.5, 8.5 };
+			double[] centre = new double[] { 7.5, 4.5 };
 			spiralGeneratorPVStructure.getSubField(PVDoubleArray.class, "centre").put(0, centre.length, centre, 0);
 			spiralGeneratorPVStructure.getDoubleField("scale").put(2.0);
 			spiralGeneratorPVStructure.getStringField("units").put("mm");
-			String[] names = new String[] { "x", "y" };
+			String[] names = new String[] { "stage_x", "stage_y" };
 			spiralGeneratorPVStructure.getSubField(PVStringArray.class, "names").put(0, names.length, names, 0);
 			spiralGeneratorPVStructure.getBooleanField("alternate_direction").put(false);
-			spiralGeneratorPVStructure.getDoubleField("radius").put(4.949747468305833);
+			spiralGeneratorPVStructure.getDoubleField("radius").put(8.276472678623424);
 
+			PVStructure fixedMutatorPVStructure = PVDataFactory.getPVDataCreate()
+					.createPVStructure(fixedMutatorStructure);
+			fixedMutatorPVStructure.getDoubleField("duration").put(23.1);
+			
 			PVStructure configurePVStructure = PVDataFactory.getPVDataCreate().createPVStructure(configureStructure);
 			PVUnion pvu1 = PVDataFactory.getPVDataCreate().createPVVariantUnion();
 			pvu1.set(spiralGeneratorPVStructure);
 			PVUnion[] unionArray = new PVUnion[1];
 			unionArray[0] = pvu1;
 			configurePVStructure.getUnionArrayField("generator.generators").put(0, unionArray.length, unionArray, 0);
+			PVUnion pvu2 = PVDataFactory.getPVDataCreate().createPVVariantUnion();
+			pvu2.set(fixedMutatorPVStructure);
+			PVUnion[] unionArray2 = new PVUnion[1];
+			unionArray2[0] = pvu2;
+			configurePVStructure.getUnionArrayField("generator.mutators").put(0, unionArray2.length, unionArray2, 0);
 			configurePVStructure.getFloatField("exposure").put(45.0f);
 
 			assertEquals(configureStructure, configureCall.getStructure());

@@ -93,14 +93,13 @@ public interface IQueueService {
 	 * first. Use force to forcibly remove the queue.
 	 * 
 	 * @param queueID String ID  of queue to be deregistered.
-	 * @param force True if consumer should be killed rather than stopped.
 	 * @throws EventException - if the given active-queue could not be found or
 	 * 						    problems were encountered stopping the 
 	 *                          consumer.
 	 * @throws IllegalStateException - if the IQueueService has not been 
 	 *                                 started.
 	 */
-	public void deRegisterActiveQueue(String queueID, boolean force) throws EventException;
+	public void deRegisterActiveQueue(String queueID) throws EventException;
 	
 	/**
 	 * Report whether given active-queue is registered with service.

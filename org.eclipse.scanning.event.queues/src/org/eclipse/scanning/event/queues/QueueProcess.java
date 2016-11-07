@@ -7,6 +7,8 @@ import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generic class for processing a queue item, irrespective of its concrete 
@@ -22,6 +24,8 @@ import org.eclipse.scanning.api.event.status.Status;
  * super-type of the actual bean class). 
  */
 public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T> implements IQueueProcess<T> {
+	
+	private static Logger logger = LoggerFactory.getLogger(QueueProcess.class);
 	
 	private IQueueProcessor<? extends Queueable> processor;
 	private boolean blocking = true, executed = false, terminated = false;
@@ -54,22 +58,29 @@ public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T
 	}
 	
 	@Override
+	public void updateBean(Status newStatus, Double newPercent, String newMessage) {
+		if (newStatus != null) {
+			bean.setPreviousStatus(bean.getStatus());
+			bean.setStatus(newStatus);
+		}
+		if (newPercent != null) bean.setPercentComplete(newPercent);
+		if (newMessage != null) bean.setMessage(newMessage);
+		
+		if ((newStatus == null) && (newPercent == null) && (newMessage == null)) {
+			logger.warn("Bean updating prior to broadcast did not make any changes.");
+		}
+	}
+	
+	@Override
 	public void broadcast(Status newStatus, Double newPercent, String newMessage) throws EventException {
 		if (publisher != null && processor != null) {
-			
-			if (newStatus != null) {
-				bean.setPreviousStatus(bean.getStatus());
-				bean.setStatus(newStatus);
-			}
-			if (newPercent != null) bean.setPercentComplete(newPercent);
-			if (newMessage != null) bean.setMessage(newMessage);
-			
+			updateBean(newStatus, newPercent, newMessage);
 			publisher.broadcast(bean);
 		}		
 	}
 
 	@Override
-	public void childQueueBroadcast() throws EventException {
+	public void broadcast() throws EventException {
 		if (publisher != null) {
 			publisher.broadcast(bean);
 		}

@@ -80,6 +80,15 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	private volatile boolean busy = false;
 	private boolean requireMetrics;
+	
+	/**
+	 * Since making the tree takes a while we measure its
+	 * time and make that available to clients.
+	 * It is optional if a given AbstractRunnableDevice
+	 * saves the configure time.
+	 */
+	private long configureTime;
+
 
 	protected AbstractRunnableDevice() {
 		this.scanId     = UUID.randomUUID().toString();
@@ -305,7 +314,9 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		if (isRequireMetrics()) {
 			long time = System.currentTimeMillis()-startTime;
 			System.out.println("Ran "+(position.getStepIndex()+1)+" points in *total* time of "+time+" ms.");
-			System.out.println("Average point time of "+(total/position.getStepIndex())+" ms/pnt");
+			if (position.getStepIndex()>0) {
+				System.out.println("Average point time of "+(total/position.getStepIndex())+" ms/pnt");
+			}
 		}
 		
 		if (rlisteners==null) return;
@@ -453,6 +464,9 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void validate(T model) throws Exception {
 		if (model instanceof IDetectorModel) {
 			IDetectorModel dmodel = (IDetectorModel)model;
+		    if (dmodel.getName()==null || dmodel.getName().length()<1) {
+		    	throw new ModelValidationException("The name must be set!", model, "name");
+		    }
 			if (dmodel.getExposureTime()<=0) throw new ModelValidationException("The exposure time for '"+getName()+"' must be non-zero!", model, "exposureTime");
 		}
 	}
@@ -507,7 +521,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * The default returns null.
 	 * @return the specified attribute
 	 */
-	public Object getAttribute(String attribute) throws MalcolmDeviceException {
+	public Object getAttribute(String attribute) throws ScanningException {
 		return null;
 	}
 	
@@ -516,7 +530,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * The default returns null.
 	 * @return a list of all attributes on the device
 	 */
-	public List<MalcolmAttribute> getAllAttributes() throws MalcolmDeviceException {
+	public <A> List<A> getAllAttributes() throws ScanningException {
 		return null;
 	}
 	
@@ -535,5 +549,14 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void setRequireMetrics(boolean requireMetrics) {
 		this.requireMetrics = requireMetrics;
 	}
+	public long getConfigureTime() {
+		return configureTime;
+	}
+
+	public void setConfigureTime(long configureTime) {
+		this.configureTime = configureTime;
+	}
+
+
 
 }

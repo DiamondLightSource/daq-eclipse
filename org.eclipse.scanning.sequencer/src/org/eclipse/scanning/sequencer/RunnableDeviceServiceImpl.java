@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -22,6 +23,7 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -375,7 +377,13 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		}
 		return ret;
 	}
-
+	
+	@Override
+	public Collection<DeviceInformation<?>> getDeviceInformation(final DeviceRole role) throws ScanningException {
+		Collection<DeviceInformation<?>> infos = getDeviceInformation();
+		return infos.stream().filter(info -> info.getDeviceRole()==role).collect(Collectors.toList());
+	}
+	
 	@Override
 	public DeviceInformation<?> getDeviceInformation(String name) throws ScanningException {
 		IRunnableDevice<Object> device = getRunnableDevice(name);

@@ -35,8 +35,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.nexus.INexusScanFileManager;
-import org.eclipse.scanning.sequencer.nexus.NexusScanFileManager;
-import org.eclipse.scanning.sequencer.nexus.NexusScanFileManager.DummyNexusScanFileManager;
+import org.eclipse.scanning.sequencer.nexus.NexusScanFileManagerFactory;
 
 /**
  * This device does a standard GDA scan at each point. If a given point is a 
@@ -102,6 +101,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	@Override
 	public void configure(ScanModel model) throws ScanningException {
 		
+		long before = System.currentTimeMillis();
+		
 		setDeviceState(DeviceState.CONFIGURING);
 		setModel(model);
 		setBean(model.getBean()!=null?model.getBean():new ScanBean());
@@ -121,18 +122,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		}
 		
 		// create the nexus file, if appropriate
-		boolean writesNexus = model.getFilePath() != null && ServiceHolder.getFactory() != null;
-		if (writesNexus) {
-			nexusScanFileManager = new NexusScanFileManager(this);
-		} else { //nothing wired, don't write a nexus file
-			nexusScanFileManager = new DummyNexusScanFileManager();
-		}
+		nexusScanFileManager = NexusScanFileManagerFactory.createNexusScanFileManager(this);
 		nexusScanFileManager.configure(model);
-		nexusScanFileManager.createNexusFile(false);
+		nexusScanFileManager.createNexusFile(true);
 		
 		if (model.getDetectors()!=null) {
 			runners = new DeviceRunner(model.getDetectors());
-			if (writesNexus) {
+			if (nexusScanFileManager.isNexusWritingEnabled()) {
 				writers = new DeviceWriter(model.getDetectors());
 			} else {
 				writers = LevelRunner.createEmptyRunner();
@@ -150,6 +146,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		manager.addDevices(model.getDetectors());
 		
 		setDeviceState(DeviceState.READY); // Notify 
+		
+		long after = System.currentTimeMillis();
+		setConfigureTime(after-before);
 	}
 
 
@@ -160,6 +159,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
+		
+		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), model.getDetectors(), ServiceHolder.getGeneratorService());
 		
 		boolean errorFound = false;
 		IPosition pos = null;
@@ -172,7 +173,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		final int size  = getSize(model.getPositionIterable());
+    		final int size  = getSize(moderator.getOuterIterable());
     		int count = 0;
 
     		fireStart(size);    		
@@ -184,7 +185,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		// The scan loop
         	pos = null; // We want the last point when we are done so don't use foreach
         	boolean firedFirst = false;
-	        for (IPosition position : model.getPositionIterable()) {
+	        for (IPosition position : moderator.getOuterIterable()) {
 				
 	        	pos = position;
 	        	pos.setStepIndex(count);
@@ -237,6 +238,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	private void close(boolean errorFound, IPosition last) throws ScanningException {
 		try {
 			try {
+				positioner.close();
+				runners.close();
+				writers.close();
+				
 				nexusScanFileManager.scanFinished(); // writes scanFinished and closes nexus file
 	        	
 				// We should not fire the run performed until the nexus file is closed.

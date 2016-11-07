@@ -8,18 +8,18 @@ The dummy server starts a local activemq (which can be switched off from the arg
 ## Tests!
 If you would like to contribute, you should provide tests for everything that you add to the system. Do not be surprised if your reviewers ask for more tests to be created, in fact in many cases they should. The committers to the project are looking for tests which check for success but attempt to break your new feature. They should attempt to understand the limits that your code works within. Your tests should also run fast - we would like to keep running the build in no more than ten minutes. To help with speed, try not to create large files which travis nodes do not always like. The tests must be junit tests included in a Suite called 'Suite.java' in order for them to be run in travis automatically.
 
-## Guidlines
+## Guidelines
 (In random order.)
 
-* There is no strict format for code, such as your must indent using a tab rather than four spaces or your imports should be in a specific order. Or a line limit other than the one Java suggests. If a riewer asks for this you should refer to this guideline! 
-* Avoid reformatting code just for 'readability' because it creates false diffs. Better to tolerance the original developer's formatting.
+* There is no strict format for code, such as you must indent using a tab rather than four spaces or your imports should be in a specific order. Or a line limit other than the one Java suggests. If a reviewer asks for this you should refer to this guideline! 
+* Avoid reformatting code just for 'readability' because it creates false diffs. Better to tolerate the original developer's formatting.
 * The standard Java class naming (camel case with first upper case letter) and method naming (camel case with a first lower letter) should be followed. 
-* Classes should not comnsist of many lines, for instance if your class grows to 1000's of lines, consider delegating parts of it to other classes. 
+* Classes should not consist of many lines, for instance if your class grows to 1000's of lines, consider delegating parts of it to other classes. 
 * Do make sure that classes which are intended to be used outside a package are public and those concerned with implementing the functionality locally are not! 
 * Ensure that methods which are not part of the intended external API are private or protected. 
 * Consider delegating rather than using inheritance, try to keep inheritance trees short. For instance Interface->Abstract Class->Concrete Class is the maximum.
 * There is no rule that interfaces should start with the letter 'I'. Some programmers have chosen to follow this methodology but it is not a requirement of the project.
-* Keep interfaces for OSGi services in no (where no means no:) dependency projects. It should be possible to get interfaces from OSGi without making dependencies. Examples of this are that the project ofen uses connector patterns to hide a specific implementation. For instance a connector to scanning devices (EPICSv4) or a JSON API would be created to isolated using services to ensure that the details of the underlying implementation do not leak out. This means that we can swap easily between EPICSv4 and 0MQ or JSON and XML for instance.
+* Keep interfaces for OSGi services in no (where no means no:) dependency projects. It should be possible to get interfaces from OSGi without making dependencies. Examples of this are that the project often uses connector patterns to hide a specific implementation. For instance a connector to scanning devices (EPICSv4) or a JSON API would be created to isolated using services to ensure that the details of the underlying implementation do not leak out. This means that we can swap easily between EPICSv4 and 0MQ or JSON and XML for instance.
 * The travis tests must run with junit not junit plugin
 * Try not to forget the EPL license header (we will automatically add these when the project moves to eclipse)
 
@@ -38,3 +38,21 @@ If you would like to contribute, you should provide tests for everything that yo
 * Follow steps 4-7 above from here.
 * A committer will merge your request once the test passes and the review items are addressed.
 
+# Code of Conduct (Based on HomeBrew CoC)
+The community is made up of members from around the globe with a diverse set of skills, personalities, and experiences. It is through these differences that our community experiences great successes and continued growth. When you're working with members, we encourage you to follow these guidelines which help steer our interactions and strive to keep the project a positive, successful, and growing community.
+
+A member is:
+
+## Open
+Open to collaboration, whether it's on GitHub, email or otherwise. We're receptive to constructive comment and criticism, as the experiences and skill sets of other members contribute to the whole of our efforts. We're accepting of all who wish to take part in our activities, fostering an environment where anyone can participate and everyone can make a difference.
+
+## Considerate
+Members of the community are considerate of their peers - other users and developers. We're thoughtful when addressing the efforts of others, keeping in mind that oftentimes their labor was completed simply for the good of the community. We're attentive in our communications, whether in person or online, and we're tactful when approaching differing views.
+
+## Respectful
+Members of the community are respectful. We're respectful of others, their positions, their skills, their commitments, and their efforts. We're respectful of the volunteer efforts that permeate the community. We're respectful of the processes set forth in the community, and we work within them. When we disagree, we are courteous in raising our issues.
+
+Overall, we're good to each other. We contribute to this community not because we have to, but because we want to. If we remember that, these guidelines will come naturally.
+
+# Diversity
+The project welcomes and encourages participation by everyone. Our community is based on mutual respect, tolerance, and encouragement, and we are working to help each other live up to these principles. We want our community to be more diverse: whoever you are, and whatever your background, we welcome you.

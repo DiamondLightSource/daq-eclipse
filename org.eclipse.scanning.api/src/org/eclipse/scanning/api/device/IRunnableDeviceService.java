@@ -2,6 +2,7 @@ package org.eclipse.scanning.api.device;
 
 import java.util.Collection;
 
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -168,11 +169,17 @@ public interface IRunnableDeviceService {
      */
 	Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException;
 	
+    /**
+     * Get the information for all the runnable devices currently created.
+     * @return
+     */
+	Collection<DeviceInformation<?>> getDeviceInformation(DeviceRole role) throws ScanningException;
 	
     /**
      * Get the information for the named runnable device.
      * @return
      */
 	DeviceInformation<?> getDeviceInformation(String name) throws ScanningException;
+
 
 }

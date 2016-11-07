@@ -316,6 +316,7 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 		it.setGlobalRange(globalRange);
 		
 		system.addTrace(it);
+		job.schedule();
 	}
 
 
@@ -346,7 +347,8 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 
 			// Get the point coordinates from the last path info and add them to the trace
 			pathTrace.setData(info.getX(), info.getY());
-			if (newTrace) system.addTrace(pathTrace);
+			if (!newTrace) system.removeTrace(pathTrace); // We always remove/add it because that puts it on top.
+			system.addTrace(pathTrace);                   // We always remove/add it because that puts it on top.
 			pathTrace.setVisible(true);
 			system.setPlotType(PlotType.IMAGE);
 			system.setShowLegend(false);
@@ -478,8 +480,11 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 
 	public IImageTrace getImageTrace() {
 		if (system.getTraces()==null || system.getTraces().isEmpty()) return null;
-		IImageTrace it = (IImageTrace)system.getTraces(IImageTrace.class).iterator().next();
-		return it;
+		try {
+			return (IImageTrace)system.getTraces(IImageTrace.class).iterator().next();
+		} catch (Exception ne) {
+			return null;
+		}
 	}
 
 }

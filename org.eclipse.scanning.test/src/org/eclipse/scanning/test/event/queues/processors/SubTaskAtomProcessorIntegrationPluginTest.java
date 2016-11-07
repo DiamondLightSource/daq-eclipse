@@ -86,8 +86,8 @@ public class SubTaskAtomProcessorIntegrationPluginTest extends BrokerTest {
 		//Check the bean state and that it's the right bean
 		//(can't check the number of beans in the StatusSet MockPublisher records ALL broadcasts) 
 		List<Queueable> statusSet = pti.getBroadcastBeans();
-		assertEquals(Status.COMPLETE, statusSet.get(0).getStatus());
-		assertEquals(subTask.getUniqueId(), statusSet.get(0).getUniqueId());
+		assertEquals(Status.COMPLETE, statusSet.get(statusSet.size()-1).getStatus());
+		assertEquals(subTask.getUniqueId(), statusSet.get(statusSet.size()-1).getUniqueId());
 	}
 	
 	/**

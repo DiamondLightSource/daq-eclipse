@@ -109,8 +109,20 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 
 	@Override
 	public void stop() throws EventException {
-		consumer.stop();
-		status = QueueStatus.STOPPED;
+		QueueStatus previousState = status;
+		status = QueueStatus.STOPPING;
+		
+		try {
+			//If the consumer has been killed, we still need to set status STOPPED;
+			//If it's still active, then we need to push the stop button.
+			if (consumer.isActive()) {
+				consumer.stop();
+			}
+			status = QueueStatus.STOPPED;
+		} catch (EventException evEx) {
+			status = previousState;
+			throw new EventException("Failed to stop queue", evEx);
+		}
 	}
 
 	@Override
@@ -148,7 +160,7 @@ public class Queue<T extends Queueable> implements IQueue<T> {
 	public String getStatusTopicName() {
 		return statusTopicName;
 	}
-
+ 
 	@Override
 	public String getHeartbeatTopicName() {
 		return heartbeatTopicName;
