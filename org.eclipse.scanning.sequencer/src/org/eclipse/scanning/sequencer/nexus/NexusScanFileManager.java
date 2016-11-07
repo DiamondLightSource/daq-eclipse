@@ -40,6 +40,7 @@ import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanDataModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel;
@@ -116,31 +117,14 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		nexusDevices = extractNexusDevices(model);
 		
 		// convert this to a map of nexus object providers for each type
-		nexusObjectProviders = new EnumMap<>(ScanRole.class);
-		for (ScanRole deviceType: ScanRole.values()) {
-			final Collection<INexusDevice<?>> nexusDevicesForType = nexusDevices.get(deviceType);
-			final List<NexusObjectProvider<?>> nexusObjectProvidersForType =
-					new ArrayList<>(nexusDevicesForType.size());
-			for (INexusDevice<?> nexusDevice : nexusDevicesForType) {
-				try {
-					NexusObjectProvider<?> nexusProvider = nexusDevice.getNexusProvider(scanInfo);
-					if (nexusProvider != null) {
-						nexusObjectProvidersForType.add(nexusProvider);
-					}
-				} catch (NexusException e) {
-					throw new ScanningException("Cannot create device: " + e);
-				}
-			}
-			
-			nexusObjectProviders.put(deviceType, nexusObjectProvidersForType);
-		}
+		nexusObjectProviders = extractNexusProviders();
 		
 		// create the scan points writer and add it as a monitor and run listener
 		scanPointsWriter = createScanPointsWriter();
 		scanDevice.addPositionListener(scanPointsWriter);
 		nexusObjectProviders.get(ScanRole.MONITOR).add(scanPointsWriter.getNexusProvider(scanInfo));
 	}
-	
+
 	public void createNexusFile(boolean async) throws ScanningException {
 		// We use the new nexus framework to join everything up into the scan
 		// Create a builder
@@ -189,6 +173,46 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		return true;
 	}
 	
+	public NexusScanInfo getNexusScanInfo() {
+		return scanInfo;
+	}
+
+	protected Map<ScanRole, Collection<INexusDevice<?>>> extractNexusDevices(ScanModel model) throws ScanningException {
+		final IPosition firstPosition = model.getPositionIterable().iterator().next();
+		final Collection<String> scannableNames = firstPosition.getNames();
+		
+		Map<ScanRole, Collection<INexusDevice<?>>> nexusDevices = new EnumMap<>(ScanRole.class);
+		nexusDevices.put(ScanRole.DETECTOR,  getNexusDevices(model.getDetectors()));
+		nexusDevices.put(ScanRole.SCANNABLE, getNexusScannables(scannableNames));
+		nexusDevices.put(ScanRole.MONITOR,   getNexusDevices(model.getMonitors()));
+		nexusDevices.put(ScanRole.METADATA,  getNexusDevices(model.getMetadataScannables()));
+		
+		return nexusDevices;
+	}
+
+	protected Map<ScanRole, List<NexusObjectProvider<?>>> extractNexusProviders() throws ScanningException {
+		Map<ScanRole, List<NexusObjectProvider<?>>> nexusObjectProviders = new EnumMap<>(ScanRole.class);
+		for (ScanRole deviceType: ScanRole.values()) {
+			final Collection<INexusDevice<?>> nexusDevicesForType = nexusDevices.get(deviceType);
+			final List<NexusObjectProvider<?>> nexusObjectProvidersForType =
+					new ArrayList<>(nexusDevicesForType.size());
+			for (INexusDevice<?> nexusDevice : nexusDevicesForType) {
+				try {
+					NexusObjectProvider<?> nexusProvider = nexusDevice.getNexusProvider(scanInfo);
+					if (nexusProvider != null) {
+						nexusObjectProvidersForType.add(nexusProvider);
+					}
+				} catch (NexusException e) {
+					throw new ScanningException("Cannot create device: " + e);
+				}
+			}
+			
+			nexusObjectProviders.put(deviceType, nexusObjectProvidersForType);
+		}
+		
+		return nexusObjectProviders;
+	}
+
 	/**
 	 * Augments the set of metadata scannables in the model with: <ul>
 	 * <li>any scannables from the legacy spring configuration;</li>
@@ -240,7 +264,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		
 		model.setMetadataScannables(metadataScannables);
 	}
-
+	
 	private List<String> getScannableNames(Iterable<IPosition> gen) {
 		List<String> names = null;
 		if (gen instanceof IDeviceDependentIterable) {
@@ -282,19 +306,6 @@ public class NexusScanFileManager implements INexusScanFileManager {
 
 	private Set<String> getDeviceNames(Collection<? extends INameable> devices) {
 		return devices.stream().map(d -> d.getName()).collect(Collectors.toSet());
-	}
-	
-	private Map<ScanRole, Collection<INexusDevice<?>>> extractNexusDevices(ScanModel model) throws ScanningException {
-		final IPosition firstPosition = model.getPositionIterable().iterator().next();
-		final Collection<String> scannableNames = firstPosition.getNames();
-		
-		Map<ScanRole, Collection<INexusDevice<?>>> nexusDevices = new EnumMap<>(ScanRole.class);
-		nexusDevices.put(ScanRole.DETECTOR,  getNexusDevices(model.getDetectors()));
-		nexusDevices.put(ScanRole.SCANNABLE, getNexusScannables(scannableNames));
-		nexusDevices.put(ScanRole.MONITOR,   getNexusDevices(model.getMonitors()));
-		nexusDevices.put(ScanRole.METADATA,  getNexusDevices(model.getMetadataScannables()));
-		
-		return nexusDevices;
 	}
 	
 	private ScanPointsWriter createScanPointsWriter() {
@@ -384,11 +395,10 @@ public class NexusScanFileManager implements INexusScanFileManager {
 				d -> (INexusDevice<?>) d).collect(Collectors.toList());
 	}
 	
-	private Collection<INexusDevice<?>> getNexusScannables(Collection<String> scannableNames) throws ScanningException {
+	protected Collection<INexusDevice<?>> getNexusScannables(Collection<String> scannableNames) throws ScanningException {
 		try {
 			return scannableNames.stream().map(name -> getNexusScannable(name)).
-					filter(s -> s != null).
-					collect(Collectors.toList());
+					filter(s -> s != null).collect(Collectors.toList());
 		} catch (Exception e) {
 			if (e.getCause() instanceof ScanningException) {
 				throw (ScanningException) e.getCause();
@@ -398,7 +408,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		}
 	}
 	
-	private INexusDevice<?> getNexusScannable(String scannableName) {
+	protected INexusDevice<?> getNexusScannable(String scannableName) {
 		try {
 			IScannable<?> scannable = scanDevice.getConnectorService().getScannable(scannableName);
 			if (scannable == null) {

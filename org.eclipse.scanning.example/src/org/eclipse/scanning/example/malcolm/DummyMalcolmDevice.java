@@ -156,8 +156,8 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 
 		axesToMove = new StringArrayAttribute();
 		axesToMove.setValue(new String[]{"stage_x", "stage_y"});
-		axesToMove.setName("axesToMove");
-		axesToMove.setLabel("axesToMove");
+		axesToMove.setName(ATTRIBUTE_NAME_AXES_TO_MOVE);
+		axesToMove.setLabel(ATTRIBUTE_NAME_AXES_TO_MOVE);
 		axesToMove.setDescription("Default axis names to scan for configure()");
 		axesToMove.setWriteable(false);
 		allAttributes.put(axesToMove.getName(), axesToMove);

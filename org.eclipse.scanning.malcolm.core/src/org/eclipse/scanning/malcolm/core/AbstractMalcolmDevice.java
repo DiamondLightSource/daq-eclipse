@@ -1,8 +1,11 @@
 package org.eclipse.scanning.malcolm.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.dawnsci.nexus.IMultipleNexusDevice;
 import org.eclipse.dawnsci.nexus.NexusException;
@@ -38,7 +41,8 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMalcolmDevice.class);
 	
-	private static final String ATTRIBUTE_NAME_DATASETS = "datasets";
+	public static final String ATTRIBUTE_NAME_DATASETS = "datasets";
+	public static final String ATTRIBUTE_NAME_AXES_TO_MOVE = "axesToMove";
 
 	public static final String DATASETS_TABLE_COLUMN_NAME = "name";
 	public static final String DATASETS_TABLE_COLUMN_FILENAME = "filename";
@@ -173,6 +177,12 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
+	}
+	
+	@Override
+	public Set<String> getAxesToMove() throws MalcolmDeviceException {
+		String[] axesToMove = (String[]) getAttributeValue(ATTRIBUTE_NAME_AXES_TO_MOVE);
+		return new HashSet<>(Arrays.asList(axesToMove));
 	}
 
 }
