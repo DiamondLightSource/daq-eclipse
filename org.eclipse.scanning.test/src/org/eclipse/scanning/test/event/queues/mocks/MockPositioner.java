@@ -74,6 +74,12 @@ public class MockPositioner implements IPositioner {
 		aborted = true;
 	}
 	
+
+	@Override
+	public void close() {
+		
+	}
+	
 	public boolean isAborted() {
 		return aborted;
 	}

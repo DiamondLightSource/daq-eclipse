@@ -16,6 +16,7 @@ import org.eclipse.january.dataset.DatasetFactory;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.IScanAttributeContainer;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
@@ -31,10 +32,20 @@ import org.eclipse.scanning.api.scan.rank.IScanSlice;
  */
 public class MockNeXusScannable extends MockScannable implements INexusDevice<NXpositioner> {
 	
-	public static final String FIELD_NAME_DEMAND_VALUE = NXpositioner.NX_VALUE + "_demand";
+	public boolean isWritingOn() {
+		return writingOn;
+	}
+
+	public void setWritingOn(boolean writingOn) {
+		this.writingOn = writingOn;
+	}
+
+	public static final String FIELD_NAME_SET_VALUE = NXpositioner.NX_VALUE + "_set";
 	
-	private ILazyWriteableDataset lzDemand;
+	private ILazyWriteableDataset lzSet;
 	private ILazyWriteableDataset lzValue;
+	
+	private boolean writingOn = true;
 
 	public MockNeXusScannable() {
 		super();
@@ -46,32 +57,40 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 	public MockNeXusScannable(String name, double d, int level, String unit) {
 		super(name, d, level, unit);
 	}
+	
+	@ScanFinally
+	public void nullify() {
+		lzSet   = null;
+		lzValue = null;
+	}
 
 	public NexusObjectProvider<NXpositioner> getNexusProvider(NexusScanInfo info) throws NexusException {
 		final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
 		positioner.setNameScalar(getName());
 
 		if (info.getScanRole(getName()) == ScanRole.METADATA) {
-			positioner.setField(FIELD_NAME_DEMAND_VALUE, getPosition().doubleValue());
+			positioner.setField(FIELD_NAME_SET_VALUE, getPosition().doubleValue());
 			positioner.setValueScalar(getPosition().doubleValue());
 		} else {
 			String floatFill = System.getProperty("GDA/gda.nexus.floatfillvalue", "nan");
 			double fill = floatFill.equalsIgnoreCase("nan") ? Double.NaN : Double.parseDouble(floatFill);
 			
-			this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Double.class);
-			lzDemand.setFillValue(fill);
-			lzDemand.setChunking(new int[]{4096}); // Faster than looking at the shape of the scan for this dimension because slow to iterate.
+			this.lzSet = positioner.initializeLazyDataset(FIELD_NAME_SET_VALUE, 1, Double.class);
+			lzSet.setFillValue(fill);
+			lzSet.setChunking(new int[]{8}); // Faster than looking at the shape of the scan for this dimension because slow to iterate.
+			lzSet.setWritingAsync(true);
 			
 			this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Double.class);
 			lzValue.setFillValue(fill);
-			lzValue.setChunking(info.createChunk(false, 4096)); // TODO Might be slow, need to check this
+			lzValue.setChunking(info.createChunk(false, 8)); // TODO Might be slow, need to check this
+			lzValue.setWritingAsync(true);
 		}
 
 		registerAttributes(positioner, this);
 		
 		NexusObjectWrapper<NXpositioner> nexusDelegate = new NexusObjectWrapper<>(
 				getName(), positioner, NXpositioner.NX_VALUE);
-		nexusDelegate.setDefaultAxisDataFieldName(FIELD_NAME_DEMAND_VALUE);
+		nexusDelegate.setDefaultAxisDataFieldName(FIELD_NAME_SET_VALUE);
 		return nexusDelegate;
 	}	
 
@@ -97,10 +116,10 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
 			IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(loc);
 			SliceND sliceND = new SliceND(lzValue.getShape(), lzValue.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
-			lzValue.setSlice(null, newActualPositionData, sliceND);
+			if (isWritingOn()) lzValue.setSlice(null, newActualPositionData, sliceND);
 		}
 
-		if (lzDemand==null) return;
+		if (lzSet==null) return;
 		if (demand!=null) {
 			int index = loc.getIndex(getName());
 			if (index<0) {
@@ -111,7 +130,7 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 
 			// write demand position
 			final Dataset newDemandPositionData = DatasetFactory.createFromObject(demand);
-			lzDemand.setSlice(null, newDemandPositionData, startPos, stopPos, null);
+			if (isWritingOn()) lzSet.setSlice(null, newDemandPositionData, startPos, stopPos, null);
 		}
 	}
 	

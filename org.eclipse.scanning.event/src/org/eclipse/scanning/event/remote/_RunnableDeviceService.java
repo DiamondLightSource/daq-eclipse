@@ -4,10 +4,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IDisconnectable;
@@ -126,6 +128,10 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 	@Override
 	public Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException {
 		return Arrays.asList(getDevices());
+	}
+	@Override
+	public Collection<DeviceInformation<?>> getDeviceInformation(DeviceRole role) throws ScanningException {
+		return getDeviceInformation().stream().filter(info -> info.getDeviceRole()==role).collect(Collectors.toList());
 	}
 
 	@Override

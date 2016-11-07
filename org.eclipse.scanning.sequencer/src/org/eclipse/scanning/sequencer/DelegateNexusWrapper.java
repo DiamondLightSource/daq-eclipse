@@ -26,10 +26,10 @@ import org.eclipse.scanning.api.scan.rank.IScanSlice;
  */
 class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDevice<NXpositioner> {
 	
-	public static final String FIELD_NAME_DEMAND_VALUE = NXpositioner.NX_VALUE + "_demand";
+	public static final String FIELD_NAME_SET_VALUE = NXpositioner.NX_VALUE + "_set";
 
 	private IScannable<Object>    scannable;
-	private ILazyWriteableDataset lzDemand;
+	private ILazyWriteableDataset lzSet;
 	private ILazyWriteableDataset lzValue;
 
 	DelegateNexusWrapper(IScannable<Object> scannable) {
@@ -39,7 +39,7 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 	
 	@ScanFinally
 	public void clean() {
-		lzDemand = null;
+		lzSet = null;
 		lzValue  = null;
 	}
 
@@ -49,8 +49,8 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 		final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
 		positioner.setNameScalar(scannable.getName());
 
-		this.lzDemand = positioner.initializeLazyDataset(FIELD_NAME_DEMAND_VALUE, 1, Double.class);
-		lzDemand.setChunking(new int[]{1});
+		this.lzSet = positioner.initializeLazyDataset(FIELD_NAME_SET_VALUE, 1, Double.class);
+		lzSet.setChunking(new int[]{1});
 		
 		this.lzValue  = positioner.initializeLazyDataset(NXpositioner.NX_VALUE, info.getRank(), Double.class);
 		lzValue.setChunking(info.createChunk(1)); // TODO Might be slow, need to check this
@@ -113,7 +113,7 @@ class DelegateNexusWrapper extends AbstractScannable<Object> implements INexusDe
 
 			// write demand position
 			final IDataset newDemandPositionData = DatasetFactory.createFromObject(demand);
-			lzDemand.setSlice(null, newDemandPositionData, startPos, stopPos, null);
+			lzSet.setSlice(null, newDemandPositionData, startPos, stopPos, null);
 		}
 	}
 

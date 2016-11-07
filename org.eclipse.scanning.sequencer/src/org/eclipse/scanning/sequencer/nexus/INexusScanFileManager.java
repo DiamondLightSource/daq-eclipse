@@ -28,4 +28,11 @@ public interface INexusScanFileManager extends IConfigurable<ScanModel> {
 	 */
 	public void scanFinished() throws ScanningException;
 	
+	/**
+	 * Returns whether this nexus file manager actually writes nexus, i.e.
+	 * returns <code>false</code> if this is a dummy.
+	 * @return
+	 */
+	public boolean isNexusWritingEnabled();
+	
 }

@@ -10,7 +10,10 @@ Require-Bundle: org.eclipse.scanning.api;bundle-version="1.0.0",
  org.eclipse.dawnsci.analysis.api;bundle-version="1.1.0",
  org.eclipse.dawnsci.analysis.dataset;bundle-version="1.0.0",
  org.eclipse.dawnsci.nexus;bundle-version="1.0.0",
- org.eclipse.scanning.connector.epics;bundle-version="1.0.0"
+ org.eclipse.scanning.connector.epics;bundle-version="1.0.0",
+ org.eclipse.scanning.malcolm.core,
+ org.eclipse.dawnsci.analysis.tree,
+ org.eclipse.dawnsci.hdf5
 Export-Package: org.eclipse.scanning.example.classregistry,
  org.eclipse.scanning.example.detector,
  org.eclipse.scanning.example.file,
@@ -19,3 +22,4 @@ Export-Package: org.eclipse.scanning.example.classregistry,
  org.eclipse.scanning.example.scannable
 Bundle-ActivationPolicy: lazy
 Service-Component: OSGI-INF/*.xml
+Import-Package: org.slf4j;version="1.7.2"

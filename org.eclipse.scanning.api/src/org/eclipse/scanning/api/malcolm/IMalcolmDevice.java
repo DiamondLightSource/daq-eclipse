@@ -57,6 +57,6 @@ public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEven
 	/**
 	 * Gets the value of an attribute on the device
 	 */
-	public Object getAttributeValue(String attribute) throws MalcolmDeviceException;
+	public <A> A getAttributeValue(String attribute) throws MalcolmDeviceException;
 
 }

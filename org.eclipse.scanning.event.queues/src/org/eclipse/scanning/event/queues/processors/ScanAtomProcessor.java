@@ -14,6 +14,7 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.models.CompoundModel;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.slf4j.Logger;
@@ -203,9 +204,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 	 */
 	private URI getScanBrokerURI() throws EventException {
 		String uri = queueBean.getScanBrokerURI();
-		if (uri == null) uri = System.getProperty("org.eclipse.scanning.broker.uri");
-		if (uri == null) uri = System.getProperty("gda.activemq.broker.uri");
-		if (uri == null) uri = System.getProperty("org.eclipse.scanning.queueservice.broker.uri");
+		if (uri == null) uri = CommandConstants.getScanningBrokerUri();
 		if (uri == null) uri = ServicesHolder.getQueueService().getURIString();
 		
 		try {

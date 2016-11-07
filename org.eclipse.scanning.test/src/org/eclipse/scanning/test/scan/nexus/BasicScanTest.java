@@ -149,7 +149,7 @@ public class BasicScanTest extends NexusTest {
 		assertNotNull(nxData);
 
 		// Check axes
-		String[] expectedAxesNames = scannableNames.stream().map(x -> x + "_value_demand").toArray(String[]::new);
+		String[] expectedAxesNames = scannableNames.stream().map(x -> x + "_value_set").toArray(String[]::new);
 		assertAxes(nxData, expectedAxesNames);
 
 		int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
@@ -161,17 +161,17 @@ public class BasicScanTest extends NexusTest {
 			NXpositioner positioner = instrument.getPositioner(scannableName);
 			assertNotNull(positioner);
 			
-			dataNode = positioner.getDataNode("value_demand");
+			dataNode = positioner.getDataNode("value_set");
 			dataset = dataNode.getDataset().getSlice();
 			shape = dataset.getShape();
 			assertEquals(1, shape.length);
 			assertEquals(sizes[i], shape[0]);
 			
-			String nxDataFieldName = scannableName + "_value_demand";
+			String nxDataFieldName = scannableName + "_value_set";
 			assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
 			assertIndices(nxData, nxDataFieldName, i);
 			assertTarget(nxData, nxDataFieldName, rootNode,
-					"/entry/instrument/" + scannableName + "/value_demand");
+					"/entry/instrument/" + scannableName + "/value_set");
 
 			// Actual values should be scanD
 			dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
@@ -195,7 +195,7 @@ public class BasicScanTest extends NexusTest {
 			assertNotNull(positioner);
 			assertEquals(metadataScannable.getName(), positioner.getNameScalar());
 			
-			dataNode = positioner.getDataNode("value_demand"); // TODO should not be here for metadata scannable
+			dataNode = positioner.getDataNode("value_set"); // TODO should not be here for metadata scannable
 			assertNotNull(dataNode);
 			dataset = DatasetUtils.sliceAndConvertLazyDataset(dataNode.getDataset());
 			assertEquals(1, dataset.getSize());
