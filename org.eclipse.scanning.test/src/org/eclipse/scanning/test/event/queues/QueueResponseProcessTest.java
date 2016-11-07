@@ -106,6 +106,7 @@ public class QueueResponseProcessTest {
 		
 		//Create the response & process the request
 		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+		qAns = responseProc.process(qReq);
 	
 		//Check response from server
 		assertEquals("Response has wrong bean status", Status.SUBMITTED, qAns.getBeanStatus());
@@ -121,6 +122,7 @@ public class QueueResponseProcessTest {
 		
 		//Create the response & process the request
 		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+		qAns = responseProc.process(qReq);
 
 		//Check response from server
 		assertEquals("Response has wrong bean status", Status.RUNNING, qAns.getBeanStatus());
