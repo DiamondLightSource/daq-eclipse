@@ -7,6 +7,7 @@ import org.eclipse.scanning.api.event.core.IResponseCreator;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequestType;
@@ -25,7 +26,7 @@ import org.junit.Test;
 
 public class QueueResponseProcessTest {
 	
-	private DummyBean dummy;
+	private DummyBean submDummy, statDummy;
 	private MockPublisher<QueueRequest> mockPub;
 	private MockConsumer<Queueable> mockCons = new MockConsumer<>();
 	private MockEventService mockEvServ;
@@ -40,8 +41,10 @@ public class QueueResponseProcessTest {
 	@Before
 	public void setUp() throws EventException {
 		//A bean to interrogate
-		dummy = new DummyBean(); //Should have a uID & Status.NONE
-		mockCons.addToSubmitQueue(dummy);
+		submDummy = new DummyBean(); //Should have a uID & Status.NONE
+		mockCons.addToSubmitQueue(submDummy);
+		statDummy = new DummyBean();
+		mockCons.addToStatusSet(statDummy);
 		
 		//Set up all the underlying queue service infrastructure
 		mockPub = new MockPublisher<>(null, null);
@@ -86,19 +89,41 @@ public class QueueResponseProcessTest {
 		
 	@Test
 	public void testResponseGetBeanStatus() throws EventException {
-		dummy.setStatus(Status.SUBMITTED);
+		/*
+		 * Beans are already in the job-queue.
+		 */
+		submDummy.setStatus(Status.SUBMITTED);
+		statDummy.setStatus(Status.RUNNING);
 		
+		/*
+		 * Try getting a bean which is in the submit queue
+		 */
 		//Create bean status request & post
 		qReq = new QueueRequest();
 		qReq.setRequestType(QueueRequestType.BEAN_STATUS);
 		qReq.setQueueID("fake-q-root"+IQueueService.JOB_QUEUE_SUFFIX);
-		qReq.setBeanID(dummy.getUniqueId());
+		qReq.setBeanID(submDummy.getUniqueId());
 		
 		//Create the response & process the request
 		responseProc = qResponseCreator.createResponder(qReq, mockPub);
 	
 		//Check response from server
 		assertEquals("Response has wrong bean status", Status.SUBMITTED, qAns.getBeanStatus());
+		
+		/*
+		 * Same as above, but get a bean which is in the status queue
+		 */
+		//Create bean status request & post
+		qReq = new QueueRequest();
+		qReq.setRequestType(QueueRequestType.BEAN_STATUS);
+		qReq.setQueueID("fake-q-root"+IQueueService.JOB_QUEUE_SUFFIX);
+		qReq.setBeanID(statDummy.getUniqueId());
+		
+		//Create the response & process the request
+		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+
+		//Check response from server
+		assertEquals("Response has wrong bean status", Status.RUNNING, qAns.getBeanStatus());
 	}
 	
 	//Test getting full queue config
