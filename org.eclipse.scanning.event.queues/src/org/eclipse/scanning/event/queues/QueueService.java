@@ -187,7 +187,7 @@ public class QueueService implements IQueueService {
 			//Kill/stop the job queuebroker
 			if (force) {
 				IQueueControllerService controller = ServicesHolder.getQueueControllerService();
-				controller.killQueue(jobQueueID, true, false);
+				controller.killQueue(jobQueueID, true, false, false);
 			} else {
 				jobQueue.stop();
 			}
@@ -354,7 +354,7 @@ public class QueueService implements IQueueService {
 				queueControlLock.writeLock().lockInterruptibly();
 				if (force) {
 					IQueueControllerService controller = ServicesHolder.getQueueControllerService();
-					controller.killQueue(queueID, true, false);
+					controller.killQueue(queueID, true, false, false);
 				}
 				//Whatever happens we need to mark the queue stopped
 				//TODO Does this need to wait for the kill call to be completed?

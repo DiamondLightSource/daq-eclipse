@@ -452,7 +452,7 @@ public class QueueControllerServiceTest {
 		 * - check KillBean has correct consumerID
 		 * - check options passed through correctly
 		 */
-		testController.killQueue(jqID, true, false);
+		testController.killQueue(jqID, true, false, false);
 		analyseKiller(jqID, true, false);
 		
 		/*
@@ -461,7 +461,7 @@ public class QueueControllerServiceTest {
 		 * - check KillBean has correct consumerID
 		 * - check options passed through correctly
 		 */
-		testController.killQueue(aqID, false, true);
+		testController.killQueue(aqID, false, false, true);
 		analyseKiller(aqID, false, true);
 	}
 	
