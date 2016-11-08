@@ -125,5 +125,17 @@ public interface IQueueControllerService {
 	 * @throws EventException - if the queueID is unknown.
 	 */
 	public <T extends EventListener> ISubscriber<T> createQueueSubscriber(String queueID) throws EventException;
+	
+	public String getCommandSetName();
+	
+	public String getCommandTopicName();
+	
+	public String getHeartbeatTopicName();
+	
+	/**
+	 * 
+	 * @return String job-queue ID for the managed {@link IQueueService}
+	 */
+	public String getJobQueueID();
 
 }
