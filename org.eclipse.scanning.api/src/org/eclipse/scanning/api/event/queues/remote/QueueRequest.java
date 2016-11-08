@@ -23,7 +23,9 @@ public class QueueRequest extends IdBean {
 	private QueueRequestType requestType;
 	private String beanID;//Unique ID of bean to interrogate
 	private String queueID;//ID of queue as set in IQueueService where beanID should be found
-	private Boolean startQueueService;
+	private boolean startQueueService = false;
+	private boolean stopQueueService = false;
+	private boolean forceStop = false;
 	
 	//Values to be completed by responses
 	private String jobQueueID;//jobQueue of IQueueService
@@ -49,13 +51,24 @@ public class QueueRequest extends IdBean {
 	public void setQueueID(String queueID) {
 		this.queueID = queueID;
 	}
-	public Boolean getStartQueueService() {
+	public boolean isStartQueueService() {
 		return startQueueService;
 	}
-	public void setStartQueueService(Boolean startQueueService) {
+	public void setStartQueueService(boolean startQueueService) {
 		this.startQueueService = startQueueService;
 	}
-	
+	public boolean isStopQueueService() {
+		return stopQueueService;
+	}
+	public void setStopQueueService(boolean stopQueueService) {
+		this.stopQueueService = stopQueueService;
+	}
+	public boolean isForceStop() {
+		return forceStop;
+	}
+	public void setForceStop(boolean forceStop) {
+		this.forceStop = forceStop;
+	}
 	//Response variables
 	public String getJobQueueID() {
 		return jobQueueID;
@@ -89,6 +102,14 @@ public class QueueRequest extends IdBean {
 	}
 	
 	@Override
+	public String toString() {
+		return "QueueRequest [requestType=" + requestType + ", beanID=" + beanID + ", queueID=" + queueID
+				+ ", startQueueService=" + startQueueService + ", stopQueueService=" + stopQueueService + ", forceStop="
+				+ forceStop + ", jobQueueID=" + jobQueueID + ", commandSetName=" + commandSetName
+				+ ", commandTopicName=" + commandTopicName + ", heartbeatTopicName=" + heartbeatTopicName
+				+ ", beanStatus=" + beanStatus + "]";
+	}
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
@@ -96,11 +117,13 @@ public class QueueRequest extends IdBean {
 		result = prime * result + ((beanStatus == null) ? 0 : beanStatus.hashCode());
 		result = prime * result + ((commandSetName == null) ? 0 : commandSetName.hashCode());
 		result = prime * result + ((commandTopicName == null) ? 0 : commandTopicName.hashCode());
+		result = prime * result + (forceStop ? 1231 : 1237);
 		result = prime * result + ((heartbeatTopicName == null) ? 0 : heartbeatTopicName.hashCode());
 		result = prime * result + ((jobQueueID == null) ? 0 : jobQueueID.hashCode());
 		result = prime * result + ((queueID == null) ? 0 : queueID.hashCode());
 		result = prime * result + ((requestType == null) ? 0 : requestType.hashCode());
-		result = prime * result + ((startQueueService == null) ? 0 : startQueueService.hashCode());
+		result = prime * result + (startQueueService ? 1231 : 1237);
+		result = prime * result + (stopQueueService ? 1231 : 1237);
 		return result;
 	}
 	
@@ -130,6 +153,8 @@ public class QueueRequest extends IdBean {
 				return false;
 		} else if (!commandTopicName.equals(other.commandTopicName))
 			return false;
+		if (forceStop != other.forceStop)
+			return false;
 		if (heartbeatTopicName == null) {
 			if (other.heartbeatTopicName != null)
 				return false;
@@ -147,10 +172,9 @@ public class QueueRequest extends IdBean {
 			return false;
 		if (requestType != other.requestType)
 			return false;
-		if (startQueueService == null) {
-			if (other.startQueueService != null)
-				return false;
-		} else if (!startQueueService.equals(other.startQueueService))
+		if (startQueueService != other.startQueueService)
+			return false;
+		if (stopQueueService != other.stopQueueService)
 			return false;
 		return true;
 	}

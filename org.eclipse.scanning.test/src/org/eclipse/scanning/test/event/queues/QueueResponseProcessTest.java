@@ -1,6 +1,8 @@
 package org.eclipse.scanning.test.event.queues;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -189,9 +191,44 @@ public class QueueResponseProcessTest {
 		}
 	}
 	
-	
-	
-	//Test getting full queue config
-	//Test starting/stopping queueservice
+	@Test
+	public void testResponseQueueServiceStartStop() throws EventException {
+		//Initially QueueService should not be running
+		assertFalse("QueueService should not initially be active", qServ.isActive());
+		
+		//Create a request to start the queue service...
+		qReq = new QueueRequest();
+		qReq.setRequestType(QueueRequestType.SERVICE_START_STOP);
+		qReq.setStartQueueService(true);
+		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+		qAns = responseProc.process(qReq);
+		
+		//...has it started?
+		assertTrue("QueueService should be active", qServ.isActive());
+		assertEquals("Request & answer should not have changed", qAns, qReq);
+		
+		//Create a request to restart the queue service...
+		qReq = new QueueRequest();
+		qReq.setRequestType(QueueRequestType.SERVICE_START_STOP);
+		qReq.setStartQueueService(true);
+		qReq.setStopQueueService(true);
+		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+		qAns = responseProc.process(qReq);
+		
+		//...is it still started?
+		assertTrue("QueueService should be active", qServ.isActive());
+		assertEquals("Request & answer should not have changed", qAns, qReq);
+		
+		//Create a request to stop the queue service...
+		qReq = new QueueRequest();
+		qReq.setRequestType(QueueRequestType.SERVICE_START_STOP);
+		qReq.setStopQueueService(true);
+		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+		qAns = responseProc.process(qReq);
+		
+		//...has it stopped?
+		assertFalse("QueueService should not be active", qServ.isActive());
+		assertEquals("Request & answer should not have changed", qAns, qReq);
+	}
 
 }
