@@ -34,7 +34,6 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
-import org.eclipse.scanning.event.classregistry.ScanningEventClassRegistry;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
@@ -69,8 +68,7 @@ public class ScanFinishedTest {
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
 						new ScanningExampleClassRegistry(),
-						new ScanningTestClassRegistry(),
-						new ScanningEventClassRegistry()),
+						new ScanningTestClassRegistry()),
 				Arrays.asList(new PointsModelMarshaller())
 				));
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());

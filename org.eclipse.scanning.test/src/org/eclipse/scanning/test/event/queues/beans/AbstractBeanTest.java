@@ -10,7 +10,6 @@ import java.util.Arrays;
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.event.classregistry.ScanningEventClassRegistry;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
@@ -34,8 +33,7 @@ public abstract class AbstractBeanTest<S extends Queueable> {
 		IMarshallerService jsonMarshaller = new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
 						new ScanningExampleClassRegistry(),
-						new ScanningTestClassRegistry(),
-						new ScanningEventClassRegistry()),
+						new ScanningTestClassRegistry()),
 				Arrays.asList(new PointsModelMarshaller())
 				);
 		

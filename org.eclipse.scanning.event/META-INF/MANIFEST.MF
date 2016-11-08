@@ -15,9 +15,5 @@ Import-Package: javax.jms,
  org.osgi.service.component;version="1.2.0",
  org.slf4j;version="[1.7.2,2.0.0)"
 Export-Package: org.eclipse.scanning.event,
- org.eclipse.scanning.event.classregistry,
- org.eclipse.scanning.event.queues,
- org.eclipse.scanning.event.queues.beans,
- org.eclipse.scanning.event.queues.processors,
  org.eclipse.scanning.event.remote,
  org.eclipse.scanning.event.util

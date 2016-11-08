@@ -1,6 +1,6 @@
 package org.eclipse.scanning.test.event.queues.beans;
 
-import org.eclipse.scanning.event.queues.beans.MonitorAtom;
+import org.eclipse.scanning.api.event.queues.beans.MonitorAtom;
 import org.junit.Before;
 
 /**

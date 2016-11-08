@@ -19,6 +19,7 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 	private boolean started = false, stopped = false, disconnected = false;
 	
 	private String statusQueueName = "statQ", submitQueueName = "submQ";
+	private String name;
 	
 	private List<U> statusSet = new ArrayList<>(), submitQueue = new ArrayList<>();
 	
@@ -188,14 +189,12 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return name;
 	}
 
 	@Override
 	public void setName(String name) {
-		// TODO Auto-generated method stub
-		
+		this.name = name;
 	}
 
 	@Override
@@ -205,8 +204,7 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 
 	@Override
 	public boolean isActive() {
-		// TODO Auto-generated method stub
-		return false;
+		return started && !stopped;
 	}
 
 	@Override

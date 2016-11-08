@@ -16,12 +16,12 @@ import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
+import org.eclipse.scanning.api.event.queues.beans.TaskBean;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueControllerService;
 import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
-import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
-import org.eclipse.scanning.event.queues.beans.TaskBean;
 import org.eclipse.scanning.event.queues.processors.TaskBeanProcessor;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
@@ -84,6 +84,9 @@ public class TaskBeanProcessorTest {
 	
 	@AfterClass
 	public static void tearDownClass() {
+		ServicesHolder.unsetQueueControllerService(controller);
+		controller = null;
+		
 		ServicesHolder.unsetEventService(mockEvServ);
 		mockEvServ = null;
 		mockPub = null;
@@ -162,6 +165,7 @@ public class TaskBeanProcessorTest {
 		//TODO Should this be the message or the queue-message?
 		assertEquals("Wrong message set after termination.", "Job-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
 		
+		pti.checkConsumersStopped(mockEvServ, qServ);
 	}
 	
 	@Test
@@ -194,7 +198,6 @@ public class TaskBeanProcessorTest {
 		}
 		///...then check it's the right one.
 		if (cmdBeans.get(cmdBeans.size()-1) instanceof PauseBean) {
-			System.out.println("I finished after: "+timeout);
 			PauseBean lastBean = (PauseBean)cmdBeans.get(cmdBeans.size()-1);
 			assertEquals("PauseBean does not pause the job-queue consumer", mockCons.getConsumerId(), lastBean.getConsumerId());
 		} else {
