@@ -46,7 +46,7 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 				time = Math.max(time, timeout);
 			}
 		}
-		if (time<0) time = 10; // seconds
+		if (time<=0) time = 10; // seconds
 		setTimeout(time);
 	}
 
