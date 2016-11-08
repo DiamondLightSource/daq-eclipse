@@ -1,20 +1,22 @@
 package org.eclipse.scanning.event.queues.remote;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 
-public class StartStopResponse implements IQueueReponseStrategy {
+public class StartStopResponse extends QueueResponseProcess {
 	
 	private IQueueControllerService queueControl;
 	
-	public StartStopResponse() {
+	public StartStopResponse(QueueRequest requestBean, IPublisher<QueueRequest> reponseBroadcaster) {
+		super(requestBean, reponseBroadcaster);
 		queueControl = ServicesHolder.getQueueControllerService();
 	}
 
 	@Override
-	public QueueRequest doResponse(QueueRequest request) throws EventException {
+	public QueueRequest process(QueueRequest request) throws EventException {
 		
 		if (request.isStartQueueService() && request.isStopQueueService()) {
 			//This is a restart

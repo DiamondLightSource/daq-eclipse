@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumer;
+import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
@@ -24,19 +25,21 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * @author Michael Wharmby
  *
  */
-public class BeanStatusReponse implements IQueueReponseStrategy {
+public class BeanStatusReponse extends QueueResponseProcess {
 	
 	private IQueueService queueService;
 	private Status foundStatus = null;
 	private boolean beanFound = false;
 	private CountDownLatch searchEndedLatch;
 	
-	public BeanStatusReponse() {
+	public BeanStatusReponse(QueueRequest requestBean, IPublisher<QueueRequest> reponseBroadcaster) {
+		super(requestBean, reponseBroadcaster);
 		queueService = ServicesHolder.getQueueService();
 	}
 
+	
 	@Override
-	public QueueRequest doResponse(QueueRequest request) throws EventException {
+	public QueueRequest process(QueueRequest request) throws EventException {
 		//Get request details
 		String beanID = request.getBeanID();
 		String queueID = request.getQueueID();
