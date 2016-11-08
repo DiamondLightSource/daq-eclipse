@@ -93,14 +93,13 @@ public interface IQueueService {
 	 * first. Use force to forcibly remove the queue.
 	 * 
 	 * @param queueID String ID  of queue to be deregistered.
-	 * @param force True if consumer should be killed rather than stopped.
 	 * @throws EventException - if the given active-queue could not be found or
 	 * 						    problems were encountered stopping the 
 	 *                          consumer.
 	 * @throws IllegalStateException - if the IQueueService has not been 
 	 *                                 started.
 	 */
-	public void deRegisterActiveQueue(String queueID, boolean force) throws EventException;
+	public void deRegisterActiveQueue(String queueID) throws EventException;
 	
 	/**
 	 * Report whether given active-queue is registered with service.
@@ -244,7 +243,7 @@ public interface IQueueService {
 	 * @param uri URI of new queue server.
 	 * @throws EventException If attempting to change whilst service started.
 	 */
-	public void setURI(URI uri) throws UnsupportedOperationException, EventException;
+	public void setUri(URI uri) throws UnsupportedOperationException, EventException;
 	
 	/**
 	 * Change the URI of the broker storing the queues with a String.
@@ -253,7 +252,7 @@ public interface IQueueService {
 	 * @param uri String URI of new queue server.
 	 * @throws EventException If attempting to change whilst service started.
 	 */
-	public void setURI(String uri) throws UnsupportedOperationException, EventException;
+	public void setUri(String uri) throws UnsupportedOperationException, EventException;
 	
 	/**
 	 * Return whether the service has been initialised.

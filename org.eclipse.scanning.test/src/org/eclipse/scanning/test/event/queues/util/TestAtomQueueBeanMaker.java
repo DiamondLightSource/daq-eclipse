@@ -1,7 +1,7 @@
 package org.eclipse.scanning.test.event.queues.util;
 
-import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
-import org.eclipse.scanning.event.queues.beans.TaskBean;
+import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
+import org.eclipse.scanning.api.event.queues.beans.TaskBean;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 
 /**
