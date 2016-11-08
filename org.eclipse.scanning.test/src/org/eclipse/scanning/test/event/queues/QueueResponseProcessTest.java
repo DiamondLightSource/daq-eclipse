@@ -77,20 +77,58 @@ public class QueueResponseProcessTest {
 	}
 	
 	@Test
-	public void testResponseGetJobQueueID() throws EventException {
-		//Create bean status request for job-queue ID
+	public void testResponseGetStringConfig() throws EventException {
+		//Expected values
+		String realCommandSetName = "fake-q-root"+IQueueService.COMMAND_SET_SUFFIX;
+		String realCommandTopicName = "fake-q-root"+IQueueService.COMMAND_TOPIC_SUFFIX;
+		String realHeartbeatTopicName = "fake-q-root"+IQueueService.HEARTBEAT_TOPIC_SUFFIX;
+		String realJobQueueID = "fake-q-root"+IQueueService.JOB_QUEUE_SUFFIX;
+		
+		/*
+		 * Get command set
+		 */
+		qReq = new QueueRequest();
+		qReq.setRequestType(QueueRequestType.COMMAND_SET);
+		
+		//Create the response & process the request; check answer is correct
+		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+		qAns = responseProc.process(qReq);
+		assertEquals("Response command set is incorrect", realCommandSetName, qAns.getCommandSetName());
+		
+		/*
+		 * Get command topic
+		 */
+		qReq = new QueueRequest();
+		qReq.setRequestType(QueueRequestType.COMMAND_TOPIC);
+		
+		//Create the response & process the request; check answer is correct
+		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+		qAns = responseProc.process(qReq);
+		assertEquals("Response command topic is incorrect", realCommandTopicName, qAns.getCommandTopicName());
+		
+		/*
+		 * Get heartbeat topic
+		 */
+		qReq = new QueueRequest();
+		qReq.setRequestType(QueueRequestType.HEARTBEAT_TOPIC);
+		
+		//Create the response & process the request; check answer is correct
+		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+		qAns = responseProc.process(qReq);
+		assertEquals("Response heartbeat topic is incorrect", realHeartbeatTopicName, qAns.getHeartbeatTopicName());
+		
+		/*
+		 * Get job-queue ID
+		 */
 		qReq = new QueueRequest();
 		qReq.setRequestType(QueueRequestType.JOB_QUEUE_ID);
 		
-		//Create the response & process the request
+		//Create the response & process the request; check answer is correct
 		responseProc = qResponseCreator.createResponder(qReq, mockPub);
 		qAns = responseProc.process(qReq);
-		
-		//Check response is correct for fake queue service
-		String realJobQueueID = "fake-q-root"+IQueueService.JOB_QUEUE_SUFFIX;
-		assertEquals("Response queue ID is incorrect", realJobQueueID, qAns.getJobQueueID());
+		assertEquals("Response job-queue ID is incorrect", realJobQueueID, qAns.getJobQueueID());
 	}
-		
+	
 	@Test
 	public void testResponseGetBeanStatus() throws EventException {
 		/*
@@ -150,6 +188,8 @@ public class QueueResponseProcessTest {
 			//Expected
 		}
 	}
+	
+	
 	
 	//Test getting full queue config
 	//Test starting/stopping queueservice

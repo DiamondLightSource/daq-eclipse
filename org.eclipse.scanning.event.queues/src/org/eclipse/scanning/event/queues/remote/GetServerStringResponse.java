@@ -13,19 +13,27 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * @author Michael Wharmby
  *
  */
-public class JobQueueIDResponse implements IQueueReponseStrategy {
+public class GetServerStringResponse implements IQueueReponseStrategy {
 	
 	private IQueueControllerService queueControl;
 	
-	public JobQueueIDResponse() {
+	public GetServerStringResponse() {
 		queueControl = ServicesHolder.getQueueControllerService();
 	}
 
 	@Override
 	public QueueRequest doResponse(QueueRequest request) throws EventException {
-		String jobQueueID = queueControl.getJobQueueID();
-		request.setJobQueueID(jobQueueID);
+		switch (request.getRequestType()) {
+		case COMMAND_SET:		request.setCommandSetName(queueControl.getCommandSetName());
+								break;
+		case COMMAND_TOPIC:		request.setCommandTopicName(queueControl.getCommandTopicName());
+								break;
+		case HEARTBEAT_TOPIC:	request.setHeartbeatTopicName(queueControl.getHeartbeatTopicName());
+								break;
+		case JOB_QUEUE_ID:		request.setJobQueueID(queueControl.getJobQueueID());
+								break;
+		default: throw new EventException("Unsupported QueueRequestType");
+		}
 		return request;
 	}
-
 }

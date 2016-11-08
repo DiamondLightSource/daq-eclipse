@@ -126,6 +126,12 @@ public interface IQueueControllerService {
 	 */
 	public <T extends EventListener> ISubscriber<T> createQueueSubscriber(String queueID) throws EventException;
 	
+	public String getCommandSetName();
+	
+	public String getCommandTopicName();
+	
+	public String getHeartbeatTopicName();
+	
 	/**
 	 * 
 	 * @return String job-queue ID for the managed {@link IQueueService}

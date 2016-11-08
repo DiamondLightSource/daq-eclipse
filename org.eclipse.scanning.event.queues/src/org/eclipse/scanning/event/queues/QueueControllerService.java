@@ -288,8 +288,23 @@ public class QueueControllerService implements IQueueControllerService {
 	}
 
 	@Override
+	public String getCommandSetName() {
+		return queueService.getCommandSetName();
+	}
+
+	@Override
+	public String getCommandTopicName() {
+		return queueService.getCommandTopicName();
+	}
+
+	@Override
+	public String getHeartbeatTopicName() {
+		return queueService.getHeartbeatTopicName();
+	}
+
+	@Override
 	public String getJobQueueID() {
 		return queueService.getJobQueueID();
 	}
-
+	
 }

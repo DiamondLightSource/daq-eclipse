@@ -48,10 +48,13 @@ public class QueueResponseProcess implements IResponseProcess<QueueRequest> {
 		
 		//Decide which strategy to use to interrogate the QueueService
 		switch (requestBean.getRequestType()) {
-		case BEAN_STATUS:	responder = new BeanStatusReponse();
-							break;
-		case JOB_QUEUE_ID:	responder = new JobQueueIDResponse();
-							break;
+		case BEAN_STATUS:		responder = new BeanStatusReponse();
+								break;
+		case COMMAND_SET:		//Options COMMAND_SET to JOB_QUEUE_ID all use the GetServerStringResponse
+		case COMMAND_TOPIC:		
+		case HEARTBEAT_TOPIC:	
+		case JOB_QUEUE_ID:		responder = new GetServerStringResponse();
+								break;
 		default: responder = null;
 		}
 		if (responder == null) throw new EventException("Unsupported QueueRequestType");
