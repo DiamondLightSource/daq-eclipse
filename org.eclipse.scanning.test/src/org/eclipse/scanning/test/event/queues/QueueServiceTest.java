@@ -9,20 +9,25 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
+import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.event.queues.QueueControllerService;
 import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,6 +36,9 @@ public class QueueServiceTest {
 	private MockConsumer<DummyBean> mockCons;
 	private MockPublisher<ConsumerCommandBean> mockCmdPub;
 	private MockEventService mockEvServ = new MockEventService();
+	
+	private IQueueService testQServ;
+	private IQueueControllerService controllerServ;
 	
 	private String qRoot;
 	private URI uri;
@@ -43,8 +51,19 @@ public class QueueServiceTest {
 		mockEvServ.setMockCmdPublisher(mockCmdPub);
 		ServicesHolder.setEventService(mockEvServ);
 		
+		controllerServ = new QueueControllerService();
+		ServicesHolder.setQueueControllerService(controllerServ);
+		
 		qRoot = "test-queue-root";
 		uri = new URI("file:///foo/bar");
+	}
+	
+	@After
+	public void tearDown() throws Exception {
+		testQServ.disposeService();
+		
+		ServicesHolder.unsetQueueService(testQServ);
+		ServicesHolder.unsetQueueControllerService(controllerServ);
 	}
 	
 	/**
@@ -53,8 +72,10 @@ public class QueueServiceTest {
 	 */
 	@Test
 	public void testServiceInit() throws EventException {
-		IQueueService testQServ = new QueueService(qRoot, uri);
+		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		/*
 		 * init should:
 		 * - check uriString set equal to uri
@@ -71,6 +92,7 @@ public class QueueServiceTest {
 		assertTrue("Active-queue ID set should be an empty set", testQServ.getAllActiveQueueIDs().isEmpty());
 		
 		//Create an unconfigured QueueService
+		testQServ.disposeService();
 		testQServ = new QueueService();
 		try {
 			testQServ.init();
@@ -86,7 +108,7 @@ public class QueueServiceTest {
 	 */
 	@Test
 	public void testServiceDisposal() throws EventException {
-		IQueueService testQServ = new QueueService(qRoot, uri);
+		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		testQServ.start();
 		testQServ.stop(false);
@@ -116,8 +138,10 @@ public class QueueServiceTest {
 	 */
 	@Test
 	public void testServiceStart() throws EventException {
-		IQueueService testQServ = new QueueService(qRoot, uri);
+		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		testQServ.start();
 		/*
 		 * Start should:
@@ -129,6 +153,7 @@ public class QueueServiceTest {
 		assertTrue("QueueService not marked active", testQServ.isActive());
 		
 		//Create a new instance to make sure we can't start without calling init()
+		testQServ.disposeService();
 		testQServ = new QueueService(qRoot, uri);
 		try {
 			testQServ.start();
@@ -144,8 +169,10 @@ public class QueueServiceTest {
 	 */
 	@Test
 	public void testServiceStop() throws EventException {
-		IQueueService testQServ = new QueueService(qRoot, uri);
+		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		testQServ.start();
 		testQServ.registerNewActiveQueue();
 		testQServ.stop(false);
@@ -160,18 +187,30 @@ public class QueueServiceTest {
 		assertEquals("Active-queues remain after stopping", 0, testQServ.getAllActiveQueueIDs().size());
 		assertEquals("Job-queue still active", QueueStatus.STOPPED, testQServ.getJobQueue().getStatus());
 		assertFalse("Queue service still marked active", testQServ.isActive());
-		
+				
 		//Check forceful stop works
 		testQServ.start();
-		testQServ.registerNewActiveQueue();
+		String aqID = testQServ.registerNewActiveQueue();
+		
+		//Get IDs of consumers in preparation for analysis
+		List<UUID> consIDs = new ArrayList<>();
+		consIDs.add(testQServ.getActiveQueue(aqID).getConsumerID());
+		consIDs.add(testQServ.getJobQueue().getConsumerID());
+		
+		//And stop the queues
+		testQServ.startActiveQueue(aqID);
 		testQServ.stop(true);
+			
+		List<ConsumerCommandBean> cmds = mockCmdPub.getCmdBeans();
+		assertTrue("No command beans recorded", cmds.size() > 0);
+		assertEquals("Expecting two Killbeans (one for each queue)", 2, cmds.size());
+		for (int i = 0; i < 2; i++) {
+			ConsumerCommandBean kb = (KillBean)cmds.get(i);
+			assertTrue("Command bean "+i+"is not a KillBean", kb instanceof KillBean);
+			assertEquals("KillBean has incorrect consumer ID", kb.getConsumerId(), consIDs.get(i));
+		}
 		
-//TODO		List<ConsumerCommandBean> cmds = mockCmdPub.getCmdBeans();
-//		assertEquals("Expecting two Killbeans (one for each queue)", 2, cmds.size());
-//		assertTrue("Last command bean is not a KillBean", cmds.get(cmds.size()-1) instanceof KillBean);
-//		assertEquals("KillBean not killing the active-queue consumer", testQServ.getActiveQueue(aqID).getConsumerID(), cmds.get(cmds.size()-1).getConsumerId());
 		assertFalse("Queue service still marked active", testQServ.isActive());
-		
 	}
 	
 	/**
@@ -180,8 +219,10 @@ public class QueueServiceTest {
 	 */
 	@Test
 	public void testQueueStartStop() throws EventException {
-		IQueueService testQServ = new QueueService(qRoot, uri);
+		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		testQServ.start();
 		/*
 		 * Should:
@@ -200,15 +241,16 @@ public class QueueServiceTest {
 		
 		//Stop queue nicely & check it looks started
 		testQServ.stopActiveQueue(aqID, false);
-		assertEquals("Active-queue not disposed after stop", QueueStatus.DISPOSED, activeQ.getStatus());
+		assertEquals("Active-queue has wrong state", QueueStatus.STOPPED, activeQ.getStatus());
 		
-//TODO		//Restart queue & stop is forcefully
-//		testQServ.startActiveQueue(aqID);
-//		testQServ.stopActiveQueue(aqID, true);
-//		assertEquals("Active-queue not started", QueueStatus.KILLED, activeQ.getStatus());
-//		List<ConsumerCommandBean> cmds = mockCmdPub.getCmdBeans();
-//		assertTrue("Last command bean is not a KillBean", cmds.get(cmds.size()-1) instanceof KillBean);
-//		assertEquals("KillBean not killing the active-queue consumer", testQServ.getActiveQueue(aqID).getConsumerID(), cmds.get(cmds.size()-1).getConsumerId());
+//TODO		
+		//Restart queue & stop is forcefully
+		testQServ.startActiveQueue(aqID);
+		testQServ.stopActiveQueue(aqID, true);
+		List<ConsumerCommandBean> cmds = mockCmdPub.getCmdBeans();
+		assertTrue("No command beans recorded", cmds.size() > 0);
+		assertTrue("Last command bean is not a KillBean", cmds.get(cmds.size()-1) instanceof KillBean);
+		assertEquals("KillBean not killing the active-queue consumer", testQServ.getActiveQueue(aqID).getConsumerID(), cmds.get(cmds.size()-1).getConsumerId());
 	}
 	
 	/**
@@ -217,8 +259,10 @@ public class QueueServiceTest {
 	 */
 	@Test
 	public void testRegistration() throws EventException {
-		IQueueService testQServ = new QueueService(qRoot, uri);
+		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
+		ServicesHolder.setQueueService(testQServ);//For QueueControllerService
+		controllerServ.init();
 		testQServ.start();
 		/*
 		 * Should:
@@ -250,7 +294,7 @@ public class QueueServiceTest {
 		//Check deregistration works
 		for (i = 0; i < activeQIDs.size()-1; i++) {
 			assertTrue("Active-queue "+activeQIDs.get(i)+" should be registered", testQServ.isActiveQueueRegistered(activeQIDs.get(i)));
-			testQServ.deRegisterActiveQueue(activeQIDs.get(i), true);
+			testQServ.deRegisterActiveQueue(activeQIDs.get(i));
 			assertFalse("Active-queue "+activeQIDs.get(i)+" should not be registered", testQServ.isActiveQueueRegistered(activeQIDs.get(i)));
 			try {
 				testQServ.getQueue(activeQIDs.get(i));
@@ -265,13 +309,14 @@ public class QueueServiceTest {
 		//Check we can't deregister running queues
 		testQServ.startActiveQueue(activeQIDs.get(0));
 		try {
-			testQServ.deRegisterActiveQueue(activeQIDs.get(0), false);
+			testQServ.deRegisterActiveQueue(activeQIDs.get(0));
 			fail("Should not be able to deregister a running active-queue");
 		} catch (EventException evEx) {
 			//Expected
 		}
 		
 		//Check queue registration not possible without start
+		testQServ.disposeService();
 		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		try {
@@ -288,7 +333,7 @@ public class QueueServiceTest {
 	 */
 	@Test
 	public void testConfigChange() throws EventException, URISyntaxException {
-		IQueueService testQServ = new QueueService(qRoot, uri);
+		testQServ = new QueueService(qRoot, uri);
 		testQServ.init();
 		testQServ.start();
 		
@@ -308,13 +353,13 @@ public class QueueServiceTest {
 			//Expected
 		}
 		try {
-			testQServ.setURI("file:///foo/bar/baz");
+			testQServ.setUri("file:///foo/bar/baz");
 			fail("Should not be able to change uri whilst active");
 		} catch (UnsupportedOperationException evEx) {
 			//Expected
 		}
 		try {
-			testQServ.setURI(new URI("file:///foo/bar/baz"));
+			testQServ.setUri(new URI("file:///foo/bar/baz"));
 			fail("Should not be able to change uri whilst active");
 		} catch (UnsupportedOperationException evEx) {
 			//Expected
@@ -333,11 +378,11 @@ public class QueueServiceTest {
 			assertEquals("Job queue name in service & on job-queue do not match", testQServ.getJobQueueID(), jobQueue.getQueueID());
 			
 			//Test changing URI
-			testQServ.setURI("file:///foo/bar/baz");
+			testQServ.setUri("file:///foo/bar/baz");
 			assertEquals("Unexpected URI after changing by string", new URI("file:///foo/bar/baz"), testQServ.getURI());
 			jobQueue = testQServ.getJobQueue();
 			assertEquals("Incorrect URI configured in job-queue", "file:///foo/bar/baz", jobQueue.getURI().toString());
-			testQServ.setURI(new URI("file:///baz/foo/bar"));
+			testQServ.setUri(new URI("file:///baz/foo/bar"));
 			assertEquals("Unexpected uriString after changing by URI", "file:///baz/foo/bar", testQServ.getURIString());
 			jobQueue = testQServ.getJobQueue();
 			assertEquals("Incorrect URI configured in job-queue", "file:///baz/foo/bar", jobQueue.getURI().toString());

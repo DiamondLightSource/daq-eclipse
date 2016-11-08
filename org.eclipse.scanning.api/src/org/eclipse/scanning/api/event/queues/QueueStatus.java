@@ -7,7 +7,7 @@ package org.eclipse.scanning.api.event.queues;
  *
  */
 public enum QueueStatus {
-	INITIALISED, STARTED, STOPPED, KILLED, DISPOSED;
+	INITIALISED, STARTED, STOPPING, STOPPED, KILLED, DISPOSED;
 	
 	/**
 	 * Return whether the queue is running

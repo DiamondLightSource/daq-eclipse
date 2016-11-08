@@ -6,16 +6,14 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
-import java.util.List;
-
 import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.IdBean;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
-import org.eclipse.scanning.event.classregistry.ScanningEventClassRegistry;
-import org.eclipse.scanning.event.queues.beans.SubTaskAtom;
+import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
@@ -204,8 +202,7 @@ public class SubTaskAtomTest extends AbstractBeanTest<SubTaskAtom> { //extends A
 		IMarshallerService jsonMarshaller = new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
 						new ScanningExampleClassRegistry(),
-						new ScanningTestClassRegistry(),
-						new ScanningEventClassRegistry()),
+						new ScanningTestClassRegistry()),
 				Arrays.asList(new PointsModelMarshaller())
 				);
 
