@@ -28,7 +28,8 @@ public class BeanStatusReponse implements IQueueReponseStrategy {
 	
 	private IQueueService queueService;
 	private Status foundStatus = null;
-	private CountDownLatch beanFoundLatch;
+	private boolean beanFound = false;
+	private CountDownLatch searchEndedLatch;
 	
 	public BeanStatusReponse() {
 		queueService = ServicesHolder.getQueueService();
@@ -46,9 +47,8 @@ public class BeanStatusReponse implements IQueueReponseStrategy {
 		/*
 		 * Interrogate both submission & status queues simultaneously.
 		 */
-		//This needs a latch to indicate complete...
-		//final CountDownLatch 
-		beanFoundLatch = new CountDownLatch(1);
+		//This needs a latch to indicate completion...
+		searchEndedLatch = new CountDownLatch(2);
 		
 		ExecutorService threadPool = Executors.newFixedThreadPool(2);
 		Future<?> statusSetSearch = threadPool.submit(new QueueSearcher(beanID, consumer.getStatusSet()));//, beanFoundLatch));
@@ -56,7 +56,7 @@ public class BeanStatusReponse implements IQueueReponseStrategy {
 		
 		boolean latched;
 		try {
-			latched = beanFoundLatch.await(5000, TimeUnit.MILLISECONDS);
+			latched = searchEndedLatch.await(5000, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException iEx) {
 			throw new EventException("Could not wait finding bean", iEx);
 		} finally {
@@ -102,10 +102,14 @@ public class BeanStatusReponse implements IQueueReponseStrategy {
 			for (Queueable queueItem : beanQueue) {
 				if (queueItem.getUniqueId().equals(beanID)) {
 					foundStatus = queueItem.getStatus();
-					beanFoundLatch.countDown();
+					beanFound = true;
 					break;
 				}
+				//In case another thread found our bean
+				if (beanFound) break;
+				
 			}
+			searchEndedLatch.countDown();
 		}
 		
 	}
