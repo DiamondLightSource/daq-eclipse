@@ -6,13 +6,23 @@ import org.eclipse.scanning.api.event.status.Status;
 
 /**
  * Methods for broadcasting the status and percentage complete of a bean within
- *  a queue. It is assumed that the bean is configured already and that some 
- *  method of broadcasting is  
+ * a queue. It is assumed that the bean is configured already and that some 
+ * method of broadcasting is  
  * 
  * @author Michael Wharmby
  *
  */
 public interface IQueueBroadcaster<T> {
+	/**
+	 * Sets all the required new values on the bean, ready for broadcast, but 
+	 * does not actually broadcast.
+	 * 
+	 * @param newStatus {@link Status} the bean has just reached.
+	 * @param newPercent The value percent complete should be set to.
+	 * @param message String to message to publish on the bean.
+	 */
+	public void updateBean(Status newStatus, Double newPercent, String message);
+	
 	/**
 	 * Convenience method to call broadcast with both {@link Status} and 
 	 * message arguments.
@@ -80,12 +90,13 @@ public interface IQueueBroadcaster<T> {
 	public void broadcast(Status newStatus, Double newPercent, String message) throws EventException;
 	
 	/**
-	 * Broadcast the bean when some interaction of the child queue (e.g. from 
-	 * {@link QueueListener}) has updated its status/percent complete/message.
+	 * Broadcast the bean when some other method or interaction of a child 
+	 * queue (e.g. from {@link QueueListener}) has updated the bean 
+	 * status/percent complete/message.
 	 * 
 	 * @throws EventException In case broadcasting fails.
 	 */
-	public void childQueueBroadcast() throws EventException;
+	public void broadcast() throws EventException;
 	
 	/**
 	 * Return the IPublisher instance used to broadcast the bean status.

@@ -9,11 +9,10 @@ import java.util.List;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IWritableDetector;
-import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
@@ -28,12 +27,10 @@ import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
-import org.eclipse.scanning.event.classregistry.ScanningEventClassRegistry;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
@@ -63,8 +60,7 @@ public class TopupTest {
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
 						new ScanningExampleClassRegistry(),
-						new ScanningTestClassRegistry(),
-						new ScanningEventClassRegistry()),
+						new ScanningTestClassRegistry()),
 				Arrays.asList(new PointsModelMarshaller())
 				));
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
