@@ -36,7 +36,6 @@ import org.eclipse.dawnsci.nexus.builder.impl.MapBasedMetadataProvider;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
@@ -552,19 +551,21 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		Iterator<Collection<String>> dimensionNamesIter = dimensionNames.iterator();
 		while (dimensionNamesIter.hasNext()) {
 			Collection<String> dimensionNamesForIndex = dimensionNamesIter.next();
-			if (dimensionNamesForIndex.size() == 1) {
-				final String scannableName = dimensionNamesForIndex.iterator().next();
+			//need to iterate or the _indices attibute defaults to [0]
+			Iterator<String> it = dimensionNamesForIndex.iterator();
+			while (it.hasNext()){
+				String scannableName = it.next();
 				if (defaultAxisIndexForScannableMap.containsKey(scannableName)) {
 					// already seen this scannable name for another index,
 					// so this scannable should not be the default axis for any index
 					// note: we put null instead of removing the entry in case the scannable
 					// because we don't want to add it again if the scannable is encountered again
 					defaultAxisIndexForScannableMap.put(scannableName, null);
-				} else {
+				}else {
 					defaultAxisIndexForScannableMap.put(scannableName, dimensionIndex);
 				}
 			}
-			
+
 			dimensionIndex++;
 		}
 		

@@ -67,7 +67,6 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		DummyBean dummyBean = new DummyBean("Bob", 50);
 		
 		queueControl.submit(dummyBean, queueService.getJobQueueID());
-		
 		try {
 			waitForBeanFinalStatus(dummyBean, queueService.getJobQueueID());//FIXME Put this on the QueueController
 		} catch (Exception e) {
@@ -93,8 +92,7 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 		subTask.addAtom(dummyAtom);
 		task.addAtom(subTask);
 		
-		queueControl.submit(task, queueService.getJobQueueID());
-		
+		queueControl.submit(task, queueControl.getJobQueueID());
 		try {
 //			Thread.sleep(1000000);
 			waitForBeanFinalStatus(task, queueService.getJobQueueID());//FIXME Put this on the QueueController
