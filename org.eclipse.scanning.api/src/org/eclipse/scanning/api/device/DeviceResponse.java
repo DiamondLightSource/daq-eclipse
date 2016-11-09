@@ -6,6 +6,7 @@ import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.ITerminatable;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
@@ -177,7 +178,11 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			
 		} else if (request.getDeviceModel()!=null) { // Modelled device created
 			
-			IRunnableDevice<Object> device = dservice.createRunnableDevice(request.getDeviceModel(), request.isConfigure());
+			String name = request.getDeviceModel() instanceof IDetectorModel
+                        ? ((IDetectorModel)request.getDeviceModel()).getName()
+                        : null;
+			IRunnableDevice<Object> device = name != null ? dservice.getRunnableDevice(name) : null;
+			if (device==null) dservice.createRunnableDevice(request.getDeviceModel(), request.isConfigure());
 			DeviceInformation<?> info = ((AbstractRunnableDevice<?>)device).getDeviceInformation();
 			request.addDeviceInformation(info);
 			

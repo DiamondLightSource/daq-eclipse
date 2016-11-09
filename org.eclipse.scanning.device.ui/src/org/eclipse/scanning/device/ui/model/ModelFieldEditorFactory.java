@@ -206,7 +206,7 @@ public class ModelFieldEditorFactory {
 		} else if (deviceType == DeviceType.RUNNABLE) {
 			Collection<DeviceInformation<?>> infos = dservice.getDeviceInformation();
 			items = new ArrayList<String>(infos.size());
-			infos.forEach(info->{if (info.getDeviceRole().isHardware()) items.add(info.getName());});
+			infos.forEach(info->{if (info.getDeviceRole().isDetector()) items.add(info.getName());});
 		} else {
 			throw new ScanningException("Unrecognised device "+deviceType);
 		}
