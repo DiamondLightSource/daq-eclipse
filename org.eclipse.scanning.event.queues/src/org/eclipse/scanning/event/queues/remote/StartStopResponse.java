@@ -3,9 +3,19 @@ package org.eclipse.scanning.event.queues.remote;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
+import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 
+/**
+ * A response which will start, stop or restart the {@link IQueueService} 
+ * associated with the {@link IQueueControllerService}. The response returns 
+ * the request to the user unchanged since there is no output from the 
+ * start/stop calls, except an {@link EventException}.  
+ * 
+ * @author Michael Wharmby
+ *
+ */
 public class StartStopResponse extends AbstractQueueResponseProcess {
 	
 	private IQueueControllerService queueControl;
