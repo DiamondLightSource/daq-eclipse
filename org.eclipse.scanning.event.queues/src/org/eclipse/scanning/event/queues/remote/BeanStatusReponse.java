@@ -25,7 +25,7 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * @author Michael Wharmby
  *
  */
-public class BeanStatusReponse extends QueueResponseProcess {
+public class BeanStatusReponse extends AbstractQueueResponseProcess {
 	
 	private IQueueService queueService;
 	private Status foundStatus = null;

@@ -7,7 +7,7 @@ import org.eclipse.scanning.api.event.core.IResponseProcess;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 
 /**
- * Class responsible for creating the {@link QueueResponseProcess} objects.
+ * Class responsible for creating the {@link AbstractQueueResponseProcess} objects.
  * 
  * @author Michael Wharmby
  *

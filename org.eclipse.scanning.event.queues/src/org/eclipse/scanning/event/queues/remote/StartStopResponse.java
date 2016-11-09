@@ -6,7 +6,7 @@ import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 
-public class StartStopResponse extends QueueResponseProcess {
+public class StartStopResponse extends AbstractQueueResponseProcess {
 	
 	private IQueueControllerService queueControl;
 	
