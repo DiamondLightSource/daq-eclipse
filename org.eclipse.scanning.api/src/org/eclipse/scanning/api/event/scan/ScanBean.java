@@ -53,10 +53,6 @@ public final class ScanBean extends StatusBean {
 	 */
 	private int       size;  
 	
-	/**
-	 * The rank of the scan.
-	 */
-	private int       rank;
 	
 	private IPosition position;
 	

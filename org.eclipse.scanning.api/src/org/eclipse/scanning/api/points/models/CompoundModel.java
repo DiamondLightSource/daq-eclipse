@@ -85,7 +85,7 @@ public class CompoundModel<R> implements Cloneable {
 	 */
 	public CompoundModel<R> clone(List<Object> models) {
 		CompoundModel<R> ret = clone();
-		ret.setModels(models);
+		ret.models = models;
 		return ret;
 	}
 
