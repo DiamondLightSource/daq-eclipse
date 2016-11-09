@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.api.roi.IRectangularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointContainer;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -91,6 +92,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 			if (regions != null && !regions.isEmpty())  {
 				setBounds(model, new ArrayList<>(regions));
 				gen.setContainers(wrap(regions));
+				gen.setRegions((Collection<Object>) regions);
 			}
 			gen.setModel(model);
 			return gen;
@@ -110,16 +112,24 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		}
 		
 		if (model instanceof IBoundingBoxModel) {
-
+			IBoundingBoxModel bbm = (IBoundingBoxModel) model;
+			if (bbm.getBoundingBox() != null) {
+				IRectangularROI modelsROI = new RectangularROI(
+						bbm.getBoundingBox().getFastAxisStart(), 
+						bbm.getBoundingBox().getSlowAxisStart(),
+		                bbm.getBoundingBox().getFastAxisLength(), 
+		                bbm.getBoundingBox().getSlowAxisLength(),
+		                0);
+				
+				rect = rect.bounds(modelsROI);
+			}
 			BoundingBox box = new BoundingBox();
 			box.setFastAxisStart(rect.getPoint()[0]);
 			box.setSlowAxisStart(rect.getPoint()[1]);
 			box.setFastAxisLength(rect.getLength(0));
 			box.setSlowAxisLength(rect.getLength(1));
-			((IBoundingBoxModel) model).setBoundingBox(box);
-
+			bbm.setBoundingBox(box);
 		} else if (model instanceof IBoundingLineModel) {
-				
 			BoundingLine line = new BoundingLine();
 			LinearROI lroi = (LinearROI) regions.get(0);
 			line.setxStart(lroi.getPoint()[0]);

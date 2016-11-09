@@ -97,6 +97,38 @@ public class ScanPointGeneratorFactory {
     public static JythonObjectFactory JFixedDurationMutatorFactory() {
         return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JFixedDurationMutator");
     }
+    
+    public static JythonObjectFactory JCircularROIFactory() {
+        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JCircularROI");
+    }
+    
+    public static JythonObjectFactory JEllipticalROIFactory() {
+        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JEllipticalROI");
+    }
+    
+    public static JythonObjectFactory JLinearROIFactory() {
+        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JLinearROI");
+    }
+    
+    public static JythonObjectFactory JPointROIFactory() {
+        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JPointROI");
+    }
+    
+    public static JythonObjectFactory JPolygonalROIFactory() {
+        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JPolygonalROI");
+    }
+    
+    public static JythonObjectFactory JRectangularROIFactory() {
+        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JRectangularROI");
+    }
+    
+    public static JythonObjectFactory JSectorROIFactory() {
+        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JSectorROI");
+    }
+    
+    public static JythonObjectFactory JExcluderFactory() {
+        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JExcluder");
+    }
 
     // This class creates Java objects from Jython classes
     public static class JythonObjectFactory {
