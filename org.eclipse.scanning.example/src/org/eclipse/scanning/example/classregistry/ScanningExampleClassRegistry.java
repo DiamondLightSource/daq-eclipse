@@ -23,16 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IClassRegistry;
-import org.eclipse.scanning.api.malcolm.attributes.BooleanArrayAttribute;
-import org.eclipse.scanning.api.malcolm.attributes.BooleanAttribute;
-import org.eclipse.scanning.api.malcolm.attributes.ChoiceAttribute;
-import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
-import org.eclipse.scanning.api.malcolm.attributes.NumberArrayAttribute;
-import org.eclipse.scanning.api.malcolm.attributes.NumberAttribute;
-import org.eclipse.scanning.api.malcolm.attributes.PointGeneratorAttribute;
-import org.eclipse.scanning.api.malcolm.attributes.StringArrayAttribute;
-import org.eclipse.scanning.api.malcolm.attributes.StringAttribute;
-import org.eclipse.scanning.api.malcolm.attributes.TableAttribute;
 import org.eclipse.scanning.example.detector.ConstantVelocityModel;
 import org.eclipse.scanning.example.detector.DarkImageModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
@@ -55,16 +45,6 @@ public class ScanningExampleClassRegistry implements IClassRegistry {
 		registerClass(tmp, DarkImageModel.class);
 		registerClass(tmp, MandelbrotModel.class);
 		registerClass(tmp, DummyMalcolmModel.class);
-		registerClass(tmp, ChoiceAttribute.class);
-		registerClass(tmp, BooleanArrayAttribute.class);
-		registerClass(tmp, BooleanAttribute.class);
-		registerClass(tmp, MalcolmAttribute.class);
-		registerClass(tmp, NumberArrayAttribute.class);
-		registerClass(tmp, NumberAttribute.class);
-		registerClass(tmp, PointGeneratorAttribute.class);
-		registerClass(tmp, StringArrayAttribute.class);
-		registerClass(tmp, StringAttribute.class);
-		registerClass(tmp, TableAttribute.class);
 
 		// scannable
 		registerClass(tmp, MockBeanOnMonitor.class);
