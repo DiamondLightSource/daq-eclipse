@@ -68,8 +68,9 @@ public class DetectorView extends EventConnectionView {
 	
 	public DetectorView() {
 		
-		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_PROCESSING, true);
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_HARDWARE, true);
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_MALCOLM, true);
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_PROCESSING, true);
 		try {
 		    this.defaultIcon = Activator.getImageDescriptor("icons/camera-lens.png").createImage();
 		    this.ticked      = Activator.getImageDescriptor("icons/ticked.png").createImage();
@@ -245,9 +246,10 @@ public class DetectorView extends EventConnectionView {
 		IMenuManager popup = new MenuManager();
 		List<IContributionManager> mans = Arrays.asList(getViewSite().getActionBars().getToolBarManager(), getViewSite().getActionBars().getMenuManager(), popup);
 
-		IAction showProcessing = createPreferenceAction("Show Processing", DevicePreferenceConstants.SHOW_PROCESSING, "icons/processing.png");
 		IAction showHardware   = createPreferenceAction("Show Devices",   DevicePreferenceConstants.SHOW_HARDWARE,   "icons/camera-lens.png");
-		ViewUtil.addGroups("visibility", mans, showHardware, showProcessing);
+		IAction showMalcolm   = createPreferenceAction("Show Malcolm Devices",   DevicePreferenceConstants.SHOW_MALCOLM,   "icons/alarm-clock-select.png");
+		IAction showProcessing = createPreferenceAction("Show Processing", DevicePreferenceConstants.SHOW_PROCESSING, "icons/processing.png");
+		ViewUtil.addGroups("visibility", mans, showHardware, showMalcolm, showProcessing);
 		
 		IAction refresh = new Action("Refresh", Activator.getImageDescriptor("icons/recycle.png")) {
 			public void run() {

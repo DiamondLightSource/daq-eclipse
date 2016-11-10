@@ -46,7 +46,7 @@ public enum DeviceRole {
 		return this==MALCOLM;
 	}
 	
-	public boolean isHardware() {
+	public boolean isDetector() {
 		return this==MALCOLM || this==HARDWARE;
 	}
 
