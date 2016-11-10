@@ -177,7 +177,6 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		JythonObjectFactory excluderFactory = ScanPointGeneratorFactory.JExcluderFactory();
 		JythonObjectFactory circularROIFactory = ScanPointGeneratorFactory.JCircularROIFactory();
 		JythonObjectFactory ellipticalROIFactory = ScanPointGeneratorFactory.JEllipticalROIFactory();
-		JythonObjectFactory linearROIFactory = ScanPointGeneratorFactory.JLinearROIFactory();
 		JythonObjectFactory pointROIFactory = ScanPointGeneratorFactory.JPointROIFactory();
 		JythonObjectFactory polygonalROIFactory = ScanPointGeneratorFactory.JPolygonalROIFactory();
 		JythonObjectFactory rectangularROIFactory = ScanPointGeneratorFactory.JRectangularROIFactory();

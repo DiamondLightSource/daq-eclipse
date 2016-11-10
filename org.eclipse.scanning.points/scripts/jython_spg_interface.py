@@ -13,7 +13,6 @@ from scanpointgenerator import RandomOffsetMutator
 from scanpointgenerator import FixedDurationMutator
 from scanpointgenerator import CircularROI
 from scanpointgenerator import EllipticalROI
-from scanpointgenerator import LinearROI
 from scanpointgenerator import PointROI
 from scanpointgenerator import PolygonalROI
 from scanpointgenerator import RectangularROI
@@ -321,12 +320,6 @@ class JEllipticalROI(object):
     
     def __init__(self, centre, semiaxes, angle=0):
         self.py_roi = EllipticalROI(centre, semiaxes, angle)
-        logging.debug(self.py_roi.to_dict())
-        
-class JLinearROI(object):
-    
-    def __init__(self, start, length, angle):
-        self.py_roi = LinearROI(start, length, angle)
         logging.debug(self.py_roi.to_dict())
         
 class JPointROI(object):

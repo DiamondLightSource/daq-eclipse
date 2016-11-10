@@ -106,10 +106,6 @@ public class ScanPointGeneratorFactory {
         return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JEllipticalROI");
     }
     
-    public static JythonObjectFactory JLinearROIFactory() {
-        return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JLinearROI");
-    }
-    
     public static JythonObjectFactory JPointROIFactory() {
         return new JythonObjectFactory(PyObject.class, "jython_spg_interface", "JPointROI");
     }
