@@ -10,6 +10,7 @@ import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.usage.SystemUsage;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
+import org.eclipse.scanning.example.xcen.classregistry.XcenBeanClassRegistry;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.junit.AfterClass;
@@ -46,6 +47,7 @@ public class BrokerTest extends TmpTest {
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
 						new ScanningExampleClassRegistry(),
+						new XcenBeanClassRegistry(),
 						new ScanningTestClassRegistry()),
 				Arrays.asList(new PointsModelMarshaller())
 				));
