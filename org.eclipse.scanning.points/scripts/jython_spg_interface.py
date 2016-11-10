@@ -11,6 +11,13 @@ from scanpointgenerator import LissajousGenerator
 from scanpointgenerator import CompoundGenerator
 from scanpointgenerator import RandomOffsetMutator
 from scanpointgenerator import FixedDurationMutator
+from scanpointgenerator import CircularROI
+from scanpointgenerator import EllipticalROI
+from scanpointgenerator import PointROI
+from scanpointgenerator import PolygonalROI
+from scanpointgenerator import RectangularROI
+from scanpointgenerator import SectorROI
+from scanpointgenerator import Excluder
 
 ## Logging
 import logging
@@ -296,3 +303,45 @@ class JFixedDurationMutator(object):
     def __init__(self, duration):
         self.py_mutator = FixedDurationMutator(duration)
         logging.debug(self.py_mutator.to_dict())
+        
+class JExcluder(object):
+    
+    def __init__(self, roi, scannables):
+        self.py_excluder = Excluder(roi.py_roi, scannables)
+        logging.debug(self.py_excluder.to_dict())
+        
+class JCircularROI(object):
+    
+    def __init__(self, centre, radius):
+        self.py_roi = CircularROI(centre, radius)
+        logging.debug(self.py_roi.to_dict())
+        
+class JEllipticalROI(object):
+    
+    def __init__(self, centre, semiaxes, angle=0):
+        self.py_roi = EllipticalROI(centre, semiaxes, angle)
+        logging.debug(self.py_roi.to_dict())
+        
+class JPointROI(object):
+    
+    def __init__(self, point):
+        self.py_roi = PointROI(point)
+        logging.debug(self.py_roi.to_dict())
+        
+class JPolygonalROI(object):
+    
+    def __init__(self, points):
+        self.py_roi = PolygonalROI(points)
+        logging.debug(self.py_roi.to_dict())
+        
+class JRectangularROI(object):
+    
+    def __init__(self, start, width, height, angle=0):
+        self.py_roi = RectangularROI(start, width, height, angle)
+        logging.debug(self.py_roi.to_dict())
+        
+class JSectorROI(object):
+    
+    def __init__(self, centre, radii, angles):
+        self.py_roi = SectorROI(centre, radii, angles)
+        logging.debug(self.py_roi.to_dict())
