@@ -232,22 +232,10 @@ public class PVDataSerializationTest {
 		IPointGenerator<GridModel> temp = pgService.createGenerator(gm, regions);
 		IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
 					
-		// Create the expected PVStructure
+		// Create the expected PVStructure. Note, Linear ROIs are not supported so should be empty
 		FieldCreate fieldCreate = FieldFactory.getFieldCreate();
 
 		PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
-		
-		Structure expectedLinearRoiStructure = fieldCreate.createFieldBuilder().
-				addArray("start", ScalarType.pvDouble).
-				add("length", ScalarType.pvDouble).
-				add("angle", ScalarType.pvDouble).
-				setId("scanpointgenerator:roi/LinearROI:1.0").					
-				createStructure();
-		
-		Structure expectedExcluderStructure = fieldCreate.createFieldBuilder().
-				addArray("scannables", ScalarType.pvString).
-				add("roi", expectedLinearRoiStructure).				
-				createStructure();
 
 		Union union = fieldCreate.createVariantUnion();
 		
@@ -258,30 +246,8 @@ public class PVDataSerializationTest {
 				setId("scanpointgenerator:generator/CompoundGenerator:1.0").
 				createStructure();
 		
-		PVStructure expectedExcluderPVStructure = pvDataCreate.createPVStructure(expectedExcluderStructure);
-		PVStringArray scannablesVal = expectedExcluderPVStructure.getSubField(PVStringArray.class, "scannables");
-		String[] scannables = new String[] {"stage_x", "stage_y"};
-		scannablesVal.put(0, scannables.length, scannables, 0);
-		
-		PVStructure expectedROIPVStructure = expectedExcluderPVStructure.getStructureField("roi");
-
-		PVDoubleArray startVal = expectedROIPVStructure.getSubField(PVDoubleArray.class, "start");
-		double[] start = new double[] {3, 4};
-		startVal.put(0, start.length, start, 0);
-		PVDouble lengthVal = expectedROIPVStructure.getSubField(PVDouble.class, "length");
-		lengthVal.put(18);
-		PVDouble angleVal = expectedROIPVStructure.getSubField(PVDouble.class, "angle");
-		angleVal.put(0.75);
-		
 		
 		PVStructure expectedCompGenPVStructure = pvDataCreate.createPVStructure(expectedCompGenStructure);
-		PVUnionArray generators = expectedCompGenPVStructure.getSubField(PVUnionArray.class, "excluders");
-		
-		PVUnion[] unionArray = new PVUnion[1];
-		unionArray[0] = pvDataCreate.createPVUnion(union);
-		unionArray[0].set(expectedExcluderPVStructure);
-				
-		generators.put(0, unionArray.length, unionArray, 0);
 		
 		// Marshal and check against expected
 		PVStructure pvStructure = connectorService.pvMarshal(scan);

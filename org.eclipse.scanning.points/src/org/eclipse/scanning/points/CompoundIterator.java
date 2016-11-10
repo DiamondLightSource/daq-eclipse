@@ -198,8 +198,7 @@ public class CompoundIterator extends AbstractScanPointIterator {
 						EllipticalROI eRoi = (EllipticalROI) roi;
 						pyRoi = ellipticalROIFactory.createObject(eRoi.getPoint(), eRoi.getSemiAxes(), eRoi.getAngle());
 					} else if (roi instanceof LinearROI) {
-						LinearROI lRoi = (LinearROI) roi;
-						pyRoi = linearROIFactory.createObject(lRoi.getPoint(), lRoi.getLength(), lRoi.getAngle());
+						// LinearROIs are not supported so do not add
 					} else if (roi instanceof PointROI) {
 						PointROI pRoi = (PointROI) roi;
 						pyRoi = pointROIFactory.createObject(pRoi.getPoint());
