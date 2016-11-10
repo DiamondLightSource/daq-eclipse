@@ -92,6 +92,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	public void execute() throws EventException {
 		
 		try {		
+			Services.getValidatorService().validate(bean.getScanRequest());
+
 			// Move to a position if they set one
 			if (bean.getScanRequest().getStart()!=null) {
 				positioner.setPosition(bean.getScanRequest().getStart());
@@ -127,7 +129,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 	        // Intentionally do not catch EventException, that passes straight up.
 			
-		} catch (ScanningException | InterruptedException | UnsupportedLanguageException | ScriptExecutionException ne) {
+		} catch (Exception ne) {
 			ne.printStackTrace();
 			logger.error("Cannot execute run "+getBean().getName()+" "+getBean().getUniqueId(), ne);
 			bean.setPreviousStatus(Status.RUNNING);
@@ -135,6 +137,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			bean.setMessage(ne.getMessage());
 			broadcast(bean);
 			
+			if (ne instanceof EventException) throw (EventException)ne;
 			throw new EventException(ne);
 		}
 	}

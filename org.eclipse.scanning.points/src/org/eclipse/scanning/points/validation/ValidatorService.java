@@ -1,6 +1,7 @@
 package org.eclipse.scanning.points.validation;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +11,7 @@ import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.GeneratorException;
@@ -20,6 +22,8 @@ import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.ui.CommandConstants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,27 +36,38 @@ public class ValidatorService implements IValidatorService {
 	}
 	
 	private static IPointGeneratorService factory;
-	
 	public void setPointGeneratorService(IPointGeneratorService pservice) {
 		factory = pservice;
 	}
 	
 	private static IRunnableDeviceService dservice;
+	private static IEventService          eservice;
 	
-	public void setEventService(IEventService eservice) {
-		if (dservice!=null) return;
-		try {
-			dservice = eservice.createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IRunnableDeviceService.class);
-		} catch (Exception ne) {
-			logger.error("Cannot get a device service to validate detector models!");
-		}
+	public void setEventService(IEventService leservice) {
+		eservice = leservice;
 	}
+	
+	private static ComponentContext context;
 	
 	public static IPointGeneratorService getPointGeneratorService() {
 		return factory;
 	}
 	public static IRunnableDeviceService getRunnableDeviceService() {
+		// On the server we have a direct IRunnableDeviceService available.
+		// On the client we must use a remote one.
+		// Since remote one works on server, we always use it.
+		if (dservice==null) {
+			try {
+				dservice = eservice.createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IRunnableDeviceService.class);
+			} catch (EventException | URISyntaxException e) {
+				ServiceReference<IRunnableDeviceService> ref = context.getBundleContext().getServiceReference(IRunnableDeviceService.class);
+				dservice = context.getBundleContext().getService(ref);
+			}
+		}
 		return dservice;
+	}
+	public void start(ComponentContext lcontext) {
+		context = lcontext;
 	}
 
 
