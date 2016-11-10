@@ -1,4 +1,4 @@
-package org.eclipse.scanning.api.annotation;
+package org.eclipse.scanning.api.annotation.scan;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.eclipse.scanning.api.IServiceResolver;
-import org.eclipse.scanning.api.annotation.scan.DeviceAnnotations;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanInformation;
 
