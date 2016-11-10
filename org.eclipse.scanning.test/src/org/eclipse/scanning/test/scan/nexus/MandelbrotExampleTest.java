@@ -18,6 +18,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,6 +152,41 @@ public class MandelbrotExampleTest extends NexusTest {
 		att = nXdata.getAttribute("yNex" + "_value_set_indices");
 		e = att.getFirstElement();
 		assertEquals(1, Integer.parseInt(e));
+	}
+	
+	@Test
+	public void test2DNexusNoImage() throws Exception {
+		detector.getModel().setSaveImage(false);
+		try {
+			
+			IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, new int[]{8,5}); // Outer scan of another scannable, for instance temp.
+			assertScanNotFinished(getNexusRoot(scanner).getEntry());
+			scanner.run(null);
+			
+			NXroot rootNode = getNexusRoot(scanner);
+			NXentry entry = rootNode.getEntry();
+			Map<String, NXdata> nxDataGroups = entry.getChildren(NXdata.class);
+			
+			boolean found = false;
+			
+			Iterator<NXdata> it = nxDataGroups.values().iterator();
+			//check no NXdata of rank 4
+			while (it.hasNext()) {
+				
+				NXdata next = it.next();
+				String signal = next.getAttributeSignal();
+				if (next.getDataNode(signal).getDataset().getRank()==4) {
+					found = true;
+					break;
+				}
+				
+			}
+			assertFalse(found);
+			
+		} finally {
+			detector.getModel().setSaveImage(true);
+		}
+		
 	}
 	
 	@Test

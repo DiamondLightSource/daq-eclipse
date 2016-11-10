@@ -90,18 +90,29 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		NexusObjectWrapper<NXdetector> nexusProvider = new NexusObjectWrapper<>(getName(), detector);
 
 		// "data" is the name of the primary data field (i.e. the 'signal' field of the default NXdata)
-		nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
+		if (model.isSaveImage()) nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
 		// An additional NXdata group with "spectrum" as the signal to hold the 1D spectrum data
-		nexusProvider.addAdditionalPrimaryDataFieldName(FIELD_NAME_SPECTRUM);
+		if (model.isSaveSpectrum() && !model.isSaveImage()) {
+			nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
+		} else if (model.isSaveSpectrum()) {
+			nexusProvider.addAdditionalPrimaryDataFieldName(FIELD_NAME_SPECTRUM);
+		}
 		// An additional NXdata group with "value" as the signal to hold the Mandelbrot value
-		nexusProvider.addAdditionalPrimaryDataFieldName(FIELD_NAME_VALUE);
+		if (model.isSaveValue() && !model.isSaveImage() && !model.isSaveSpectrum()){
+			nexusProvider.setPrimaryDataFieldName(NXdetector.NX_DATA);
+		} else if (model.isSaveValue()) {
+			nexusProvider.addAdditionalPrimaryDataFieldName(FIELD_NAME_VALUE);
+		}
 
 		// Add the axes to the image and spectrum data. scanRank here corresponds to the position
 		// in the axes attribute written in the NeXus file (0 based)
 		int scanRank = info.getRank();
-		nexusProvider.addAxisDataFieldForPrimaryDataField(FIELD_NAME_REAL_AXIS, NXdetector.NX_DATA, scanRank); 
-		nexusProvider.addAxisDataFieldForPrimaryDataField(FIELD_NAME_IMAGINARY_AXIS, NXdetector.NX_DATA, scanRank + 1);
-		nexusProvider.addAxisDataFieldForPrimaryDataField(FIELD_NAME_SPECTRUM_AXIS, FIELD_NAME_SPECTRUM, scanRank);
+		if (model.isSaveImage()) {
+			nexusProvider.addAxisDataFieldForPrimaryDataField(FIELD_NAME_REAL_AXIS, NXdetector.NX_DATA, scanRank);
+			nexusProvider.addAxisDataFieldForPrimaryDataField(FIELD_NAME_IMAGINARY_AXIS, NXdetector.NX_DATA, scanRank + 1);
+		}
+		
+		if (model.isSaveSpectrum())nexusProvider.addAxisDataFieldForPrimaryDataField(FIELD_NAME_SPECTRUM_AXIS, FIELD_NAME_SPECTRUM, scanRank);
 
 		return nexusProvider;
 	}
@@ -111,16 +122,24 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 
 		int scanRank = info.getRank();
 		// We add 2 to the scan rank to include the image
-		imageData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank + 2, Double.class);
+		if (model.isSaveImage()) imageData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank + 2, Double.class);
 		// We add 1 to the scan rank to include the spectrum
-		spectrumData = detector.initializeLazyDataset(FIELD_NAME_SPECTRUM, scanRank + 1, Double.class);
+		if (model.isSaveSpectrum() && !model.isSaveImage()) {
+			spectrumData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank + 1, Double.class);
+		} else if (model.isSaveSpectrum()){
+			spectrumData = detector.initializeLazyDataset(FIELD_NAME_SPECTRUM, scanRank + 1, Double.class);
+		}
 		// Total is a single scalar value (i.e. zero-dimensional) for each point in the scan
 		// Dimensions match that of the scan
-		valueData = detector.initializeLazyDataset(FIELD_NAME_VALUE, scanRank, Double.class);
+		if (model.isSaveValue() && !model.isSaveImage() && !model.isSaveSpectrum()) {
+			valueData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank, Double.class);
+		} else if (model.isSaveValue()) {
+			valueData = detector.initializeLazyDataset(FIELD_NAME_VALUE, scanRank, Double.class);
+		}
 
 		// Setting chunking is a very good idea if speed is required.
-		imageData.setChunking(info.createChunk(model.getRows(), model.getColumns()));
-		spectrumData.setChunking(info.createChunk(model.getPoints()));
+		if (model.isSaveImage()) imageData.setChunking(info.createChunk(model.getRows(), model.getColumns()));
+		if (model.isSaveSpectrum())spectrumData.setChunking(info.createChunk(model.getPoints()));
 
 		// Write detector metadata
 		detector.setField("exposure_time", model.getExposureTime());
@@ -129,9 +148,11 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		detector.setField("max_iterations", model.getMaxIterations());
 
 		// The axis datasets
-		detector.setDataset(FIELD_NAME_REAL_AXIS, DatasetFactory.createLinearSpace(-model.getMaxRealCoordinate(), model.getMaxRealCoordinate(), model.getRows(), Dataset.FLOAT64));
-		detector.setDataset(FIELD_NAME_IMAGINARY_AXIS, DatasetFactory.createLinearSpace(-model.getMaxImaginaryCoordinate(), model.getMaxImaginaryCoordinate(), model.getColumns(), Dataset.FLOAT64));
-		detector.setDataset(FIELD_NAME_SPECTRUM_AXIS, DatasetFactory.createLinearSpace(0.0, model.getMaxRealCoordinate(), model.getPoints(), Dataset.FLOAT64));
+		if (model.isSaveImage()) {
+			detector.setDataset(FIELD_NAME_REAL_AXIS, DatasetFactory.createLinearSpace(-model.getMaxRealCoordinate(), model.getMaxRealCoordinate(), model.getRows(), Dataset.FLOAT64));
+			detector.setDataset(FIELD_NAME_IMAGINARY_AXIS, DatasetFactory.createLinearSpace(-model.getMaxImaginaryCoordinate(), model.getMaxImaginaryCoordinate(), model.getColumns(), Dataset.FLOAT64));
+		}
+		if (model.isSaveSpectrum()) detector.setDataset(FIELD_NAME_SPECTRUM_AXIS, DatasetFactory.createLinearSpace(0.0, model.getMaxRealCoordinate(), model.getPoints(), Dataset.FLOAT64));
 
 		Attributes.registerAttributes(detector, this);
 		
@@ -164,9 +185,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		}
 
 		// Calculate the data for the image spectrum and total
-		image = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
-		spectrum = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxRealCoordinate(), model.getPoints());
-		value = mandelbrot(a, b);
+		if (model.isSaveImage()) image = calculateJuliaSet(a, b, model.getColumns(), model.getRows());
+		if (model.isSaveSpectrum()) spectrum = calculateJuliaSetLine(a, b, 0.0, 0.0, model.getMaxRealCoordinate(), model.getPoints());
+		if (model.isSaveValue()) value = mandelbrot(a, b);
 
 		// See if we need to sleep to honour the requested exposure time
 		long currentTime = System.nanoTime();
@@ -183,17 +204,23 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	public boolean write(IPosition pos) throws ScanningException {
 
 		try {
-			IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(pos, model.getRows(), model.getColumns());
-			SliceND sliceND = new SliceND(imageData.getShape(), imageData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
-			imageData.setSlice(null, image, sliceND);
-			
-			rslice = IScanRankService.getScanRankService().createScanSlice(pos, model.getPoints());
-			sliceND = new SliceND(spectrumData.getShape(), spectrumData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
-			spectrumData.setSlice(null, spectrum, sliceND);
+			if (model.isSaveImage()) {
+				IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(pos, model.getRows(), model.getColumns());
+				SliceND sliceND = new SliceND(imageData.getShape(), imageData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
+				imageData.setSlice(null, image, sliceND);
+			}
 
-			rslice = IScanRankService.getScanRankService().createScanSlice(pos);
-			sliceND = new SliceND(valueData.getShape(), valueData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
-			valueData.setSlice(null, DatasetFactory.createFromObject(value), sliceND);
+			if (model.isSaveSpectrum()){
+				IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(pos, model.getPoints());
+				SliceND sliceND = new SliceND(spectrumData.getShape(), spectrumData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
+				spectrumData.setSlice(null, spectrum, sliceND);
+			}
+
+			if (model.isSaveValue()){
+				IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(pos);
+				SliceND sliceND = new SliceND(valueData.getShape(), valueData.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
+				valueData.setSlice(null, DatasetFactory.createFromObject(value), sliceND);
+			}
 
 		} catch (Exception e) {
 			// Change state to fault if exception is caught
