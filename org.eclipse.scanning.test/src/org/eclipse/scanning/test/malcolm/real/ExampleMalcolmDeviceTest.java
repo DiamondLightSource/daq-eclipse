@@ -30,6 +30,7 @@ import org.eclipse.scanning.points.PointGeneratorFactory;
 import org.eclipse.scanning.points.mutators.FixedDurationMutator;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
+import org.epics.pvdata.pv.PVDouble;
 import org.epics.pvdata.pv.PVDoubleArray;
 import org.epics.pvdata.pv.PVStringArray;
 import org.epics.pvdata.pv.PVStructure;
@@ -44,8 +45,6 @@ public class ExampleMalcolmDeviceTest {
 	private EpicsV4ConnectorService connectorService;
 
 	private IMalcolmService service;
-
-	private IPointGenerator<?> generator = null;
 
 	private ExampleMalcolmDevice dummyMalcolmDevice;
 
@@ -73,15 +72,15 @@ public class ExampleMalcolmDeviceTest {
 
 			// Setup the model and other configuration items
 			List<IROI> regions = new LinkedList<>();
-			regions.add(new CircularROI(2, 6, -1));
-			regions.add(new CircularROI(3, 8, 9));
+			regions.add(new CircularROI(2, 6, 1));
+			regions.add(new CircularROI(4, 8, 9));
 			
 			List<IMutator> mutators = new LinkedList<>();
 			mutators.add(new FixedDurationMutator(23.1));
 
 			IPointGeneratorService pgService = new PointGeneratorFactory();
 			IPointGenerator<SpiralModel> temp = pgService
-					.createGenerator(new SpiralModel("stage_x", "stage_y", 2, new BoundingBox(0, -5, 10, 5)), regions);
+					.createGenerator(new SpiralModel("stage_x", "stage_y", 1, new BoundingBox(0, -5, 8, 3)), regions);
 			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
 			
 			CompoundModel<?> cm = (CompoundModel<?>) scan.getModel();
@@ -247,6 +246,17 @@ public class ExampleMalcolmDeviceTest {
 			Structure fixedMutatorStructure = FieldFactory.getFieldCreate().createFieldBuilder()
 					.add("duration", ScalarType.pvDouble)
 					.setId("scanpointgenerator:mutator/FixedDurationMutator:1.0").createStructure();
+			
+			Structure circularRoiStructure = FieldFactory.getFieldCreate().createFieldBuilder().
+					addArray("centre", ScalarType.pvDouble).
+					add("radius", ScalarType.pvDouble).
+					setId("scanpointgenerator:roi/CircularROI:1.0").					
+					createStructure();
+			
+			Structure excluderStructure = FieldFactory.getFieldCreate().createFieldBuilder().
+					addArray("scannables", ScalarType.pvString).
+					add("roi", circularRoiStructure).				
+					createStructure();
 
 			Structure configureStructure = FieldFactory.getFieldCreate().createFieldBuilder()
 					.add("exposure", ScalarType.pvFloat)
@@ -255,14 +265,14 @@ public class ExampleMalcolmDeviceTest {
 
 			PVStructure spiralGeneratorPVStructure = PVDataFactory.getPVDataCreate()
 					.createPVStructure(spiralGeneratorStructure);
-			double[] centre = new double[] { 7.5, 4.5 };
+			double[] centre = new double[] { 6, 4 };
 			spiralGeneratorPVStructure.getSubField(PVDoubleArray.class, "centre").put(0, centre.length, centre, 0);
-			spiralGeneratorPVStructure.getDoubleField("scale").put(2.0);
+			spiralGeneratorPVStructure.getDoubleField("scale").put(1.0);
 			spiralGeneratorPVStructure.getStringField("units").put("mm");
 			String[] names = new String[] { "stage_x", "stage_y" };
 			spiralGeneratorPVStructure.getSubField(PVStringArray.class, "names").put(0, names.length, names, 0);
 			spiralGeneratorPVStructure.getBooleanField("alternate_direction").put(false);
-			spiralGeneratorPVStructure.getDoubleField("radius").put(8.276472678623424);
+			spiralGeneratorPVStructure.getDoubleField("radius").put(10.816653826391969);
 
 			PVStructure fixedMutatorPVStructure = PVDataFactory.getPVDataCreate()
 					.createPVStructure(fixedMutatorStructure);
@@ -280,6 +290,40 @@ public class ExampleMalcolmDeviceTest {
 			unionArray2[0] = pvu2;
 			configurePVStructure.getUnionArrayField("generator.mutators").put(0, unionArray2.length, unionArray2, 0);
 			configurePVStructure.getFloatField("exposure").put(45.0f);
+			
+			PVStructure expectedExcluder1PVStructure = PVDataFactory.getPVDataCreate().createPVStructure(excluderStructure);
+			PVStringArray scannables1Val = expectedExcluder1PVStructure.getSubField(PVStringArray.class, "scannables");
+			String[] scannables1 = new String[] {"stage_x", "stage_y"};
+			scannables1Val.put(0, scannables1.length, scannables1, 0);
+			
+			PVStructure expectedROIPVStructure1 = expectedExcluder1PVStructure.getStructureField("roi");
+
+			PVDoubleArray cr1CentreVal = expectedROIPVStructure1.getSubField(PVDoubleArray.class, "centre");
+			double[] cr1Centre = new double[] {6, 1};
+			cr1CentreVal.put(0, cr1Centre.length, cr1Centre, 0);
+			PVDouble radius1Val = expectedROIPVStructure1.getSubField(PVDouble.class, "radius");
+			radius1Val.put(2);
+			
+			PVStructure expectedExcluder2PVStructure = PVDataFactory.getPVDataCreate().createPVStructure(excluderStructure);
+			PVStringArray scannables2Val = expectedExcluder2PVStructure.getSubField(PVStringArray.class, "scannables");
+			String[] scannables2 = new String[] {"stage_x", "stage_y"};
+			scannables2Val.put(0, scannables2.length, scannables2, 0);
+			
+			PVStructure expectedROIPVStructure2 = expectedExcluder2PVStructure.getStructureField("roi");
+
+			PVDoubleArray cr2CentreVal = expectedROIPVStructure2.getSubField(PVDoubleArray.class, "centre");
+			double[] cr2Centre = new double[] {8, 9};
+			cr2CentreVal.put(0, cr2Centre.length, cr2Centre, 0);
+			PVDouble radius2Val = expectedROIPVStructure2.getSubField(PVDouble.class, "radius");
+			radius2Val.put(4);
+						
+			PVUnion[] crUnionArray = new PVUnion[2];
+			crUnionArray[0] = PVDataFactory.getPVDataCreate().createPVUnion(union);
+			crUnionArray[0].set(expectedExcluder1PVStructure);
+			crUnionArray[1] = PVDataFactory.getPVDataCreate().createPVUnion(union);
+			crUnionArray[1].set(expectedExcluder2PVStructure);
+					
+			configurePVStructure.getUnionArrayField("generator.excluders").put(0, crUnionArray.length, crUnionArray, 0);
 
 			assertEquals(configureStructure, configureCall.getStructure());
 			assertEquals(configurePVStructure, configureCall);

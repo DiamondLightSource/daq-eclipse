@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.points;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 	protected volatile T model; // Because of the validateModel() method
 	
 	protected List<IPointContainer> containers;
+	protected Collection<Object> regions;
 	private String id;
 	private String label;
 	private String description;
@@ -151,6 +153,17 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 		return false;
 	}
 
+	@Override
+	public Collection<Object> getRegions() {
+		if (regions!=null) return regions;
+		return null;
+	}
+
+	@Override
+	public void setRegions(Collection<Object> regions) throws GeneratorException {
+		this.regions = regions;
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -211,6 +224,7 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 		result = prime * result + ((label == null) ? 0 : label.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
 		result = prime * result + (visible ? 1231 : 1237);
+		result = prime * result + ((regions == null) ? 0 : regions.hashCode());
 		return result;
 	}
 
@@ -256,6 +270,11 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 		} else if (!model.equals(other.model))
 			return false;
 		if (visible != other.visible)
+			return false;
+		if (regions == null) {
+			if (other.regions != null)
+				return false;
+		} else if (!regions.equals(other.regions))
 			return false;
 		return true;
 	}

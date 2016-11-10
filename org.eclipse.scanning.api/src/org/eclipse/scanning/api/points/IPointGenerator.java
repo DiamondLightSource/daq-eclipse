@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -37,6 +38,13 @@ public interface IPointGenerator<T> extends Iterable<IPosition>, IValidator<T>, 
 	 */
 	List<IPointContainer> getContainers();
 	void setContainers(List<IPointContainer> container) throws GeneratorException;
+	
+	/**
+	 * The regions for the generator.
+	 * @return
+	 */
+	Collection<Object> getRegions();
+	void setRegions(Collection<Object> region) throws GeneratorException;
 
 	/**
 	 * The size of the points iterator. This call will be as fast as possible
