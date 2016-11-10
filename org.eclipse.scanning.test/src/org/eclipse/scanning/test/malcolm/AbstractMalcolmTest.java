@@ -18,7 +18,7 @@ import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
-import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +86,7 @@ public abstract class AbstractMalcolmTest {
 	    
 		// Test params for starting the device 		
 	    createParameters(config, -1, imageCount);
-		device.configure(new MapMalcolmDetectorModel(config));
+		device.configure(new MapMalcolmModel(config));
 	    return device;	
 	}
 	
@@ -98,7 +98,7 @@ public abstract class AbstractMalcolmTest {
 		final Thread runner = new Thread(new Runnable() {
 			public void run() {
 				try {
-					device.configure(new MapMalcolmDetectorModel(config));
+					device.configure(new MapMalcolmModel(config));
 				} catch (Exception e) {
 					e.printStackTrace();
 					exceptions.add(e);

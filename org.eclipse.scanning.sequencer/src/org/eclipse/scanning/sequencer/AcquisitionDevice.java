@@ -115,8 +115,12 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			// Make sure all devices report the same scan id
 			for (IRunnableDevice<?> device : model.getDetectors()) {
 				if (device instanceof AbstractRunnableDevice<?>) {
+					// TODO the same bean should not be shared between detectors
 					AbstractRunnableDevice<?> adevice = (AbstractRunnableDevice<?>)device;
-					adevice.setBean(getBean());
+					DeviceState deviceState = adevice.getDeviceState();
+					ScanBean bean = getBean();
+					bean.setDeviceState(deviceState);
+					adevice.setBean(bean);
 					adevice.setPrimaryScanDevice(false);
 				}
 			}

@@ -40,7 +40,6 @@ import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanDataModel;
 import org.eclipse.scanning.api.scan.models.ScanDeviceModel;
@@ -122,7 +121,6 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		// create the scan points writer and add it as a monitor and run listener
 		scanPointsWriter = createScanPointsWriter();
 		scanDevice.addPositionListener(scanPointsWriter);
-		nexusObjectProviders.get(ScanRole.MONITOR).add(scanPointsWriter.getNexusProvider(scanInfo));
 	}
 
 	public void createNexusFile(boolean async) throws ScanningException {
@@ -308,7 +306,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		return devices.stream().map(d -> d.getName()).collect(Collectors.toSet());
 	}
 	
-	private ScanPointsWriter createScanPointsWriter() {
+	protected ScanPointsWriter createScanPointsWriter() {
 		ScanPointsWriter scanPointsWriter = new ScanPointsWriter();
 		
 		// get the nexus object providers for all device types excluding metadata scannables
@@ -345,6 +343,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	
 	private void addDevicesToEntry(NexusEntryBuilder entryBuilder, ScanRole deviceType) throws NexusException {
 		entryBuilder.addAll(nexusObjectProviders.get(deviceType));
+		entryBuilder.add(scanPointsWriter.getNexusProvider(scanInfo));
 		
 		List<CustomNexusEntryModification> customModifications =
 				nexusDevices.get(deviceType).stream().

@@ -31,26 +31,32 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 
 	public static final String GROUP_NAME_SOLSTICE_SCAN = "solstice_scan";
 	
+	public static final String GROUP_NAME_KEYS = "keys";
+	
 	public static final String FIELD_NAME_UNIQUE_KEYS = "uniqueKeys";
 	
-	public static final String FIELD_NAME_POINTS = "points";
+	public static final String FIELD_NAME_SCAN_RANK = "scanRank";
 	
 	public static final String FIELD_NAME_SCAN_FINISHED = "scan_finished";
 	
-	public static final String UNIQUE_KEYS_PATH_IN_EXTERNAL_FILE = "/entry/NDArrayUniqueId/NDArrayUniqueId";
+	public static final String UNIQUE_KEYS_PATH_IN_EXTERNAL_FILE = "/entry/instrument/NDAttributes/NDArrayUniqueId";
 
 	private List<NexusObjectProvider<?>> nexusObjectProviders = null;
 	
 	private ILazyWriteableDataset uniqueKeys = null;
 
-	private ILazyWriteableDataset points = null;
-	
 	private ILazyWriteableDataset scanFinished = null;
 
 	private NexusObjectWrapper<NXcollection> nexusProvider = null;
 	
+	private boolean malcolmScan = false;
+	
 	public void setNexusObjectProviders(List<NexusObjectProvider<?>> nexusObjectProviders) {
 		this.nexusObjectProviders = nexusObjectProviders;
+	}
+	
+	public void setMalcolmScan(boolean malcolmScan) {
+		this.malcolmScan = malcolmScan;
 	}
 	
 	/* (non-Javadoc)
@@ -64,7 +70,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 			nexusProvider = new NexusObjectWrapper<NXcollection>(
 					GROUP_NAME_SOLSTICE_SCAN, scanPointsCollection);
 			nexusProvider.setPrimaryDataFieldName(FIELD_NAME_UNIQUE_KEYS);
-			nexusProvider.setAxisDataFieldNames(FIELD_NAME_UNIQUE_KEYS, FIELD_NAME_POINTS);
+			nexusProvider.setAxisDataFieldNames(FIELD_NAME_UNIQUE_KEYS);
 		}
 		
 		return nexusProvider;
@@ -72,21 +78,9 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 
 	public NXcollection createNexusObject(NexusScanInfo info) {
 		final NXcollection scanPointsCollection = NexusNodeFactory.createNXcollection();
-		// create the unique keys and scan points datasets
-		uniqueKeys = scanPointsCollection.initializeLazyDataset(
-				FIELD_NAME_UNIQUE_KEYS, info.getRank(), Integer.class);
-		points = scanPointsCollection.initializeLazyDataset(
-				FIELD_NAME_POINTS, info.getRank(), String.class);
-		// set chunking
-		if (info.getRank() > 0) {
-			final int[] chunk = info.createChunk(false, 8);
-			uniqueKeys.setFillValue(0);
-			uniqueKeys.setChunking(chunk);
-			points.setChunking(chunk);
-		}
 		
-		// add external links to the unique key datasets for each external HD5 file
-		addLinksToExternalFiles(scanPointsCollection);
+		// add a field for the scan rank
+		scanPointsCollection.setField(FIELD_NAME_SCAN_RANK, info.getRank());
 
 		// create the scan finished dataset and set the initial value to false
 //		scanFinished = scanPointsCollection.initializeFixedSizeLazyDataset(
@@ -96,6 +90,28 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 				new int[] { 1 }, null, null);
 		scanFinished.setFillValue(0);
 		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);
+
+		// create a sub-collection for the unique keys field and keys from each external file
+		final NXcollection keysCollection = NexusNodeFactory.createNXcollection();
+		scanPointsCollection.addGroupNode(GROUP_NAME_KEYS, keysCollection);
+		
+		// create the unique keys dataset (not for malcolm scans)
+		if (!malcolmScan) {
+			uniqueKeys = keysCollection.initializeLazyDataset(
+					FIELD_NAME_UNIQUE_KEYS, info.getRank(), Integer.class);
+		}
+
+		// set chunking for lazy datasets
+		if (info.getRank() > 0) {
+			final int[] chunk = info.createChunk(false, 8);
+			if (!malcolmScan) {
+				uniqueKeys.setFillValue(0);
+				uniqueKeys.setChunking(chunk);
+			}
+		}
+		
+		// add external links to the unique key datasets for each external HD5 file
+		addLinksToExternalFiles(keysCollection);
 		
 		return scanPointsCollection;
 	}
@@ -136,15 +152,17 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	private void addLinksToExternalFiles(final NXcollection scanPointsCollection) {
 		if (nexusObjectProviders == null) throw new IllegalStateException("nexusObjectProviders not set");
 		
+		// TODO: we may already have written to this external file
+		
 		for (NexusObjectProvider<?> nexusObjectProvider : nexusObjectProviders) {
-			String externalFileName = nexusObjectProvider.getExternalFileName();
-			if (externalFileName != null) {
+//			String externalFileName = nexusObjectProvider.getDefaultExternalFileName();
+//			if (externalFileName != null) {
 				// TODO check handling of slashes, should '..' also be handled?
 				// also chop off file extension?  
-				String datasetName = externalFileName.replace("/", "__");
-				scanPointsCollection.addExternalLink(externalFileName, datasetName,
-						UNIQUE_KEYS_PATH_IN_EXTERNAL_FILE);
-			}
+//				String datasetName = externalFileName.replace("/", "__");
+//				scanPointsCollection.addExternalLink(datasetName, externalFileName,
+//						UNIQUE_KEYS_PATH_IN_EXTERNAL_FILE);
+//			}
 		}
 	}
 
@@ -158,14 +176,13 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	 */
 	private void writePosition(IPosition position) throws Exception {
 		IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(position);
-		SliceND sliceND = new SliceND(uniqueKeys.getShape(), uniqueKeys.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 		
-		final int uniqueKey = position.getStepIndex() + 1;
-		final Dataset newActualPosition = DatasetFactory.createFromObject(uniqueKey);
-		uniqueKeys.setSlice(null, newActualPosition, sliceND);
-		
-		final Dataset point = DatasetFactory.createFromObject(position.toString());
-		points.setSlice(null, point, sliceND);
+		if (!malcolmScan) {
+			SliceND sliceND = new SliceND(uniqueKeys.getShape(), uniqueKeys.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
+			final int uniqueKey = position.getStepIndex() + 1;
+			final Dataset newActualPosition = DatasetFactory.createFromObject(uniqueKey);
+			uniqueKeys.setSlice(null, newActualPosition, sliceND);
+		}
 	}
 
 }

@@ -73,6 +73,12 @@ public class MalcolmNexusScanFileManager extends NexusScanFileManager {
 	
 		return super.getNexusScannable(scannableName);
 	}
+	
+	protected ScanPointsWriter createScanPointsWriter() {
+		ScanPointsWriter scanPointsWriter = super.createScanPointsWriter();
+		scanPointsWriter.setMalcolmScan(true);
+		return scanPointsWriter;
+	}
 
 	private Set<String> getMalcolmControlledAxes() throws ScanningException {
 		try {
@@ -96,7 +102,7 @@ public class MalcolmNexusScanFileManager extends NexusScanFileManager {
 		// Malcolm devices should only return NXdetectors, NXmonitors and NXpositions
 		// based on the type of device.
 		ScanRole scanRole = DEFAULT_SCAN_ROLES.get(nexusProvider.getNexusBaseClass());
-		if (scanRole != null) {
+		if (scanRole == null) {
 			throw new ScanningException("Unable to determine scan role for nexus object of type " +
 					nexusProvider.getNexusBaseClass());
 		}

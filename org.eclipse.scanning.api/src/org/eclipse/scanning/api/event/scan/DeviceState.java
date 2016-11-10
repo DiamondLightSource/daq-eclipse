@@ -11,7 +11,20 @@ package org.eclipse.scanning.api.event.scan;
 public enum DeviceState {
 
 	RESETTING,IDLE,EDITING,EDITABLE,SAVING,REVERTING,READY,CONFIGURING,PRERUN,RUNNING,POSTRUN,PAUSED,SEEKING,ABORTING,ABORTED,FAULT,DISABLING,DISABLED;
+	
+	private String stringVal;
+	
+	private DeviceState() {
+		stringVal = name().substring(0, 1) + name().substring(1).toLowerCase();
+		if (name().endsWith("RUN")) {
+			stringVal = stringVal.substring(0, name().indexOf("RUN")) + "Run"; 
+		}
+	}
 
+	public String toString() {
+		return stringVal;
+	}
+	
 	/**
 	 * The run method may be called
 	 * @return
@@ -51,4 +64,6 @@ public enum DeviceState {
 	public boolean isRestState() {
 		return this==IDLE || this==READY || this==FAULT || this==ABORTED || this==DISABLED;
 	}
+	
+	
 }

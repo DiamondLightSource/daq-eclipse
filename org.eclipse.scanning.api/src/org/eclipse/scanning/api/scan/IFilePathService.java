@@ -19,6 +19,17 @@ public interface IFilePathService {
 	String getNextPath(String template) throws Exception;
 	
 	/**
+	 * Creates and returns the path of a new folder in the same parent folder as file path with
+	 * the same name as the given file, minus the file extension. This folder can be used to
+	 * write linked files to for the given scan. If the filename given is a filepath, only the
+	 * last segment will be used.
+	 * @param filename the name of the file 
+	 * @return path of new folder
+	 * @throws Exception if the folder cannot be created for any reason
+	 */
+	String createFolderForLinkedFiles(String filename) throws Exception;
+	
+	/**
 	 * Returns the name of the path returned by the most recent call to
 	 * {@link #getNextPath()}. Note that this is not guaranteed to be the file for the current
 	 * scan.

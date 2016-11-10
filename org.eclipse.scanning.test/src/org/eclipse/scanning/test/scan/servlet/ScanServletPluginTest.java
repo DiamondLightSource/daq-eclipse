@@ -25,8 +25,7 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
-import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
-import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -278,16 +277,9 @@ public class ScanServletPluginTest {
 		tmp.deleteOnExit();
 		req.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
 		
-		final MapMalcolmDetectorModel malcModel = new MapMalcolmDetectorModel();
+		final MapMalcolmModel malcModel = new MapMalcolmModel();
 		// Test params for starting the device
 		fillParameters(malcModel.getParameterMap(), -1, 10);
-
-		final MalcolmConnectionInfo connectionInfo = new MalcolmConnectionInfo();
-		connectionInfo.setDeviceName("zebra");
-		connectionInfo.setHostName("standard");
-		connectionInfo.setPort(-1);
-
-		malcModel.setConnectionInfo(connectionInfo);
 
 		req.putDetector("zebra", malcModel);
 		

@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.models.IMalcolmModel;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
@@ -46,7 +47,7 @@ public class MalcolmService implements IMalcolmService {
 	 * @return
 	 * @throws MalcolmDeviceException
 	 */
-	public <T> IMalcolmDevice<T> getDevice(String name) throws MalcolmDeviceException {
+	public <M extends IMalcolmModel> IMalcolmDevice<M> getDevice(String name) throws MalcolmDeviceException {
         return getDevice(name, null);
 	}
 	
@@ -60,14 +61,14 @@ public class MalcolmService implements IMalcolmService {
 	 * @throws MalcolmDeviceException
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> IMalcolmDevice<T> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
+	public <M extends IMalcolmModel> IMalcolmDevice<M> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException {
 
 		// Check that the connector is not null
 		if (connector==null) throw new MalcolmDeviceException("No connector has been set up for this Service");
 		
-		if (devices.containsKey(name)) return (IMalcolmDevice<T>)devices.get(name);
+		if (devices.containsKey(name)) return (IMalcolmDevice<M>)devices.get(name);
 		
-		IMalcolmDevice<T> device = new MalcolmDevice<T>(name, connector, runnableDeviceService, publisher); // Might throw exception
+		IMalcolmDevice<M> device = new MalcolmDevice(name, connector, runnableDeviceService, publisher); // Might throw exception
 		devices.put(name, device);
 		return device;
 	}
