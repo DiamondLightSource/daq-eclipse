@@ -22,12 +22,10 @@ public class DummyMalcolmModel extends AbstractDetectorModel {
 	@FieldDescriptor(label="Directory", hint="The directory where the h5 files will be created", file=FileType.NEW_FOLDER)
 	private String filePath;
 	
-	/**
-	 * TODO Why are generators in the malcolm model?
-	 */
 	@FieldDescriptor(visible=false)
 	private IPointGenerator<?> generator;
 	
+	@FieldDescriptor(visible=false)
 	private List<DummyMalcolmControlledDeviceModel> dummyDeviceModels = Collections.emptyList();
 
 	public String getFilePath() {

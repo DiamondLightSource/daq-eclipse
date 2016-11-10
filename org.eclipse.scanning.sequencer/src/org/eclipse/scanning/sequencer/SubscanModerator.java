@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.points.GeneratorException;
@@ -31,11 +32,15 @@ public class SubscanModerator {
 	private Iterable<IPosition>    outerIterable;
 	private Iterable<IPosition>    innerIterable;
 	private IPointGeneratorService gservice;
-	private List<Object> outer;
-	private List<Object> inner;
+	private CompoundModel<?>       compoundModel;
 
 	public SubscanModerator(Iterable<IPosition> generator, List<IRunnableDevice<?>> detectors, IPointGeneratorService gservice) throws ScanningException {
+		this(generator, null, detectors, gservice);
+	}
+
+	public SubscanModerator(Iterable<IPosition> generator, CompoundModel<?> cmodel, List<IRunnableDevice<?>> detectors, IPointGeneratorService gservice) throws ScanningException {
 		this.gservice = gservice;
+		this.compoundModel   = cmodel!=null ? cmodel : getModel(generator);
 		try {
 			moderate(generator, detectors);
 		} catch (MalcolmDeviceException | GeneratorException e) {
@@ -43,31 +48,46 @@ public class SubscanModerator {
 		}
 	}
 	
+	private CompoundModel<?> getModel(Iterable<IPosition> it) {
+		if (it instanceof IPointGenerator<?>) {
+			IPointGenerator<?> gen = (IPointGenerator<?>)it;
+			Object model = gen.getModel();
+			return model instanceof CompoundModel ? (CompoundModel<?>)model : null;
+		}
+		return null;
+	}
+
+	private List<Object> outer;
+	private List<Object> inner;
+
 	@SuppressWarnings("rawtypes")
 	private void moderate(Iterable<IPosition> generator, List<IRunnableDevice<?>> detectors) throws GeneratorException, ScanningException {
 		
+		outerIterable = generator; // We will reassign it to the outer scan if there is one, otherwise it is the full scan.
 		if (detectors==null || detectors.isEmpty()) {
-			outerIterable = generator;
 			return;
 		}
+		boolean malcolmDevicesFound = false;
+		for (IRunnableDevice<?> device : detectors) {
+			if (device.getRole()==DeviceRole.MALCOLM) {
+				malcolmDevicesFound = true;
+				break;
+			}
+		}
+		if (!malcolmDevicesFound) {
+			return;
+		}
+		
 		if (!(generator instanceof IPointGenerator<?>)) {
-			outerIterable = generator;
-			return;
-		}
-		IPointGenerator<?> gen = (IPointGenerator<?>)generator;
-		if (!(gen.getModel() instanceof CompoundModel)) {
-			outerIterable = gen;
 			return;
 		}
 		
 		List<String> axes = getAxes(detectors);
 		if (axes==null || axes.isEmpty()) {
-			outerIterable = gen;
 			return;
 		}
 		
 		// We need a compound model to moderate this stuff
-		final CompoundModel<?> compoundModel = (CompoundModel)gen.getModel();
 		List<Object> orig   = compoundModel.getModels();
 		if (orig.isEmpty()) throw new ScanningException("No models are provided in the compound model!");
 		

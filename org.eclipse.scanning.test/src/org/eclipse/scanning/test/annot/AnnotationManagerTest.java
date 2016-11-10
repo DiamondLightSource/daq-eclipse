@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.eclipse.scanning.api.annotation.AnnotationManager;
-import org.eclipse.scanning.api.annotation.LevelComparitor;
+import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.LevelComparitor;
 import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;

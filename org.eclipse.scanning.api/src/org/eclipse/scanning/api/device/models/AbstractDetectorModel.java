@@ -7,7 +7,7 @@ public abstract class AbstractDetectorModel implements IDetectorModel {
 	/**
 	 * The name of the detector device
 	 */
-	@FieldDescriptor(label="Name")
+	@FieldDescriptor(label="Name", editable=false)
 	private String name;
 
 	/**

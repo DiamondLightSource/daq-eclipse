@@ -432,7 +432,9 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * @throws ScanningException
 	 */
 	public final DeviceInformation<T> getDeviceInformation() throws ScanningException {
-		if (deviceInformation==null) deviceInformation = new DeviceInformation<T>();
+		if (deviceInformation==null) {
+			deviceInformation = new DeviceInformation<T>();
+		}
 		deviceInformation.setModel(getModel());
 		deviceInformation.setState(getDeviceState());
 		deviceInformation.setDeviceRole(getRole());

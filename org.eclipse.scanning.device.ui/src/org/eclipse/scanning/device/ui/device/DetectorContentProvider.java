@@ -7,6 +7,7 @@ import java.util.List;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -56,13 +57,16 @@ class DetectorContentProvider implements IStructuredContentProvider {
 		
 		try {
 		    final List<DeviceInformation<?>> devices = new ArrayList<>(infos.size());
-		    final boolean isDevice     = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_HARDWARE);
+		    final boolean isHardware   = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_HARDWARE);
+		    final boolean isMalcolm    = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_MALCOLM);
 		    final boolean isProcessing = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_PROCESSING);
 		    infos.forEach(info-> {
-		    	if (info.getDeviceRole().isHardware()) {
-		    		if (isDevice) devices.add(info);
-		    	} else if (info.getDeviceRole().isProcessing()) {
+		    	if (info.getDeviceRole()==DeviceRole.HARDWARE) {
+		    		if (isHardware) devices.add(info);
+		    	} else if (info.getDeviceRole()==DeviceRole.PROCESSING) {
 		    		if (isProcessing) devices.add(info);
+		    	}else if (info.getDeviceRole()==DeviceRole.MALCOLM) {
+		    		if (isMalcolm) devices.add(info);
 		    	}
 		    });
 		    return devices.toArray(new DeviceInformation[devices.size()]);

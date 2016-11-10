@@ -27,4 +27,13 @@ public interface IValidator<T> {
 		return; // They should implement a validation which throws an exception
 	}
 
+	/**
+	 * The validation server will set itself on any validator incase that validator
+	 * want to validate sub-parts of a complex model.
+	 * 
+	 * @param vservice
+	 */
+	default void setService(IValidatorService vservice) {
+		
+	}
 }

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.annotation.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PostConfigure;
 import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
