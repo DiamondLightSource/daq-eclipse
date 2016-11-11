@@ -15,6 +15,8 @@ import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerEventConnector;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequestType;
@@ -95,44 +97,48 @@ public class _QueueControllerService extends AbstractRemoteService implements IQ
 
 	@Override
 	public <T extends Queueable> void submit(T bean, String queueID) throws EventException {
+		checkBeanType(bean, queueID);
 		String submitQueueName = getQueue(queueID).getSubmissionQueueName();
 		eventConnector.submit(bean, submitQueueName);
 	}
 
 	@Override
 	public <T extends Queueable> void remove(T bean, String queueID) throws EventException {
+		checkBeanType(bean, queueID);
 		String submitQueueName = getQueue(queueID).getSubmissionQueueName();
 		boolean success = eventConnector.remove(bean, submitQueueName);
 		if (!success) {
 			logger.error("Bean removal failed. Is it in the status set already?");
-			throw new EventException("Bean removal failed. It may be in the status set already.");
+			throw new EventException("Bean removal failed.");
 		}
 	}
 
 	@Override
 	public <T extends Queueable> void reorder(T bean, int move, String queueID) throws EventException {
+		checkBeanType(bean, queueID);
 		String submitQueueName = getQueue(queueID).getSubmissionQueueName();
 		boolean success = eventConnector.reorder(bean, move, submitQueueName);
 		if (!success) {
 			logger.error("Bean reordering failed. Is it in the status set already?");
-			throw new EventException("Bean reordering failed. It may be in the status set already.");
+			throw new EventException("Bean reordering failed.");
 		}
 	}
 
 	@Override
 	public <T extends Queueable> void pause(T bean, String queueID) throws EventException {
-		//Determine if bean is in a pausable state
+		//Determine if bean is the right type & in a pausable state
+		checkBeanType(bean, queueID);
 		Status beanState;
 		try {
 			String beanID = bean.getUniqueId();
 			beanState = getBeanStatus(beanID, queueID);
 		} catch (EventException evEx) {
-			logger.error("Could not get state of bean in queue. Is it in queue '"+queueID+"'?"+evEx.getMessage());
+			logger.error("Could not get state of bean in queue. Is it in queue '"+queueID+"'? "+evEx.getMessage());
 			throw evEx;
 		}
 		if (beanState.isPaused()) {
-			logger.warn("Bean '"+bean.getName()+"' is already paused.");
-			return;
+			logger.error("Bean '"+bean.getName()+"' is already paused.");
+			throw new IllegalStateException("Bean '"+bean.getName()+"' is already paused");
 		} else if (beanState == Status.SUBMITTED) {
 			logger.error("Bean is submitted but not being processed. Cannot pause.");
 			throw new IllegalStateException("Cannot pause a bean with SUBMITTED status");
@@ -146,18 +152,19 @@ public class _QueueControllerService extends AbstractRemoteService implements IQ
 
 	@Override
 	public <T extends Queueable> void resume(T bean, String queueID) throws EventException {
-		//Determine if bean is in a resumable state
+		//Determine if bean is the right type & in a resumable state
+		checkBeanType(bean, queueID);
 		Status beanState;
 		try {
 			String beanID = bean.getUniqueId();
 			beanState = getBeanStatus(beanID, queueID);
 		} catch (EventException evEx) {
-			logger.error("Could not get state of bean in queue. Is it in queue '"+queueID+"'?"+evEx.getMessage());
+			logger.error("Could not get state of bean in queue. Is it in queue '"+queueID+"'? "+evEx.getMessage());
 			throw evEx;
 		}
 		if (beanState.isResumed() || beanState.isRunning()) {
-			logger.warn("Bean '"+bean.getName()+"' is already resumed/running.");
-			return;
+			logger.error("Bean '"+bean.getName()+"' is already resumed/running.");
+			throw new IllegalStateException("Bean '"+bean.getName()+"' is already resumed/running");
 		} else if (beanState == Status.SUBMITTED) {
 			logger.error("Bean is submitted but not being processed. Cannot resume.");
 			throw new IllegalStateException("Cannot resume a bean with SUBMITTED status");
@@ -171,18 +178,19 @@ public class _QueueControllerService extends AbstractRemoteService implements IQ
 
 	@Override
 	public <T extends Queueable> void terminate(T bean, String queueID) throws EventException {
-		//Determine if bean is in a terminatable state
+		//Determine if bean is the right type & in a terminatable state
+		checkBeanType(bean, queueID);
 		Status beanState;
 		try {
 			String beanID = bean.getUniqueId();
 			beanState = getBeanStatus(beanID, queueID);
 		} catch (EventException evEx) {
-			logger.error("Could not get state of bean in queue. Is it in queue '"+queueID+"'?"+evEx.getMessage());
+			logger.error("Could not get state of bean in queue. Is it in queue '"+queueID+"'? "+evEx.getMessage());
 			throw evEx;
 		}
 		if (beanState.isTerminated()) {
-			logger.warn("Bean '"+bean.getName()+"' is already terminated.");
-			return;
+			logger.error("Bean '"+bean.getName()+"' is already terminated.");
+			throw new IllegalStateException("Bean '"+bean.getName()+"' is already terminated");
 		} else if (beanState == Status.SUBMITTED) {
 			logger.warn("Bean is submitted but not being processed. Bean will be removed, rather than terminated.");
 			remove(bean, queueID);
@@ -191,7 +199,7 @@ public class _QueueControllerService extends AbstractRemoteService implements IQ
 
 		//The bean is terminatable. Get the status topic name and publish the bean
 		String statusTopicName = getQueue(queueID).getStatusTopicName();
-		bean.setStatus(Status.REQUEST_RESUME);
+		bean.setStatus(Status.REQUEST_TERMINATE);
 		eventConnector.publishBean(bean, statusTopicName);
 	}
 
@@ -284,12 +292,26 @@ public class _QueueControllerService extends AbstractRemoteService implements IQ
 
 	@Override
 	public Status getBeanStatus(String beanID, String queueID) throws EventException {
-		QueueRequest query = new QueueRequest(), reply;
-		query.setRequestType(QueueRequestType.BEAN_STATUS);
-		query.setBeanID(beanID);
-		query.setQueueID(queueID);
-		reply = sendQuery(query);
-		return reply.getBeanStatus();
+		QueueRequest stateQuery = new QueueRequest(), stateReply;
+		stateQuery.setRequestType(QueueRequestType.BEAN_STATUS);
+		stateQuery.setBeanID(beanID);
+		stateQuery.setQueueID(queueID);
+		stateReply = sendQuery(stateQuery);
+		return stateReply.getBeanStatus();
+	}
+	
+	private <T extends Queueable> void checkBeanType(T bean, String queueID) throws EventException {
+		//Check that the bean is the right type for the queue
+		QueueRequest jqQuery = new QueueRequest(), jqReply;
+		jqQuery.setRequestType(QueueRequestType.JOB_QUEUE_ID);
+		jqReply = sendQuery(jqQuery);
+		if (queueID.equals(jqReply.getJobQueueID())) {
+			if (bean instanceof QueueBean) return;
+		} else {
+			if (bean instanceof QueueAtom) return;
+		}
+		logger.error("Bean type ("+bean.getClass().getSimpleName()+") not supported by queue "+queueID);
+		throw new EventException("Bean is wrong type for given queueID"); 
 	}
 
 	/**
