@@ -3,12 +3,14 @@ package org.eclipse.scanning.event.queues;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.EventListener;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.ConsumerCommandBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
+import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.queues.IQueueControllerEventConnector;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
@@ -78,10 +80,17 @@ public class QueueControllerEventConnector implements IQueueControllerEventConne
 		commander.disconnect();
 	}
 	
+	@Override
+	public <T extends EventListener> ISubscriber<T> createQueueSubscriber(String statusTopicName) {
+		return eventService.createSubscriber(uri, statusTopicName);
+	}
+	
+	@Override
 	public void setEventService(IEventService eventService) {
 		this.eventService = eventService;
 	}
 	
+	@Override
 	public void setUri(URI uri) {
 		this.uri = uri;
 	}
