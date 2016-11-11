@@ -32,30 +32,33 @@ class ScanRequestValidator implements IValidator<ScanRequest<?>> {
 		Map<String,Object> dmodels = req.getDetectors();
 		
 		// Currently if there is one malcolm device, there must not be any other devices
-		IRunnableDeviceService dservice = ValidatorService.getRunnableDeviceService();
-		if (dservice!=null) {
-			Map<DeviceRole, Integer> count = new HashMap<>();
-			for (DeviceRole role : DeviceRole.values()) count.put(role, 0);
-			for (String name : dmodels.keySet()) {
-				DeviceInformation<?> info = dservice.getDeviceInformation(name);
-				Integer c = count.get(info.getDeviceRole());
-				count.put(info.getDeviceRole(), ++c);
+		if (dmodels!=null) { // It is legal to submit a scan without a detector.
+			IRunnableDeviceService dservice = ValidatorService.getRunnableDeviceService();
+			if (dservice!=null) {
+				Map<DeviceRole, Integer> count = new HashMap<>();
+				for (DeviceRole role : DeviceRole.values()) count.put(role, 0);
+				for (String name : dmodels.keySet()) {
+					DeviceInformation<?> info = dservice.getDeviceInformation(name);
+					if (info==null) throw new Exception("Detector '"+name+"' cannot be found!");
+					Integer c = count.get(info.getDeviceRole());
+					count.put(info.getDeviceRole(), ++c);
+				}
+				if (count.get(DeviceRole.MALCOLM)>1) {
+					throw new Exception("Only one malcolm device may be used per scan.");
+				}
+				if (count.get(DeviceRole.MALCOLM)>0 && count.get(DeviceRole.HARDWARE)>0) {
+					throw new Exception("Malcolm devices may not currently be mixed with other types of hardware devices.\n"
+							             + "You may use processing devices with a malcolm device.");
+				}
 			}
-			if (count.get(DeviceRole.MALCOLM)>1) {
-				throw new Exception("Only one malcolm device may be used per scan.");
-			}
-			if (count.get(DeviceRole.MALCOLM)>0 && count.get(DeviceRole.HARDWARE)>0) {
-				throw new Exception("Malcolm devices may not currently be mixed with other types of hardware devices.\n"
-						             + "You may use processing devices with a malcolm device.");
+			
+			// All the models must validate too
+			for (Object model : dmodels.values()) {
+				IValidator<Object> validator = vservice.getValidator(model);
+				if (validator!=null) validator.validate(model); // We just ignore those without validators.
 			}
 		}
-		
-		// All the models must validate too
-		for (Object model : dmodels.values()) {
-			IValidator<Object> validator = vservice.getValidator(model);
-			if (validator!=null) validator.validate(model); // We just ignore those without validators.
-		}
-		
+			
 	}
 
 }
