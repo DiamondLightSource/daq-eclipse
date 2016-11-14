@@ -89,7 +89,7 @@ public class NexusTest extends TmpTest {
 		Services.setConnector(connector);
 		org.eclipse.dawnsci.nexus.ServiceHolder.setNexusFileFactory(fileFactory);
 		org.eclipse.scanning.sequencer.ServiceHolder.setTestServices(new LoaderServiceMock(),
-				new DefaultNexusBuilderFactory(), new MockOperationService(), new MockFilePathService());
+				new DefaultNexusBuilderFactory(), new MockOperationService(), new MockFilePathService(), gservice);
 	
 	    clearTmp();
 	}
@@ -105,7 +105,7 @@ public class NexusTest extends TmpTest {
 	
 	@After
 	public void deleteFile() {
-		output.delete();
+//		output.delete(); 
 	}
 
 	protected MandelbrotModel createMandelbrotModel() {

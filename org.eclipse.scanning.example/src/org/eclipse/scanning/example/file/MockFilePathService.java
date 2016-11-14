@@ -19,6 +19,24 @@ public class MockFilePathService implements IFilePathService {
 		return mostRecentPath;
 	}
 	
+	@Override
+	public String createFolderForLinkedFiles(String filename) throws Exception {
+		String bareFilename = getBareFilename(filename);
+		File newDir = new File(dir, bareFilename);
+		newDir.mkdir();
+		
+		return newDir.toString();
+	}
+
+	private String getBareFilename(String filePath) {
+		String filename = new File(filePath).getName();
+		int dotIndex = filename.indexOf(".");
+		if (dotIndex == -1) {
+			return filename;
+		}
+		return filename.substring(0, dotIndex);
+	}
+
 	/**
 	 * Generates a unique file of the name template or template+an integer
 	 * 

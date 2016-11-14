@@ -52,7 +52,7 @@ public class SubscanTest extends TmpTest{
 		Services.setGeneratorService(gservice);
 		Services.setConnector(connector);
 		org.eclipse.scanning.sequencer.ServiceHolder.setTestServices(new LoaderServiceMock(),
-				new DefaultNexusBuilderFactory(), new MockOperationService(), new MockFilePathService());
+				new DefaultNexusBuilderFactory(), new MockOperationService(), new MockFilePathService(), gservice);
 	
 	    clearTmp();
 	}

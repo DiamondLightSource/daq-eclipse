@@ -1,8 +1,6 @@
 package org.eclipse.scanning.sequencer;
 
 import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -28,8 +26,6 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
-import org.eclipse.scanning.api.malcolm.models.MalcolmConnectionInfo;
-import org.eclipse.scanning.api.malcolm.models.MalcolmDetectorConfiguration;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -252,12 +248,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		
 		final IRunnableDevice<T> scanner;
 		
-		if (model instanceof MalcolmDetectorConfiguration) {
-			MalcolmConnectionInfo info = ((MalcolmDetectorConfiguration) model).getConnectionInfo();
-			URI            uri = createMalcolmURI(info);
-			return malcolmService.getDevice(info.getDeviceName());
-			
-		} else if (modelledDevices.containsKey(model.getClass())) {
+		if (modelledDevices.containsKey(model.getClass())) {
 			@SuppressWarnings("unchecked")
 			final Class<IRunnableDevice<T>> clazz = (Class<IRunnableDevice<T>>)modelledDevices.get(model.getClass());
 			if (clazz == null) throw new ScanningException("The model '"+model.getClass()+"' does not have a device registered for it!");
@@ -268,27 +259,6 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 			throw new ScanningException("The model '"+model.getClass()+"' does not have a device registered for it!");
 		}
 		return scanner;
-	}
-
-	/**
-	 * 
-	 * @param req
-	 * @return malcolm uri for instance <code>tcp://i05-1.control.ac.uk:5600</code>
-	 * @throws UnknownHostException
-	 * @throws URISyntaxException 
-	 */
-	private URI createMalcolmURI(MalcolmConnectionInfo req) throws UnknownHostException, URISyntaxException {
-		String hostName = req.getHostName();
-		if (hostName == null) hostName = defaultMalcolmHostname;
-		if (hostName == null) hostName = InetAddress.getLocalHost().getHostName();
-		int    port  = req.getPort();
-		StringBuilder buf = new StringBuilder("tcp://");
-		buf.append(hostName);
-		if (port>0) {
-			buf.append(":");
-			buf.append(port);
-		}
-		return new URI(buf.toString());
 	}
 
 	@Override

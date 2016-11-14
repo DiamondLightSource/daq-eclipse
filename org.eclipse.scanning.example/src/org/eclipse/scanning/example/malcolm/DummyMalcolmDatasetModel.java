@@ -1,7 +1,5 @@
 package org.eclipse.scanning.example.malcolm;
 
-import org.eclipse.scanning.malcolm.core.MalcolmDatasetType;
-
 /**
  * A model describing a dataset that should be written by a {@link DummyMalcolmDevice}.
  * 
@@ -13,16 +11,17 @@ public class DummyMalcolmDatasetModel {
 	
 	private Class<?> dtype; // type of element in the dataset, e.g. String or Double
 	
-	/**
-	 * Type of dataset e.g. primary, position, actually identifies the type. This mainly
-	 * identifies the type of device that this dataset is for, e.g. a detector or scannable.
-	 * Malcolm wraps all this information up in the datasets attribute 
-	 */
-	private MalcolmDatasetType malcolmType; 
-	
-	private String path;
-	
 	private int rank;
+	
+	public DummyMalcolmDatasetModel() {
+		// no args constructor for spring instantiation
+	}
+	
+	public DummyMalcolmDatasetModel(String name, int rank, Class<?> dtype) {
+		this.name = name;
+		this.rank = rank;
+		this.dtype = dtype;
+	}
 	
 	public String getName() {
 		return name;
@@ -32,14 +31,11 @@ public class DummyMalcolmDatasetModel {
 		this.name = name;
 	}
 
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-
+	/**
+	 * The rank of the data for this dataset at each point in the scan, e.g. 2 for images.
+	 * In the Nexus file this dataset will have a rank of scan rank plus this value. 
+	 * @return rank of data at each scan point
+	 */
 	public int getRank() {
 		return rank;
 	}
@@ -55,15 +51,5 @@ public class DummyMalcolmDatasetModel {
 	public void setDtype(Class<?> dtype) {
 		this.dtype = dtype;
 	}
-
-	public MalcolmDatasetType getMalcolmType() {
-		return malcolmType;
-	}
-
-	public void setMalcolmType(MalcolmDatasetType malcolmType) {
-		this.malcolmType = malcolmType;
-	}
-	
-	
 
 }
