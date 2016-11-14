@@ -10,7 +10,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.SpiralModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,7 +32,7 @@ public class SpiralTest {
 		model.setBoundingBox(box);
 		// use default parameters
 
-		service = new PointGeneratorFactory();
+		service = new PointGeneratorService();
 		generator = service.createGenerator(model);
 	}
 

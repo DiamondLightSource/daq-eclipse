@@ -55,7 +55,7 @@ import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.AcquireServlet;
 import org.eclipse.scanning.server.servlet.Services;
@@ -82,7 +82,7 @@ public class AcquireRequestTest extends BrokerTest {
 		MandelbrotDetector detector = new MandelbrotDetector();
 		((RunnableDeviceServiceImpl) runnableDeviceService)._register("mandelbrot", detector);
 		
-		pointGenService = new PointGeneratorFactory();
+		pointGenService = new PointGeneratorService();
 		
 		Services.setRunnableDeviceService(runnableDeviceService);
 		Services.setGeneratorService(pointGenService);

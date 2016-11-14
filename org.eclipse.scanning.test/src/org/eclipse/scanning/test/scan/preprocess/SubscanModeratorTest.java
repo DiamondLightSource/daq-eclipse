@@ -15,7 +15,7 @@ import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.sequencer.SubscanModerator;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,7 +26,7 @@ public class SubscanModeratorTest {
 
 	@BeforeClass
 	public static void setServices() throws Exception {
-		gservice    = new PointGeneratorFactory();
+		gservice    = new PointGeneratorService();
 	}
 	
 	@Test

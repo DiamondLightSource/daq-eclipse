@@ -3,7 +3,7 @@ package org.eclipse.scanning.test.points;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.Point;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertNotNull;
@@ -15,7 +15,7 @@ public class ExtensionPointPluginTest {
 	
 	@Before
 	public void setup() {
-		service = new PointGeneratorFactory(); // Can't be bothered to set up OSGi for this test.
+		service = new PointGeneratorService(); // Can't be bothered to set up OSGi for this test.
 	}
 
 	// Must be plugin test because uses extension points.

@@ -17,7 +17,7 @@ import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.command.ParserServiceImpl;
 import org.eclipse.scanning.command.PyExpressionNotImplementedException;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ public class PyExpresserTest {
 	
 	@Before
 	public void services() {
-		ParserServiceImpl.setPointGeneratorService(new PointGeneratorFactory());
+		ParserServiceImpl.setPointGeneratorService(new PointGeneratorService());
 	}
 
 	@Test

@@ -261,7 +261,6 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 
 			ISubmitter<ScanBean> submitter = ServiceHolder.getEventService().createSubmitter(new URI(CommandConstants.getScanningBrokerUri()), EventConstants.SUBMISSION_QUEUE);
 			submitter.submit(bean);
-
 			
 			// Show the Queue
 			showQueue();
