@@ -23,7 +23,6 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.AdministratorMessage;
-import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.api.malcolm.MalcolmTable;
 import org.eclipse.scanning.api.malcolm.attributes.BooleanArrayAttribute;
@@ -65,7 +64,6 @@ import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
-import org.eclipse.scanning.api.script.ScriptLanguage;
 import org.eclipse.scanning.api.script.ScriptRequest;
 import org.eclipse.scanning.api.script.ScriptResponse;
 
@@ -131,7 +129,6 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, PauseBean.class);
 		
 		// event.status
-		registerClass(tmp, Status.class);
 		registerClass(tmp, AdministratorMessage.class);
 		registerClass(tmp, StatusBean.class);
 		
@@ -167,7 +164,6 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, ClusterProcessingModel.class);
 
 		// script
-		registerClass(tmp, ScriptLanguage.class);
 		registerClass(tmp, ScriptRequest.class);
 		registerClass(tmp, ScriptResponse.class);
 		
