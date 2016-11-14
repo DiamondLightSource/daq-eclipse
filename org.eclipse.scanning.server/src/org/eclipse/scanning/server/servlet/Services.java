@@ -110,7 +110,7 @@ public class Services {
 		return messagingService;
 	}
 
-	public void setMessagingService(IMessagingService messagingService) {
+	public static void setMessagingService(IMessagingService messagingService) {
 		Services.messagingService = messagingService;
 	}
 
@@ -118,7 +118,7 @@ public class Services {
 		return validatorService;
 	}
 
-	public void setValidatorService(IValidatorService validatorService) {
+	public static void setValidatorService(IValidatorService validatorService) {
 		Services.validatorService = validatorService;
 	}
 }
