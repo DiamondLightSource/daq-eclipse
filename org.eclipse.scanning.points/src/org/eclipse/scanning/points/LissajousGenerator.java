@@ -9,6 +9,12 @@ import org.eclipse.scanning.api.points.models.LissajousModel;
 
 public class LissajousGenerator extends AbstractGenerator<LissajousModel> {
 
+	public LissajousGenerator() {
+		setLabel("Lissajous Curve");
+		setDescription("Creates a lissajous curve inside a bounding box.");
+		setIconPath("icons/scanner--lissajous.png"); // This icon exists in the rendering bundle 
+	}
+
 	@Override
 	public Iterator<IPosition> iteratorFromValidModel() {
 		return new LissajousIterator(this);

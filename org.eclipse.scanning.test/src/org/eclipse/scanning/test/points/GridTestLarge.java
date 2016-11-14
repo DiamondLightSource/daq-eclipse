@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,7 +24,7 @@ public class GridTestLarge {
 	
 	@Before
 	public void before() throws Exception {
-		service = new PointGeneratorFactory();
+		service = new PointGeneratorService();
 	}
 	
 	@Test

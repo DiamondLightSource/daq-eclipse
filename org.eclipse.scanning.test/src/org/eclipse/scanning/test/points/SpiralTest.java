@@ -4,24 +4,20 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
+import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IPointGenerator;
-import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.SpiralModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
-public class SpiralTest {
+public class SpiralTest extends GeneratorTest {
 
-	private IPointGeneratorService service;
-	private IPointGenerator<SpiralModel> generator;
+	@Test
+	public void testSpiralNoROI() throws Exception {
 
-	@Before
-	public void before() throws Exception {
-		
 		BoundingBox box = new BoundingBox();
 		box.setFastAxisStart(-10);
 		box.setSlowAxisStart(5);
@@ -30,17 +26,10 @@ public class SpiralTest {
 
 		SpiralModel model = new SpiralModel("x", "y");
 		model.setBoundingBox(box);
-		// use default parameters
-
-		service = new PointGeneratorFactory();
-		generator = service.createGenerator(model);
-	}
-
-	@Test
-	public void testSpiralNoROI() throws Exception {
 
 		// Get the point list
-		List<IPosition> pointList = generator.createPoints();
+		IPointGenerator<SpiralModel> generator = service.createGenerator(model);
+	    List<IPosition> pointList = generator.createPoints();
 
 		assertEquals(20, pointList.size());
 
@@ -50,4 +39,17 @@ public class SpiralTest {
 		assertEquals(new Point("x", 3, -8.139330427516057, "y", 3, 7.991968780318976, false), pointList.get(3));
 		assertEquals(new Point("x", 15, -6.315009394139057, "y", 15, 7.399523826759042, false), pointList.get(15));
 	}
+	
+	// FIXME
+	@Ignore("This should pass because compound of a model should equal the points from that model directly")
+	@Test
+	public void testSpiralWrtCompound() throws Exception {
+
+		RectangularROI roi = new RectangularROI(28.5684, 24.0729, 50.4328, 54.2378, 0.0);
+		SpiralModel model = new SpiralModel("x", "y");
+		model.setScale(2.0);
+
+        checkWrtCompound(model, roi, 1078);
+	}
+
 }

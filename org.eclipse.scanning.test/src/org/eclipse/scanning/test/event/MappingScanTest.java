@@ -23,7 +23,7 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
@@ -49,7 +49,7 @@ public class MappingScanTest extends BrokerTest{
 		setUpNonOSGIActivemqMarshaller();
 		
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
-		gservice = new PointGeneratorFactory();
+		gservice = new PointGeneratorService();
 
 		// We use the long winded constructor because we need to pass in the connector.
 		// In production we would normally
