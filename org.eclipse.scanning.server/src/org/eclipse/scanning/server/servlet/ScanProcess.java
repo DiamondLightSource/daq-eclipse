@@ -91,8 +91,10 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	@Override
 	public void execute() throws EventException {
 		
-		try {		
-			Services.getValidatorService().validate(bean.getScanRequest());
+		try {	
+			if (!Boolean.getBoolean("org.eclipse.scanning.server.servlet.scanProcess.disableValidate")) {
+			    Services.getValidatorService().validate(bean.getScanRequest());
+			}
 
 			// Move to a position if they set one
 			if (bean.getScanRequest().getStart()!=null) {
