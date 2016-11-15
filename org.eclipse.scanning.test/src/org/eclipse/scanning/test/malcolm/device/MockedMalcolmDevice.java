@@ -188,8 +188,6 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmModel> {
 	 * @param params
 	 */
 	protected void run(final Map<String, Object> params) throws Exception {
-
-		setDeviceState(DeviceState.PRERUN); // Devices go into prerun before running
 		
 		setDeviceState(DeviceState.RUNNING); // Will send an event
 
