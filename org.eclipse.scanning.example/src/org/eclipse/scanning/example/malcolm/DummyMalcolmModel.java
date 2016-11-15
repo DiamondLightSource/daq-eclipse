@@ -34,9 +34,10 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable {
 		List<DummyMalcolmDatasetModel> datasets = new ArrayList<>();
 		datasets.add(new DummyMalcolmDatasetModel("detector", 2, Double.class));
 		detModel.setDatasets(datasets);
-		List<String> defaultAxes = Arrays.asList("stage_x", "stage_y");
-		setAxesToMove(defaultAxes); // demand values written for axes to move
-		setPositionerNames(defaultAxes); // value (i.e. actual value aka. rbv) written for positioner names
+		List<String> axes = Arrays.asList("stage_x", "stage_y");
+		setAxesToMove(axes); // determines the _set (i.e. demand) values to be written
+		setPositionerNames(axes); // determines the value (a.k.a rbv) values to be written
+		setDummyDetectorModels(Arrays.asList(detModel));
 	}
 	
 	public List<DummyMalcolmControlledDetectorModel> getDummyDetectorModels() {
