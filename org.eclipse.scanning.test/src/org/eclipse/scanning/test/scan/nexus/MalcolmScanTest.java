@@ -1,15 +1,14 @@
 package org.eclipse.scanning.test.scan.nexus;
 
+import static org.eclipse.scanning.example.malcolm.DummyMalcolmDevice.FILE_EXTENSION_HDF5;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertDataNodesEqual;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
-import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -41,6 +40,7 @@ import org.eclipse.january.dataset.IDataset;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
+import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -54,6 +54,7 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmControlledDetectorModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.junit.After;
@@ -190,7 +191,16 @@ public class MalcolmScanTest extends NexusTest {
 		return primaryDataFieldsPerDetector;
 	}
 	
+	private List<String> getExpectedExternalFiles(DummyMalcolmModel dummyMalcolmModel) {
+		List<String> expectedFileNames = dummyMalcolmModel.getDummyDetectorModels().stream()
+			.map(d -> d.getName() + FILE_EXTENSION_HDF5)
+			.collect(Collectors.toCollection(ArrayList::new));
+		expectedFileNames.add("panda" + FILE_EXTENSION_HDF5);
+		return expectedFileNames;
+	}
+	
 	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws Exception {
+		final DummyMalcolmModel dummyMalcolmModel = malcolmDevice.getModel();
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		
 		NXroot rootNode = getNexusRoot(scanner);
@@ -198,7 +208,8 @@ public class MalcolmScanTest extends NexusTest {
 		NXinstrument instrument = entry.getInstrument();
 		
 		// check that the scan points have been written correctly
-		assertScanPointsGroup(entry, true, sizes);
+		List<String> expectedExternalFiles = getExpectedExternalFiles(dummyMalcolmModel);
+		assertScanPointsGroup(entry, true, expectedExternalFiles, sizes);
 		
 		// map from detector name -> primary data fields
 		Map<String, List<String>> primaryDataFieldNamesPerDetector = getExpectedPrimaryDataFieldsPerDetector();
@@ -206,9 +217,7 @@ public class MalcolmScanTest extends NexusTest {
 		assertEquals(primaryDataFieldNamesPerDetector.values().stream().flatMap(list -> list.stream()).count(),
 				nxDataGroups.size());
 
-		DummyMalcolmModel model = malcolmDevice.getModel();
-		String firstDetectorName = model.getDummyDetectorModels().get(0).getName();
-		for (DummyMalcolmControlledDetectorModel detectorModel : model.getDummyDetectorModels()) {
+		for (DummyMalcolmControlledDetectorModel detectorModel : dummyMalcolmModel.getDummyDetectorModels()) {
 			String detectorName = detectorModel.getName();
 			NXdetector detector = instrument.getDetector(detectorName);
 			
@@ -245,8 +254,9 @@ public class MalcolmScanTest extends NexusTest {
 					}
 				}
 				
-//				int[] shape = dataset.getShape(); // TODO: update DummyMalcolmDevice to write data
-//				for (int i = 0; i < sizes.length; i++) // then we can reinstate these assertions
+				// TODO: update DummyMalcolmDevice to write data so that we can reinstate these assertions
+//				int[] shape = dataset.getShape(); 
+//				for (int i = 0; i < sizes.length; i++) 
 //					assertEquals(sizes[i], shape[i]);
 				
 				// Make sure none of the numbers are NaNs. The detector is expected
@@ -265,7 +275,7 @@ public class MalcolmScanTest extends NexusTest {
 				int additionalRank = datasetModel.getRank(); // i.e. rank per position, e.g. 2 for images
 				List<String> expectedAxisNames = Stream.concat(
 						axisNames.stream().map(axisName -> axisName + 
-								(model.getPositionerNames().contains(axisName) ? "_value_set" : "")),
+								(dummyMalcolmModel.getPositionerNames().contains(axisName) ? "_value_set" : "")),
 						Collections.nCopies(additionalRank, ".").stream()).collect(Collectors.toList()); // TODO 2 should be what number?
 				assertAxes(nxData, expectedAxisNames.toArray(new String[expectedAxisNames.size()]));
 				
@@ -278,8 +288,8 @@ public class MalcolmScanTest extends NexusTest {
 					
 					dataNode = positioner.getDataNode("value_set");
 					dataset = dataNode.getDataset().getSlice();
-//					shape = dataset.getShape();
-//					assertEquals(1, shape.length);
+//					shape = dataset.getShape(); // TODO get the DummyMalcolmDevice to write data so these
+//					assertEquals(1, shape.length); // assertions can be reinstated
 //					assertEquals(sizes[i], shape[0]);
 					
 					String nxDataFieldName = axisName + (malcolmDevice.getModel().getPositionerNames().contains(axisName) ? "_value_set" : "");
@@ -291,7 +301,7 @@ public class MalcolmScanTest extends NexusTest {
 //							"/entry/" + firstDetectorName + "/" + nxDataFieldName);
 					
 					// value field (a.k.a rbv) only created if in list of positioners in model
-					if (model.getPositionerNames().contains(axisName)) {
+					if (dummyMalcolmModel.getPositionerNames().contains(axisName)) {
 						// Actual values should be scanD
 						dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
 						assertNotNull(dataNode);
