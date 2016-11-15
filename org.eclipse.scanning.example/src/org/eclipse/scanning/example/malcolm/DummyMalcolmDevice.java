@@ -345,9 +345,9 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		
 		// add an entry to the unique keys collection
 		String[] uniqueKeysDatasetPathSegments = UNIQUE_KEYS_DATASET_PATH.split("/");
-		NXcollection uniqueIdsCollection = NexusNodeFactory.createNXcollection();
-		entry.setCollection(uniqueKeysDatasetPathSegments[2], uniqueIdsCollection);
-		uniqueIdsCollection.initializeLazyDataset(uniqueKeysDatasetPathSegments[3],
+		NXcollection ndAttributesCollection = NexusNodeFactory.createNXcollection();
+		entry.setCollection(uniqueKeysDatasetPathSegments[2], ndAttributesCollection);
+		ndAttributesCollection.initializeLazyDataset(uniqueKeysDatasetPathSegments[3],
 				scanRank, String.class);
 		
 		// create an NXdata 
@@ -402,6 +402,13 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			// TODO: if we want non-scalar monitors we'll have to change the model
 			monitor.initializeLazyDataset(monitorName, scanInformation.getRank(), Double.class);
 		}
+		
+		// add an entry to the unique keys collection
+		String[] uniqueKeysDatasetPathSegments = UNIQUE_KEYS_DATASET_PATH.split("/");
+		NXcollection ndAttributesCollection = NexusNodeFactory.createNXcollection();
+		entry.setCollection(uniqueKeysDatasetPathSegments[2], ndAttributesCollection);
+		ndAttributesCollection.initializeLazyDataset(uniqueKeysDatasetPathSegments[3],
+				scanInformation.getRank(), String.class);
 		
 		saveNexusFile(treeFile);
 	}

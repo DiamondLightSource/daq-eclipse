@@ -43,10 +43,10 @@ public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends Abs
 
 	public static final String DATASETS_TABLE_COLUMN_NAME = "name";
 	public static final String DATASETS_TABLE_COLUMN_FILENAME = "filename";
-	public static final String DATASETS_TABLE_COLUMN_TYPE = "type";
 	public static final String DATASETS_TABLE_COLUMN_PATH = "path";
-	public static final String DATASETS_TABLE_COLUMN_UNIQUEID = "uniqueid";
+	public static final String DATASETS_TABLE_COLUMN_TYPE = "type";
 	public static final String DATASETS_TABLE_COLUMN_RANK = "rank";
+	public static final String DATASETS_TABLE_COLUMN_UNIQUEID = "uniqueid";
 	
 	// Events
 	protected MalcolmEventDelegate eventDelegate;

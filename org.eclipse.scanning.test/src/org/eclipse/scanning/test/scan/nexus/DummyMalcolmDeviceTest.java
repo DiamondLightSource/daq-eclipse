@@ -22,6 +22,7 @@ import org.eclipse.dawnsci.analysis.api.tree.SymbolicNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
 import org.eclipse.dawnsci.nexus.IMultipleNexusDevice;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
+import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NXobject;
@@ -45,6 +46,7 @@ import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
+import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -206,11 +208,21 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 				groupNode = groupNode.getGroupNode(pathSegments[i]);
 			}
 			assertNotNull(groupNode);
+			
+			// check the datanode is not null and has the expected rank
 			DataNode dataNode = groupNode.getDataNode(pathSegments[pathSegments.length - 1]);
 			assertNotNull(dataNode);
 			
 			int datasetRank = ((Integer) datasetRow.get(AbstractMalcolmDevice.DATASETS_TABLE_COLUMN_RANK)).intValue();
-			assertEquals(dataNode.getRank(), datasetRank); 
+			assertEquals(datasetRank, dataNode.getRank()); 
+			
+			// assert that the uniquekeys dataset is present
+			String[] uniqueKeysPathSegments = DummyMalcolmDevice.UNIQUE_KEYS_DATASET_PATH.split("/");
+			NXcollection ndAttributesCollection = entry.getCollection(uniqueKeysPathSegments[2]);
+			assertNotNull(ndAttributesCollection);
+			DataNode uniqueKeysDataNode = ndAttributesCollection.getDataNode(uniqueKeysPathSegments[3]);
+			assertNotNull(uniqueKeysDataNode);
+			assertEquals(scanRank, uniqueKeysDataNode.getRank());
 		}
 	}
 

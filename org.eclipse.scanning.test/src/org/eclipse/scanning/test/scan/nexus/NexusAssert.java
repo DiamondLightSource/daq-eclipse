@@ -8,12 +8,14 @@ import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_S
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_UNIQUE_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.GROUP_NAME_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.GROUP_NAME_SOLSTICE_SCAN;
+import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.PROPERTY_NAME_UNIQUE_KEYS_PATH;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.tree.Attribute;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
@@ -23,6 +25,7 @@ import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXentry;
 import org.eclipse.dawnsci.nexus.NXroot;
+import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.january.DatasetException;
 import org.eclipse.january.dataset.DTypeUtils;
 import org.eclipse.january.dataset.Dataset;
@@ -88,21 +91,28 @@ public class NexusAssert {
 	}
 	
 	public static void assertScanPointsGroup(NXentry entry, boolean malcolmScan, int... sizes) {
+		assertScanPointsGroup(entry, malcolmScan, null, sizes);
+	}
+	
+	public static void assertScanPointsGroup(NXentry entry, boolean malcolmScan,
+			List<String> expectedExternalFiles, int... sizes) {
 		NXcollection solsticeScanCollection = entry.getCollection(GROUP_NAME_SOLSTICE_SCAN);
 		assertNotNull(solsticeScanCollection);
 		 
+		NXcollection keysCollection = (NXcollection) solsticeScanCollection.getGroupNode(GROUP_NAME_KEYS);
+		assertNotNull(keysCollection);
 		if (!malcolmScan) {
-			assertUniqueKeys(solsticeScanCollection, sizes);
+			assertUniqueKeys(keysCollection, sizes);
 		}
-		// TODO assert links to unique keys datasets in external HDF5 files
+		if (expectedExternalFiles != null && !expectedExternalFiles.isEmpty()) {
+			assertUniqueKeysExternalFileLinks(keysCollection, expectedExternalFiles, malcolmScan, sizes);
+		}
 			
 		assertScanFinished(entry);
 	}
 
-	private static void assertUniqueKeys(NXcollection solsticeScanCollection, int... sizes) {
+	private static void assertUniqueKeys(NXcollection keysCollection, int... sizes) {
 		// check the unique keys field - contains the step number for each scan point
-		NXcollection keysCollection = (NXcollection) solsticeScanCollection.getGroupNode(GROUP_NAME_KEYS);
-		assertNotNull(keysCollection);
 		DataNode dataNode = keysCollection.getDataNode(FIELD_NAME_UNIQUE_KEYS);
 		assertNotNull(dataNode);
 		IDataset dataset;
@@ -120,6 +130,16 @@ public class NexusAssert {
 		while (iter.hasNext()) { // hasNext also increments the position iterator (ugh!)
 			assertEquals(expectedPos, dataset.getInt(iter.getPos()));
 			expectedPos++;
+		}
+	}
+	
+	private static void assertUniqueKeysExternalFileLinks(NXcollection keysCollection,
+			List<String> expectedExternalFiles, boolean malcolmScan, int... sizes) {
+		for (String externalFileName : expectedExternalFiles) {
+			String datasetName = externalFileName.replace("/", "__");
+			DataNode dataNode = keysCollection.getDataNode(datasetName);
+			assertNotNull(dataNode);
+			assertEquals(sizes.length, dataNode.getRank());
 		}
 	}
 	
