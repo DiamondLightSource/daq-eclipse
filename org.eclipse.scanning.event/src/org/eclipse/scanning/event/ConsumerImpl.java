@@ -220,7 +220,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				Message msg = (Message)e.nextElement();
 				TextMessage t = (TextMessage)msg;
 				String json   = t.getText();
-				final StatusBean b = service.unmarshal(json, StatusBean.class);
+				final StatusBean b = service.unmarshal(json, getBeanClass());
 				
 				MessageConsumer consumer = session.createConsumer(queue, "JMSMessageID = '"+msg.getJMSMessageID()+"'");
 				Message rem = consumer.receive(Constants.getReceiveFrequency());
@@ -431,7 +431,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	            	final String json  = t.getText();
 	            	
 					@SuppressWarnings("unchecked")
-					final U bean   = (U) service.unmarshal(json, StatusBean.class);
+					final U bean   = (U) service.unmarshal(json, getBeanClass());
                     
 	            	executeBean(bean);
 	            	
