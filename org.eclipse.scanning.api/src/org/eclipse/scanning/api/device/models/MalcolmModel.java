@@ -9,8 +9,9 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 /**
  * The model for a malcolm device that writes h5 files.
  */
-public class MalcolmModel implements IMalcolmModel {
+public class MalcolmModel extends AbstractDetectorModel implements IMalcolmModel, IDetectorModel {
 
+	
 	@FieldDescriptor(visible=false)
 	private IPointGenerator<?> generator;
 	
@@ -43,5 +44,4 @@ public class MalcolmModel implements IMalcolmModel {
 	public void setAxesToMove(List<String> axesToMove) {
 		this.axesToMove = axesToMove;
 	}
-
 }
