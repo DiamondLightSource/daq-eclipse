@@ -22,7 +22,7 @@ import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 	
 	@Before
 	public void before() throws Exception {
-		service = new PointGeneratorFactory();
+		service = new PointGeneratorService();
 	}
 
 	@Test

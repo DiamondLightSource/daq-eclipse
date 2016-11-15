@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
-import org.eclipse.scanning.api.device.models.AbstractMalcolmModel;
+import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -91,8 +91,10 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	@Override
 	public void execute() throws EventException {
 		
-		try {		
-			Services.getValidatorService().validate(bean.getScanRequest());
+		try {	
+			if (!Boolean.getBoolean("org.eclipse.scanning.server.servlet.scanProcess.disableValidate")) {
+			    Services.getValidatorService().validate(bean.getScanRequest());
+			}
 
 			// Move to a position if they set one
 			if (bean.getScanRequest().getStart()!=null) {
@@ -194,8 +196,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			IRunnableDevice<Object> odevice = (IRunnableDevice<Object>)device;
 			Object dmodel = dmodels.get(odevice.getName());
-			if (dmodel instanceof AbstractMalcolmModel) {
-				AbstractMalcolmModel mmodel = (AbstractMalcolmModel)dmodel;
+			if (dmodel instanceof MalcolmModel) {
+				MalcolmModel mmodel = (MalcolmModel)dmodel;
 				mmodel.setGenerator(generator);
 			}
 			manager.invoke(PreConfigure.class, dmodel);

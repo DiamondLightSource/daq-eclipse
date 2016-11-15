@@ -57,7 +57,7 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
 		
-        Object[] excluders = getExcluders(gen.getModel().getRegions());
+        Object[] excluders = {}; //getExcluders(gen.getModel().getRegions()); TODO put back in when excluders are fixed in Python
         Object[] mutators = getMutators(gen.getModel().getMutators());
         
         @SuppressWarnings("unchecked")

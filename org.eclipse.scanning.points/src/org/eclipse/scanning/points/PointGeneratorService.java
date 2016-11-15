@@ -40,7 +40,7 @@ import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 
-public class PointGeneratorFactory implements IPointGeneratorService {
+public class PointGeneratorService implements IPointGeneratorService {
 		
 	@SuppressWarnings("rawtypes")
 	private static final Map<Class<? extends IScanPathModel>, Class<? extends IPointGenerator>> generators;
@@ -63,7 +63,7 @@ public class PointGeneratorFactory implements IPointGeneratorService {
 		gens.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
 		gens.put(OneDStepModel.class,         OneDStepGenerator.class);
 		gens.put(RasterModel.class,           RasterGenerator.class);
-		gens.put(StaticModel.class,            StaticGenerator.class);
+		gens.put(StaticModel.class,           StaticGenerator.class);
 		gens.put(RandomOffsetGridModel.class, RandomOffsetGridGenerator.class);
 		gens.put(SpiralModel.class,           SpiralGenerator.class);
 		gens.put(LissajousModel.class,        LissajousGenerator.class);

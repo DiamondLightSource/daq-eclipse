@@ -14,7 +14,7 @@ import org.eclipse.scanning.example.file.MockFilePathService;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.Services;
@@ -36,7 +36,7 @@ public class SubscanTest extends TmpTest{
 		//System.setProperty("org.eclipse.scanning.sequencer.AcquisitionDevice.Metrics", "true");
 		connector   = new MockScannableConnector(null);
 		dservice    = new RunnableDeviceServiceImpl(connector); // Not testing OSGi so using hard coded service.
-		gservice    = new PointGeneratorFactory();
+		gservice    = new PointGeneratorService();
 		
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(new PointsModelMarshaller()));
 		IEventService eservice  = new EventServiceImpl(new ActivemqConnectorService());
@@ -52,7 +52,7 @@ public class SubscanTest extends TmpTest{
 		Services.setGeneratorService(gservice);
 		Services.setConnector(connector);
 		org.eclipse.scanning.sequencer.ServiceHolder.setTestServices(new LoaderServiceMock(),
-				new DefaultNexusBuilderFactory(), new MockOperationService(), new MockFilePathService());
+				new DefaultNexusBuilderFactory(), new MockOperationService(), new MockFilePathService(), gservice);
 	
 	    clearTmp();
 	}

@@ -11,7 +11,6 @@ public enum MalcolmDatasetType {
 	POSITION_VALUE(ScanRole.SCANNABLE, NexusBaseClass.NX_POSITIONER),
 	POSITION_SET(ScanRole.SCANNABLE, NexusBaseClass.NX_POSITIONER);
 	
-	
 	private final ScanRole scanRole;
 	private final NexusBaseClass nexusBaseClass;
 	

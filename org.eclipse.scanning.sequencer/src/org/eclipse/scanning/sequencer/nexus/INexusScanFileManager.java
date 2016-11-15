@@ -1,5 +1,6 @@
 package org.eclipse.scanning.sequencer.nexus;
 
+import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -27,6 +28,12 @@ public interface INexusScanFileManager extends IConfigurable<ScanModel> {
 	 * @throws ScanningException
 	 */
 	public void scanFinished() throws ScanningException;
+	
+	/**
+	 * Get the nexus scan info for the scan.
+	 * @return
+	 */
+	public NexusScanInfo getNexusScanInfo();
 	
 	/**
 	 * Returns whether this nexus file manager actually writes nexus, i.e.

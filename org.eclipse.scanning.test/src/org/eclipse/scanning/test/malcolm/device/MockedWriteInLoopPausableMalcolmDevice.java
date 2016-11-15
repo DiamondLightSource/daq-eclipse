@@ -17,7 +17,7 @@ import org.eclipse.january.dataset.Random;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
-import org.eclipse.scanning.api.malcolm.models.MapMalcolmDetectorModel;
+import org.eclipse.scanning.api.malcolm.models.MapMalcolmModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 
@@ -90,7 +90,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 	}
 
 	@Override
-	public void validate(MapMalcolmDetectorModel model) throws MalcolmDeviceException {
+	public void validate(MapMalcolmModel model) throws MalcolmDeviceException {
 		Map<String, Object> params = model.getParameterMap();
 		if (!params.containsKey("shape")) throw new MalcolmDeviceException(this, "shape must be set!");
 		if (!params.containsKey("nframes")) throw new MalcolmDeviceException(this, "nframes must be set!");
@@ -100,7 +100,7 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 	}
 
 	@Override
-	public void configure(MapMalcolmDetectorModel params) throws ScanningException {
+	public void configure(MapMalcolmModel params) throws ScanningException {
 		
 		validate(params);
 		setState(DeviceState.CONFIGURING);

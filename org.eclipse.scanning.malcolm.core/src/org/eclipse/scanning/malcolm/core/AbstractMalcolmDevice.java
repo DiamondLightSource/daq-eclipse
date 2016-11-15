@@ -1,8 +1,10 @@
 package org.eclipse.scanning.malcolm.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.dawnsci.nexus.IMultipleNexusDevice;
 import org.eclipse.dawnsci.nexus.NexusException;
@@ -11,6 +13,7 @@ import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceRole;
+import org.eclipse.scanning.api.device.models.IMalcolmModel;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.MalcolmTable;
@@ -19,8 +22,6 @@ import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
-import org.eclipse.scanning.api.malcolm.models.OneDetectorTestMappingModel;
-import org.eclipse.scanning.api.malcolm.models.TwoDetectorTestMappingModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.slf4j.Logger;
@@ -30,15 +31,15 @@ import org.slf4j.LoggerFactory;
  * 
  * Base class for Malcolm devices
  * 
- * <T> the model class for this malcolm device
- *
+ * @param <M> the model class for this malcolm device
  */
-public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
-		implements IMalcolmDevice<T>, IMultipleNexusDevice {
+public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends AbstractRunnableDevice<M>
+		implements IMalcolmDevice<M>, IMultipleNexusDevice {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMalcolmDevice.class);
 	
-	private static final String ATTRIBUTE_NAME_DATASETS = "datasets";
+	public static final String ATTRIBUTE_NAME_DATASETS = "datasets";
+	public static final String ATTRIBUTE_NAME_AXES_TO_MOVE = "axesToMove";
 
 	public static final String DATASETS_TABLE_COLUMN_NAME = "name";
 	public static final String DATASETS_TABLE_COLUMN_FILENAME = "filename";
@@ -46,8 +47,6 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 	public static final String DATASETS_TABLE_COLUMN_PATH = "path";
 	public static final String DATASETS_TABLE_COLUMN_UNIQUEID = "uniqueid";
 	public static final String DATASETS_TABLE_COLUMN_RANK = "rank";
-	
-	private String filePath;
 	
 	// Events
 	protected MalcolmEventDelegate eventDelegate;
@@ -71,8 +70,7 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 	protected void beforeExecute() throws Exception {
         logger.debug("Entering beforeExecute, state is " + getDeviceState());	
 	}
-	
-	
+
 	/**
 	 * Enacts any post-actions or conditions after the device completes a run of the task block.
 	 *  
@@ -128,9 +126,8 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 	@Override
 	public List<NexusObjectProvider<?>> getNexusProviders(NexusScanInfo info) throws NexusException {
 		try {
-			MalcolmTable datasetsTable = getAttributeValue(ATTRIBUTE_NAME_DATASETS);
-			MalcolmNexusObjectBuilder malcolmNexusBuilder = new MalcolmNexusObjectBuilder();
-			return malcolmNexusBuilder.buildNexusObjects(datasetsTable, info);
+			MalcolmNexusObjectBuilder<M> malcolmNexusBuilder = new MalcolmNexusObjectBuilder<>(this);
+			return malcolmNexusBuilder.buildNexusObjects(info);
 		} catch (Exception e) {
 			throw new NexusException("Could not create nexus objects for malcolm device " + getName(), e);
 		}
@@ -150,29 +147,10 @@ public abstract class AbstractMalcolmDevice<T> extends AbstractRunnableDevice<T>
 		eventDelegate.sendEvent(event);
 	}
 
-	protected String getFileName() {
-		String filePath = getFilePath();
-		if (filePath ==null) return null;
-		filePath = filePath.replace('\\', '/');
-		return filePath.substring(filePath.lastIndexOf('/')+1);
-	}
-	
-	public String getFilePath() {
-		
-		if (model !=null) {
-			// Malcolm v1 hack because the models are not standardised for V1
-			if (model instanceof OneDetectorTestMappingModel)return ((OneDetectorTestMappingModel)model).getHdf5File();
-			// Malcolm v1 hack because the models are not standardised for V1
-			if (model instanceof TwoDetectorTestMappingModel)return ((TwoDetectorTestMappingModel)model).getHdf5File1();
-			// Malcolm v1 hack because the models are not standardised for V1
-			if (model instanceof Map)return ((Map)model).get("file").toString(); // Causes an exception if not there.
-		}
-		
-		return filePath;
-	}
-
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
+	@Override
+	public Set<String> getAxesToMove() throws MalcolmDeviceException {
+		String[] axesToMove = (String[]) getAttributeValue(ATTRIBUTE_NAME_AXES_TO_MOVE);
+		return new HashSet<>(Arrays.asList(axesToMove));
 	}
 
 }
