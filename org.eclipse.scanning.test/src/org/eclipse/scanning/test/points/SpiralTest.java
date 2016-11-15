@@ -40,16 +40,32 @@ public class SpiralTest extends GeneratorTest {
 		assertEquals(new Point("x", 15, -6.315009394139057, "y", 15, 7.399523826759042, false), pointList.get(15));
 	}
 	
+	@Test
+	public void testSpiralNoROIWrtCompound() throws Exception {
+
+		BoundingBox box = new BoundingBox();
+		box.setFastAxisStart(-10);
+		box.setSlowAxisStart(5);
+		box.setFastAxisLength(3);
+		box.setSlowAxisLength(4);
+
+		SpiralModel model = new SpiralModel("x", "y");
+		model.setBoundingBox(box);
+
+		checkWrtCompound(model, null, 20);
+	}
+
+	
 	// FIXME
 	@Ignore("This should pass because compound of a model should equal the points from that model directly")
 	@Test
 	public void testSpiralWrtCompound() throws Exception {
 
-		RectangularROI roi = new RectangularROI(28.5684, 24.0729, 50.4328, 54.2378, 0.0);
+		RectangularROI roi = new RectangularROI(28.5684, 24.0729, 50.4328, 54.2378, 0.0);		
 		SpiralModel model = new SpiralModel("x", "y");
 		model.setScale(2.0);
 
-        checkWrtCompound(model, roi, 1078);
+        checkWrtCompound(model, roi, 682);
 	}
 
 }
