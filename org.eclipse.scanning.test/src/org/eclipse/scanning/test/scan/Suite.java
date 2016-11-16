@@ -13,7 +13,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	ScanFinishedTest.class,
 	PreprocessTest.class,
 	ScanSpeedTest.class,
-	RealisticishMockTest.class
+	RealisticishMockTest.class,
+	RunnableDeviceServiceConfigureTest.class
 
 })
 public class Suite {
