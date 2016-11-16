@@ -91,7 +91,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 //				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
 		// TODO: workaround for bug in HD5 loader, do not set size limit 
 		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, Integer.class,
-				new int[] { 1 }, new int[] { 1 }, null, null);
+				new int[] { 1 }, new int[] { -1 }, new int[] { 1 }, null);
 		scanFinished.setFillValue(0);
 		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);
 
