@@ -54,7 +54,6 @@ public class ExampleMalcolmDeviceTest {
 	 * as well as getting a list of all attributes and several specific attributes
 	 * @throws Exception
 	 */
-	@Ignore("Need to deal with name, exposureTime and timeout.")
 	@Test
 	public void configureAndRunDummyMalcolm() throws Exception {
 
