@@ -5,6 +5,7 @@ import static org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice.DATASETS_T
 import static org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice.DATASETS_TABLE_COLUMN_PATH;
 import static org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice.DATASETS_TABLE_COLUMN_RANK;
 import static org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice.DATASETS_TABLE_COLUMN_TYPE;
+import static org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice.DATASETS_TABLE_COLUMN_UNIQUEID;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +32,8 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * @author Matthew Dickie
  */
 class MalcolmNexusObjectBuilder<M extends IMalcolmModel> {
+	
+	private static final String PROPERTY_NAME_UNIQUE_KEYS = "uniqueKeys";
 
 	private final AbstractMalcolmDevice<M> malcolmDevice;
 	
@@ -65,6 +68,7 @@ class MalcolmNexusObjectBuilder<M extends IMalcolmModel> {
 			final int datasetRank = ((Integer) datasetRow.get(DATASETS_TABLE_COLUMN_RANK)).intValue();
 			final MalcolmDatasetType datasetType = MalcolmDatasetType.valueOf(
 					((String) datasetRow.get(DATASETS_TABLE_COLUMN_TYPE)).toUpperCase());
+			final String uniqueIdPath = (String) datasetRow.get(DATASETS_TABLE_COLUMN_UNIQUEID);
 
 			final String[] nameSegments = datasetFullName.split("\\.");
 			final String deviceName = nameSegments[0];
@@ -75,11 +79,16 @@ class MalcolmNexusObjectBuilder<M extends IMalcolmModel> {
 					datasetType.getNexusBaseClass());
 			final NXobject nexusObject = nexusWrapper.getNexusObject();
 
-			// create the external link to the hdf5 file written by the malcolm device			
+			// create the external link to the hdf5 file written by the malcolm device
+			// TODO: use relative path when bug with loading relative external links is fixed
 //			final String externalFilePath = malcolmOutputDirName + "/" + externalFileName; // path relative to parent dir of scan file
 			final String externalFilePath = malcolmOutputDir + "/" + externalFileName; // path relative to parent dir of scan file
 			nexusWrapper.addExternalLink(nexusObject, datasetName, externalFilePath,
 					datasetPath, datasetRank);
+			
+			if (uniqueIdPath != null) {
+				nexusWrapper.setPropertyValue(PROPERTY_NAME_UNIQUE_KEYS, uniqueIdPath);
+			}
 			
 			// configure the nexus wrapper for the dataset
 			configureNexusWrapperForDataset(datasetType, datasetName, nexusWrapper);

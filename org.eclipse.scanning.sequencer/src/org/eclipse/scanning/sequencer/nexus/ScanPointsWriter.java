@@ -1,5 +1,6 @@
 package org.eclipse.scanning.sequencer.nexus;
 
+import java.io.File;
 import java.util.List;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
@@ -39,7 +40,10 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	
 	public static final String FIELD_NAME_SCAN_FINISHED = "scan_finished";
 	
-	public static final String UNIQUE_KEYS_PATH_IN_EXTERNAL_FILE = "/entry/instrument/NDAttributes/NDArrayUniqueId";
+	/**
+	 * Property name for the path within an external (linked) nexus file to the unique keys dataset. 
+	 */
+	public static final String PROPERTY_NAME_UNIQUE_KEYS_PATH = "uniqueKeys";
 
 	private List<NexusObjectProvider<?>> nexusObjectProviders = null;
 	
@@ -86,8 +90,8 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 //		scanFinished = scanPointsCollection.initializeFixedSizeLazyDataset(
 //				FIELD_NAME_SCAN_FINISHED, new int[] { 1 }, Dataset.INT32);
 		// TODO: workaround for bug in HD5 loader, do not set size limit 
-		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, Integer.class, new int[] { 1 },
-				new int[] { 1 }, null, null);
+		scanFinished = new LazyWriteableDataset(FIELD_NAME_SCAN_FINISHED, Integer.class,
+				new int[] { 1 }, new int[] { -1 }, new int[] { 1 }, null);
 		scanFinished.setFillValue(0);
 		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);
 
@@ -97,8 +101,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		
 		// create the unique keys dataset (not for malcolm scans)
 		if (!malcolmScan) {
-			uniqueKeys = keysCollection.initializeLazyDataset(
-					FIELD_NAME_UNIQUE_KEYS, info.getRank(), Integer.class);
+			uniqueKeys = keysCollection.initializeLazyDataset(FIELD_NAME_UNIQUE_KEYS, info.getRank(), Integer.class);
 		}
 
 		// set chunking for lazy datasets
@@ -146,23 +149,30 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 
 	/**
 	 * For each device, if that device writes to an external file, create an external link
-	 * within the scan points collection to the unique keys dataset in that file
-	 * @param scanPointsCollection scan points collection to add any external links to
+	 * within the unique keys collection to the unique keys dataset in that file.
+	 * The unique keys are required in order for live processing to take place - we need to know
+	 * how much data has been written to each file - devices may flush their data to file at
+	 * different times.
+	 * @param uniqueKeysCollection unique keys collection to add any external links to
 	 */
-	private void addLinksToExternalFiles(final NXcollection scanPointsCollection) {
+	private void addLinksToExternalFiles(final NXcollection uniqueKeysCollection) {
 		if (nexusObjectProviders == null) throw new IllegalStateException("nexusObjectProviders not set");
 		
-		// TODO: we may already have written to this external file
-		
 		for (NexusObjectProvider<?> nexusObjectProvider : nexusObjectProviders) {
-//			String externalFileName = nexusObjectProvider.getDefaultExternalFileName();
-//			if (externalFileName != null) {
-				// TODO check handling of slashes, should '..' also be handled?
-				// also chop off file extension?  
-//				String datasetName = externalFileName.replace("/", "__");
-//				scanPointsCollection.addExternalLink(datasetName, externalFileName,
-//						UNIQUE_KEYS_PATH_IN_EXTERNAL_FILE);
-//			}
+			String uniqueKeysPath = (String) nexusObjectProvider.getPropertyValue(PROPERTY_NAME_UNIQUE_KEYS_PATH);
+			if (uniqueKeysPath != null) {
+				for (String externalFileName : nexusObjectProvider.getExternalFileNames()) {
+					// we just use the final segment of the file name as the dataset name,
+					// This assumes that we won't have files with the same name in different dirs
+					// Note: the name doesn't matter for processing purposes 
+					String datasetName = new File(externalFileName).getName();
+					if (uniqueKeysCollection.getSymbolicNode(datasetName) == null) {
+						System.err.println("Adding external link to file = " + externalFileName + ", path = " + uniqueKeysPath); // TODO remove
+						uniqueKeysCollection.addExternalLink(datasetName, externalFileName,
+								uniqueKeysPath);
+					}
+				}
+			}
 		}
 	}
 

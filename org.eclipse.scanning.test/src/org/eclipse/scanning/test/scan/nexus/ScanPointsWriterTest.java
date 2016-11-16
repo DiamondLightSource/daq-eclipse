@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
+import org.eclipse.dawnsci.analysis.api.tree.SymbolicNode;
 import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXpositioner;
@@ -95,7 +96,8 @@ public class ScanPointsWriterTest {
 		
 		public ExternalFileWritingPositioner(String name) {
 			super(name, NexusBaseClass.NX_POSITIONER, NXpositioner.NX_VALUE);
-			addExternalFileName(name + ".nxs");
+			addExternalFileName("panda.nxs");
+			setPropertyValue("uniqueKeys", MALCOLM_UNIQUE_KEYS_PATH);
 		}
 		
 		@Override
@@ -114,6 +116,7 @@ public class ScanPointsWriterTest {
 		public ExternalFileWritingDetector() {
 			super("detector", NexusBaseClass.NX_DETECTOR);
 			addExternalFileName(EXTERNAL_FILE_NAME);
+			setPropertyValue("uniqueKeys", MALCOLM_UNIQUE_KEYS_PATH);
 		}
 
 		@Override
@@ -125,6 +128,9 @@ public class ScanPointsWriterTest {
 		}
 		
 	}
+	
+	private static final String MALCOLM_UNIQUE_KEYS_PATH = "/entry/NDAttributes/NDArrayUniqueId";
+	
 	
 	@Test
 	public void testCreateNexusObject() throws Exception {
@@ -181,12 +187,15 @@ public class ScanPointsWriterTest {
 		uniqueKeysDataset.setSaver(uniqueKeysSaver);
 		
 		// assert links to external nodes
-		// TODO reinstate assertions about external links
-//		keysCollection.getNumberOfNodelinks();
-//		assertTrue(keysCollection.getSymbolicNode(EXTERNAL_FILE_NAME)!=null);
-//		for (String positionerName : positionerNames) {
-//			assertTrue(keysCollection.getSymbolicNode(positionerName + ".nxs")!=null);
-//		}
+		assertEquals(3, keysCollection.getNumberOfNodelinks());
+		for (NexusObjectProvider<?> objectProvider : nexusObjectProviders) {
+			for (String externalFilename : objectProvider.getExternalFileNames()) {
+				String datasetName = externalFilename.replace("/", "__");
+				SymbolicNode symbolicNode = keysCollection.getSymbolicNode(datasetName);
+				assertNotNull(symbolicNode);
+				assertEquals(objectProvider.getPropertyValue("uniqueKeys"), symbolicNode.getPath());
+			}
+		}
 	}
 	
 	@Test
@@ -227,12 +236,15 @@ public class ScanPointsWriterTest {
 		uniqueKeysDataset.setSaver(uniqueKeysSaver);
 		
 		// assert links to external nodes
-		// TODO reinstate assertions about external links
-//		keysCollection.getNumberOfNodelinks();
-//		assertTrue(keysCollection.getSymbolicNode(EXTERNAL_FILE_NAME)!=null);
-//		for (String positionerName : positionerNames) {
-//			assertTrue(keysCollection.getSymbolicNode(positionerName + ".nxs")!=null);
-//		}
+		assertEquals(3, keysCollection.getNumberOfNodelinks());
+		for (NexusObjectProvider<?> objectProvider : nexusObjectProviders) {
+			for (String externalFilename : objectProvider.getExternalFileNames()) {
+				String datasetName = externalFilename.replace("/", "__");
+				SymbolicNode symbolicNode = keysCollection.getSymbolicNode(datasetName);
+				assertNotNull(symbolicNode);
+				assertEquals(objectProvider.getPropertyValue("uniqueKeys"), symbolicNode.getPath());
+			}
+		}
 		
 		// test calling positionPerformed
 		// arrange

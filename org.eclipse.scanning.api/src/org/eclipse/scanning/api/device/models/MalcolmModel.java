@@ -10,13 +10,13 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 /**
  * The model for a malcolm device that writes h5 files.
  */
-public class MalcolmModel implements IMalcolmModel {
+public class MalcolmModel extends AbstractDetectorModel implements IMalcolmModel, IDetectorModel {
 
 	/**
 	 * List of fields to exclude when serialising using the Epics V4 marshaller to send to the device
 	 */
 	public transient final static List<String> FIELDS_TO_EXCLUDE = Arrays.asList("name", "timeout", "exposureTime");
-	
+
 	@FieldDescriptor(visible=false)
 	private IPointGenerator<?> generator;
 	
@@ -49,5 +49,4 @@ public class MalcolmModel implements IMalcolmModel {
 	public void setAxesToMove(List<String> axesToMove) {
 		this.axesToMove = axesToMove;
 	}
-
 }

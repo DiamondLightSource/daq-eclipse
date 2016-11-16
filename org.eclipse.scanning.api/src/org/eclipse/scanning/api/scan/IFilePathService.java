@@ -46,8 +46,22 @@ public interface IFilePathService {
 	
 	/**
 	 * Returns the location of the directory in which to place processed files.
+	 * TODO: remove this method and just use a subpath of /tmp
 	 * @return processed files
 	 */
 	String getProcessedFilesDir();
+	
+	/**
+	 * Returns the location of persistence directory. This is the location of a global read/write
+	 * directory where persistent files can be stored.
+	 * @return location of persistence directory.
+	 */
+	String getPersistenceDir();
+	
+	/**
+	 * Returns the location of the directory containing templates for cluster processing.
+	 * @return location of the processing templates directory
+	 */
+	String getProcessingTemplatesDir();
 	
 }
