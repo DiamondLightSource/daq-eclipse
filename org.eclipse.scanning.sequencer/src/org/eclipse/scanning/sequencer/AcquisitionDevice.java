@@ -84,7 +84,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	 * Package private constructor, devices are created by the service.
 	 */
 	AcquisitionDevice() {
-		super();
+		super(ServiceHolder.getRunnableDeviceService());
 		this.lock      = new ReentrantLock();
 		this.paused    = lock.newCondition();
 		setName("solstice_scan");

@@ -21,8 +21,6 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
-import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -89,8 +87,15 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 */
 	private long configureTime;
 
-
-	protected AbstractRunnableDevice() {
+    /**
+     * Do not make this constructor public. In order for the device
+     * to be used with spring, the device service must be provided when
+     * the object is constructed currently. If making this constructor
+     * public please also fix the spring configuration which requires
+     * the 'register' method to be called and the service to be
+     * non-null.
+     */
+	private AbstractRunnableDevice() {
 		this.scanId     = UUID.randomUUID().toString();
 		this.scanAttributes = new HashMap<>();
 		setRequireMetrics(Boolean.getBoolean(getClass().getName()+".Metrics"));

@@ -63,7 +63,7 @@ public class MockWritingMandelbrotDetector extends AbstractRunnableDevice<MockWr
 	private ILazyWriteableDataset writer;
 	
 	public MockWritingMandelbrotDetector() throws IOException {
-		super();
+		super(null);
 		this.model = new MockWritingMandlebrotModel();
 	}
 

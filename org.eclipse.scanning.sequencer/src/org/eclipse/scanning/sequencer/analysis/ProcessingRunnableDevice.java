@@ -48,6 +48,7 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 
 
 	public ProcessingRunnableDevice() {
+		super(null); 
 		setLevel(100); // Runs at the end of the cycle by default.
 		setRole(DeviceRole.PROCESSING);
 		this.model = new ProcessingModel(); // We start with an empty one in case they want to fill it in the UI.
