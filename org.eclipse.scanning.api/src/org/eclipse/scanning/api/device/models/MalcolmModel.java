@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.device.models;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
@@ -11,6 +12,11 @@ import org.eclipse.scanning.api.points.IPointGenerator;
  */
 public class MalcolmModel implements IMalcolmModel {
 
+	/**
+	 * List of fields to exclude when serialising using the Epics V4 marshaller to send to the device
+	 */
+	public transient final static List<String> FIELDS_TO_EXCLUDE = Arrays.asList("name", "timeout", "exposureTime");
+	
 	@FieldDescriptor(visible=false)
 	private IPointGenerator<?> generator;
 	
