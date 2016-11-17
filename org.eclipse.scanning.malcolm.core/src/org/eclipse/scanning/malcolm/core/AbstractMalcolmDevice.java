@@ -16,12 +16,12 @@ import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.device.models.IMalcolmModel;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.MalcolmTable;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.slf4j.Logger;
@@ -54,6 +54,8 @@ public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends Abs
 	// Connection to serialization to talk to the remote object
 	protected MessageGenerator<MalcolmMessage> connectionDelegate;
 	
+	private IPointGenerator<?> pointGenerator;
+	
 	public AbstractMalcolmDevice(IMalcolmConnectorService<MalcolmMessage> connector,
 			IRunnableDeviceService runnableDeviceService) throws MalcolmDeviceException {
 		super(runnableDeviceService);
@@ -84,6 +86,16 @@ public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends Abs
 		eventDelegate.setTemplateBean(bean);
 	}
 	
+	@Override
+	public void setPointGenerator(IPointGenerator<?> pointGenerator) {
+		this.pointGenerator = pointGenerator;
+	}
+	
+	@Override
+	public IPointGenerator<?> getPointGenerator() {
+		return pointGenerator;
+	}
+
 	public void start(final IPosition pos) throws ScanningException, InterruptedException {
 		
 		final List<Throwable> exceptions = new ArrayList<>(1);

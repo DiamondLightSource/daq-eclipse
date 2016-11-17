@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
+import org.eclipse.scanning.api.points.IPointGenerator;
 
 
 /**
@@ -53,6 +54,18 @@ public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEven
 	 * @return true if not in locked state, otherwise false.
 	 */
 	public boolean isLocked() throws MalcolmDeviceException ;
+	
+	/**
+	 * Set the point generator for the malcolm device.
+	 * @param pointGenerator point generator
+	 */
+	public void setPointGenerator(IPointGenerator<?> pointGenerator);
+	
+	/**
+	 * Get the point generator for the malcolm device
+	 * @return point generator
+	 */
+	public IPointGenerator<?> getPointGenerator();
 	
 	/**
 	 * Gets the value of an attribute on the device
