@@ -35,7 +35,7 @@ public class QueueControllerServiceTest {
 	private MockPublisher<Queueable> mockPub;
 	private MockSubmitter<Queueable> mockSub;
 	private MockEventService mockEvServ;
-	private String jqID, aqID;
+	private String jqID, jqSubmQ, aqID, aqSubmQ;
 	
 	private IQueueControllerService testController; 
 	
@@ -53,7 +53,9 @@ public class QueueControllerServiceTest {
 		
 		//Configure the MockQueueService
 		jqID = "mock-job-queue";
+		jqSubmQ = jqID+IQueue.SUBMISSION_QUEUE_SUFFIX;
 		aqID = "mock-active-queue";
+		aqSubmQ = aqID+IQueue.SUBMISSION_QUEUE_SUFFIX;
 		IQueue<QueueBean> mockJobQ = new Queue<>(jqID, null);
 		IQueue<QueueAtom> mockActiveQ = new Queue<>(aqID, null);
 		mockQServ = new MockQueueService(mockJobQ, mockActiveQ);
@@ -111,20 +113,19 @@ public class QueueControllerServiceTest {
 		 */
 		//job-queue
 		testController.submit(albert, jqID);
-		submQ = mockQServ.getJobQueue().getSubmissionQueueName();
-		assertEquals("No beans in job-queue after 1 submission", 1, mockSub.getQueueSize(submQ));
-		assertEquals("Bean has wrong name", "Albert", mockSub.getLastSubmitted(submQ).getName());
+		assertEquals("No beans in job-queue after 1 submission", 1, mockSub.getQueueSize(jqSubmQ));
+		assertEquals("Bean has wrong name", "Albert", mockSub.getLastSubmitted(jqSubmQ).getName());
 		
 		testController.submit(bernard, jqID);
-		assertEquals("Bean has wrong name", "Bernard", mockSub.getLastSubmitted(submQ).getName());
+		assertEquals("Bean has wrong name", "Bernard", mockSub.getLastSubmitted(jqSubmQ).getName());
 		
 		//active-queue
 		submQ = mockQServ.getActiveQueue(aqID).getSubmissionQueueName();
 		testController.submit(carlos, aqID);
-		assertEquals("No beans in active-queue after 1 submission", 1, mockSub.getQueueSize(submQ));
-		assertEquals("Bean has wrong name", "Carlos", mockSub.getLastSubmitted(submQ).getName());
+		assertEquals("No beans in active-queue after 1 submission", 1, mockSub.getQueueSize(aqSubmQ));
+		assertEquals("Bean has wrong name", "Carlos", mockSub.getLastSubmitted(aqSubmQ).getName());
 
-		testController.submit(duncan, aqID);
+		testController.submit(duncan, aqID);//Needed for remove test...
 		
 		/*
 		 * Remove:
@@ -135,24 +136,16 @@ public class QueueControllerServiceTest {
 		 */
 		//job-queue
 		testController.remove(bernard, jqID);
-		submQ = mockQServ.getJobQueue().getSubmissionQueueName();
-		assertEquals("Should only be one bean left in active-queue", 1, mockSub.getQueueSize(submQ));
-		assertEquals("Wrong bean found in queue", "Albert", mockSub.getLastSubmitted(submQ).getName());
+		assertEquals("Should only be one bean left in active-queue", 1, mockSub.getQueueSize(jqSubmQ));
+		assertEquals("Wrong bean found in queue", "Albert", mockSub.getLastSubmitted(jqSubmQ).getName());
 		
 		//active-queue
 		testController.remove(carlos, aqID);
-		submQ = mockQServ.getActiveQueue(aqID).getSubmissionQueueName();
-		assertEquals("Should only be one bean left in active-queue", 1, mockSub.getQueueSize(submQ));
-		assertEquals("Wrong bean found in queue", "Duncan", mockSub.getLastSubmitted(submQ).getName());
+		assertEquals("Should only be one bean left in active-queue", 1, mockSub.getQueueSize(aqSubmQ));
+		assertEquals("Wrong bean found in queue", "Duncan", mockSub.getLastSubmitted(aqSubmQ).getName());
 		try {
 			testController.remove(carlos, aqID);
 			fail("Expected EventException: Carlos has already been removed");
-		} catch (EventException evEx) {
-			//Expected
-		}
-		try {
-			testController.remove(xavier, aqID);
-			fail("Expected EventException: Xavier was never submitted = can't be removed");
 		} catch (EventException evEx) {
 			//Expected
 		}
@@ -162,22 +155,23 @@ public class QueueControllerServiceTest {
 		 */
 		try {
 			testController.submit(carlos, jqID);
-			fail("Expected IllegalArgumentException when wrong queueable type submitted (atom in job-queue)");
-		} catch (IllegalArgumentException iaEx) {
-			//Expected
-		}
-		try {
-			testController.submit(bernard, aqID);
-			fail("Expected IllegalArgumentException when wrong queueable type submitted (bean in atom-queue)");
-		} catch (IllegalArgumentException iaEx) {
+			fail("Expected EventException when wrong queueable type submitted (atom in job-queue)");
+		} catch (EventException iaEx) {
 			//Expected
 		}
 		try {
 			testController.remove(bernard, aqID);
-			fail("Expected IllegalArgumentException when wrong queueable type submitted (bean in atom-queue)");
-		} catch (IllegalArgumentException iaEx) {
+			fail("Expected EventException when wrong queueable type submitted (bean in atom-queue)");
+		} catch (EventException iaEx) {
 			//Expected
 		}
+		try {
+			testController.remove(xavier, aqID);
+			fail("Expected EventException: Xavier was never submitted = can't be removed");
+		} catch (EventException evEx) {
+			//Expected
+		}
+
 	}
 	
 	/**
@@ -200,36 +194,31 @@ public class QueueControllerServiceTest {
 		 */
 		assertFalse("Albert indicated reordered, but no reordering done", mockSub.isBeanReordered(albert));
 		assertFalse("Carlos indicated reordered, but no reordering done", mockSub.isBeanReordered(carlos));
+		
 		testController.reorder(albert, 4, jqID);
 		assertTrue("Albert not reordered after reordering done", mockSub.isBeanReordered(albert));
 		assertEquals("Incorrect number of moves after reordering", 4, mockSub.getReorderedBeanMove(albert));
 		assertFalse("Carlos indicated reordered, but no reordering done", mockSub.isBeanReordered(carlos));
+		
 		testController.reorder(carlos, 3, aqID);
 		assertTrue("Carlos not reordered after reordering done", mockSub.isBeanReordered(carlos));
 		assertEquals("Incorrect number of moves after reordering", 3, mockSub.getReorderedBeanMove(carlos));
 		
 		/*
-		 * Check EventException thrown when bean not present.
+		 * Check EventException thrown when bean wrong type or not present.
 		 */
+		try {
+			testController.reorder(carlos, 2, jqID);
+			fail("Expected EventException when wrong queueable type reordered (atom in job-queue)");
+		} catch (EventException iaEx) {
+			//Expected
+		}
 		try {
 			testController.reorder(xavier, 3, aqID);
 			fail("Expected EventException: Xavier not submitted, should not be able to reorder");
 		} catch (EventException evEx) {
 			//Expected
 		}
-		try {
-			testController.reorder(carlos, 2, jqID);
-			fail("Expected IllegalArgumentException when wrong queueable type reordered (atom in job-queue)");
-		} catch (IllegalArgumentException iaEx) {
-			//Expected
-		}
-		try {
-			testController.submit(albert, aqID);
-			fail("Expected IllegalArgumentException when wrong queueable type reordered (bean in atom-queue)");
-		} catch (IllegalArgumentException iaEx) {
-			//Expected
-		}
-		
 	}
 	
 	/**
@@ -253,6 +242,8 @@ public class QueueControllerServiceTest {
 		 */
 		testController.pause(albert, jqID);
 		assertEquals("Published bean has wrong Status", Status.REQUEST_PAUSE, mockPub.getLastQueueable().getStatus());
+		
+		//Try pausing the bean again (should throw a runtime exception)
 		try {
 			testController.pause(albert, jqID);
 			fail("Expected IllegalStateException on repeated pause");
@@ -267,6 +258,8 @@ public class QueueControllerServiceTest {
 		 */
 		testController.resume(albert, jqID);
 		assertEquals("Published bean has wrong Status", Status.REQUEST_RESUME, mockPub.getLastQueueable().getStatus());
+		
+		//Try resuming the bean again (should throw a runtime exception)
 		try {
 			testController.resume(albert, jqID);
 			fail("Expected IllegalStateException on repeated resume");
@@ -275,44 +268,23 @@ public class QueueControllerServiceTest {
 		}
 		
 		/*
-		 * Pause process in active-queue
-		 * - check published bean has REQUEST_PAUSE status 
+		 * We'll assume that everything works fine for the active-queue, since
+		 * the same code calls the terminate requests and that is tested.
 		 */
-		testController.pause(carlos, aqID);
-		assertEquals("Published bean has wrong Status", Status.REQUEST_PAUSE, mockPub.getLastQueueable().getStatus());
-		
-		/*
-		 * Resume process in active-queue
-		 * - check published bean has REQUEST_RESUME status
-		 */
-		testController.resume(carlos, aqID);
-		assertEquals("Published bean has wrong Status", Status.REQUEST_RESUME, mockPub.getLastQueueable().getStatus());
 		
 		/*
 		 * Test wrong bean type to wrong queue & non-existent paused/resumed bean
 		 */
 		try {
 			testController.pause(carlos, jqID);
-			fail("Expected IllegalArgumentException when wrong queueable type paused (atom in job-queue)");
-		} catch (IllegalArgumentException iaEx) {
-			//Expected
-		}
-		try {
-			testController.resume(carlos, jqID);
-			fail("Expected IllegalArgumentException when wrong queueable type resumed (atom in job-queue)");
-		} catch (IllegalArgumentException iaEx) {
-			//Expected
-		}
-		try {
-			testController.pause(albert, aqID);
-			fail("Expected IllegalArgumentException when wrong queueable type paused (bean in active-queue)");
-		} catch (IllegalArgumentException iaEx) {
+			fail("Expected EventException when wrong queueable type paused (atom in job-queue)");
+		} catch (EventException iaEx) {
 			//Expected
 		}
 		try {
 			testController.resume(albert, aqID);
-			fail("Expected IllegalArgumentException when wrong queueable type resumed (bean in active-queue)");
-		} catch (IllegalArgumentException iaEx) {
+			fail("Expected EventException when wrong queueable type resumed (bean in active-queue)");
+		} catch (EventException iaEx) {
 			//Expected
 		}
 		try {
@@ -321,11 +293,12 @@ public class QueueControllerServiceTest {
 		} catch (EventException evEx) {
 			//Expected
 		}
+		//Testing bean type test comes before bean exists/state test fails
 		try {
-			testController.resume(xavier, aqID);
-			fail("Expected EventException: Xavier not submitted, should not be able to resume");
+			testController.resume(xavier, jqID);
+			fail("Expected EventException: Xavier not right bean type, should not be able to resume");
 		} catch (EventException evEx) {
-			//Expected
+			assertTrue("Got unexpected exception - should be wrong type EventException", evEx.getMessage().contains("wrong type"));
 		}
 	}
 	
@@ -358,7 +331,7 @@ public class QueueControllerServiceTest {
 		}
 
 		/*
-		 * Pause process in active-queue
+		 * Terminate process in active-queue
 		 * - check published bean has REQUEST_PAUSE status 
 		 */
 		testController.terminate(carlos, aqID);
@@ -369,21 +342,21 @@ public class QueueControllerServiceTest {
 		 */
 		try {
 			testController.terminate(carlos, jqID);
-			fail("Expected IllegalArgumentException when wrong queueable type terminated (atom in job-queue)");
-		} catch (IllegalArgumentException iaEx) {
-			//Expected
-		}
-		try {
-			testController.terminate(albert, aqID);
-			fail("Expected IllegalArgumentException when wrong queueable type terminated (bean in active-queue)");
-		} catch (IllegalArgumentException iaEx) {
+			fail("Expected EventException when wrong queueable type terminated (atom in job-queue)");
+		} catch (EventException iaEx) {
 			//Expected
 		}
 		try {
 			testController.terminate(xavier, aqID);
 			fail("Expected EventException: Xavier not submitted, should not be able to terminate");
-		} catch (EventException evEx) {
+		} catch (EventException iaEx) {
 			//Expected
+		}
+		try {
+			testController.terminate(xavier, jqID);
+			fail("Expected EventException: Xavier not right bean type, should not be able to terminate");
+		} catch (EventException evEx) {
+			assertTrue("Got unexpected exception - should be wrong type EventException", evEx.getMessage().contains("wrong type"));
 		}		
 	}
 	
