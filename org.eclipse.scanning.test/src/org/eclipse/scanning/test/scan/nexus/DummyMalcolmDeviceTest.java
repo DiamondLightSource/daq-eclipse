@@ -46,9 +46,9 @@ import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
-import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -62,6 +62,11 @@ import org.junit.Test;
 public class DummyMalcolmDeviceTest extends NexusTest {
 	
 	private File malcolmOutputDir;
+	
+	@BeforeClass
+	public static void setUpAdditionalServices() {
+//		Services
+	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -135,11 +140,12 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	public void testDummyMalcolmNexusFiles() throws Exception {
 
 		DummyMalcolmModel model = createModel();
-		model.setGenerator(getGenerator(2, 2)); // Generator isn't actually used by the test malcolm device
-		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model);
+		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
+		((IMalcolmDevice<DummyMalcolmModel>) malcolmDevice).setPointGenerator(getGenerator(2, 2)); // Generator isn't actually used by the test malcolm device
 		int scanRank = 3;
 		setScanInformation(malcolmDevice, scanRank); // normally called when a scan is run using @ScanStart
 		assertNotNull(malcolmDevice);
+		malcolmDevice.configure(model);
 
 		malcolmDevice.run(null);
 
@@ -150,7 +156,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	@Test
 	public void testMalcolmNexusObjects() throws Exception {
 		DummyMalcolmModel model = createModel();
-		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model);
+		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
 		int scanRank = 3;
 		setScanInformation(malcolmDevice, scanRank); // normally called when a scan is run using @ScanStart
 		malcolmDevice.configure(model);

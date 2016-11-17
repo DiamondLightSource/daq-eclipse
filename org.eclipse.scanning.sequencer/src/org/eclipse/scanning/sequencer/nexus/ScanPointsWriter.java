@@ -167,7 +167,6 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 					// Note: the name doesn't matter for processing purposes 
 					String datasetName = new File(externalFileName).getName();
 					if (uniqueKeysCollection.getSymbolicNode(datasetName) == null) {
-						System.err.println("Adding external link to file = " + externalFileName + ", path = " + uniqueKeysPath); // TODO remove
 						uniqueKeysCollection.addExternalLink(datasetName, externalFileName,
 								uniqueKeysPath);
 					}

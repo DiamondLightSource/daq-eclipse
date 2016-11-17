@@ -5,6 +5,7 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 public abstract class AbstractDetectorModel implements IDetectorModel {
 
 	private long timeout;
+	
 	/**
 	 * The name of the detector device
 	 */
