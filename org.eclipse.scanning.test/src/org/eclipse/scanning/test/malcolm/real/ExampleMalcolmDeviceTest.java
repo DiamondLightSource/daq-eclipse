@@ -89,10 +89,10 @@ public class ExampleMalcolmDeviceTest {
 
 			ExampleMalcolmModel pmac1 = new ExampleMalcolmModel();
 			pmac1.setExposure(45f);
-			pmac1.setGenerator(scan);
 
 			// Call configure
 			modelledDevice.configure(pmac1);
+			modelledDevice.setPointGenerator(scan);
 
 			// Call run
 			modelledDevice.run(null);

@@ -1,5 +1,6 @@
 package org.eclipse.scanning.server.servlet;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +22,7 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -196,9 +198,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			IRunnableDevice<Object> odevice = (IRunnableDevice<Object>)device;
 			Object dmodel = dmodels.get(odevice.getName());
-			if (dmodel instanceof MalcolmModel) {
-				MalcolmModel mmodel = (MalcolmModel)dmodel;
-				mmodel.setGenerator(generator);
+			if (odevice instanceof IMalcolmDevice<?>) {
+				((IMalcolmDevice<?>) odevice).setPointGenerator(generator);
 			}
 			manager.invoke(PreConfigure.class, dmodel);
 			odevice.configure(dmodel);
@@ -266,6 +267,9 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			for (String name : detectors.keySet()) {
 				Object dmodel = detectors.get(name);
+				if (dmodel instanceof MalcolmModel) {
+					setMalcolmOutputDir(bean, (MalcolmModel) dmodel);
+				}
 				IRunnableDevice<Object> detector = service.getRunnableDevice(name);
 				if (detector==null) {
 					detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
@@ -278,6 +282,23 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 		} catch (ScanningException ne) {
 			throw new EventException(ne);
+		}
+	}
+	
+	private void setMalcolmOutputDir(ScanBean scanBean, MalcolmModel malcolmModel) {
+		if (malcolmModel.getFileDir() == null) {
+			// The malcolm output dir is a new dir in the same parent dir as the scan file and
+			// with the same name as the scan file minus the extension
+			final File scanFile = new File(scanBean.getFilePath());
+			final File scanDir = scanFile.getParentFile();
+			String scanFileNameNoExtn = scanFile.getName();
+			final int dotIndex = scanFileNameNoExtn.indexOf('.');
+			if (dotIndex != -1) {
+				scanFileNameNoExtn = scanFileNameNoExtn.substring(0, dotIndex);
+			}
+			final File malcolmOutputDir = new File(scanDir, scanFileNameNoExtn);
+			malcolmOutputDir.mkdir();
+			malcolmModel.setFileDir(malcolmOutputDir.toString());
 		}
 	}
 

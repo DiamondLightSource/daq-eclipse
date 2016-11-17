@@ -138,8 +138,6 @@ public class EpicsV4MessageMapper {
 		marshaller.registerDeserialiser("epics:nt/NTScalarArray:1.0", new NTScalarArrayDeserialiser());
 		marshaller.registerDeserialiser("epics:nt/NTTable:1.0", new NTTableDeserialiser());
 		marshaller.registerDeserialiser("malcolm:core/PointGenerator:1.0", new MalcolmPointGeneratorDeserialiser());
-		
-		marshaller.registerExcludeFieldListForClass(MalcolmModel.class, MalcolmModel.FIELDS_TO_EXCLUDE);
 	}
 	
 	public PVStructure convertMalcolmMessageToPVStructure(MalcolmMessage malcolmMessage) throws Exception {

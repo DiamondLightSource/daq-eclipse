@@ -22,6 +22,7 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,34 @@ import org.slf4j.LoggerFactory;
  *
  */
 class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice<M> {
+	
+	public static final class EpicsMalcolmModel {
+		private final String fileDir;
+		private final List<String> axesToMove;
+		private final IPointGenerator<?> generator;
+
+		public EpicsMalcolmModel(String fileDir, List<String> axesToMove,
+				IPointGenerator<?> generator) {
+			this.fileDir = fileDir;
+			this.axesToMove = axesToMove;
+			this.generator = generator;
+		}
+
+		public String getFileDir() {
+			return fileDir;
+		}
+
+		public List<String> getAxesToMove() {
+			return axesToMove;
+		}
+
+		public IPointGenerator<?> getGenerator() {
+			return generator;
+		}
+		
+	}
+	
+
 
 	private static Logger logger = LoggerFactory.getLogger(MalcolmDevice.class);
 		
@@ -214,18 +243,20 @@ class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice<M> {
 		
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("validate", params);
 		final MalcolmMessage reply = service.send(this, msg);
-        if (reply.getType()==Type.ERROR) {
-        	throw new MalcolmDeviceException(reply.getMessage());
-        }
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException(reply.getMessage());
+		}
 	}
 	
 	@Override
 	public void configure(M model) throws MalcolmDeviceException {
-		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", model);
+		final EpicsMalcolmModel epicsModel = new EpicsMalcolmModel(model.getFileDir(),
+				model.getAxesToMove(), getPointGenerator());
+		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", epicsModel);
 		MalcolmMessage reply = service.send(this, msg);
-        if (reply.getType() == Type.ERROR) {
-        	throw new MalcolmDeviceException(reply.getMessage());
-        }
+		if (reply.getType() == Type.ERROR) {
+			throw new MalcolmDeviceException(reply.getMessage());
+		}
 		setModel(model);
 	}
 
