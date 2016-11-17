@@ -1,27 +1,24 @@
 package org.eclipse.scanning.event.queues;
 
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.UnknownHostException;
 import java.util.EventListener;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
-import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.core.ISubmitter;
+import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.IQueueControllerEventConnector;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.event.queues.remote.BeanStatusFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,12 +26,10 @@ public class QueueControllerService implements IQueueControllerService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueueControllerService.class);
 	
-	private static IEventService eventService;
 	private static IQueueService queueService;
+	private static IQueueControllerEventConnector eventConnector;
 	
 	private boolean init = false;
-	private String commandSetName, commandTopicName;
-	private URI uri;
 	
 	static {
 		System.out.println("Created " + IQueueControllerService.class.getSimpleName());
@@ -50,18 +45,17 @@ public class QueueControllerService implements IQueueControllerService {
 	@PostConstruct
 	@Override
 	public void init() throws EventException {
-		//Set up services
-		eventService = ServicesHolder.getEventService();
+		//Set up servicee
 		queueService = ServicesHolder.getQueueService();
-				
+
 		if (!queueService.isInitialized()) {
 			queueService.init();
 		}
-		
-		//Get the queue service configuration
-		commandSetName = queueService.getCommandSetName();
-		commandTopicName = queueService.getCommandTopicName();
-		uri = queueService.getURI();
+
+		//Configure the QueueController-EventService connector
+		eventConnector = new QueueControllerEventConnector();
+		eventConnector.setEventService(ServicesHolder.getEventService());
+		eventConnector.setUri(queueService.getURI());
 		
 		init = true;
 	}
@@ -80,211 +74,157 @@ public class QueueControllerService implements IQueueControllerService {
 	@Override
 	public <T extends Queueable> void submit(T bean, String queueID) throws EventException {
 		checkBeanType(bean, queueID);
-		
-		//Prepare the bean for submission
-		bean.setStatus(Status.SUBMITTED);
-		try {
-			String localhostName = InetAddress.getLocalHost().getHostName();
-			if (bean.getHostName() == null) {
-				logger.warn("Hostname on received bean not set. Now set to '"+localhostName+"'.");
-				bean.setHostName(localhostName);
-			}
-		} catch (UnknownHostException ex) {
-			throw new EventException("Failed to set hostname on bean. " + ex.getMessage());
-		}
-
-		//Create a submitter and submit the bean
 		String submitQueue = queueService.getQueue(queueID).getSubmissionQueueName();
-		ISubmitter<T> submitter = eventService.createSubmitter(uri, submitQueue);
-		submitter.submit(bean);
-		submitter.disconnect();
+		eventConnector.submit(bean, submitQueue);
 	}
 
 	@Override
 	public <T extends Queueable> void remove(T bean, String queueID) throws EventException {
 		checkBeanType(bean, queueID);
-
-		//Create a submitter and remove the bean
-		String submitQueue = queueService.getQueue(queueID).getSubmissionQueueName();
-		ISubmitter<T> submitter = eventService.createSubmitter(uri, submitQueue);
-		boolean result = submitter.remove(bean);
-		submitter.disconnect();
+		String submitQueueName = queueService.getQueue(queueID).getSubmissionQueueName();
+		boolean success = eventConnector.remove(bean, submitQueueName);
 		
-		if (result == false) {
-			if (getBeanFromConsumer(bean, queueID) == null) {
-				throw new EventException("Bean removal failed. It may be in the status set already.");
-			} else {
-				throw new EventException("Bean not found in queue '"+queueID+"'.");
-			}
+		if (!success) {
+			logger.error("Bean removal failed. Is it in the status set already?");
+			throw new EventException("Bean removal failed.");
 		}
 	}
 
 	@Override
 	public <T extends Queueable> void reorder(T bean, int move, String queueID) throws EventException {
 		checkBeanType(bean, queueID);
+		String submitQueueName = queueService.getQueue(queueID).getSubmissionQueueName();
+		boolean success = eventConnector.reorder(bean, move, submitQueueName);		
 		
-		//Create a submitter and move bean by the given amount
-		String submitQueue = queueService.getQueue(queueID).getSubmissionQueueName();
-		ISubmitter<T> submitter = eventService.createSubmitter(uri, submitQueue);
-		boolean result = submitter.reorder(bean, move);
-		submitter.disconnect();
-		
-		if (result == false) {
-			if (getBeanFromConsumer(bean, queueID) == null) {
-				throw new EventException("Bean removal failed. It may be in the status set already.");
-			} else {
-				throw new EventException("Bean not found in queue '"+queueID+"'.");
-			}
+		if (!success) {
+			logger.error("Bean reordering failed. Is it in the status set already?");
+			throw new EventException("Bean reordering failed.");
 		}
 
-	}
-	
-	private <T extends Queueable> void checkBeanType(T bean, String queueID) {
-		//Check bean is right type for the queue
-		if (queueID.equals(queueService.getJobQueueID()) && 
-				!(bean instanceof QueueBean)) {
-			throw new IllegalArgumentException("Job-queue cannot handle non-QueueBeans");
-		} else if (!(queueID.equals(queueService.getJobQueueID())) && 
-				!(bean instanceof QueueAtom)){
-			throw new IllegalArgumentException("Active-queue cannot handle non-QueueAtoms");
-		}
 	}
 
 	@Override
 	public <T extends Queueable> void pause(T bean, String queueID) throws EventException {
-		//Check that bean has not already been paused & has moved beyond submission
-		Queueable queuedBean = getBeanFromConsumer(bean, queueID);
-		if (queuedBean == null) {
-			logger.error("No bean '"+bean.getName()+"' in '"+queueID+"' queue");
-			throw new EventException("Bean not in this queue.");
-		} else if (queuedBean.getStatus().isPaused()) {
-			logger.warn("Attempted to pause already paused bean '"+bean.getName()+"'.");
-			throw new IllegalStateException("Bean is already paused.");
-		} else if (queuedBean.getStatus().equals(Status.SUBMITTED)) {
-			logger.warn("Attempted to pause bean '"+bean.getName()+"' still in submission queue.");
-			throw new IllegalStateException("Bean not being processed, only submitted.");
+		//Determine if bean is the right type & in a pausable state
+		checkBeanType(bean, queueID);
+		Status beanState;
+		try {
+			String beanID = bean.getUniqueId();
+			beanState = getBeanStatus(beanID, queueID);
+		} catch (EventException evEx) {
+			logger.error("Could not get state of bean in queue. Is it in queue '"+queueID+"'? "+evEx.getMessage());
+			throw evEx;
+		}
+		if (beanState.isPaused()) {
+			logger.error("Bean '"+bean.getName()+"' is already paused.");
+			throw new IllegalStateException("Bean '"+bean.getName()+"' is already paused");
+		} else if (beanState == Status.SUBMITTED) {
+			logger.error("Bean is submitted but not being processed. Cannot pause.");
+			throw new IllegalStateException("Cannot pause a bean with SUBMITTED status");
 		}
 		
-		//Command the process (checks bean type first)
-		publishQueueProcessCommand(bean, queueID, Status.REQUEST_PAUSE);
+		//The bean is pausable. Get the status topic name and publish the bean
+		String statusTopicName = queueService.getQueue(queueID).getStatusTopicName();
+		bean.setStatus(Status.REQUEST_PAUSE);
+		eventConnector.publishBean(bean, statusTopicName);
 	}
 
 	@Override
 	public <T extends Queueable> void resume(T bean, String queueID) throws EventException {
-		//Check that bean has not already been paused & has moved beyond submission
-		Queueable queuedBean = getBeanFromConsumer(bean, queueID);
-		if (queuedBean == null) {
-			logger.error("No bean '"+bean.getName()+"' in '"+queueID+"' queue");
-			throw new EventException("Bean not in this queue.");
-		} else if (queuedBean.getStatus().isResumed() || queuedBean.getStatus().isRunning()) {
-			logger.warn("Attempted to resume already resumed bean '"+bean.getName()+"'.");
-			throw new IllegalStateException("Bean is already resumed.");
-		} else if (queuedBean.getStatus().equals(Status.SUBMITTED)) {
-			logger.warn("Attempted to resume bean '"+bean.getName()+"' still in submission queue.");
-			throw new IllegalStateException("Bean not being processed, only submitted.");
+		//Determine if bean is the right type & in a resumable state
+		checkBeanType(bean, queueID);
+		Status beanState;
+		try {
+			String beanID = bean.getUniqueId();
+			beanState = getBeanStatus(beanID, queueID);
+		} catch (EventException evEx) {
+			logger.error("Could not get state of bean in queue. Is it in queue '"+queueID+"'? "+evEx.getMessage());
+			throw evEx;
+		}
+		if (beanState.isResumed() || beanState.isRunning()) {
+			logger.error("Bean '"+bean.getName()+"' is already resumed/running.");
+			throw new IllegalStateException("Bean '"+bean.getName()+"' is already resumed/running");
+		} else if (beanState == Status.SUBMITTED) {
+			logger.error("Bean is submitted but not being processed. Cannot resume.");
+			throw new IllegalStateException("Cannot resume a bean with SUBMITTED status");
 		}
 
-		//Command the process (checks bean type first)
-		publishQueueProcessCommand(bean, queueID, Status.REQUEST_RESUME);
+		//The bean is resumable. Get the status topic name and publish the bean
+		String statusTopicName = queueService.getQueue(queueID).getStatusTopicName();
+		bean.setStatus(Status.REQUEST_RESUME);
+		eventConnector.publishBean(bean, statusTopicName);
 	}
 
 	@Override
 	public <T extends Queueable> void terminate(T bean, String queueID) throws EventException {
-		//Check that bean has not already been paused & has moved beyond submission
-		Queueable queuedBean = getBeanFromConsumer(bean, queueID);
-		if (queuedBean == null) {
-			logger.error("No bean '"+bean.getName()+"' in '"+queueID+"' queue");
-			throw new EventException("Bean not in this queue.");
-		} else if (queuedBean.getStatus().isTerminated()) {
-			logger.warn("Attempted to terminate already terminated bean '"+bean.getName()+"'.");
-			throw new IllegalStateException("Bean is already terminated.");
-		} else if (queuedBean.getStatus().equals(Status.SUBMITTED)) {
-			logger.warn("Attempted to terminate bean '"+bean.getName()+"' still in submission queue. Will remove instead.");
+		//Determine if bean is the right type & in a terminatable state
+		checkBeanType(bean, queueID);
+		Status beanState;
+		try {
+			String beanID = bean.getUniqueId();
+			beanState = getBeanStatus(beanID, queueID);
+		} catch (EventException evEx) {
+			logger.error("Could not get state of bean in queue. Is it in queue '"+queueID+"'? "+evEx.getMessage());
+			throw evEx;
+		}
+		if (beanState.isTerminated()) {
+			logger.error("Bean '"+bean.getName()+"' is already terminated.");
+			throw new IllegalStateException("Bean '"+bean.getName()+"' is already terminated");
+		} else if (beanState == Status.SUBMITTED) {
+			logger.warn("Bean is submitted but not being processed. Bean will be removed, rather than terminated.");
 			remove(bean, queueID);
+			return;
 		}
 
-		//Command the process (checks bean type first)
-		publishQueueProcessCommand(bean, queueID, Status.REQUEST_TERMINATE);
-	}
-	
-	private <T extends Queueable> Queueable getBeanFromConsumer(T bean, String queueID) throws EventException {
-		List<Queueable> consumerQueue;
-		
-		checkBeanType(bean, queueID);
-		
-		//Search for bean in StatusSet (do this first as it's more likely for this operation)
-		consumerQueue = queueService.getQueue(queueID).getConsumer().getStatusSet();
-		for (Queueable queuedBean : consumerQueue) {
-			if (queuedBean.getUniqueId().equals(bean.getUniqueId())) {
-					return queuedBean;
-			}
-		}
-		
-		//If it's not been returned, look in the submit queue
-		consumerQueue = queueService.getQueue(queueID).getConsumer().getSubmissionQueue();
-		for (Queueable queuedBean : consumerQueue) {
-			if (queuedBean.getUniqueId().equals(bean.getUniqueId())) {
-				return queuedBean;
-			}
-		}
-		
-		//Return null if it's not there
-		return null;
-	}
-	
-	private <T extends Queueable> void publishQueueProcessCommand(T bean, String queueID, Status state) throws EventException {
-		//Set up the publisher
+		//The bean is terminatable. Get the status topic name and publish the bean
 		String statusTopicName = queueService.getQueue(queueID).getStatusTopicName();
-		IPublisher<T> commander = eventService.createPublisher(uri, statusTopicName);
-		
-		//Set the bean status, publish and disconnect
-		bean.setStatus(state);
-		commander.broadcast(bean);
-		commander.disconnect();
+		bean.setStatus(Status.REQUEST_TERMINATE);
+		eventConnector.publishBean(bean, statusTopicName);
 	}
 
 	@Override
 	public void pauseQueue(String queueID) throws EventException {
-		doPauseResume(queueID, true);
+		//We need to get the consumerID of the queue...
+		UUID consumerId = queueService.getQueue(queueID).getConsumerID();
+		
+		//Create pausenator configured for the target queueID & publish it.
+		PauseBean pausenator = new PauseBean();
+		pausenator.setConsumerId(consumerId);
+		pausenator.setPause(true);
+		eventConnector.publishCommandBean(pausenator, getCommandTopicName());
 	}
 
 	@Override
 	public void resumeQueue(String queueID) throws EventException {
-		doPauseResume(queueID, false);
-	}
-	
-	private void doPauseResume(String queueID, boolean pause) throws EventException {
-		IPublisher<PauseBean> pausenator = eventService.createPublisher(uri, commandTopicName);
-		pausenator.setStatusSetName(commandSetName);
+		//We need to get the consumerID of the queue...
+		UUID consumerId = queueService.getQueue(queueID).getConsumerID();
 		
-		//Create the PauseBean & configure
-		PauseBean pauser = new PauseBean();
-		UUID consumerID = queueService.getQueue(queueID).getConsumerID();
-		pauser.setConsumerId(consumerID);
-		pauser.setPause(pause);
-		pausenator.broadcast(pauser);
-		pausenator.disconnect();
+		//Create pausenator configured for the target queueID & publish it.
+		PauseBean pausenator = new PauseBean();
+		pausenator.setConsumerId(consumerId);
+		pausenator.setPause(false);
+		eventConnector.publishCommandBean(pausenator, getCommandTopicName());
 	}
 
 	@Override
-	public void killQueue(String queueID, boolean disconnect, boolean exitProcess) throws EventException {
-		IPublisher<KillBean> killenator = eventService.createPublisher(uri, commandTopicName);
-		killenator.setStatusSetName(commandSetName);
-		
-		//Create KillBean & configure
-		KillBean killer = new KillBean();
-		UUID consumerID = queueService.getQueue(queueID).getConsumerID();
-		killer.setConsumerId(consumerID);
-		killer.setDisconnect(disconnect);
-		killer.setExitProcess(exitProcess);
-		killenator.broadcast(killer);
-		killenator.disconnect();
+	public void killQueue(String queueID, boolean disconnect, boolean restart, boolean exitProcess)
+			throws EventException {
+		//We need to get the consumerID of the remote queue...
+		UUID consumerId = queueService.getQueue(queueID).getConsumerID();
+
+		//Configure the killenator as requested and broadcast it
+		KillBean killenator = new KillBean();
+		killenator.setConsumerId(consumerId);
+		killenator.setDisconnect(disconnect);
+		killenator.setRestart(restart);
+		killenator.setExitProcess(exitProcess);
+		eventConnector.publishCommandBean(killenator, getCommandTopicName());
 	}
 
 	@Override
 	public <T extends EventListener> ISubscriber<T> createQueueSubscriber(String queueID) throws EventException {
-		String topicName = queueService.getQueue(queueID).getStatusTopicName();
-		return eventService.createSubscriber(uri, topicName);
+		String statusTopicName = queueService.getQueue(queueID).getStatusTopicName();
+		return eventConnector.createQueueSubscriber(statusTopicName);
 	}
 
 	@Override
@@ -305,6 +245,36 @@ public class QueueControllerService implements IQueueControllerService {
 	@Override
 	public String getJobQueueID() {
 		return queueService.getJobQueueID();
+	}	
+	
+	@Override
+	public IQueue<? extends Queueable> getQueue(String queueID) throws EventException {
+		return queueService.getQueue(queueID);
+	}
+
+	@Override
+	public Status getBeanStatus(String beanID, String queueID) throws EventException {
+		IConsumer<? extends Queueable> consumer = getQueue(queueID).getConsumer();
+		BeanStatusFinder<? extends Queueable> statusFinder = new BeanStatusFinder<>(beanID, consumer);
+		return statusFinder.find();
+	}
+	
+	/**
+	 * Convenience check that the bean we're going to pass to the consumer 
+	 * will be the right type, based on the job-queue accepting only 
+	 * {@link QueueBean}s & the active-queue only {@link QueueAtom}s.
+	 * 
+	 * @throws EventException if the bean is the wrong type.
+	 */
+	private <T extends Queueable> void checkBeanType(T bean, String queueID) throws EventException {
+		//Check that the bean is the right type for the queue
+		if (queueID.equals(getJobQueueID())) {
+			if (bean instanceof QueueBean) return;
+		} else {
+			if (bean instanceof QueueAtom) return;
+		}
+		logger.error("Bean type ("+bean.getClass().getSimpleName()+") not supported by queue "+queueID);
+		throw new EventException("Bean is wrong type for given queueID");
 	}
 	
 }
