@@ -502,6 +502,7 @@ public class StatusQueueView extends EventConnectionView {
 			}
 		    
 		} catch (Exception ne) {
+			ne.printStackTrace();
 			logger.error("Cannot get queue "+EventConstants.CMD_SET, ne);
 			return null;
 			
@@ -536,7 +537,7 @@ public class StatusQueueView extends EventConnectionView {
 			ErrorDialog.openError(getViewSite().getShell(), "Cannot pause queue "+getSubmissionQueueName(), "Cannot pause queue "+getSubmissionQueueName()+"\n\nPlease contact your support representative.",
 					new Status(IStatus.ERROR, "org.eclipse.scanning.event.ui", e.getMessage()));
 		}
-
+		pauseConsumer.setChecked(isQueuePaused(getSubmissionQueueName()));
 	}
 
 

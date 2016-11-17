@@ -1,6 +1,6 @@
 package org.eclipse.scanning.test.event;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -22,6 +22,7 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.dry.FastRunCreator;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.event.AbstractQueueConnection;
 import org.eclipse.scanning.test.BrokerTest;
 import org.junit.After;
 import org.junit.Ignore;
@@ -29,12 +30,12 @@ import org.junit.Test;
 
 public class AbstractPauseTest extends BrokerTest{
 
-	
+
 	protected IEventService          eservice;
 	protected ISubmitter<StatusBean> submitter;
 	protected IConsumer<StatusBean>  consumer;
 
-	
+
 	@After
 	public void dispose() throws EventException {
 		submitter.disconnect();
@@ -43,10 +44,10 @@ public class AbstractPauseTest extends BrokerTest{
 		consumer.clearQueue(IEventService.CMD_SET);
 		consumer.disconnect();
 	}
-	
-     @Test
-    public void testPausingAConsumerByID() throws Exception {
-    	
+
+	@Test
+	public void testPausingAConsumerByID() throws Exception {
+
 		consumer.setRunner(new FastRunCreator<StatusBean>(100,false));
 		consumer.start();
 
@@ -59,23 +60,23 @@ public class AbstractPauseTest extends BrokerTest{
 		PauseBean pbean = new PauseBean();
 		pbean.setConsumerId(consumer.getConsumerId());
 		pauser.broadcast(pbean);
-		
+
 		Thread.sleep(200);
-		
+
 		assertTrue(!consumer.isActive());
-		
+
 		pbean.setPause(false);
 		pauser.broadcast(pbean);
 
 		Thread.sleep(100);
-	
-		assertTrue(consumer.isActive());
-    }
 
-    
-    @Test
-    public void testPausingAConsumerByQueueName() throws Exception {
-    	
+		assertTrue(consumer.isActive());
+	}
+
+
+	@Test
+	public void testPausingAConsumerByQueueName() throws Exception {
+
 		consumer.setRunner(new FastRunCreator<StatusBean>(100,false));
 		consumer.start();
 
@@ -88,23 +89,23 @@ public class AbstractPauseTest extends BrokerTest{
 		PauseBean pbean = new PauseBean();
 		pbean.setQueueName(consumer.getSubmitQueueName());
 		pauser.broadcast(pbean);
-		
+
 		Thread.sleep(200);
-		
+
 		assertTrue(!consumer.isActive());
-		
+
 		pbean.setPause(false);
 		pauser.broadcast(pbean);
 
 		Thread.sleep(100);
-	
-		assertTrue(consumer.isActive());
-    }
 
-    @Ignore("Does not run fast enough, reliably enough")
-    @Test
-    public void testReorderingAPausedQueue() throws Exception {
-    	
+		assertTrue(consumer.isActive());
+	}
+
+	@Ignore("Does not run fast enough, reliably enough")
+	@Test
+	public void testReorderingAPausedQueue() throws Exception {
+
 		consumer.setRunner(new FastRunCreator<StatusBean>(0,100,10,100, true));
 		consumer.start();
 
@@ -122,25 +123,25 @@ public class AbstractPauseTest extends BrokerTest{
 
 		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
 		pauser.setStatusSetName(IEventService.CMD_SET);
-		
+
 		PauseBean pbean = new PauseBean();
 		pbean.setQueueName(consumer.getSubmitQueueName());
 		pauser.broadcast(pbean);
-		
+
 		// Now we are paused. Read the submission queue
 		Thread.sleep(200);
 		List<StatusBean> submitQ = consumer.getSubmissionQueue();
 		assertTrue(submitQ.size()>=4);
-	
+
 		Thread.sleep(1000); // Wait for a while and check again that nothing else is
-		
+
 		submitQ = consumer.getSubmissionQueue();
 		assertTrue(submitQ.size()>=4);
-		
+
 		// Right then we will reorder it.
 		consumer.clearQueue(consumer.getSubmitQueueName());
 		consumer.clearQueue(consumer.getStatusSetName());
-		
+
 		// Reverse sort
 		Collections.sort(submitQ, new Comparator<StatusBean>() {
 			@Override
@@ -150,19 +151,19 @@ public class AbstractPauseTest extends BrokerTest{
 				return (x < y) ? -1 : ((x == y) ? 0 : 1);
 			}
 		});
-		
+
 		// Start the consumer again
 		pbean.setPause(false);
 		pauser.broadcast(pbean);
-		
+
 		// Resubmit in new order 4-1
-    	final List<String> submitted = new ArrayList<>(4); // Order important
+		final List<String> submitted = new ArrayList<>(4); // Order important
 		for (StatusBean statusBean : submitQ) {
 			System.out.println("Submitting "+statusBean.getName());
 			submitter.submit(statusBean);
 			submitted.add(statusBean.getName());
 		}
-		
+
 		final List<String> run = new ArrayList<>(4); // Order important
 		ISubscriber<EventListener> sub = eservice.createSubscriber(consumer.getUri(), consumer.getStatusTopicName());
 		sub.addListener(new IBeanListener<StatusBean>() {
@@ -175,26 +176,64 @@ public class AbstractPauseTest extends BrokerTest{
 		});
 
 		while(!consumer.getSubmissionQueue().isEmpty()) Thread.sleep(100); // Wait for all to run
-		
-		Thread.sleep(500); // ensure last one is in the status set
-		
-		assertTrue(run.size()>=4);
-		
-		assertTrue(submitted.equals(run));
-		
-		sub.disconnect();
-    }
 
-   private StatusBean doSubmit() throws Exception {
-	   return doSubmit("Test");
-   }
-   private StatusBean doSubmit(String name) throws Exception {
+		Thread.sleep(500); // ensure last one is in the status set
+
+		assertTrue(run.size()>=4);
+
+		assertTrue(submitted.equals(run));
+
+		sub.disconnect();
+	}
+
+	@Test
+	public void checkDAQ_342() throws Exception {
+
+		consumer.setRunner(new FastRunCreator<StatusBean>(0,100,10,100, true));
+		consumer.start();
+		
+		Thread.sleep(500); 
+		((AbstractQueueConnection)consumer).pause();
+		
+		Thread.sleep(500);
+		assertTrue(!consumer.isActive());
+		
+		// Submit two things.
+		StatusBean bean = null; 
+		for (int i = 0; i < 2; i++) {
+			bean = new StatusBean();
+			bean.setName("Submission"+i);
+			bean.setStatus(Status.SUBMITTED);
+			bean.setHostName(InetAddress.getLocalHost().getHostName());
+			bean.setMessage("Hello World");
+			bean.setUniqueId(UUID.randomUUID().toString());
+			bean.setUserName(String.valueOf(i));
+			submitter.submit(bean);
+		}
+	
+		submitter.reorder(bean, consumer.getSubmitQueueName(), 1);
+		
+		Thread.sleep(500);
+		assertTrue(!consumer.isActive());
+		assertEquals(2, submitter.getQueue().size());
+		
+		((AbstractQueueConnection)consumer).resume();
+
+		Thread.sleep(500);
+		assertTrue(consumer.isActive());
+
+	}
+
+	private StatusBean doSubmit() throws Exception {
+		return doSubmit("Test");
+	}
+	private StatusBean doSubmit(String name) throws Exception {
 
 		StatusBean bean = new StatusBean();
 		bean.setName(name);
 		return doSubmit(bean);
-   }
-   private StatusBean doSubmit(StatusBean bean) throws Exception {
+	}
+	private StatusBean doSubmit(StatusBean bean) throws Exception {
 
 		bean.setStatus(Status.SUBMITTED);
 		bean.setHostName(InetAddress.getLocalHost().getHostName());
@@ -202,7 +241,7 @@ public class AbstractPauseTest extends BrokerTest{
 		bean.setUniqueId(UUID.randomUUID().toString());
 
 		submitter.submit(bean);
-		
+
 		return bean;
 	}
-  }
+}

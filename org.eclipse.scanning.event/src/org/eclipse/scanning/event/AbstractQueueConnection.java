@@ -505,4 +505,13 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 		return A_WEEK;
 	}
 
+	
+	public void pause() throws EventException {
+		throw new EventException("Method 'pause' is not implemented!");
+	}
+	
+	public void resume() throws EventException {
+		throw new EventException("Method 'pause' is not implemented!");
+	}
+
 }
