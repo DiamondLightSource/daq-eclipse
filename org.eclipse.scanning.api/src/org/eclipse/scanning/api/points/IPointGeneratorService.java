@@ -50,6 +50,13 @@ public interface IPointGeneratorService {
 	 * <p>
 	 * Convenience implementation when using only one region of interest
 	 * 
+	 * <p>
+	 * If the model has a bounding box, it will be extended automatically to
+	 * include the IROI defined. If this is not required, the bounding box of 
+	 * the model must be manually changed to either reflect this ROI's bounds
+	 * or nullified (in which case the BoundingBox will be set to that which
+	 * encompasses all IROIs.
+	 * 
 	 * @param model
 	 * @param region which implements IPointContainer (most useful) or IROI (less useful because IROI is in the data coordinates, no the motor coordinates)
 	 * @return
@@ -60,6 +67,13 @@ public interface IPointGeneratorService {
 
 	/**
 	 * Used to create a point generator of a given type
+	 * <p>
+	 * If the model has a bounding box, it will be extended automatically to
+	 * include the IROI defined. If this is not required, the bounding box of 
+	 * the model must be manually changed to either reflect this ROI's bounds
+	 * or nullified (in which case the BoundingBox will be set to that which
+	 * encompasses all IROIs.
+	 * 
 	 * @param model
 	 * @param regions a reference to zero or more IROIs for instance
 	 * @return
