@@ -1,13 +1,14 @@
 package org.eclipse.scanning.example;
 
-import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 
 public class Services {
 
 	private static IEventService eventService;
 	private static IRunnableDeviceService runnableDeviceService;
+	private static IPointGeneratorService pointGeneratorService;
 
 	public static IRunnableDeviceService getRunnableDeviceService() {
 		return runnableDeviceService;
@@ -23,6 +24,14 @@ public class Services {
 
 	public static void setEventService(IEventService eventService) {
 		Services.eventService = eventService;
+	}
+	
+	public static IPointGeneratorService getPointGeneratorService() {
+		return pointGeneratorService;
+	}
+	
+	public static void setPointGeneratorService(IPointGeneratorService pointGeneratorService) {
+		Services.pointGeneratorService = pointGeneratorService;
 	}
 
 }

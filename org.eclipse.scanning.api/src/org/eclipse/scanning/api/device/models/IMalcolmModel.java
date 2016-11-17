@@ -2,19 +2,11 @@ package org.eclipse.scanning.api.device.models;
 
 import java.util.List;
 
-import org.eclipse.scanning.api.points.IPointGenerator;
-
 /**
  * Model for a malcolm device.
  * TODO: do we need the name as well, if so extend INameable
  */
 public interface IMalcolmModel {
-	
-	/**
-	 * Get the point generator to be used by the malcolm device.
-	 * @return the point generator
-	 */
-	public IPointGenerator<?> getGenerator();
 	
 	/**
 	 * Get the directory where malcolm will write its h5 files to. The directory should exist at

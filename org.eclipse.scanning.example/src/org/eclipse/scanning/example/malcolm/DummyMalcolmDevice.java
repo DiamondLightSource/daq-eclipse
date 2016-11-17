@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
@@ -47,7 +48,7 @@ import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.ServiceHolder;
-import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
@@ -64,7 +65,6 @@ import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.connector.MessageGenerator;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
-import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -77,6 +77,124 @@ import org.eclipse.scanning.malcolm.core.MalcolmDatasetType;
  */
 public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		implements IMalcolmDevice<DummyMalcolmModel> {
+	
+	private static interface IDummyMalcolmControlledDevice {
+		
+		public void createNexusFile(String dirPath) throws NexusException;
+
+		public void writePosition(IPosition position);
+		
+	}
+	
+	private final class DummyMalcolmControlledDetector implements IDummyMalcolmControlledDevice {
+		
+		private Map<String, ILazyWriteableDataset> datasets = new HashMap<>();
+		
+		private final DummyMalcolmControlledDetectorModel model;
+		
+		public DummyMalcolmControlledDetector(DummyMalcolmControlledDetectorModel model) {
+			this.model = model;
+		}
+
+		@Override
+		public void createNexusFile(String dirPath) throws NexusException {
+			int scanRank = scanInformation.getRank();
+			
+			final String filePath = dirPath + model.getName() + FILE_EXTENSION_HDF5;
+			System.out.println("Dummy malcolm device creating nexus file " + filePath);
+			TreeFile treeFile = NexusNodeFactory.createTreeFile(filePath);
+			NXroot root = NexusNodeFactory.createNXroot();
+			treeFile.setGroupNode(root);
+			NXentry entry = NexusNodeFactory.createNXentry();
+			root.setEntry(entry);
+			
+			// add an entry to the unique keys collection
+			String[] uniqueKeysDatasetPathSegments = UNIQUE_KEYS_DATASET_PATH.split("/");
+			NXcollection ndAttributesCollection = NexusNodeFactory.createNXcollection();
+			entry.setCollection(uniqueKeysDatasetPathSegments[2], ndAttributesCollection);
+			datasets.put("uniqueKeys", ndAttributesCollection.initializeLazyDataset(
+					uniqueKeysDatasetPathSegments[3], scanRank, String.class)); 
+			
+			// create an NXdata 
+			Map<String, DataNode> axesDemandDataNodes = new HashMap<>();
+			for (DummyMalcolmDatasetModel datasetModel : model.getDatasets()) {
+				final String datasetName = datasetModel.getName();
+				NXdata dataGroup = NexusNodeFactory.createNXdata();
+				entry.setData(datasetName, dataGroup);
+				// initialize the dataset. The scan rank is added to the dataset rank 
+				datasets.put(datasetName,  dataGroup.initializeLazyDataset(datasetName, 
+						scanRank + datasetModel.getRank(), datasetModel.getDtype()));
+				// add the demand values for the axes
+				for (String axis : getModel().getAxesToMove()) {
+					DataNode axisDemandDataNode = axesDemandDataNodes.get(axis);
+					String dataNodeName = axis + "_set";
+					if (axisDemandDataNode == null) {
+						// demand value has rank 1
+						dataGroup.initializeLazyDataset(dataNodeName, 1, Double.class);
+						axisDemandDataNode = dataGroup.getDataNode(dataNodeName);
+						axesDemandDataNodes.put(axis, axisDemandDataNode);
+					} else {
+						dataGroup.addDataNode(dataNodeName, axisDemandDataNode);
+					}
+				}
+			}
+			
+			// save the nexus tree to disk
+			saveNexusFile(treeFile);
+		}
+
+		@Override
+		public void writePosition(IPosition position) {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+	
+	private final class PandaDevice implements IDummyMalcolmControlledDevice {
+		
+		@Override
+		public void createNexusFile(String dirPath) throws NexusException {
+			final String filePath = dirPath + "panda" + FILE_EXTENSION_HDF5;
+			System.out.println("Dummy malcolm device creating nexus file " + filePath);
+			TreeFile treeFile = NexusNodeFactory.createTreeFile(filePath);
+			NXroot root = NexusNodeFactory.createNXroot();
+			treeFile.setGroupNode(root);
+			NXentry entry = NexusNodeFactory.createNXentry();
+			root.setEntry(entry);
+
+			// add the positioners to the entry
+			for (String positionerName : getModel().getPositionerNames()) {
+				// The path to positioner datasets written by malcolm is e.g. /entry/x/x
+				NXpositioner positioner = NexusNodeFactory.createNXpositioner(); // nexus class doesn't matter really
+				entry.addGroupNode(positionerName, positioner);
+				positioner.initializeLazyDataset(positionerName, scanInformation.getRank(), Double.class);
+			}
+			
+			// add the monitors to the entry
+			for (String monitorName : getModel().getMonitorNames()) {
+				NXmonitor monitor = NexusNodeFactory.createNXmonitor();
+				entry.addGroupNode(monitorName, monitor);
+				// TODO: if we want non-scalar monitors we'll have to change the model
+				monitor.initializeLazyDataset(monitorName, scanInformation.getRank(), Double.class);
+			}
+			
+			// add an entry to the unique keys collection
+			String[] uniqueKeysDatasetPathSegments = UNIQUE_KEYS_DATASET_PATH.split("/");
+			NXcollection ndAttributesCollection = NexusNodeFactory.createNXcollection();
+			entry.setCollection(uniqueKeysDatasetPathSegments[2], ndAttributesCollection);
+			ndAttributesCollection.initializeLazyDataset(uniqueKeysDatasetPathSegments[3],
+					scanInformation.getRank(), String.class);
+			
+			saveNexusFile(treeFile);
+		}
+
+		@Override
+		public void writePosition(IPosition position) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
 
 	public static final String UNIQUE_KEYS_DATASET_PATH = "/entry/NDAttributes/NDArrayUniqueId";
 	
@@ -93,10 +211,12 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 
 	private Map<String, MalcolmAttribute> allAttributes;
 
-	private IPointGenerator<?> generator;
 	private boolean firstRunCompleted = false;
 	
 	private ScanInformation scanInformation = null; 
+	
+	// the dummy devices are responsible for writing the nexus files 
+	private Map<String, IDummyMalcolmControlledDevice> devices = null;
 	
 	public DummyMalcolmDevice() throws IOException, ScanningException {
 		super(new DummyMalcolmConnectorService(),
@@ -173,9 +293,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	@Override
 	public void validate(DummyMalcolmModel model) throws Exception {
 		super.validate(model);
-		if (model.getFileDir()==null || model.getFileDir().length()<1) {
-			throw new ModelValidationException("A directory must provided in which to write the test files.", model, "filePath");
-		}
+		// Note: fileDir doesn't need to be set as ScanProcess sets it if not set already
 	}
 
 	@Override
@@ -184,11 +302,14 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 
 		// Note: cannot create dataset attr at this point as we don't know the scan rank,
 		// which is required for the datasets for the scannables
-		generator = model.getGenerator();
 		totalSteps.setValue(64);
 		configuredSteps.setValue(64);
 		// super.configure sets device state to ready
 		super.configure(model);
+		
+		devices = model.getDummyDetectorModels().stream().collect(Collectors.toMap(
+				d -> d.getName(), d -> new DummyMalcolmControlledDetector(d)));
+		devices.put("panda", new PandaDevice());
 	}
 	
 	@Override
@@ -295,6 +416,14 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			firstRunCompleted = true;
 		}
 		
+//		SubscanModerator moderator = new SubscanModerator(getPointGenerator(),
+//				Arrays.asList(this), 
+//		for (IPosition position : moderator.getInnerIterable()) {
+//			for (IDummyMalcolmControlledDevice device : devices.values()) {
+//				device.writePosition(position);
+//			}
+//		}
+		
 		status.setValue("Finished writing");
 		setDeviceState(DeviceState.READY);
 	}
@@ -307,21 +436,13 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		if (!dirPath.endsWith("/")) {
 			dirPath += "/";
 		}
-		
-		for (DummyMalcolmControlledDetectorModel deviceModel : model.getDummyDetectorModels()) {
+
+		for (Map.Entry<String, IDummyMalcolmControlledDevice> entry : devices.entrySet()) {
 			try {
-				createNexusFileForDetector(dirPath, deviceModel);
+				entry.getValue().createNexusFile(dirPath);
 			} catch (NexusException e) {
-				throw new ScanningException("Unable to create nexus file for device " +
-						deviceModel.getName());
+				throw new ScanningException("Unable to create nexus file for device " + entry.getKey());
 			}
-		}
-		
-		try {
-			// the nexus file for panda contains all the scannable values and monitors
-			createNexusFileForPanda(dirPath);
-		} catch (NexusException e) {
-			throw new ScanningException("Unable to create nexus file for Panda");
 		}
 	}
 	
@@ -331,88 +452,6 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		this.scanInformation = scanInformation;
 	}
 
-	private void createNexusFileForDetector(String dirPath,
-			DummyMalcolmControlledDetectorModel detectorModel) throws NexusException {
-		int scanRank = scanInformation.getRank();
-		
-		final String filePath = dirPath + detectorModel.getName() + FILE_EXTENSION_HDF5;
-		System.out.println("Dummy malcolm device creating nexus file " + filePath);
-		TreeFile treeFile = NexusNodeFactory.createTreeFile(filePath);
-		NXroot root = NexusNodeFactory.createNXroot();
-		treeFile.setGroupNode(root);
-		NXentry entry = NexusNodeFactory.createNXentry();
-		root.setEntry(entry);
-		
-		// add an entry to the unique keys collection
-		String[] uniqueKeysDatasetPathSegments = UNIQUE_KEYS_DATASET_PATH.split("/");
-		NXcollection ndAttributesCollection = NexusNodeFactory.createNXcollection();
-		entry.setCollection(uniqueKeysDatasetPathSegments[2], ndAttributesCollection);
-		ndAttributesCollection.initializeLazyDataset(uniqueKeysDatasetPathSegments[3],
-				scanRank, String.class);
-		
-		// create an NXdata 
-		Map<String, DataNode> axesDemandDataNodes = new HashMap<>();
-		for (DummyMalcolmDatasetModel datasetModel : detectorModel.getDatasets()) {
-			final String datasetName = datasetModel.getName();
-			NXdata dataGroup = NexusNodeFactory.createNXdata();
-			entry.setData(datasetName, dataGroup);
-			// initialize the dataset. The scan rank is added to the dataset rank 
-			dataGroup.initializeLazyDataset(datasetName, 
-					scanRank + datasetModel.getRank(), datasetModel.getDtype());
-			// add the demand values for the axes
-			for (String axis : getModel().getAxesToMove()) {
-				DataNode axisDemandDataNode = axesDemandDataNodes.get(axis);
-				String dataNodeName = axis + "_set";
-				if (axisDemandDataNode == null) {
-					// TODO what is the rank of the demand value
-					dataGroup.initializeLazyDataset(dataNodeName, 1, Double.class);
-					axisDemandDataNode = dataGroup.getDataNode(dataNodeName);
-					axesDemandDataNodes.put(axis, axisDemandDataNode);
-				} else {
-					dataGroup.addDataNode(dataNodeName, axisDemandDataNode);
-				}
-			}
-		}
-		
-		// save the nexus tree to disk
-		saveNexusFile(treeFile);
-	}
-
-	private void createNexusFileForPanda(String dirPath) throws NexusException {
-		final String filePath = dirPath + "panda" + FILE_EXTENSION_HDF5;
-		System.out.println("Dummy malcolm device creating nexus file " + filePath);
-		TreeFile treeFile = NexusNodeFactory.createTreeFile(filePath);
-		NXroot root = NexusNodeFactory.createNXroot();
-		treeFile.setGroupNode(root);
-		NXentry entry = NexusNodeFactory.createNXentry();
-		root.setEntry(entry);
-
-		// add the positioners to the entry
-		for (String positionerName : getModel().getPositionerNames()) {
-			// The path to positioner datasets written by malcolm is e.g. /entry/x/x
-			NXpositioner positioner = NexusNodeFactory.createNXpositioner(); // nexus class doesn't matter really
-			entry.addGroupNode(positionerName, positioner);
-			positioner.initializeLazyDataset(positionerName, scanInformation.getRank(), Double.class);
-		}
-		
-		// add the monitors to the entry
-		for (String monitorName : getModel().getMonitorNames()) {
-			NXmonitor monitor = NexusNodeFactory.createNXmonitor();
-			entry.addGroupNode(monitorName, monitor);
-			// TODO: if we want non-scalar monitors we'll have to change the model
-			monitor.initializeLazyDataset(monitorName, scanInformation.getRank(), Double.class);
-		}
-		
-		// add an entry to the unique keys collection
-		String[] uniqueKeysDatasetPathSegments = UNIQUE_KEYS_DATASET_PATH.split("/");
-		NXcollection ndAttributesCollection = NexusNodeFactory.createNXcollection();
-		entry.setCollection(uniqueKeysDatasetPathSegments[2], ndAttributesCollection);
-		ndAttributesCollection.initializeLazyDataset(uniqueKeysDatasetPathSegments[3],
-				scanInformation.getRank(), String.class);
-		
-		saveNexusFile(treeFile);
-	}
-	
 	private void saveNexusFile(TreeFile nexusTree) throws NexusException {
 		NexusFile file = ServiceHolder.getNexusFileFactory().newNexusFile(nexusTree.getFilename(), true);
 		file.createAndOpenToWrite();

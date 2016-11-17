@@ -80,7 +80,7 @@ public class CompoundModel<R> implements Cloneable {
 		return ret;
 	}
 	/**
-	 * Clones the outer object but not the indder collections
+	 * Clones the outer object but not the inner collections
 	 * of models, regions etc.
 	 */
 	public CompoundModel<R> clone(List<Object> models) {
