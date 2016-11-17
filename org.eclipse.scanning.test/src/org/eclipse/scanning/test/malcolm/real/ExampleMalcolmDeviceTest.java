@@ -32,13 +32,13 @@ import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.pv.PVDouble;
 import org.epics.pvdata.pv.PVDoubleArray;
+import org.epics.pvdata.pv.PVString;
 import org.epics.pvdata.pv.PVStringArray;
 import org.epics.pvdata.pv.PVStructure;
 import org.epics.pvdata.pv.PVUnion;
 import org.epics.pvdata.pv.ScalarType;
 import org.epics.pvdata.pv.Structure;
 import org.epics.pvdata.pv.Union;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ExampleMalcolmDeviceTest {
@@ -89,10 +89,13 @@ public class ExampleMalcolmDeviceTest {
 
 			ExampleMalcolmModel pmac1 = new ExampleMalcolmModel();
 			pmac1.setExposure(45f);
+			pmac1.setFileDir("/TestFile/Dir");
 
+			// Set the generator on the device
+			modelledDevice.setPointGenerator(scan);
+			
 			// Call configure
 			modelledDevice.configure(pmac1);
-			modelledDevice.setPointGenerator(scan);
 
 			// Call run
 			modelledDevice.run(null);
@@ -260,8 +263,8 @@ public class ExampleMalcolmDeviceTest {
 					createStructure();
 
 			Structure configureStructure = FieldFactory.getFieldCreate().createFieldBuilder()
-					.add("exposure", ScalarType.pvFloat)
 					.add("generator", generatorStructure)
+					.add("fileDir", ScalarType.pvString)
 					.createStructure();
 
 			PVStructure spiralGeneratorPVStructure = PVDataFactory.getPVDataCreate()
@@ -290,7 +293,6 @@ public class ExampleMalcolmDeviceTest {
 			PVUnion[] unionArray2 = new PVUnion[1];
 			unionArray2[0] = pvu2;
 			configurePVStructure.getUnionArrayField("generator.mutators").put(0, unionArray2.length, unionArray2, 0);
-			configurePVStructure.getFloatField("exposure").put(45.0f);
 			
 			PVStructure expectedExcluder1PVStructure = PVDataFactory.getPVDataCreate().createPVStructure(excluderStructure);
 			PVStringArray scannables1Val = expectedExcluder1PVStructure.getSubField(PVStringArray.class, "scannables");
@@ -327,6 +329,9 @@ public class ExampleMalcolmDeviceTest {
 			// TODO Put back in when excluders are fixed in python
 			//configurePVStructure.getUnionArrayField("generator.excluders").put(0, crUnionArray.length, crUnionArray, 0);
 
+			PVString fileDirVal = configurePVStructure.getSubField(PVString.class, "fileDir");
+			fileDirVal.put("/TestFile/Dir");
+			
 			assertEquals(configureStructure, configureCall.getStructure());
 			assertEquals(configurePVStructure, configureCall);
 

@@ -41,9 +41,9 @@ import org.slf4j.LoggerFactory;
 class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice<M> {
 	
 	public static final class EpicsMalcolmModel {
-		private final String fileDir;
-		private final List<String> axesToMove;
 		private final IPointGenerator<?> generator;
+		private final List<String> axesToMove;
+		private final String fileDir;
 
 		public EpicsMalcolmModel(String fileDir, List<String> axesToMove,
 				IPointGenerator<?> generator) {

@@ -140,11 +140,12 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	public void testDummyMalcolmNexusFiles() throws Exception {
 
 		DummyMalcolmModel model = createModel();
-		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model);
+		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
 		((IMalcolmDevice<DummyMalcolmModel>) malcolmDevice).setPointGenerator(getGenerator(2, 2)); // Generator isn't actually used by the test malcolm device
 		int scanRank = 3;
 		setScanInformation(malcolmDevice, scanRank); // normally called when a scan is run using @ScanStart
 		assertNotNull(malcolmDevice);
+		malcolmDevice.configure(model);
 
 		malcolmDevice.run(null);
 
@@ -155,7 +156,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	@Test
 	public void testMalcolmNexusObjects() throws Exception {
 		DummyMalcolmModel model = createModel();
-		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model);
+		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
 		int scanRank = 3;
 		setScanInformation(malcolmDevice, scanRank); // normally called when a scan is run using @ScanStart
 		malcolmDevice.configure(model);
