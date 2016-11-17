@@ -1,5 +1,7 @@
 package org.eclipse.scanning.sequencer.nexus;
 
+import org.eclipse.dawnsci.nexus.IMultipleNexusDevice;
+import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -34,15 +36,29 @@ public class NexusScanFileManagerFactory {
 			return false;
 		}
 
+		@Override
+		public NexusScanInfo getNexusScanInfo() {
+			return null;
+		}
+
 	}
 	
 	public static INexusScanFileManager createNexusScanFileManager(
-			AbstractRunnableDevice<ScanModel> scanDevice) {
-		if (scanDevice.getModel().getFilePath() == null || ServiceHolder.getFactory() == null) {
+			AbstractRunnableDevice<ScanModel> scanDevice) throws ScanningException {
+		final ScanModel scanModel = scanDevice.getModel();
+		if (scanModel.getFilePath() == null || ServiceHolder.getFactory() == null) {
 			return new DummyNexusScanFileManager();
 		}
 		
+		if (isMalcolmNexusScan(scanModel)) {
+			return new MalcolmNexusScanFileManager(scanDevice);
+		}
+		
 		return new NexusScanFileManager(scanDevice);
+	}
+	
+	private static boolean isMalcolmNexusScan(ScanModel scanModel) {
+		return scanModel.getDetectors().stream().anyMatch(det -> (det instanceof IMultipleNexusDevice));
 	}
 
 }

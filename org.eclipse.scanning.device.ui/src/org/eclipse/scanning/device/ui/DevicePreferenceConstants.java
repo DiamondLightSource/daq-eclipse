@@ -82,5 +82,10 @@ public class DevicePreferenceConstants {
 	 */
 	public static final String SHOW_HARDWARE = "org.eclipse.scanning.device.ui.scan.showHardware";
 
+	/**
+	 * If the user wants to see processing detectors in the UI.
+	 */
+	public static final String SHOW_MALCOLM = "org.eclipse.scanning.device.ui.scan.showMalcolm";
+
 
 }

@@ -30,7 +30,7 @@ import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
@@ -73,7 +73,7 @@ public class TopupTest {
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
 
-		gservice  = new PointGeneratorFactory();
+		gservice  = new PointGeneratorService();
 		
 		MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setExposureTime(0.001);

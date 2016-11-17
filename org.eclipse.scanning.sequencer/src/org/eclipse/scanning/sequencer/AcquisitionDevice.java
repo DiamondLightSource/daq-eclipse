@@ -9,7 +9,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.annotation.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.annotation.scan.ScanAbort;
@@ -30,6 +30,7 @@ import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
@@ -83,7 +84,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	 * Package private constructor, devices are created by the service.
 	 */
 	AcquisitionDevice() {
-		super();
+		super(ServiceHolder.getRunnableDeviceService());
 		this.lock      = new ReentrantLock();
 		this.paused    = lock.newCondition();
 		setName("solstice_scan");
@@ -114,8 +115,12 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			// Make sure all devices report the same scan id
 			for (IRunnableDevice<?> device : model.getDetectors()) {
 				if (device instanceof AbstractRunnableDevice<?>) {
+					// TODO the same bean should not be shared between detectors
 					AbstractRunnableDevice<?> adevice = (AbstractRunnableDevice<?>)device;
-					adevice.setBean(getBean());
+					DeviceState deviceState = adevice.getDeviceState();
+					ScanBean bean = getBean();
+					bean.setDeviceState(deviceState);
+					adevice.setBean(bean);
 					adevice.setPrimaryScanDevice(false);
 				}
 			}
@@ -160,7 +165,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
 		
-		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), model.getDetectors(), ServiceHolder.getGeneratorService());
+		CompoundModel<?> cmodel = getBean().getScanRequest()!=null ? getBean().getScanRequest().getCompoundModel() : null;
+		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), cmodel, model.getDetectors(), ServiceHolder.getGeneratorService());
 		
 		boolean errorFound = false;
 		IPosition pos = null;

@@ -95,9 +95,8 @@ public class ServiceHolder {
 
 	/**
 	 * Used to provide services when tests running in non-OSGi mode.
-	 * @param ls
-	 * @param defaultNexusBuilderFactory
 	 */
+	@SuppressWarnings("javadoc")
 	public static void setTestServices(ILoaderService ls,
 			NexusBuilderFactory defaultNexusBuilderFactory, IOperationService oservice) {
 		loaderService = ls;
@@ -107,16 +106,16 @@ public class ServiceHolder {
 	
 	/**
 	 * Used to provide services when tests running in non-OSGi mode.
-	 * @param ls
-	 * @param defaultNexusBuilderFactory
 	 */
+	@SuppressWarnings("javadoc")
 	public static void setTestServices(ILoaderService ls,
 			NexusBuilderFactory defaultNexusBuilderFactory, IOperationService oservice,
-			IFilePathService fpservice) {
+			IFilePathService fpservice, IPointGeneratorService gService) {
 		loaderService = ls;
 		factory = defaultNexusBuilderFactory;
 		operationService = oservice;
 		filePathService = fpservice; 
+		generatorService = gService;
 	}
 
 }

@@ -32,7 +32,7 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
         
         // We create a model with no regions from the generators.
         this.model = new CompoundModel();
-        for (IPointGenerator<?> g : generators) model.addData(g.getModel(), g.getContainers());
+        for (IPointGenerator<?> g : generators) model.addData(g.getModel(), g.getRegions());
         // This model is not designed to hold all the data because we have the actual generators!
         
         this.generators = generators;

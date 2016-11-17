@@ -15,7 +15,7 @@ import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.sequencer.SubscanModerator;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,7 +26,7 @@ public class SubscanModeratorTest {
 
 	@BeforeClass
 	public static void setServices() throws Exception {
-		gservice    = new PointGeneratorFactory();
+		gservice    = new PointGeneratorService();
 	}
 	
 	@Test
@@ -111,7 +111,7 @@ public class SubscanModeratorTest {
 	}
 	
 	@Test
-	public void testNoSubscanDevice() throws Exception {
+	public void testNoSubscanDevice1() throws Exception {
 		
 		CompoundModel cmodel = new CompoundModel<>();
 		
@@ -135,6 +135,33 @@ public class SubscanModeratorTest {
 		assertTrue(moderator.getOuterModels()==null);
 		assertTrue(moderator.getInnerModels()==null);
 	}
+	
+	@Test
+	public void testNoSubscanDevice2() throws Exception {
+		
+		CompoundModel cmodel = new CompoundModel<>();
+		
+		GridModel gmodel = new GridModel("x", "y");
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
+		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
+		
+		cmodel.setModels(Arrays.asList(new StepModel("T", 290, 300, 2), gmodel));
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(cmodel);
+		
+		final MandelbrotModel mmodel = new MandelbrotModel();
+		final MandelbrotDetector det = new MandelbrotDetector();
+		det.setModel(mmodel);
+			
+		SubscanModerator moderator = new SubscanModerator(gen, Arrays.asList(det), gservice);
+		IPointGenerator<?> moderated = (IPointGenerator<?>)moderator.getOuterIterable();
+		
+		assertTrue("The size should be 150 not "+moderated.size(), moderated.size()==150);
+		assertTrue(moderator.getOuterModels()==null);
+		assertTrue(moderator.getInnerModels()==null);
+	}
+
 
 	@Test
 	public void testDifferentAxes1() throws Exception {

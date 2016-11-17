@@ -8,12 +8,8 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.dawnsci.nexus.NXdetector;
-import org.eclipse.dawnsci.nexus.NexusNodeFactory;
-import org.eclipse.dawnsci.nexus.NexusScanInfo;
-import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
-import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -26,6 +22,7 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +38,35 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
+class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice<M> {
+	
+	public static final class EpicsMalcolmModel {
+		private final IPointGenerator<?> generator;
+		private final List<String> axesToMove;
+		private final String fileDir;
+
+		public EpicsMalcolmModel(String fileDir, List<String> axesToMove,
+				IPointGenerator<?> generator) {
+			this.fileDir = fileDir;
+			this.axesToMove = axesToMove;
+			this.generator = generator;
+		}
+
+		public String getFileDir() {
+			return fileDir;
+		}
+
+		public List<String> getAxesToMove() {
+			return axesToMove;
+		}
+
+		public IPointGenerator<?> getGenerator() {
+			return generator;
+		}
+		
+	}
+	
+
 
 	private static Logger logger = LoggerFactory.getLogger(MalcolmDevice.class);
 		
@@ -52,6 +77,8 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 	private IPublisher<ScanBean>             publisher;
 	
+	private MalcolmEventBean meb;
+
 	private static String STATE_ENDPOINT = "state";
 	
 	private static String STATUS_ENDPOINT = "status";
@@ -124,7 +151,6 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 		if (publisher!=null) publisher.broadcast(bean);
 	}
 
-	private MalcolmEventBean meb;
 	protected void sendScanStateChange(MalcolmEvent<MalcolmMessage> e) throws Exception {
 		
 		MalcolmMessage msg = e.getBean();
@@ -213,22 +239,24 @@ class MalcolmDevice<T> extends AbstractMalcolmDevice<T> {
 
 
 	@Override
-	public void validate(T params) throws MalcolmDeviceException {
+	public void validate(MalcolmModel params) throws MalcolmDeviceException {
 		
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("validate", params);
 		final MalcolmMessage reply = service.send(this, msg);
-        if (reply.getType()==Type.ERROR) {
-        	throw new MalcolmDeviceException(reply.getMessage());
-        }
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException(reply.getMessage());
+		}
 	}
 	
 	@Override
-	public void configure(T model) throws MalcolmDeviceException {
-		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", model);
+	public void configure(M model) throws MalcolmDeviceException {
+		final EpicsMalcolmModel epicsModel = new EpicsMalcolmModel(model.getFileDir(),
+				model.getAxesToMove(), getPointGenerator());
+		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", epicsModel);
 		MalcolmMessage reply = service.send(this, msg);
-        if (reply.getType() == Type.ERROR) {
-        	throw new MalcolmDeviceException(reply.getMessage());
-        }
+		if (reply.getType() == Type.ERROR) {
+			throw new MalcolmDeviceException(reply.getMessage());
+		}
 		setModel(model);
 	}
 

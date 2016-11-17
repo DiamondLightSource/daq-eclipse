@@ -4,6 +4,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.EllipticalROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.LinearROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.PointROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.SectorROI;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
@@ -11,8 +18,11 @@ import org.eclipse.scanning.api.points.IMutator;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
 import org.python.core.PyDictionary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * We are trying to make it super efficient to iterate
@@ -24,6 +34,8 @@ import org.python.core.PyDictionary;
  */
 public class CompoundIterator extends AbstractScanPointIterator {
 
+	private static Logger logger = LoggerFactory.getLogger(CompoundIterator.class);
+	
 	private CompoundGenerator     gen;
 	private IPosition             pos;
 	private Iterator<? extends IPosition>[] iterators;
@@ -45,7 +57,7 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
 		
-        Object[] excluders = {}; // TODO FIXME excluders not respected?
+        Object[] excluders = {}; //getExcluders(gen.getModel().getRegions()); TODO put back in when excluders are fixed in Python
         Object[] mutators = getMutators(gen.getModel().getMutators());
         
         @SuppressWarnings("unchecked")
@@ -140,6 +152,11 @@ public class CompoundIterator extends AbstractScanPointIterator {
 		return pyIterator.size();
 	}
 	
+	/**
+	 * Creates an array of python objects representing the mutators
+	 * @param mutators
+	 * @return
+	 */
 	private Object[] getMutators(Collection<IMutator> mutators) {
 		LinkedList<Object> pyMutators = new LinkedList<Object>();
 		if (mutators != null) {
@@ -148,6 +165,71 @@ public class CompoundIterator extends AbstractScanPointIterator {
 			}
 		}
 		return pyMutators.toArray();
+	}
+	
+	/**
+	 * Creates an array of python objects representing the excluders
+	 * @param regions
+	 * @return
+	 */
+	private Object[] getExcluders(Collection<?> regions) {
+		LinkedList<Object> pyRegions = new LinkedList<Object>();
+		JythonObjectFactory excluderFactory = ScanPointGeneratorFactory.JExcluderFactory();
+		JythonObjectFactory circularROIFactory = ScanPointGeneratorFactory.JCircularROIFactory();
+		JythonObjectFactory ellipticalROIFactory = ScanPointGeneratorFactory.JEllipticalROIFactory();
+		JythonObjectFactory pointROIFactory = ScanPointGeneratorFactory.JPointROIFactory();
+		JythonObjectFactory polygonalROIFactory = ScanPointGeneratorFactory.JPolygonalROIFactory();
+		JythonObjectFactory rectangularROIFactory = ScanPointGeneratorFactory.JRectangularROIFactory();
+		JythonObjectFactory sectorROIFactory = ScanPointGeneratorFactory.JSectorROIFactory();
+		
+		if (regions != null) {
+			for (Object region : regions) {
+				
+				if (region instanceof ScanRegion) {
+					ScanRegion<?> sr = (ScanRegion<?>)region;
+					Object roi = sr.getRoi();
+					Object pyRoi = null;
+					
+					if (roi instanceof CircularROI) {
+						CircularROI cRoi = (CircularROI) roi;
+						pyRoi = circularROIFactory.createObject(cRoi.getCentre(), cRoi.getRadius());
+					} else if (roi instanceof EllipticalROI) {
+						EllipticalROI eRoi = (EllipticalROI) roi;
+						pyRoi = ellipticalROIFactory.createObject(eRoi.getPoint(), eRoi.getSemiAxes(), eRoi.getAngle());
+					} else if (roi instanceof LinearROI) {
+						// LinearROIs are not supported so do not add
+					} else if (roi instanceof PointROI) {
+						PointROI pRoi = (PointROI) roi;
+						pyRoi = pointROIFactory.createObject(pRoi.getPoint());
+					} else if (roi instanceof PolygonalROI) {
+						PolygonalROI pRoi = (PolygonalROI) roi;
+						double[] xPoints = new double[pRoi.getNumberOfPoints()];
+						double[] yPoints = new double[pRoi.getNumberOfPoints()];
+						for (int i = 0; i < pRoi.getNumberOfPoints(); i++) {
+							PointROI pointRoi = pRoi.getPoint(i);
+							xPoints[i] = pointRoi.getPointX();
+							yPoints[i] = pointRoi.getPointY();
+						}
+						pyRoi = polygonalROIFactory.createObject(xPoints, yPoints);
+					} else if (roi instanceof RectangularROI) {
+						RectangularROI rRoi = (RectangularROI) roi;
+						pyRoi = rectangularROIFactory.createObject(rRoi.getPoint(), rRoi.getLength(0), rRoi.getLength(1), rRoi.getAngle());
+					} else if (roi instanceof SectorROI) {
+						SectorROI sRoi = (SectorROI) roi;
+						pyRoi = sectorROIFactory.createObject(sRoi.getPoint(), sRoi.getRadii(), sRoi.getAngles());
+					} else {
+						logger.error("Unsupported ROI tyoe: " + roi.getClass());
+					}
+					if (pyRoi != null) {
+						Object pyExcluder = excluderFactory.createObject(pyRoi, sr.getScannables());
+						pyRegions.add(pyExcluder);
+					}
+				} else {
+					logger.error("Region wasn't of type ScanRegion");
+				}
+			}
+		}
+		return pyRegions.toArray();
 	}
 
 }

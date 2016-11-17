@@ -18,6 +18,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.eclipse.dawnsci.analysis.api.tree.Attribute;
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
 import org.eclipse.dawnsci.nexus.INexusFileFactory;
@@ -49,6 +51,7 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
@@ -125,6 +128,65 @@ public class MandelbrotExampleTest extends NexusTest {
 	@Test
 	public void test2DNexusScan() throws Exception {
 		testScan(8,5);
+	}
+	
+	@Test
+	public void test3DNexusSpiralScan() throws Exception {
+		IRunnableDevice<ScanModel> scanner = createSpiralScan(detector, output); // Outer scan of another scannable, for instance temp.
+		assertScanNotFinished(getNexusRoot(scanner).getEntry());
+		scanner.run(null);
+		NXroot rootNode = getNexusRoot(scanner);
+		NXentry entry = rootNode.getEntry();
+		Map<String, NXdata> nxDataGroups = entry.getChildren(NXdata.class);
+		
+		NXdata nXdata = nxDataGroups.get(nxDataGroups.keySet().iterator().next());
+		//3d spiral, outer should be 0, inner should both be 1
+		Attribute att = nXdata.getAttribute("neXusScannable1_value_set_indices");
+		String e = att.getFirstElement();
+		assertEquals(0, Integer.parseInt(e));
+		
+		att = nXdata.getAttribute("xNex" + "_value_set_indices");
+		e = att.getFirstElement();
+		assertEquals(1, Integer.parseInt(e));
+		
+		att = nXdata.getAttribute("yNex" + "_value_set_indices");
+		e = att.getFirstElement();
+		assertEquals(1, Integer.parseInt(e));
+	}
+	
+	@Test
+	public void test2DNexusNoImage() throws Exception {
+		detector.getModel().setSaveImage(false);
+		try {
+			
+			IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, new int[]{8,5}); // Outer scan of another scannable, for instance temp.
+			assertScanNotFinished(getNexusRoot(scanner).getEntry());
+			scanner.run(null);
+			
+			NXroot rootNode = getNexusRoot(scanner);
+			NXentry entry = rootNode.getEntry();
+			Map<String, NXdata> nxDataGroups = entry.getChildren(NXdata.class);
+			
+			boolean found = false;
+			
+			Iterator<NXdata> it = nxDataGroups.values().iterator();
+			//check no NXdata of rank 4
+			while (it.hasNext()) {
+				
+				NXdata next = it.next();
+				String signal = next.getAttributeSignal();
+				if (next.getDataNode(signal).getDataset().getRank()==4) {
+					found = true;
+					break;
+				}
+				
+			}
+			assertFalse(found);
+			
+		} finally {
+			detector.getModel().setSaveImage(true);
+		}
+		
 	}
 	
 	@Test
@@ -315,6 +377,46 @@ public class MandelbrotExampleTest extends NexusTest {
 
 		gen = gservice.createCompoundGenerator(gens);
 	
+		// Create the model for a scan.
+		final ScanModel  smodel = new ScanModel();
+		smodel.setPositionIterable(gen);
+		smodel.setDetectors(detector);
+		
+		// Create a file to scan into.
+		smodel.setFilePath(file.getAbsolutePath());
+		System.out.println("File writing to "+smodel.getFilePath());
+
+		// Create a scan and run it without publishing events
+		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel, null);
+		
+		final IPointGenerator<?> fgen = gen;
+		((IRunnableEventDevice<ScanModel>)scanner).addRunListener(new IRunListener() {
+			@Override
+			public void runWillPerform(RunEvent evt) throws ScanningException {
+				try {
+					System.out.println("Running acquisition scan of size "+fgen.size());
+				} catch (GeneratorException e) {
+					throw new ScanningException(e);
+				}
+			}
+		});
+
+		return scanner;
+	}
+	
+	private IRunnableDevice<ScanModel> createSpiralScan(final IRunnableDevice<?> detector, File file) throws Exception {
+		
+		SpiralModel spmodel = new SpiralModel("xNex","yNex");
+		spmodel.setScale(0.1);
+		spmodel.setBoundingBox(new BoundingBox(0,0,1,1));
+	
+		IPointGenerator<?> gen = gservice.createGenerator(spmodel);
+
+		final StepModel  model = new StepModel("neXusScannable1", 0,3,1);
+		final IPointGenerator<?> step = gservice.createGenerator(model);
+
+		gen = gservice.createCompoundGenerator(new IPointGenerator<?>[]{step,gen});
+		
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterable(gen);

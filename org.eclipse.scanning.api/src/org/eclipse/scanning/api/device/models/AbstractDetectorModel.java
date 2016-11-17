@@ -4,10 +4,12 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 public abstract class AbstractDetectorModel implements IDetectorModel {
 
+	private long timeout;
+	
 	/**
 	 * The name of the detector device
 	 */
-	@FieldDescriptor(label="Name")
+	@FieldDescriptor(label="Name", editable=false)
 	private String name;
 
 	/**
@@ -33,6 +35,7 @@ public abstract class AbstractDetectorModel implements IDetectorModel {
 		temp = Double.doubleToLongBits(exposureTime);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + (int) (timeout ^ (timeout >>> 32));
 		return result;
 	}
 
@@ -52,6 +55,8 @@ public abstract class AbstractDetectorModel implements IDetectorModel {
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
+		if (timeout != other.timeout)
+			return false;
 		return true;
 	}
 
@@ -61,5 +66,13 @@ public abstract class AbstractDetectorModel implements IDetectorModel {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public long getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
 	}
 }

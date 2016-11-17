@@ -1,7 +1,10 @@
 package org.eclipse.scanning.api.malcolm;
 
+import java.util.Set;
+
 import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
+import org.eclipse.scanning.api.points.IPointGenerator;
 
 
 /**
@@ -45,8 +48,6 @@ import org.eclipse.scanning.api.device.IRunnableEventDevice;
  */
 public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEventPublisher, ILatchableDevice, IValidator<T> {
 	
-	// TODO setAttribute, getAttribute
-	
 	/**
 	 * Attempts to determine if the device is locked doing something like a configure or a run.
 	 * 
@@ -55,8 +56,27 @@ public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEven
 	public boolean isLocked() throws MalcolmDeviceException ;
 	
 	/**
+	 * Set the point generator for the malcolm device.
+	 * @param pointGenerator point generator
+	 */
+	public void setPointGenerator(IPointGenerator<?> pointGenerator);
+	
+	/**
+	 * Get the point generator for the malcolm device
+	 * @return point generator
+	 */
+	public IPointGenerator<?> getPointGenerator();
+	
+	/**
 	 * Gets the value of an attribute on the device
 	 */
 	public <A> A getAttributeValue(String attribute) throws MalcolmDeviceException;
+	
+	/**
+	 * Returns the axes that this malcolm device can move.
+	 * @return
+	 * @throws MalcolmDeviceException
+	 */
+	public Set<String> getAxesToMove() throws MalcolmDeviceException;
 
 }

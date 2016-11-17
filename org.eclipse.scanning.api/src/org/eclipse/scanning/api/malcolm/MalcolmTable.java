@@ -13,10 +13,14 @@ import java.util.Map;
  */
 public class MalcolmTable implements Iterable<Map<String, Object>> {
 	
-	private final Map<String, ArrayList<Object>> tableData;
-	private final Map<String, Class<?>> tableDataTypes;
-	private final List<String> headings;
+	private Map<String, ArrayList<Object>> tableData;
+	private Map<String, Class<?>> tableDataTypes;
+	private List<String> headings;
 	private int numRows;
+	
+	public MalcolmTable() {
+		
+	}
 	
 	/**
 	 * Create a new Malcolm table with the given columns data and data types. The
@@ -135,5 +139,73 @@ public class MalcolmTable implements Iterable<Map<String, Object>> {
 			return getRow(rowNum++);
 		}
 		
+	}
+
+	public Map<String, ArrayList<Object>> getTableData() {
+		return tableData;
+	}
+
+	public void setTableData(Map<String, ArrayList<Object>> tableData) {
+		this.tableData = tableData;
+	}
+
+	public Map<String, Class<?>> getTableDataTypes() {
+		return tableDataTypes;
+	}
+
+	public void setTableDataTypes(Map<String, Class<?>> tableDataTypes) {
+		this.tableDataTypes = tableDataTypes;
+	}
+
+	public int getNumRows() {
+		return numRows;
+	}
+
+	public void setNumRows(int numRows) {
+		this.numRows = numRows;
+	}
+
+	public void setHeadings(List<String> headings) {
+		this.headings = headings;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((headings == null) ? 0 : headings.hashCode());
+		result = prime * result + numRows;
+		result = prime * result + ((tableData == null) ? 0 : tableData.hashCode());
+		result = prime * result + ((tableDataTypes == null) ? 0 : tableDataTypes.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MalcolmTable other = (MalcolmTable) obj;
+		if (headings == null) {
+			if (other.headings != null)
+				return false;
+		} else if (!headings.equals(other.headings))
+			return false;
+		if (numRows != other.numRows)
+			return false;
+		if (tableData == null) {
+			if (other.tableData != null)
+				return false;
+		} else if (!tableData.equals(other.tableData))
+			return false;
+		if (tableDataTypes == null) {
+			if (other.tableDataTypes != null)
+				return false;
+		} else if (!tableDataTypes.equals(other.tableDataTypes))
+			return false;
+		return true;
 	}
 }

@@ -10,7 +10,7 @@ import org.eclipse.scanning.api.points.models.SpiralModel;
 class SpiralGenerator extends AbstractGenerator<SpiralModel> {
 
 	SpiralGenerator() {
-		setLabel("Spiral");
+		setLabel("Fermat Spiral");
 		setDescription("Creates a spiral scaled around the center of a bounding box.");
 		setIconPath("icons/scanner--spiral.png"); // This icon exists in the rendering bundle 
 	}

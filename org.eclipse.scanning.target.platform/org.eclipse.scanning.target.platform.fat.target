@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Scanning (Fat)" sequenceNumber="109">
+<?pde version="3.8"?><target name="Scanning (Fat)" sequenceNumber="115">
 <locations>
+<location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="false" type="InstallableUnit">
+<unit id="uk.ac.diamond.scisoft.peema.feature.feature.group" version="1.2.0.v20161111-1529"/>
+<unit id="uk.ac.diamond.dawn.product.feature.feature.group" version="2.3.0.v20161114-1659"/>
+<unit id="org.eclipse.equinox.executable.feature.group" version="3.6.200.v20150602-1417"/>
+<unit id="org.dawnsci.base.product.feature.feature.group" version="2.3.0.v20161114-1659"/>
+<repository location="http://www.opengda.org/DawnDiamond/master/updates/snapshot/"/>
+</location>
 <location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="false" type="InstallableUnit">
 <unit id="org.eclipse.jetty.bundles.f.feature.group" version="9.2.13.201508192117"/>
 <repository location="http://download.eclipse.org/jetty/updates/jetty-bundles-9.x/9.2.13.v20150730/"/>
@@ -51,11 +58,9 @@
 <repository location="http://www.opengda.org/updates/tp_dawnsci/trunk/"/>
 </location>
 <location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="false" type="InstallableUnit">
-<unit id="uk.ac.diamond.scisoft.peema.feature.feature.group" version="1.2.0.v20161004-1622"/>
-<unit id="uk.ac.diamond.dawn.product.feature.feature.group" version="2.3.0.v20161011-1510"/>
-<unit id="org.eclipse.equinox.executable.feature.group" version="3.6.200.v20150602-1417"/>
-<unit id="org.dawnsci.base.product.feature.feature.group" version="2.3.0.v20161011-1510"/>
-<repository location="http://www.opengda.org/DawnDiamond/master/updates/snapshot/"/>
+<unit id="org.eclipse.january" version="1.0.0.v201610161242"/>
+<unit id="org.eclipse.january.source" version="1.0.0.v201610161242"/>
+<repository location="https://alfred.diamond.ac.uk/sites/download.eclipse.org/january/releases/1.0.1-20161109_163336/repository/"/>
 </location>
 </locations>
 </target>

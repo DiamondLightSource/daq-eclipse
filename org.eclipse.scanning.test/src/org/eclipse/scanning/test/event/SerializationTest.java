@@ -395,7 +395,7 @@ public class SerializationTest {
 	    
 		final String json = "{\"@type\":\"ScanBean\","+
 		 "\"uniqueId\":\"5f67891f-4f01-48d4-9cab-ce373c5f9807\","+
-		 "\"status\":[\"Status\",\"SUBMITTED\"],"+
+		 "\"status\":\"SUBMITTED\","+
 		 "\"name\":\"Scan [Grid(x, y)] with Detectors [mandelbrot] \","+
 		 "\"percentComplete\":0.0,\"userName\":\"fcp94556\",\"hostName\":\"DIAMRL5606\",\"submissionTime\":1474893775913,"+
 		 "\"scanRequest\":{\"@type\":\"ScanRequest\","+
@@ -437,7 +437,7 @@ public class SerializationTest {
 		
 		final String json = "{\"@type\":\"ScanBean\","+
 		 "\"uniqueId\":\"5f67891f-4f01-48d4-9cab-ce373c5f9807\","+
-		 "\"status\":[\"Status\",\"SUBMITTED\"],"+
+		 "\"status\":\"SUBMITTED\","+
 		 "\"name\":\"Scan [Grid(x, y)] with Detectors [mandelbrot] \","+
 		 "\"percentComplete\":0.0,\"userName\":\"fcp94556\",\"hostName\":\"DIAMRL5606\",\"submissionTime\":1474893775913,"+
 		 "\"scanRequest\":{\"@type\":\"ScanRequest\","+

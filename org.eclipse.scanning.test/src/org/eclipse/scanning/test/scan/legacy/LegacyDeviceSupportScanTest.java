@@ -30,7 +30,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +49,7 @@ public class LegacyDeviceSupportScanTest {
 		(new org.eclipse.scanning.sequencer.ServiceHolder()).setFactory(new DefaultNexusBuilderFactory());
 		connector = new MockLegacyScannableConnector();
 		runnableDeviceService = new RunnableDeviceServiceImpl(connector);
-		pointGeneratorService = new PointGeneratorFactory();
+		pointGeneratorService = new PointGeneratorService();
 	}
 	
 	@Test

@@ -10,11 +10,11 @@ import org.eclipse.scanning.api.scan.ScanningException;
 public class MockWritableDetector extends AbstractRunnableDevice<MockDetectorModel> implements IWritableDetector<MockDetectorModel> {
 	
 	public MockWritableDetector() {
-		super();
+		super(null);
 	}
 	
 	public MockWritableDetector(String name) {
-		super();
+		this();
 		setName(name);
 	}
 		

@@ -31,23 +31,13 @@ import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.points.IPointGenerator;
-import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
-import org.eclipse.scanning.points.PointGeneratorFactory;
-import org.junit.Before;
 import org.junit.Test;
 
-public class GridTest {
-
-	private IPointGeneratorService service;
-
-	@Before
-	public void before() throws Exception {
-		service = new PointGeneratorFactory();
-	}
+public class GridTest extends GeneratorTest {
 
 	@Test
 	public void testFillingRectangleNoROI() throws Exception {
@@ -299,6 +289,24 @@ public class GridTest {
 		checkPoints(pointList);
 		GeneratorUtil.testGeneratorPoints(gen, 20, 20);
 	}
+	
+	@Test
+	public void testGridWrtCompound() throws Exception {
+
+		// Create a simple bounding rectangle
+		RectangularROI roi = new RectangularROI(0, 0, 3, 3, 0);
+
+		// Create a raster scan path
+		GridModel model = new GridModel("x", "y");
+		model.setSlowAxisPoints(20);
+		model.setFastAxisPoints(20);
+		model.setSlowAxisName("y");
+		model.setFastAxisName("x");
+
+		checkWrtCompound(model, roi, 400);
+
+	}
+
 
 	@Test
 	public void testFillingRectangleIterator() throws Exception {

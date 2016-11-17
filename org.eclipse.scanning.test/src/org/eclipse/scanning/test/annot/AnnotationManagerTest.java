@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.eclipse.scanning.api.annotation.AnnotationManager;
-import org.eclipse.scanning.api.annotation.LevelComparitor;
+import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.LevelComparitor;
 import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
@@ -30,7 +30,7 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
-import org.eclipse.scanning.points.PointGeneratorFactory;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -63,7 +63,7 @@ public class AnnotationManagerTest {
 	public void before() {
 		
 		final Map<Class<?>, Object> testServices = new HashMap<>();
-		testServices.put(IPointGeneratorService.class,  new PointGeneratorFactory());
+		testServices.put(IPointGeneratorService.class,  new PointGeneratorService());
 		testServices.put(IScannableDeviceService.class, new MockScannableConnector(null));
 		testServices.put(IRunnableDeviceService.class,  new RunnableDeviceServiceImpl((IScannableDeviceService)testServices.get(IScannableDeviceService.class)));
 		manager = new AnnotationManager(null, testServices);

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.malcolm;
 
+import org.eclipse.scanning.api.device.models.IMalcolmModel;
+import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 
@@ -38,7 +40,7 @@ public interface IMalcolmService {
 	 * @return
 	 * @throws MalcolmDeviceException
 	 */
-	public <T> IMalcolmDevice<T> getDevice(String name) throws MalcolmDeviceException;
+	public <M extends IMalcolmModel> IMalcolmDevice<M> getDevice(String name) throws MalcolmDeviceException;
 	
 	/**
 	 * Get a device by name. At the point where the device is retrieved the
@@ -49,7 +51,7 @@ public interface IMalcolmService {
 	 * @return
 	 * @throws MalcolmDeviceException
 	 */
-	public <T> IMalcolmDevice<T> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException;	
+	public <M extends IMalcolmModel> IMalcolmDevice<M> getDevice(String name, IPublisher<ScanBean> publisher) throws MalcolmDeviceException;	
 
 	/**
 	 * Disposes the service

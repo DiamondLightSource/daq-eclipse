@@ -261,7 +261,6 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 
 			ISubmitter<ScanBean> submitter = ServiceHolder.getEventService().createSubmitter(new URI(CommandConstants.getScanningBrokerUri()), EventConstants.SUBMISSION_QUEUE);
 			submitter.submit(bean);
-
 			
 			// Show the Queue
 			showQueue();
@@ -326,7 +325,6 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 
 		ScanRequest<IROI> ret = new ScanRequest<IROI>();
 		CompoundModel<IROI> cm = modelAdaptable.getAdapter(CompoundModel.class);
-		if (cm!=null && cm.getModels()!=null && !cm.getModels().isEmpty()) vservice.validate(cm);
 		ret.setCompoundModel(cm);
 
 		IPosition[] pos = modelAdaptable.getAdapter(IPosition[].class);
@@ -339,7 +337,8 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 
 		ret.setDetectors(getDetectors());
 		ret.setSampleData(sampleData);
-
+        vservice.validate(ret);
+		
 		return ret;
 	}
 

@@ -2,7 +2,7 @@ package org.eclipse.scanning.server.servlet;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.scanning.api.annotation.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PostConfigure;
 import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.IRunnableDevice;

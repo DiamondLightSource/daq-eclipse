@@ -143,8 +143,7 @@ public class BasicScanTest extends NexusTest {
 		final Collection<String> scannableNames = pos.getNames();
 		final boolean hasMonitor = scanModel.getMonitors() != null && !scanModel.getMonitors().isEmpty();
 		
-		String dataGroupName = hasMonitor ? scanModel.getMonitors().get(0).getName() :
-			"solstice_scan_data"; // name of NXdata group created from ScanPointsWriter's data when no detectors or monitors 
+		String dataGroupName = hasMonitor ? scanModel.getMonitors().get(0).getName() : pos.getNames().get(0);
 		NXdata nxData = entry.getData(dataGroupName);
 		assertNotNull(nxData);
 

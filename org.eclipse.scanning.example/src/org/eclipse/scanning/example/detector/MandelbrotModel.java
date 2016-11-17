@@ -56,6 +56,16 @@ public class MandelbrotModel extends AbstractDetectorModel {
 	@FieldDescriptor(hint="The exposure above which there is no noise")
 	private double noiseFreeExposureTime = 5.0;
 	
+	@FieldDescriptor(hint="Save the image")
+	private boolean saveImage = true;
+	
+	@FieldDescriptor(hint="Save the spectrum")
+	private boolean saveSpectrum = true;
+
+	@FieldDescriptor(hint="Save the value")
+	private boolean saveValue = true;
+
+	
 	public MandelbrotModel() {
 		maxIterations = 500;
 		escapeRadius = 10.0;
@@ -70,6 +80,7 @@ public class MandelbrotModel extends AbstractDetectorModel {
 		imaginaryAxisName = "stage_y";
 	}
 	
+
 	public MandelbrotModel(String r, String i) {
 	    this();
 	    this.realAxisName = r;
@@ -110,8 +121,35 @@ public class MandelbrotModel extends AbstractDetectorModel {
 		this.noiseFreeExposureTime = noiseFreeExposureTime;
 	}
 	
-	@UiSection("Julia set size")
 	@UiComesAfter("noiseFreeExposureTime")
+	public boolean isSaveImage() {
+		return saveImage;
+	}
+
+	public void setSaveImage(boolean saveImage) {
+		this.saveImage = saveImage;
+	}
+
+	@UiComesAfter("saveImage")
+	public boolean isSaveSpectrum() {
+		return saveSpectrum;
+	}
+
+	public void setSaveSpectrum(boolean saveSpectrum) {
+		this.saveSpectrum = saveSpectrum;
+	}
+
+	@UiComesAfter("saveSpectrum")
+	public boolean isSaveValue() {
+		return saveValue;
+	}
+
+	public void setSaveValue(boolean saveValue) {
+		this.saveValue = saveValue;
+	}
+	
+	@UiSection("Julia set size")
+	@UiComesAfter("saveValue")
 	public int getColumns() {
 		return columns;
 	}

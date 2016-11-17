@@ -1,5 +1,6 @@
 package org.eclipse.scanning.server.servlet;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,20 +8,21 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.IScannable;
-import org.eclipse.scanning.api.annotation.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PostConfigure;
 import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
-import org.eclipse.scanning.api.device.models.AbstractMalcolmModel;
+import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -91,7 +93,11 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	@Override
 	public void execute() throws EventException {
 		
-		try {		
+		try {	
+			if (!Boolean.getBoolean("org.eclipse.scanning.server.servlet.scanProcess.disableValidate")) {
+			    Services.getValidatorService().validate(bean.getScanRequest());
+			}
+
 			// Move to a position if they set one
 			if (bean.getScanRequest().getStart()!=null) {
 				positioner.setPosition(bean.getScanRequest().getStart());
@@ -127,7 +133,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 	        // Intentionally do not catch EventException, that passes straight up.
 			
-		} catch (ScanningException | InterruptedException | UnsupportedLanguageException | ScriptExecutionException ne) {
+		} catch (Exception ne) {
 			ne.printStackTrace();
 			logger.error("Cannot execute run "+getBean().getName()+" "+getBean().getUniqueId(), ne);
 			bean.setPreviousStatus(Status.RUNNING);
@@ -135,6 +141,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			bean.setMessage(ne.getMessage());
 			broadcast(bean);
 			
+			if (ne instanceof EventException) throw (EventException)ne;
 			throw new EventException(ne);
 		}
 	}
@@ -191,9 +198,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			IRunnableDevice<Object> odevice = (IRunnableDevice<Object>)device;
 			Object dmodel = dmodels.get(odevice.getName());
-			if (dmodel instanceof AbstractMalcolmModel) {
-				AbstractMalcolmModel mmodel = (AbstractMalcolmModel)dmodel;
-				mmodel.setGenerator(generator);
+			if (odevice instanceof IMalcolmDevice<?>) {
+				((IMalcolmDevice<?>) odevice).setPointGenerator(generator);
 			}
 			manager.invoke(PreConfigure.class, dmodel);
 			odevice.configure(dmodel);
@@ -261,6 +267,9 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			for (String name : detectors.keySet()) {
 				Object dmodel = detectors.get(name);
+				if (dmodel instanceof MalcolmModel) {
+					setMalcolmOutputDir(bean, (MalcolmModel) dmodel);
+				}
 				IRunnableDevice<Object> detector = service.getRunnableDevice(name);
 				if (detector==null) {
 					detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
@@ -273,6 +282,23 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 		} catch (ScanningException ne) {
 			throw new EventException(ne);
+		}
+	}
+	
+	private void setMalcolmOutputDir(ScanBean scanBean, MalcolmModel malcolmModel) {
+		if (malcolmModel.getFileDir() == null) {
+			// The malcolm output dir is a new dir in the same parent dir as the scan file and
+			// with the same name as the scan file minus the extension
+			final File scanFile = new File(scanBean.getFilePath());
+			final File scanDir = scanFile.getParentFile();
+			String scanFileNameNoExtn = scanFile.getName();
+			final int dotIndex = scanFileNameNoExtn.indexOf('.');
+			if (dotIndex != -1) {
+				scanFileNameNoExtn = scanFileNameNoExtn.substring(0, dotIndex);
+			}
+			final File malcolmOutputDir = new File(scanDir, scanFileNameNoExtn);
+			malcolmOutputDir.mkdir();
+			malcolmModel.setFileDir(malcolmOutputDir.toString());
 		}
 	}
 

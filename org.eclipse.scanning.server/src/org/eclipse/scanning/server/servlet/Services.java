@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.IMessagingService;
@@ -33,6 +34,7 @@ public class Services {
 	private static IFilePathService        filePathService;
 	private static IScriptService          scriptService;
 	private static IMessagingService       messagingService;
+	private static IValidatorService       validatorService;
 
 	private static final Set<IPreprocessor> preprocessors = new LinkedHashSet<>();
 
@@ -110,5 +112,13 @@ public class Services {
 
 	public static void setMessagingService(IMessagingService messagingService) {
 		Services.messagingService = messagingService;
+	}
+
+	public static IValidatorService getValidatorService() {
+		return validatorService;
+	}
+
+	public static void setValidatorService(IValidatorService validatorService) {
+		Services.validatorService = validatorService;
 	}
 }
