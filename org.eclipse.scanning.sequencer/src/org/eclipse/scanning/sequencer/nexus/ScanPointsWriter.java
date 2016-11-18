@@ -184,9 +184,8 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	 * @throws Exception
 	 */
 	private void writePosition(IPosition position) throws Exception {
-		IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(position);
-		
 		if (!malcolmScan) {
+			IScanSlice rslice = IScanRankService.getScanRankService().createScanSlice(position);
 			SliceND sliceND = new SliceND(uniqueKeys.getShape(), uniqueKeys.getMaxShape(), rslice.getStart(), rslice.getStop(), rslice.getStep());
 			final int uniqueKey = position.getStepIndex() + 1;
 			final Dataset newActualPosition = DatasetFactory.createFromObject(uniqueKey);

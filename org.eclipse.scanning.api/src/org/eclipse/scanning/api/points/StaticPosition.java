@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.points;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -10,10 +11,10 @@ import java.util.List;
  * @author Matthew Gerring
  *
  */
-public class StaticPosition extends AbstractPosition implements IPosition {
+public class StaticPosition extends AbstractPosition {
 
 	private static final long serialVersionUID = 8325962136123756800L;
-
+	
 	@Override
 	public int size() {
 		return 0;
@@ -31,6 +32,16 @@ public class StaticPosition extends AbstractPosition implements IPosition {
 
 	@Override
 	public int getIndex(String name) {
+		return 0;
+	}
+
+	@Override
+	public List<Collection<String>> getDimensionNames() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public int getScanRank() {
 		return 0;
 	}
 
