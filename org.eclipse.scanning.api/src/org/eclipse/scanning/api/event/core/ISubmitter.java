@@ -56,6 +56,24 @@ public interface ISubmitter<T> extends IQueueConnection<T> {
 	void setStatusTopicName(String name);
 	
 	/**
+	 * Looks a the command queue to find out if a given queue with
+	 * the same submission queue as this submitter is paused.
+	 * 
+	 * @return
+	 */
+	default boolean isQueuePaused() {
+		return isQueuePaused(getSubmitQueueName());
+	}
+	
+	/**
+	 * Looks a the command queue to find out if a given queue with
+	 * the same submission queue as passed in is queued.
+	 * 
+	 * @return
+	 */
+	boolean isQueuePaused(String submissionQueueName);
+
+	/**
 	 * Tries to reorder the bean in the submission queue if it is
 	 * still there. If the bean has been moved to the status set, 
 	 * it will not be moved 

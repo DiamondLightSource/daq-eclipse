@@ -322,4 +322,10 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 		}
 	}
 
+	@Override
+	public boolean isQueuePaused(String submissionQueueName) {
+		if (!submissionQueueName.equals(getSubmitQueueName())) throw new IllegalArgumentException(getClass().getSimpleName()+" can only deal with the same queue!");
+		return false;
+	}
+
 }

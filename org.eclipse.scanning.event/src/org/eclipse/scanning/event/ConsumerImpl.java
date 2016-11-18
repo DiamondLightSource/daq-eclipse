@@ -505,14 +505,9 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		
 	}
 	
-	private volatile int pauseLevel;
-	
 	@Override
 	public void pause() throws EventException {
 		
-		pauseLevel++;
-		if (pauseLevel!=1) return; // Can only pause if many pause requests have not been made...
-
 		if (!isActive()) return; // Nothing to pause
 		try {
 			lock.lockInterruptibly();
@@ -536,9 +531,6 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 
 	@Override
 	public void resume() throws EventException {
-		
-		pauseLevel--;
-		if (pauseLevel!=0) return;
 		
 		try {
 			lock.lockInterruptibly();

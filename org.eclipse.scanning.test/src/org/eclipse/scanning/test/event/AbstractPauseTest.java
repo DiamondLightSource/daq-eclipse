@@ -57,6 +57,8 @@ public class AbstractPauseTest extends BrokerTest{
 
 		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
 		pauser.setStatusSetName(IEventService.CMD_SET);
+		pauser.setStatusSetAddRequired(true);
+
 		PauseBean pbean = new PauseBean();
 		pbean.setConsumerId(consumer.getConsumerId());
 		pauser.broadcast(pbean);
@@ -86,6 +88,8 @@ public class AbstractPauseTest extends BrokerTest{
 
 		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
 		pauser.setStatusSetName(IEventService.CMD_SET);
+		pauser.setStatusSetAddRequired(true);
+
 		PauseBean pbean = new PauseBean();
 		pbean.setQueueName(consumer.getSubmitQueueName());
 		pauser.broadcast(pbean);
@@ -102,7 +106,6 @@ public class AbstractPauseTest extends BrokerTest{
 		assertTrue(consumer.isActive());
 	}
 
-	@Ignore("Does not run fast enough, reliably enough")
 	@Test
 	public void testReorderingAPausedQueue() throws Exception {
 
@@ -123,6 +126,7 @@ public class AbstractPauseTest extends BrokerTest{
 
 		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
 		pauser.setStatusSetName(IEventService.CMD_SET);
+		pauser.setStatusSetAddRequired(true);
 
 		PauseBean pbean = new PauseBean();
 		pbean.setQueueName(consumer.getSubmitQueueName());
@@ -193,7 +197,13 @@ public class AbstractPauseTest extends BrokerTest{
 		consumer.start();
 		
 		Thread.sleep(500); 
-		((AbstractQueueConnection)consumer).pause();
+		IPublisher<PauseBean> pauser = eservice.createPublisher(submitter.getUri(), IEventService.CMD_TOPIC);
+		pauser.setStatusSetName(IEventService.CMD_SET);
+		pauser.setStatusSetAddRequired(true);
+
+		PauseBean pbean = new PauseBean();
+		pbean.setQueueName(consumer.getSubmitQueueName());
+		pauser.broadcast(pbean);
 		
 		Thread.sleep(500);
 		assertTrue(!consumer.isActive());
@@ -217,7 +227,8 @@ public class AbstractPauseTest extends BrokerTest{
 		assertTrue(!consumer.isActive());
 		assertEquals(2, submitter.getQueue().size());
 		
-		((AbstractQueueConnection)consumer).resume();
+		pbean.setPause(false);
+		pauser.broadcast(pbean);
 
 		Thread.sleep(500);
 		assertTrue(consumer.isActive());

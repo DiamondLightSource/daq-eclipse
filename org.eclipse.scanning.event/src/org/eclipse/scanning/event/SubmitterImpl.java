@@ -212,5 +212,4 @@ class SubmitterImpl<T extends StatusBean> extends AbstractQueueConnection<T> imp
 		this.timestamp = timestamp;
 	}
 
-	
 }
