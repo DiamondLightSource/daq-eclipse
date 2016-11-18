@@ -304,6 +304,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		// which is required for the datasets for the scannables
 		totalSteps.setValue(64);
 		configuredSteps.setValue(64);
+		List<String> axesToMoveList = model.getAxesToMove();
+		if (axesToMoveList != null) {
+			this.axesToMove.setValue((axesToMoveList.toArray(new String[axesToMoveList.size()])));
+		}
+
 		// super.configure sets device state to ready
 		super.configure(model);
 		
@@ -522,7 +527,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			throw new ScanningException(ne);
 		}
 	}
-
+	
 	@Override
 	public List<MalcolmAttribute> getAllAttributes() throws ScanningException {
 		System.out.println("getAllAttributes called");

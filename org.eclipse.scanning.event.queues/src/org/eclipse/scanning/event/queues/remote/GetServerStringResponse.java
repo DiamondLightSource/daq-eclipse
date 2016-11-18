@@ -14,7 +14,7 @@ import org.eclipse.scanning.event.queues.ServicesHolder;
  * @author Michael Wharmby
  *
  */
-public class GetServerStringResponse extends QueueResponseProcess {
+public class GetServerStringResponse extends AbstractQueueResponseProcess {
 	
 	private IQueueControllerService queueControl;
 	

@@ -74,7 +74,5 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable {
 	public void setMonitorNames(List<String> monitorNames) {
 		this.monitorNames = monitorNames;
 	}
-	
-	
 
 }
