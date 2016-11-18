@@ -64,11 +64,6 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	
 	private File malcolmOutputDir;
 	
-	@BeforeClass
-	public static void setUpAdditionalServices() {
-//		Services
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		// create a temp directory for the dummy malcolm device to write hdf files into
