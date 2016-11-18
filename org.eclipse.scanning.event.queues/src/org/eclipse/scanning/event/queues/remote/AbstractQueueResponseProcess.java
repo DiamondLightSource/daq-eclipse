@@ -13,7 +13,7 @@ import org.eclipse.scanning.api.event.queues.remote.QueueRequestType;
  * stored in the {@link IQueueService}, with access through 
  * {@link IQueueControllerService}. Requests are received as 
  * {@link QueueRequest} beans, with a {@link QueueRequestType}. Based on this 
- * value, a class extending {@link QueueResponseProcess} is selected (through 
+ * value, a class extending {@link AbstractQueueResponseProcess} is selected (through 
  * a strategy pattern) to populate the necessary fields in the request. 
  * Finally the {@link QueueRequest} is passed back to the parent 
  * {@link IResponder}. 
@@ -21,12 +21,12 @@ import org.eclipse.scanning.api.event.queues.remote.QueueRequestType;
  * @author Michael Wharmby
  *
  */
-public abstract class QueueResponseProcess implements IResponseProcess<QueueRequest> {
+public abstract class AbstractQueueResponseProcess implements IResponseProcess<QueueRequest> {
 	
 	private final QueueRequest requestBean;
 	private final IPublisher<QueueRequest> reponseBroadcaster;
 	
-	protected QueueResponseProcess(QueueRequest requestBean, IPublisher<QueueRequest> reponseBroadcaster) {
+	protected AbstractQueueResponseProcess(QueueRequest requestBean, IPublisher<QueueRequest> reponseBroadcaster) {
 		this.requestBean = requestBean;
 		this.reponseBroadcaster = reponseBroadcaster;
 	}
