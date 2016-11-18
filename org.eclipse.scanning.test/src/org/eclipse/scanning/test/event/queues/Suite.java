@@ -5,10 +5,12 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
+	_QueueControllerServiceTest.class,
 	QueueControllerServiceTest.class,
 	QueueProcessCreatorTest.class,
 	QueueProcessorFactoryTest.class,
 	QueueProcessTest.class,
+	QueueResponseProcessTest.class,
 	QueueServiceTest.class,
 	QueueTest.class
 })
