@@ -157,7 +157,9 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 			} else {
 				resume();
 			}
+			
 		} catch (Exception ne) {
+			ne.printStackTrace();
 			logger.error("Unable to process pause command on consumer '"+getName()+"'. Consumer will stop.", ne);
 			try {
 				stop();
@@ -438,13 +440,14 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	            }
 	            
         	} catch (EventException | InterruptedException ne) {
+        		if (Thread.interrupted()) break;
         		ne.printStackTrace();
 				logger.error("Cannot consume message ", ne);
        		    if (isDurable()) continue;
         		break;
          		
         	} catch (Throwable ne) {
-        		
+        		ne.printStackTrace();
         		logger.debug("Error in consumer!", ne);
         		if (ne.getClass().getSimpleName().contains("Json")) {
             		logger.error("Fatal except deserializing object!", ne);
@@ -456,7 +459,6 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
         		}
         		
         		if (ne.getClass().getSimpleName().endsWith("ClassCastException")) {
-            		ne.printStackTrace();
     				logger.error("Problem with serialization?", ne);
         		}
 
@@ -464,6 +466,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
         		if (!isDurable()) break;
         		        		
        			try {
+       				if (Thread.interrupted()) break;
 					Thread.sleep(Constants.getNotificationFrequency());
 				} catch (InterruptedException e) {
 					throw new EventException("The consumer was unable to wait!", e);
@@ -502,9 +505,10 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		
 	}
 	
-	private void pause() throws EventException {
+	@Override
+	public void pause() throws EventException {
 		
-		if (!isActive()) throw new EventException("The consumer is not active and cannot be paused!");
+		if (!isActive()) return; // Nothing to pause
 		try {
 			lock.lockInterruptibly();
 		} catch (Exception ne) {
@@ -524,23 +528,8 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 			lock.unlock();
 		}
 	}
-	
+
 	@Override
-	public ConsumerStatus getConsumerStatus() {
-		
-		if (processes!=null && processes.size()>0) {
-			List<WeakReference<IConsumerProcess<U>>> refs = new ArrayList<>(processes.values());
-			for (WeakReference<IConsumerProcess<U>> ref : refs) {
-				IConsumerProcess<U> process = ref.get();
-				if (process!=null) {
-					if (process.isBlocking() && process.isPaused()) return ConsumerStatus.PAUSED;
-				}
-			}
-		}
-
-		return awaitPaused ? ConsumerStatus.PAUSED : ConsumerStatus.RUNNING;
-	}
-
 	public void resume() throws EventException {
 		
 		try {
@@ -559,6 +548,23 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	
+	@Override
+	public ConsumerStatus getConsumerStatus() {
+		
+		if (processes!=null && processes.size()>0) {
+			List<WeakReference<IConsumerProcess<U>>> refs = new ArrayList<>(processes.values());
+			for (WeakReference<IConsumerProcess<U>> ref : refs) {
+				IConsumerProcess<U> process = ref.get();
+				if (process!=null) {
+					if (process.isBlocking() && process.isPaused()) return ConsumerStatus.PAUSED;
+				}
+			}
+		}
+
+		return awaitPaused ? ConsumerStatus.PAUSED : ConsumerStatus.RUNNING;
 	}
 
 	private void executeBean(U bean) throws EventException, InterruptedException {
@@ -618,6 +624,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 			return mconsumer.receive(Constants.getReceiveFrequency());
 			
 		} catch (Exception ne) {
+			if (Thread.interrupted()) return null;
 			mconsumer = null;
 			try {
 				connection.close();
