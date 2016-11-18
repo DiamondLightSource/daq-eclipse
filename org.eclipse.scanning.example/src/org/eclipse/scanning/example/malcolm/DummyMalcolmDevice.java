@@ -530,7 +530,6 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	
 	@Override
 	public List<MalcolmAttribute> getAllAttributes() throws ScanningException {
-		System.out.println("getAllAttributes called");
 		updateAttributesWithLatestValues();
 		
 		return new ArrayList<>(allAttributes.values());
