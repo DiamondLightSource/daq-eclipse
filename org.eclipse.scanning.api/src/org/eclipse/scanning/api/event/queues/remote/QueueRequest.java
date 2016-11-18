@@ -1,6 +1,9 @@
 package org.eclipse.scanning.api.event.queues.remote;
 
 import org.eclipse.scanning.api.event.IdBean;
+import org.eclipse.scanning.api.event.queues.IQueue;
+import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 
 /**
@@ -31,6 +34,7 @@ public class QueueRequest extends IdBean {
 	private String jobQueueID;//jobQueue of IQueueService
 	private String commandSetName, commandTopicName, heartbeatTopicName;//QueueService configured destinations
 	private Status beanStatus;//State of a the bean in the queue
+	private IQueue<? extends Queueable> queue;
 
 	//Request variables
 	public QueueRequestType getRequestType() {
@@ -99,6 +103,12 @@ public class QueueRequest extends IdBean {
 	}
 	public Status getBeanStatus() {
 		return beanStatus;
+	}
+	public IQueue<? extends Queueable> getQueue() {
+		return queue;
+	}
+	public void setQueue(IQueue<? extends Queueable> queue) {
+		this.queue = queue;
 	}
 	
 	@Override

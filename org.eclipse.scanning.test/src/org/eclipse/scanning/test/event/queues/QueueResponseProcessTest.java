@@ -8,8 +8,10 @@ import static org.junit.Assert.fail;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IResponseCreator;
 import org.eclipse.scanning.api.event.core.IResponseProcess;
+import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.api.event.queues.remote.QueueRequestType;
@@ -229,6 +231,40 @@ public class QueueResponseProcessTest {
 		//...has it stopped?
 		assertFalse("QueueService should not be active", qServ.isActive());
 		assertEquals("Request & answer should not have changed", qAns, qReq);
+	}
+	
+	@Test
+	public void testResponseGetQueue() throws EventException {
+		//Create bean status request & post
+		qReq = new QueueRequest();
+		qReq.setRequestType(QueueRequestType.QUEUE);
+		qReq.setQueueID("fake-q-root"+IQueueService.JOB_QUEUE_SUFFIX);
+
+		//Create the response & process the request
+		responseProc = qResponseCreator.createResponder(qReq, mockPub);
+		qAns = responseProc.process(qReq);
+
+		//Get the job-queue & compare it's config
+		IQueue<QueueBean> jobQueue = qServ.getJobQueue();
+		IQueue<? extends Queueable> remoteJobQueue = qAns.getQueue();
+		
+		assertEquals("CommandSetName different", jobQueue.getCommandSetName(), remoteJobQueue.getCommandSetName());
+		assertEquals("CommandTopicName different", jobQueue.getCommandTopicName(), remoteJobQueue.getCommandTopicName());
+		assertEquals("ConsumerID different", jobQueue.getConsumerID(), remoteJobQueue.getConsumerID());
+		assertEquals("HeartbeatTopic different", jobQueue.getHeartbeatTopicName(), remoteJobQueue.getHeartbeatTopicName());
+		assertEquals("queueID different", jobQueue.getQueueID(), remoteJobQueue.getQueueID());
+		assertEquals("Queue status different", jobQueue.getStatus(), remoteJobQueue.getStatus());
+		assertEquals("StatusSetName different", jobQueue.getStatusSetName(), remoteJobQueue.getStatusSetName());
+		assertEquals("StatusTopicName different", jobQueue.getStatusTopicName(), remoteJobQueue.getStatusTopicName());
+		assertEquals("SubmissionTopicName different", jobQueue.getSubmissionQueueName(), remoteJobQueue.getSubmissionQueueName());
+		assertEquals("URI different", jobQueue.getURI(), remoteJobQueue.getURI());
+		
+		//Check that we can't access the consumer.
+		try {
+			remoteJobQueue.getConsumer();
+		} catch (IllegalArgumentException iaEx) {
+			//Expected
+		}
 	}
 
 }
