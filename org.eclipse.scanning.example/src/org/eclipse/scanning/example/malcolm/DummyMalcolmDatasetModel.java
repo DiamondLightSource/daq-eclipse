@@ -13,6 +13,8 @@ public class DummyMalcolmDatasetModel {
 	
 	private int rank;
 	
+	private int[] shape = null;
+	
 	public DummyMalcolmDatasetModel() {
 		// no args constructor for spring instantiation
 	}
@@ -50,6 +52,18 @@ public class DummyMalcolmDatasetModel {
 
 	public void setDtype(Class<?> dtype) {
 		this.dtype = dtype;
+	}
+	
+	public void setShape(int[] shape) {
+		if (shape.length != rank) {
+			throw new IllegalArgumentException("size of shape array must equal rank " + rank);
+		}
+		
+		this.shape = shape;
+	}
+	
+	public int[] getShape() {
+		return shape;
 	}
 
 }

@@ -6,7 +6,9 @@ import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertDataNodesEq
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -37,11 +39,12 @@ import org.eclipse.dawnsci.nexus.NexusFile;
 import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.dawnsci.nexus.ServiceHolder;
 import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.PositionIterator;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
-import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
@@ -54,10 +57,10 @@ import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmControlledDetectorModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
-import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -255,17 +258,17 @@ public class MalcolmScanTest extends NexusTest {
 				}
 				
 				// TODO: update DummyMalcolmDevice to write data so that we can reinstate these assertions
-//				int[] shape = dataset.getShape(); 
-//				for (int i = 0; i < sizes.length; i++) 
-//					assertEquals(sizes[i], shape[i]);
+				int[] shape = dataset.getShape(); 
+				for (int i = 0; i < sizes.length; i++) 
+					assertEquals(sizes[i], shape[i]);
 				
 				// Make sure none of the numbers are NaNs. The detector is expected
 				// to fill this scan with non-nulls
-//				final PositionIterator it = new PositionIterator(shape);
-//				while (it.hasNext()) {
-//					int[] next = it.getPos();
-//					assertFalse(Double.isNaN(dataset.getDouble(next)));
-//				}
+				final PositionIterator it = new PositionIterator(shape);
+				while (it.hasNext()) {
+					int[] next = it.getPos();
+					assertFalse(Double.isNaN(dataset.getDouble(next)));
+				}
 				
 				// Check axes
 				final IPosition pos = scanModel.getPositionIterable().iterator().next();
@@ -288,12 +291,11 @@ public class MalcolmScanTest extends NexusTest {
 					
 					dataNode = positioner.getDataNode("value_set");
 					dataset = dataNode.getDataset().getSlice();
-//					shape = dataset.getShape(); // TODO get the DummyMalcolmDevice to write data so these
-//					assertEquals(1, shape.length); // assertions can be reinstated
-//					assertEquals(sizes[i], shape[0]);
+					shape = dataset.getShape();
+					assertEquals(1, shape.length);
+					assertEquals(sizes[i], shape[0]);
 					
 					String nxDataFieldName = axisName + (malcolmDevice.getModel().getPositionerNames().contains(axisName) ? "_value_set" : "");
-//					assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
 					assertDataNodesEqual("", dataNode, nxData.getDataNode(nxDataFieldName));
 					assertIndices(nxData, nxDataFieldName, i);
 					// The value of the target attribute seems to come from the external file
@@ -305,9 +307,9 @@ public class MalcolmScanTest extends NexusTest {
 						// Actual values should be scanD
 						dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
 						assertNotNull(dataNode);
-	//					dataset = dataNode.getDataset().getSlice();
-	//					shape = dataset.getShape();
-	//					assertArrayEquals(sizes, shape);
+						dataset = dataNode.getDataset().getSlice();
+						shape = dataset.getShape();
+						assertArrayEquals(sizes, shape);
 						
 						nxDataFieldName = axisName + "_" + NXpositioner.NX_VALUE;
 //						assertSame(dataNode, nxData.getDataNode(nxDataFieldName));
@@ -355,6 +357,7 @@ public class MalcolmScanTest extends NexusTest {
 		final ScanModel smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
 		smodel.setDetectors(malcolmDevice);
+		((IMalcolmDevice<?>) malcolmDevice).setPointGenerator(gen);
 		
 		// Create a file to scan into.
 		smodel.setFilePath(file.getAbsolutePath());

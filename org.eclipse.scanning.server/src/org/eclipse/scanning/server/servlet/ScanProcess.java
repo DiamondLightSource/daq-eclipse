@@ -297,7 +297,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 				scanFileNameNoExtn = scanFileNameNoExtn.substring(0, dotIndex);
 			}
 			final File malcolmOutputDir = new File(scanDir, scanFileNameNoExtn);
-			malcolmOutputDir.mkdir();
+			malcolmOutputDir.mkdir(); // create the new dir
 			malcolmModel.setFileDir(malcolmOutputDir.toString());
 		}
 	}

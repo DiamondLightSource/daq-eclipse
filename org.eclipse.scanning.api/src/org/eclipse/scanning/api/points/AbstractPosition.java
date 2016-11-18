@@ -37,6 +37,12 @@ public abstract class AbstractPosition implements IPosition, Serializable {
 		ret.putAllIndices(parent);
 		ret.putAllIndices(this);
 		ret.setStepIndex(getStepIndex());
+		
+		List<Collection<String>> dimensionNames = new ArrayList<>();
+		dimensionNames.addAll(((AbstractPosition) parent).getDimensionNames());
+		dimensionNames.addAll(getDimensionNames());
+		ret.setDimensionNames(dimensionNames);
+		
 		return ret;
 	}
 
@@ -198,8 +204,7 @@ public abstract class AbstractPosition implements IPosition, Serializable {
 	@UiHidden
 	@Override
 	public int getScanRank() {
-		if (dimensionNames!=null) return dimensionNames.size();
-		return IPosition.super.getScanRank();
+		return getDimensionNames().size();
 	}
 
 	@Override
