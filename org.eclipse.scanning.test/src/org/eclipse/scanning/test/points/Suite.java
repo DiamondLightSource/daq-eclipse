@@ -16,7 +16,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	SpiralTest.class,
 	ScanPointGeneratorFactoryTest.class,
 	ArrayTest.class,
-	RandomOffsetGridTest.class
+	RandomOffsetGridTest.class,
+	PointServiceTest.class
 
 
 	// TODO Smoke tests?

@@ -23,12 +23,14 @@ import javax.jms.QueueSession;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.alive.PauseBean;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.IQueueConnection;
+import org.eclipse.scanning.api.event.core.IQueueReader;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
@@ -304,12 +306,12 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 		
 		if (amount==0) return false; // Nothing to reorder, no exception required, order unchanged.
 		
-		PauseBean pbean = new PauseBean();
-		pbean.setQueueName(queueName);
+		PauseBean pbean = new PauseBean(queueName);
 		pbean.setMessage("Pause to reorder '"+bean.getName()+"' "+amount);
 		
-		IPublisher<PauseBean> publisher = eservice.createPublisher(getUri(), getCommandTopicName());
-		publisher.broadcast(pbean);
+		IPublisher<PauseBean> publisher = createPausePublisher();
+		final boolean isAlreadyPaused = isQueuePaused(queueName);
+		if (!isAlreadyPaused) publisher.broadcast(pbean);
 		
 		try {
 			
@@ -354,23 +356,32 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 		    return true; // It was reordered
 		    
 		} finally {
-			pbean.setPause(false);
-			publisher.broadcast(pbean);
+			if (!isAlreadyPaused) {
+				pbean.setPause(false);
+				publisher.broadcast(pbean);
+			}
 		}
 	}
 	
+	private IPublisher<PauseBean> createPausePublisher() {
+		IPublisher<PauseBean> publisher = eservice.createPublisher(getUri(), EventConstants.CMD_TOPIC);
+		publisher.setStatusSetName(EventConstants.CMD_SET);
+		publisher.setStatusSetAddRequired(true);
+		return publisher;
+	}
+
 	@Override
 	public boolean remove(U bean, String queueName) throws EventException {
 			
 		QueueConnection send     = null;
 		QueueSession    session  = null;
 
-		PauseBean pbean = new PauseBean();
-		pbean.setQueueName(queueName);
+		PauseBean pbean = new PauseBean(queueName);
 		pbean.setMessage("Pause to remove '"+bean.getName()+"' ");
 		
-		IPublisher<PauseBean> publisher = eservice.createPublisher(getUri(), getCommandTopicName());
-		publisher.broadcast(pbean);
+		IPublisher<PauseBean> publisher = createPausePublisher();
+		final boolean isAlreadyPaused = isQueuePaused(queueName);
+		if (!isAlreadyPaused) publisher.broadcast(pbean);
 
 		try {
 
@@ -415,8 +426,10 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 			throw new EventException("Cannot remove item "+bean, ne);
 			
 		}  finally {
-			pbean.setPause(false);
-			publisher.broadcast(pbean);
+			if (!isAlreadyPaused) {
+				pbean.setPause(false);
+				publisher.broadcast(pbean);
+			}
 			try {
 				if (send!=null)     send.close();
 				if (session!=null)  session.close();
@@ -431,12 +444,12 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 	public boolean replace(U bean, String queueName) throws EventException {
 			
 		
-		PauseBean pbean = new PauseBean();
-		pbean.setQueueName(queueName);
+		PauseBean pbean = new PauseBean(queueName);
 		pbean.setMessage("Pause to replace '"+bean.getName()+"' ");
 		
-		IPublisher<PauseBean> publisher = eservice.createPublisher(getUri(), getCommandTopicName());
-		publisher.broadcast(pbean);
+		IPublisher<PauseBean> publisher = createPausePublisher();
+		final boolean isAlreadyPaused = isQueuePaused(queueName);
+		if (!isAlreadyPaused) publisher.broadcast(pbean);
 		
 		try {
 			
@@ -466,8 +479,10 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 		    return true; // It was reordered
 		    
 		} finally {
-			pbean.setPause(false);
-			publisher.broadcast(pbean);
+			if (!isAlreadyPaused) {
+				pbean.setPause(false);
+				publisher.broadcast(pbean);
+			}
 		}
 
 	}
@@ -503,6 +518,49 @@ public abstract class AbstractQueueConnection<U extends StatusBean> extends Abst
 			return Long.parseLong(System.getProperty("org.eclipse.scanning.event.consumer.maximumCompleteAge"));
 		}
 		return A_WEEK;
+	}
+
+	
+	public void pause() throws EventException {
+		throw new EventException("Method 'pause' is not implemented!");
+	}
+	
+	public void resume() throws EventException {
+		throw new EventException("Method 'pause' is not implemented!");
+	}
+
+	public boolean isQueuePaused(String submissionQueueName) {
+		
+		PauseBean bean = getPauseBean(submissionQueueName);
+		return bean!=null ? bean.isPause() : false;
+	}
+	
+	private PauseBean getPauseBean(String submissionQueueName) {
+		
+		IQueueReader<PauseBean>   qr=null;
+		try {
+			qr = eservice.createQueueReader(getUri(), EventConstants.CMD_SET);
+			qr.setBeanClass(PauseBean.class);
+		    List<PauseBean> pausedList = qr.getQueue();
+		    
+		    // The most recent bean in the queue is the latest
+		    for (PauseBean pauseBean : pausedList) {
+				if (submissionQueueName.equals(pauseBean.getQueueName())) return pauseBean;
+			}
+		    
+		} catch (Exception ne) {
+			ne.printStackTrace();
+			logger.error("Cannot get queue "+EventConstants.CMD_SET, ne);
+			return null;
+			
+		} finally {
+			try {
+				if (qr!=null) qr.disconnect();
+			} catch (EventException e) {
+				logger.error("Cannot get disconnect "+EventConstants.CMD_SET, e);
+			}
+		}
+		return null;
 	}
 
 }
