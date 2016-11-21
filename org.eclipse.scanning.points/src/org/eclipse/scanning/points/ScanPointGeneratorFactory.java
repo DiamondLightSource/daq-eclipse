@@ -211,10 +211,10 @@ public class ScanPointGeneratorFactory {
     	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
     		CompositeClassLoader composite = new CompositeClassLoader(state.getClassLoader());
-    		// Classloader for org.eclipse.scanning.points
-    		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
     		// Classloader for org.eclipse.scanning.scisoftpy
     		composite.addLast(PythonUtils.class.getClassLoader());
+   	  	    // Classloader for org.eclipse.scanning.points
+    		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
     		addLast(composite, jythonBundleName);
     		jythonClassloader = composite;
 
@@ -268,10 +268,14 @@ public class ScanPointGeneratorFactory {
 	        if (loc != null) {
 	            File jythonDir = find(loc, "jython");
 	           	state.path.add(new PyString(jythonDir.getAbsolutePath())); // Resolves the collections
-		        File lib       = find(jythonDir, "Lib");
+		        
+	           	File lib       = find(jythonDir, "Lib");
 		        state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
 	           
-	           	System.out.println(state.path);
+	           	File site       = find(lib, "site-packages");
+		        state.path.add(new PyString(site.getAbsolutePath())); // Resolves the collections
+
+		        System.out.println(state.path);
 	        }
             
         } catch (Exception ne) {
@@ -319,6 +323,10 @@ public class ScanPointGeneratorFactory {
 		catch (IOException e) {
 			File dir = new File("../"+bundleName);
 			if (dir.exists()) return dir;
+			
+			dir = new File("../../diamond-jython.git/"+bundleName);
+			if (dir.exists()) return dir;
+			
 			dir = new File("../../daq-eclipse.git/"+bundleName);
 			if (dir.exists()) return dir;
 			
@@ -326,8 +334,10 @@ public class ScanPointGeneratorFactory {
 			// They will not resolve from the IDE or binary.
 			dir = new File("../../org.eclipse.scanning/"+bundleName);
 			if (dir.exists()) return dir;
+			
 			dir = new File("../../diamond-jython/"+bundleName);
 			if (dir.exists()) return dir;
+			
 			dir = new File("../../../diamond-jython/"+bundleName);
 			if (dir.exists()) return dir;
 		}
