@@ -40,7 +40,5 @@ Import-Package: Jama,
  org.python.modules.thread;version="2.5.3",
  org.python.modules.time;version="2.5.3",
  org.python.modules.zipimport;version="2.5.3",
- org.python.posix;version="2.5.3",
- org.python.posix.util;version="2.5.3",
  org.python.util;version="2.5.3",
  org.slf4j;version="[1.7.2,2.0.0)"
