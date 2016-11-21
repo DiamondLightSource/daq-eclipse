@@ -257,7 +257,6 @@ public class MalcolmScanTest extends NexusTest {
 					}
 				}
 				
-				// TODO: update DummyMalcolmDevice to write data so that we can reinstate these assertions
 				int[] shape = dataset.getShape(); 
 				for (int i = 0; i < sizes.length; i++) 
 					assertEquals(sizes[i], shape[i]);

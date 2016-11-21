@@ -317,6 +317,8 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 
 	private boolean firstRunCompleted = false;
 	
+	private int stepIndex = 0;
+	
 	private ScanInformation scanInformation = null; 
 	
 	// the dummy devices are responsible for writing the nexus files 
@@ -423,7 +425,10 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	
 	@ScanFinally
 	public void scanFinally() {
+		// reset device state for next scan
 		devices = null;
+		stepIndex = 0;
+		firstRunCompleted = false;
 	}
 	
 	@Override
@@ -538,6 +543,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		// get each dummy device to write its position at each inner scan position
 		for (IPosition innerScanPosition : innerScanPositions) {
 			final IPosition overallScanPosition = outerScanPosition.compound(innerScanPosition);
+			overallScanPosition.setStepIndex(stepIndex++);
 			for (IDummyMalcolmControlledDevice device : devices.values()) {
 				try {
 					device.writePosition(overallScanPosition);
