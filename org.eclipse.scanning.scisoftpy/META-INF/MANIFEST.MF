@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ScisoftPy
 Bundle-SymbolicName: org.eclipse.scanning.scisoftpy;singleton:=true
-Bundle-Version: 1.3.0
+Bundle-Version: 1.3.0.qualifier
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: Diamond Light Source
