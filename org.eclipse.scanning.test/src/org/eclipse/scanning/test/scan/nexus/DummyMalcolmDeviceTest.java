@@ -37,6 +37,7 @@ import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.MalcolmTable;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.StaticPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
@@ -63,11 +64,6 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	
 	private File malcolmOutputDir;
 	
-	@BeforeClass
-	public static void setUpAdditionalServices() {
-//		Services
-	}
-
 	@Before
 	public void setUp() throws Exception {
 		// create a temp directory for the dummy malcolm device to write hdf files into
@@ -85,9 +81,9 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 
 	private IPointGenerator<?> getGenerator(int... size) throws GeneratorException {
 		GridModel gmodel = new GridModel();
-		gmodel.setFastAxisName("xNex");
+		gmodel.setFastAxisName("stage_x");
 		gmodel.setFastAxisPoints(size[size.length - 1]);
-		gmodel.setSlowAxisName("yNex");
+		gmodel.setSlowAxisName("stage_y");
 		gmodel.setSlowAxisPoints(size[size.length - 2]);
 		gmodel.setBoundingBox(new BoundingBox(0, 0, 3, 3));
 
@@ -138,16 +134,15 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	
 	@Test
 	public void testDummyMalcolmNexusFiles() throws Exception {
-
 		DummyMalcolmModel model = createModel();
 		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
 		((IMalcolmDevice<DummyMalcolmModel>) malcolmDevice).setPointGenerator(getGenerator(2, 2)); // Generator isn't actually used by the test malcolm device
-		int scanRank = 3;
+		int scanRank = 2;
 		setScanInformation(malcolmDevice, scanRank); // normally called when a scan is run using @ScanStart
 		assertNotNull(malcolmDevice);
 		malcolmDevice.configure(model);
 
-		malcolmDevice.run(null);
+		malcolmDevice.run(new StaticPosition());
 
 		// Check file has been written with some data
 		checkMalcolmNexusFiles(model, (IMalcolmDevice<DummyMalcolmModel>) malcolmDevice, scanRank);
@@ -170,7 +165,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	
 	private void setScanInformation(IRunnableDevice<DummyMalcolmModel> malcolmDevice, int scanRank) {
 		ScanInformation scanInfo = new ScanInformation();
-		scanInfo.setRank(3);
+		scanInfo.setRank(2);
 		((DummyMalcolmDevice) malcolmDevice).setScanInformation(scanInfo);
 	}
 	

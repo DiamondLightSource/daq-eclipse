@@ -86,6 +86,7 @@ public class NexusTest extends TmpTest {
 		Services.setEventService(eservice);
 		Services.setRunnableDeviceService(dservice);
 		Services.setGeneratorService(gservice);
+		org.eclipse.scanning.example.Services.setPointGeneratorService(gservice);
 		Services.setConnector(connector);
 		org.eclipse.dawnsci.nexus.ServiceHolder.setNexusFileFactory(fileFactory);
 		org.eclipse.scanning.sequencer.ServiceHolder.setTestServices(new LoaderServiceMock(),
