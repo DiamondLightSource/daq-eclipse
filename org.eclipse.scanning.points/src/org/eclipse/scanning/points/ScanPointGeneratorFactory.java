@@ -7,6 +7,7 @@ import java.util.Properties;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.scanning.scisoftpy.python.PythonUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleWiring;
 import org.python.core.Py;
@@ -210,7 +211,10 @@ public class ScanPointGeneratorFactory {
     	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
     		CompositeClassLoader composite = new CompositeClassLoader(state.getClassLoader());
+    		// Classloader for org.eclipse.scanning.points
     		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
+    		// Classloader for org.eclipse.scanning.scisoftpy
+    		composite.addLast(PythonUtils.class.getClassLoader());
     		addLast(composite, jythonBundleName);
     		jythonClassloader = composite;
 
