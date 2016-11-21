@@ -275,10 +275,12 @@ public class ScanPointGeneratorFactory {
         	ne.printStackTrace();
         	logger.debug("Problem setting jython path to include scripts!", ne);
         }
+        
+        final File scisoftpyLocation = getBundleLocation("org.eclipse.scanning.scisoftpy");
+        if (scisoftpyLocation!=null) state.path.add(new PyString(scisoftpyLocation.getAbsolutePath() + "/src/"));
 
         final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
         state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
-        
 	}
 
 	private static ClassLoader getBundleLoader(String name) {
