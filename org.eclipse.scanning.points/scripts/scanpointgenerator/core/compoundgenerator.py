@@ -35,6 +35,8 @@ class CompoundGenerator(Generator):
         self.axes_points_upper = {}
         self.dimensions = []
         self.alternate_direction = [g.alternate_direction for g in generators]
+        self.num = 1
+        
         for generator in generators:
             logging.debug("Generator passed to Compound init")
             logging.debug(generator.to_dict())

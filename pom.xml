@@ -27,6 +27,7 @@
 		<module>org.eclipse.scanning.example.xcen.ui</module>
 		<module>org.eclipse.scanning.malcolm.core</module>
 		<module>org.eclipse.scanning.points</module>
+		<module>org.eclipse.scanning.scisoftpy</module>
 		<module>org.eclipse.scanning.sequencer</module>
 		<module>org.eclipse.scanning.server</module>
 		<module>org.eclipse.scanning.test</module>
