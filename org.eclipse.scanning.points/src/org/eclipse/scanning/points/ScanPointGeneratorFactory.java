@@ -281,7 +281,7 @@ public class ScanPointGeneratorFactory {
         }
         
         final File scisoftpyLocation = getBundleLocation("org.eclipse.scanning.scisoftpy");
-        if (scisoftpyLocation!=null) state.path.add(new PyString(scisoftpyLocation.getAbsolutePath() + "/src/"));
+        state.path.add(new PyString(scisoftpyLocation.getAbsolutePath() + "/src/"));
 
         final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
         state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
