@@ -103,8 +103,7 @@ public class MockEventService implements IEventService {
 	@Override
 	public <T extends IdBean> IResponder<T> createResponder(URI uri, String requestTopic, String responseTopic)
 			throws EventException {
-		// TODO Auto-generated method stub
-		return null;
+		return new MockResponder<T>();
 	}
 
 	@Override
