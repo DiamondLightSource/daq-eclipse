@@ -212,6 +212,8 @@ public class ScanPointGeneratorFactory {
     	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
     		CompositeClassLoader composite = new CompositeClassLoader(state.getClassLoader());
+    		// Classloader for jython, make sure it's there
+    		composite.addLast(state.getClass().getClassLoader());
     		// Classloader for org.eclipse.scanning.scisoftpy
     		composite.addLast(PythonUtils.class.getClassLoader());
    	  	    // Classloader for org.eclipse.scanning.points
