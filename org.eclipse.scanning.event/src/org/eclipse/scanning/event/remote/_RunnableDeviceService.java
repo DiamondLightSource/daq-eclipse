@@ -119,6 +119,7 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 	    DeviceRequest req;
 		try {
 			req = requester.post(new DeviceRequest());
+			req.checkException();
 		} catch (EventException | InterruptedException e) {
 			throw new ScanningException("Cannot get devices! Connection to broker may be lost or no server up!", e);
 		}
