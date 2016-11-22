@@ -265,25 +265,25 @@ public class ScanPointGeneratorFactory {
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 
             File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
-	        if (loc != null) {
-	            File jythonDir = find(loc, "jython");
-	           	state.path.add(new PyString(jythonDir.getAbsolutePath())); // Resolves the collections
-		        
-	           	File lib       = find(jythonDir, "Lib");
-		        state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
-	           
-	           	File site       = find(lib, "site-packages");
-		        state.path.add(new PyString(site.getAbsolutePath())); // Resolves the collections
+            if (loc != null) {
+            	File jythonDir = find(loc, "jython");
+            	state.path.add(new PyString(jythonDir.getAbsolutePath())); // Resolves the collections
 
-	           	File[] fa = site.listFiles();
-	           	for (File dir : fa) {
-					if (!dir.isDirectory()) continue;
-					if (dir.getName().endsWith("-info")) continue;
-			        state.path.add(new PyString(dir.getAbsolutePath())); // Resolves the collections
-			}
-	           			
-		        System.out.println(state.path);
-	        }
+            	File lib       = find(jythonDir, "Lib");
+            	state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
+
+            	File site       = find(lib, "site-packages");
+            	state.path.add(new PyString(site.getAbsolutePath())); // Resolves the collections
+
+            	File[] fa = site.listFiles();
+            	for (File dir : fa) {
+            		if (!dir.isDirectory()) continue;
+            		if (dir.getName().endsWith("-info")) continue;
+            		state.path.add(new PyString(dir.getAbsolutePath())); // Resolves the collections
+            	}
+
+            	System.out.println(state.path);
+            }
             
         } catch (Exception ne) {
         	System.out.println("Problem setting jython path to include scripts");
