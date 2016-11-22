@@ -2,7 +2,6 @@ package org.eclipse.scanning.points;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -197,15 +196,15 @@ public class ScanPointGeneratorFactory {
 		if (setupPythonState) return;
 		setupPythonState = true;
 		
- 		createPythonPath(); // Must do this first
+		ClassLoader loader = createJythonClassLoader();
+ 		createPythonPath(loader); 
  		
     	PySystemState state = Py.getSystemState();
-        ClassLoader jythonClassloader = createJythonClassLoader(state);
-	   	state.setClassLoader(jythonClassloader);
     	addScriptPaths(state);
+	   	state.setClassLoader(loader);
 	}
 
-	private static void createPythonPath() {
+	private static void createPythonPath(ClassLoader loader) {
 		try {
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 	        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
@@ -221,7 +220,7 @@ public class ScanPointGeneratorFactory {
 
 	    	Properties preprops = System.getProperties();
 	    	
-	    	PySystemState.initialize(preprops, props);
+	    	PySystemState.initialize(preprops, props, new String[]{}, loader);
 	    
 	    } catch (Throwable ne) {
 	    	System.out.print("Problem loading jython bundles!");
@@ -230,13 +229,13 @@ public class ScanPointGeneratorFactory {
 	    }
 	}
 
-	private static ClassLoader createJythonClassLoader(PySystemState state) {
+	private static ClassLoader createJythonClassLoader() {
 		
     	ClassLoader jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
     	
     	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
-    		CompositeClassLoader composite = new CompositeClassLoader(state.getClassLoader());
+    		CompositeClassLoader composite = new CompositeClassLoader(PySystemState.class.getClassLoader());
      		// Classloader for org.eclipse.scanning.scisoftpy
     		composite.addLast(PythonUtils.class.getClassLoader());
    	  	    // Classloader for org.eclipse.scanning.points
