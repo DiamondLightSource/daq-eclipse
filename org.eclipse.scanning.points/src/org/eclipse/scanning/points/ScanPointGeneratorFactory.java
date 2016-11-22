@@ -2,6 +2,7 @@ package org.eclipse.scanning.points;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -191,7 +192,7 @@ public class ScanPointGeneratorFactory {
 
 	private static volatile boolean setupPythonState = false;
 
-	private static void setupSystemState() {
+	private static synchronized void setupSystemState() {
 		
 		if (setupPythonState) return;
 		setupPythonState = true;
@@ -264,14 +265,22 @@ public class ScanPointGeneratorFactory {
         	// directly into the bundle or into the 'jython2.7' folder.
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 
-            File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
-            if (loc != null) {
-            	File jythonDir = find(loc, "jython");
-            	state.path.add(new PyString(jythonDir.getAbsolutePath())); // Resolves the collections
-
-            	File lib       = find(jythonDir, "Lib");
-            	state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
-
+            File lib = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
+	    	Iterator it = state.path.iterator();
+	    	while (it.hasNext()) {
+	    		Object ob = it.next();
+	    		if (ob instanceof String && ((String)ob).endsWith(File.separator+"Lib")) {
+	    			lib = new File((String)ob);
+	    		}
+	    	}
+	    	
+	    	if (lib==null) {
+	            File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
+           	    File jythonDir = find(loc, "jython");
+            	lib       = find(jythonDir, "Lib");
+	    	}
+	    	
+            if (lib != null) {
             	File site       = find(lib, "site-packages");
             	state.path.add(new PyString(site.getAbsolutePath())); // Resolves the collections
 
