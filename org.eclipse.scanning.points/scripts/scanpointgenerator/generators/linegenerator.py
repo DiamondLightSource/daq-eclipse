@@ -35,6 +35,7 @@ class LineGenerator(Generator):
         self.points = None
         self.points_lower = None
         self.points_upper = None
+        self.units = units
 
         if len(self.name) != len(set(self.name)):
             raise ValueError("Axis names cannot be duplicated; given %s" %
@@ -80,18 +81,23 @@ class LineGenerator(Generator):
             start = self.start[axis]
             stop = self.stop[axis]
             d = stop - start
-            n = self.num - 1.
-            s = d / n
-            upper_start = start + 0.5 * d / n
-            upper_stop = stop + 0.5 * d / n
-            lower_start = start - 0.5 * d / n
-            lower_stop = stop - 0.5 * d / n
-            self.points[axis_name] = np.linspace(
-                float(start), float(stop), self.num)
-            self.points_upper[axis_name] = np.linspace(
-                float(upper_start), float(upper_stop), self.num)
-            self.points_lower[axis_name] = np.linspace(
-                float(lower_start), float(lower_stop), self.num)
+            if self.num == 1:
+                self.points[axis_name] = np.array([start])
+                self.points_upper[axis_name] = np.array([start + 0.5 * d])
+                self.points_lower[axis_name] = np.array([start - 0.5 * d])
+            else:
+                n = self.num - 1.
+                s = d / n
+                upper_start = start + 0.5 * d / n
+                upper_stop = stop + 0.5 * d / n
+                lower_start = start - 0.5 * d / n
+                lower_stop = stop - 0.5 * d / n
+                self.points[axis_name] = np.linspace(
+                    float(start), float(stop), self.num)
+                self.points_upper[axis_name] = np.linspace(
+                    float(upper_start), float(upper_stop), self.num)
+                self.points_lower[axis_name] = np.linspace(
+                    float(lower_start), float(lower_stop), self.num)
 
     def iterator(self):
         for i in range_(self.num):
@@ -115,7 +121,7 @@ class LineGenerator(Generator):
         d = dict()
         d['typeid'] = self.typeid
         d['name'] = self.name
-        d['units'] = list(self.position_units.values())[0]
+        d['units'] = self.units
         d['start'] = self.start
         d['stop'] = self.stop
         d['num'] = self.num

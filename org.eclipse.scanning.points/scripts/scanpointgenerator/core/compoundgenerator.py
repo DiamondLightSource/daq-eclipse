@@ -11,6 +11,8 @@ from scanpointgenerator.core.generator import Generator
 from scanpointgenerator.core.point import Point
 from scanpointgenerator.core.excluder import Excluder
 from scanpointgenerator.core.mutator import Mutator
+from scanpointgenerator.rois import RectangularROI
+from scanpointgenerator.generators import LineGenerator
 
 
 @Generator.register_subclass("scanpointgenerator:generator/CompoundGenerator:1.0")
@@ -36,7 +38,7 @@ class CompoundGenerator(Generator):
         self.dimensions = []
         self.alternate_direction = [g.alternate_direction for g in generators]
         self.num = 1
-        
+
         for generator in generators:
             logging.debug("Generator passed to Compound init")
             logging.debug(generator.to_dict())
@@ -54,7 +56,44 @@ class CompoundGenerator(Generator):
     def prepare(self):
         self.num = 1
         self.dimensions = []
-        for generator in self.generators:
+        # we're going to mutate these structures
+        excluders = list(self.excluders)
+        generators = list(self.generators)
+
+        # special case if we have rectangular regions on line generators
+        # we should restrict the resulting grid rather than merge dimensions
+        # this changes the alternating case a little (without doing this, we
+        # may have started in reverse direction)
+        for rect in [r for r in excluders \
+                if isinstance(r.roi, RectangularROI) and r.roi.angle == 0]:
+            axis_1, axis_2 = rect.scannables[0], rect.scannables[1]
+            gen_1 = [g for g in generators if axis_1 in g.axes][0]
+            gen_2 = [g for g in generators if axis_2 in g.axes][0]
+            if gen_1 is gen_2:
+                continue
+            if isinstance(gen_1, LineGenerator) \
+                    and isinstance(gen_2, LineGenerator):
+                gen_1.produce_points()
+                gen_2.produce_points()
+                valid = np.full(gen_1.num, True, dtype=np.int8)
+                valid &= gen_1.points[axis_1] <= rect.roi.width + rect.roi.start[0]
+                valid &= gen_1.points[axis_1] >= rect.roi.start[0]
+                points_1 = gen_1.points[axis_1][valid.astype(np.bool)]
+                valid = np.full(gen_2.num, True, dtype=np.int8)
+                valid &= gen_2.points[axis_2] <= rect.roi.height + rect.roi.start[1]
+                valid &= gen_2.points[axis_2] >= rect.roi.start[1]
+                points_2 = gen_2.points[axis_2][valid.astype(np.bool)]
+                new_gen1 = LineGenerator(
+                    gen_1.name, gen_1.units, points_1[0], points_1[-1],
+                    len(points_1), gen_1.alternate_direction)
+                new_gen2 = LineGenerator(
+                    gen_2.name, gen_2.units, points_2[0], points_2[-1],
+                    len(points_2), gen_2.alternate_direction)
+                generators[generators.index(gen_1)] = new_gen1
+                generators[generators.index(gen_2)] = new_gen2
+                excluders.remove(rect)
+
+        for generator in generators:
             generator.produce_points()
             self.axes_points.update(generator.points)
             self.axes_points_lower.update(generator.points_lower)
@@ -70,13 +109,13 @@ class CompoundGenerator(Generator):
                 "alternate":generator.alternate_direction}
             self.dimensions.append(dim)
 
-        for excluder in self.excluders:
+        for excluder in excluders:
             axis_1, axis_2 = excluder.scannables
             # ensure axis_1 is "outer" axis (if separate generators)
-            gen_1 = [g for g in self.generators if axis_1 in g.axes][0]
-            gen_2 = [g for g in self.generators if axis_2 in g.axes][0]
-            gen_diff = self.generators.index(gen_1) \
-                - self.generators.index(gen_2)
+            gen_1 = [g for g in generators if axis_1 in g.axes][0]
+            gen_2 = [g for g in generators if axis_2 in g.axes][0]
+            gen_diff = generators.index(gen_1) \
+                - generators.index(gen_2)
             if gen_diff < -1 or gen_diff > 1:
                 raise ValueError(
                     "Excluders must be defined on axes that are adjacent in " \
@@ -94,11 +133,6 @@ class CompoundGenerator(Generator):
             dim_2 = [i for i in self.dimensions if axis_2 in i["axes"]][0]
             dim_diff = self.dimensions.index(dim_1) \
                 - self.dimensions.index(dim_2)
-            if dim_1["alternate"] != dim_2["alternate"]:
-                raise ValueError(
-                    "Generators tied by regions must have the same " \
-                            "alternate_direction setting")
-            # merge "inner" into "outer"
             if dim_diff < -1 or dim_diff > 1:
                 raise ValueError(
                     "Excluders must be defined on axes that are adjacent in " \
@@ -106,6 +140,12 @@ class CompoundGenerator(Generator):
             if dim_diff == 1:
                 dim_1, dim_2 = dim_2, dim_1
                 dim_diff = -1
+            if dim_1["alternate"] != dim_2["alternate"] \
+                    and dim_1 is not self.dimensions[0]:
+                raise ValueError(
+                    "Generators tied by regions must have the same " \
+                            "alternate_direction setting")
+            # merge "inner" into "outer"
             if dim_diff == -1:
                 # dim_1 is "outer" - preserves axis ordering
 
@@ -128,6 +168,7 @@ class CompoundGenerator(Generator):
                 dim_1["axes"] += dim_2["axes"]
                 dim_1["generators"] += dim_2["generators"]
                 dim_1["size"] *= dim_2["size"]
+                dim_1["alternate"] |= dim_2["alternate"]
                 self.dimensions.remove(dim_2)
             dim = dim_1
 
@@ -189,7 +230,7 @@ class CompoundGenerator(Generator):
                         tile *= g.num
             m = {"repeat":repeat, "tile":tile, "mask":mask}
             dim["masks"].append(m)
-        # end for excluder in self.excluders
+        # end for excluder in excluders
         #####
 
         tile = 1
