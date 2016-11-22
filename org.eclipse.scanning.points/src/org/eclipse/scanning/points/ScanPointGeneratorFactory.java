@@ -7,7 +7,6 @@ import java.util.Properties;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.scanning.scisoftpy.python.PythonUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleWiring;
 import org.python.core.Py;
@@ -211,9 +210,7 @@ public class ScanPointGeneratorFactory {
     	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
     		CompositeClassLoader composite = new CompositeClassLoader(state.getClassLoader());
-    		// Classloader for org.eclipse.scanning.scisoftpy
-    		composite.addLast(PythonUtils.class.getClassLoader());
-   	  	    // Classloader for org.eclipse.scanning.points
+    		// Classloader for org.eclipse.scanning.points
     		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
     		addLast(composite, jythonBundleName);
     		jythonClassloader = composite;
@@ -270,8 +267,7 @@ public class ScanPointGeneratorFactory {
             	state.path.add(new PyString(jythonDir.getAbsolutePath())); // Resolves the collections
 
             	File lib       = find(jythonDir, "Lib");
-            	state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
-
+  
             	File site       = find(lib, "site-packages");
             	state.path.add(new PyString(site.getAbsolutePath())); // Resolves the collections
 
@@ -291,9 +287,6 @@ public class ScanPointGeneratorFactory {
         	logger.debug("Problem setting jython path to include scripts!", ne);
         }
         
-        final File scisoftpyLocation = getBundleLocation("org.eclipse.scanning.scisoftpy");
-        state.path.add(new PyString(scisoftpyLocation.getAbsolutePath() + "/src/"));
-
         final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
         state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
 	}
