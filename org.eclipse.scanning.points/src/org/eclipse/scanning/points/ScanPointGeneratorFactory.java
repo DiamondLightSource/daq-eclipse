@@ -212,9 +212,7 @@ public class ScanPointGeneratorFactory {
     	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
     		CompositeClassLoader composite = new CompositeClassLoader(state.getClassLoader());
-    		// Classloader for jython, make sure it's there
-    		composite.addLast(state.getClass().getClassLoader());
-    		// Classloader for org.eclipse.scanning.scisoftpy
+     		// Classloader for org.eclipse.scanning.scisoftpy
     		composite.addLast(PythonUtils.class.getClassLoader());
    	  	    // Classloader for org.eclipse.scanning.points
     		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
@@ -246,7 +244,7 @@ public class ScanPointGeneratorFactory {
 	        Properties props = new Properties();
 	    	props.put("python.home", jythonDir.getAbsolutePath());
 	    	props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
-	    	props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
+	    	//props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
 	    	//props.put("python.import.site","false");
 
 	    	Properties preprops = System.getProperties();
