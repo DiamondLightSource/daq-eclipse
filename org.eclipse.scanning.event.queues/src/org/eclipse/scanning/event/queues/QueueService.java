@@ -14,6 +14,7 @@ import javax.annotation.PreDestroy;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
@@ -22,6 +23,8 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.TaskBean;
+import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
+import org.eclipse.scanning.event.queues.remote.QueueResponseCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +71,8 @@ public class QueueService implements IQueueService {
 	private static IQueue<QueueBean> jobQueue;
 	private static Map<String, IQueue<QueueAtom>> activeQueueRegister;
 	
+	private static IResponder<QueueRequest> queueResponder;
+	
 	private final ReentrantReadWriteLock queueControlLock = new ReentrantReadWriteLock();
 	
 	static {
@@ -107,6 +112,12 @@ public class QueueService implements IQueueService {
 		jobQueue = new Queue<QueueBean>(jobQueueID, uri, 
 				heartbeatTopicName, commandSetName, commandTopicName);
 		
+		//Add responder
+		IEventService evServ = ServicesHolder.getEventService();
+		queueResponder = evServ.createResponder(uri, QUEUE_REQUEST_TOPIC, QUEUE_RESPONSE_TOPIC);
+		queueResponder.setBeanClass(QueueRequest.class);
+		queueResponder.setResponseCreator(new QueueResponseCreator());
+		
 		//Create the active-queues map
 		activeQueueRegister = new HashMap<>();
 		
@@ -124,6 +135,9 @@ public class QueueService implements IQueueService {
 		
 		//Stop the job queue if service is up
 		if (active) stop(true);
+		
+		//Shutdown the responder
+		queueResponder.disconnect();
 
 		//Dispose the job queue
 		disconnectAndClear(jobQueue);
