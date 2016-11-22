@@ -205,6 +205,31 @@ public class ScanPointGeneratorFactory {
     	addScriptPaths(state);
 	}
 
+	private static void createPythonPath() {
+		try {
+	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+	        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
+	        if (loc ==null) return;
+	        File jythonDir = find(loc, "jython");
+	        if (jythonDir ==null) return;
+	        
+	        Properties props = new Properties();
+	    	props.put("python.home", jythonDir.getAbsolutePath());
+	    	props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
+	    	//props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
+	    	//props.put("python.import.site","false");
+
+	    	Properties preprops = System.getProperties();
+	    	
+	    	PySystemState.initialize(preprops, props);
+	    
+	    } catch (Throwable ne) {
+	    	System.out.print("Problem loading jython bundles!");
+	    	ne.printStackTrace();
+	    	logger.debug("Problem loading jython bundles!", ne);
+	    }
+	}
+
 	private static ClassLoader createJythonClassLoader(PySystemState state) {
 		
     	ClassLoader jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
@@ -230,32 +255,6 @@ public class ScanPointGeneratorFactory {
     		// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
     	}
     	return jythonClassloader;
-	}
-
-
-	private static void createPythonPath() {
-		try {
-	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
-	        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
-	        if (loc ==null) return;
-	        File jythonDir = find(loc, "jython");
-	        if (jythonDir ==null) return;
-	        
-	        Properties props = new Properties();
-	    	props.put("python.home", jythonDir.getAbsolutePath());
-	    	props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
-	    	//props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
-	    	//props.put("python.import.site","false");
-
-	    	Properties preprops = System.getProperties();
-	    	
-	    	PySystemState.initialize(preprops, props);
-	    
-	    } catch (Throwable ne) {
-	    	System.out.print("Problem loading jython bundles!");
-	    	ne.printStackTrace();
-	    	logger.debug("Problem loading jython bundles!", ne);
-	    }
 	}
  
     private static void addScriptPaths(PySystemState state) {
@@ -290,6 +289,8 @@ public class ScanPointGeneratorFactory {
             		if (dir.getName().endsWith("-info")) continue;
             		state.path.add(new PyString(dir.getAbsolutePath())); // Resolves the collections
             	}
+            	
+            	state.toString();
 
             	System.out.println(state.path);
             }
