@@ -275,6 +275,13 @@ public class ScanPointGeneratorFactory {
 	           	File site       = find(lib, "site-packages");
 		        state.path.add(new PyString(site.getAbsolutePath())); // Resolves the collections
 
+	           	File[] fa = site.listFiles();
+	           	for (File dir : fa) {
+					if (!dir.isDirectory()) continue;
+					if (dir.getName().endsWith("-info")) continue;
+			        state.path.add(new PyString(dir.getAbsolutePath())); // Resolves the collections
+			}
+	           			
 		        System.out.println(state.path);
 	        }
             
