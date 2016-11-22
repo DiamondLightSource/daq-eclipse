@@ -10,6 +10,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	PositionerRequestMessagingAPITest.class,
 	XcenMessagingAPITest.class,
 	ScanBeanMessagingAPITest.class,
+	TopicAndQueueNameTest.class,
 })
 public class Suite {
 
