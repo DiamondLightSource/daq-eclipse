@@ -270,8 +270,11 @@ public class ScanPointGeneratorFactory {
     		jythonClassloader = composite;
     		
     		// Ensure that imp is loaded
-    		Class<?> imp = jythonClassloader.loadClass("org.pythong.core.imp");
-    		assert(imp!=null);
+    		Class<?> imp = jythonClassloader.loadClass("org.python.core.imp");
+    		if (imp==null) {
+    			System.out.println("Cannot load org.python.core.imp"); 
+    			Thread.dumpStack();
+    		}
 
     	} catch (Throwable ne) {
     		if (logger!=null) {
