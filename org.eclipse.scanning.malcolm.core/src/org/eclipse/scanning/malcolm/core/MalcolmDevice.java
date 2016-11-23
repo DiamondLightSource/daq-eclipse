@@ -22,8 +22,11 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
+import org.eclipse.scanning.api.points.IMutator;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.models.CompoundModel;
+import org.eclipse.scanning.points.mutators.FixedDurationMutator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -250,8 +253,15 @@ class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice<M> {
 	
 	@Override
 	public void configure(M model) throws MalcolmDeviceException {
+		double exposureTime = model.getExposureTime();
+		IPointGenerator<?> pointGenerator = getPointGenerator();
+		if (pointGenerator != null) { // TODO could the point generator be null here?
+			List<IMutator> mutators = Arrays.asList(new FixedDurationMutator(exposureTime));
+			((CompoundModel<?>) pointGenerator.getModel()).setMutators(mutators);
+		}
+		
 		final EpicsMalcolmModel epicsModel = new EpicsMalcolmModel(model.getFileDir(),
-				model.getAxesToMove(), getPointGenerator());
+				model.getAxesToMove(), pointGenerator);
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", epicsModel);
 		MalcolmMessage reply = service.send(this, msg);
 		if (reply.getType() == Type.ERROR) {
