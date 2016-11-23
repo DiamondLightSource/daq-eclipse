@@ -7,7 +7,6 @@ import java.util.Properties;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.scanning.scisoftpy.python.PythonUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleWiring;
 import org.python.core.Py;
@@ -205,9 +204,6 @@ public class ScanPointGeneratorFactory {
     	addScriptPaths(state);
 	   	state.setClassLoader(loader);
 	   	Py.setSystemState(state);
-	   	
-        PythonInterpreter interp = new PythonInterpreter(null, state);
-        interp.exec("import scisoftpy as dnp");
  
         setupPythonState = true;
 
@@ -269,7 +265,7 @@ public class ScanPointGeneratorFactory {
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
     		CompositeClassLoader composite = new CompositeClassLoader(PySystemState.class.getClassLoader());
      		// Classloader for org.eclipse.scanning.scisoftpy
-    		composite.addLast(PythonUtils.class.getClassLoader());
+    		//composite.addLast(PythonUtils.class.getClassLoader());
    	  	    // Classloader for org.eclipse.scanning.points
     		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
     		addLast(composite, jythonBundleName);
@@ -327,10 +323,7 @@ public class ScanPointGeneratorFactory {
         	ne.printStackTrace();
         	logger.debug("Problem setting jython path to include scripts!", ne);
         }
-        
-        final File scisoftpyLocation = getBundleLocation("org.eclipse.scanning.scisoftpy");
-        state.path.add(new PyString(scisoftpyLocation.getAbsolutePath() + "/src/"));
-
+ 
         final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
         state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
 	}
