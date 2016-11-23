@@ -195,6 +195,7 @@ def _joutput(result): # wrap java output
         return [ Sciwrap(r) for r in result if r is not None ]
     return Sciwrap(result)
 
+import sys
 try:
     from decorator import decorator as _decorator
 except Exception, e:
