@@ -223,7 +223,7 @@ public class ScanPointGeneratorFactory {
 	    	props.setProperty("python.home", jythonDir.getAbsolutePath());
 	    	props.setProperty("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
 	    	props.setProperty("python.options.showJavaExceptions", "true");
-	    	props.setProperty("python.verbose", "warn");
+	    	props.setProperty("python.verbose", "warning");
 
 	    	Properties preprops = System.getProperties();
 	    	
@@ -293,7 +293,7 @@ public class ScanPointGeneratorFactory {
 				System.out.println("Cannot load org.python.core.imp"); 
 				Thread.dumpStack();
 			} else {
-				System.out.println("jythonClassloader loaded class "+imp.getName());
+				System.out.println("Loaded class "+imp.getName());
 			}
     	} catch (ClassNotFoundException ne) {
     		System.out.println("org.python.core.imp not found in "+classLoader);
