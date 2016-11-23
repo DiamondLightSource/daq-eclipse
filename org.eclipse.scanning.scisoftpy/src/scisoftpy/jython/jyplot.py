@@ -14,17 +14,17 @@
 # limitations under the License.
 ###
 
-from uk.ac.diamond.scisoft.analysis import SDAPlotter as _plotter,\
-    PlotServiceProvider as _provider
+# from uk.ac.diamond.scisoft.analysis import SDAPlotter as _plotter,\
+#     PlotServiceProvider as _provider
 from org.eclipse.dawnsci.analysis.api import RMIClientProvider as _rmiprovider
 
-try:
-    from uk.ac.diamond.scisoft.analysis.plotclient import RMIPlotWindowManger as _manager
-except:
-    ## This code has special handling because the RCP classes may not be available
-    import sys
-    print >> sys.stderr, "Could not import Plot Window Manager"
-    _manager = None
+# try:
+#     from uk.ac.diamond.scisoft.analysis.plotclient import RMIPlotWindowManger as _manager
+# except:
+#     ## This code has special handling because the RCP classes may not be available
+#     import sys
+#     print >> sys.stderr, "Could not import Plot Window Manager"
+#     _manager = None
 
 from jycore import _wrapin
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 ###
 
-from uk.ac.diamond.scisoft.analysis.plotserver import GuiParameters as _guiparam
+# from uk.ac.diamond.scisoft.analysis.plotserver import GuiParameters as _guiparam
 
 class _parameters:
     plotmode = _guiparam.PLOTMODE
@@ -31,7 +31,7 @@ class _parameters:
     axisop = _guiparam.AXIS_OPERATION
 parameters = _parameters()
 
-from uk.ac.diamond.scisoft.analysis.plotserver import GuiPlotMode as _guiplotmode
+# from uk.ac.diamond.scisoft.analysis.plotserver import GuiPlotMode as _guiplotmode
 
 class _plotmode:
     oned = _guiplotmode.ONED
@@ -55,15 +55,15 @@ import java.lang.Exception as _exception
 
 exception = _exception
 
-from uk.ac.diamond.scisoft.analysis.plotserver import AxisMapBean as _axismapbean
+# from uk.ac.diamond.scisoft.analysis.plotserver import AxisMapBean as _axismapbean
 
 axismapbean = _axismapbean
 
-from uk.ac.diamond.scisoft.analysis.plotserver import DatasetWithAxisInformation as _datasetwithaxisinformation
+# from uk.ac.diamond.scisoft.analysis.plotserver import DatasetWithAxisInformation as _datasetwithaxisinformation
 
 datasetwithaxisinformation = _datasetwithaxisinformation
 
-from uk.ac.diamond.scisoft.analysis.plotserver import DataBean as _databean
+# from uk.ac.diamond.scisoft.analysis.plotserver import DataBean as _databean
 
 databean = _databean
 

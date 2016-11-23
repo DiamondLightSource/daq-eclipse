@@ -116,11 +116,11 @@ except Exception, e:
     print >> sys.stderr, "Could not import input/output routines"
     print >> sys.stderr, e
 
-try:
-    import plot
-except Exception, e:
-    print >> sys.stderr, "Could not import plotting routines"
-    print >> sys.stderr, e
+# try:
+#     import plot
+# except Exception, e:
+#     print >> sys.stderr, "Could not import plotting routines"
+#     print >> sys.stderr, e
 
 try:
     import data

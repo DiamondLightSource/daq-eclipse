@@ -17,7 +17,7 @@
 '''
 '''
 
-from uk.ac.diamond.scisoft.analysis.io import HDF5Loader as _hdf5loader
+# from uk.ac.diamond.scisoft.analysis.io import HDF5Loader as _hdf5loader
 from org.eclipse.dawnsci.analysis.api.tree import Tree as _jtree
 from org.eclipse.dawnsci.analysis.api.tree import TreeFile as _jtreefile
 from org.eclipse.dawnsci.analysis.api.tree import DataNode as _jdnode

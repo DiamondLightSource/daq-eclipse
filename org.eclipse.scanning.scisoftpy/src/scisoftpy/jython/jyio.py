@@ -15,11 +15,11 @@
 ###
 
 
-from uk.ac.diamond.scisoft.analysis.io import PNGLoader as _pngload
-from uk.ac.diamond.scisoft.analysis.io import PNGScaledSaver as _pngscaledsave
-from uk.ac.diamond.scisoft.analysis.io import JPEGLoader as _jpegload
-from uk.ac.diamond.scisoft.analysis.io import JPEGSaver as _jpegsave
-from uk.ac.diamond.scisoft.analysis.io import JPEGScaledSaver as _jpegscaledsave
+# from uk.ac.diamond.scisoft.analysis.io import PNGLoader as _pngload
+# from uk.ac.diamond.scisoft.analysis.io import PNGScaledSaver as _pngscaledsave
+# from uk.ac.diamond.scisoft.analysis.io import JPEGLoader as _jpegload
+# from uk.ac.diamond.scisoft.analysis.io import JPEGSaver as _jpegsave
+# from uk.ac.diamond.scisoft.analysis.io import JPEGScaledSaver as _jpegscaledsave
 
 from java.lang import System as _system #@UnresolvedImport
 from java.io import PrintStream as _pstream #@UnresolvedImport
@@ -27,17 +27,17 @@ from java.io import OutputStream as _ostream #@UnresolvedImport
 class _NoOutputStream(_ostream):
     def write(self, b, off, length): pass
 
-try:
-    from uk.ac.diamond.scisoft.analysis.io import TIFFImageLoader as _tiffload
-except:
-    import sys
-    print >> sys.stderr, "Could not import TIFF loader"
-    _tiffload = None
+# try:
+# #     from uk.ac.diamond.scisoft.analysis.io import TIFFImageLoader as _tiffload
+# except:
+#     import sys
+#     print >> sys.stderr, "Could not import TIFF loader"
+#     _tiffload = None
 
-from uk.ac.diamond.scisoft.analysis.io import TIFFImageSaver as _tiffsave
-from uk.ac.diamond.scisoft.analysis.io import JavaImageLoader as _imgload
-from uk.ac.diamond.scisoft.analysis.io import JavaImageSaver as _imgsave
-from uk.ac.diamond.scisoft.analysis.io import ADSCImageLoader as _adscload
+# from uk.ac.diamond.scisoft.analysis.io import TIFFImageSaver as _tiffsave
+# from uk.ac.diamond.scisoft.analysis.io import JavaImageLoader as _imgload
+# from uk.ac.diamond.scisoft.analysis.io import JavaImageSaver as _imgsave
+# from uk.ac.diamond.scisoft.analysis.io import ADSCImageLoader as _adscload
 
 try:
     from uk.ac.diamond.scisoft.analysis.io import CBFLoader as _cbfload
@@ -46,31 +46,31 @@ except:
     print >> sys.stderr, "Could not import CBF loader"
     print >> sys.stderr, "Problem with path for dynamic/shared library or product bundling"
     _cbfload = None
-
-from uk.ac.diamond.scisoft.analysis.io import CrysalisLoader as _crysload
-from uk.ac.diamond.scisoft.analysis.io import MARLoader as _marload
-from uk.ac.diamond.scisoft.analysis.io import MAR345Loader as _mar345load
-from uk.ac.diamond.scisoft.analysis.io import PilatusTiffLoader as _ptiffload
-from uk.ac.diamond.scisoft.analysis.io import ExtendedSRSLoader as _srsload
-from uk.ac.diamond.scisoft.analysis.io import PilatusEdfLoader as _pilatusEdfLoader
-from uk.ac.diamond.scisoft.analysis.io import RawBinarySaver as _rawbinsave
-from uk.ac.diamond.scisoft.analysis.io import RawBinaryLoader as _rawbinload
-from uk.ac.diamond.scisoft.analysis.io import RawTextSaver as _rawtxtsave
-from uk.ac.diamond.scisoft.analysis.io import RawTextLoader as _rawtxtload
-
-from uk.ac.diamond.scisoft.analysis.io import XMapLoader as _xmapload
-from uk.ac.diamond.scisoft.analysis.io import DatLoader as _dlsdatload
-from uk.ac.diamond.scisoft.analysis.io import NumPyFileLoader as _numpyload
-from uk.ac.diamond.scisoft.analysis.io import NumPyFileSaver as _numpysave
-from uk.ac.diamond.scisoft.analysis.io import RAxisImageLoader as _raxisload
-from uk.ac.diamond.scisoft.analysis.io import PgmLoader as _pgmload
-
-from uk.ac.diamond.scisoft.analysis.io import LoaderFactory as _loader_factory
-
-from org.eclipse.dawnsci.analysis.api.io import ScanFileHolderException as io_exception
-
-from uk.ac.diamond.scisoft.analysis.io import DataHolder as _jdataholder
-from uk.ac.diamond.scisoft.analysis.io import MetaDataAdapter as _jmetadata
+# 
+# from uk.ac.diamond.scisoft.analysis.io import CrysalisLoader as _crysload
+# from uk.ac.diamond.scisoft.analysis.io import MARLoader as _marload
+# from uk.ac.diamond.scisoft.analysis.io import MAR345Loader as _mar345load
+# from uk.ac.diamond.scisoft.analysis.io import PilatusTiffLoader as _ptiffload
+# from uk.ac.diamond.scisoft.analysis.io import ExtendedSRSLoader as _srsload
+# from uk.ac.diamond.scisoft.analysis.io import PilatusEdfLoader as _pilatusEdfLoader
+# from uk.ac.diamond.scisoft.analysis.io import RawBinarySaver as _rawbinsave
+# from uk.ac.diamond.scisoft.analysis.io import RawBinaryLoader as _rawbinload
+# from uk.ac.diamond.scisoft.analysis.io import RawTextSaver as _rawtxtsave
+# from uk.ac.diamond.scisoft.analysis.io import RawTextLoader as _rawtxtload
+# 
+# from uk.ac.diamond.scisoft.analysis.io import XMapLoader as _xmapload
+# from uk.ac.diamond.scisoft.analysis.io import DatLoader as _dlsdatload
+# from uk.ac.diamond.scisoft.analysis.io import NumPyFileLoader as _numpyload
+# from uk.ac.diamond.scisoft.analysis.io import NumPyFileSaver as _numpysave
+# from uk.ac.diamond.scisoft.analysis.io import RAxisImageLoader as _raxisload
+# from uk.ac.diamond.scisoft.analysis.io import PgmLoader as _pgmload
+# 
+# from uk.ac.diamond.scisoft.analysis.io import LoaderFactory as _loader_factory
+# 
+# from org.eclipse.dawnsci.analysis.api.io import ScanFileHolderException as io_exception
+# 
+# from uk.ac.diamond.scisoft.analysis.io import DataHolder as _jdataholder
+# from uk.ac.diamond.scisoft.analysis.io import MetaDataAdapter as _jmetadata
 
 from jycore import asDatasetList, _jinput#, asDatasetDict, toList
 

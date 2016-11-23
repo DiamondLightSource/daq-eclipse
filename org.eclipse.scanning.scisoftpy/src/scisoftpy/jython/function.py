@@ -35,18 +35,18 @@ pearson7      -- Pearson VII profile: [position, FWHM, area, power]
 
 '''
 
-from uk.ac.diamond.scisoft.analysis.fitting.functions import Cubic as _cubic
-from uk.ac.diamond.scisoft.analysis.fitting.functions import Gaussian as _gaussian
-from uk.ac.diamond.scisoft.analysis.fitting.functions import Lorentzian as _lorentzian
-from uk.ac.diamond.scisoft.analysis.fitting.functions import Offset as _offset
-from uk.ac.diamond.scisoft.analysis.fitting.functions import PearsonVII as _pearsonvii
-from uk.ac.diamond.scisoft.analysis.fitting.functions import PseudoVoigt as _pseudovoigt
-from uk.ac.diamond.scisoft.analysis.fitting.functions import Voigt as _voigt
-from uk.ac.diamond.scisoft.analysis.fitting.functions import Fano as _fano
-from uk.ac.diamond.scisoft.analysis.fitting.functions import FanoGaussian as _fano_gaussian
-from uk.ac.diamond.scisoft.analysis.fitting.functions import Quadratic as _quadratic
-from uk.ac.diamond.scisoft.analysis.fitting.functions import Step as _step
-from uk.ac.diamond.scisoft.analysis.fitting.functions import StraightLine as _straightline
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import Cubic as _cubic
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import Gaussian as _gaussian
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import Lorentzian as _lorentzian
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import Offset as _offset
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import PearsonVII as _pearsonvii
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import PseudoVoigt as _pseudovoigt
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import Voigt as _voigt
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import Fano as _fano
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import FanoGaussian as _fano_gaussian
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import Quadratic as _quadratic
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import Step as _step
+# from uk.ac.diamond.scisoft.analysis.fitting.functions import StraightLine as _straightline
 
 
 from scisoftpy.jython.jycore import _wrap, toList

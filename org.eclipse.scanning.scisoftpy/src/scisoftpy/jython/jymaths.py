@@ -510,7 +510,7 @@ def gradient(f, *varargs):
 
 def roots(p):
     '''Roots of polynomial'''
-    from uk.ac.diamond.scisoft.analysis.fitting.functions import Polynomial as _poly
+#     from uk.ac.diamond.scisoft.analysis.fitting.functions import Polynomial as _poly
     pa = _asarray(p, dtype=_f64)
     return _asarray(_poly.findRoots(pa._jdataset().getBuffer()))
 
