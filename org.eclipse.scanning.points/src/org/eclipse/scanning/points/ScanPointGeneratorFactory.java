@@ -196,7 +196,6 @@ public class ScanPointGeneratorFactory {
 	private static synchronized void setupSystemState() {
 		
 		if (setupPythonState) return;
-		setupPythonState = true;
 		
 		ClassLoader loader = createJythonClassLoader();
  		createPythonPath(loader); 
@@ -207,6 +206,9 @@ public class ScanPointGeneratorFactory {
 	   	state.setClassLoader(loader);
 	   	state.setdefaultencoding("UTF-8");		// cannot be done before Py.setSystemState
 	   	Py.setSystemState(state);
+	   	
+		setupPythonState = true;
+
 	}
 
 	private static void createPythonPath(ClassLoader loader) {
@@ -221,7 +223,7 @@ public class ScanPointGeneratorFactory {
 	    	props.setProperty("python.home", jythonDir.getAbsolutePath());
 	    	props.setProperty("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
 	    	props.setProperty("python.options.showJavaExceptions", "true");
-	    	props.setProperty("python.verbose", "debug");
+	    	props.setProperty("python.verbose", "warn");
 
 	    	Properties preprops = System.getProperties();
 	    	
