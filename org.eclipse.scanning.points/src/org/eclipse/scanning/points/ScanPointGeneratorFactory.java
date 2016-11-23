@@ -15,6 +15,7 @@ import org.python.core.PyNone;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
+import org.python.core.StdoutWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -219,7 +220,7 @@ public class ScanPointGeneratorFactory {
 	    	props.setProperty("python.home", jythonDir.getAbsolutePath());
 	    	props.setProperty("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
 	    	props.setProperty("python.options.showJavaExceptions", "true");
-	    	//props.setProperty("python.verbose", "true");
+	    	props.setProperty("python.verbose", "debug");
 
 	    	Properties preprops = System.getProperties();
 	    	
