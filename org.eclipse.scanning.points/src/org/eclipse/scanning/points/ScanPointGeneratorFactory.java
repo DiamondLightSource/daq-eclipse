@@ -146,6 +146,8 @@ public class ScanPointGeneratorFactory {
             PyObject importer = state.getBuiltins().__getitem__(Py.newString("__import__"));
             PyObject module = importer.__call__(Py.newString(moduleName));
             pyClass = module.__getattr__(className);
+            PyObject imp = importer.__call__(Py.newString("imp"));
+            if (imp==null) throw new RuntimeException("Cannot import imp!");
         }
 
 		// The following methods return a coerced Jython object based upon the pieces of
@@ -223,7 +225,7 @@ public class ScanPointGeneratorFactory {
 	    	props.setProperty("python.home", jythonDir.getAbsolutePath());
 	    	props.setProperty("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
 	    	props.setProperty("python.options.showJavaExceptions", "true");
-	    	props.setProperty("python.verbose", "warning");
+	    	props.setProperty("python.verbose", "message");
 
 	    	Properties preprops = System.getProperties();
 	    	
