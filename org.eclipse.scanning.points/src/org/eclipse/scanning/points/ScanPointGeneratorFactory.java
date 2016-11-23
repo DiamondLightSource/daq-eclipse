@@ -206,6 +206,7 @@ public class ScanPointGeneratorFactory {
     	addScriptPaths(state);
 	   	state.setClassLoader(loader);
 	   	state.setdefaultencoding("UTF-8");		// cannot be done before Py.setSystemState
+	   	Py.setSystemState(state);
 	}
 
 	private static void createPythonPath(ClassLoader loader) {
