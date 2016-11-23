@@ -146,8 +146,6 @@ public class ScanPointGeneratorFactory {
             PyObject importer = state.getBuiltins().__getitem__(Py.newString("__import__"));
             PyObject module = importer.__call__(Py.newString(moduleName));
             pyClass = module.__getattr__(className);
-            PyObject imp = importer.__call__(Py.newString("imp"));
-            if (imp==null) throw new RuntimeException("Cannot import imp!");
         }
 
 		// The following methods return a coerced Jython object based upon the pieces of
@@ -206,7 +204,6 @@ public class ScanPointGeneratorFactory {
     	fakeSysExecutable(state);
     	addScriptPaths(state);
 	   	state.setClassLoader(loader);
-	   	state.setdefaultencoding("UTF-8");		// cannot be done before Py.setSystemState
 	   	Py.setSystemState(state);
 	   	
 		setupPythonState = true;
@@ -274,11 +271,7 @@ public class ScanPointGeneratorFactory {
     		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
     		addLast(composite, jythonBundleName);
     		jythonClassloader = composite;
-    		
-    		// Ensure that imp is loaded
-    		checkImp(PySystemState.class.getClassLoader());
-    		checkImp(jythonClassloader);
-    		
+     		
     	} catch (Throwable ne) {
     		ne.printStackTrace();
     		// Legal, if static classloader does not work in tests, there will be
@@ -286,20 +279,6 @@ public class ScanPointGeneratorFactory {
     		// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
     	}
     	return jythonClassloader;
-	}
- 
-    private static void checkImp(ClassLoader classLoader) {
-    	try {
-			Class<?> imp = classLoader.loadClass("org.python.core.imp");
-			if (imp==null) {
-				System.out.println("Cannot load org.python.core.imp"); 
-				Thread.dumpStack();
-			} else {
-				System.out.println("Loaded class "+imp.getName());
-			}
-    	} catch (ClassNotFoundException ne) {
-    		System.out.println("org.python.core.imp not found in "+classLoader);
-    	}
 	}
 
 	private static void addScriptPaths(PySystemState state) {
