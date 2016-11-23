@@ -11,6 +11,7 @@ import org.eclipse.scanning.scisoftpy.python.PythonUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleWiring;
 import org.python.core.Py;
+import org.python.core.PyNone;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
@@ -200,6 +201,7 @@ public class ScanPointGeneratorFactory {
  		createPythonPath(loader); 
  		
     	PySystemState state = Py.getSystemState();
+    	fakeSysExecutable(state);
     	addScriptPaths(state);
 	   	state.setClassLoader(loader);
 	}
@@ -213,10 +215,10 @@ public class ScanPointGeneratorFactory {
 	        if (jythonDir ==null) return;
 	        
 	        Properties props = new Properties();
-	    	props.put("python.home", jythonDir.getAbsolutePath());
-	    	props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
-	    	//props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
-	    	//props.put("python.import.site","false");
+	    	props.setProperty("python.home", jythonDir.getAbsolutePath());
+	    	props.setProperty("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
+	    	props.setProperty("python.options.showJavaExceptions", "true");
+	    	//props.setProperty("python.verbose", "true");
 
 	    	Properties preprops = System.getProperties();
 	    	
@@ -227,6 +229,29 @@ public class ScanPointGeneratorFactory {
 	    	ne.printStackTrace();
 	    	logger.debug("Problem loading jython bundles!", ne);
 	    }
+	}
+	
+	private static void fakeSysExecutable(PySystemState sys) {
+		// fake an executable path to get around problem in pydoc.Helper.__init__
+		File f;
+		if (!(sys.executable instanceof PyNone)) {
+			f = new File(((PyString) sys.executable).asString());
+			if (f.exists()) {
+				return;
+			}
+		}
+
+		int n = sys.path.size() - 1;
+		for (int i = 0; i < n; i++) {
+			f = new File((String) sys.path.get(i));
+			if (f.exists()) {
+				sys.executable = new PyString(f.getPath());
+				return;
+			}
+		}
+		String home = System.getProperty("java.home");
+		sys.executable = new PyString(home);
+		logger.warn("Setting sys.executable to java.home: {}", home);
 	}
 
 	private static ClassLoader createJythonClassLoader() {
@@ -242,6 +267,10 @@ public class ScanPointGeneratorFactory {
     		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
     		addLast(composite, jythonBundleName);
     		jythonClassloader = composite;
+    		
+    		// Ensure that imp is loaded
+    		Class<?> imp = jythonClassloader.loadClass("org.pythong.core.imp");
+    		assert(imp!=null);
 
     	} catch (Throwable ne) {
     		if (logger!=null) {
