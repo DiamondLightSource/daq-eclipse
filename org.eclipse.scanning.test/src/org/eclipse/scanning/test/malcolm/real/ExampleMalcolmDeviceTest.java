@@ -16,18 +16,15 @@ import org.eclipse.scanning.api.malcolm.MalcolmTable;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 import org.eclipse.scanning.api.malcolm.attributes.StringAttribute;
 import org.eclipse.scanning.api.malcolm.attributes.TableAttribute;
-import org.eclipse.scanning.api.points.IMutator;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.BoundingBox;
-import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.connector.epics.EpicsV4ConnectorService;
 import org.eclipse.scanning.example.malcolm.ExampleMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.ExampleMalcolmModel;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.PointGeneratorService;
-import org.eclipse.scanning.points.mutators.FixedDurationMutator;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.pv.PVDouble;
@@ -76,19 +73,13 @@ public class ExampleMalcolmDeviceTest {
 			regions.add(new CircularROI(2, 6, 1));
 			regions.add(new CircularROI(4, 8, 9));
 			
-			List<IMutator> mutators = new LinkedList<>();
-			mutators.add(new FixedDurationMutator(23.1));
-
 			IPointGeneratorService pgService = new PointGeneratorService();
 			IPointGenerator<SpiralModel> temp = pgService
 					.createGenerator(new SpiralModel("stage_x", "stage_y", 1, new BoundingBox(0, -5, 8, 3)), regions);
 			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
 			
-			CompoundModel<?> cm = (CompoundModel<?>) scan.getModel();
-			cm.setMutators(mutators);
-
 			ExampleMalcolmModel pmac1 = new ExampleMalcolmModel();
-			pmac1.setExposure(45f);
+			pmac1.setExposureTime(23.1);
 			pmac1.setFileDir("/TestFile/Dir");
 
 			// Set the generator on the device
