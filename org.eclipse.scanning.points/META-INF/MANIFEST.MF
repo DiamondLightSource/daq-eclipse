@@ -24,5 +24,6 @@ Bundle-ClassPath: .
 Import-Package: org.eclipse.scanning.scisoftpy.python,
  org.osgi.service.component;version="1.2.2",
  org.python.core,
+ org.python.util;version="2.5.3",
  org.slf4j;version="1.7.2"
 Bundle-Activator: org.eclipse.scanning.points.PointsActivator

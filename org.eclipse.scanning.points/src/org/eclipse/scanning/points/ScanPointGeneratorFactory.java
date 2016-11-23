@@ -10,14 +10,12 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.scanning.scisoftpy.python.PythonUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleWiring;
-import org.python.core.CompileMode;
-import org.python.core.CompilerFlags;
 import org.python.core.Py;
 import org.python.core.PyNone;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
-import org.python.core.StdoutWrapper;
+import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -208,17 +206,8 @@ public class ScanPointGeneratorFactory {
 	   	state.setClassLoader(loader);
 	   	Py.setSystemState(state);
 	   	
-        Py.exec(Py.compile_flags("import imp", "<string>", CompileMode.exec, new CompilerFlags()), Py.newStringMap(), null);
-        Py.flushLine();
-        
-        Py.exec(Py.compile_flags("import inspect", "<string>", CompileMode.exec, new CompilerFlags()), Py.newStringMap(), null);
-        Py.flushLine();
-        
-        Py.exec(Py.compile_flags("import decorator", "<string>", CompileMode.exec, new CompilerFlags()), Py.newStringMap(), null);
-        Py.flushLine();
-
-        Py.exec(Py.compile_flags("import scisoftpy", "<string>", CompileMode.exec, new CompilerFlags()), Py.newStringMap(), null);
-        Py.flushLine();
+        PythonInterpreter interp = new PythonInterpreter(null, state);
+        interp.exec("import scisoftpy as dnp");
         
 		setupPythonState = true;
 
