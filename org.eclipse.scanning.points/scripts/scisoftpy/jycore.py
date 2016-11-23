@@ -195,7 +195,11 @@ def _joutput(result): # wrap java output
         return [ Sciwrap(r) for r in result if r is not None ]
     return Sciwrap(result)
 
-from decorator import decorator as _decorator
+try:
+    from decorator import decorator as _decorator
+except Exception, e:
+    print >> sys.stderr, "Could not import decorator"
+    print >> sys.stderr, e
 
 @_decorator
 def _wrap(func, *args, **kwargs): # strip input and wrap output
