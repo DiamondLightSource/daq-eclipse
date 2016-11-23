@@ -225,7 +225,7 @@ public class ScanPointGeneratorFactory {
 	    	props.setProperty("python.home", jythonDir.getAbsolutePath());
 	    	props.setProperty("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
 	    	props.setProperty("python.options.showJavaExceptions", "true");
-	    	props.setProperty("python.verbose", "message");
+	    	props.setProperty("python.verbose", "warning");
 
 	    	Properties preprops = System.getProperties();
 	    	
