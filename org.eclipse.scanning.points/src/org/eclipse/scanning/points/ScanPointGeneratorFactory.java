@@ -208,8 +208,8 @@ public class ScanPointGeneratorFactory {
 	   	
         PythonInterpreter interp = new PythonInterpreter(null, state);
         interp.exec("import scisoftpy as dnp");
-        
-		setupPythonState = true;
+ 
+        setupPythonState = true;
 
 	}
 
