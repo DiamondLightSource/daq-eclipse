@@ -14,7 +14,6 @@ import org.python.core.PyNone;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
-import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -264,8 +263,6 @@ public class ScanPointGeneratorFactory {
     	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
     		CompositeClassLoader composite = new CompositeClassLoader(PySystemState.class.getClassLoader());
-     		// Classloader for org.eclipse.scanning.scisoftpy
-    		//composite.addLast(PythonUtils.class.getClassLoader());
    	  	    // Classloader for org.eclipse.scanning.points
     		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
     		addLast(composite, jythonBundleName);
