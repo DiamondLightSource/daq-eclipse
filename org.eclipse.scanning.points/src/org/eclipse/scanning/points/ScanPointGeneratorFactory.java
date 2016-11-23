@@ -10,6 +10,8 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.scanning.scisoftpy.python.PythonUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleWiring;
+import org.python.core.CompileMode;
+import org.python.core.CompilerFlags;
 import org.python.core.Py;
 import org.python.core.PyNone;
 import org.python.core.PyObject;
@@ -206,6 +208,18 @@ public class ScanPointGeneratorFactory {
 	   	state.setClassLoader(loader);
 	   	Py.setSystemState(state);
 	   	
+        Py.exec(Py.compile_flags("import imp", "<string>", CompileMode.exec, new CompilerFlags()), Py.newStringMap(), null);
+        Py.flushLine();
+        
+        Py.exec(Py.compile_flags("import inspect", "<string>", CompileMode.exec, new CompilerFlags()), Py.newStringMap(), null);
+        Py.flushLine();
+        
+        Py.exec(Py.compile_flags("import decorator", "<string>", CompileMode.exec, new CompilerFlags()), Py.newStringMap(), null);
+        Py.flushLine();
+
+        Py.exec(Py.compile_flags("import scisoftpy", "<string>", CompileMode.exec, new CompilerFlags()), Py.newStringMap(), null);
+        Py.flushLine();
+        
 		setupPythonState = true;
 
 	}
