@@ -270,18 +270,11 @@ public class ScanPointGeneratorFactory {
     		jythonClassloader = composite;
     		
     		// Ensure that imp is loaded
-    		Class<?> imp = jythonClassloader.loadClass("org.python.core.imp");
-    		if (imp==null) {
-    			System.out.println("Cannot load org.python.core.imp"); 
-    			Thread.dumpStack();
-    		}
-
+    		checkImp(PySystemState.class.getClassLoader());
+    		checkImp(jythonClassloader);
+    		
     	} catch (Throwable ne) {
-    		if (logger!=null) {
-    			logger.debug("Problem loading jython bundles!", ne);
-    		} else {
-    			ne.printStackTrace();
-    		}
+    		ne.printStackTrace();
     		// Legal, if static classloader does not work in tests, there will be
     		// errors. If bundle classloader does not work in product, there will be errors.
     		// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
@@ -289,7 +282,21 @@ public class ScanPointGeneratorFactory {
     	return jythonClassloader;
 	}
  
-    private static void addScriptPaths(PySystemState state) {
+    private static void checkImp(ClassLoader classLoader) {
+    	try {
+			Class<?> imp = classLoader.loadClass("org.python.core.imp");
+			if (imp==null) {
+				System.out.println("Cannot load org.python.core.imp"); 
+				Thread.dumpStack();
+			} else {
+				System.out.println("jythonClassloader loaded class "+imp.getName());
+			}
+    	} catch (ClassNotFoundException ne) {
+    		System.out.println("org.python.core.imp not found in "+classLoader);
+    	}
+	}
+
+	private static void addScriptPaths(PySystemState state) {
     	        	
         try {
         	// Search for the Libs directory which should have been expanded out either
