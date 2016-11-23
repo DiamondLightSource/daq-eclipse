@@ -204,6 +204,7 @@ public class ScanPointGeneratorFactory {
     	fakeSysExecutable(state);
     	addScriptPaths(state);
 	   	state.setClassLoader(loader);
+	   	state.setdefaultencoding("UTF-8");		// cannot be done before Py.setSystemState
 	}
 
 	private static void createPythonPath(ClassLoader loader) {

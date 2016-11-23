@@ -1,8 +1,5 @@
 package org.eclipse.scanning.points;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 
@@ -47,50 +44,7 @@ class CompositeClassLoader extends ClassLoader {
         if (classLoader == null) return;
         classLoaders.add(0, classLoader);
     }
-    
-    @Override
-    protected final Class<?> findClass(String name) throws ClassNotFoundException {
-    	for (ClassLoader classLoader : classLoaders) {
-            try {
-                final Class<?> c = classLoader.loadClass(name);
-                if (c!=null) return c;
-            } catch (Throwable notFound) {
-                // This is allowable
-            	continue;
-            }
-        }
-    	return super.findClass(name);
-    }
-    
-    @Override
-    protected final URL findResource(String name) {
-    	for (ClassLoader classLoader : classLoaders) {
-            try {
-            	URL url = classLoader.getResource(name);
-            	if (url!=null) return url;
-            } catch (Throwable notFound) {
-                // This is allowable
-            	continue;
-            }
-        }
-    	return super.findResource(name);
-    }
-
-    @Override
-    protected final Enumeration<URL> findResources(String name) throws IOException {
-    	for (ClassLoader classLoader : classLoaders) {
-            try {
-            	Enumeration<URL> ret = classLoader.getResources(name);
-            	if (ret!=null) return ret;
-            } catch (Throwable notFound) {
-                // This is allowable
-            	continue;
-            }
-        }
-        return super.findResources(name);
-    }
-
-    
+        
     @Override
     public Class loadClass(String name) throws ClassNotFoundException {
         
