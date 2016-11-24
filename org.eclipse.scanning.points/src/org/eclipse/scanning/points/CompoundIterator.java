@@ -172,7 +172,7 @@ public class CompoundIterator extends AbstractScanPointIterator {
 	 * @param regions
 	 * @return
 	 */
-	private Object[] getExcluders(Collection<?> regions) {
+	public static Object[] getExcluders(Collection<?> regions) {
 		LinkedList<Object> pyRegions = new LinkedList<Object>();
 		JythonObjectFactory excluderFactory = ScanPointGeneratorFactory.JExcluderFactory();
 		JythonObjectFactory circularROIFactory = ScanPointGeneratorFactory.JCircularROIFactory();

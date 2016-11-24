@@ -1,22 +1,24 @@
 package org.eclipse.scanning.test.points;
 
-import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-
-import org.python.core.PyDictionary;
-import org.python.core.PyList;
-import org.python.core.PyObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.Scalar;
+import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.points.CompoundIterator;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.ScanPointGeneratorFactory.JythonObjectFactory;
+import org.junit.Test;
+import org.python.core.PyDictionary;
+import org.python.core.PyList;
+import org.python.core.PyObject;
 
 public class ScanPointGeneratorFactoryTest {
 	
@@ -189,7 +191,7 @@ public class ScanPointGeneratorFactoryTest {
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
         
         Object[] generators = {outerLine, innerLine};
-        Object[] excluders = {};
+        Object[] excluders = CompoundIterator.getExcluders(Arrays.asList(new ScanRegion(new RectangularROI(0,0,5,5,0), Arrays.asList("x", "y"))));
         Object[] mutators = {};
         
 		@SuppressWarnings("unchecked")
@@ -242,7 +244,7 @@ public class ScanPointGeneratorFactoryTest {
         JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
         
         Object[] generators = {line1, line2};
-        Object[] excluders = {};
+        Object[] excluders = CompoundIterator.getExcluders(Arrays.asList(new ScanRegion(new RectangularROI(0,0,5,10,0), Arrays.asList("x", "y"))));
         Object[] mutators = {randomOffset};
         
 		@SuppressWarnings("unchecked")
