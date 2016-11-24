@@ -347,7 +347,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 			while (monitor.poll()) {
 				PvaClientMonitorData monitorData = monitor.getData();
 
-				logger.info("monitor event: \n" + monitorData.getPVStructure() + "\nEND");
+				logger.debug("monitor event: \n" + monitorData.getPVStructure() + "\nEND");
 				
 				MalcolmMessage message = new MalcolmMessage();
 				try {
