@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IClassRegistry;
 import org.eclipse.scanning.api.device.models.ClusterProcessingModel;
+import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.event.alive.HeartbeatBean;
 import org.eclipse.scanning.api.event.alive.KillBean;
@@ -141,6 +142,8 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, TaskBean.class);
 		
 		// malcolm.event
+		registerClass(tmp, MalcolmModel.class);
+		registerClass(tmp, Float.class);
 		registerClass(tmp, MalcolmEventBean.class);
 		registerClass(tmp, MalcolmTable.class);
 		registerClass(tmp, ChoiceAttribute.class);

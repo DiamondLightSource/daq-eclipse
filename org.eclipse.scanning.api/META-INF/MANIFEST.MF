@@ -40,4 +40,5 @@ Export-Package: org.eclipse.scanning.api,
  org.eclipse.scanning.api.script,
  org.eclipse.scanning.api.streams,
  org.eclipse.scanning.api.ui
+Import-Package: org.slf4j
 
