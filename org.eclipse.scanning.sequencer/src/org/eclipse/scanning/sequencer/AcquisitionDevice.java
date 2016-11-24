@@ -129,7 +129,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		// create the nexus file, if appropriate
 		nexusScanFileManager = NexusScanFileManagerFactory.createNexusScanFileManager(this);
 		nexusScanFileManager.configure(model);
-		nexusScanFileManager.createNexusFile(true);
+		nexusScanFileManager.createNexusFile(Boolean.getBoolean("org.eclipse.scanning.sequencer.nexus.async"));
 		
 		if (model.getDetectors()!=null) {
 			runners = new DeviceRunner(model.getDetectors());
