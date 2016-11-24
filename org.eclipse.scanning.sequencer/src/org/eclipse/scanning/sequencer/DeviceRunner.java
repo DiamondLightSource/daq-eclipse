@@ -8,6 +8,7 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.device.models.IMalcolmModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -28,10 +29,36 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 	DeviceRunner(Collection<IRunnableDevice<?>> devices) {	
 		this.devices = devices;
 		
+		long timeout = calculateTimeout(devices);
+		setTimeout(timeout);
+	}
+
+	/**
+	 * Calculate the timeout for the given devices. This is calculated as follows:
+	 * <ul>
+	 *   <li>If one of the devices is a malcolm device, then no timeout (i.e. {@link Long#MAX_VALUE});</li>
+	 *   <li>Otherwise use the maxium of the timeout per device calculated as:
+	 *     <ul>
+	 *       <li>The timeout value for the device if specified;</li>
+	 *       <li>Otherwise the exposure time.</li>
+	 *     </ul>
+	 *   </li>
+	 *   <li>If the value calculated is less than or equal to 0, default to a timeout of 10 seconds.</li>
+	 * </ul>
+	 * 
+	 * @param devices
+	 * @return
+	 */
+	private long calculateTimeout(Collection<IRunnableDevice<?>> devices) {
 		long time = Long.MIN_VALUE;
 		for (IRunnableDevice<?> device : devices) {
 			if (device instanceof AbstractRunnableDevice) {
-				Object model = ((AbstractRunnableDevice)device).getModel();
+				Object model = ((AbstractRunnableDevice<?>)device).getModel();
+				if (model instanceof IMalcolmModel) {
+					time = Long.MAX_VALUE; // no timeout for malcolm scans
+					break;
+					// TODO: use estimated scan time (x2?)
+				}
 				long timeout = -1;
 				if (model instanceof ITimeoutable) {
 					timeout = ((ITimeoutable)model).getTimeout();
@@ -47,7 +74,7 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 			}
 		}
 		if (time<=0) time = 10; // seconds
-		setTimeout(time);
+		return time;
 	}
 
 	@Override
