@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice<M> {
+public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice<M> {
 	
 	public static final class EpicsMalcolmModel {
 		private final IPointGenerator<?> generator;
@@ -90,6 +90,9 @@ class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice<M> {
 	
 	private static String CURRENT_STEP_ENDPOINT = "completedSteps";
 
+	public MalcolmDevice() throws MalcolmDeviceException {
+		super(Services.getConnectorService(), Services.getRunnableDeviceService());
+	}
 
 	public MalcolmDevice(String name,
 			IMalcolmConnectorService<MalcolmMessage> service,
