@@ -256,6 +256,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 
 	@Override
 	public void validate(M params) throws MalcolmDeviceException {
+		logger.info("validate params = " + params);
 		final EpicsMalcolmModel epicsModel = createEpicsMalcolmModel(params);
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("validate", epicsModel);
 		final MalcolmMessage reply = connector.send(this, msg);
@@ -266,6 +267,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	
 	@Override
 	public void configure(M model) throws MalcolmDeviceException {
+		logger.info("configure model = " + model);
 		final EpicsMalcolmModel epicsModel = createEpicsMalcolmModel(model);
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", epicsModel);
 		MalcolmMessage reply = connector.send(this, msg);
@@ -276,6 +278,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	}
 
 	private EpicsMalcolmModel createEpicsMalcolmModel(M model) {
+		logger.info("createEpicsMalcolmModel model = " + model);
 		double exposureTime = model.getExposureTime();
 		IPointGenerator<?> pointGenerator = getPointGenerator();
 		if (pointGenerator != null) { // TODO could the point generator be null here?
@@ -284,7 +287,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		}
 		
 		final EpicsMalcolmModel epicsModel = new EpicsMalcolmModel(model.getFileDir(),
-				model.getAxesToMove(), getPointGenerator());
+				model.getAxesToMove(), pointGenerator);
 		return epicsModel;
 	}
 
