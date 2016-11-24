@@ -15,6 +15,7 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
+import org.eclipse.scanning.api.malcolm.attributes.NumberAttribute;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
@@ -158,10 +159,12 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			bean.setDeviceState(newState);
 		}
 		
-		// FIXME need to send proper position.
 		Object value = msg.getValue();
 		if (value instanceof Map) {
 			final Integer point = (Integer)((Map)value).get("value");
+			bean.setPoint(point);
+		} else if (value instanceof NumberAttribute) {
+			final Integer point = (Integer)((NumberAttribute)value).getValue();
 			bean.setPoint(point);
 		}
 		if (publisher!=null) publisher.broadcast(bean);
@@ -211,7 +214,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			throw mne;
 			
 		} catch (Exception ne) {
-			throw new MalcolmDeviceException(this, "Cannot connect to device "+getName(), ne);
+			throw new MalcolmDeviceException(this, "Cannot connect to device '" + getName() + "'", ne);
 		}
 	}
 
@@ -230,7 +233,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			throw mne;
 			
 		} catch (Exception ne) {
-			throw new MalcolmDeviceException(this, "Cannot connect to device "+getName(), ne);
+			throw new MalcolmDeviceException(this, "Cannot connect to device '" + getName() + "'", ne);
 		}
 	}
 
@@ -249,7 +252,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			throw mne;
 			
 		} catch (Exception ne) {
-			throw new MalcolmDeviceException(this, "Cannot connect to device "+getName(), ne);
+			throw new MalcolmDeviceException(this, "Cannot connect to device '" + getName() + "'", ne);
 		}
 	}
 
