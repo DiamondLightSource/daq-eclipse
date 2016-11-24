@@ -86,7 +86,7 @@ class MalcolmNexusObjectBuilder<M extends IMalcolmModel> {
 			nexusWrapper.addExternalLink(nexusObject, datasetName, externalFilePath,
 					datasetPath, datasetRank);
 			
-			if (uniqueIdPath != null) {
+			if (uniqueIdPath != null && !uniqueIdPath.isEmpty()) {
 				nexusWrapper.setPropertyValue(PROPERTY_NAME_UNIQUE_KEYS, uniqueIdPath);
 			}
 			
