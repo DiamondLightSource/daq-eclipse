@@ -54,11 +54,14 @@ public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends Abs
 	// Connection to serialization to talk to the remote object
 	protected MessageGenerator<MalcolmMessage> connectionDelegate;
 	
+	protected IMalcolmConnectorService<MalcolmMessage> connector;
+	
 	private IPointGenerator<?> pointGenerator;
 	
 	public AbstractMalcolmDevice(IMalcolmConnectorService<MalcolmMessage> connector,
 			IRunnableDeviceService runnableDeviceService) throws MalcolmDeviceException {
 		super(runnableDeviceService);
+		this.connector = connector;
    		this.connectionDelegate = connector.createDeviceConnection(this);
    		this.eventDelegate = new MalcolmEventDelegate(getName(), connector);
    		setRole(DeviceRole.MALCOLM);
