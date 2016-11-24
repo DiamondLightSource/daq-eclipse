@@ -8,6 +8,7 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.device.models.IMalcolmModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -42,6 +43,9 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 				} else if (model instanceof IDetectorModel) {
 			    	IDetectorModel dmodel = (IDetectorModel)model;
 			    	timeout = (long)Math.ceil(dmodel.getExposureTime());
+				}
+				if (model instanceof IMalcolmModel) {
+					time = Long.MAX_VALUE; // TODO what should timeout be for malcolm scans?
 				}
 				time = Math.max(time, timeout);
 			}
