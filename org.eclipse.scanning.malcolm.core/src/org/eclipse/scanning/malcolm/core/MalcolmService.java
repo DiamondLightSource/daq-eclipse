@@ -76,6 +76,10 @@ public class MalcolmService implements IMalcolmService {
 	public void setConnectorService(IMalcolmConnectorService<MalcolmMessage> connectorService) {
 		this.connector = connectorService;
 	}
+	
+	public void setRunnableDeviceService(IRunnableDeviceService runnableDeviceService) {
+		this.runnableDeviceService = runnableDeviceService;
+	}
 
 	/**
 	 * Disposes the service
