@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.Platform;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleWiring;
 import org.python.core.Py;
+import org.python.core.PyNone;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
@@ -190,45 +191,24 @@ public class ScanPointGeneratorFactory {
 
 	private static volatile boolean setupPythonState = false;
 
-	private static void setupSystemState() {
+	private static synchronized void setupSystemState() {
 		
 		if (setupPythonState) return;
-		setupPythonState = true;
 		
- 		createPythonPath(); // Must do this first
+		ClassLoader loader = createJythonClassLoader();
+ 		createPythonPath(loader); 
  		
     	PySystemState state = Py.getSystemState();
-        ClassLoader jythonClassloader = createJythonClassLoader(state);
-	   	state.setClassLoader(jythonClassloader);
+    	fakeSysExecutable(state);
     	addScriptPaths(state);
+	   	state.setClassLoader(loader);
+	   	Py.setSystemState(state);
+ 
+        setupPythonState = true;
+
 	}
 
-	private static ClassLoader createJythonClassLoader(PySystemState state) {
-		
-    	ClassLoader jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
-    	
-    	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
-    		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
-    		CompositeClassLoader composite = new CompositeClassLoader(state.getClassLoader());
-    		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
-    		addLast(composite, jythonBundleName);
-    		jythonClassloader = composite;
-
-    	} catch (Throwable ne) {
-    		if (logger!=null) {
-    			logger.debug("Problem loading jython bundles!", ne);
-    		} else {
-    			ne.printStackTrace();
-    		}
-    		// Legal, if static classloader does not work in tests, there will be
-    		// errors. If bundle classloader does not work in product, there will be errors.
-    		// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
-    	}
-    	return jythonClassloader;
-	}
-
-
-	private static void createPythonPath() {
+	private static void createPythonPath(ClassLoader loader) {
 		try {
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 	        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
@@ -237,14 +217,14 @@ public class ScanPointGeneratorFactory {
 	        if (jythonDir ==null) return;
 	        
 	        Properties props = new Properties();
-	    	props.put("python.home", jythonDir.getAbsolutePath());
-	    	props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
-	    	props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
-	    	props.put("python.import.site","false");
+	    	props.setProperty("python.home", jythonDir.getAbsolutePath());
+	    	props.setProperty("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
+	    	props.setProperty("python.options.showJavaExceptions", "true");
+	    	props.setProperty("python.verbose", "warning");
 
 	    	Properties preprops = System.getProperties();
 	    	
-	    	PySystemState.initialize(preprops, props);
+	    	PySystemState.initialize(preprops, props, new String[]{}, loader);
 	    
 	    } catch (Throwable ne) {
 	    	System.out.print("Problem loading jython bundles!");
@@ -252,33 +232,97 @@ public class ScanPointGeneratorFactory {
 	    	logger.debug("Problem loading jython bundles!", ne);
 	    }
 	}
- 
-    private static void addScriptPaths(PySystemState state) {
+	
+	private static void fakeSysExecutable(PySystemState sys) {
+		// fake an executable path to get around problem in pydoc.Helper.__init__
+		File f;
+		if (!(sys.executable instanceof PyNone)) {
+			f = new File(((PyString) sys.executable).asString());
+			if (f.exists()) {
+				return;
+			}
+		}
+
+		int n = sys.path.size() - 1;
+		for (int i = 0; i < n; i++) {
+			f = new File((String) sys.path.get(i));
+			if (f.exists()) {
+				sys.executable = new PyString(f.getPath());
+				return;
+			}
+		}
+		String home = System.getProperty("java.home");
+		sys.executable = new PyString(home);
+		logger.warn("Setting sys.executable to java.home: {}", home);
+	}
+
+	private static ClassLoader createJythonClassLoader() {
+		
+    	ClassLoader jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
+    	
+    	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
+    		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
+    		CompositeClassLoader composite = new CompositeClassLoader(PySystemState.class.getClassLoader());
+   	  	    // Classloader for org.eclipse.scanning.points
+    		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
+    		addLast(composite, jythonBundleName);
+    		jythonClassloader = composite;
+     		
+    	} catch (Throwable ne) {
+    		ne.printStackTrace();
+    		// Legal, if static classloader does not work in tests, there will be
+    		// errors. If bundle classloader does not work in product, there will be errors.
+    		// Typically the message is something like: 'cannot find module org.eclipse.scanning.api'
+    	}
+    	return jythonClassloader;
+	}
+
+	private static void addScriptPaths(PySystemState state) {
     	        	
         try {
         	// Search for the Libs directory which should have been expanded out either
         	// directly into the bundle or into the 'jython2.7' folder.
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 
-            File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
-	        if (loc != null) {
-	            File jythonDir = find(loc, "jython");
-	           	state.path.add(new PyString(jythonDir.getAbsolutePath())); // Resolves the collections
-		        File lib       = find(jythonDir, "Lib");
-		        state.path.add(new PyString(lib.getAbsolutePath())); // Resolves the collections
-	           
-	           	System.out.println(state.path);
-	        }
+            File lib = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
+	    	Iterator it = state.path.iterator();
+	    	while (it.hasNext()) {
+	    		Object ob = it.next();
+	    		if (ob instanceof String && ((String)ob).endsWith(File.separator+"Lib")) {
+	    			lib = new File((String)ob);
+	    		}
+	    	}
+	    	
+	    	if (lib==null) {
+	            File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
+           	    File jythonDir = find(loc, "jython");
+            	lib       = find(jythonDir, "Lib");
+	    	}
+	    	
+            if (lib != null) {
+            	File site       = find(lib, "site-packages");
+            	state.path.add(new PyString(site.getAbsolutePath())); // Resolves the collections
+
+            	File[] fa = site.listFiles();
+            	for (File dir : fa) {
+            		if (!dir.isDirectory()) continue;
+            		if (dir.getName().endsWith("-info")) continue;
+            		state.path.add(new PyString(dir.getAbsolutePath())); // Resolves the collections
+            	}
+            	
+            	state.toString();
+
+            	System.out.println(state.path);
+            }
             
         } catch (Exception ne) {
         	System.out.println("Problem setting jython path to include scripts");
         	ne.printStackTrace();
         	logger.debug("Problem setting jython path to include scripts!", ne);
         }
-
+ 
         final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
         state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
-        
 	}
 
 	private static ClassLoader getBundleLoader(String name) {
@@ -313,6 +357,10 @@ public class ScanPointGeneratorFactory {
 		catch (IOException e) {
 			File dir = new File("../"+bundleName);
 			if (dir.exists()) return dir;
+			
+			dir = new File("../../diamond-jython.git/"+bundleName);
+			if (dir.exists()) return dir;
+			
 			dir = new File("../../daq-eclipse.git/"+bundleName);
 			if (dir.exists()) return dir;
 			
@@ -320,8 +368,10 @@ public class ScanPointGeneratorFactory {
 			// They will not resolve from the IDE or binary.
 			dir = new File("../../org.eclipse.scanning/"+bundleName);
 			if (dir.exists()) return dir;
+			
 			dir = new File("../../diamond-jython/"+bundleName);
 			if (dir.exists()) return dir;
+			
 			dir = new File("../../../diamond-jython/"+bundleName);
 			if (dir.exists()) return dir;
 		}

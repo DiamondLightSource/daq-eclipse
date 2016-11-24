@@ -247,6 +247,7 @@ class JCompoundGenerator(JavaIteratorWrapper):
         logging.debug(self.axes_ordering)
         
         self.generator = CompoundGenerator(generators, excluders, mutators)
+        self.generator.prepare()
         
         logging.debug("CompoundGenerator:")
         logging.debug(self.generator.to_dict())
