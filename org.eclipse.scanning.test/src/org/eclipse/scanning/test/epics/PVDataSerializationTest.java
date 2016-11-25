@@ -62,7 +62,7 @@ public class PVDataSerializationTest {
 		this.connectorService = new EpicsV4ConnectorService();
 	}
 	
-	@Ignore // TODO Un-Ignore when excluders are fixed in pythong
+	@Ignore // TODO Un-Ignore when excluders are fixed in python
 	@Test
 	public void TestCircularROI() throws Exception {
 
@@ -134,7 +134,7 @@ public class PVDataSerializationTest {
 		assertEquals(expectedCompGenPVStructure.getSubField("excluders"), pvStructure.getSubField("excluders"));
 	}
 	
-	@Ignore // TODO Un-Ignore when excluders are fixed in pythong
+	@Ignore // TODO Un-Ignore when excluders are fixed in python
 	@Test
 	public void TestEllipticalROI() throws Exception {
 
@@ -258,7 +258,7 @@ public class PVDataSerializationTest {
 		assertEquals(expectedCompGenPVStructure.getSubField("excluders"), pvStructure.getSubField("excluders"));
 	}
 	
-	@Ignore // TODO Un-Ignore when excluders are fixed in pythong
+	@Ignore // TODO Un-Ignore when excluders are fixed in python
 	@Test
 	public void TestPointROI() throws Exception {
 
@@ -432,7 +432,7 @@ public class PVDataSerializationTest {
 		assertEquals(expectedCompGenPVStructure.getSubField("excluders"), pvStructure.getSubField("excluders"));
 	}
 	
-	@Ignore // TODO Un-Ignore when excluders are fixed in pythong
+	@Ignore // TODO Un-Ignore when excluders are fixed in python
 	@Test
 	public void TestRectangularROI() throws Exception {
 
@@ -514,7 +514,7 @@ public class PVDataSerializationTest {
 		assertEquals(expectedCompGenPVStructure.getSubField("excluders"), pvStructure.getSubField("excluders"));
 	}
 	
-	@Ignore // TODO Un-Ignore when excluders are fixed in pythong
+	@Ignore // TODO Un-Ignore when excluders are fixed in python
 	@Test
 	public void TestSectorROI() throws Exception {
 
@@ -1012,7 +1012,7 @@ public class PVDataSerializationTest {
 		assertEquals(expectedCompGenPVStructure, pvStructure);
 	}
 	
-	@Ignore // TODO Un-Ignore when excluders are fixed in pythong
+	@Ignore // TODO Un-Ignore when excluders are fixed in python
 	@Test
 	public void TestFullCompoundGenerator() throws Exception {
 
@@ -1197,5 +1197,6 @@ public class PVDataSerializationTest {
 		assertEquals(expectedCompGenPVStructure.getStructure(), pvStructure.getStructure());
 		assertEquals(expectedCompGenPVStructure, pvStructure);
 	}
+
 }
 
