@@ -10,6 +10,10 @@ import org.eclipse.scanning.api.annotation.ui.FileType;
  */
 public class MalcolmModel extends AbstractDetectorModel implements IMalcolmModel, IDetectorModel {
 
+	/**
+	 * The folder for malcolm to create its HDF5 files in. This is set by the scan, any value
+	 * set by the user will be overwritten. 
+	 */
 	@FieldDescriptor(visible=false, file=FileType.NEW_FOLDER)
 	private String fileDir;
 	
