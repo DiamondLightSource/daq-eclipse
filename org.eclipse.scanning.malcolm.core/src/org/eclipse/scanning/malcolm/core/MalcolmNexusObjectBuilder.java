@@ -116,10 +116,14 @@ class MalcolmNexusObjectBuilder<M extends IMalcolmModel> {
 			}
 			case MONITOR: {
 				nexusWrapper.addAxisDataFieldName(datasetName);
+				if (nexusWrapper.getPrimaryDataFieldName() == null) {
+					nexusWrapper.setPrimaryDataFieldName(datasetName);
+				}
 				break;
 			}
 			case POSITION_VALUE: {
 				nexusWrapper.addAxisDataFieldName(datasetName);
+				nexusWrapper.setPrimaryDataFieldName(datasetName);
 				break;
 			}
 			case POSITION_SET: {
