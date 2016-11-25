@@ -15,6 +15,7 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
+import org.eclipse.scanning.api.malcolm.attributes.NumberAttribute;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEvent;
@@ -158,10 +159,12 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			bean.setDeviceState(newState);
 		}
 		
-		// FIXME need to send proper position.
 		Object value = msg.getValue();
 		if (value instanceof Map) {
 			final Integer point = (Integer)((Map)value).get("value");
+			bean.setPoint(point);
+		} else if (value instanceof NumberAttribute) {
+			final Integer point = (Integer)((NumberAttribute)value).getValue();
 			bean.setPoint(point);
 		}
 		if (publisher!=null) publisher.broadcast(bean);
@@ -211,7 +214,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			throw mne;
 			
 		} catch (Exception ne) {
-			throw new MalcolmDeviceException(this, "Cannot connect to device "+getName(), ne);
+			throw new MalcolmDeviceException(this, "Cannot connect to device '" + getName() + "'", ne);
 		}
 	}
 
@@ -230,7 +233,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			throw mne;
 			
 		} catch (Exception ne) {
-			throw new MalcolmDeviceException(this, "Cannot connect to device "+getName(), ne);
+			throw new MalcolmDeviceException(this, "Cannot connect to device '" + getName() + "'", ne);
 		}
 	}
 
@@ -249,13 +252,14 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			throw mne;
 			
 		} catch (Exception ne) {
-			throw new MalcolmDeviceException(this, "Cannot connect to device "+getName(), ne);
+			throw new MalcolmDeviceException(this, "Cannot connect to device '" + getName() + "'", ne);
 		}
 	}
 
 
 	@Override
 	public void validate(M params) throws MalcolmDeviceException {
+		logger.info("validate params = " + params);
 		final EpicsMalcolmModel epicsModel = createEpicsMalcolmModel(params);
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("validate", epicsModel);
 		final MalcolmMessage reply = connector.send(this, msg);
@@ -266,6 +270,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	
 	@Override
 	public void configure(M model) throws MalcolmDeviceException {
+		logger.info("configure model = " + model);
 		final EpicsMalcolmModel epicsModel = createEpicsMalcolmModel(model);
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", epicsModel);
 		MalcolmMessage reply = connector.send(this, msg);
@@ -276,6 +281,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	}
 
 	private EpicsMalcolmModel createEpicsMalcolmModel(M model) {
+		logger.info("createEpicsMalcolmModel model = " + model);
 		double exposureTime = model.getExposureTime();
 		IPointGenerator<?> pointGenerator = getPointGenerator();
 		if (pointGenerator != null) { // TODO could the point generator be null here?
@@ -284,7 +290,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		}
 		
 		final EpicsMalcolmModel epicsModel = new EpicsMalcolmModel(model.getFileDir(),
-				model.getAxesToMove(), getPointGenerator());
+				model.getAxesToMove(), pointGenerator);
 		return epicsModel;
 	}
 
