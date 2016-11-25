@@ -312,6 +312,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	private NumberAttribute totalSteps;
 	private StringArrayAttribute axesToMove;
 	private TableAttribute datasets;
+	private TableAttribute layout;
 
 	private Map<String, MalcolmAttribute> allAttributes;
 
@@ -523,6 +524,53 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		datasetRow.put(DATASETS_TABLE_COLUMN_UNIQUEID, UNIQUE_KEYS_DATASET_PATH);
 		return datasetRow;
 	}
+
+	private TableAttribute createLayoutAttribute() throws MalcolmDeviceException {
+		Map<String, Class<?>> types = new LinkedHashMap<>();
+		types.put("name", String.class);
+		types.put("mri", String.class);
+		types.put("x", Double.class);
+		types.put("y", Double.class);
+		types.put("visible", Boolean.class);
+		
+		// add rows for each DummyMalcolmDatasetModel
+		MalcolmTable table = new MalcolmTable(types);
+		
+		Map<String, Object> datasetRow1 = new HashMap<>();
+		datasetRow1.put("name", "BRICK");
+		datasetRow1.put("mri", "P45-BRICK01");
+		datasetRow1.put("x", 0);
+		datasetRow1.put("y", 0);
+		datasetRow1.put("visible", false);
+		
+		Map<String, Object> datasetRow2 = new HashMap<>();
+		datasetRow2.put("name", "MIC");
+		datasetRow2.put("mri", "P45-MIC");
+		datasetRow2.put("x", 0);
+		datasetRow2.put("y", 0);
+		datasetRow2.put("visible", false);
+		
+		Map<String, Object> datasetRow3 = new HashMap<>();
+		datasetRow3.put("name", "ZEBRA");
+		datasetRow3.put("mri", "ZEBRA");
+		datasetRow3.put("x", 0);
+		datasetRow3.put("y", 0);
+		datasetRow3.put("visible", false);
+				
+		table.addRow(datasetRow1);
+		table.addRow(datasetRow2);
+		table.addRow(datasetRow3);
+		
+		TableAttribute layout = new TableAttribute();
+		layout.setValue(table);
+		layout.setHeadings(table.getHeadings().toArray(new String[table.getHeadings().size()]));
+		layout.setName("layout");
+		layout.setLabel("");
+		layout.setDescription("Layout of child blocks");
+		layout.setWriteable(false);
+		
+		return layout;
+	}
 	
 	@Override
 	public void run(IPosition outerScanPosition) throws ScanningException, InterruptedException {
@@ -666,6 +714,9 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		
 		datasets = createDatasetsAttribute(model);
 		allAttributes.put("datasets", datasets);
+		
+		layout = createLayoutAttribute();
+		allAttributes.put("layout", layout);
 	}
 	
 	private static class DummyMalcolmConnectorService implements IMalcolmConnectorService<MalcolmMessage> {
