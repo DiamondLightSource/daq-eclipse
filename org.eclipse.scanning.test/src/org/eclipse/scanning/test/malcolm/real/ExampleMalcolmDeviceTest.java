@@ -220,7 +220,7 @@ public class ExampleMalcolmDeviceTest {
 			// Check the RPC calls were received correctly by the device
 			Map<String, PVStructure> rpcCalls = dummyMalcolmDevice.getReceivedRPCCalls();
 
-			assertEquals(2, rpcCalls.size());
+			assertEquals(3, rpcCalls.size());
 
 			// configure
 			PVStructure configureCall = rpcCalls.get("configure");
