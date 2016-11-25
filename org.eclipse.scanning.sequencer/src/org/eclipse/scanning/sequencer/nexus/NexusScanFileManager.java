@@ -452,8 +452,8 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		List<NexusObjectProvider<?>> scannables = nexusObjectProviders.get(ScanRole.SCANNABLE);
 		List<NexusObjectProvider<?>> monitors = new LinkedList<>(nexusObjectProviders.get(ScanRole.MONITOR));
 
-		// determine the primary device
-		final NexusObjectProvider<?> primaryDevice;
+		// determine the primary device - i.e. the device whose primary dataset to make the @signal field
+		NexusObjectProvider<?> primaryDevice = null;
 		final ScanRole primaryDeviceType;
 		if (detector != null) {
 			// if there's a detector then it is the primary device
@@ -467,7 +467,17 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		} else if (!scannables.isEmpty()) {
 			// if there are no monitors either (a rare edge case), where we use the first scannable
 			// note that this scannable is also added as data device
-			primaryDevice = scannables.get(0);
+			for (NexusObjectProvider<?> scannable : scannables) {
+				if (scannable.getPrimaryDataFieldName() != null) {
+					primaryDevice = scannable;
+					break;
+				}
+				if (primaryDevice == null) {
+					// Could not device with a dataset to use as the @signal field
+					logger.error("Could not create an NXdata group for the nexus file as no suitable dataset could be found.");
+					return;
+				}
+			}
 			primaryDeviceType = ScanRole.SCANNABLE;
 		} else {
 			// the scan has no devices at all (sanity check as this should already have been checked for) 
