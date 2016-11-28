@@ -22,10 +22,12 @@ import org.slf4j.LoggerFactory;
 
 class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDevice<M>, IActivatable {
 	
-	private final static Logger logger = LoggerFactory.getLogger(_RunnableDevice.class);
+	private static final long REQUEST_TIMEOUT = 1000; // timeout in milliseconds
+	
+	private static final Logger logger = LoggerFactory.getLogger(_RunnableDevice.class);
 
 	_RunnableDevice(DeviceRequest req, URI uri, IEventService eservice) throws EventException, InterruptedException {
-		super(req, uri, eservice);
+		super(req, REQUEST_TIMEOUT, uri, eservice);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -70,7 +72,7 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 
 	@Override
 	public void validate(M model) throws Exception {
-		DeviceRequest res = requester.post(new DeviceRequest(info.getName(), DeviceAction.VALIDATE, model));		
+		DeviceRequest res = requester.post(new DeviceRequest(info.getName(), DeviceAction.VALIDATE, model));
 		res.checkException();
 	}
 	
