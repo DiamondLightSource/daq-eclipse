@@ -95,7 +95,7 @@ public class TopupTest {
 	public void testTopup() throws Exception {
 		
 		final List<String> moved   = new ArrayList<>();
-		final IScannable<Number>   topup   = connector.getScannable("topup");
+		final IScannable<Number>   topup   = connector.getScannable("pauser");
 		if (topup instanceof MockScannable) {
 			((MockScannable)topup).setRealisticMove(false);
 		}
@@ -123,7 +123,7 @@ public class TopupTest {
 		
 		assertEquals(25, positions.size());
 		assertEquals(50, moved.size());
-		assertTrue(moved.get(0).equals("topup"));
+		assertTrue(moved.get(0).equals("pauser"));
 		assertTrue(moved.get(1).equals("x"));
 		
 		moved.clear();
@@ -134,7 +134,7 @@ public class TopupTest {
 		assertEquals(25, positions.size());
 		assertEquals(50, moved.size());
 		assertTrue(moved.get(0).equals("x"));
-		assertTrue(moved.get(1).equals("topup"));
+		assertTrue(moved.get(1).equals("pauser"));
 	
 		
 	}

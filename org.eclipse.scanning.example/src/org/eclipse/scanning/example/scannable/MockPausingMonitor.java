@@ -10,9 +10,9 @@ import org.eclipse.scanning.api.points.IPosition;
  * @author Matthew Gerring
  *
  */
-public class MockTopupMonitor extends MockScannable {
+public class MockPausingMonitor extends MockScannable {
 
-	public MockTopupMonitor(String string, double d, int i) {
+	public MockPausingMonitor(String string, double d, int i) {
 		super(string,d,i);
 	}
 
