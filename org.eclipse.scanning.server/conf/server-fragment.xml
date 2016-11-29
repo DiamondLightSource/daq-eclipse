@@ -39,6 +39,7 @@
     
 
 	<import resource="example_detectors.xml"/>
+	<import resource="example_watchdogs.xml"/>
 
 	<!--  
 	$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$

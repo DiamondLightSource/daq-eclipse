@@ -1,20 +1,27 @@
 package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.IDeviceWatchdogService;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IWritableDetector;
+import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -36,11 +43,15 @@ import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
+import org.eclipse.scanning.sequencer.ServiceHolder;
+import org.eclipse.scanning.sequencer.watchdog.DeviceWatchdogService;
+import org.eclipse.scanning.sequencer.watchdog.TopupWatchdog;
 import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,13 +59,14 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class TopupTest {
 
-	protected IRunnableDeviceService                sservice;
+	protected IRunnableDeviceService        sservice;
 	protected IScannableDeviceService       connector;
 	protected IPointGeneratorService        gservice;
 	protected IEventService                 eservice;
-	private IWritableDetector<MockDetectorModel>       detector;
+	private   IWritableDetector<MockDetectorModel>       detector;
 	
 	private List<IPosition>                 positions;
+	private TopupWatchdog dog;
 
 	@Before
 	public void setup() throws ScanningException {
@@ -74,11 +86,12 @@ public class TopupTest {
 		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)sservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
+		ServiceHolder.setRunnableDeviceService(sservice);
 
 		gservice  = new PointGeneratorService();
 		
 		MockDetectorModel dmodel = new MockDetectorModel();
-		dmodel.setExposureTime(0.001);
+		dmodel.setExposureTime(0.05);
 		dmodel.setName("detector");
 		detector = (IWritableDetector<MockDetectorModel>) sservice.createRunnableDevice(dmodel);
 		
@@ -91,54 +104,24 @@ public class TopupTest {
 			}
 		});
 
-	}
+		IDeviceWatchdogService wservice = new DeviceWatchdogService();
+		ServiceHolder.setWatchdogService(wservice);
 
-	@Test
-	public void testPause() throws Exception {
+		// We create a device watchdog (done in spring for real server)
+		DeviceWatchdogModel model = new DeviceWatchdogModel();
+		model.setCountdownName("topup");
+		model.setPeriodName("period");
+		model.setCooloff(500); // Pause 500ms before
+		model.setWarmup(200);  // Unpause 200ms after
 		
-		final List<String> moved   = new ArrayList<>();
-		final IScannable<Number>   pauser   = connector.getScannable("pauser");
-		if (pauser instanceof MockScannable) {
-			((MockScannable)pauser).setRealisticMove(false);
-		}
-		((IPositionListenable)pauser).addPositionListener(new IPositionListener() {
-			@Override
-			public void positionPerformed(PositionEvent evt) {
-				moved.add(pauser.getName());
-			}
-		});
-		final IScannable<Number>   x       = connector.getScannable("x");
-		if (x instanceof MockScannable) {
-			((MockScannable)x).setRealisticMove(false);
-		}
-		((IPositionListenable)x).addPositionListener(new IPositionListener() {
-			@Override
-			public void positionPerformed(PositionEvent evt) {
-				moved.add(x.getName());
-			}
-		});
-		pauser.setLevel(1);
-		
-		// x and y are level 3
-		IRunnableDevice<ScanModel> scanner = createTestScanner(pauser);
-		scanner.run(null);
-		
-		assertEquals(25, positions.size());
-		assertEquals(50, moved.size());
-		assertTrue(moved.get(0).equals("pauser"));
-		assertTrue(moved.get(1).equals("x"));
-		
-		moved.clear();
-		positions.clear();
-		pauser.setLevel(5); // Above x
-		scanner.run(null);
-		
-		assertEquals(25, positions.size());
-		assertEquals(50, moved.size());
-		assertTrue(moved.get(0).equals("x"));
-		assertTrue(moved.get(1).equals("pauser"));
+		this.dog = new TopupWatchdog(model);
+		dog.activate();
+	}
 	
-		
+	@AfterClass
+	public static void cleanup() throws Exception {
+		ServiceHolder.setRunnableDeviceService(null);
+		ServiceHolder.setWatchdogService(null);
 	}
 	
 	@Test(expected=Exception.class)
@@ -193,7 +176,6 @@ public class TopupTest {
 			long start = System.currentTimeMillis();
 			while((System.currentTimeMillis()-start)<(fastPeriod*2.1)) {
 				int pos = topup.getPosition().intValue();
-				System.out.println("Topup in "+pos+"ms");
 				max = Math.max(max, pos);
 				min = Math.min(min, pos);
 				Thread.sleep(fastPeriod/10);
@@ -206,4 +188,109 @@ public class TopupTest {
 
 		}
 	}
+	
+	@Test
+	public void topupInScan() throws Exception {
+
+		// x and y are level 3
+		IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+		
+		Set<DeviceState> states = new HashSet<>();
+		// This run should get paused for beam and restarted.
+		scanner.addRunListener(new IRunListener() {
+			public void stateChanged(RunEvent evt) throws ScanningException {
+				states.add(evt.getDeviceState());
+			}
+		});
+		
+		scanner.run(null);
+		
+		assertTrue(states.contains(DeviceState.PAUSED));
+		assertTrue(states.contains(DeviceState.RUNNING));
+		assertTrue(states.contains(DeviceState.SEEKING));
+	}
+	
+	@Test
+	public void topupOutScan() throws Exception {
+
+		try {
+			dog.deactivate(); // Are a testing a pausing monitor here
+
+			// x and y are level 3
+			IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+			
+			List<DeviceState> states = new ArrayList<>();
+			// This run should get paused for beam and restarted.
+			scanner.addRunListener(new IRunListener() {
+				public void stateChanged(RunEvent evt) throws ScanningException {
+					states.add(evt.getDeviceState());
+				}
+			});
+			
+			scanner.run(null);
+			
+			assertFalse(states.contains(DeviceState.PAUSED));
+			assertTrue(states.contains(DeviceState.RUNNING));
+			assertFalse(states.contains(DeviceState.SEEKING));
+			
+		} finally {
+			dog.activate();
+		}
+	}
+	
+	@Test
+	public void testPause() throws Exception {
+		
+		try {
+			dog.deactivate(); // Are a testing a pausing monitor here
+			detector.getModel().setExposureTime(0.0001); // Save some scan time.
+
+			final List<String> moved   = new ArrayList<>();
+			final IScannable<Number>   pauser   = connector.getScannable("pauser");
+			if (pauser instanceof MockScannable) {
+				((MockScannable)pauser).setRealisticMove(false);
+			}
+			((IPositionListenable)pauser).addPositionListener(new IPositionListener() {
+				@Override
+				public void positionPerformed(PositionEvent evt) {
+					moved.add(pauser.getName());
+				}
+			});
+			final IScannable<Number>   x       = connector.getScannable("x");
+			if (x instanceof MockScannable) {
+				((MockScannable)x).setRealisticMove(false);
+			}
+			((IPositionListenable)x).addPositionListener(new IPositionListener() {
+				@Override
+				public void positionPerformed(PositionEvent evt) {
+					moved.add(x.getName());
+				}
+			});
+			pauser.setLevel(1);
+			
+			// x and y are level 3
+			IRunnableDevice<ScanModel> scanner = createTestScanner(pauser);
+			scanner.run(null);
+			
+			assertEquals(25, positions.size());
+			assertEquals(50, moved.size());
+			assertTrue(moved.get(0).equals("pauser"));
+			assertTrue(moved.get(1).equals("x"));
+			
+			moved.clear();
+			positions.clear();
+			pauser.setLevel(5); // Above x
+			scanner.run(null);
+			
+			assertEquals(25, positions.size());
+			assertEquals(50, moved.size());
+			assertTrue(moved.get(0).equals("x"));
+			assertTrue(moved.get(1).equals("pauser"));
+		
+		} finally {
+			dog.activate();
+			detector.getModel().setExposureTime(0.25);
+		}
+	}
+
 }

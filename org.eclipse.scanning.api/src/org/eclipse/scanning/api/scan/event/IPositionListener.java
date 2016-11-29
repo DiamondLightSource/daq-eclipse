@@ -45,7 +45,7 @@ public interface IPositionListener extends EventListener {
 	}
 	
 	/**
-	 * Called when the position changes during a move.
+	 * Called when the position changes.
 	 * @param event
 	 * @throws ScanningException if an exception occurred responding to this event.
 	 *   <em>Note:</em> throwing an exception will stop the scan. If this behaviour is

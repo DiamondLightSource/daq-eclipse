@@ -206,7 +206,7 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 					waitedTime+=pauseTime;
 					currentPosition+=increment;
 					this.position = currentPosition;
-					delegate.firePositionChanged(-1, new Scalar(getName(), index, currentPosition));
+					delegate.firePositionChanged(getLevel(), new Scalar(getName(), index, currentPosition));
 					if (terminate==TerminationPreference.CONTROLLED) break;
 				}
 				System.out.println("Realistic move of "+getName()+" from "+orig+" to "+currentPosition+" complete");

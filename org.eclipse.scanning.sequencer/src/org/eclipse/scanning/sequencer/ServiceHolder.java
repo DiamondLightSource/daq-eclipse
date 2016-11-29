@@ -4,6 +4,7 @@ import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.analysis.api.persistence.IPersistenceService;
 import org.eclipse.dawnsci.analysis.api.processing.IOperationService;
 import org.eclipse.dawnsci.nexus.builder.NexusBuilderFactory;
+import org.eclipse.scanning.api.device.IDeviceWatchdogService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
@@ -31,6 +32,17 @@ public class ServiceHolder {
 	public void setOperationService(IOperationService operationService) {
 		ServiceHolder.operationService = operationService;
 	}
+	
+    private static IDeviceWatchdogService watchdogService;
+
+	public static IDeviceWatchdogService getWatchdogService() {
+		return watchdogService;
+	}
+
+	public static void setWatchdogService(IDeviceWatchdogService watchdogService) {
+		ServiceHolder.watchdogService = watchdogService;
+	}
+
     
 	private static IPersistenceService persistenceService;
 
@@ -78,7 +90,7 @@ public class ServiceHolder {
 		return runnableDeviceService;
 	}
 	
-	public void setRunnableDeviceService(IRunnableDeviceService runnableDeviceService) {
+	public static void setRunnableDeviceService(IRunnableDeviceService runnableDeviceService) {
 		ServiceHolder.runnableDeviceService = runnableDeviceService;
 	}
 	

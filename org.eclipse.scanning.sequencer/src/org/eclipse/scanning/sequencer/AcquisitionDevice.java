@@ -3,6 +3,7 @@ package org.eclipse.scanning.sequencer;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -20,6 +21,7 @@ import org.eclipse.scanning.api.annotation.scan.ScanPause;
 import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.models.DeviceRole;
@@ -148,6 +150,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		manager = new AnnotationManager(SequencerActivator.getInstance());
 		manager.addDevices(getScannables(model));
 		if (model.getMonitors()!=null) manager.addDevices(model.getMonitors());
+		if (ServiceHolder.getWatchdogService()!=null) {
+			List<IDeviceWatchdog> dogs = ServiceHolder.getWatchdogService().create(this);
+			if (dogs!=null) manager.addDevices(dogs);
+		}
 		manager.addDevices(model.getDetectors());
 		
 		setDeviceState(DeviceState.READY); // Notify 
@@ -164,7 +170,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 		
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
-		
+				
 		CompoundModel<?> cmodel = getBean().getScanRequest()!=null ? getBean().getScanRequest().getCompoundModel() : null;
 		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), cmodel, model.getDetectors(), ServiceHolder.getGeneratorService());
 		
@@ -435,6 +441,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 				if (device instanceof IPausableDevice) ((IPausableDevice)device).pause();
 			}
+			setDeviceState(DeviceState.PAUSED);
 			
 		} catch (ScanningException s) {
 			throw s;
@@ -442,6 +449,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			throw new ScanningException(ne);
 		} finally {
 			lock.unlock();
+		}
+	}
+	
+	@Override
+	public void seek(int stepNumber) throws ScanningException {
+		if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
+			if (device instanceof IPausableDevice) ((IPausableDevice)device).seek(stepNumber);
 		}
 	}
 

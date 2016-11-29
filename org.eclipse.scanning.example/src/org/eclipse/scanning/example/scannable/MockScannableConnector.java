@@ -53,7 +53,8 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		register(new MockPausingMonitor("pauser", 10d,  -1));
-		register(new MockTopupScannable("topup", 5000));
+		register(new MockTopupScannable("topup", 1000));
+		register(new MockScannable("period", 1000d, 1, "ms"));
 		register(new MockBeanOnMonitor("beamon", 10d, 1));
 		register(new MockScannable("bpos",  0.001,  -1));
 		register(new MockScannable("a", 10d, 1, "mm"));
@@ -143,6 +144,12 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	@Override
 	public void disconnect() throws EventException {
 		if (positionPublisher!=null) positionPublisher.disconnect();
+		if (cache!=null && !cache.isEmpty()) {
+			for (String key : cache.keySet()) {
+				INameable device = cache.remove(key);
+				if (device instanceof IDisconnectable) ((IDisconnectable)device).disconnect();
+			}
+		}
 	}
 	
 	@Override

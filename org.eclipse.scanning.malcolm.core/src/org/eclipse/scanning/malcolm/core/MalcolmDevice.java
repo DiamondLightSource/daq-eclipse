@@ -306,6 +306,17 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	public void run(IPosition pos) throws MalcolmDeviceException {
 		connectionDelegate.call(Thread.currentThread().getStackTrace(), DeviceState.RUNNING);
 	}
+	
+	@Override
+	public void seek(int stepNumber) throws MalcolmDeviceException {
+		// TODO FIXME - Is this correct?
+		final MalcolmMessage msg   = connectionDelegate.createCallMessage("seek", stepNumber);
+		final MalcolmMessage reply = connector.send(this, msg);
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException(reply.getMessage());
+		}
+	}
+
 
 	@Override
 	public void abort() throws MalcolmDeviceException {
