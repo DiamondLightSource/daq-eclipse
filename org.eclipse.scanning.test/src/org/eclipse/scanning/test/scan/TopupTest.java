@@ -103,6 +103,12 @@ public class TopupTest {
                 positions.add(evt.getPosition());
 			}
 		});
+		
+		final IScannable<Number>   topups  = connector.getScannable("topup");
+		final MockTopupScannable   topup   = (MockTopupScannable)topups;
+		assertNotNull(topup);
+		topup.start();
+
 
 		IDeviceWatchdogService wservice = new DeviceWatchdogService();
 		ServiceHolder.setWatchdogService(wservice);
@@ -116,6 +122,14 @@ public class TopupTest {
 		
 		this.dog = new TopupWatchdog(model);
 		dog.activate();
+	}
+	
+	@After
+	public void disconnect() {
+		final IScannable<Number>   topups  = connector.getScannable("topup");
+		final MockTopupScannable   topup   = (MockTopupScannable)topups;
+		assertNotNull(topup);
+		topup.disconnect();
 	}
 	
 	@AfterClass

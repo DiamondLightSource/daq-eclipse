@@ -27,6 +27,9 @@ public class MockTopupScannable extends MockScannable implements IDisconnectable
 		setUnit("ms");
 		start = System.currentTimeMillis();
 		this.period = period;
+	}
+	
+	public void start() {
 		final Thread thread = new Thread(()->{
 			try {
 				isRunning = true;
