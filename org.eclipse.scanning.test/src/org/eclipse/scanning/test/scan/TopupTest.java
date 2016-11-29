@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
+import org.eclipse.scanning.example.scannable.MockTopupScannable;
 import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
@@ -92,17 +94,17 @@ public class TopupTest {
 	}
 
 	@Test
-	public void testTopup() throws Exception {
+	public void testPause() throws Exception {
 		
 		final List<String> moved   = new ArrayList<>();
-		final IScannable<Number>   topup   = connector.getScannable("pauser");
-		if (topup instanceof MockScannable) {
-			((MockScannable)topup).setRealisticMove(false);
+		final IScannable<Number>   pauser   = connector.getScannable("pauser");
+		if (pauser instanceof MockScannable) {
+			((MockScannable)pauser).setRealisticMove(false);
 		}
-		((IPositionListenable)topup).addPositionListener(new IPositionListener() {
+		((IPositionListenable)pauser).addPositionListener(new IPositionListener() {
 			@Override
 			public void positionPerformed(PositionEvent evt) {
-				moved.add(topup.getName());
+				moved.add(pauser.getName());
 			}
 		});
 		final IScannable<Number>   x       = connector.getScannable("x");
@@ -115,10 +117,10 @@ public class TopupTest {
 				moved.add(x.getName());
 			}
 		});
-		topup.setLevel(1);
+		pauser.setLevel(1);
 		
 		// x and y are level 3
-		IRunnableDevice<ScanModel> scanner = createTestScanner(topup);
+		IRunnableDevice<ScanModel> scanner = createTestScanner(pauser);
 		scanner.run(null);
 		
 		assertEquals(25, positions.size());
@@ -128,7 +130,7 @@ public class TopupTest {
 		
 		moved.clear();
 		positions.clear();
-		topup.setLevel(5); // Above x
+		pauser.setLevel(5); // Above x
 		scanner.run(null);
 		
 		assertEquals(25, positions.size());
@@ -173,4 +175,35 @@ public class TopupTest {
 		return scanner;
 	}
 
+	@Test
+	public void topupPeriod() throws Exception {
+		
+		final IScannable<Number>   topups  = connector.getScannable("topup");
+		final MockTopupScannable   topup   = (MockTopupScannable)topups;
+		assertNotNull(topup);
+		
+		long fastPeriod = 500;
+		long orig = topup.getPeriod();
+		topup.setPeriod(fastPeriod);
+		
+		try {
+			int max = Integer.MIN_VALUE;
+			int min = Integer.MAX_VALUE;
+			// We start a check the topup value for 15s
+			long start = System.currentTimeMillis();
+			while((System.currentTimeMillis()-start)<(fastPeriod*2.1)) {
+				int pos = topup.getPosition().intValue();
+				System.out.println("Topup in "+pos+"ms");
+				max = Math.max(max, pos);
+				min = Math.min(min, pos);
+				Thread.sleep(fastPeriod/10);
+			}
+			assertTrue(max<600&&max>300);
+			assertTrue(min<200&&min>-1);
+			
+		} finally {
+			topup.setPeriod(orig);
+
+		}
+	}
 }

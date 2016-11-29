@@ -53,6 +53,7 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		register(new MockPausingMonitor("pauser", 10d,  -1));
+		register(new MockTopupScannable("topup", 5000));
 		register(new MockBeanOnMonitor("beamon", 10d, 1));
 		register(new MockScannable("bpos",  0.001,  -1));
 		register(new MockScannable("a", 10d, 1, "mm"));
