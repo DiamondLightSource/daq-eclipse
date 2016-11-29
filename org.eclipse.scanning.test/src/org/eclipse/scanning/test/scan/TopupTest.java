@@ -51,6 +51,7 @@ import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -125,7 +126,7 @@ public class TopupTest {
 	}
 	
 	@After
-	public void disconnect() {
+	public void disconnect() throws ScanningException {
 		final IScannable<Number>   topups  = connector.getScannable("topup");
 		final MockTopupScannable   topup   = (MockTopupScannable)topups;
 		assertNotNull(topup);
