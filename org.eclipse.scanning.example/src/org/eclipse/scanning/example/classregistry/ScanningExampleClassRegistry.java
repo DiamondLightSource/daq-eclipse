@@ -32,7 +32,7 @@ import org.eclipse.scanning.example.scannable.MockNeXusScannable;
 import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.example.scannable.MockScannableModel;
-import org.eclipse.scanning.example.scannable.MockTopupMonitor;
+import org.eclipse.scanning.example.scannable.MockPausingMonitor;
 
 public class ScanningExampleClassRegistry implements IClassRegistry {
 
@@ -47,12 +47,7 @@ public class ScanningExampleClassRegistry implements IClassRegistry {
 		registerClass(tmp, DummyMalcolmModel.class);
 
 		// scannable
-		registerClass(tmp, MockBeanOnMonitor.class);
-		registerClass(tmp, MockNeXusScannable.class);
-		registerClass(tmp, MockScannable.class);
-		registerClass(tmp, MockScannableConnector.class);
 		registerClass(tmp, MockScannableModel.class);
-		registerClass(tmp, MockTopupMonitor.class);
 
 		idToClassMap = Collections.unmodifiableMap(tmp);
 	}
