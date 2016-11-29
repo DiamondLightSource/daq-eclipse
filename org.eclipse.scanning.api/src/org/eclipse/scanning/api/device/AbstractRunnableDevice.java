@@ -465,7 +465,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	}
 	
 	/**
-	 * If ovrriding don't forget the old super.validate(...)
+	 * If overriding don't forget the old super.validate(...)
 	 */
 	@Override
 	public void validate(T model) throws Exception {
