@@ -16,9 +16,11 @@ import org.epics.pvdata.factory.StatusFactory;
 import org.epics.pvdata.pv.FieldBuilder;
 import org.epics.pvdata.pv.FieldCreate;
 import org.epics.pvdata.pv.PVBoolean;
+import org.epics.pvdata.pv.PVBooleanArray;
 import org.epics.pvdata.pv.PVDataCreate;
 import org.epics.pvdata.pv.PVDoubleArray;
 import org.epics.pvdata.pv.PVFloat;
+import org.epics.pvdata.pv.PVFloatArray;
 import org.epics.pvdata.pv.PVInt;
 import org.epics.pvdata.pv.PVIntArray;
 import org.epics.pvdata.pv.PVString;
@@ -305,17 +307,32 @@ public class ExampleMalcolmDevice {
         			setId("epics:nt/NTScalar:1.0").
         			createStructure();
             
-            Structure tableValueStructure = fieldCreate.createFieldBuilder().
+            Structure datasetTableValueStructure = fieldCreate.createFieldBuilder().
         			addArray("detector", ScalarType.pvString).
         			addArray("filename", ScalarType.pvString).
         			addArray("dataset", ScalarType.pvString).
         			addArray("users", ScalarType.pvInt).
         			createStructure();
             
-            Structure tableStructure = fieldCreate.createFieldBuilder().
+            Structure datasetTableStructure = fieldCreate.createFieldBuilder().
         			add("meta", tableMetaStructure).
         			addArray("labels", ScalarType.pvString).
-        			add("value", tableValueStructure).
+        			add("value", datasetTableValueStructure).
+        			setId("epics:nt/NTTable:1.0").
+        			createStructure();
+            
+            Structure layoutTableValueStructure = fieldCreate.createFieldBuilder().
+        			addArray("name", ScalarType.pvString).
+        			addArray("mri", ScalarType.pvString).
+        			addArray("x", ScalarType.pvFloat).
+        			addArray("y", ScalarType.pvFloat).
+        			addArray("visible", ScalarType.pvBoolean).
+        			createStructure();
+            
+            Structure layoutTableStructure = fieldCreate.createFieldBuilder().
+        			add("meta", tableMetaStructure).
+        			addArray("labels", ScalarType.pvString).
+        			add("value", layoutTableValueStructure).
         			setId("epics:nt/NTTable:1.0").
         			createStructure();
             
@@ -375,7 +392,8 @@ public class ExampleMalcolmDevice {
                     add("A", floatStructure).
                     add("B", floatStructure).
                     add("axesToMove", stringArrayStructure).
-                    add("datasets", tableStructure).
+                    add("layout", layoutTableStructure).
+                    add("datasets", datasetTableStructure).
                     add("generator", pointGeneratorStructure).
                     add("completedSteps", intStructure).
         			setId("malcolm:core/Block:1.0").
@@ -429,6 +447,22 @@ public class ExampleMalcolmDevice {
     		
     		// current step
             blockPVStructure.getSubField(PVInt.class, "completedSteps.value").put(1);
+            
+            // layout
+    		PVStructure layoutPVStructure = blockPVStructure.getStructureField("layout");
+    		String[] layoutNameArray = new String[] {"BRICK", "MIC", "ZEBRA"};
+    		String[] layoutMrifilenameArray = new String[] {"P45-BRICK01", "P45-MIC", "P45-ZEBRA01"};
+    		float[] layoutXArray = new float[] {0.0f, 0.0f, 0.0f};
+    		float[] layoutYArray = new float[] {0.0f, 0.0f, 0.0f};
+    		boolean[] layoutVisibleArray = new boolean[] {false, false, false};
+    		PVStructure layoutTableValuePVStructure = layoutPVStructure.getStructureField("value");
+    		layoutTableValuePVStructure.getSubField(PVStringArray.class, "name").put(0, layoutNameArray.length, layoutNameArray, 0);
+    		layoutTableValuePVStructure.getSubField(PVStringArray.class, "mri").put(0, layoutMrifilenameArray.length, layoutMrifilenameArray, 0);
+    		layoutTableValuePVStructure.getSubField(PVFloatArray.class, "x").put(0, layoutXArray.length, layoutXArray, 0);
+    		layoutTableValuePVStructure.getSubField(PVFloatArray.class, "y").put(0, layoutYArray.length, layoutYArray, 0);
+    		layoutTableValuePVStructure.getSubField(PVBooleanArray.class, "visible").put(0, layoutVisibleArray.length, layoutVisibleArray, 0);
+    		String[] layoutHeadingsArray = new String[] {"name", "mri", "x", "y", "visible"};
+    		layoutPVStructure.getSubField(PVStringArray.class, "labels").put(0, layoutHeadingsArray.length, layoutHeadingsArray, 0);
             
 
     		

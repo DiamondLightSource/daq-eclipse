@@ -270,6 +270,14 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	
 	@Override
 	public void configure(M model) throws MalcolmDeviceException {
+		
+		// Reset the device before configure in case it's in a fault state
+		try {
+			reset();
+		} catch (Exception ex) {
+			// Swallow the error as it might throw one if in a non-resetable state
+		}
+		
 		logger.info("configure model = " + model);
 		final EpicsMalcolmModel epicsModel = createEpicsMalcolmModel(model);
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", epicsModel);

@@ -93,7 +93,7 @@ public class ExampleMalcolmDeviceTest {
 
 			// Get a list of all attributes on the device
 			List<MalcolmAttribute> attribs = modelledDevice.getAllAttributes();
-			assertEquals(10, attribs.size());
+			assertEquals(11, attribs.size());
 
 			boolean stateFound = false;
 			boolean statusFound = false;
@@ -102,6 +102,7 @@ public class ExampleMalcolmDeviceTest {
 			boolean aFound = false;
 			boolean bFound = false;
 			boolean axesFound = false;
+			boolean layoutFound = false;
 			boolean datasetsFound = false;
 			boolean generatorFound = false;
 			boolean completedStepsFound = false;
@@ -131,7 +132,9 @@ public class ExampleMalcolmDeviceTest {
 					generatorFound = true;
 				} else if (ma.getName().equals("completedSteps")) {
 					completedStepsFound = true;
-				}
+				} else if (ma.getName().equals("layout")) {
+					layoutFound = true;
+				} 
 			}
 
 			assertTrue(stateFound);
@@ -146,6 +149,7 @@ public class ExampleMalcolmDeviceTest {
 			assertTrue(datasetsFound);
 			assertTrue(generatorFound);
 			assertTrue(completedStepsFound);
+			assertTrue(layoutFound);
 
 			// Get a specific choice (string) attribute
 			Object stateValue = modelledDevice.getAttributeValue("state");
@@ -216,7 +220,7 @@ public class ExampleMalcolmDeviceTest {
 			// Check the RPC calls were received correctly by the device
 			Map<String, PVStructure> rpcCalls = dummyMalcolmDevice.getReceivedRPCCalls();
 
-			assertEquals(2, rpcCalls.size());
+			assertEquals(3, rpcCalls.size());
 
 			// configure
 			PVStructure configureCall = rpcCalls.get("configure");

@@ -196,6 +196,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			manager.addDevices(device);
 			manager.addContext(info);
 			
+			@SuppressWarnings("unchecked")
 			IRunnableDevice<Object> odevice = (IRunnableDevice<Object>)device;
 			Object dmodel = dmodels.get(odevice.getName());
 			if (odevice instanceof IMalcolmDevice<?>) {
@@ -240,10 +241,10 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		} else {
 		    smodel.setFilePath(req.getFilePath());
 		}
-		bean.setFilePath(smodel.getFilePath());		
+		bean.setFilePath(smodel.getFilePath());
+		logger.info("Nexus file path set to {}", bean.getFilePath());
 	}
 
-	@SuppressWarnings("unchecked")
 	private IPointGenerator<?> getGenerator(ScanRequest<?> req) throws GeneratorException {
 		IPointGeneratorService service = Services.getGeneratorService();
 		return service.createCompoundGenerator(req.getCompoundModel());
@@ -286,20 +287,19 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	}
 	
 	private void setMalcolmOutputDir(ScanBean scanBean, MalcolmModel malcolmModel) {
-		if (malcolmModel.getFileDir() == null) {
-			// The malcolm output dir is a new dir in the same parent dir as the scan file and
-			// with the same name as the scan file minus the extension
-			final File scanFile = new File(scanBean.getFilePath());
-			final File scanDir = scanFile.getParentFile();
-			String scanFileNameNoExtn = scanFile.getName();
-			final int dotIndex = scanFileNameNoExtn.indexOf('.');
-			if (dotIndex != -1) {
-				scanFileNameNoExtn = scanFileNameNoExtn.substring(0, dotIndex);
-			}
-			final File malcolmOutputDir = new File(scanDir, scanFileNameNoExtn);
-			malcolmOutputDir.mkdir(); // create the new dir
-			malcolmModel.setFileDir(malcolmOutputDir.toString());
+		// The malcolm output dir is a new dir in the same parent dir as the scan file and
+		// with the same name as the scan file minus the extension
+		final File scanFile = new File(scanBean.getFilePath());
+		final File scanDir = scanFile.getParentFile();
+		String scanFileNameNoExtn = scanFile.getName();
+		final int dotIndex = scanFileNameNoExtn.indexOf('.');
+		if (dotIndex != -1) {
+			scanFileNameNoExtn = scanFileNameNoExtn.substring(0, dotIndex);
 		}
+		final File malcolmOutputDir = new File(scanDir, scanFileNameNoExtn);
+		malcolmOutputDir.mkdir(); // create the new dir
+		malcolmModel.setFileDir(malcolmOutputDir.toString());
+		logger.info("Set malcolm output dir to {}", malcolmOutputDir);
 	}
 
 	private List<IScannable<?>> getScannables(Collection<String> scannableNames) throws EventException {
