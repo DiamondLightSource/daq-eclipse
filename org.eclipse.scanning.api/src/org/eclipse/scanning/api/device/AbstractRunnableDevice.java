@@ -194,6 +194,8 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 			bean.setPreviousDeviceState(bean.getDeviceState());
 			bean.setDeviceState(nstate);
 			
+			fireStateChanged(bean.getPreviousDeviceState(), nstate);
+
 			if (publisher!=null) {
 				publisher.broadcast(bean);
 			}
@@ -295,6 +297,19 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		final IPositionListener[] la = posListeners.toArray(new IPositionListener[posListeners.size()]);
 		for (IPositionListener l : la) l.positionPerformed(evt);
 	}
+	
+	public void fireStateChanged(DeviceState oldState, DeviceState newState) throws ScanningException {
+		
+		if (rlisteners==null) return;
+		
+		final RunEvent evt = new RunEvent(this, null, newState);
+		evt.setOldState(oldState);
+		
+		// Make array, avoid multi-threading issues.
+		final IRunListener[] la = rlisteners.toArray(new IRunListener[rlisteners.size()]);
+		for (IRunListener l : la) l.stateChanged(evt);
+	}
+
 
 	private long startTime;
 	
@@ -385,6 +400,12 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void pause() throws ScanningException {
 
 	}
+	
+	@Override
+	public void seek(int stepNumber) throws ScanningException {
+       // Do nothing
+	}
+
 
 	@Override
 	public void resume() throws ScanningException {

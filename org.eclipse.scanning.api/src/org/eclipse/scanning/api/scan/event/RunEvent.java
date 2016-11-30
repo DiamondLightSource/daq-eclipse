@@ -16,6 +16,7 @@ public class RunEvent extends EventObject {
 	private final IPosition position;
 	
 	private final DeviceState deviceState;
+	private DeviceState oldState;
 
 	public RunEvent(IRunnableDevice<?> device, IPosition position, DeviceState deviceState) {
 		super(device);
@@ -33,6 +34,14 @@ public class RunEvent extends EventObject {
 	
 	public DeviceState getDeviceState() {
 		return deviceState;
+	}
+
+	public DeviceState getOldState() {
+		return oldState;
+	}
+
+	public void setOldState(DeviceState oldState) {
+		this.oldState = oldState;
 	}
 	
 }

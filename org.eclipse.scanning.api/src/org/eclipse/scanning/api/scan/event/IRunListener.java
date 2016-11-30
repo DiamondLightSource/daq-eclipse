@@ -14,6 +14,15 @@ import org.eclipse.scanning.api.scan.ScanningException;
 public interface IRunListener extends EventListener {
 
 	/**
+	 * Called when the device changes state
+	 * @param evt
+	 * @throws ScanningException which will terminate the scan
+	 */
+	default void stateChanged(RunEvent evt) throws ScanningException {
+		// default implementation does nothing, subclasses should override as necessary
+	};
+
+	/**
 	 * Called before a run() is made on the device. Can
 	 * be used to modify the model before a given run of the device.
 	 * @param evt
