@@ -145,10 +145,11 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	public void disconnect() throws EventException {
 		if (positionPublisher!=null) positionPublisher.disconnect();
 		if (cache!=null && !cache.isEmpty()) {
-			for (String key : cache.keySet()) {
-				INameable device = cache.remove(key);
+			INameable[] devices = cache.values().toArray(new INameable[cache.size()]);
+			for (INameable device : devices) {
 				if (device instanceof IDisconnectable) ((IDisconnectable)device).disconnect();
 			}
+			cache.clear();
 		}
 	}
 	
