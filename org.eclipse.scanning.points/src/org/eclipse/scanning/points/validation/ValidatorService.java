@@ -66,6 +66,11 @@ public class ValidatorService implements IValidatorService {
 		}
 		return dservice;
 	}
+	
+	public void setRunnableDeviceService(IRunnableDeviceService service) {
+		dservice = service;
+	}
+	
 	public void start(ComponentContext lcontext) {
 		context = lcontext;
 	}
@@ -117,7 +122,11 @@ public class ValidatorService implements IValidatorService {
 		if (model instanceof IDetectorModel && dservice!=null) {
 			IRunnableDevice<Object> device=null;
 			try {
-				device = dservice.createRunnableDevice(model, false);
+				final String deviceName = ((IDetectorModel) model).getName();
+				device = dservice.getRunnableDevice(deviceName);
+				if (device == null) {
+					device = dservice.createRunnableDevice(model, false);
+				}
 			} catch (ScanningException e) {
 				logger.trace("No device found for "+model, e);
 			}

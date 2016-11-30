@@ -92,8 +92,11 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 
 	@Override
 	public void execute() throws EventException {
-		
-		try {	
+		try {
+			setFilePath(bean);
+			IPointGenerator<?> gen = getGenerator(bean.getScanRequest());
+			initializeMalcolmDevice(bean, gen);
+			
 			if (!Boolean.getBoolean("org.eclipse.scanning.server.servlet.scanProcess.disableValidate")) {
 			    Services.getValidatorService().validate(bean.getScanRequest());
 			}
@@ -107,7 +110,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			ScriptResponse<?> res = runScript(bean.getScanRequest().getBefore());
 			bean.getScanRequest().setBeforeResponse(res);
 			
-			this.device = createRunnableDevice(bean);
+			this.device = createRunnableDevice(bean, gen);
 			
 			if (blocking) {
 			    device.run(null); // Runs until done
@@ -145,6 +148,79 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			throw new EventException(ne);
 		}
 	}
+	
+	private void setFilePath(ScanBean bean) throws EventException {
+		ScanRequest<?> req = bean.getScanRequest();
+		
+		// Set the file path to the next scan file path from the service
+		// which manages scan names.
+		if (req.getFilePath() == null) {
+			IFilePathService fservice = Services.getFilePathService();
+			if (fservice != null) {
+				try {
+					final String template = req.getSampleData() != null ? req.getSampleData().getName() : null;
+					bean.setFilePath(fservice.getNextPath(template));
+				} catch (Exception e) {
+					throw new EventException(e);
+				}
+			} else {
+				bean.setFilePath(null); // It is allowable to run a scan without a nexus file
+			}
+		} else {
+			bean.setFilePath(req.getFilePath());
+		}
+		logger.info("Nexus file path set to {}", bean.getFilePath());
+	}
+	
+	/**
+	 * Initialise the malcolm device with the point generator and the malcolm model
+	 * with its output directory. This needs to be done before validation as these values
+	 * are sent to the actual malcolm device over the connection for validation. 
+	 * @param gen
+	 * @throws EventException
+	 * @throws ScanningException
+	 */
+	private void initializeMalcolmDevice(ScanBean bean, IPointGenerator<?> gen) throws EventException, ScanningException {
+		ScanRequest<?> req = bean.getScanRequest();
+		
+		// check for a malcolm device, if one is found, set its output dir on the model
+		// and point generator on the malcolm device itself
+		if (bean.getFilePath() == null) return;
+		
+		String malcolmDeviceName = null;
+		MalcolmModel malcolmModel = null;
+		final Map<String, Object> detectorMap = req.getDetectors();
+		if (detectorMap == null) return;
+		
+		for (String detName : detectorMap.keySet()) {
+			if (detectorMap.get(detName) instanceof MalcolmModel) {
+				malcolmDeviceName = detName;
+				malcolmModel = (MalcolmModel) detectorMap.get(detName);
+				break;
+			}
+		}
+
+		if (malcolmModel == null) return;
+		
+		// Set the malcolm output directory. This is new dir in the same parent dir as the
+		// scan file and with the same name as the scan file (minus the file extension)
+		final File scanFile = new File(bean.getFilePath());
+		final File scanDir = scanFile.getParentFile();
+		String scanFileNameNoExtn = scanFile.getName();
+		final int dotIndex = scanFileNameNoExtn.indexOf('.');
+		if (dotIndex != -1) {
+			scanFileNameNoExtn = scanFileNameNoExtn.substring(0, dotIndex);
+		}
+		final File malcolmOutputDir = new File(scanDir, scanFileNameNoExtn);
+		malcolmOutputDir.mkdir(); // create the new malcolm output directory for the scan
+		malcolmModel.setFileDir(malcolmOutputDir.toString());
+		logger.info("Set malcolm output dir to {}", malcolmOutputDir);
+		
+		// Set the point generator for the malcolm device
+		final IRunnableDeviceService service = Services.getRunnableDeviceService();
+		IRunnableDevice<?> malcolmDevice = service.getRunnableDevice(malcolmDeviceName);
+		((IMalcolmDevice<?>) malcolmDevice).setPointGenerator(gen);
+	}
 
 	private ScriptResponse<?> runScript(ScriptRequest req) throws EventException, UnsupportedLanguageException, ScriptExecutionException {
 		if (req==null) return null; // Nothing to do
@@ -152,7 +228,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		return scriptService.execute(req);		
 	}
 
-	private IPausableDevice<ScanModel> createRunnableDevice(ScanBean bean) throws ScanningException, EventException {
+	private IPausableDevice<ScanModel> createRunnableDevice(ScanBean bean, IPointGenerator<?> gen) throws ScanningException, EventException {
 
 		ScanRequest<?> req = bean.getScanRequest();
 		if (req==null) throw new ScanningException("There must be a scan request to run a scan!");
@@ -164,8 +240,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			ScanEstimator estimator = new ScanEstimator(Services.getGeneratorService(), bean.getScanRequest());
 			bean.setSize(estimator.getSize());
-
-			setFilePath(scanModel, bean);
+			scanModel.setFilePath(bean.getFilePath());
 			
 			scanModel.setDetectors(getDetectors(bean, req.getDetectors()));
 			scanModel.setMonitors(getScannables(req.getMonitorNames()));
@@ -220,31 +295,6 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		return names;   		
 	}
 
-	private void setFilePath(ScanModel smodel, ScanBean bean) throws EventException, GeneratorException {
-		
-		ScanRequest<?> req = bean.getScanRequest();
-		
-		// Set the file path to the next scan file path from the service
-		// which manages scan names.
-		if (req.getFilePath()==null) {
-			IFilePathService fservice = Services.getFilePathService();
-			if (fservice!=null) {
-				try {
-					final String template = req.getSampleData()!=null ? req.getSampleData().getName() : null;
-					smodel.setFilePath(fservice.getNextPath(template));
-				} catch (Exception e) {
-					throw new EventException(e);
-				}
-			} else {
-				smodel.setFilePath(null); // It is allowable to run a scan without a nexus file.
-			}
-		} else {
-		    smodel.setFilePath(req.getFilePath());
-		}
-		bean.setFilePath(smodel.getFilePath());
-		logger.info("Nexus file path set to {}", bean.getFilePath());
-	}
-
 	private IPointGenerator<?> getGenerator(ScanRequest<?> req) throws GeneratorException {
 		IPointGeneratorService service = Services.getGeneratorService();
 		return service.createCompoundGenerator(req.getCompoundModel());
@@ -268,9 +318,6 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			for (String name : detectors.keySet()) {
 				Object dmodel = detectors.get(name);
-				if (dmodel instanceof MalcolmModel) {
-					setMalcolmOutputDir(bean, (MalcolmModel) dmodel);
-				}
 				IRunnableDevice<Object> detector = service.getRunnableDevice(name);
 				if (detector==null) {
 					detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
@@ -286,22 +333,6 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 	}
 	
-	private void setMalcolmOutputDir(ScanBean scanBean, MalcolmModel malcolmModel) {
-		// The malcolm output dir is a new dir in the same parent dir as the scan file and
-		// with the same name as the scan file minus the extension
-		final File scanFile = new File(scanBean.getFilePath());
-		final File scanDir = scanFile.getParentFile();
-		String scanFileNameNoExtn = scanFile.getName();
-		final int dotIndex = scanFileNameNoExtn.indexOf('.');
-		if (dotIndex != -1) {
-			scanFileNameNoExtn = scanFileNameNoExtn.substring(0, dotIndex);
-		}
-		final File malcolmOutputDir = new File(scanDir, scanFileNameNoExtn);
-		malcolmOutputDir.mkdir(); // create the new dir
-		malcolmModel.setFileDir(malcolmOutputDir.toString());
-		logger.info("Set malcolm output dir to {}", malcolmOutputDir);
-	}
-
 	private List<IScannable<?>> getScannables(Collection<String> scannableNames) throws EventException {
 		// used to get the monitors and the metadata scannables
 		if (scannableNames==null) return null;
