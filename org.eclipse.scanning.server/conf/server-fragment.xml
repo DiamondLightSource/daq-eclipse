@@ -32,6 +32,12 @@
        <property name="responseTopic"   value="org.eclipse.scanning.response.positioner.topic"   />
     </bean>
     
+	<bean id="acquireServlet"  class="org.eclipse.scanning.server.servlet.AcquireServlet" init-method="connect">
+        <property name="broker"      value="${org.eclipse.scanning.broker.uri}" />
+	    <property name="requestTopic" value="org.eclipse.scanning.request.acquire.topic" />
+	    <property name="responseTopic"   value="org.eclipse.scanning.response.acquire.topic"   />
+	</bean>
+    
     <bean id="dataServer" class="org.eclipse.dawnsci.remotedataset.server.DataServer" init-method="start">
         <property name="port"     value="8690" />
         <property name="bundle"   value="org.eclipse.dawnsci.remotedataset.server" /> <!-- Delete for real spring? -->

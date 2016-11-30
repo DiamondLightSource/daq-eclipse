@@ -291,6 +291,10 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 	}
 	
 	protected void dryRun(int size, boolean complete) throws EventException, InterruptedException {
+	
+		bean.setPreviousStatus(Status.SUBMITTED);
+		bean.setStatus(Status.RUNNING);
+		bean.setPercentComplete(0d);
 		
 		for (int i = 0; i < size; i++) {
 			
@@ -309,11 +313,13 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 			bean.setPercentComplete(i);
 			broadcast(bean);
 		}
-
-		bean.setStatus(Status.COMPLETE);
-		bean.setPercentComplete(100);
-		bean.setMessage("Dry run complete (no software run)");
-		broadcast(bean);
+		
+		if (complete) {
+			bean.setStatus(Status.COMPLETE);
+			bean.setPercentComplete(100);
+			bean.setMessage("Dry run complete (no software run)");
+			broadcast(bean);
+		}
 	}
 
 	
