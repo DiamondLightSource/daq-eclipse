@@ -24,6 +24,7 @@ import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.POSITION_VALU
 import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.PRIMARY;
 import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.SECONDARY;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -54,6 +55,7 @@ import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.Random;
 import org.eclipse.january.dataset.SliceND;
+import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -390,6 +392,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 
 		axesToMove = new StringArrayAttribute();
 		axesToMove.setValue(new String[]{"stage_x", "stage_y"});
+//		axesToMove.setValue(model.getAxesToMove().toArray(new String[model.getAxesToMove().size()]));
 		axesToMove.setName(ATTRIBUTE_NAME_AXES_TO_MOVE);
 		axesToMove.setLabel(ATTRIBUTE_NAME_AXES_TO_MOVE);
 		axesToMove.setDescription("Default axis names to scan for configure()");
@@ -400,7 +403,37 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	@Override
 	public void validate(DummyMalcolmModel model) throws Exception {
 		super.validate(model);
-		// Note: fileDir doesn't need to be set as ScanProcess sets it if not set already
+		// validate field: axesToMove
+		if (model.getAxesToMove() != null) {
+			final List<String> axesToMove = Arrays.asList(this.axesToMove.getValue());
+			for (String axisToMove : model.getAxesToMove()) {
+				if (!axesToMove.contains(axisToMove)) {
+					throw new ModelValidationException("Invalid axis name: " + axisToMove, model, "axesToMove");
+				}
+			}
+		}
+		
+		// validate field: fileDir
+		if (model.getFileDir() == null) {
+			throw new ModelValidationException("Output dir for malcolm not set", model, "fileDir");
+		}
+		final File fileDir = new File(model.getFileDir());
+		if (!fileDir.exists()) {
+			throw new ModelValidationException("The output dir for malcolm does not exist: " + model.getFileDir(),
+					model, "fileDir");
+		}
+		if (!fileDir.isDirectory()) {
+			throw new ModelValidationException("The output dir for malcolm is not a directory: " + model.getFileDir(),
+					model, "fileDir");
+		}
+		
+		// validate the point generator has been set (not part of the model, but it does need
+		// to be set. In the real MalcolmDevice class this is part of the model sent over the
+		// connection to the actual malcolm device for validation
+		if (getPointGenerator() == null) {
+			throw new ModelValidationException("The point generator was not set on the malcolm device",
+					this, "pointGenerator");
+		}
 	}
 
 	@Override

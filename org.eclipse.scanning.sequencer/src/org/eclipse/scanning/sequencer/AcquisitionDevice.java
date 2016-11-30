@@ -49,8 +49,6 @@ import org.eclipse.scanning.sequencer.nexus.NexusScanFileManagerFactory;
  * scanners run.
  * 
  * @author Matthew Gerring
- *
- * @param <T>
  */
 final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	
