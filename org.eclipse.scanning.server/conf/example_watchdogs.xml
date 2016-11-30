@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!--  Mandelbrot Example -->
+	<!--  Watchdog Example -->
 	<bean id="topupModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">
 		<property name="countdownName"          value="topup"/>
 		<property name="periodName"             value="period"/>
