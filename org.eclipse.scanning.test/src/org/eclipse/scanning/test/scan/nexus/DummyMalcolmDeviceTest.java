@@ -165,7 +165,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	
 	private void setScanInformation(IRunnableDevice<DummyMalcolmModel> malcolmDevice, int scanRank) {
 		ScanInformation scanInfo = new ScanInformation();
-		scanInfo.setRank(2);
+		scanInfo.setRank(scanRank);
 		((DummyMalcolmDevice) malcolmDevice).setScanInformation(scanInfo);
 	}
 	

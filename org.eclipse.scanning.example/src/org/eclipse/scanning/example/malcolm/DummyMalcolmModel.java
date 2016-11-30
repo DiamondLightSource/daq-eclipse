@@ -30,6 +30,7 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable {
 	public DummyMalcolmModel() {
 		// the default model has a single detector with a single dataset
 		// this can be overridden by calling setDummyDetectorModels()
+		setName("malcolm");
 		DummyMalcolmControlledDetectorModel detModel = new DummyMalcolmControlledDetectorModel("detector");
 		List<DummyMalcolmDatasetModel> datasets = new ArrayList<>();
 		datasets.add(new DummyMalcolmDatasetModel("detector", 2, Double.class));
