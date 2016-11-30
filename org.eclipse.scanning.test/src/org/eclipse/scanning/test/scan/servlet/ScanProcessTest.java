@@ -261,8 +261,9 @@ public class ScanProcessTest {
 		// Act
 		process.execute();
 		
-		// Assert
-		// TODO what to assert, or is it just ok that the validation passes?
+		// Nothing to assert. This test was written to check that the malcolm device is 
+		// properly initialized before validation occurs. If this didn't happen, an
+		// exception would be thrown by DummyMalcolmDevice.validate()
 	}
 
 }

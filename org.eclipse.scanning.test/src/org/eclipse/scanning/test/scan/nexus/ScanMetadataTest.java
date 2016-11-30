@@ -89,26 +89,26 @@ public class ScanMetadataTest extends NexusTest {
 	public void testScanMetadata() throws Exception {
 		List<ScanMetadata> scanMetadata = new ArrayList<>();
 		ScanMetadata entryMetadata = new ScanMetadata(MetadataType.ENTRY);
-		entryMetadata.addMetadataField(NXentry.NX_TITLE, "Scan Metadata Test Entry");
-		entryMetadata.addMetadataField(NXentry.NX_EXPERIMENT_IDENTIFIER, "i05-1");
-		entryMetadata.addMetadataField(NXentry.NX_START_TIME, "2016-03-21T16:41:27Z");
+		entryMetadata.addField(NXentry.NX_TITLE, "Scan Metadata Test Entry");
+		entryMetadata.addField(NXentry.NX_EXPERIMENT_IDENTIFIER, "i05-1");
+		entryMetadata.addField(NXentry.NX_START_TIME, "2016-03-21T16:41:27Z");
 		scanMetadata.add(entryMetadata);
 		
 		ScanMetadata instrumentMetadata = new ScanMetadata(MetadataType.INSTRUMENT);
-		instrumentMetadata.addMetadataField(NXinstrument.NX_NAME, "i05-1");
+		instrumentMetadata.addField(NXinstrument.NX_NAME, "i05-1");
 		scanMetadata.add(instrumentMetadata);
 		
 		ScanMetadata sampleMetadata = new ScanMetadata(MetadataType.SAMPLE);
-		sampleMetadata.addMetadataField(NXsample.NX_CHEMICAL_FORMULA, "H2O");
-		sampleMetadata.addMetadataField(NXsample.NX_TEMPERATURE, 22.0);
-		sampleMetadata.addMetadataField(NXsample.NX_DESCRIPTION, "Test sample");
+		sampleMetadata.addField(NXsample.NX_CHEMICAL_FORMULA, "H2O");
+		sampleMetadata.addField(NXsample.NX_TEMPERATURE, 22.0);
+		sampleMetadata.addField(NXsample.NX_DESCRIPTION, "Test sample");
 		scanMetadata.add(sampleMetadata);
 		
 		ScanMetadata userMetadata = new ScanMetadata(MetadataType.USER);
-		userMetadata.addMetadataField(NXuser.NX_NAME, "testuser");
-		userMetadata.addMetadataField(NXuser.NX_ADDRESS, "Diamond Light Source, Diamond House, Harwell Science & Innovation Campus, Didcot, Oxfordshire, OX11 0DE");
-		userMetadata.addMetadataField(NXuser.NX_EMAIL, "user@diamond.ac.uk");
-		userMetadata.addMetadataField(NXuser.NX_TELEPHONE_NUMBER, "01");
+		userMetadata.addField(NXuser.NX_NAME, "testuser");
+		userMetadata.addField(NXuser.NX_ADDRESS, "Diamond Light Source, Diamond House, Harwell Science & Innovation Campus, Didcot, Oxfordshire, OX11 0DE");
+		userMetadata.addField(NXuser.NX_EMAIL, "user@diamond.ac.uk");
+		userMetadata.addField(NXuser.NX_TELEPHONE_NUMBER, "01");
 		scanMetadata.add(userMetadata);
 		
 		IRunnableDevice<ScanModel> scanner = createGridScan(detector, scanMetadata, 2, 2);
@@ -178,8 +178,9 @@ public class ScanMetadataTest extends NexusTest {
 			MetadataType type = scanMetadata.getType();
 			NXobject object = getNexusObjectForMetadataType(entry, type);
 			
-			for (String metadataFieldName : scanMetadata.getMetadataFieldNames()) {
-				Object expectedValue = scanMetadata.getMetadataFieldValue(metadataFieldName);
+			Map<String, Object> metadataFields = scanMetadata.getFields();
+			for (String metadataFieldName : metadataFields.keySet()) {
+				Object expectedValue = scanMetadata.getFieldValue(metadataFieldName);
 
 				Dataset dataset = DatasetUtils.convertToDataset(object.getDataset(metadataFieldName));
 				assertNotNull(dataset);

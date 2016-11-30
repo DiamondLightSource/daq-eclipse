@@ -9,7 +9,28 @@ public class SampleData {
 	
 	@FieldDescriptor(label="Description", hint="The description of the sample.\nWill be entered in the nexus file during scanning.", fieldPosition=2)
 	private String description;
+	
+	public SampleData() {
+		// no-arg constructor for spring initialization
+	}
+	
+	public SampleData(final String name, final String description) {
+		this.name = name;
+		this.description = description;
+	}
 
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String decription) {
+		this.description = decription;
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -38,17 +59,5 @@ public class SampleData {
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public String getDescription() {
-		return description;
-	}
-	public void setDescription(String decription) {
-		this.description = decription;
 	}
 }

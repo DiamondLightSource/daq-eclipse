@@ -361,8 +361,9 @@ public class NexusScanFileManager implements INexusScanFileManager {
 				// convert the ScanMetadata into a MapBasedMetadataProvider and add to the entry builder
 				NexusBaseClass category = getBaseClassForMetadataType(scanMetadata.getType());
 				MapBasedMetadataProvider metadataProvider = new MapBasedMetadataProvider(category);
-				for (String metadataFieldName : scanMetadata.getMetadataFieldNames()) {
-					Object value = scanMetadata.getMetadataFieldValue(metadataFieldName);
+				Map<String, Object> metadataFields = scanMetadata.getFields();
+				for (String metadataFieldName : metadataFields.keySet()) {
+					Object value = scanMetadata.getFieldValue(metadataFieldName);
 					metadataProvider.addMetadataEntry(metadataFieldName, value); 
 				}
 				
