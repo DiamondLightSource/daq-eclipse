@@ -33,12 +33,16 @@ import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
+import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.nexus.INexusScanFileManager;
 import org.eclipse.scanning.sequencer.nexus.NexusScanFileManagerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This device does a standard GDA scan at each point. If a given point is a 
@@ -50,7 +54,7 @@ import org.eclipse.scanning.sequencer.nexus.NexusScanFileManagerFactory;
  * 
  * @author Matthew Gerring
  */
-final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
+final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implements IPositionListener {
 	
 	// Scanning stuff
 	private IPositioner                          positioner;
@@ -60,6 +64,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	
 	// the nexus file
 	private INexusScanFileManager nexusScanFileManager = null;
+	
+	private static Logger logger = LoggerFactory.getLogger(AcquisitionDevice.class);
 	
 	/*
 	 * Concurrency design recommended by Keith Ralphs after investigating
@@ -79,6 +85,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 	 * 
 	 */
 	private CountDownLatch latch;
+	
+	/**
+	 * Variables used to monitor progress of inner scans
+	 */
+    private int outerSize = 0;
+    private int outerCount = 0;
+    private int innerSize = 0;
 		
 	/**
 	 * Package private constructor, devices are created by the service.
@@ -171,6 +184,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 				
 		CompoundModel<?> cmodel = getBean().getScanRequest()!=null ? getBean().getScanRequest().getCompoundModel() : null;
 		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), cmodel, model.getDetectors(), ServiceHolder.getGeneratorService());
+		manager.addContext(moderator);
 		
 		boolean errorFound = false;
 		IPosition pos = null;
@@ -185,18 +199,24 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
     		// Set the size and declare a count
     		final int size  = getSize(moderator.getOuterIterable());
     		int count = 0;
+    		outerSize = size;
 
     		fireStart(size);    		
 
     		// We allow monitors which can block a position until a setpoint is
     		// reached or add an extra record to the NeXus file.
     		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
+    		
+    		// Add the malcolm listners so that progress on inner malcolm scans can be reported
+    		addMalcolmListeners();
 
     		// The scan loop
         	pos = null; // We want the last point when we are done so don't use foreach
         	boolean firedFirst = false;
 	        for (IPosition position : moderator.getOuterIterable()) {
-				
+	        	outerCount = count;
+                innerSize = getSize(moderator.getInnerIterable());
+                
 	        	pos = position;
 	        	pos.setStepIndex(count);
 	        	
@@ -241,10 +261,45 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			throw new ScanningException(ne);
 			
 		} finally {
+			removeMalcolmListeners();
 			close(errorFound, pos);
 		}
 	}
-	
+
+	/**
+	 * Remove this from the list of position listeners for any Malcolm Device
+	 */
+	private void removeMalcolmListeners() {
+		try {
+			if (model.getDetectors() != null) {
+				// Make sure all devices report the same scan id
+				for (IRunnableDevice<?> device : model.getDetectors()) {
+					if (device.getRole() == DeviceRole.MALCOLM) {
+						AbstractRunnableDevice<?> ard = (AbstractRunnableDevice<?>) device;
+						ard.removePositionListener(this);
+					}
+				}
+			}
+		} catch (Exception ex) {
+			logger.error("Error removing listener", ex);
+		}
+	}
+
+	/**
+	 * Add this to the list of position listeners for any Malcolm Device
+	 * 
+	 */
+	private void addMalcolmListeners() {
+		if (model.getDetectors() != null) {
+			for (IRunnableDevice<?> device : model.getDetectors()) {
+				if (device.getRole() == DeviceRole.MALCOLM) {
+					AbstractRunnableDevice<?> ard = (AbstractRunnableDevice<?>) device;
+					ard.addPositionListener(this);
+				}
+			}
+		}
+	}
+
 	private void close(boolean errorFound, IPosition last) throws ScanningException {
 		try {
 			try {
@@ -480,6 +535,49 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			throw s;
 		} finally {
 			lock.unlock();
+		}
+	}
+
+	/**
+	 * Actions to perform on a position performed event
+	 */
+	@Override
+	public void positionPerformed(PositionEvent evt) throws ScanningException {
+		IPosition position = evt.getPosition();
+		try {
+			innerPositionPercentComplete(position.getStepIndex());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Calculate and set the position complete value on the scan bean based on an inner position
+	 * @param innerCount The count representing the progress of of the inner scan
+	 * @throws Exception
+	 */
+	private void innerPositionPercentComplete(int innerCount) throws Exception {
+
+		if (outerSize == 0 || innerSize == 0) return;
+		
+		double innerPercentComplete = 0;
+		if (innerCount > -1) {
+			innerPercentComplete = ((double) (innerCount + 1) / innerSize);
+		}
+		double outerPercentComplete = 0;
+		if (outerCount > -1) {
+			outerPercentComplete = ((double) (outerCount) / outerSize) * 100;
+		}
+		double innerPercentOfOuter = 100 / (double) outerSize;
+		innerPercentOfOuter *= innerPercentComplete;
+		outerPercentComplete += innerPercentOfOuter;
+
+		final ScanBean bean = getBean();
+		bean.setPercentComplete(outerPercentComplete);
+		bean.setMessage("Inner Point " + innerCount + " of " + innerSize);
+		
+		if (getPublisher() != null) {
+			getPublisher().broadcast(bean);
 		}
 	}
 
