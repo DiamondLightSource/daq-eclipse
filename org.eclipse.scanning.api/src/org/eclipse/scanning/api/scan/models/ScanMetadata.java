@@ -2,10 +2,9 @@ package org.eclipse.scanning.api.scan.models;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Encapsulates metadata about the scan associated with  
+ * Encapsulates metadata about the scan of a particular type, e.g. metadata about the sample.
  */
 public class ScanMetadata {
 	
@@ -22,33 +21,47 @@ public class ScanMetadata {
 	}
 	
 	/**
-	 * The type of the metadata.
+	 * The type of the metadata contained in this object.
 	 */
-	private final MetadataType type; 
+	private MetadataType type; 
 	
 	/**
-	 * A map from metadata name to value for the metadata contained within this object. 
+	 * A map from field name to value for the metadata contained within this object. 
 	 */
-	private final Map<String, Object> metadataFields = new HashMap<>();
+	private Map<String, Object> fields = new HashMap<>();
+	
+	public ScanMetadata() {
+		// no-args constructor for json marshalling
+	}
+	
+	public MetadataType getType() {
+		return type;
+	}
+
+	public void setType(MetadataType type) {
+		this.type = type;
+	}
 	
 	public ScanMetadata(MetadataType type) {
 		this.type = type;
 	}
 	
-	public void addMetadataField(String fieldName, Object value) {
-		metadataFields.put(fieldName, value);
+	public void addField(String fieldName, Object value) {
+		fields.put(fieldName, value);
 	}
 	
-	public Object getMetadataFieldValue(String fieldName) {
-		return metadataFields.get(fieldName);
+	public Object getFieldValue(String fieldName) {
+		return fields.get(fieldName);
 	}
 	
-	public Set<String> getMetadataFieldNames() {
-		return metadataFields.keySet();
+	public Map<String, Object> getFields() {
+		return fields;
 	}
 	
-	public MetadataType getType() {
-		return type;
+	@Deprecated
+	public void setFields(Map<String, Object> fields) {
+		// for use when marshalling, addField(String, Object) should be used in code
+		this.fields = fields;
 	}
 
 }

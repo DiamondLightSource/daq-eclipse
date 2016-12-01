@@ -60,6 +60,7 @@ import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.AxisConfiguration;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.event.Location;
+import org.eclipse.scanning.api.scan.models.ScanMetadata;
 import org.eclipse.scanning.api.scan.ui.ControlEnumNode;
 import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
@@ -92,6 +93,7 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, ScanEvent.class);
 		registerClass(tmp, SampleData.class);
 		registerClass(tmp, ScanRequest.class);
+		registerClass(tmp, ScanMetadata.class);
 		
 		// points
 		registerClass(tmp, StaticPosition.class);

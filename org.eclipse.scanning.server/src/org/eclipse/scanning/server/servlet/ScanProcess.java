@@ -242,9 +242,10 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			bean.setSize(estimator.getSize());
 			scanModel.setFilePath(bean.getFilePath());
 			
-			scanModel.setDetectors(getDetectors(bean, req.getDetectors()));
+			scanModel.setDetectors(getDetectors(req.getDetectors()));
 			scanModel.setMonitors(getScannables(req.getMonitorNames()));
 			scanModel.setMetadataScannables(getScannables(req.getMetadataScannableNames()));
+			scanModel.setScanMetadata(req.getScanMetadata());
 			scanModel.setBean(bean);
 			
 			configureDetectors(req.getDetectors(), scanModel, estimator, generator);
@@ -307,7 +308,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		device.abort();
 	}
 	
-	private List<IRunnableDevice<?>> getDetectors(ScanBean bean, Map<String, ?> detectors) throws EventException {
+	private List<IRunnableDevice<?>> getDetectors(Map<String, ?> detectors) throws EventException {
 		
 		if (detectors==null) return null;
 		try {
