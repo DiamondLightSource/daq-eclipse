@@ -1,7 +1,6 @@
 package org.eclipse.scanning.server.servlet;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -261,7 +260,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		}
 	}
 
-	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, ScanEstimator estimator, IPointGenerator<?> generator) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException {
+	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, ScanEstimator estimator, IPointGenerator<?> generator) throws Exception {
 		
 		ScanInformation info = new ScanInformation(estimator);
 		info.setScannableNames(getScannableNames(model.getPositionIterable()));

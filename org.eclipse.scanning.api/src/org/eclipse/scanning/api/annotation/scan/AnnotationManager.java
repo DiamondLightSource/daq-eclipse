@@ -15,8 +15,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.eclipse.scanning.api.IServiceResolver;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanInformation;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
  * 
@@ -177,9 +179,20 @@ public class AnnotationManager {
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException 
 	 */
-	public void invoke(Class<? extends Annotation> annotation, Object... context) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
-		final Collection<MethodWrapper> as = annotationMap.get(annotation);
-		if (as!=null) for (MethodWrapper wrapper : as) wrapper.invoke(context);
+	public void invoke(Class<? extends Annotation> annotation, Object... context) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException, EventException {
+		try {
+			final Collection<MethodWrapper> as = annotationMap.get(annotation);
+			if (as!=null) for (MethodWrapper wrapper : as) wrapper.invoke(context);
+			
+		} catch (InvocationTargetException wapperExceptioned) {
+		    Throwable supressed = wapperExceptioned.getTargetException();
+		    if (supressed!=null) {
+		    	// If they returned one of the scanning.api exceptions, throw this from the call.
+		    	if (supressed instanceof ScanningException) throw (ScanningException)supressed;
+		    	if (supressed instanceof EventException) throw (EventException)supressed;
+		    }
+		    throw wapperExceptioned;
+		}
 	}
 	
 	private class MethodWrapper {
@@ -227,10 +240,7 @@ public class AnnotationManager {
 			
 			if (arguments!=null) { // Put the context into the args (if there are any)
 				
-				List<Object> context = new ArrayList<>();
-				if (extraContext!=null) context.addAll(extraContext);
-				if (objects!=null && objects.length>0) context.addAll(Arrays.asList(objects));
-				
+				List<Object> context = getContext(objects);
 				for (int i = 0; i < context.size(); i++) {
 					
 				    final Collection<Class<?>> classes = getCachedClasses(context.get(i));
@@ -275,6 +285,13 @@ public class AnnotationManager {
 		return classes;
 	}
 	
+	public List<Object> getContext(Object[] objects) {
+		List<Object> context = new ArrayList<>();
+		if (extraContext!=null) context.addAll(extraContext);
+		if (objects!=null && objects.length>0) context.addAll(Arrays.asList(objects));
+		return context;
+	}
+
 	/**
 	 * 
 	 * @param object

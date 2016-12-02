@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -34,11 +35,12 @@ import org.slf4j.LoggerFactory;
     {@literal <!--  Watchdog Expression Example -->}
 	{@literal <bean id="expressionModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">}
 	{@literal 	<property name="expression"   value="beamcurrent >= 1.0 &amp;&amp; !portshutter.equalsIgnoreCase(&quot;Closed&quot;)"/>}
-    {@literal     <property name="bundle"       value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->}
+	{@literal 	<property name="message"      value="Beam has been lost"/>}
+    {@literal   <property name="bundle"       value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->}
 	{@literal </bean>}
 	{@literal <bean id="expressionWatchdog" class="org.eclipse.scanning.sequencer.watchdog.ExpressionWatchdog" init-method="activate">}
-	{@literal 	<property name="model"             ref="expressionModel"/>}
-    {@literal     <property name="bundle"            value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->}
+	{@literal 	<property name="model"        ref="expressionModel"/>}
+    {@literal   <property name="bundle"       value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->}
 	{@literal </bean>}
 
  * 
@@ -94,6 +96,7 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 		if (requirePause) {
 			if (!ok) {
 				logger.debug("Expression Watchdog pausing on "+device.getName());
+				bean.setMessage(model.getMessage());
 				device.pause();
 			} else {
 				logger.debug("Expression Watchdog resuming on "+device.getName());
@@ -109,7 +112,8 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 	}
 	
 	@ScanStart
-	public void start() throws ScanningException {
+	public void start(ScanBean bean) throws ScanningException {
+		setBean(bean);
 		logger.debug("Expression Watchdog starting on "+device.getName());
 		try {
 		    this.engine = getExpressionService().getExpressionEngine();
@@ -128,7 +132,7 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 		    
 		    // Check it
 		    boolean ok = checkExpression(false);
-		    if (!ok) throw new ScanningException("The expression '"+model.getExpression()+"' is false and a scan may not be run!");
+		    if (!ok) throw new ScanningException(model.getMessage()+". The expression '"+model.getExpression()+"' is false and a scan may not be run!");
 		    
 		    // Listen to it
 		    for (IScannable<?> scannable : scannables) {
