@@ -197,10 +197,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		final int size  = getSize(moderator.getOuterIterable());
+    		final int size  = getEstimatedSize(moderator.getOuterIterable());
     		int count = 0;
     		outerSize = size;
-            innerSize = getSize(moderator.getInnerIterable());
+            innerSize = getEstimatedSize(moderator.getInnerIterable());
 
     		fireStart(size);    		
 
@@ -261,7 +261,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			throw new ScanningException(ne);
 			
 		} finally {
-			removeMalcolmListeners();
 			close(errorFound, pos);
 		}
 	}
@@ -303,6 +302,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	private void close(boolean errorFound, IPosition last) throws ScanningException {
 		try {
 			try {
+				try {
+					removeMalcolmListeners();
+				} catch (Exception ex) {
+					logger.warn("Error during removing Malcolm listeners", ex);
+				}
 				positioner.close();
 				runners.close();
 				writers.close();
@@ -581,7 +585,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		}
 	}
 
-	private int getSize(Iterable<IPosition> gen) throws GeneratorException {
+	private int getEstimatedSize(Iterable<IPosition> gen) throws GeneratorException {
 		
 		int size=0;
 		if (gen instanceof IDeviceDependentIterable) {
