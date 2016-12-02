@@ -54,6 +54,9 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		register(new MockPausingMonitor("pauser", 10d,  -1));
 		register(new MockTopupScannable("topup", 1000));
+		register(new MockScannable("beamcurrent", 5d,  1, "V"));
+		register(new MockStringScannable("portshutter", "Open"));
+		
 		register(new MockScannable("period", 1000d, 1, "ms"));
 		register(new MockBeanOnMonitor("beamon", 10d, 1));
 		register(new MockScannable("bpos",  0.001,  -1));
@@ -64,24 +67,24 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		register(new MockScannable("q", 10d, 2, "µm"));
 		register(new MockScannable("r", 10d, 2, "µm"));
 		
-		MockScannable x = new MockNeXusScannable("x", 0d,  3, "�m");
+		MockScannable x = new MockNeXusScannable("x", 0d,  3, "mm");
 		x.setRealisticMove(true);
 		x.setRequireSleep(false);
 		x.setMoveRate(10000); // �m/s or 1 cm/s
 		register(x);
 		
-		MockScannable y = new MockNeXusScannable("y", 0d,  3, "�m");
+		MockScannable y = new MockNeXusScannable("y", 0d,  3, "mm");
 		y.setRealisticMove(true);
 		y.setMoveRate(100); // �m/s, faster than real?
 		register(y);
 		
-		x = new MockNeXusScannable("stage_x", 0d,  3, "�m");
+		x = new MockNeXusScannable("stage_x", 0d,  3, "mm");
 		x.setRealisticMove(true);
 		x.setRequireSleep(false);
 		x.setMoveRate(10000); // �m/s or 1 cm/s
 		register(x);
 		
-		y = new MockNeXusScannable("stage_y", 0d,  3, "�m");
+		y = new MockNeXusScannable("stage_y", 0d,  3, "mm");
 		y.setRealisticMove(true);
 		y.setMoveRate(100); // �m/s, faster than real?
 		register(y);
