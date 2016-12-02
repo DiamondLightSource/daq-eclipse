@@ -95,9 +95,9 @@ public class EmergencyExpressionEngine implements IExpressionEngine{
 
 
 	@Override
-	public Object evaluate() throws Exception {
+	public <T> T evaluate() throws Exception {
 		checkAndCreateContext();
-		return expression.evaluate(context);
+		return (T)expression.evaluate(context);
 	}
 	
 	@Override
