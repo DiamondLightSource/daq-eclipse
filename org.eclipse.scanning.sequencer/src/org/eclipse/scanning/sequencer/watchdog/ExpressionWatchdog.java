@@ -24,6 +24,20 @@ import org.slf4j.LoggerFactory;
  * Monitors an expression of scannables and if one of the values changes, reevaluates the
  * expression.
  * 
+ 
+  Example XML configuration
+    <pre>
+    {@literal <!--  Watchdog Expression Example -->}
+	{@literal <bean id="expressionModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">}
+	{@literal 	<property name="expression"   value="beamcurrent >= 1.0 &amp;&amp; !portshutter.equalsIgnoreCase(&quot;Closed&quot;)"/>}
+    {@literal     <property name="bundle"       value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->}
+	{@literal </bean>}
+	{@literal <bean id="expressionWatchdog" class="org.eclipse.scanning.sequencer.watchdog.ExpressionWatchdog" init-method="activate">}
+	{@literal 	<property name="model"             ref="expressionModel"/>}
+    {@literal     <property name="bundle"            value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->}
+	{@literal </bean>}
+
+ * 
  * @author Matthew Gerring
  *
  */

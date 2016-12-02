@@ -480,7 +480,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	public void pause() throws ScanningException {
 		
 		if (getDeviceState() != DeviceState.RUNNING) {
-			throw new ScanningException(this, getName()+" is not running and cannot be paused!");
+			throw new ScanningException(this, getName()+" is not running and cannot be paused! The state is "+getDeviceState());
 		}
 		try {
 			lock.lockInterruptibly();

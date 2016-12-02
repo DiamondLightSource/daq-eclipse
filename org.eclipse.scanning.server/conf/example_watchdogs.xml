@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!--  Watchdog Example -->
+	<!--  Watchdog Topup Example -->
 	<bean id="topupModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">
 		<property name="countdownName"          value="topup"/>
 		<property name="periodName"             value="period"/>
@@ -16,5 +16,16 @@
         <property name="bundle"            value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->
 	</bean>
 
+	<!--  Watchdog Expression Example -->
+	<bean id="expressionModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">
+	    <!-- In the expression:   & is &amp;   and   " is &quot; -->
+	    <!-- So the expression is really:   beamcurrent >= 1.0 && !portshutter.equalsIgnoreCase("Closed")  -->
+		<property name="expression"   value="beamcurrent >= 1.0 &amp;&amp; !portshutter.equalsIgnoreCase(&quot;Closed&quot;)"/>
+        <property name="bundle"       value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->
+	</bean>
+	<bean id="expressionWatchdog" class="org.eclipse.scanning.sequencer.watchdog.ExpressionWatchdog" init-method="activate">
+		<property name="model"             ref="expressionModel"/>
+        <property name="bundle"            value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->
+	</bean>
 
 </beans>
