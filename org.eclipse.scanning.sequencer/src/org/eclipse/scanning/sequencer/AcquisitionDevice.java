@@ -200,6 +200,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
     		final int size  = getSize(moderator.getOuterIterable());
     		int count = 0;
     		outerSize = size;
+            innerSize = getSize(moderator.getInnerIterable());
 
     		fireStart(size);    		
 
@@ -215,7 +216,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
         	boolean firedFirst = false;
 	        for (IPosition position : moderator.getOuterIterable()) {
 	        	outerCount = count;
-                innerSize = getSize(moderator.getInnerIterable());
                 
 	        	pos = position;
 	        	pos.setStepIndex(count);
