@@ -39,14 +39,12 @@ class MalcolmNexusObjectBuilder<M extends IMalcolmModel> {
 	
 	// The name (last segment only) of the malcolm output dir
 	private final String malcolmOutputDirName;
-	private final String malcolmOutputDir; // TODO remove when DAQ-369 fixed and we can use relative paths
 	
 	private final Map<String, NexusObjectWrapper<NXobject>> nexusWrappers;
 	
 	MalcolmNexusObjectBuilder(AbstractMalcolmDevice<M> malcolmDevice) {
 		this.malcolmDevice = malcolmDevice;
 		nexusWrappers = new HashMap<>();
-		malcolmOutputDir = malcolmDevice.getModel().getFileDir();
 		malcolmOutputDirName = new File(malcolmDevice.getModel().getFileDir()).getName();
 	}
 	
@@ -81,8 +79,7 @@ class MalcolmNexusObjectBuilder<M extends IMalcolmModel> {
 
 			// create the external link to the hdf5 file written by the malcolm device
 			// TODO: use relative path when bug with loading relative external links is fixed
-//			final String externalFilePath = malcolmOutputDirName + "/" + externalFileName; // path relative to parent dir of scan file
-			final String externalFilePath = malcolmOutputDir + "/" + externalFileName; // path relative to parent dir of scan file
+			final String externalFilePath = malcolmOutputDirName + "/" + externalFileName; // path relative to parent dir of scan file
 			nexusWrapper.addExternalLink(nexusObject, datasetName, externalFilePath,
 					datasetPath, datasetRank);
 			
