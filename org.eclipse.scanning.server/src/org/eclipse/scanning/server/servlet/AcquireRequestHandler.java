@@ -99,7 +99,7 @@ public class AcquireRequestHandler implements IResponseProcess<AcquireRequest> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void configureDetector(IRunnableDevice<?> detector, Object detectorModel) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException {
+	private void configureDetector(IRunnableDevice<?> detector, Object detectorModel) throws Exception {
 		AnnotationManager manager = new AnnotationManager(Activator.createResolver());
 		manager.addDevices(detector);
 		

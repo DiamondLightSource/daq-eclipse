@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.eclipse.scanning.device.ui.util;
+package org.eclipse.scanning.sequencer.expression;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ import org.eclipse.dawnsci.analysis.api.expressions.IExpressionEngine;
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionEngineListener;
 import org.eclipse.january.IMonitor;
 
-public class EmergencyExpressionEngine implements IExpressionEngine{
+public class VanillaExpressionEngine implements IExpressionEngine{
 	
 	private JexlEngine jexl;
 	private Expression expression;
@@ -40,7 +40,7 @@ public class EmergencyExpressionEngine implements IExpressionEngine{
 	private HashSet<IExpressionEngineListener> expressionListeners;
 	private Callable<Object> callable;
 	
-	public EmergencyExpressionEngine() {
+	public VanillaExpressionEngine() {
 		//Create the Jexl engine with the DatasetArthmetic object to allows basic
 		//mathematical calculations to be performed on Datasets
 		jexl = new JexlEngine();
@@ -242,7 +242,7 @@ public class EmergencyExpressionEngine implements IExpressionEngine{
 					Future<Object> future = service.submit(callable);
 
 					Object result = future.get();
-					ExpressionEngineEvent event = new ExpressionEngineEvent(EmergencyExpressionEngine.this, result, exp);
+					ExpressionEngineEvent event = new ExpressionEngineEvent(VanillaExpressionEngine.this, result, exp);
 					fireExpressionListeners(event);
 					return;
 
@@ -250,10 +250,10 @@ public class EmergencyExpressionEngine implements IExpressionEngine{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (Exception e) {
-					ExpressionEngineEvent event = new ExpressionEngineEvent(EmergencyExpressionEngine.this, e, exp);
+					ExpressionEngineEvent event = new ExpressionEngineEvent(VanillaExpressionEngine.this, e, exp);
 					fireExpressionListeners(event);
 				}
-				ExpressionEngineEvent event = new ExpressionEngineEvent(EmergencyExpressionEngine.this, null, exp);
+				ExpressionEngineEvent event = new ExpressionEngineEvent(VanillaExpressionEngine.this, null, exp);
 				fireExpressionListeners(event);
 
 				return;

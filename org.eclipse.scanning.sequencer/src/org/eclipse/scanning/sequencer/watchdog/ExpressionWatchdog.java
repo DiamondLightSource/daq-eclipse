@@ -11,11 +11,16 @@ import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListenable;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +35,12 @@ import org.slf4j.LoggerFactory;
     {@literal <!--  Watchdog Expression Example -->}
 	{@literal <bean id="expressionModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">}
 	{@literal 	<property name="expression"   value="beamcurrent >= 1.0 &amp;&amp; !portshutter.equalsIgnoreCase(&quot;Closed&quot;)"/>}
-    {@literal     <property name="bundle"       value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->}
+	{@literal 	<property name="message"      value="Beam has been lost"/>}
+    {@literal   <property name="bundle"       value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->}
 	{@literal </bean>}
 	{@literal <bean id="expressionWatchdog" class="org.eclipse.scanning.sequencer.watchdog.ExpressionWatchdog" init-method="activate">}
-	{@literal 	<property name="model"             ref="expressionModel"/>}
-    {@literal     <property name="bundle"            value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->}
+	{@literal 	<property name="model"        ref="expressionModel"/>}
+    {@literal   <property name="bundle"       value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->}
 	{@literal </bean>}
 
  * 
@@ -50,8 +56,7 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 	private IPosition         lastCompletedPoint;
 
 
-	private List<IScannable<?>> scannables;
-	
+	private List<IScannable<?>>       scannables;
 	private static IExpressionService expressionService;
 
 	public ExpressionWatchdog() {
@@ -79,30 +84,36 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 			if (pos.getNames().size()!=1) return;
 			String name = pos.getNames().get(0);
 			engine.addLoadedVariable(name, pos.get(name));
-			checkExpression();
+			checkExpression(true);
 					
 		} catch (Exception ne) {
 			logger.error("Cannot process position "+evt, ne);
 		}	
 	}
-	private void checkExpression() throws Exception {
+	private boolean checkExpression(boolean requirePause) throws Exception {
 		Boolean ok = engine.evaluate();
-		if (!ok) {
-			logger.debug("Expression Watchdog pausing on "+device.getName());
-			device.pause();
-		} else {
-			logger.debug("Expression Watchdog resuming on "+device.getName());
-			if (lastCompletedPoint!=null) {
-				logger.debug("Expression Watchdog seeking on "+device.getName());
-				device.seek(lastCompletedPoint.getStepIndex());
+		
+		if (requirePause) {
+			if (!ok) {
+				logger.debug("Expression Watchdog pausing on "+device.getName());
+				bean.setMessage(model.getMessage());
+				device.pause();
+			} else {
+				logger.debug("Expression Watchdog resuming on "+device.getName());
+				if (lastCompletedPoint!=null) {
+					logger.debug("Expression Watchdog seeking on "+device.getName());
+					device.seek(lastCompletedPoint.getStepIndex());
+				}
+				device.resume();
+				logger.debug("Expression Watchdog resumed on "+device.getName());
 			}
-			device.resume();
-			logger.debug("Expression Watchdog resumed on "+device.getName());
 		}
+		return ok;
 	}
 	
 	@ScanStart
-	public void start() {
+	public void start(ScanBean bean) throws ScanningException {
+		setBean(bean);
 		logger.debug("Expression Watchdog starting on "+device.getName());
 		try {
 		    this.engine = getExpressionService().getExpressionEngine();
@@ -115,11 +126,21 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 				scannables.add(scannable);
 				
 			    if (!(scannable instanceof IPositionListenable)) throw new ScanningException(name+" is not a position listenable!");
-			    ((IPositionListenable)scannable).addPositionListener(this);
 
 				engine.addLoadedVariable(scannable.getName(), scannable.getPosition());
 		    }
 		    
+		    // Check it
+		    boolean ok = checkExpression(false);
+		    if (!ok) throw new ScanningException(model.getMessage()+". The expression '"+model.getExpression()+"' is false and a scan may not be run!");
+		    
+		    // Listen to it
+		    for (IScannable<?> scannable : scannables) {
+			    ((IPositionListenable)scannable).addPositionListener(this);
+			}
+		    
+		} catch (ScanningException ne) {
+			throw ne; // If there is something badly wrong a proper scanning exception will be prepared and thrown
 		} catch (Exception ne) {
 			logger.error("Cannot start watchdog!", ne);
 		}
@@ -147,11 +168,25 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 		logger.debug("Expression Watchdog stopped on "+device.getName());
 	}
 	
-	public static IExpressionService getExpressionService() {
+	
+	private BundleContext bcontext;
+	
+	public IExpressionService getExpressionService() {
+		if (expressionService==null) {
+			ServiceReference<IExpressionService> ref = bcontext.getServiceReference(IExpressionService.class);
+			if (ref!=null) expressionService = bcontext.getService(ref);
+		}
 		return expressionService;
 	}
-	public static void setExpressionService(IExpressionService eservice) {
+	public void setExpressionService(IExpressionService eservice) {
 		ExpressionWatchdog.expressionService = eservice;
+	}
+	public static void setTestExpressionService(ServerExpressionService eservice) {
+		expressionService = eservice;
+	}
+	
+	public void start(ComponentContext context) {
+		this.bcontext = context.getBundleContext();
 	}
 
 }

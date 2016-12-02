@@ -28,7 +28,6 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.eclipse.scanning.device.ui.util.EmergencyExpressionService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
@@ -37,6 +36,7 @@ import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.ServiceHolder;
+import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
 import org.eclipse.scanning.sequencer.watchdog.DeviceWatchdogService;
 import org.eclipse.scanning.sequencer.watchdog.ExpressionWatchdog;
 import org.eclipse.scanning.test.ScanningTestClassRegistry;
@@ -100,7 +100,7 @@ public class BeamMonitorTest {
 		assertNotNull(connector.getScannable("beamcurrent"));
 		assertNotNull(connector.getScannable("portshutter"));
 
-		ExpressionWatchdog.setExpressionService(new EmergencyExpressionService());
+		ExpressionWatchdog.setTestExpressionService(new ServerExpressionService());
 
 		IDeviceWatchdogService wservice = new DeviceWatchdogService();
 		ServiceHolder.setWatchdogService(wservice);
