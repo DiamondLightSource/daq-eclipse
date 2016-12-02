@@ -415,11 +415,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> {
 			lock.unlock();
 		}
 	}
-	
-	@Override
-	public void disable() throws ScanningException {
-		// TODO Matt Gerring to implement this: call abort on all children
-	}
 
 	@Override
 	public void pause() throws ScanningException {

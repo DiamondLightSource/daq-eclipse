@@ -7,7 +7,7 @@
    <reference bind="setLoaderService" cardinality="0..1" interface="org.eclipse.dawnsci.analysis.api.io.ILoaderService" name="ILoaderService" policy="dynamic"/>
    <reference bind="setEventService" cardinality="0..1" interface="org.eclipse.scanning.api.event.IEventService" name="IEventService" policy="dynamic"/>
    <reference bind="setFilePathService" cardinality="0..1" interface="org.eclipse.scanning.api.scan.IFilePathService" name="IFilePathService" policy="dynamic"/>
-   <reference bind="setRunnableDeviceService" cardinality="0..1" interface="org.eclipse.scanning.api.device" name="IRunnableDeviceService" policy="dynamic"/>
    <reference bind="setGeneratorService" cardinality="0..1" interface="org.eclipse.scanning.api.points.IPointGeneratorService" name="IPointGeneratorService" policy="dynamic"/>
-   <reference bind="setWatchdogService" cardinality="0..1" interface="org.eclipse.scanning.api.device.IDeviceWatchdogService" name="IDeviceWatchdogService" policy="dynamic"/>
+   <reference bind="setRunnableDeviceService" cardinality="1..1" interface="org.eclipse.scanning.api.device.IRunnableDeviceService" name="IRunnableDeviceService" policy="static"/>
+   <reference bind="setWatchdogService" cardinality="1..1" interface="org.eclipse.scanning.api.device.IDeviceWatchdogService" name="IDeviceWatchdogService" policy="static"/>
 </scr:component>
