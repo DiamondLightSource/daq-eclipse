@@ -60,6 +60,11 @@ public interface IDeviceWatchdog extends IModelProvider<DeviceWatchdogModel> {
 	 */
 	void activate();
 	
+    /**
+	 * Make this device inactive
+	 */
+	void deactivate();
+	
 	/**
 	 * Called by the framework when a device is created to run with a specific scan.
 	 * @param device

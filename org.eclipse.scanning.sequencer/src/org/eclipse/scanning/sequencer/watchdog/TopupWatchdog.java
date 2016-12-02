@@ -1,21 +1,15 @@
 package org.eclipse.scanning.sequencer.watchdog;
 
-import java.util.concurrent.TimeUnit;
-
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
-import org.eclipse.scanning.api.device.IDeviceWatchdog;
-import org.eclipse.scanning.api.device.IPausableDevice;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListenable;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
-import org.eclipse.scanning.sequencer.ServiceHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,35 +48,45 @@ SR-CS-FILL-01:ENDCOUNTDN: this is an integer counter that runs to zero
 at the end of TopUp fill and resets immediately to an estimate of the 
 time before the end of the next TopUp fill.
 </pre>
- * 
+ 
+ Example XML configuration
+    <pre>
+    {@literal <!--  Watchdog Example -->}
+	{@literal <bean id="topupModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">}
+	{@literal 	<property name="countdownName"          value="topup"/>}
+	{@literal 	<property name="periodName"             value="period"/>}
+	{@literal 	<property name="cooloff"                value="4000"/>}
+	{@literal 	<property name="warmup"                 value="5000"/>}
+    {@literal     <property name="bundle"                 value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->}
+	{@literal </bean>}
+	{@literal <bean id="topupWatchdog" class="org.eclipse.scanning.sequencer.watchdog.TopupWatchdog" init-method="activate">}
+	{@literal 	<property name="model"             ref="topupModel"/>}
+    {@literal     <property name="bundle"            value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->}
+	{@literal </bean>}
+    </pre>
+ 
  * @author Matthew Gerring
  *
  */
-public class TopupWatchdog implements IDeviceWatchdog, IPositionListener {
+public class TopupWatchdog extends AbstractWatchdog implements IPositionListener {
 	
 	private static Logger logger = LoggerFactory.getLogger(TopupWatchdog.class);
 
-	private DeviceWatchdogModel model;
-	private IPausableDevice<?>  device;
 	private String              countdownUnit;
 	private String              periodUnit;
 	private volatile IPosition lastCompletedPoint;
 	
 	public TopupWatchdog() {
-		
+		super();
 	}
 	public TopupWatchdog(DeviceWatchdogModel model) {
-		this.model = model;
-	}
-	public DeviceWatchdogModel getModel() {
-		return model;
-	}
-	public void setModel(DeviceWatchdogModel model) {
-		this.model = model;
+		super(model);
 	}
 	
 	/**
 	 * Called on a thread when the position changes.
+	 * The coutndown is likely to report at 10Hz. TODO Check if this is ok during a scan and does not
+	 * use too much CPU.
 	 */
 	public void positionChanged(PositionEvent evt) {
 		try {
@@ -116,6 +120,9 @@ public class TopupWatchdog implements IDeviceWatchdog, IPositionListener {
 			logger.trace("Event '"+model.getCountdownName()+"'@"+pos+" has been ignored.");
 			return;
 		}
+		
+		// It's 10Hz don't write much in here other than
+		// simple tests or FPE's
 		try {
 			busy = true;
 			if (pos<=model.getCooloff()) {
@@ -144,19 +151,6 @@ public class TopupWatchdog implements IDeviceWatchdog, IPositionListener {
 		}
 	}
 	
-	private static TimeUnit getTimeUnit(String unit) {
-		TimeUnit tu = TimeUnit.SECONDS;
-		if (unit!=null) {
-			if ("s".equalsIgnoreCase(unit))  tu = TimeUnit.SECONDS;
-			if ("seconds".equalsIgnoreCase(unit))  tu = TimeUnit.SECONDS;
-			if ("ms".equalsIgnoreCase(unit)) tu = TimeUnit.MILLISECONDS;
-			if ("milliseconds".equalsIgnoreCase(unit)) tu = TimeUnit.MILLISECONDS;
-			if ("m".equalsIgnoreCase(unit)) tu = TimeUnit.MINUTES;
-			if ("min".equalsIgnoreCase(unit)) tu = TimeUnit.MINUTES;
-		}
-		return tu;
-	}
-	
 	@ScanStart
 	public void start() {
 		logger.debug("Watchdog starting on "+device.getName());
@@ -174,7 +168,7 @@ public class TopupWatchdog implements IDeviceWatchdog, IPositionListener {
 		    }
 		    
 		} catch (ScanningException ne) {
-			logger.error("Cannot start watchdog!");
+			logger.error("Cannot start watchdog!", ne);
 		}
 		logger.debug("Watchdog started on "+device.getName());
 	} 
@@ -192,47 +186,9 @@ public class TopupWatchdog implements IDeviceWatchdog, IPositionListener {
 		    ((IPositionListenable)topup).removePositionListener(this);
 		    
 		} catch (ScanningException ne) {
-			logger.error("Cannot stop watchdog!");
+			logger.error("Cannot stop watchdog!", ne);
 		}
 		logger.debug("Watchdog stopped on "+device.getName());
-	}
-	
-	private long getValue(PositionEvent evt, String name, String unit) {
-		double pos = evt.getPosition().getValue(name);
-		return getValue(pos, unit);
-	}
-
-	private long getValue(String name, String unit) throws Exception {
-	    IScannable<Number> scannable = getScannable(name);
-		return getValue(scannable.getPosition().doubleValue(), unit);
-	}
-
-	private long getValue(double pos, String unit) {
-		TimeUnit tu = getTimeUnit(unit);
-		return tu.toMillis(Math.round(pos)); // Assuming that they do not use double and seconds and assume fraction is maintained.
-	}
-
-	private <T> IScannable<T> getScannable(String name) throws ScanningException {
-		IScannableDeviceService cservice = ServiceHolder.getRunnableDeviceService().getDeviceConnectorService();
-		return cservice.getScannable(name);
-	}
-
-	/**
-	 * Used by spring
-	 */
-	@Override
-	public void activate() {
-		ServiceHolder.getWatchdogService().register(this);
-	}
-	public void deactivate() {
-		ServiceHolder.getWatchdogService().unregister(this);
-	}
-	public IPausableDevice<?> getDevice() {
-		return device;
-	}
-	@Override
-	public void setDevice(IPausableDevice<?> device) {
-		this.device = device;
 	}
 	public String getCountdownUnit() {
 		return countdownUnit;
