@@ -2,6 +2,7 @@ package org.eclipse.scanning.malcolm.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -83,9 +84,11 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	
 	private MalcolmEventBean meb;
 	
-	private Iterable<IPosition> scanPositions;
+	private Iterator<IPosition> scanPositionIterator;
 	
 	private long lastBroadcastTime = System.currentTimeMillis();
+	
+	private int lastUpdateCount = 0;
 	
 	private final long POSITION_COMPLETE_TIMEOUT = 250; // broadcast every 250 milliseconds
 
@@ -159,7 +162,8 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	 */
     @PointStart
     public void scanPoint(SubscanModerator moderator) {
-        scanPositions = moderator.getInnerIterable();
+    	Iterable<IPosition> scanPositions = moderator.getInnerIterable();
+        scanPositionIterator = scanPositions.iterator();
     }
 
 	protected void sendScanEvent(MalcolmEvent<MalcolmMessage> e) throws Exception {
@@ -188,21 +192,25 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		}
 		
 		// Fire a position complete only if it's past the timeout value
-		if (newPoint && scanPositions != null) {
-			int scanPosCount = 0;
+		if (newPoint && scanPositionIterator != null) {
 			long currentTime = System.currentTimeMillis();
 			
-			if (currentTime - lastBroadcastTime >= POSITION_COMPLETE_TIMEOUT) {
+			int positionDiff = point - lastUpdateCount;
 			
-	            for (IPosition scanPosition : scanPositions) {
-	            	if (scanPosCount == point) {
-	            		scanPosition.setStepIndex(scanPosCount);
-	                	firePositionComplete(scanPosition);
-	                    break;
-	                }
-	            	scanPosCount++;
-	        	}
-	            lastBroadcastTime = currentTime;
+			IPosition scanPosition = null;
+			for (int i = 0; i < positionDiff; i++) {
+				if (scanPositionIterator.hasNext()) {
+					scanPosition = scanPositionIterator.next();
+				}
+			}
+			
+			lastUpdateCount = point;
+			
+			if (scanPosition != null && currentTime - lastBroadcastTime >= POSITION_COMPLETE_TIMEOUT) {
+				scanPosition.setStepIndex(point);
+            	firePositionComplete(scanPosition);
+            	
+	            lastBroadcastTime = System.currentTimeMillis();
 			}
 		}
 		
@@ -331,7 +339,8 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	 * Reset any variables used in counting progress
 	 */
 	private void resetProgressCounting() {
-		scanPositions = null;
+		scanPositionIterator = null;
+		lastUpdateCount = 0;
 	}
 
 	private EpicsMalcolmModel createEpicsMalcolmModel(M model) {
