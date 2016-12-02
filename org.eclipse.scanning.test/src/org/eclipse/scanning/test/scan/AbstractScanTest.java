@@ -500,9 +500,9 @@ public class AbstractScanTest extends BrokerTest {
 		IRunnableDevice<ScanModel> scanner = dservice.createRunnableDevice(smodel);
 		scanner.run(null);
 
-		// Check that using IDeviceDependentIterable, five means five.
+		// Check that using IDeviceDependentIterable, five means ten. (ten because it's used before to calculate the size of the scan)
 		assertTrue("The iterator should be asked "+iterable.size()+" times for position and is was asked "+iterable.getTotalPositions(),
-				    iterable.getTotalPositions()==iterable.size());
+				    iterable.getTotalPositions()==iterable.size()*2);
 	}
 
 	private class PausingIterable implements Iterable<IPosition>, IDeviceDependentIterable {
