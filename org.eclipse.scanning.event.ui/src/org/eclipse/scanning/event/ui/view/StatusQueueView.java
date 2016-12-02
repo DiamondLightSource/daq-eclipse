@@ -182,7 +182,6 @@ public class StatusQueueView extends EventConnectionView {
 				updateSelected();
 			}
 		});
-
 	}
 	
 	protected void updateSelected() {
@@ -690,7 +689,8 @@ public class StatusQueueView extends EventConnectionView {
 		// TODO FIXME Change to IScanBuilderService not selections so that it works with e4.
 		// We fire a special object into the selection mechanism with the data for this run.
 		// It is then up to parts to respond to this selection and update their contents.
-		selectionProvider.setSelection(new StructuredSelection(new OpenRequest(bean)));
+		// We call fireSelection as the openRequest isn't in the table. This sets the workb
+		selectionProvider.fireSelection(new StructuredSelection(new OpenRequest(bean)));
 	}
 
 	/**

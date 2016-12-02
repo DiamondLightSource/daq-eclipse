@@ -7,6 +7,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TableViewer;
 
 class DelegatingSelectionProvider implements ISelectionProvider, ISelectionChangedListener {
 
@@ -25,8 +26,10 @@ class DelegatingSelectionProvider implements ISelectionProvider, ISelectionChang
 	}
 	
 	/**
-	 * Call to programmatically fire a selection.
-	 * @param selection
+	 * Call to programmatically fire a selection. This should be called directly from outside
+	 * this class to set the workbench selection when the elements in the selection are not
+	 * in the wrapped selection provider (e.g. a {@link TableViewer}).
+	 * @param selection selection to fire
 	 */
 	public void fireSelection(ISelection selection) {
 		if (listeners.isEmpty()) return;
@@ -57,7 +60,7 @@ class DelegatingSelectionProvider implements ISelectionProvider, ISelectionChang
 	public void setSelection(ISelection selection) {
 		wrapped.setSelection(selection); // Causes listeners to fire
 	}
-
+	
 	public void dispose() {
 		wrapped.removeSelectionChangedListener(this);
 		listeners.clear();
