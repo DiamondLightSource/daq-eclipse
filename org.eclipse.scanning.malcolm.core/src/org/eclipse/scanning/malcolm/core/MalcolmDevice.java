@@ -3,6 +3,7 @@ package org.eclipse.scanning.malcolm.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -363,8 +364,9 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	
 	@Override
 	public void seek(int stepNumber) throws MalcolmDeviceException {
-		// TODO FIXME - Is this correct?
-		final MalcolmMessage msg   = connectionDelegate.createCallMessage("seek", stepNumber);
+		LinkedHashMap<String, Integer> seekParameters = new LinkedHashMap<>();
+		seekParameters.put(CURRENT_STEP_ENDPOINT, stepNumber);
+		final MalcolmMessage msg   = connectionDelegate.createCallMessage("seek", seekParameters);
 		final MalcolmMessage reply = connector.send(this, msg);
 		if (reply.getType()==Type.ERROR) {
 			throw new MalcolmDeviceException(reply.getMessage());
