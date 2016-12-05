@@ -7,6 +7,7 @@ import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.sequencer.ServiceHolder;
@@ -15,6 +16,7 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	
 	protected DeviceWatchdogModel model;
 	protected IPausableDevice<?>  device;
+	protected ScanBean bean;
 
 	public AbstractWatchdog() {
 		this(null);
@@ -80,6 +82,12 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	@Override
 	public void setDevice(IPausableDevice<?> device) {
 		this.device = device;
+	}
+	public ScanBean getBean() {
+		return bean;
+	}
+	public void setBean(ScanBean bean) {
+		this.bean = bean;
 	}
 
 }

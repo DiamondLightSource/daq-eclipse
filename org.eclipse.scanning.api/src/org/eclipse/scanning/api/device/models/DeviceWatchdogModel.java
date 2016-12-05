@@ -48,6 +48,7 @@ public class DeviceWatchdogModel {
 	 * available through the IExpressionService. Any expression
 	 */
 	private String expression; // e.g. 'beamcurrent >= 1.0 && !portshutter.equalsIgnoreCase("Closed")'
+	private String message;
 	
 	private String countdownName; // e.g. "topup", "countdown" PV likely to be SR-CS-FILL-01:COUNTDOWN
 	private String periodName;    // e.g. "period", PV likely to be SR-CS-FILL-01:STACOUNTDN
@@ -72,6 +73,12 @@ public class DeviceWatchdogModel {
 	public void setWarmup(long warmup) {
 		this.warmup = warmup;
 	}
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
+	}
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -79,6 +86,7 @@ public class DeviceWatchdogModel {
 		result = prime * result + (int) (cooloff ^ (cooloff >>> 32));
 		result = prime * result + ((countdownName == null) ? 0 : countdownName.hashCode());
 		result = prime * result + ((expression == null) ? 0 : expression.hashCode());
+		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		result = prime * result + ((periodName == null) ? 0 : periodName.hashCode());
 		result = prime * result + (int) (warmup ^ (warmup >>> 32));
 		return result;
@@ -103,6 +111,11 @@ public class DeviceWatchdogModel {
 			if (other.expression != null)
 				return false;
 		} else if (!expression.equals(other.expression))
+			return false;
+		if (message == null) {
+			if (other.message != null)
+				return false;
+		} else if (!message.equals(other.message))
 			return false;
 		if (periodName == null) {
 			if (other.periodName != null)

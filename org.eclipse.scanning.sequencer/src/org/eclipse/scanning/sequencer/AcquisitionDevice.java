@@ -25,6 +25,7 @@ import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.models.DeviceRole;
+import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
@@ -186,6 +187,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), cmodel, model.getDetectors(), ServiceHolder.getGeneratorService());
 		manager.addContext(moderator);
 		
+		manager.addContext(getBean());
+		manager.addContext(model);
+	
 		boolean errorFound = false;
 		IPosition pos = null;
 		try {
@@ -230,7 +234,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	// Check if we are paused, blocks until we are not
 	        	boolean continueRunning = checkPaused();
 	        	if (!continueRunning) return; // finally block performed 
-	        	
+
 	        	// Run to the position
         		manager.invoke(PointStart.class, pos);
 	        	positioner.setPosition(pos);   // moveTo in GDA8
@@ -240,7 +244,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
         		nexusScanFileManager.flushNexusFile(); // flush the nexus file
 	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
-		        		        	
+	        	
 	        	// Send an event about where we are in the scan
         		manager.invoke(PointEnd.class, pos);
 	        	positionComplete(pos, count, size);
@@ -320,7 +324,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			} finally {
 	       	    try {
 					manager.invoke(ScanFinally.class, last);
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException | EventException e) {
 					throw new ScanningException(e);
 				}
 	       	    
@@ -345,10 +349,14 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		getBean().setMessage(ne.getMessage());
 		try {
 			manager.invoke(ScanFault.class, ne);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException | EventException e) {
 			throw new ScanningException(ne);
 		}
 		setDeviceState(DeviceState.FAULT);
+		
+		if (!getBean().getStatus().isFinal()) getBean().setStatus(Status.FAILED);
+		getBean().setMessage(ne.getMessage());
+
 	}
 
 	private void fireEnd() throws ScanningException {
@@ -362,7 +370,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		// Will send the state of the scan off.
 		try {
 			manager.invoke(ScanEnd.class);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e) {
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException  | EventException e) {
 			throw new ScanningException(e);
 		}
    	    setDeviceState(DeviceState.READY); // Fires!
@@ -422,9 +430,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
     			throw new Exception("The scan state is "+getDeviceState());
     		}
        	    if (awaitPaused) {
-        		setDeviceState(DeviceState.PAUSED);
+        		if (getDeviceState() != DeviceState.PAUSED) setDeviceState(DeviceState.PAUSED);
         		manager.invoke(ScanPause.class);
         		paused.await();
+        		getBean().setStatus(Status.RUNNING);
         		setDeviceState(DeviceState.RUNNING);
         		manager.invoke(ScanResume.class);
         	}
@@ -474,11 +483,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			lock.unlock();
 		}
 	}
-	
-	@Override
-	public void disable() throws ScanningException {
-		// TODO Matt Gerring to implement this: call abort on all children
-	}
 
 	@Override
 	public void pause() throws ScanningException {
@@ -498,6 +502,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 				if (device instanceof IPausableDevice) ((IPausableDevice)device).pause();
 			}
+			getBean().setPreviousStatus(getBean().getStatus());
+			getBean().setStatus(Status.PAUSED);
 			setDeviceState(DeviceState.PAUSED);
 			
 		} catch (ScanningException s) {
@@ -534,6 +540,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 				if (device instanceof IPausableDevice) ((IPausableDevice)device).resume();
 			}
 			paused.signalAll();
+			// Notify of running is in checkPaused()
 			
 		} catch (ScanningException s) {
 			throw s;
