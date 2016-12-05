@@ -9,7 +9,7 @@ package org.eclipse.scanning.api.malcolm.attributes;
  */
 public class NumberAttribute extends MalcolmAttribute {
 	
-	public static final String NUMBER_ID = "malcolm:core/NumberMeta:";
+	public transient static final String NUMBER_ID = "malcolm:core/NumberMeta:";
 	
 	String dtype;
 	Number value;
