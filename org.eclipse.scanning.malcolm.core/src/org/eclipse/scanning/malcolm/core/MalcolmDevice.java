@@ -2,12 +2,14 @@ package org.eclipse.scanning.malcolm.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -23,11 +25,13 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
+import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IMutator;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.points.mutators.FixedDurationMutator;
+import org.eclipse.scanning.sequencer.SubscanModerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,8 +73,6 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		}
 		
 	}
-	
-
 
 	private static Logger logger = LoggerFactory.getLogger(MalcolmDevice.class);
 		
@@ -81,6 +83,14 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	private IPublisher<ScanBean>             publisher;
 	
 	private MalcolmEventBean meb;
+	
+	private Iterator<IPosition> scanPositionIterator;
+	
+	private long lastBroadcastTime = System.currentTimeMillis();
+	
+	private int lastUpdateCount = 0;
+	
+	private final long POSITION_COMPLETE_TIMEOUT = 250; // broadcast every 250 milliseconds
 
 	private static String STATE_ENDPOINT = "state";
 	
@@ -145,7 +155,16 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		});		
 		
 	}
-
+	 
+	/**
+	 * Actions to take when the PointStart attribute is used
+	 * @param moderator the SubscanModerator
+	 */
+    @PointStart
+    public void scanPoint(SubscanModerator moderator) {
+    	Iterable<IPosition> scanPositions = moderator.getInnerIterable();
+        scanPositionIterator = scanPositions.iterator();
+    }
 
 	protected void sendScanEvent(MalcolmEvent<MalcolmMessage> e) throws Exception {
 		
@@ -159,14 +178,42 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			bean.setDeviceState(newState);
 		}
 		
+        Integer point = bean.getPoint();
+        boolean newPoint = false;		
 		Object value = msg.getValue();
 		if (value instanceof Map) {
-			final Integer point = (Integer)((Map)value).get("value");
+			point = (Integer)((Map<?,?>)value).get("value");
 			bean.setPoint(point);
+            newPoint = true;
 		} else if (value instanceof NumberAttribute) {
-			final Integer point = (Integer)((NumberAttribute)value).getValue();
+			point = (Integer)((NumberAttribute)value).getValue();
 			bean.setPoint(point);
+            newPoint = true;
 		}
+		
+		// Fire a position complete only if it's past the timeout value
+		if (newPoint && scanPositionIterator != null) {
+			long currentTime = System.currentTimeMillis();
+			
+			int positionDiff = point - lastUpdateCount;
+			
+			IPosition scanPosition = null;
+			for (int i = 0; i < positionDiff; i++) {
+				if (scanPositionIterator.hasNext()) {
+					scanPosition = scanPositionIterator.next();
+				}
+			}
+			
+			lastUpdateCount = point;
+			
+			if (scanPosition != null && currentTime - lastBroadcastTime >= POSITION_COMPLETE_TIMEOUT) {
+				scanPosition.setStepIndex(point);
+            	firePositionComplete(scanPosition);
+            	
+	            lastBroadcastTime = System.currentTimeMillis();
+			}
+		}
+		
 		if (publisher!=null) publisher.broadcast(bean);
 	}
 
@@ -278,7 +325,6 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			// Swallow the error as it might throw one if in a non-resetable state
 		}
 		
-		logger.info("configure model = " + model);
 		final EpicsMalcolmModel epicsModel = createEpicsMalcolmModel(model);
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", epicsModel);
 		MalcolmMessage reply = connector.send(this, msg);
@@ -286,10 +332,18 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			throw new MalcolmDeviceException(reply.getMessage());
 		}
 		setModel(model);
+		resetProgressCounting();
+	}
+	
+	/**
+	 * Reset any variables used in counting progress
+	 */
+	private void resetProgressCounting() {
+		scanPositionIterator = null;
+		lastUpdateCount = 0;
 	}
 
 	private EpicsMalcolmModel createEpicsMalcolmModel(M model) {
-		logger.info("createEpicsMalcolmModel model = " + model);
 		double exposureTime = model.getExposureTime();
 		IPointGenerator<?> pointGenerator = getPointGenerator();
 		if (pointGenerator != null) { // TODO could the point generator be null here?

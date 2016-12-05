@@ -615,7 +615,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			createNexusFiles();
 			firstRunCompleted = true;
 		}
-		
+
 		// get an iterator over the inner scan positions
 		final SubscanModerator moderator = new SubscanModerator(getPointGenerator(),
 				Arrays.asList(this), Services.getPointGeneratorService());
@@ -632,6 +632,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 					logger.error("Couldn't write data for device " + device.getName(), e);
 				}
 			}
+			firePositionComplete(overallScanPosition);
 		}
 		
 		status.setValue("Finished writing");
