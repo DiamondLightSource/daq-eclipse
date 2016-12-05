@@ -37,6 +37,7 @@
       <feature id="org.eclipse.dawnsci.remotedataset.feature" version="1.0.0.qualifier"/>
       <feature id="org.eclipse.scanning.example.feature" version="1.0.0.qualifier"/>
       <feature id="org.eclipse.scanning.feature" version="1.0.0.qualifier"/>
+      <feature id="org.eclipse.scanning.event.queues.feature" version="1.0.0.qualifier"/>
       <feature id="org.eclipse.platform" version="4.5.2.v20160212-1500"/>
       <feature id="org.eclipse.dawnsci.third.feature" version="1.0.0"/>
       <feature id="org.eclipse.dawnsci.feature" version="1.0.0.qualifier"/>
