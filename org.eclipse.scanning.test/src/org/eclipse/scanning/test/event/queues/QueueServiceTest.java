@@ -41,7 +41,7 @@ public class QueueServiceTest {
 	private IQueueControllerService controllerServ;
 	
 	private String qRoot;
-	private URI uri;
+	private String uri;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -55,7 +55,7 @@ public class QueueServiceTest {
 		ServicesHolder.setQueueControllerService(controllerServ);
 		
 		qRoot = "test-queue-root";
-		uri = new URI("file:///foo/bar");
+		uri = "file:///foo/bar";
 	}
 	
 	@After

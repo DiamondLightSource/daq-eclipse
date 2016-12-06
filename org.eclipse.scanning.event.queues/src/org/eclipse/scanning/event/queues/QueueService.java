@@ -2,11 +2,11 @@ package org.eclipse.scanning.event.queues;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.eclipse.scanning.api.event.EventException;
@@ -61,18 +61,16 @@ public class QueueService implements IQueueService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueueService.class);
 	
-	private String queueRoot, uriString, heartbeatTopicName, commandSetName, 
-		commandTopicName, jobQueueID;
-	
-	private static boolean active = false, init = false, stopped = false;
+	private static Map<String, IQueue<QueueAtom>> activeQueueRegister;
 
-	private String stringUri;
-	private URI uri;
 	
-	private IQueue<QueueBean> jobQueue;
-	private Map<String, IQueue<QueueAtom>> activeQueueRegister;
-	
-	private IResponder<QueueRequest> queueResponder;
+	private String queueRoot, heartbeatTopicName, commandSetName, commandTopicName, jobQueueID;
+	private boolean active = false, init = false, stopped = false;
+
+	private String                    uriString;
+	private URI                       uri;
+	private IQueue<QueueBean>         jobQueue;
+	private IResponder<QueueRequest>  queueResponder;
 
 	
 	private final ReentrantReadWriteLock queueControlLock = new ReentrantReadWriteLock();
@@ -89,22 +87,18 @@ public class QueueService implements IQueueService {
 		this(getQueueRootFromProperty(), CommandConstants.getScanningBrokerUri());
 	}
 	
+	/**
+	 * Used by tests directly.
+	 */
+	public QueueService(String queueRoot, String uri) {
+		this.queueRoot = queueRoot;
+		this.uriString = uri;
+	}
+	
 	private static final String getQueueRootFromProperty() {
 		String root = System.getProperty("org.eclipse.scanning.event.queues.queue.root");
 		if (root==null) root = System.getProperty("GDA/gda.event.queues.queue.root");
 		return root;
-	}
-	
-	public QueueService(String queueRoot, URI uri) {
-		this.queueRoot = queueRoot;
-		this.uri = uri;
-	}
-	/**
-	 * Constructor for tests
-	 */
-	public QueueService(String queueRoot, String uri) {
-		this.queueRoot = queueRoot;
-		this.stringUri = uri;
 	}
 
 	@Override
@@ -112,9 +106,9 @@ public class QueueService implements IQueueService {
 		//Check configuration is present
 		if (queueRoot == null) throw new IllegalStateException("Queue root has not been specified");
 		
-		if (uri==null && stringUri!=null) {
+		if (uri==null && uriString!=null) {
 			try {
-				this.uri = new URI(stringUri);
+				this.uri = new URI(uriString);
 			} catch (URISyntaxException e) {
 				throw new EventException(e);
 			}
@@ -139,7 +133,7 @@ public class QueueService implements IQueueService {
 		queueResponder.setResponseCreator(new QueueResponseCreator());
 		
 		//Create the active-queues map
-		activeQueueRegister = new HashMap<>();
+		if (activeQueueRegister==null) activeQueueRegister = new ConcurrentHashMap<>();
 		
 		//Mark initialised
 		init = true;
