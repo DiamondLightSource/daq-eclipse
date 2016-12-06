@@ -3,8 +3,6 @@ package org.eclipse.scanning.event.queues;
 import java.util.EventListener;
 import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.alive.KillBean;
 import org.eclipse.scanning.api.event.alive.PauseBean;
@@ -26,8 +24,8 @@ public class QueueControllerService implements IQueueControllerService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueueControllerService.class);
 	
-	private static IQueueService queueService;
-	private static IQueueControllerEventConnector eventConnector;
+	private IQueueService queueService;
+	private IQueueControllerEventConnector eventConnector;
 	
 	private boolean init = false;
 	
@@ -42,7 +40,6 @@ public class QueueControllerService implements IQueueControllerService {
 		
 	}
 	
-	@PostConstruct
 	@Override
 	public void init() throws EventException {
 		//Set up servicee
@@ -62,7 +59,7 @@ public class QueueControllerService implements IQueueControllerService {
 
 	@Override
 	public void startQueueService() throws EventException {
-		if (!init) throw new IllegalStateException("Queue Controller must be initialised before starting Queue Service.");
+		if (!init) init();
 		queueService.start();
 	}
 
