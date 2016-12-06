@@ -41,7 +41,7 @@ public class QueueServiceTest {
 	private IQueueControllerService controllerServ;
 	
 	private String qRoot;
-	private URI uri;
+	private String uri;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -55,7 +55,7 @@ public class QueueServiceTest {
 		ServicesHolder.setQueueControllerService(controllerServ);
 		
 		qRoot = "test-queue-root";
-		uri = new URI("file:///foo/bar");
+		uri = "file:///foo/bar";
 	}
 	
 	@After
@@ -150,17 +150,7 @@ public class QueueServiceTest {
 		 * - not be callable if init not run
 		 */
 		assertEquals("Job-queue not started", QueueStatus.STARTED, testQServ.getJobQueue().getStatus());
-		assertTrue("QueueService not marked active", testQServ.isActive());
-		
-		//Create a new instance to make sure we can't start without calling init()
-		testQServ.disposeService();
-		testQServ = new QueueService(qRoot, uri);
-		try {
-			testQServ.start();
-			fail("Should not be able to start QueueService without running init()");
-		} catch (IllegalStateException evEx){
-			//Expected
-		}
+		assertTrue("QueueService not marked active", testQServ.isActive());	
 	}
 	
 	/**

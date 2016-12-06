@@ -64,13 +64,7 @@ public class TaskBeanProcessorTest {
 		ServicesHolder.setEventService(mockEvServ);
 		
 		//This is a real queue service, so we have to do some set up
-		try {
-			URI uri = new URI("file:///foo/bar");
-			qServ = new QueueService("fake-qserv", uri);
-		} catch (URISyntaxException usEx) {
-			//Shouldn't happen...
-			usEx.printStackTrace();
-		}
+		qServ = new QueueService("fake-qserv", "file:///foo/bar");
 		qServ.init();
 		qServ.start();
 		
