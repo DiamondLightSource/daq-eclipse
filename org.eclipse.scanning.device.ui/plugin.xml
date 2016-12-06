@@ -85,6 +85,14 @@
             name="Detector Data"
             restorable="true">
       </view>
+      <view
+            category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.scanning.device.ui.expr.ExperimentSubmissionView"
+            icon="icons/switch--arrow.png"
+            id="org.eclipse.scanning.device.ui.expr.experimentSubmissionView"
+            name="Experiment Submission"
+            restorable="true">
+      </view>
       
    </extension>
     <extension
