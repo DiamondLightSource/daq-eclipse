@@ -345,17 +345,10 @@ public class ExampleMalcolmDeviceTest {
 			// seek
 			PVStructure seekCall = rpcCalls.get("seek");
 
-			Structure numberAttributeStructure = FieldFactory.getFieldCreate().createFieldBuilder()
-					.add("dtype", ScalarType.pvString)
-					.add("value", ScalarType.pvInt)
-					.add("writeable", ScalarType.pvBoolean)
-					.setId("malcolm:core/NumberMeta:1.0")
-					.createStructure();
 			Structure seekStructure = FieldFactory.getFieldCreate().createFieldBuilder()
-					.add("completedSteps", numberAttributeStructure).createStructure();
+					.add("completedSteps", ScalarType.pvInt).createStructure();
 			PVStructure seekPVStructure = PVDataFactory.getPVDataCreate().createPVStructure(seekStructure);
-			seekPVStructure.getIntField("completedSteps.value").put(4);
-			seekPVStructure.getStringField("completedSteps.dtype").put("uint32");
+			seekPVStructure.getIntField("completedSteps").put(4);
 			assertEquals(seekStructure, seekCall.getStructure());
 			assertEquals(seekPVStructure, seekCall);
 

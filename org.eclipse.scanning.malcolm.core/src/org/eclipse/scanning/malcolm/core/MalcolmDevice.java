@@ -364,11 +364,8 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	
 	@Override
 	public void seek(int stepNumber) throws MalcolmDeviceException {
-		LinkedHashMap<String, NumberAttribute> seekParameters = new LinkedHashMap<>();
-		NumberAttribute numAttr = new NumberAttribute();
-		numAttr.setValue(stepNumber);
-		numAttr.setDtype("uint32");
-		seekParameters.put(CURRENT_STEP_ENDPOINT, numAttr);
+		LinkedHashMap<String, Integer> seekParameters = new LinkedHashMap<>();
+		seekParameters.put(CURRENT_STEP_ENDPOINT, stepNumber);
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("seek", seekParameters);
 		final MalcolmMessage reply = connector.send(this, msg);
 		if (reply.getType()==Type.ERROR) {
