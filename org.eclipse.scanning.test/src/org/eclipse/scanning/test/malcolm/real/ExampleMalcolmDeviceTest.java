@@ -343,7 +343,7 @@ public class ExampleMalcolmDeviceTest {
 			assertEquals(runPVStructure, runCall);
 			
 			// seek
-			PVStructure seekCall = rpcCalls.get("seek");
+			PVStructure seekCall = rpcCalls.get("pause");
 
 			Structure seekStructure = FieldFactory.getFieldCreate().createFieldBuilder()
 					.add("completedSteps", ScalarType.pvInt).createStructure();

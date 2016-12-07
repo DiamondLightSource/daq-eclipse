@@ -366,13 +366,12 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	public void seek(int stepNumber) throws MalcolmDeviceException {
 		LinkedHashMap<String, Integer> seekParameters = new LinkedHashMap<>();
 		seekParameters.put(CURRENT_STEP_ENDPOINT, stepNumber);
-		final MalcolmMessage msg   = connectionDelegate.createCallMessage("seek", seekParameters);
+		final MalcolmMessage msg   = connectionDelegate.createCallMessage("pause", seekParameters);
 		final MalcolmMessage reply = connector.send(this, msg);
 		if (reply.getType()==Type.ERROR) {
 			throw new MalcolmDeviceException(reply.getMessage());
 		}
 	}
-
 
 	@Override
 	public void abort() throws MalcolmDeviceException {
