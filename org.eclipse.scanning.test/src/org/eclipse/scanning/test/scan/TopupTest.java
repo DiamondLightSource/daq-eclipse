@@ -118,7 +118,6 @@ public class TopupTest {
 		// We create a device watchdog (done in spring for real server)
 		DeviceWatchdogModel model = new DeviceWatchdogModel();
 		model.setCountdownName("topup");
-		model.setPeriodName("period");
 		model.setCooloff(500); // Pause 500ms before
 		model.setWarmup(200);  // Unpause 200ms after
 		
