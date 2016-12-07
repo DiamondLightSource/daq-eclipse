@@ -120,6 +120,9 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 	private NXdetector createNexusObject(NexusScanInfo info) throws NexusException {
 		final NXdetector detector = NexusNodeFactory.createNXdetector();
 
+		// add the exposure time to the nexus object
+		detector.setCount_timeScalar(model.getExposureTime());
+
 		int scanRank = info.getRank();
 		// We add 2 to the scan rank to include the image
 		if (model.isSaveImage()) imageData = detector.initializeLazyDataset(NXdetector.NX_DATA, scanRank + 2, Double.class);
