@@ -496,14 +496,14 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			throw new ScanningException(ne);
 		}
 		
+		getBean().setPreviousStatus(getBean().getStatus());
+		getBean().setStatus(Status.PAUSED);
 		setDeviceState(DeviceState.SEEKING);
 		try {
 			awaitPaused = true;
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 				if (device instanceof IPausableDevice) ((IPausableDevice)device).pause();
 			}
-			getBean().setPreviousStatus(getBean().getStatus());
-			getBean().setStatus(Status.PAUSED);
 			setDeviceState(DeviceState.PAUSED);
 			
 		} catch (ScanningException s) {
