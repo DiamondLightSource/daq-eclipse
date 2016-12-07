@@ -29,7 +29,10 @@ import org.slf4j.LoggerFactory;
  * 
  * NOTE This class will usually be created in spring
  * 
- * Note there are 3 PVs to describe the state. 
+ * Note there are 3 PVs to describe the topup state. This implementation assumes
+ * that the scannable referred to by the countdown property of the model
+ * wraps the PV SR-CS-FILL-01:COUNTDOWN.
+ * 
  * A typical top-up event takes around 20s and in low-alpha mode this can be longer, maybe around a minute.
  * Will Rogers and Nick Battam are the ones who know and maintain this page.
  * If you are missing information on this page, please ask them to explain and possibly add information to the page.
@@ -75,9 +78,16 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 	private static Logger logger = LoggerFactory.getLogger(TopupWatchdog.class);
 
 	private String              countdownUnit;
-	private String              periodUnit;
 	private volatile IPosition lastCompletedPoint;
 	
+	private volatile boolean paused = false;
+
+	private volatile boolean busy   = false;
+
+	private volatile boolean rewind = false;
+	
+	private volatile long warmupEndPos = 0;
+
 	public TopupWatchdog() {
 		super();
 	}
@@ -93,7 +103,7 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 	public void positionChanged(PositionEvent evt) {
 		try {
 			// Topup is currently 10Hz which is the rate that the scannable should call positionChanged(...) at.
-			long time = getValue(evt, model.getCountdownName(), countdownUnit);
+			long time = getValueMs(evt, model.getCountdownName(), countdownUnit);
 			//logger.info("Topup time is "+time+" ms");
 			processPosition(time);
 		} catch (Exception ne) {
@@ -101,9 +111,6 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		}
 	}
 
-	private volatile boolean paused = false;
-	private volatile boolean busy   = false;
-	private volatile boolean rewind = false;	
 	/**
 	 * This method may be called at around 10Hz. In order to reduce
 	 * CPU, we could disable events at the start of topup but this may not detect
@@ -127,19 +134,25 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		// simple tests or FPE's
 		try {
 			busy = true;
-			if (pos<=model.getCooloff()) {
-			    if (!paused) {
-			    	rewind = pos<0; // We did not detect it before loosing beam
+			if (pos <= model.getCooloff()) {
+				if (!paused) {
+					rewind = pos<0; // We did not detect it before loosing beam
 					bean.setMessage(model.getMessage());
-			    	device.pause();
-			    	paused = true;
-			    }
+					device.pause();
+					warmupEndPos = 0; // set to 0, so we know be recalculate it when topup ends
+					paused = true;
+				}
 			} else if (paused) { // See if we can resume
+				if (pos == 0) {
+					return;
+				}
+				if (warmupEndPos == 0) {
+					// topup has finished and pos is now counting down to the next topup
+					// calculate the position at which warmup should end
+					warmupEndPos = pos - (model.getWarmup());
+				}
 				
-				long period = getValue(model.getPeriodName(), periodUnit);
-				if (pos>(period-model.getWarmup())) { // Still waiting to start it up
-					return; // Keep waiting
-				} else {
+				if (pos <= warmupEndPos) {
 					if (rewind && lastCompletedPoint!=null) {
 						device.seek(lastCompletedPoint.getStepIndex()); // Probably only does something useful for malcolm
 						rewind = false;
@@ -148,7 +161,6 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 					paused = false;
 				}
 			}
-			
 		} finally {
 			busy = false;
 		}
@@ -160,17 +172,12 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		logger.debug("Watchdog starting on "+device.getName());
 		try {
 			// Get the topup, the unit and add a listener
-		    IScannable<?> topup = getScannable(model.getCountdownName());
-		    if (countdownUnit==null) this.countdownUnit = topup.getUnit();
-		    if (!(topup instanceof IPositionListenable)) throw new ScanningException(model.getCountdownName()+" is not a position listenable!");
-		    ((IPositionListenable)topup).addPositionListener(this);
-		   
-		    // Get the period unit (for speed and override reasons)
-		    if (model.getPeriodName()!=null && periodUnit==null) {
-		    	IScannable<?> period = getScannable(model.getPeriodName());
-		    	this.periodUnit = period.getUnit();
-		    }
-		    
+			IScannable<?> topup = getScannable(model.getCountdownName());
+			if (countdownUnit==null) this.countdownUnit = topup.getUnit();
+			if (!(topup instanceof IPositionListenable)) {
+				throw new ScanningException(model.getCountdownName()+" is not a position listenable!");
+			}
+			((IPositionListenable)topup).addPositionListener(this);
 		} catch (ScanningException ne) {
 			logger.error("Cannot start watchdog!", ne);
 		}
@@ -194,16 +201,13 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		}
 		logger.debug("Watchdog stopped on "+device.getName());
 	}
+	
 	public String getCountdownUnit() {
 		return countdownUnit;
 	}
+	
 	public void setCountdownUnit(String countdownUnit) {
 		this.countdownUnit = countdownUnit;
 	}
-	public String getPeriodUnit() {
-		return periodUnit;
-	}
-	public void setPeriodUnit(String periodUnit) {
-		this.periodUnit = periodUnit;
-	}
+	
 }
