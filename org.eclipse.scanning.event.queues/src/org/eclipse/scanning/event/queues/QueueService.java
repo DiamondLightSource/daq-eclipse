@@ -106,17 +106,10 @@ public class QueueService implements IQueueService {
 		//Check configuration is present
 		if (queueRoot == null) throw new IllegalStateException("Queue root has not been specified");
 		
-		if (uri==null && uriString!=null) {
-			try {
-				this.uri = new URI(uriString);
-			} catch (URISyntaxException e) {
-				throw new EventException(e);
-			}
- 		}
+		setUri(uriString);
 		if (uri == null) throw new IllegalStateException("URI has not been specified");
 		
-		//URI & queueRoot are already set, so we need to set their dependent fields
-		uriString = uri.toString();
+		//uriString & queueRoot are already set, so we need to set their dependent fields
 		heartbeatTopicName = queueRoot+HEARTBEAT_TOPIC_SUFFIX;
 		commandSetName = queueRoot+COMMAND_SET_SUFFIX;
 		commandTopicName = queueRoot+COMMAND_TOPIC_SUFFIX;

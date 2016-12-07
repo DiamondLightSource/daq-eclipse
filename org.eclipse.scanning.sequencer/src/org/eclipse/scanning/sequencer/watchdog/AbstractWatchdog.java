@@ -33,19 +33,27 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	}
 
 	
-	protected long getValue(PositionEvent evt, String name, String unit) {
+	protected long getValueMs(PositionEvent evt, String name, String unit) {
 		double pos = evt.getPosition().getValue(name);
-		return getValue(pos, unit);
+		return getValueMs(pos, unit);
 	}
 
-	protected long getValue(String name, String unit) throws Exception {
+	protected long getValueMs(String name, String unit) throws Exception {
 	    IScannable<Number> scannable = getScannable(name);
-		return getValue(scannable.getPosition().doubleValue(), unit);
+		return getValueMs(scannable.getPosition().doubleValue(), unit);
 	}
 
-	protected long getValue(double pos, String unit) {
+	protected long getValueMs(double pos, String unit) {
 		TimeUnit tu = getTimeUnit(unit);
-		return tu.toMillis(Math.round(pos)); // Assuming that they do not use double and seconds and assume fraction is maintained.
+		switch (tu) {
+			case MINUTES: return Math.round(pos * 1000 * 60);
+			case SECONDS: return Math.round(pos * 1000);
+			case MILLISECONDS: return Math.round(pos);
+			default:
+				// sanity check: not actually possible as getTimeUnit only return the units above
+				throw new RuntimeException("Unexpected unit " + tu);
+		}
+		
 	}
 
 	protected <T> IScannable<T> getScannable(String name) throws ScanningException {
@@ -54,8 +62,8 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	}
 	
 	private static final TimeUnit getTimeUnit(String unit) {
-		TimeUnit tu = TimeUnit.SECONDS;
-		if (unit!=null) {
+		TimeUnit tu = TimeUnit.SECONDS; // if time unit not specified default to seconds
+		if (unit != null) {
 			if ("s".equalsIgnoreCase(unit))  tu = TimeUnit.SECONDS;
 			if ("seconds".equalsIgnoreCase(unit))  tu = TimeUnit.SECONDS;
 			if ("ms".equalsIgnoreCase(unit)) tu = TimeUnit.MILLISECONDS;
