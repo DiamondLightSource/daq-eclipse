@@ -433,7 +433,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
         		if (getDeviceState() != DeviceState.PAUSED) setDeviceState(DeviceState.PAUSED);
         		manager.invoke(ScanPause.class);
         		paused.await();
-        		getBean().setStatus(Status.RUNNING);
+        		getBean().setStatus(Status.RESUMED);
         		setDeviceState(DeviceState.RUNNING);
         		manager.invoke(ScanResume.class);
         	}
