@@ -4,9 +4,8 @@ import java.util.List;
 
 /**
  * Model for a malcolm device.
- * TODO: do we need the name as well, if so extend INameable
  */
-public interface IMalcolmModel {
+public interface IMalcolmModel extends IDetectorModel {
 	
 	/**
 	 * Get the directory where malcolm will write its h5 files to. The directory should exist at

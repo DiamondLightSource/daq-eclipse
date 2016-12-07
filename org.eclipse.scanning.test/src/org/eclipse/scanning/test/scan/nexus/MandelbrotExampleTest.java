@@ -258,7 +258,9 @@ public class MandelbrotExampleTest extends NexusTest {
 		signalFieldAxes.put("value", Collections.emptyList());
 		
 		String detectorName = scanModel.getDetectors().get(0).getName();
-		NXdetector detector = instrument.getDetector(detectorName);
+		NXdetector nxDetector = instrument.getDetector(detectorName);
+		assertEquals(detector.getModel().getExposureTime(), nxDetector.getCount_timeScalar().doubleValue(), 1e-15);
+		
 		// map of detector data field to name of nxData group where that field is the @signal field
 		Map<String, String> expectedDataGroupNames =
 				signalFieldAxes.keySet().stream().collect(Collectors.toMap(Function.identity(),
@@ -276,7 +278,7 @@ public class MandelbrotExampleTest extends NexusTest {
 				nxDataGroupName.substring(nxDataGroupName.indexOf('_') + 1);
 			assertSignal(nxData, sourceFieldName);
 			// check the nxData's signal field is a link to the appropriate source data node of the detector
-			DataNode dataNode = detector.getDataNode(sourceFieldName);
+			DataNode dataNode = nxDetector.getDataNode(sourceFieldName);
 			IDataset dataset = dataNode.getDataset().getSlice();
 			assertSame(dataNode, nxData.getDataNode(sourceFieldName));
 			assertTarget(nxData, sourceFieldName, rootNode, "/entry/instrument/" + detectorName
