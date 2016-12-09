@@ -11,12 +11,13 @@ import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PostConfigure;
 import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
+import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -48,9 +49,11 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-public class ScanProcess extends AbstractPausableProcess<ScanBean> {
+public class ScanProcess implements IConsumerProcess<ScanBean> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ScanProcess.class);
+	protected final ScanBean               bean;
+	protected final IPublisher<ScanBean>   publisher;
 
 	// Services
 	private IPositioner                positioner;
@@ -61,7 +64,8 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 
 	public ScanProcess(ScanBean scanBean, IPublisher<ScanBean> response, boolean blocking) throws EventException {
 		
-		super(scanBean, response);
+		this.bean = scanBean;
+		this.publisher = response;
 		this.blocking = blocking;
 		
 		if (bean.getScanRequest().getStart()!=null || bean.getScanRequest().getEnd()!=null) {
@@ -80,13 +84,32 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	}
 	
 	@Override
-	public void doPause() throws Exception {
-		device.pause();
+	public void pause() throws EventException {
+		try {
+			device.pause();
+		} catch (ScanningException e) {
+			throw new EventException(e);
+		}
 	}
 	
 	@Override
-	public void doResume() throws Exception  {
-		device.resume();
+	public void resume() throws EventException  {
+		try {
+			device.resume();
+		} catch (ScanningException e) {
+			throw new EventException(e);
+		}
+	}
+
+	@Override
+	public void terminate() throws EventException {
+		
+		if (bean.getStatus()==Status.COMPLETE) return; // Nothing to terminate.
+		try {
+			device.abort();
+		} catch (ScanningException e) {
+			throw new EventException(e);
+		}
 	}
 
 	@Override
@@ -249,7 +272,13 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			configureDetectors(req.getDetectors(), scanModel, estimator, generator);
 			
-			return (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(scanModel, publisher);
+			IPausableDevice<ScanModel> device = (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(scanModel, publisher, false);
+			if (Services.getWatchdogService()!=null) {
+				List<IDeviceWatchdog> dogs = Services.getWatchdogService().create(device);
+				scanModel.setAnnotationParticipants(dogs);
+			}
+		    device.configure(scanModel);
+		    return device;
 			
 		} catch (Exception e) {
 			bean.setStatus(Status.FAILED);
@@ -299,13 +328,6 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		IPointGeneratorService service = Services.getGeneratorService();
 		return service.createCompoundGenerator(req.getCompoundModel());
 	}
-
-	@Override
-	public void doTerminate() throws Exception {
-		
-		if (bean.getStatus()==Status.COMPLETE) return; // Nothing to terminate.
-		device.abort();
-	}
 	
 	private List<IRunnableDevice<?>> getDetectors(Map<String, ?> detectors) throws EventException {
 		
@@ -349,6 +371,16 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		if (publisher!=null) {
 			publisher.broadcast(bean);
 		}		
+	}
+
+	@Override
+	public ScanBean getBean() {
+		return bean;
+	}
+
+	@Override
+	public IPublisher<ScanBean> getPublisher() {
+		return publisher;
 	}
 
 }
