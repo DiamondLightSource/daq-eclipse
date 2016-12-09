@@ -27,9 +27,6 @@ import org.epics.pvaClient.PvaClientPut;
 import org.epics.pvaClient.PvaClientPutData;
 import org.epics.pvaClient.PvaClientRPC;
 import org.epics.pvaClient.PvaClientUnlistenRequester;
-import org.epics.pvaccess.client.Channel;
-import org.epics.pvaccess.client.impl.remote.ChannelImpl;
-import org.epics.pvaccess.impl.remote.TransportRegistry;
 import org.epics.pvdata.factory.FieldFactory;
 import org.epics.pvdata.factory.PVDataFactory;
 import org.epics.pvdata.pv.FieldCreate;
@@ -59,8 +56,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	PvaClient pvaClient;
     
     private Map<Long, Collection<EpicsV4MonitorListener>> listeners;
-    
-    private TransportRegistry epicsTransportRegistry = null;
     
     public EpicsV4ConnectorService() {
 		mapper = new EpicsV4MessageMapper();
@@ -204,14 +199,12 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		try {
 			PVStructure pvResult = null;
 			pvaChannel = pvaClient.createChannel(device.getName(),"pva");
-			clearEpicsTransportCache();
 	        pvaChannel.issueConnect();
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
 	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	        }
-			setEpicsTransportRegistryFromChannel(pvaChannel);
 			
 			String requestString = message.getEndpoint();
 			logger.info("Get '" + requestString + "'");
@@ -259,14 +252,12 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 			String requestString = message.getEndpoint();
 			
 			pvaChannel = pvaClient.createChannel(device.getName(),"pva");
-			clearEpicsTransportCache();
 			pvaChannel.issueConnect();
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
 	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	        }
-			setEpicsTransportRegistryFromChannel(pvaChannel);
 	        PvaClientPut pvaPut = pvaChannel.createPut(requestString);
 	        pvaPut.issueConnect();
 	        status = pvaPut.waitConnect();
@@ -312,14 +303,12 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 			PVStructure parametersStructure = pvRequest.getStructureField("parameters");
 			
 			pvaChannel = pvaClient.createChannel(device.getName(),"pva");
-			clearEpicsTransportCache();
 			pvaChannel.issueConnect();
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
 	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	        }
-			setEpicsTransportRegistryFromChannel(pvaChannel);
 
 			logger.info("Call method = \n" + methodStructure + "\nEND");
 	        PvaClientRPC rpc = pvaChannel.createRPC(methodStructure);
@@ -357,43 +346,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	@Override
 	public MessageGenerator<MalcolmMessage> createConnection() {
 		return (MessageGenerator<MalcolmMessage>) new EpicsV4MalcolmMessageGenerator(this);
-	}
-	
-	/**
-	 * As a workaround for a 'feature' of EPICS V4 where it holds on to connections (making
-	 * simultaneous connections not possible with blocking TCP transport handlers), clear the
-	 * transport cache to force the EPICS libraries to create a new connection each time.
-	 */
-	private void clearEpicsTransportCache() {
-		if (epicsTransportRegistry != null) {
-			try {
-				epicsTransportRegistry.clear();
-			} catch (Exception ex) {
-				logger.debug("Unable to clear Epics V4 transport cache", ex);
-			}
-		}
-	}
-	
-	/**
-	 * Get the EPICS V4 transport registry from the channel. This, as above, is in order to be able to clear
-	 * it to ensure that a new connection is made each time to avoid issues during simultaneous connections
-	 * 
-	 * @param pvaChannel The pvaClientChannel to get the transport registry from
-	 */
-	private void setEpicsTransportRegistryFromChannel(PvaClientChannel pvaChannel) {
-		if (epicsTransportRegistry == null && pvaChannel != null) {
-        	try {
-				Channel c1 = pvaChannel.getChannel();
-		        if (c1 != null) {
-					ChannelImpl ci = (ChannelImpl)c1;
-					if (ci != null && ci.getContext() != null) {
-						epicsTransportRegistry = ci.getContext().getTransportRegistry();
-					}
-		        }
-        	} catch (Exception ex) {
-				logger.warn("Unable to set Epics V4 transport cache", ex);
-			}
-		}
 	}
 		
 	class EpicsV4ClientMonitorRequester implements PvaClientMonitorRequester, PvaClientUnlistenRequester {
