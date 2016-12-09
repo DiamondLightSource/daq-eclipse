@@ -1,12 +1,12 @@
 package org.eclipse.scanning.api.event.dry;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
+import org.eclipse.scanning.api.event.core.AbstractLockingPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
-public class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess<T> {
+public class DryRunProcess<T extends StatusBean> extends AbstractLockingPausableProcess<T> {
 
 	
 	private boolean blocking;
