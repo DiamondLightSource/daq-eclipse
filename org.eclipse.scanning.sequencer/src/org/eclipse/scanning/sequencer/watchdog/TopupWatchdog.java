@@ -142,7 +142,7 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 				warmupEndPos = 0; // set to 0, so we know be recalculate it when topup ends
 		
 			} else { // See if we can resume
-				if (pos <= model.getCooloff()) {
+				if (pos <= 0) {
 					return;
 				}
 				if (warmupEndPos == 0) {

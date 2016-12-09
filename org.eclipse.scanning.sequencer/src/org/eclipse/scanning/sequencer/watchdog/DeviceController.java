@@ -16,6 +16,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
+ * <pre>
+ 	  Rules for controller:
+	  o Pause proceeds and sets preference to pause.
+	  o Resume is allowed if none of the states are paused.
+	  o Seek is allowed if all names bar the current device are not paused.
+	  o Abort is allowed regardless.
+   </pre>
+   
  * @author Matthew Gerring
  *
  * @param <T>
@@ -28,6 +36,13 @@ class DeviceController implements IDeviceController {
 	private List<?>            objects;
 	private ScanBean           bean;
 	
+	/**
+	 * Rules for states:
+	 * Pause proceeds and sets preference to pause.
+	 * Resume is allowed if none of the states are paused.
+	 * Seek is allowed if all names bar the current device are not paused.
+	 * Abort is allowed regardless.
+	 */
 	private Map<String, DeviceState> states;
 
 	public DeviceController(IPausableDevice<?> device) {
@@ -48,6 +63,12 @@ class DeviceController implements IDeviceController {
 		device.pause();
 	}
 	public void seek(String id, int stepNumber) throws ScanningException {
+		
+		// If any of the others think it should be paused, we do not resume
+		Map<String, DeviceState> copy = new HashMap<>(states);
+		copy.put(id, DeviceState.RUNNING);
+		if (!canResume(copy)) return;
+
 		device.seek(stepNumber);
 	}
 
@@ -57,15 +78,18 @@ class DeviceController implements IDeviceController {
 		if (device.getDeviceState()!=DeviceState.PAUSED) return; // Cannot resume it.
 		
 		// If any of the others think it should be paused, we do not resume
-System.out.println(states.values());
-		List<DeviceState> paused = states.values().stream().filter(state -> state==DeviceState.PAUSED).collect(Collectors.toList());
-System.out.println(paused);
-		if (paused!=null && !paused.isEmpty()) return;
+		if (!canResume(states)) return;
 		
 		logger.debug("Controller resuming on "+getName()+" because of id "+id);
 		device.resume();
 	}
 	
+	private static final boolean canResume(Map<String, DeviceState> states) {
+		List<DeviceState> paused = states.values().stream().filter(state -> state==DeviceState.PAUSED).collect(Collectors.toList());
+		if (paused!=null && !paused.isEmpty()) return false;
+		return true;
+	}
+
 	public void abort(String id) throws ScanningException {
 		logger.debug("Controller aborting on "+getName()+" because of id "+id);
 		device.abort();
