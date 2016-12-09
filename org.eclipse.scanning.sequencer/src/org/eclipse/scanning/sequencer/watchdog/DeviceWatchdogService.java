@@ -14,6 +14,12 @@ public class DeviceWatchdogService implements IDeviceWatchdogService {
 	
 	private static Logger logger = LoggerFactory.getLogger(DeviceWatchdogService.class);
 	private List<IDeviceWatchdog> templates = Collections.synchronizedList(new ArrayList<>(3));
+	
+	static {
+		if (System.getProperty("org.eclipse.scanning.watchdogs.active")==null) {
+			System.setProperty("org.eclipse.scanning.watchdogs.active", "true");
+		}
+	}
 
 	@Override
 	public void register(IDeviceWatchdog dog) {
@@ -27,6 +33,8 @@ public class DeviceWatchdogService implements IDeviceWatchdogService {
 
 	@Override
 	public List<IDeviceWatchdog> create(IPausableDevice<?> device) {
+		
+		if (!Boolean.getBoolean("org.eclipse.scanning.watchdogs.active")) return null;
 		if (templates==null) return null;
 		try {
 			List<IDeviceWatchdog> ret = new ArrayList<>(templates.size());
