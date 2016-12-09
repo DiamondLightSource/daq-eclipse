@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IDeviceWatchdogService;
 import org.eclipse.scanning.api.device.IPausableDevice;
@@ -130,7 +131,8 @@ public class WatchdogShutterTest {
 	public void beamLostInScan() throws Exception {
 
 		// x and y are level 3
-		IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+		IDeviceController controller = createTestScanner(null);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 		
 		List<DeviceState> states = new ArrayList<>();
 		// This run should get paused for beam and restarted.
@@ -158,7 +160,8 @@ public class WatchdogShutterTest {
 	public void shutterClosedInScan() throws Exception {
 
 		// x and y are level 3
-		IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+		IDeviceController controller = createTestScanner(null);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 		
 		List<DeviceState> states = new ArrayList<>();
 		// This run should get paused for beam and restarted.
@@ -183,7 +186,7 @@ public class WatchdogShutterTest {
 	}
 
 	
-	private IRunnableDevice<ScanModel> createTestScanner(IScannable<?> monitor) throws Exception {
+	private IDeviceController createTestScanner(IScannable<?> monitor) throws Exception {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel("x", "y");
@@ -201,11 +204,11 @@ public class WatchdogShutterTest {
 		// Create a scan and run it without publishing events
 		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, null, false);
-		List<IDeviceWatchdog> dogs = ServiceHolder.getWatchdogService().create((IPausableDevice<?>)scanner);
-		smodel.setAnnotationParticipants(dogs);
+		IDeviceController controller = ServiceHolder.getWatchdogService().create((IPausableDevice<?>)scanner);
+		smodel.setAnnotationParticipants(controller.getObjects());
 		scanner.configure(smodel);
 		
-		return scanner;
+		return controller;
 	}
 
 	
@@ -213,7 +216,8 @@ public class WatchdogShutterTest {
 	public void monitorWithExternalPauseSimple() throws Exception {
 
 		// x and y are level 3
-		IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+		IDeviceController controller = createTestScanner(null);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 		
 		Set<DeviceState> states = new HashSet<>();
 		// This run should get paused for beam and restarted.
@@ -224,7 +228,7 @@ public class WatchdogShutterTest {
 		});
 		
 		scanner.start(null);
-		scanner.pause();  // Pausing externally should override any watchdog resume.
+		controller.pause("test", null);  // Pausing externally should override any watchdog resume.
 		
 		final IScannable<String>   mon  = connector.getScannable("portshutter");
 		mon.setPosition("Closed");
@@ -232,7 +236,7 @@ public class WatchdogShutterTest {
 		Thread.sleep(100); // Watchdog should not start it again, it was paused first..
 		assertEquals(scanner.getDeviceState(), DeviceState.PAUSED);
 		
-		scanner.abort();
+		controller.abort("test");
 		
 		mon.setPosition("Closed");
 		assertNotEquals(scanner.getDeviceState(), DeviceState.PAUSED);
@@ -242,7 +246,8 @@ public class WatchdogShutterTest {
 	public void monitorWithExternalPauseComplex() throws Exception {
 
 		// x and y are level 3
-		IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+		IDeviceController controller = createTestScanner(null);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 		
 		Set<DeviceState> states = new HashSet<>();
 		// This run should get paused for beam and restarted.
@@ -253,7 +258,7 @@ public class WatchdogShutterTest {
 		});
 		
 		scanner.start(null);
-		scanner.pause();  // Pausing externally should override any watchdog resume.
+		controller.pause("test", null);  // Pausing externally should override any watchdog resume.
 		
 		final IScannable<String>   mon  = connector.getScannable("portshutter");
 		mon.setPosition("Closed");
@@ -261,7 +266,7 @@ public class WatchdogShutterTest {
 		Thread.sleep(100); // Watchdog should not start it again, it was paused first..
 		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
 		
-		scanner.resume();
+		controller.resume("test");
 		
 		Thread.sleep(100); 
 		assertNotEquals(DeviceState.PAUSED, scanner.getDeviceState());
@@ -271,12 +276,12 @@ public class WatchdogShutterTest {
 		Thread.sleep(100); 
 		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
 		
-		scanner.resume(); // The external resume should still not resume it
+		controller.resume("test"); // The external resume should still not resume it
 
 		Thread.sleep(100);
 		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
 
-		scanner.abort();
+		controller.abort("test");
 	}
 
 }

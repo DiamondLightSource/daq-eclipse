@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IDeviceWatchdogService;
 import org.eclipse.scanning.api.device.IPausableDevice;
@@ -149,14 +150,15 @@ public class WatchdogTopupTest {
 		beamon.setLevel(1);
 		
 		// x and y are level 3
-		IRunnableDevice<ScanModel> scanner = createTestScanner(beamon);
+		IDeviceController controller = createTestScanner(beamon);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 		scanner.run(null);
 		
 		assertEquals(10, positions.size());
 	}
 
 	
-	private IRunnableDevice<ScanModel> createTestScanner(IScannable<?> monitor) throws Exception {
+	private IDeviceController createTestScanner(IScannable<?> monitor) throws Exception {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel("x", "y");
@@ -172,13 +174,13 @@ public class WatchdogTopupTest {
 		if (monitor!=null) smodel.setMonitors(monitor);
 		
 		// Create a scan and run it without publishing events
+		// Create a scan and run it without publishing events
 		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, null, false);
-		List<IDeviceWatchdog> dogs = ServiceHolder.getWatchdogService().create((IPausableDevice<?>)scanner);
-		smodel.setAnnotationParticipants(dogs);
-
+		IDeviceController controller = ServiceHolder.getWatchdogService().create((IPausableDevice<?>)scanner);
+		smodel.setAnnotationParticipants(controller.getObjects());
 		scanner.configure(smodel);
-
-		return scanner;
+		
+		return controller;
 	}
 
 	@Test
@@ -216,7 +218,8 @@ public class WatchdogTopupTest {
 	public void topupInScan() throws Exception {
 
 		// x and y are level 3
-		IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+		IDeviceController controller = createTestScanner(null);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 		
 		Set<DeviceState> states = new HashSet<>();
 		// This run should get paused for beam and restarted.
@@ -246,7 +249,8 @@ public class WatchdogTopupTest {
 		topup.setPosition(5000);
 
 		// x and y are level 3
-		IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+		IDeviceController controller = createTestScanner(null);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 		
 		Set<DeviceState> states = new HashSet<>();
 		// This run should get paused for beam and restarted.
@@ -258,31 +262,31 @@ public class WatchdogTopupTest {
 		
 		scanner.start(null);
 		Thread.sleep(25);  // Do a bit
-		scanner.pause();   // Pausing externally should override any watchdog resume.
+		controller.pause("test", null);   // Pausing externally should override any watchdog resume.
 		
 		topup.setPosition(0);    // Should do nothing, device is already paused
-		topup.setPosition(5000); // Should not resume, device was already paused
+		topup.setPosition(5000); // Gets it ready to think it has to resume
+		topup.setPosition(4000); // Will resume it because warmup passed
 		
 		Thread.sleep(100);       // Ensure watchdog event has fired and it did something.		
-		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
+		assertEquals(DeviceState.PAUSED, scanner.getDeviceState()); // Should still be paused
 		
-		scanner.resume();
+		controller.resume("test");
 		
-		Thread.sleep(10);       	
+		Thread.sleep(100);       	
 		assertNotEquals(DeviceState.PAUSED, scanner.getDeviceState());
 
-System.out.println("SEtting topup");
 		topup.setPosition(0);
 
 		Thread.sleep(100);       
 		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
 		
-		scanner.resume(); // It should not, topup is 0!
+		controller.resume("test"); // It shouldn't because now topup has set to pause.
 
 		Thread.sleep(25);       // Ensure watchdog event has fired and it did something.		
 		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
 
-		scanner.abort();
+		controller.abort("test");
 	}
 
 	
@@ -293,7 +297,8 @@ System.out.println("SEtting topup");
 			dog.deactivate(); // Are a testing a pausing monitor here
 
 			// x and y are level 3
-			IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+			IDeviceController controller = createTestScanner(null);
+			IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 			
 			List<DeviceState> states = new ArrayList<>();
 			// This run should get paused for beam and restarted.
@@ -345,7 +350,8 @@ System.out.println("SEtting topup");
 			pauser.setLevel(1);
 			
 			// x and y are level 3
-			IRunnableDevice<ScanModel> scanner = createTestScanner(pauser);
+			IDeviceController controller = createTestScanner(pauser);
+			IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 			scanner.run(null);
 			
 			assertEquals(25, positions.size());
