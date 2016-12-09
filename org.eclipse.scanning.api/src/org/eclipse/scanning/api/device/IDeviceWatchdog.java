@@ -69,7 +69,7 @@ public interface IDeviceWatchdog extends IModelProvider<DeviceWatchdogModel> {
 	 * Called by the framework when a device is created to run with a specific scan.
 	 * @param device
 	 */
-	void setDevice(IPausableDevice<?> device);
+	void setController(IDeviceController controller);
 
 	/**
 	 * 

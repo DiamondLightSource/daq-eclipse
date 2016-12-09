@@ -11,7 +11,7 @@ import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PostConfigure;
 import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceWatchdog;
+import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
@@ -59,7 +59,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 	private IPositioner                positioner;
 	private IScriptService             scriptService;
 	
-	private IPausableDevice<ScanModel> device;
+	private IDeviceController          controller;
 	private boolean                    blocking;
 
 	public ScanProcess(ScanBean scanBean, IPublisher<ScanBean> response, boolean blocking) throws EventException {
@@ -86,7 +86,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 	@Override
 	public void pause() throws EventException {
 		try {
-			device.pause();
+			controller.pause(getClass().getName(), null);
 		} catch (ScanningException e) {
 			throw new EventException(e);
 		}
@@ -95,7 +95,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 	@Override
 	public void resume() throws EventException  {
 		try {
-			device.resume();
+			controller.resume(getClass().getName());
 		} catch (ScanningException e) {
 			throw new EventException(e);
 		}
@@ -106,7 +106,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 		
 		if (bean.getStatus()==Status.COMPLETE) return; // Nothing to terminate.
 		try {
-			device.abort();
+			controller.abort(getClass().getName());
 		} catch (ScanningException e) {
 			throw new EventException(e);
 		}
@@ -132,10 +132,10 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 			ScriptResponse<?> res = runScript(bean.getScanRequest().getBefore());
 			bean.getScanRequest().setBeforeResponse(res);
 			
-			this.device = createRunnableDevice(bean, gen);
+			this.controller = createRunnableDevice(bean, gen);
 			
 			if (blocking) {
-			    device.run(null); // Runs until done
+				controller.getDevice().run(null); // Runs until done
 			    
 				// Run a script, if any has been requested
 			    res = runScript(bean.getScanRequest().getAfter());
@@ -146,7 +146,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 				}
 
 			} else {
-				((AbstractRunnableDevice<ScanModel>)device).start(null);
+				((AbstractRunnableDevice<ScanModel>)controller.getDevice()).start(null);
 				if (bean.getScanRequest().getAfter()!=null) throw new EventException("Cannot run end script when scan is async.");
 				if (bean.getScanRequest().getEnd()!=null) throw new EventException("Cannot perform end position when scan is async.");
 			}
@@ -250,7 +250,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 		return scriptService.execute(req);		
 	}
 
-	private IPausableDevice<ScanModel> createRunnableDevice(ScanBean bean, IPointGenerator<?> gen) throws ScanningException, EventException {
+	private IDeviceController createRunnableDevice(ScanBean bean, IPointGenerator<?> gen) throws ScanningException, EventException {
 
 		ScanRequest<?> req = bean.getScanRequest();
 		if (req==null) throw new ScanningException("There must be a scan request to run a scan!");
@@ -273,12 +273,11 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 			configureDetectors(req.getDetectors(), scanModel, estimator, generator);
 			
 			IPausableDevice<ScanModel> device = (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(scanModel, publisher, false);
-			if (Services.getWatchdogService()!=null) {
-				List<IDeviceWatchdog> dogs = Services.getWatchdogService().create(device);
-				scanModel.setAnnotationParticipants(dogs);
-			}
-		    device.configure(scanModel);
-		    return device;
+			IDeviceController controller = Services.getWatchdogService().create(device);
+			if (controller.getObjects()!=null) scanModel.setAnnotationParticipants(controller.getObjects());
+		    
+			device.configure(scanModel);
+		    return controller;
 			
 		} catch (Exception e) {
 			bean.setStatus(Status.FAILED);

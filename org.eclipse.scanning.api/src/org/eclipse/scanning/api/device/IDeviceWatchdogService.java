@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.device;
 
-import java.util.List;
-
 /**
  * 
  * This service holds available watchdogs and if they are
@@ -58,7 +56,7 @@ public interface IDeviceWatchdogService {
 	 * @return list of objects which may be added to the scan and will be processed
 	 * by their annotations.
 	 */
-	List<IDeviceWatchdog> create(IPausableDevice<?> device);
+	IDeviceController create(IPausableDevice<?> device);
 	
 
 }

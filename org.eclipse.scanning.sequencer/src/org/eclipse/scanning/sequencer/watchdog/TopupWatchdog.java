@@ -80,8 +80,6 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 	private String              countdownUnit;
 	private volatile IPosition lastCompletedPoint;
 	
-	private volatile boolean paused = false;
-
 	private volatile boolean busy   = false;
 
 	private volatile boolean rewind = false;
@@ -95,6 +93,9 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		super(model);
 	}
 	
+	String getId() {
+		return getClass().getName();
+	}
 	/**
 	 * Called on a thread when the position changes.
 	 * The coutndown is likely to report at 10Hz. TODO Check if this is ok during a scan and does not
@@ -127,6 +128,7 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		// Events are frequent and blocking is bad.
 		if (busy) { 
 			logger.trace("Event '"+model.getCountdownName()+"'@"+pos+" has been ignored.");
+			System.out.println("Event '"+model.getCountdownName()+"'@"+pos+" has been ignored.");
 			return;
 		}
 		
@@ -135,14 +137,11 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		try {
 			busy = true;
 			if (pos <= model.getCooloff()) {
-				if (!paused) {
-					rewind = pos<0; // We did not detect it before loosing beam
-					bean.setMessage(model.getMessage());
-					device.pause();
-					warmupEndPos = 0; // set to 0, so we know be recalculate it when topup ends
-					paused = true;
-				}
-			} else if (paused) { // See if we can resume
+				rewind = pos<0; // We did not detect it before loosing beam
+				controller.pause(getId(), getModel());
+				warmupEndPos = 0; // set to 0, so we know be recalculate it when topup ends
+		
+			} else { // See if we can resume
 				if (pos <= model.getCooloff()) {
 					return;
 				}
@@ -151,14 +150,14 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 					// calculate the position at which warmup should end
 					warmupEndPos = pos - (model.getWarmup());
 				}
-				
+			
 				if (pos <= warmupEndPos) {
+					// the warmup period has ended, we can resume the scan
 					if (rewind && lastCompletedPoint!=null) {
-						device.seek(lastCompletedPoint.getStepIndex()); // Probably only does something useful for malcolm
+						controller.seek(getId(), lastCompletedPoint.getStepIndex()); // Probably only does something useful for malcolm
 						rewind = false;
 					}
-					device.resume();
-					paused = false;
+					controller.resume(getId());
 				}
 			}
 		} finally {
@@ -168,8 +167,7 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 	
 	@ScanStart
 	public void start(ScanBean bean) {
-		setBean(bean);
-		logger.debug("Watchdog starting on "+device.getName());
+		logger.debug("Watchdog starting on "+controller.getName());
 		try {
 			// Get the topup, the unit and add a listener
 			IScannable<?> topup = getScannable(model.getCountdownName());
@@ -181,7 +179,7 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		} catch (ScanningException ne) {
 			logger.error("Cannot start watchdog!", ne);
 		}
-		logger.debug("Watchdog started on "+device.getName());
+		logger.debug("Watchdog started on "+controller.getName());
 	} 
 	
 	@PointEnd
@@ -191,7 +189,7 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 	
 	@ScanFinally
 	public void stop() {
-		logger.debug("Watchdog stopping on "+device.getName());
+		logger.debug("Watchdog stopping on "+controller.getName());
 		try {
 		    IScannable<?> topup = getScannable(model.getCountdownName());
 		    ((IPositionListenable)topup).removePositionListener(this);
@@ -199,7 +197,7 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		} catch (ScanningException ne) {
 			logger.error("Cannot stop watchdog!", ne);
 		}
-		logger.debug("Watchdog stopped on "+device.getName());
+		logger.debug("Watchdog stopped on "+controller.getName());
 	}
 	
 	public String getCountdownUnit() {
