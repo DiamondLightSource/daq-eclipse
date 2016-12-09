@@ -1,5 +1,6 @@
 package org.eclipse.scanning.sequencer.watchdog;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,11 +44,13 @@ class DeviceController implements IDeviceController {
 	 * Seek is allowed if all names bar the current device are not paused.
 	 * Abort is allowed regardless.
 	 */
-	private Map<String, DeviceState> states;
+	private Map<String, DeviceState>         states;
+	private Map<String, DeviceWatchdogModel> models;
 
 	public DeviceController(IPausableDevice<?> device) {
 		this.device = device;
-		this.states = new HashMap<>(3);
+		this.states = Collections.synchronizedMap(new HashMap<>(3));
+		this.models = Collections.synchronizedMap(new HashMap<>(3));
 	}
 
 	/**
@@ -57,6 +60,7 @@ class DeviceController implements IDeviceController {
 	public void pause(String id, DeviceWatchdogModel model) throws ScanningException {
 		
 		states.put(id, DeviceState.PAUSED);
+		models.put(id, model); // May be null
 		if (device.getDeviceState()!=DeviceState.RUNNING) return; // Cannot pause it.
 		if (bean!=null&&model!=null) bean.setMessage(model.getMessage());
 		logger.debug("Controller pausing on "+getName()+" because of id "+id);
@@ -78,7 +82,22 @@ class DeviceController implements IDeviceController {
 		if (device.getDeviceState()!=DeviceState.PAUSED) return; // Cannot resume it.
 		
 		// If any of the others think it should be paused, we do not resume
-		if (!canResume(states)) return;
+		if (!canResume(states)) {
+			
+			// Attempt to set a message in the bean about why.
+			if (getBean()!=null) {
+	            // Get the first non-null model
+				for (String oid : states.keySet()) {
+					if (states.get(oid)==DeviceState.PAUSED) {
+						if (models.get(oid)!=null) {
+							getBean().setMessage(models.get(oid).getMessage());
+							break;
+						}
+					}
+				}
+			}
+			return;
+		}
 		
 		logger.debug("Controller resuming on "+getName()+" because of id "+id);
 		device.resume();
