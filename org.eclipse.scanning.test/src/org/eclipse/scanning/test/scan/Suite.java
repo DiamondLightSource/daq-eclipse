@@ -8,7 +8,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 
 	ScanTest.class,
-	TopupTest.class,
+	WatchdogTopupTest.class,
 	BenchmarkScanTest.class,
 	ScanFinishedTest.class,
 	PreprocessTest.class,

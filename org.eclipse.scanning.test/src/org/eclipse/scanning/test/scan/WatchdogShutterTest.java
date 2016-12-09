@@ -1,16 +1,21 @@
 package org.eclipse.scanning.test.scan;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IDeviceWatchdogService;
+import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
@@ -50,7 +55,7 @@ import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
-public class BeamMonitorTest {
+public class WatchdogShutterTest {
 
 	protected IRunnableDeviceService        sservice;
 	protected IScannableDeviceService       connector;
@@ -194,8 +199,84 @@ public class BeamMonitorTest {
 		if (monitor!=null) smodel.setMonitors(monitor);
 		
 		// Create a scan and run it without publishing events
-		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, null);
+		// Create a scan and run it without publishing events
+		IRunnableDevice<ScanModel> scanner = sservice.createRunnableDevice(smodel, null, false);
+		List<IDeviceWatchdog> dogs = ServiceHolder.getWatchdogService().create((IPausableDevice<?>)scanner);
+		smodel.setAnnotationParticipants(dogs);
+		scanner.configure(smodel);
+		
 		return scanner;
+	}
+
+	
+	@Test
+	public void monitorWithExternalPauseSimple() throws Exception {
+
+		// x and y are level 3
+		IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+		
+		Set<DeviceState> states = new HashSet<>();
+		// This run should get paused for beam and restarted.
+		scanner.addRunListener(new IRunListener() {
+			public void stateChanged(RunEvent evt) throws ScanningException {
+				states.add(evt.getDeviceState());
+			}
+		});
+		
+		scanner.start(null);
+		scanner.pause();  // Pausing externally should override any watchdog resume.
+		
+		final IScannable<String>   mon  = connector.getScannable("portshutter");
+		mon.setPosition("Closed");
+		mon.setPosition("Open");
+		Thread.sleep(100); // Watchdog should not start it again, it was paused first..
+		assertEquals(scanner.getDeviceState(), DeviceState.PAUSED);
+		
+		scanner.abort();
+		
+		mon.setPosition("Closed");
+		assertNotEquals(scanner.getDeviceState(), DeviceState.PAUSED);
+	}
+	
+	@Test
+	public void monitorWithExternalPauseComplex() throws Exception {
+
+		// x and y are level 3
+		IRunnableEventDevice<ScanModel> scanner = (IRunnableEventDevice<ScanModel>)createTestScanner(null);
+		
+		Set<DeviceState> states = new HashSet<>();
+		// This run should get paused for beam and restarted.
+		scanner.addRunListener(new IRunListener() {
+			public void stateChanged(RunEvent evt) throws ScanningException {
+				states.add(evt.getDeviceState());
+			}
+		});
+		
+		scanner.start(null);
+		scanner.pause();  // Pausing externally should override any watchdog resume.
+		
+		final IScannable<String>   mon  = connector.getScannable("portshutter");
+		mon.setPosition("Closed");
+		mon.setPosition("Open");
+		Thread.sleep(100); // Watchdog should not start it again, it was paused first..
+		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
+		
+		scanner.resume();
+		
+		Thread.sleep(100); 
+		assertNotEquals(DeviceState.PAUSED, scanner.getDeviceState());
+
+		mon.setPosition("Closed");
+		
+		Thread.sleep(100); 
+		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
+		
+		scanner.resume(); // The external resume should still not resume it
+
+		Thread.sleep(100);
+		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
+
+		scanner.abort();
 	}
 
 }
