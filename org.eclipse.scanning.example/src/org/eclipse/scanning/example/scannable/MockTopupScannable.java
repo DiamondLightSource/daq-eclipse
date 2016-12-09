@@ -17,6 +17,7 @@ public class MockTopupScannable extends MockScannable implements IDisconnectable
 	private final long start;
 	private long period;
     private volatile boolean isRunning;
+	private Thread thread;
 	/**
 	 * 
 	 * @param name
@@ -30,15 +31,21 @@ public class MockTopupScannable extends MockScannable implements IDisconnectable
 	}
 	
 	public void start() {
-		final Thread thread = new Thread(()->{
+		
+		if (thread!=null && isRunning) return; // We have one going.
+		this.thread = new Thread(()->{
+			isRunning = true;
 			try {
-				isRunning = true;
-				while(isRunning) {
+				while(isRunning && !Thread.interrupted()) {
 				    delegate.firePositionChanged(getLevel(), new Scalar(getName(), -1, getPosition()));
 				    Thread.sleep(100);
 				}
+			} catch (InterruptedException e) {
+				return; // Normal
 			} catch (Exception e) {
 				e.printStackTrace();
+			} finally {
+				isRunning = false;
 			}
 		}, "Topup value thread");
 		thread.setDaemon(true);
@@ -49,14 +56,18 @@ public class MockTopupScannable extends MockScannable implements IDisconnectable
 	@Override
 	public void disconnect() {
 		isRunning = false;
+		if (thread!=null) thread.interrupt();
 	}
 	@Override
 	public boolean isDisconnected() {
 		return !isRunning;
 	}
 
+	public void setPosition(Number position) throws Exception {
+		setPosition(position, null);
+	}
 	public void setPosition(Number position, IPosition loc) throws Exception {
-		
+	    delegate.firePositionChanged(getLevel(), new Scalar(getName(), -1, position));
 	}
 	
 	/**

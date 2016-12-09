@@ -58,7 +58,7 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		register(new MockStringScannable("portshutter", "Open"));
 		
 		register(new MockScannable("period", 1000d, 1, "ms"));
-		register(new MockBeanOnMonitor("beamon", 10d, 1));
+		register(new MockBeamOnMonitor("beamon", 10d, 1));
 		register(new MockScannable("bpos",  0.001,  -1));
 		register(new MockScannable("a", 10d, 1, "mm"));
 		register(new MockScannable("b", 10d, 1, "mm"));
