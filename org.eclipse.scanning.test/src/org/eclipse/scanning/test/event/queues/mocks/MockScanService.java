@@ -41,6 +41,13 @@ public class MockScanService implements IRunnableDeviceService {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	@Override
+	public <T> IRunnableDevice<T> createRunnableDevice(T model,
+			IPublisher<ScanBean> publisher, boolean configure) throws ScanningException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	@Override
 	public <T> IRunnableDevice<T> getRunnableDevice(String name)

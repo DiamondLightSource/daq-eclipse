@@ -183,7 +183,8 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
         return createRunnableDevice(model, publisher, true);
 	}
 	
-	private final <T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, boolean configure) throws ScanningException {
+	@Override
+	public final <T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, boolean configure) throws ScanningException {
 				
 		try {
 			if (deviceConnectorService==null) deviceConnectorService = getDeviceConnector();
