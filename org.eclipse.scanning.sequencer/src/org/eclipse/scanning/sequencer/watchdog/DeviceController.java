@@ -104,9 +104,8 @@ class DeviceController implements IDeviceController {
 	}
 	
 	private static final boolean canResume(Map<String, DeviceState> states) {
-		List<DeviceState> paused = states.values().stream().filter(state -> state==DeviceState.PAUSED).collect(Collectors.toList());
-		if (paused!=null && !paused.isEmpty()) return false;
-		return true;
+		// we can resume if none of the states are PAUSED
+		return !states.values().stream().filter(state -> state==DeviceState.PAUSED).findAny().isPresent();
 	}
 
 	public void abort(String id) throws ScanningException {
