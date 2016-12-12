@@ -207,7 +207,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        }
 			
 			String requestString = message.getEndpoint();
-			logger.info("Get '" + requestString + "'");
+			logger.debug("Get '" + requestString + "'");
 	        PvaClientGet pvaGet = pvaChannel.createGet(requestString);
 	        pvaGet.issueConnect();
 	        status = pvaGet.waitConnect();
@@ -217,7 +217,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	    	}
 	        PvaClientGetData pvaData = pvaGet.getData();
 			pvResult = pvaData.getPVStructure();
-			logger.info("Get response = \n" + pvResult + "\nEND");
+			logger.debug("Get response = \n" + pvResult + "\nEND");
 	        returnMessage = mapper.convertGetPVStructureToMalcolmMessage(pvResult, message);
 		} catch (Exception ex) {
 			logger.error(ex.getMessage());
@@ -226,9 +226,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		}
 		
 		if (pvaChannel != null) {
-			if (pvaChannel.getChannel() != null) {
-				pvaChannel.getChannel().destroy();
-			}
 			pvaChannel.destroy();
 		}
 		
@@ -280,9 +277,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		}
 		
 		if (pvaChannel != null) {
-			if (pvaChannel.getChannel() != null) {
-				pvaChannel.getChannel().destroy();
-			}
 			pvaChannel.destroy();
 		}
         
@@ -310,7 +304,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        	throw new Exception(errMEssage);
 	        }
 
-			logger.info("Call method = \n" + methodStructure + "\nEND");
+			logger.debug("Call method = \n" + methodStructure + "\nEND");
 	        PvaClientRPC rpc = pvaChannel.createRPC(methodStructure);
 	        rpc.issueConnect();
 	        status = rpc.waitConnect();
@@ -318,9 +312,9 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        	String errMEssage = "CreateRPC failed for " + message.getMethod() + "(" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	    	}
-			logger.info("Call param = \n" + parametersStructure + "\nEND");
+			logger.debug("Call param = \n" + parametersStructure + "\nEND");
 	        pvResult = rpc.request(parametersStructure);
-			logger.info("Call response = \n" + pvResult + "\nEND");
+			logger.debug("Call response = \n" + pvResult + "\nEND");
 			returnMessage = mapper.convertCallPVStructureToMalcolmMessage(pvResult, message);
 		} catch (Exception ex) {
 			logger.error(ex.getMessage());
@@ -330,9 +324,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		}
 		
 		if (pvaChannel != null) {
-			if (pvaChannel.getChannel() != null) {
-				pvaChannel.getChannel().destroy();
-			}
 			pvaChannel.destroy();
 		}
 		
