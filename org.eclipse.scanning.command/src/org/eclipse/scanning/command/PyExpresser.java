@@ -45,7 +45,7 @@ public class PyExpresser {
 
 			for (Object model : request.getCompoundModel().getModels()) {  // Order is important.
 				if (listPartiallyWritten) fragment += ", ";
-				Collection<IROI> rois = ParserServiceImpl.getPointGeneratorService().findRegions(model, request.getCompoundModel().getRegions());
+				Collection<IROI> rois = (Collection<IROI>) ParserServiceImpl.getPointGeneratorService().findRegions(model, request.getCompoundModel().getRegions());
 				fragment += pyExpress(model, rois, verbose);
 				listPartiallyWritten |= true;
 			}

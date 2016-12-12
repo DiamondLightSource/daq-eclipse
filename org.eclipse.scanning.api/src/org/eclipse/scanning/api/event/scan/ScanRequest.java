@@ -24,7 +24,7 @@ import org.eclipse.scanning.api.script.ScriptResponse;
  * The class automatically assigns a unique id for the run.
  * 
  * @author Matthew Gerring
- * @param T must be type of region that the regions correspond to. For instance IROI for any region type or IRectangularROI is all known to be rectangular.
+ * @param <T> must be type of region that the regions correspond to. For instance IROI for any region type or IRectangularROI is all known to be rectangular.
  *
  */
 public class ScanRequest<T> implements Serializable {
@@ -114,7 +114,7 @@ public class ScanRequest<T> implements Serializable {
 	
 	public ScanRequest(IScanPathModel m, String filePath, String... monitorNames) {
 		super();
-		this.compoundModel = new CompoundModel(m);
+		this.compoundModel = new CompoundModel<T>(m);
 		this.monitorNames = Arrays.asList(monitorNames);
 		this.filePath = filePath;
 	}
@@ -184,7 +184,7 @@ public class ScanRequest<T> implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ScanRequest other = (ScanRequest) obj;
+		ScanRequest<?> other = (ScanRequest<?>) obj;
 		if (after == null) {
 			if (other.after != null)
 				return false;
@@ -342,11 +342,11 @@ public class ScanRequest<T> implements Serializable {
 		this.scanMetadata.add(scanMetadata);
 	}
 
-	public CompoundModel getCompoundModel() {
+	public CompoundModel<T> getCompoundModel() {
 		return compoundModel;
 	}
 
-	public void setCompoundModel(CompoundModel model) {
+	public void setCompoundModel(CompoundModel<T> model) {
 		this.compoundModel = model;
 	}
 
