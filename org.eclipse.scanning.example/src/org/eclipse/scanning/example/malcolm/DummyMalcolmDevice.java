@@ -16,6 +16,7 @@
  * with GDA. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 package org.eclipse.scanning.example.malcolm;
 
 import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.MONITOR;
@@ -768,6 +769,10 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		layout = createLayoutAttribute();
 		allAttributes.put("layout", layout);
 	}
+
+	public void setAxesToMove(final String[] axesToMove) {
+		this.axesToMove = new StringArrayAttribute(axesToMove);
+	}
 	
 	private static class DummyMalcolmConnectorService implements IMalcolmConnectorService<MalcolmMessage> {
 
@@ -815,6 +820,5 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		}
 		
 	}
-	
 	
 }
