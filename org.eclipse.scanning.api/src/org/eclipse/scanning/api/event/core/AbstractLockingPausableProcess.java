@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
-public abstract class AbstractPausableProcess<T extends StatusBean> implements IConsumerProcess<T> {
+public abstract class AbstractLockingPausableProcess<T extends StatusBean> implements IConsumerProcess<T> {
 	
 	protected final T                      bean;
 	protected final IPublisher<T>          publisher;
@@ -32,7 +32,7 @@ public abstract class AbstractPausableProcess<T extends StatusBean> implements I
 	// Logging
 	protected PrintStream out = System.out;
 
-	protected AbstractPausableProcess(T bean, IPublisher<T> publisher) {
+	protected AbstractLockingPausableProcess(T bean, IPublisher<T> publisher) {
 		this.bean = bean;
 		this.publisher = publisher;
 		this.lock      = new ReentrantLock();

@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
@@ -50,7 +51,6 @@ import org.slf4j.LoggerFactory;
 public class ExpressionWatchdog extends AbstractWatchdog implements IPositionListener {
 	
 	private static Logger logger = LoggerFactory.getLogger(ExpressionWatchdog.class);
-	
 
 	private IExpressionEngine engine;
 	private IPosition         lastCompletedPoint;
@@ -64,6 +64,10 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 	}
 	public ExpressionWatchdog(DeviceWatchdogModel model) {
 		super(model);
+	}
+
+	String getId() {
+		return model.getExpression();
 	}
 
 	/**
@@ -90,22 +94,20 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 			logger.error("Cannot process position "+evt, ne);
 		}	
 	}
+	
 	private boolean checkExpression(boolean requirePause) throws Exception {
 		Boolean ok = engine.evaluate();
 		
 		if (requirePause) {
+			
 			if (!ok) {
-				logger.debug("Expression Watchdog pausing on "+device.getName());
-				bean.setMessage(model.getMessage());
-				device.pause();
+			    controller.pause(getId(), model); // Will not pause if already paused.
+				
 			} else {
-				logger.debug("Expression Watchdog resuming on "+device.getName());
 				if (lastCompletedPoint!=null) {
-					logger.debug("Expression Watchdog seeking on "+device.getName());
-					device.seek(lastCompletedPoint.getStepIndex());
+					controller.seek(getId(), lastCompletedPoint.getStepIndex());
 				}
-				device.resume();
-				logger.debug("Expression Watchdog resumed on "+device.getName());
+				controller.resume(getId()); // Will not resume unless paused by us
 			}
 		}
 		return ok;
@@ -113,8 +115,8 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 	
 	@ScanStart
 	public void start(ScanBean bean) throws ScanningException {
-		setBean(bean);
-		logger.debug("Expression Watchdog starting on "+device.getName());
+		
+		logger.debug("Expression Watchdog starting on "+controller.getName());
 		try {
 		    this.engine = getExpressionService().getExpressionEngine();
 		    
@@ -144,7 +146,7 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 		} catch (Exception ne) {
 			logger.error("Cannot start watchdog!", ne);
 		}
-		logger.debug("Expression Watchdog started on "+device.getName());
+		logger.debug("Expression Watchdog started on "+controller.getName());
 	} 
 	
 	@PointEnd
@@ -154,7 +156,7 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 	
 	@ScanFinally
 	public void stop() {
-		logger.debug("Expression Watchdog stopping on "+device.getName());
+		logger.debug("Expression Watchdog stopping on "+controller.getName());
 		try {
 			if (scannables!=null) for (IScannable<?> scannable : scannables) {
 		    	((IPositionListenable)scannable).removePositionListener(this);
@@ -165,7 +167,7 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 		} catch (Exception ne) {
 			logger.error("Cannot stop watchdog!", ne);
 		}
-		logger.debug("Expression Watchdog stopped on "+device.getName());
+		logger.debug("Expression Watchdog stopped on "+controller.getName());
 	}
 	
 	

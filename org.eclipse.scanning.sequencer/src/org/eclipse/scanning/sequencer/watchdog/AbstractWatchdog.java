@@ -3,8 +3,8 @@ package org.eclipse.scanning.sequencer.watchdog;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IDeviceWatchdog;
-import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -15,8 +15,7 @@ import org.eclipse.scanning.sequencer.ServiceHolder;
 public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	
 	protected DeviceWatchdogModel model;
-	protected IPausableDevice<?>  device;
-	protected ScanBean bean;
+	protected IDeviceController  controller;
 
 	public AbstractWatchdog() {
 		this(null);
@@ -24,6 +23,8 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	public AbstractWatchdog(DeviceWatchdogModel model2) {
 		this.model = model2;
 	}
+	
+	abstract String getId();
 	
 	public DeviceWatchdogModel getModel() {
 		return model;
@@ -84,18 +85,11 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	public void deactivate() {
 		ServiceHolder.getWatchdogService().unregister(this);
 	}
-	public IPausableDevice<?> getDevice() {
-		return device;
+	public IDeviceController getController() {
+		return controller;
 	}
-	@Override
-	public void setDevice(IPausableDevice<?> device) {
-		this.device = device;
-	}
-	public ScanBean getBean() {
-		return bean;
-	}
-	public void setBean(ScanBean bean) {
-		this.bean = bean;
+	public void setController(IDeviceController controller) {
+		this.controller = controller;
 	}
 
 }

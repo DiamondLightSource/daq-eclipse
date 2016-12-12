@@ -12,7 +12,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
+import org.eclipse.scanning.api.event.core.AbstractLockingPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.example.xcen.beans.XcenBean;
@@ -36,7 +36,7 @@ import org.eclipse.scanning.example.xcen.beans.XcenBean;
  * @author Martin Gaughran
  *
  */
-public class XcenProcess extends AbstractPausableProcess<XcenBean>{
+public class XcenProcess extends AbstractLockingPausableProcess<XcenBean>{
 	
 	private boolean terminated;
 

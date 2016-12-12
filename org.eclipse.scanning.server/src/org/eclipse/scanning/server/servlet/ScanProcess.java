@@ -11,12 +11,13 @@ import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PostConfigure;
 import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
+import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
+import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -48,20 +49,23 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-public class ScanProcess extends AbstractPausableProcess<ScanBean> {
+public class ScanProcess implements IConsumerProcess<ScanBean> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ScanProcess.class);
+	protected final ScanBean               bean;
+	protected final IPublisher<ScanBean>   publisher;
 
 	// Services
 	private IPositioner                positioner;
 	private IScriptService             scriptService;
 	
-	private IPausableDevice<ScanModel> device;
+	private IDeviceController          controller;
 	private boolean                    blocking;
 
 	public ScanProcess(ScanBean scanBean, IPublisher<ScanBean> response, boolean blocking) throws EventException {
 		
-		super(scanBean, response);
+		this.bean = scanBean;
+		this.publisher = response;
 		this.blocking = blocking;
 		
 		if (bean.getScanRequest().getStart()!=null || bean.getScanRequest().getEnd()!=null) {
@@ -80,13 +84,32 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 	}
 	
 	@Override
-	public void doPause() throws Exception {
-		device.pause();
+	public void pause() throws EventException {
+		try {
+			controller.pause(getClass().getName(), null);
+		} catch (ScanningException e) {
+			throw new EventException(e);
+		}
 	}
 	
 	@Override
-	public void doResume() throws Exception  {
-		device.resume();
+	public void resume() throws EventException  {
+		try {
+			controller.resume(getClass().getName());
+		} catch (ScanningException e) {
+			throw new EventException(e);
+		}
+	}
+
+	@Override
+	public void terminate() throws EventException {
+		
+		if (bean.getStatus()==Status.COMPLETE) return; // Nothing to terminate.
+		try {
+			controller.abort(getClass().getName());
+		} catch (ScanningException e) {
+			throw new EventException(e);
+		}
 	}
 
 	@Override
@@ -109,10 +132,10 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			ScriptResponse<?> res = runScript(bean.getScanRequest().getBefore());
 			bean.getScanRequest().setBeforeResponse(res);
 			
-			this.device = createRunnableDevice(bean, gen);
+			this.controller = createRunnableDevice(bean, gen);
 			
 			if (blocking) {
-			    device.run(null); // Runs until done
+				controller.getDevice().run(null); // Runs until done
 			    
 				// Run a script, if any has been requested
 			    res = runScript(bean.getScanRequest().getAfter());
@@ -123,7 +146,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 				}
 
 			} else {
-				((AbstractRunnableDevice<ScanModel>)device).start(null);
+				((AbstractRunnableDevice<ScanModel>)controller.getDevice()).start(null);
 				if (bean.getScanRequest().getAfter()!=null) throw new EventException("Cannot run end script when scan is async.");
 				if (bean.getScanRequest().getEnd()!=null) throw new EventException("Cannot perform end position when scan is async.");
 			}
@@ -227,7 +250,7 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		return scriptService.execute(req);		
 	}
 
-	private IPausableDevice<ScanModel> createRunnableDevice(ScanBean bean, IPointGenerator<?> gen) throws ScanningException, EventException {
+	private IDeviceController createRunnableDevice(ScanBean bean, IPointGenerator<?> gen) throws ScanningException, EventException {
 
 		ScanRequest<?> req = bean.getScanRequest();
 		if (req==null) throw new ScanningException("There must be a scan request to run a scan!");
@@ -249,7 +272,12 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 			
 			configureDetectors(req.getDetectors(), scanModel, estimator, generator);
 			
-			return (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(scanModel, publisher);
+			IPausableDevice<ScanModel> device = (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(scanModel, publisher, false);
+			IDeviceController controller = Services.getWatchdogService().create(device);
+			if (controller.getObjects()!=null) scanModel.setAnnotationParticipants(controller.getObjects());
+		    
+			device.configure(scanModel);
+		    return controller;
 			
 		} catch (Exception e) {
 			bean.setStatus(Status.FAILED);
@@ -299,13 +327,6 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		IPointGeneratorService service = Services.getGeneratorService();
 		return service.createCompoundGenerator(req.getCompoundModel());
 	}
-
-	@Override
-	public void doTerminate() throws Exception {
-		
-		if (bean.getStatus()==Status.COMPLETE) return; // Nothing to terminate.
-		device.abort();
-	}
 	
 	private List<IRunnableDevice<?>> getDetectors(Map<String, ?> detectors) throws EventException {
 		
@@ -349,6 +370,16 @@ public class ScanProcess extends AbstractPausableProcess<ScanBean> {
 		if (publisher!=null) {
 			publisher.broadcast(bean);
 		}		
+	}
+
+	@Override
+	public ScanBean getBean() {
+		return bean;
+	}
+
+	@Override
+	public IPublisher<ScanBean> getPublisher() {
+		return publisher;
 	}
 
 }
