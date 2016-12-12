@@ -40,17 +40,9 @@ import org.slf4j.LoggerFactory;
  * 
  *
  <pre>
-SR-CS-FILL-01:STACOUNTDN: 
-this is an integer counter that runs to zero at the start of TopUp fill 
-and is reset immediately to the time to next TopUp fill, fillPeriod,
-
 SR-CS-FILL-01:COUNTDOWN: this is a float-valued counter that runs to zero
 at the start of TopUp and remains there until the fill is complete when 
 it resets to time before next TopUp fill,
-
-SR-CS-FILL-01:ENDCOUNTDN: this is an integer counter that runs to zero 
-at the end of TopUp fill and resets immediately to an estimate of the 
-time before the end of the next TopUp fill.
 </pre>
  
  Example XML configuration
@@ -58,7 +50,6 @@ time before the end of the next TopUp fill.
     {@literal <!--  Watchdog Example -->}
 	{@literal <bean id="topupModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">}
 	{@literal 	<property name="countdownName"     value="topup"/>}
-	{@literal 	<property name="periodName"        value="period"/>}
 	{@literal 	<property name="cooloff"           value="4000"/>}
 	{@literal 	<property name="message"           value="Paused during topup"/>}
 	{@literal 	<property name="warmup"            value="5000"/>}
@@ -142,7 +133,7 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 				warmupEndPos = 0; // set to 0, so we know be recalculate it when topup ends
 		
 			} else { // See if we can resume
-				if (pos <= 0) {
+				if (pos <= model.getCooloff()) {
 					return;
 				}
 				if (warmupEndPos == 0) {
