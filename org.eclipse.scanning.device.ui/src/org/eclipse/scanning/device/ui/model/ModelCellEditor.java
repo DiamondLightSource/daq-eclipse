@@ -3,7 +3,6 @@ package org.eclipse.scanning.device.ui.model;
 import java.text.MessageFormat;
 
 import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.resource.JFaceResources;
@@ -14,7 +13,9 @@ import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
+import org.eclipse.scanning.api.ui.auto.IModelDialog;
 import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
@@ -272,15 +273,15 @@ public class ModelCellEditor extends CellEditor {
      */
 	protected Object openDialogBox(Control cellEditorWindow) {
 		
-		final ModelDialog dialog = new ModelDialog(cellEditorWindow.getShell()); // extends BeanDialog
-		dialog.create();
-		dialog.getShell().setSize(550,450); // As needed
-		dialog.getShell().setText("Edit "+fvalue.getAnnotation().label());
-		
 		try {
+			final IModelDialog<Object> dialog = ServiceHolder.getInterfaceService().createModelDialog(cellEditorWindow.getShell()); // extends BeanDialog
+			dialog.create();
+			dialog.setSize(550,450); // As needed
+			dialog.setText("Edit "+fvalue.getAnnotation().label());
+		
 			dialog.setModel(fvalue.get(true));
 	        final int ok = dialog.open();
-	        if (ok == Dialog.OK) {
+	        if (ok == IModelDialog.OK) {
 	            return dialog.getModel();
 	        }
 		} catch (Exception ne) {

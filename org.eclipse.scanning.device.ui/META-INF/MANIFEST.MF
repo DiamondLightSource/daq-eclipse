@@ -22,4 +22,6 @@ Import-Package: org.osgi.framework;version="1.8.0",
 Bundle-Activator: org.eclipse.scanning.device.ui.Activator
 Bundle-ActivationPolicy: lazy
 Service-Component: OSGI-INF/*.xml
-Export-Package: org.eclipse.scanning.device.ui.device.scannable
+Export-Package: org.eclipse.scanning.device.ui,
+ org.eclipse.scanning.device.ui.device.scannable,
+ org.eclipse.scanning.device.ui.model

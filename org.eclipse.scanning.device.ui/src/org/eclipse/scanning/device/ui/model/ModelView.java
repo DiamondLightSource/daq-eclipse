@@ -37,7 +37,7 @@ public class ModelView extends ViewPart implements ISelectionListener {
 
 	// UI
 	private Composite         parent;
-	private ModelViewer       modelEditor;
+	private ModelViewer<?>    modelEditor;
 	private ControlTreeViewer treeViewer;
 
 	
@@ -50,7 +50,7 @@ public class ModelView extends ViewPart implements ISelectionListener {
 			content.setLayout(new GridLayout(1, false));
 			GridUtils.removeMargins(content);
 			
-			modelEditor = new ModelViewer(getViewSite());
+			modelEditor = new ModelViewer<>(getViewSite());
 			modelEditor.createPartControl(content);
 			GridUtils.setVisible(modelEditor.getControl(), true);
 			
