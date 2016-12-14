@@ -36,6 +36,11 @@ public class PageUtil {
 	 * @return IWorkbenchPage
 	 */
 	public static IWorkbenchPage getActivePage() {
+		try {
+			if (!PlatformUI.isWorkbenchRunning()) return null;
+		} catch (Exception | NoClassDefFoundError ne) {
+			return null;
+		}
 		final IWorkbench bench = PlatformUI.getWorkbench();
 		if (bench==null) return null;
 		final IWorkbenchWindow window = bench.getActiveWorkbenchWindow();
@@ -56,6 +61,11 @@ public class PageUtil {
 	 * @return IWorkbenchPage
 	 */
 	public static IWorkbenchPage getDefaultPage() {
+		try {
+			if (!PlatformUI.isWorkbenchRunning()) return null;
+		} catch (Exception | NoClassDefFoundError ne) {
+			return null;
+		}
 		final IWorkbench bench = PlatformUI.getWorkbench();
 		if (bench==null) return null;
 		final IWorkbenchWindow[] windows = bench.getWorkbenchWindows();

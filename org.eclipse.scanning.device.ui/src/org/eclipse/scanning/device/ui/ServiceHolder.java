@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.IParserService;
+import org.eclipse.scanning.api.ui.auto.IInterfaceService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.EventAdmin;
@@ -28,6 +29,7 @@ public class ServiceHolder {
 	private static IPlottingService       plottingService;
 	private static IRemoteDatasetService  remoteDatasetService;
 	private static IParserService         parserService;
+	private static IInterfaceService      interfaceService;
 	private static EventAdmin             eventAdmin;
 	
 	private static BundleContext context;
@@ -64,7 +66,7 @@ public class ServiceHolder {
 		return expressionService;
 	}
 
-	public void setExpressionService(IExpressionService expressionService) {
+	public static void setExpressionService(IExpressionService expressionService) {
 		ServiceHolder.expressionService = expressionService;
 	}
 
@@ -152,5 +154,14 @@ public class ServiceHolder {
 
 	public static void setParserService(IParserService parserService) {
 		ServiceHolder.parserService = parserService;
+	}
+
+	public static IInterfaceService getInterfaceService() {
+		if (interfaceService==null) interfaceService = getService(IInterfaceService.class);
+		return interfaceService;
+	}
+
+	public static void setInterfaceService(IInterfaceService interfaceService) {
+		ServiceHolder.interfaceService = interfaceService;
 	}
 }

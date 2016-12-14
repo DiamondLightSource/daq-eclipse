@@ -121,7 +121,6 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 	
 	public ModelViewer() throws EventException, URISyntaxException {
 		super();
-		dservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IRunnableDeviceService.class);
 	}
 		
 	public ModelViewer(IViewSite site) throws EventException, URISyntaxException {
@@ -400,6 +399,7 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 			// Special case for device information, we read the latest
 			if (ob instanceof DeviceInformation) {
 				String name = ((DeviceInformation<?>)ob).getName();
+				if (dservice==null) dservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IRunnableDeviceService.class);
 				IRunnableDevice<?> device = dservice.getRunnableDevice(name);
 				setValidator(device);
 			}

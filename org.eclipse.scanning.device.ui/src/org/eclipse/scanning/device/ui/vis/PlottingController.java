@@ -45,9 +45,9 @@ import org.eclipse.scanning.api.points.models.IBoundingLineModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.scan.AxisConfiguration;
 import org.eclipse.scanning.api.ui.CommandConstants;
+import org.eclipse.scanning.api.ui.auto.IModelDialog;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
-import org.eclipse.scanning.device.ui.model.ModelDialog;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
 import org.eclipse.scanning.device.ui.util.Stashing;
@@ -157,14 +157,14 @@ public class PlottingController implements ISelectionProvider, IAdaptable {
 			public void run() {
 	    		
 	    		try {
-		    		ModelDialog<AxisConfiguration>  dialog = new ModelDialog<AxisConfiguration>(site.getShell());
+		    		IModelDialog<AxisConfiguration>  dialog = ServiceHolder.getInterfaceService().createModelDialog(site.getShell());
 		    		dialog.setPreamble("Please define the axes and their ranges we will map within.");
 		    		dialog.create();
-		    		dialog.getShell().setSize(550,450); // As needed
-		    		dialog.getShell().setText("Scan Area");
+		    		dialog.setSize(550,450); // As needed
+		    		dialog.setText("Scan Area");
 		    		dialog.setModel(getAxisConfiguration());
 		    		int ok = dialog.open();
-		    		if (ok==dialog.OK) {
+		    		if (ok==IModelDialog.OK) {
 		    			AxisConfiguration conf = dialog.getModel();
 		    			setAxisConfiguration(conf);
 		    		}

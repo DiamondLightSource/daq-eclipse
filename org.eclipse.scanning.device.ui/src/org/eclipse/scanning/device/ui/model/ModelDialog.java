@@ -1,6 +1,8 @@
 package org.eclipse.scanning.device.ui.model;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.scanning.api.ui.auto.IModelDialog;
+import org.eclipse.scanning.api.ui.auto.InterfaceInvalidException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -10,7 +12,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ModelDialog<T> extends Dialog {
+class ModelDialog<T> extends Dialog implements IModelDialog<T>  {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModelDialog.class);
 	
@@ -54,12 +56,31 @@ public class ModelDialog<T> extends Dialog {
 		return modelEditor.getModel();
 	}
 
-	public void setModel(T model) throws InstantiationException, IllegalAccessException {
-		modelEditor.setModel(model);
+	public void setModel(T model) throws InterfaceInvalidException {
+		try {
+			modelEditor.setModel(model);
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new InterfaceInvalidException(e);
+		}
 	}
 
 	public void setPreamble(String message) {
 		this.preamble = message;
+	}
+
+	@Override
+	public void setSize(int width, int height) {
+		getShell().setSize(width, height);
+	}
+
+	@Override
+	public void setText(String label) {
+		getShell().setText(label);
+	}
+
+	@Override
+	public T getControl() {
+		return (T)getShell();
 	}
 
 }
