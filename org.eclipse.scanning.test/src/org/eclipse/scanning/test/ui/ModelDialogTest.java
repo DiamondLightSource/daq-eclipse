@@ -12,9 +12,12 @@ import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(SWTBotJunit4ClassRunner.class)
 public class ModelDialogTest extends ShellTest{
 	
 	private static IInterfaceService interfaceService; // We really get this from OSGi services!
