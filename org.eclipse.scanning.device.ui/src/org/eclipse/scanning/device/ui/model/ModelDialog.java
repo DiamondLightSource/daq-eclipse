@@ -57,11 +57,7 @@ class ModelDialog<T> extends Dialog implements IModelDialog<T>  {
 	}
 
 	public void setModel(T model) throws InterfaceInvalidException {
-		try {
-			modelEditor.setModel(model);
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new InterfaceInvalidException(e);
-		}
+		modelEditor.setModel(model);
 	}
 
 	public void setPreamble(String message) {
