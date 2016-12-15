@@ -9,10 +9,12 @@ import org.eclipse.scanning.api.ui.auto.IInterfaceService;
 import org.eclipse.scanning.api.ui.auto.IModelViewer;
 import org.eclipse.scanning.device.ui.model.InterfaceService;
 import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,6 +81,24 @@ public class ModelDialogTest extends ShellTest{
 		assertEquals(String.valueOf(config.getSlowAxisStart()),   bot.table(0).cell(6, 1));
 		assertEquals(String.valueOf(config.getSlowAxisEnd()),     bot.table(0).cell(7, 1));
 		
+	}
+
+	
+	@Test
+	public void checkFilePath() throws Exception {
+		
+		assertEquals(config.getMicroscopeImage(), bot.table(0).cell(0, 1));
+		
+		bot.table(0).click(0, 1); // Make the file editor
+		
+		SWTBotText text = bot.text(0);
+		assertNotNull(text);
+		assertEquals(config.getMicroscopeImage(), text.getText());
+		
+		text.setText("Invalid Path");
+		
+		Color red = new Color(bot.getDisplay(), 255, 0, 0, 255);
+        assertEquals(red, text.foregroundColor());
 	}
 
 }
