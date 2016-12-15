@@ -127,7 +127,8 @@ public class ModelView extends ViewPart implements ISelectionListener {
 				// Other selections will come in, we ignore these as we cannot edit them.
 			}
 			if (name!=null) setPartName(name);
-			modelEditor.getControl().getParent().layout();
+			Control control = modelEditor.getControl();
+			control.getParent().layout();
 		}		
 	}
 

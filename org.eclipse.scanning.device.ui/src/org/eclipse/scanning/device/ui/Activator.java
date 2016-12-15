@@ -1,10 +1,7 @@
 package org.eclipse.scanning.device.ui;
 
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -51,7 +48,7 @@ public class Activator extends AbstractUIPlugin {
 
 	public static ImageDescriptor getImageDescriptor(String path) {
 		if (plugin==null) {
-			ImageData data = new ImageData("../org.eclipse.scanning.device.ui/"+path);
+			final ImageData data = new ImageData("../"+PLUGIN_ID+"/"+path);
 			return new ImageDescriptor() {				
 				@Override
 				public ImageData getImageData() {
