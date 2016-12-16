@@ -9,5 +9,5 @@ import org.junit.runners.Suite.SuiteClasses;
 	ModelDialogTest.class
 
 })
-public class Suite {
+public class UISuite {
 }
