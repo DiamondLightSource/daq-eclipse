@@ -206,7 +206,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	}
 
 	protected void updateQueue(U bean) throws EventException {
-		
+		boolean resumeAfter = !awaitPaused;
 		Session session = null;
 		try {
 			pause();
@@ -256,7 +256,10 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 			throw new EventException("Cannot reorder queue!", ne);
 			
 		} finally {
-			resume();
+			// Only resume if it wasn't in a paused state before this update
+			if (resumeAfter) {
+				resume();
+			}
 			try {
 				if (session!=null) session.close();
 			} catch (JMSException e) {
