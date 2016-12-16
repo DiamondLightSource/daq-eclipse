@@ -360,6 +360,9 @@ abstract class LevelRunner<L extends ILevel> {
 	 * @return
 	 */
 	public long getTimeout(List<L> objects) {
+		if (Boolean.getBoolean("org.eclipse.scanning.sequencer.debug")) {
+			return Long.MAX_VALUE; // So long that hell may have frozen over...
+		}
 		return timeout;
 	}
 

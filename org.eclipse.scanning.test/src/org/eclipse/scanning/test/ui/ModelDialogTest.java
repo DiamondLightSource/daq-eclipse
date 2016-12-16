@@ -63,13 +63,11 @@ public class ModelDialogTest extends ShellTest{
 		return shell;
 	}
 
-	@Ignore("Cannot run this test in Travis - please fix! Idea: run separate to main tests")
 	@Test
 	public void checkShell() throws Exception {
 		assertNotNull(bot.shell("Scan Area"));
 	}
 	
-	@Ignore("Cannot run this test in Travis - please fix!")
 	@Test
 	public void checkInitialValues() throws Exception {
 		
