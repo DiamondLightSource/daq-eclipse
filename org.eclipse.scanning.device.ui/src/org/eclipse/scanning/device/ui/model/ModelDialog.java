@@ -1,6 +1,9 @@
 package org.eclipse.scanning.device.ui.model;
 
+import java.io.Serializable;
+
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.richbeans.annot.DOEUtils;
 import org.eclipse.scanning.api.ui.auto.IModelDialog;
 import org.eclipse.scanning.api.ui.auto.InterfaceInvalidException;
 import org.eclipse.swt.SWT;
@@ -12,7 +15,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ModelDialog<T> extends Dialog implements IModelDialog<T>  {
+class ModelDialog<T extends Serializable> extends Dialog implements IModelDialog<T>  {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModelDialog.class);
 	
@@ -51,13 +54,25 @@ class ModelDialog<T> extends Dialog implements IModelDialog<T>  {
 		return main;
 
 	}
+	
+	protected void okPressed() {
+		modelEditor.applyEditorValue();
+		super.okPressed();
+	}
 
 	public T getModel() {
 		return modelEditor.getModel();
 	}
 
 	public void setModel(T model) throws InterfaceInvalidException {
-		modelEditor.setModel(model);
+		try {
+			model = DOEUtils.deepClone(model);
+			modelEditor.setModel(model);
+		} catch (InterfaceInvalidException ne) {
+			throw ne;
+		} catch (Exception other) {
+			throw new InterfaceInvalidException(other);
+		}
 	}
 
 	public void setPreamble(String message) {

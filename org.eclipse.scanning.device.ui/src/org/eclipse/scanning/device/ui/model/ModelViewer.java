@@ -512,4 +512,11 @@ class ModelViewer<T> implements IModelViewer<T>, ISelectionListener, ISelectionP
 		this.validationError = validationError;
 	}
 
+	@Override
+	public void applyEditorValue() {
+		if (!viewer.isCellEditorActive()) return;
+System.out.println("Applying");
+		viewer.applyEditorValue();
+	}
+
 }

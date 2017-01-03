@@ -378,11 +378,7 @@ public class ScanServletPluginTest {
 		RunnableDeviceServiceImpl.setDeviceConnectorService(dservice); 
 		Services.setConnector(dservice);
 		
-		// Put a connection in the DeviceServiceImpl which is used for the test
-		IMalcolmService malcolmService = new MockedMalcolmService(false);
-		
 		// DO NOT COPY TESTING ONLY
-		
 		// We double check that the services injected into the servlet bundle are there.
 		assertNotNull(Services.getConnector());
 		assertNotNull(Services.getEventService());

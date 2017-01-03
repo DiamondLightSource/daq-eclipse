@@ -1,5 +1,6 @@
 package org.eclipse.scanning.device.ui.model;
 
+import java.io.Serializable;
 import java.text.MessageFormat;
 
 import org.eclipse.dawnsci.plotting.api.region.IRegion.RegionType;
@@ -274,12 +275,12 @@ public class ModelCellEditor extends CellEditor {
 	protected Object openDialogBox(Control cellEditorWindow) {
 		
 		try {
-			final IModelDialog<Object> dialog = ServiceHolder.getInterfaceService().createModelDialog(cellEditorWindow.getShell()); // extends BeanDialog
+			final IModelDialog<Serializable> dialog = ServiceHolder.getInterfaceService().createModelDialog(cellEditorWindow.getShell()); // extends BeanDialog
 			dialog.create();
 			dialog.setSize(550,450); // As needed
 			dialog.setText("Edit "+fvalue.getAnnotation().label());
 		
-			dialog.setModel(fvalue.get(true));
+			dialog.setModel((Serializable)fvalue.get(true));
 	        final int ok = dialog.open();
 	        if (ok == IModelDialog.OK) {
 	            return dialog.getModel();

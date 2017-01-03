@@ -58,4 +58,9 @@ public interface IModelViewer<T> {
 	 * Make the viewer take focus to its main control.
 	 */
 	void setFocus();
+
+    /**
+     * Call to apply the cell editor value in the editing bean.
+     */
+	void applyEditorValue();
 }
