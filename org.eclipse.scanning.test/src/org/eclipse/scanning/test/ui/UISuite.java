@@ -25,7 +25,8 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 @SuiteClasses({
 
 	SampleInformationTest.class,
-	AxisConfigurationTest.class
+	AxisConfigurationTest.class,
+	KnownModelsTest.class
 
 })
 public class UISuite {
