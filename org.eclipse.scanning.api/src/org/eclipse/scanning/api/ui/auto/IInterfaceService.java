@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.ui.auto;
 
+import java.io.Serializable;
+
 /**
  * 
  * An OSGi service for automatically generating user interfaces from annotated beans.
@@ -33,5 +35,5 @@ public interface IInterfaceService {
 	 * @return Dialog a class which can be used to edit any model.
 	 * @throws InterfaceInvalidException, for instance if T is a user interface type which is unsupported e.g. FXDialog
 	 */
-	<T,O> IModelDialog<O> createModelDialog(T shell) throws InterfaceInvalidException;
+	<T,O extends Serializable> IModelDialog<O> createModelDialog(T shell) throws InterfaceInvalidException;
 }
