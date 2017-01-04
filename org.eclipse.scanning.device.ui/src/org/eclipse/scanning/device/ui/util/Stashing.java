@@ -12,30 +12,32 @@ import java.io.OutputStreamWriter;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.scanning.api.event.IEventConnectorService;
+import org.eclipse.scanning.api.stashing.IStashing;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Stashing {
+class Stashing implements IStashing {
 
 	private static final Logger logger = LoggerFactory.getLogger(Stashing.class);
 	
 	private final File file;
 
-	private IEventConnectorService marshallerService;
+	private IMarshallerService marshallerService;
 	
 	/**
 	 * 
 	 * @param fileName, e.g. org.eclipse.scanning.device.ui.device.controls.json
 	 */
-	public Stashing(String fileName, IEventConnectorService marshallerService) {
+	Stashing(String fileName, IMarshallerService marshallerService) {
 		this(new File(System.getProperty("user.home")+"/.solstice/"+fileName),marshallerService);
 	}
 	
-	public Stashing(File file, IEventConnectorService marshallerService) {
+	Stashing(File file, IMarshallerService marshallerService) {
 		this.file = file;
 		this.marshallerService = marshallerService;
 	}
@@ -49,17 +51,14 @@ public class Stashing {
 		write(file, json);
 	}
 	
-	public <T> T unstash(Class<T> clazz) {
+	public <T> T unstash(Class<T> clazz) throws Exception {
 		
 		if (!isStashed()) return null;
-		try {
-			final String json = readFile(file).toString();
-			final T ret = marshallerService.unmarshal(json, clazz);
-			return ret;
-		} catch (Exception ne) {
-			logger.error("Cannot read file "+file, ne);
-			return null;
-		}
+		
+		final String json = readFile(file).toString();
+		final T ret = marshallerService.unmarshal(json, clazz);
+		return ret;
+		
 	}
 	
 	private static void write(final File file, final String text) throws Exception {
@@ -107,28 +106,28 @@ public class Stashing {
 	 * @param models
 	 * @param shell
 	 */
-	public void save(Object models, Shell shell) {
+	public void save(Object object) {
 		try {
 			
 			if (file.exists()) {
-				boolean ok = MessageDialog.openConfirm(shell.getShell(), "Confirm Overwrite", "Are you sure that you would like to overwrite '"+file.getName()+"'?");
+				boolean ok = MessageDialog.openConfirm(Display.getCurrent().getActiveShell(), "Confirm Overwrite", "Are you sure that you would like to overwrite '"+file.getName()+"'?");
 				if (ok) return;
 			}
 			
-			stash(models);
+			stash(object);
 			
 		} catch (Exception e) {
-			ErrorDialog.openError(shell.getShell(), "Error Saving Information", "An exception occurred while writing to file.",
+			ErrorDialog.openError(Display.getCurrent().getActiveShell(), "Error Saving Information", "An exception occurred while writing to file.",
 					              new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", e.getMessage()));
 		    logger.error("Error Saving Information", e);
 		}
 	}
 	
-	public <T> T load(Class<T> clazz, Shell shell) {
+	public <T> T load(Class<T> clazz) {
 		try {
             return unstash(clazz);	
 		} catch (Exception e) {
-			MessageDialog.openInformation(shell.getShell(), "Exception while reading scans from file", "An exception occurred while reading scans from a file.\n" + e.getMessage());
+			MessageDialog.openInformation(Display.getCurrent().getActiveShell(), "Exception while reading scans from file", "An exception occurred while reading scans from a file.\n" + e.getMessage());
 		    return null;
 		}
      
