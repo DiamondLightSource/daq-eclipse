@@ -48,7 +48,7 @@ public class ServiceHolder {
 		return eventService;
 	}
 
-	public void setEventService(IEventService eventService) {
+	public static void setEventService(IEventService eventService) {
 		ServiceHolder.eventService = eventService;
 	}
 

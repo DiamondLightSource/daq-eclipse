@@ -3,31 +3,39 @@ package org.eclipse.scanning.test.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.File;
+
 import org.eclipse.richbeans.test.ui.ShellTest;
 import org.eclipse.scanning.api.scan.AxisConfiguration;
 import org.eclipse.scanning.api.ui.auto.IInterfaceService;
 import org.eclipse.scanning.api.ui.auto.IModelViewer;
 import org.eclipse.scanning.device.ui.model.InterfaceService;
-import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(SWTBotJunit4ClassRunner.class)
-public class ModelDialogTest extends ShellTest{
+public class AxisConfigurationTest extends ShellTest{
 	
 	private static IInterfaceService interfaceService; // We really get this from OSGi services!
 	
 	@BeforeClass
-	public static void createServicesServiceHolder() throws Exception {
+	public static void createServices() throws Exception {	
 		interfaceService = new InterfaceService(); // Just for testing! This comes from OSGi really.
-		org.eclipse.scanning.device.ui.ServiceHolder.setExpressionService(new ServerExpressionService());
+		UISuite.createTestServices();
+	}
+	
+	@AfterClass
+	public static void disposeServices() throws Exception {	
+		interfaceService = null;
+		UISuite.disposeTestServices();
 	}
 
 	private AxisConfiguration    config;
@@ -39,10 +47,10 @@ public class ModelDialogTest extends ShellTest{
 		this.config = new AxisConfiguration();
 		config.setApplyModels(true);
 		config.setApplyRegions(true);
-		config.setFastAxisName("xxx");
+		config.setFastAxisName("stage_x");
 		config.setFastAxisStart(0);
 		config.setFastAxisEnd(100);
-		config.setSlowAxisName("yyy");
+		config.setSlowAxisName("stage_y");
 		config.setSlowAxisStart(-100);
 		config.setSlowAxisEnd(-200);
 		config.setMicroscopeImage("C:/tmp/fred.png");
@@ -74,17 +82,16 @@ public class ModelDialogTest extends ShellTest{
 		assertEquals(config.getMicroscopeImage(),                 bot.table(0).cell(0, 1));
 		
 		assertEquals(config.getFastAxisName(),                    bot.table(0).cell(2, 1));
-		assertEquals(String.valueOf(config.getFastAxisStart()),   bot.table(0).cell(3, 1));
-		assertEquals(String.valueOf(config.getFastAxisEnd()),     bot.table(0).cell(4, 1));
+		assertEquals(String.valueOf(config.getFastAxisStart())+" mm",   bot.table(0).cell(3, 1));
+		assertEquals(String.valueOf(config.getFastAxisEnd())+" mm",     bot.table(0).cell(4, 1));
 		
 		assertEquals(config.getSlowAxisName(),                    bot.table(0).cell(5, 1));
-		assertEquals(String.valueOf(config.getSlowAxisStart()),   bot.table(0).cell(6, 1));
-		assertEquals(String.valueOf(config.getSlowAxisEnd()),     bot.table(0).cell(7, 1));
+		assertEquals(String.valueOf(config.getSlowAxisStart())+" mm",   bot.table(0).cell(6, 1));
+		assertEquals(String.valueOf(config.getSlowAxisEnd())+" mm",     bot.table(0).cell(7, 1));
 		
 	}
 
 	
-	@Ignore("Cannot run this test in Travis - please fix!")
 	@Test
 	public void checkFilePath() throws Exception {
 		
@@ -98,8 +105,42 @@ public class ModelDialogTest extends ShellTest{
 		
 		text.setText("Invalid Path");
 		
-//		Color red = new Color(bot.getDisplay(), 255, 0, 0, 255);
-//        assertEquals(red, text.foregroundColor());
+		Color red = new Color(bot.getDisplay(), 255, 0, 0, 255);
+        assertEquals(red, text.foregroundColor());
+        
+        File file = File.createTempFile("a_testFile", ".txt");
+        file.deleteOnExit();
+		text.setText(file.getAbsolutePath());
+
+		Color black = new Color(bot.getDisplay(), 0, 0, 0, 255);
+        assertEquals(black, text.foregroundColor());
+
+        
 	}
 
+	@Test
+	public void checkFastStart() throws Exception {
+
+		assertEquals(String.valueOf(config.getFastAxisStart())+" mm", bot.table(0).cell(3, 1));
+
+		bot.table(0).click(3, 1); // Make the file editor
+		
+		SWTBotText text = bot.text(0);
+		assertNotNull(text);
+		assertEquals(String.valueOf(config.getFastAxisStart()), text.getText());
+		
+		Color red = new Color(bot.getDisplay(), 255, 0, 0, 255);
+ 		Color black = new Color(bot.getDisplay(), 0, 0, 0, 255);
+        assertEquals(black, text.foregroundColor());
+
+        text.setText("-2000");
+        assertEquals(red, text.foregroundColor());
+        
+        text.setText("1");
+        assertEquals(black, text.foregroundColor());
+        
+        text.setText("1001");
+        assertEquals(red, text.foregroundColor());
+
+	}
 }

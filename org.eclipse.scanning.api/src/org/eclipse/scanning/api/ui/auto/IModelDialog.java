@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.ui.auto;
 
+import java.io.Serializable;
+
 /**
  * <pre>
  * Example:
@@ -24,7 +26,7 @@ package org.eclipse.scanning.api.ui.auto;
  *
  * @param <T> The model that the dialog edits
  */
-public interface IModelDialog<T> {
+public interface IModelDialog<T extends Serializable> {
 	/**
 	 * Standard return code constant (value 0) indicating that the window was
 	 * opened.
