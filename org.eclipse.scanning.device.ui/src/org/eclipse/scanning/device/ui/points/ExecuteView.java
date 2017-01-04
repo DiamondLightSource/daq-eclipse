@@ -53,6 +53,7 @@ import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.ui.AbstractControl;
 import org.eclipse.scanning.api.script.ScriptRequest;
+import org.eclipse.scanning.api.stashing.IStashing;
 import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.api.ui.auto.IModelDialog;
 import org.eclipse.scanning.api.ui.auto.InterfaceInvalidException;
@@ -61,7 +62,6 @@ import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ScanningPerspective;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
-import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -140,16 +140,22 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		updateJob.setSystem(true);
 		updateJob.setPriority(Job.INTERACTIVE);
 		
-		final Stashing stash = new Stashing("org.eclipse.scanning.device.ui.scan.execute.sample.json", ServiceHolder.getEventService().getEventConnectorService());
+		final IStashing stash = ServiceHolder.getStashingService().createStash("org.eclipse.scanning.device.ui.scan.execute.sample.json");
 		sampleData = new SampleData();
-		if (stash.isStashed()) sampleData = stash.unstash(SampleData.class);
+		if (stash.isStashed()) {
+			try {
+				sampleData = stash.unstash(SampleData.class);
+			} catch (Exception e) {
+				logger.error("Cannot unstash sample data!", e);
+			}
+		}
 	}
 	
 	@Override
     public void saveState(IMemento memento) {
 		super.saveState(memento);
 		try {
-			final Stashing stash = new Stashing("org.eclipse.scanning.device.ui.scan.execute.sample.json", ServiceHolder.getEventService().getEventConnectorService());
+			final IStashing stash = ServiceHolder.getStashingService().createStash("org.eclipse.scanning.device.ui.scan.execute.sample.json");
 			stash.stash(sampleData);
 		} catch (Exception ne) {
 			logger.error("Cannot save sample information!", ne);
