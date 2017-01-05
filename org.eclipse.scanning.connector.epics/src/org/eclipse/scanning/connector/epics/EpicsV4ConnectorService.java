@@ -59,7 +59,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
     
     public EpicsV4ConnectorService() {
 		mapper = new EpicsV4MessageMapper();
-		org.epics.pvaccess.ClientFactory.start();
 		this.listeners = new Hashtable<Long, Collection<EpicsV4MonitorListener>>(7);
 		pvaClient = PvaClient.get("pva");
 	}
@@ -71,7 +70,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 
 	@Override
 	public void disconnect() throws MalcolmDeviceException {
-		org.epics.pvaccess.ClientFactory.stop();
         pvaClient.destroy();
 	}
 	
