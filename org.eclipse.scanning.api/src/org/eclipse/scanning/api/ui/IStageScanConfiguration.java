@@ -40,6 +40,12 @@ public interface IStageScanConfiguration {
 	String getActiveSlowScanAxis();
 	
 	/**
+	 * Returns the name of the associated axis. This may be the z-axis, for example.
+	 * @return
+	 */
+	String getAssociatedAxis();
+	
+	/**
 	 * Add a property change listener
 	 * 
 	 * @param listener
@@ -52,6 +58,7 @@ public interface IStageScanConfiguration {
 	 * @param listener
 	 */
 	void removePropertyChangeListener(PropertyChangeListener listener);
+
 
 	
 
