@@ -37,7 +37,7 @@ public class StashingTest {
 	public static void marshalling() {
 		
 		IMarshallerService marshaller = new MarshallerService(
-				Arrays.asList(new ScanningAPIClassRegistry(), new ScanningExampleClassRegistry(), new ScanningTestClassRegistry()),
+				Arrays.asList(new ScanningAPIClassRegistry(), new ScanningExampleClassRegistry(), new ScanningTestClassRegistry(), new TestClassRegistry()),
 				Arrays.asList(new PointsModelMarshaller())
 		);
 		ActivemqConnectorService.setJsonMarshaller(marshaller);
@@ -193,24 +193,76 @@ public class StashingTest {
 	@Test
 	public void unregisteredSimpleType() throws Exception {
 		
-		SpecialTypeBean bean = new SpecialTypeBean();
+		UnregisteredTypeBeanV1 bean = new UnregisteredTypeBeanV1();
 		stash.stash(bean); // This type is unregistered and will not work.
 		
-		SpecialTypeBean naeb = stash.unstash(SpecialTypeBean.class);
+		UnregisteredTypeBeanV1 naeb = stash.unstash(UnregisteredTypeBeanV1.class);
 		assertEquals(bean, naeb);
 
 	}
+	
+	@Test
+	public void unregisteredSimpleTypeExtraField() throws Exception {
+		
+		UnregisteredTypeBeanV1 bean = new UnregisteredTypeBeanV1();
+		stash.stash(bean); // This type is unregistered and will not work.
+		
+		RegisteredTypeBeanV2 naeb = stash.unstash(RegisteredTypeBeanV2.class);
+		assertEquals(bean.getValue2(), naeb.getValue2());
+	}
+
+	@Test
+	public void unregisteredSimpleTypeLostField() throws Exception {
+		
+		UnregisteredTypeBeanV1 bean = new UnregisteredTypeBeanV1();
+		stash.stash(bean); // This type is unregistered and will not work.
+		
+		UnregisterdTypeBeanV0 naeb = stash.unstash(UnregisterdTypeBeanV0.class);
+		assertEquals(bean.getValue2(), naeb.getValue2());
+	}
+	
+	@Test
+	public void registeredSimpleType() throws Exception {
+		
+		RegisteredTypeBeanV1 bean = new RegisteredTypeBeanV1();
+		stash.stash(bean); // This type is unregistered and will not work.
+		
+		RegisteredTypeBeanV1 naeb = stash.unstash(RegisteredTypeBeanV1.class);
+		assertEquals(bean, naeb);
+
+	}
+	
+	@Test(expected=Exception.class)
+	public void registeredSimpleTypeExtraField() throws Exception {
+		
+		RegisteredTypeBeanV1 bean = new RegisteredTypeBeanV1();
+		stash.stash(bean); // This type is unregistered and will not work.
+		
+		RegisteredTypeBeanV2 naeb = stash.unstash(RegisteredTypeBeanV2.class);
+		assertEquals(bean.getValue2(), naeb.getValue2());
+	}
+
+	@Test(expected=Exception.class)
+	public void registeredSimpleTypeLostField() throws Exception {
+		
+		RegisteredTypeBeanV1 bean = new RegisteredTypeBeanV1();
+		stash.stash(bean); // This type is unregistered and will not work.
+		
+		RegisteredTypeBeanV0 naeb = stash.unstash(RegisteredTypeBeanV0.class);
+		assertEquals(bean.getValue2(), naeb.getValue2());
+	}
+
 
 	@Test(expected=Exception.class)
 	public void unregisteredTypeInMap() throws Exception {
 		
-		SpecialTypeBean bean = new SpecialTypeBean();
-		Map<String, SpecialTypeBean> map = new HashMap<>();
+		UnregisteredTypeBeanV1 bean = new UnregisteredTypeBeanV1();
+		Map<String, UnregisteredTypeBeanV1> map = new HashMap<>();
 		map.put("stb", bean);
 		
 		stash.stash(map); // This type is unregistered and will not work.
 		
-		Map<String, SpecialTypeBean> pam = stash.unstash(Map.class);
+		Map<String, UnregisteredTypeBeanV1> pam = stash.unstash(Map.class);
 		assertEquals(map, pam);
 
 	}
@@ -218,12 +270,12 @@ public class StashingTest {
 	@Test(expected=Exception.class)
 	public void unregisteredTypeInList() throws Exception {
 		
-		SpecialTypeBean bean = new SpecialTypeBean();
-		List<SpecialTypeBean> list = new ArrayList<>();
+		UnregisteredTypeBeanV1 bean = new UnregisteredTypeBeanV1();
+		List<UnregisteredTypeBeanV1> list = new ArrayList<>();
 		list.add(bean);
 		
 		stash.stash(list); // This type is unregistered and will not work.
-		List<SpecialTypeBean> tsil = stash.unstash(List.class);
+		List<UnregisteredTypeBeanV1> tsil = stash.unstash(List.class);
 		assertEquals(list, tsil);
 
 	}
