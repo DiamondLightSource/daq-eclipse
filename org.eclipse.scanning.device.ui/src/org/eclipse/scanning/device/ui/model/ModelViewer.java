@@ -119,14 +119,13 @@ class ModelViewer<T> implements IModelViewer<T>, ISelectionListener, ISelectionP
 	private IRunnableDeviceService dservice;
 
 	
-	public ModelViewer() {
+	ModelViewer() {
 		super();
 	}
 		
-	public ModelViewer(IViewSite site) {
-		this();
-		if (site != null) site.getPage().addSelectionListener(this);
-		this.site = site;
+	public <V> void setViewSite(V site) {
+		this.site = (IViewSite)site;
+		if (site != null) this.site.getPage().addSelectionListener(this);
 	}
 	
 
