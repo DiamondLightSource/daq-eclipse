@@ -406,13 +406,17 @@ class ModelViewer<T> implements IModelViewer<T>, ISelectionListener, ISelectionP
 			if (ob instanceof IScanPathModel) setModel((T)ob);
 			
 			if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
-                BoundingBox box = ScanRegions.createBoxFromPlot(model);
-	    		((IBoundingBoxModel)getModel()).setBoundingBox(box);
-	    		refresh();
+				try {
+	                BoundingBox box = ScanRegions.createBoxFromPlot(model);
+		    		((IBoundingBoxModel)getModel()).setBoundingBox(box);
+		    		refresh();
+				} catch (Exception ne) {
+					logger.info("Unable to process box from plot!", ne);
+				}
 			}
 			
 		} catch (Exception ne) {
-			logger.error("Cannot set model for object "+ob);
+			logger.error("Cannot set model for object "+ob, ne);
 			if (site != null) site.getActionBars().getStatusLineManager().setErrorMessage("Cannot connect to server "+ne.getMessage());
 		}
 	}
