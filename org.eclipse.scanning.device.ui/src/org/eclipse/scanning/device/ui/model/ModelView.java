@@ -6,6 +6,7 @@ import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
@@ -14,6 +15,7 @@ import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.api.ui.CommandConstants;
+import org.eclipse.scanning.api.ui.auto.IModelViewer;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.device.scannable.ControlTreeViewer;
 import org.eclipse.scanning.device.ui.device.scannable.ControlViewerMode;
@@ -37,7 +39,7 @@ public class ModelView extends ViewPart implements ISelectionListener {
 
 	// UI
 	private Composite         parent;
-	private ModelViewer<?>    modelEditor;
+	private IModelViewer<?>   modelEditor;
 	private ControlTreeViewer treeViewer;
 
 	
@@ -50,11 +52,12 @@ public class ModelView extends ViewPart implements ISelectionListener {
 			content.setLayout(new GridLayout(1, false));
 			GridUtils.removeMargins(content);
 			
-			modelEditor = new ModelViewer<>(getViewSite());
+			modelEditor = ServiceHolder.getInterfaceService().createModelViewer();
+			modelEditor.setViewSite(getViewSite());
 			modelEditor.createPartControl(content);
 			GridUtils.setVisible(modelEditor.getControl(), true);
 			
-			final DelegatingSelectionProvider prov = new DelegatingSelectionProvider(modelEditor);
+			final DelegatingSelectionProvider prov = new DelegatingSelectionProvider((ISelectionProvider)modelEditor);
 			getSite().setSelectionProvider(prov);
 			
 			IScannableDeviceService cservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);			
@@ -101,7 +104,7 @@ public class ModelView extends ViewPart implements ISelectionListener {
 				name = des.getLabel();
 				GridUtils.setVisible(modelEditor.getControl(), true);
 				GridUtils.setVisible(treeViewer.getControl(), false);
-				getSite().setSelectionProvider(modelEditor);
+				getSite().setSelectionProvider((ISelectionProvider)modelEditor);
 				setActionsVisible(false);
 	
 			} else if (ob instanceof DeviceInformation) {
@@ -111,7 +114,7 @@ public class ModelView extends ViewPart implements ISelectionListener {
 				if (name == null) name = info.getId();
 				GridUtils.setVisible(modelEditor.getControl(), true);
 				GridUtils.setVisible(treeViewer.getControl(), false);
-				getSite().setSelectionProvider(modelEditor);
+				getSite().setSelectionProvider((ISelectionProvider)modelEditor);
 				setActionsVisible(false);
 				
 			} else if (ob instanceof ControlTree) {
