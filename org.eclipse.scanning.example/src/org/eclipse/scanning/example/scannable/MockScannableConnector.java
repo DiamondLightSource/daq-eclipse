@@ -54,7 +54,7 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		register(new MockPausingMonitor("pauser", 10d,  -1));
 		register(new MockTopupScannable("topup", 1000));
 		register(new MockScannable("beamcurrent", 5d,  1, "mA"));
-		register(new MockStringScannable("portshutter", "Open"));
+		register(new MockStringScannable("portshutter", "Open", new String[]{"Open", "Closed", "Error"}));
 		
 		register(new MockScannable("period", 1000d, 1, "ms"));
 		register(new MockBeamOnMonitor("beamon", 10d, 1));
@@ -98,11 +98,16 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		
 		MockNeXusScannable temp= new MockNeXusScannable("T", 295,  3, "K");
 		temp.setRealisticMove(true);
-		
 		String srate = System.getProperty("org.eclipse.scanning.example.temperatureRate");
 		if (srate==null) srate = "10.0";
 		temp.setMoveRate(Double.valueOf(srate)); // K/s much faster than real but device used in tests.
 		register(temp);
+		
+		temp= new MockNeXusScannable("temp", 295,  3, "K");
+		temp.setRealisticMove(false);
+		temp.setRequireSleep(false);
+		register(temp);
+	
 		for (int i = 0; i < 10; i++) {
 			MockScannable t = new MockScannable("T"+i, 0d,  0, "K");
 			t.setRequireSleep(false);

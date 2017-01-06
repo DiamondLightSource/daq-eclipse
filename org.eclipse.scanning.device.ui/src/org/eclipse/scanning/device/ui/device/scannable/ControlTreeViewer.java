@@ -506,6 +506,7 @@ public class ControlTreeViewer {
 									final Object sel = viewer.getStructuredSelection().getFirstElement(); // editing object
 									if (sel!=node) viewer.update(node, new String[]{"Value"});
 								} else {
+									if (viewer.getControl().isDisposed()) return;
 									viewer.refresh(node);
 								}
 							}

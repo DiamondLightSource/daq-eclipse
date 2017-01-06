@@ -1,10 +1,12 @@
 package org.eclipse.scanning.test.ui;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.event.EventServiceImpl;
@@ -16,7 +18,9 @@ import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
 import org.eclipse.scanning.server.application.PseudoSpringParser;
 import org.eclipse.scanning.server.servlet.DeviceServlet;
 import org.eclipse.scanning.server.servlet.Services;
+import org.eclipse.scanning.test.BrokerDelegate;
 import org.eclipse.scanning.test.ScanningTestClassRegistry;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
@@ -34,10 +38,17 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class UISuite {
 	
 	private static DeviceServlet dservlet;
+	private static BrokerDelegate delegate;
+	private static URI uri;
 
-	public static void createTestServices() throws EventException, URISyntaxException {
+	public static void createTestServices(boolean requireBroker) throws Exception {
 
 		// DO NOT COPY this outside of tests, these services and servlets are created in OSGi and Spring. 
+		if (requireBroker) {
+			delegate = new BrokerDelegate();
+			delegate.start();
+			uri      = delegate.getUri();
+		}
 		
 		System.setProperty("org.eclipse.scanning.broker.uri", "vm://localhost?broker.persistent=false");
 		
@@ -51,7 +62,7 @@ public class UISuite {
 		org.eclipse.scanning.device.ui.ServiceHolder.setSpringParser(new PseudoSpringParser());
 		
 		IEventService eservice = new EventServiceImpl(new ActivemqConnectorService());
-		Services.setConnector(new MockScannableConnector(null));
+		Services.setConnector(new MockScannableConnector(eservice.createPublisher(uri, EventConstants.POSITION_TOPIC)));
 		Services.setEventService(eservice);
 		org.eclipse.scanning.device.ui.ServiceHolder.setEventService(eservice);
 		
@@ -62,7 +73,8 @@ public class UISuite {
 
 	}
 
-	public static void disposeTestServices() throws EventException {
+	public static void disposeTestServices() throws Exception {
+		if (delegate!=null) delegate.stop();
 		dservlet.disconnect();
 	}
 	

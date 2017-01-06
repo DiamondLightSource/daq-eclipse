@@ -38,7 +38,7 @@ public class KnownModelsTest extends ShellTest{
 	@BeforeClass
 	public static void createServices() throws Exception {	
 		interfaceService = new InterfaceService(); // Just for testing! This comes from OSGi really.
-		UISuite.createTestServices();
+		UISuite.createTestServices(false);
 	}
 	
 	@AfterClass

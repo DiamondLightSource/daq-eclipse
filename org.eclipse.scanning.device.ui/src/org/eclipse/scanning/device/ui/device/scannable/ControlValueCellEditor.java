@@ -56,7 +56,7 @@ class ControlValueCellEditor extends CellEditor implements IPositionListener {
 	// Hardware
 	private IScannableDeviceService cservice;
 	private IScannable<Number>      scannable; // Transient depending on which scannable we are editing.	
-	private ControlValueJob         job;
+	private ControlValueJob<Number> job;
 
 
 	public ControlValueCellEditor(Composite parent, IScannableDeviceService cservice, ControlViewerMode mode) {
@@ -163,7 +163,7 @@ class ControlValueCellEditor extends CellEditor implements IPositionListener {
 	        });
         }
 
-        if (cmode.isDirectlyConnected())	job = new ControlValueJob(this);
+        if (cmode.isDirectlyConnected())	job = new ControlValueJob<>(this);
 
 		return content;
 	}

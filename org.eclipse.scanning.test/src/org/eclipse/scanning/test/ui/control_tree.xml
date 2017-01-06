@@ -56,7 +56,7 @@
 	</bean>
 	<bean id="T" class="org.eclipse.scanning.api.scan.ui.ControlNode" init-method="add">
 		<property name="displayName" value="Temperature" />
-		<property name="scannableName" value="T" />
+		<property name="scannableName" value="temp" />
 		<property name="increment" value="1" />
 	</bean>
 	

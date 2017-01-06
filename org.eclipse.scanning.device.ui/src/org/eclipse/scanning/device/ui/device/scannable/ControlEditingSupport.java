@@ -68,7 +68,7 @@ class ControlEditingSupport extends EditingSupport {
 			if (permittedValues == null) {
 				return new ControlStringCellEditor(parent, controlNode);
 			} else {
-				return new ControlStringComboCellEditor(parent, controlNode, permittedValues);
+				return new ControlStringComboCellEditor(parent, cservice, mode, permittedValues);
 			}
 		} else {
 			throw new RuntimeException("Unsupported type: " + value.getClass().getName());
