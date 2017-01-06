@@ -213,7 +213,7 @@ public class BenchmarkScanTest extends BrokerTest {
 		subscriber.addListener(new IScanListener() {		
 			@Override
 			public void scanStateChanged(ScanEvent evt) {
-				System.out.println("State Change : "+evt.getBean().getDeviceState());
+//				System.out.println("State Change : "+evt.getBean().getDeviceState());
 				states.add(evt.getBean().getDeviceState());
 			}
 			@Override

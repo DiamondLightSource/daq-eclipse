@@ -141,9 +141,9 @@ public class RemoteScannableServiceTest extends BrokerTest {
 		
 		for (int i = 0; i < 10; i++) {
 			setter.setPosition(i*10d);
-			System.out.println("Set "+setter.getName()+" to value "+(i*10d)+" It's value is "+setter.getPosition());
+//			System.out.println("Set "+setter.getName()+" to value "+(i*10d)+" It's value is "+setter.getPosition());
 			assertTrue(getter.getPosition()==(i*10d));
-			System.out.println("The value of "+setter.getName()+" was also "+getter.getPosition());
+//			System.out.println("The value of "+setter.getName()+" was also "+getter.getPosition());
 		}
 	}
 	
