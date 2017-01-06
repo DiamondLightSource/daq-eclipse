@@ -86,7 +86,7 @@ public abstract class AbstractWatchdogTest {
 		detector.addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException{
-                System.out.println("Ran mock detector @ "+evt.getPosition());
+                //System.out.println("Ran mock detector @ "+evt.getPosition());
                 positions.add(evt.getPosition());
 			}
 		});
