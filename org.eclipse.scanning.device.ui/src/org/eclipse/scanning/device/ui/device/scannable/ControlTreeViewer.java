@@ -516,7 +516,10 @@ public class ControlTreeViewer {
 		}
 	}
 
-	private void addNode() {
+	/**
+	 * Call to programmatically add a node. The user will be shown a combo of available scannable names.
+	 */
+	public void addNode() {
 		INamedNode selectedNode = getSelection();
 		ControlTree controlTree = getControlTree();
 		if (selectedNode == null) {

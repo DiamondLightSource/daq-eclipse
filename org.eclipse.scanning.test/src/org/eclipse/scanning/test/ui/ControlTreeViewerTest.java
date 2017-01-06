@@ -17,13 +17,11 @@ import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
-import org.eclipse.swtbot.swt.finder.utils.Traverse;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotCCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -153,6 +151,25 @@ public class ControlTreeViewerTest extends ShellTest {
 	}
 	
 	@Test
+	public void checkValuesTree4() throws Exception {
+		
+		ControlTree ct = getControlTree("control_tree4.xml");
+		bot.getDisplay().syncExec(()->viewer.setControlTree(ct));
+		
+		assertEquals(2, bot.tree(0).columnCount());
+		assertEquals(1, bot.tree(0).rowCount());
+		
+		assertEquals("Hutch", bot.tree(0).cell(0, 0));
+		
+	    SWTBotTreeItem item = bot.tree(0).getTreeItem("Hutch");
+		List<String> children = item.getNodes();
+		assertEquals(Arrays.asList("Port Shutter"), children);
+		
+		assertEquals("Port Shutter",   item.cell(0, 0));
+		assertEquals("Open", item.cell(0, 1));	
+	}
+	
+	@Test
 	public void checkSetStageXValue() throws Exception {
 				
 	    SWTBotTreeItem item = bot.tree(0).getTreeItem("Translations");
@@ -168,6 +185,58 @@ public class ControlTreeViewerTest extends ShellTest {
 	    setEditorValue("0.0");
 		assertEquals("0.0    mm", item.cell(0, 1));	
 	}
+	
+	@Test
+	public void checkSetTemperatureValue() throws Exception {
+				
+	    SWTBotTreeItem item = bot.tree(0).getTreeItem("Experimental Conditions");
+		assertEquals("Temperature",   item.cell(0, 0));
+
+		SWTBotTreeItem node = item.getNode("Temperature");
+	   
+		node.click(1);
+	    setEditorValue("290.0");
+		assertEquals("290.0    K", item.cell(0, 1));	
+		
+	    node.click(1);
+	    setEditorValue("295.0");
+		assertEquals("295.0    K", item.cell(0, 1));	
+	}
+	
+	@Test
+	public void addANumericScannable() throws Exception {
+				
+	    SWTBotTreeItem item = bot.tree(0).getTreeItem("Experimental Conditions");
+	    item.select();
+	    
+		bot.getDisplay().syncExec(()->viewer.addNode());
+    
+		SWTBotCCombo combo = bot.ccomboBox(0);
+		assertNotNull(combo);
+		combo.setSelection("a");
+		
+		assertEquals("a",   item.cell(1, 0));
+		assertEquals("10.0    mm", item.cell(1, 1));
+
+	}
+
+	@Test
+	public void addAStringScannable() throws Exception {
+				
+	    SWTBotTreeItem item = bot.tree(0).getTreeItem("Experimental Conditions");
+	    item.select();
+	    
+		bot.getDisplay().syncExec(()->viewer.addNode());
+    
+		SWTBotCCombo combo = bot.ccomboBox(0);
+		assertNotNull(combo);
+		combo.setSelection("portshutter");
+		
+		assertEquals("portshutter",   item.cell(1, 0));
+		assertEquals("Open", item.cell(1, 1));
+
+	}
+
 
 	/**
 	 * Bit of funny logic for setting value because the tree editor
