@@ -27,7 +27,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@Ignore
 @RunWith(SWTBotJunit4ClassRunner.class)
 public class ControlTreeViewerTest extends ShellTest {
 
@@ -217,13 +216,14 @@ public class ControlTreeViewerTest extends ShellTest {
 	   
 		node.click(1);
 	    setEditorValue("290.0");
-		assertEquals("290.0    K", item.cell(0, 1));	
+		assertEquals("290.0    K", item.cell(0, 1));
 		
 	    node.click(1);
 	    setEditorValue("295.0");
 		assertEquals("295.0    K", item.cell(0, 1));	
 	}
 	
+	@Ignore("Travis does not like this")
 	@Test
 	public void addANumericScannable() throws Exception {
 				
@@ -241,6 +241,7 @@ public class ControlTreeViewerTest extends ShellTest {
 
 	}
 
+	@Ignore("Travis does not like this")
 	@Test
 	public void addAStringScannable() throws Exception {
 				
