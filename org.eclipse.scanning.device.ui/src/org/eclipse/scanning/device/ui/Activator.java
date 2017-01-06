@@ -1,5 +1,7 @@
 package org.eclipse.scanning.device.ui;
 
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -44,6 +46,13 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public static Activator getDefault() {
 		return plugin;
+	}
+	
+	private static IPreferenceStore store;
+	public static IPreferenceStore getStore() {
+		if (plugin!=null) return plugin.getPreferenceStore();
+		if (store==null) store = new PreferenceStore();
+		return store;
 	}
 
 	public static ImageDescriptor getImageDescriptor(String path) {

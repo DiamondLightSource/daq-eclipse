@@ -13,6 +13,7 @@ import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
+import org.eclipse.scanning.server.application.PseudoSpringParser;
 import org.eclipse.scanning.server.servlet.DeviceServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.ScanningTestClassRegistry;
@@ -26,7 +27,8 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 	SampleInformationTest.class,
 	AxisConfigurationTest.class,
-	KnownModelsTest.class
+	KnownModelsTest.class,
+	ControlTreeViewerTest.class
 
 })
 public class UISuite {
@@ -46,6 +48,7 @@ public class UISuite {
 		ActivemqConnectorService.setJsonMarshaller(marshaller);
 
 		org.eclipse.scanning.device.ui.ServiceHolder.setExpressionService(new ServerExpressionService());
+		org.eclipse.scanning.device.ui.ServiceHolder.setSpringParser(new PseudoSpringParser());
 		
 		IEventService eservice = new EventServiceImpl(new ActivemqConnectorService());
 		Services.setConnector(new MockScannableConnector(null));
@@ -62,4 +65,6 @@ public class UISuite {
 	public static void disposeTestServices() throws EventException {
 		dservlet.disconnect();
 	}
+	
+
 }
