@@ -71,7 +71,7 @@ public class DryRunProcess<T extends StatusBean> extends AbstractLockingPausable
 			}
 			
 			//Moved broadcast to before sleep to prevent another spurious broadcast.
-			System.out.println("Dry run : "+getBean().getPercentComplete()+" : "+getBean().getName());
+			//System.out.println("Dry run : "+getBean().getPercentComplete()+" : "+getBean().getName());
 			getBean().setPercentComplete((Double.valueOf(i)/Double.valueOf(stop))*100d);
 			getPublisher().broadcast(getBean());
 			

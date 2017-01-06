@@ -109,7 +109,7 @@ public class ServiceHolder {
 		return springParser;
 	}
 
-	public void setSpringParser(ISpringParser springParser) {
+	public static void setSpringParser(ISpringParser springParser) {
 		ServiceHolder.springParser = springParser;
 	}
 

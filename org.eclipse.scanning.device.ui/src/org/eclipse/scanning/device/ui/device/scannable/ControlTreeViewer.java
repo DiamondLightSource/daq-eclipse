@@ -134,8 +134,10 @@ public class ControlTreeViewer {
 	private ISubscriber<EventListener> subscriber;
 	
 	// UI
-	private FilteredTree viewer;
+	private TreeViewer viewer;
+	private Composite  content;
 	private List<IAction> editActions;
+	private boolean setUseFilteredTree = true;
 	
 	// Data
 	private ControlTree       defaultTree;
@@ -173,7 +175,7 @@ public class ControlTreeViewer {
 	 * Creates an editor for the tree passed in
 	 * @param parent
 	 * @param tree which is edited. If this ControlTreeViewer was created without specifiying a default, this is cloned for the default.
-	 * @param managers
+	 * @param managers, may be null
 	 * @throws Exception 
 	 */
 	public Composite createPartControl(Composite parent, ControlTree tree, IContributionManager... managers) throws Exception {
@@ -186,26 +188,31 @@ public class ControlTreeViewer {
 		if (defaultTree==null) defaultTree = ControlTreeUtils.clone(tree);
         if (tree == null)      tree        = ControlTreeUtils.clone(defaultTree);
 		
-
-    	viewer = new FilteredTree(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, new NamedNodeFilter(), true);
+       if (setUseFilteredTree) {
+        	FilteredTree ftree = new FilteredTree(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, new NamedNodeFilter(), true);
+        	this.viewer  = ftree.getViewer();
+        	this.content = ftree;
+       } else {
+        	this.viewer  = new TreeViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE);
+        	this.content = viewer.getTree();
+        }
 		
-		TreeViewer tviewer = viewer.getViewer();
-		tviewer.getTree().setLinesVisible(true);
-		tviewer.getTree().setHeaderVisible(false);
-		ViewerUtils.setItemHeight(tviewer.getTree(), 30);
-		viewer.setLayoutData(new GridData(GridData.FILL_BOTH));
+		viewer.getTree().setLinesVisible(true);
+		viewer.getTree().setHeaderVisible(false);
+		ViewerUtils.setItemHeight(viewer.getTree(), 30);
+		content.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		createColumns(tviewer);
+		createColumns(viewer);
 		
 		try {
-			tviewer.setContentProvider(new ControlContentProvider());
+			viewer.setContentProvider(new ControlContentProvider());
 		} catch (Exception e) {
 			logger.error("Cannot create content provider", e);
 		}
-		tviewer.setInput(tree);
-		tviewer.expandAll();
+		viewer.setInput(tree);
+		viewer.expandAll();
 		
-		createActions(tviewer, tree, managers);
+		createActions(viewer, tree, managers);
 		setSearchVisible(false);
 		
 		try {
@@ -214,11 +221,11 @@ public class ControlTreeViewer {
 			logger.error("Cannot listen to motor values changing...");
 		}
 
-		return viewer;
+		return content;
 	}
 
 	public Control getControl() {
-		return viewer;
+		return content;
 	}
 
 	private void createColumns(TreeViewer viewer) {
@@ -306,7 +313,7 @@ public class ControlTreeViewer {
 					setEditNode(true);
 					INamedNode node = getSelection();
 					if (node!=null) {
-						viewer.getViewer().editElement(node, 0); // edit name of control
+						viewer.editElement(node, 0); // edit name of control
 					}
 				} finally {
 					setEditNode(false);
@@ -341,7 +348,7 @@ public class ControlTreeViewer {
 		// Action to reset all controls to their default value
 		IAction resetAll = new Action("Reset all controls to default", Activator.getImageDescriptor("icons/arrow-return-180-left.png")) {
 			public void run() {
-				boolean ok = MessageDialog.openConfirm(viewer.getShell(), "Confirm Reset Controls", "Are you sure that you want to reset all controls to default?");
+				boolean ok = MessageDialog.openConfirm(content.getShell(), "Confirm Reset Controls", "Are you sure that you want to reset all controls to default?");
 				if (!ok) return;
 				try {
 					setControlTree(ControlTreeUtils.clone(defaultTree));
@@ -356,10 +363,10 @@ public class ControlTreeViewer {
 		// Toggles whether to show tooltips on edit
 		IAction setShowTip = new Action("Show tooltip on edit", IAction.AS_CHECK_BOX) {
 			public void run() {
-				Activator.getDefault().getPreferenceStore().setValue(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, isChecked());
+				Activator.getStore().setValue(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS, isChecked());
 			}
 		};
-		setShowTip.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS));
+		setShowTip.setChecked(Activator.getStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS));
 		setShowTip.setImageDescriptor(Activator.getImageDescriptor("icons/balloon.png"));
 		ViewUtil.addGroups("tip", mans, setShowTip);
 
@@ -367,7 +374,7 @@ public class ControlTreeViewer {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				INamedNode selectedNode = getSelection();
-				ControlTree tree = (ControlTree)viewer.getViewer().getInput(); // They might have called setControlTree()!
+				ControlTree tree = (ControlTree)viewer.getInput(); // They might have called setControlTree()!
 				removeNode.setEnabled(tree.isTreeEditable() && selectedNode != null); // can only remove node if one is selected
 				addNode.setEnabled(tree.isTreeEditable() && selectedNode != null || defaultGroupName != null); // can only add a node if one is selected (can still add a group)
 				if (setToCurrentValue != null) {
@@ -378,7 +385,7 @@ public class ControlTreeViewer {
 
 		this.editActions = Arrays.asList(addGroup, removeNode, addNode, edit, resetAll);
 		setNodeActionsEnabled(tree.isTreeEditable());
-		viewer.getViewer().getControl().setMenu(rightClick.createContextMenu(viewer.getViewer().getControl()));
+		viewer.getControl().setMenu(rightClick.createContextMenu(viewer.getControl()));
 	}
 
 	private void setNodeActionsEnabled(boolean treeEditable) {
@@ -388,30 +395,33 @@ public class ControlTreeViewer {
 	}
 
 	public void setSearchVisible(boolean b) {
-		GridUtils.setVisible(viewer.getFilterControl().getParent(), b);
-		viewer.layout(new Control[]{viewer.getFilterControl().getParent()});
+		if (content instanceof FilteredTree) {
+			FilteredTree ftree = (FilteredTree)content;
+			GridUtils.setVisible(ftree.getFilterControl().getParent(), b);
+			ftree.layout(new Control[]{ftree.getFilterControl().getParent()});
+		}
 	}
 
 	public ISelectionProvider getSelectionProvider() {
-		return viewer.getViewer();
+		return viewer;
 	}
 
 	public void setFocus() {
-		if (!viewer.getViewer().getTree().isDisposed()) viewer.getViewer().getTree().setFocus();
+		if (!viewer.getTree().isDisposed()) viewer.getTree().setFocus();
 	}
 	
 	public void edit(INamedNode node, int index) {
      	refresh();
-    	viewer.getViewer().editElement(node, index);
+    	viewer.editElement(node, index);
 	}
 
 	public void refresh() {
-		viewer.getViewer().refresh();
-		viewer.getViewer().expandAll();
+		viewer.refresh();
+		viewer.expandAll();
 	}
 
 	public INamedNode getSelection() {
-		final ISelection selection = viewer.getViewer().getSelection();
+		final ISelection selection = viewer.getSelection();
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection ssel = (IStructuredSelection)selection;
 			return (INamedNode)ssel.getFirstElement();
@@ -421,12 +431,13 @@ public class ControlTreeViewer {
 	
 	public void setSelection(INamedNode node) {
 		final IStructuredSelection sel = new StructuredSelection(node);
-		viewer.getViewer().setSelection(sel);
+		viewer.setSelection(sel);
 	}
 
 
 	
 	private boolean editNode = false; // Can be set to true when UI wants to edit
+
 	public boolean isEditNode() {
 		return editNode;
 	}
@@ -436,18 +447,19 @@ public class ControlTreeViewer {
 	}
 
 	ColumnViewer getViewer() {
-		return viewer.getViewer();
+		return viewer;
 	}
 
 	public ControlTree getControlTree() {
-		return (ControlTree)viewer.getViewer().getInput();
+		return (ControlTree)viewer.getInput();
 	}
 
 	public void setControlTree(ControlTree controlTree) {
 		controlTree.build();
-		viewer.getViewer().setInput(controlTree);
+		viewer.setInput(controlTree);
 		setNodeActionsEnabled(controlTree.isTreeEditable());
-		viewer.getParent().layout(new Control[]{viewer});
+		content.getParent().layout(new Control[]{content});
+		viewer.expandAll();
 	}
 	
 	public void setDefaultGroupName(String defaultGroupName) {
@@ -492,11 +504,12 @@ public class ControlTreeViewer {
 					if (evt.getLocation().getType()==LocationType.positionChanged) {
 						Display.getDefault().asyncExec(new Runnable() {
 							public void run() {
-								if (viewer.getViewer().isCellEditorActive()) {
-									final Object sel = viewer.getViewer().getStructuredSelection().getFirstElement(); // editing object
-									if (sel!=node) viewer.getViewer().update(node, new String[]{"Value"});
+								if (viewer.isCellEditorActive()) {
+									final Object sel = viewer.getStructuredSelection().getFirstElement(); // editing object
+									if (sel!=node) viewer.update(node, new String[]{"Value"});
 								} else {
-									viewer.getViewer().refresh(node);
+									if (viewer.getControl().isDisposed()) return;
+									viewer.refresh(node);
 								}
 							}
 						});
@@ -506,7 +519,10 @@ public class ControlTreeViewer {
 		}
 	}
 
-	private void addNode() {
+	/**
+	 * Call to programmatically add a node. The user will be shown a combo of available scannable names.
+	 */
+	public void addNode() {
 		INamedNode selectedNode = getSelection();
 		ControlTree controlTree = getControlTree();
 		if (selectedNode == null) {
@@ -527,11 +543,11 @@ public class ControlTreeViewer {
 		if (selectedNode.getChildren()==null || selectedNode.getChildren().length<1) {
 			controlTree.delete(selectedNode);
 		} else {
-			boolean ok = MessageDialog.openQuestion(viewer.getShell(), "Confirm Delete", "The item '"+selectedNode.getName()+"' is a group.\n\nAre you sure you would like to delete it?");
+			boolean ok = MessageDialog.openQuestion(content.getShell(), "Confirm Delete", "The item '"+selectedNode.getName()+"' is a group.\n\nAre you sure you would like to delete it?");
 			if (ok) controlTree.delete(selectedNode);
 		}
 		if (subscriber!=null) subscriber.removeListeners(selectedNode.getName());
-		viewer.getViewer().refresh();
+		viewer.refresh();
 		if (parent.hasChildren()) {
 			setSelection(parent.getChildren()[parent.getChildren().length-1]);
 		} else {
@@ -543,7 +559,7 @@ public class ControlTreeViewer {
 		INamedNode selectedNode = getSelection();
 		if ((selectedNode instanceof ControlNode)) {
 			setToCurrentValue((ControlNode) selectedNode);
-			viewer.getViewer().refresh(selectedNode);
+			viewer.refresh(selectedNode);
 		}
 	}
 
@@ -557,9 +573,9 @@ public class ControlTreeViewer {
 	}
 	
 	private void setAllToCurrentValue() {
-		ControlTree controlTree = (ControlTree) viewer.getViewer().getInput();
+		ControlTree controlTree = (ControlTree) viewer.getInput();
 		setAllToCurrentValue(controlTree);
-		viewer.getViewer().refresh();
+		viewer.refresh();
 	}
 	
 	private void setAllToCurrentValue(INamedNode namedNode) {
@@ -573,10 +589,19 @@ public class ControlTreeViewer {
 	}
 	
 	public void addSelectionChangedListener(ISelectionChangedListener i) {
-		viewer.getViewer().addSelectionChangedListener(i);
+		viewer.addSelectionChangedListener(i);
 	}
 	public void removeSelectionChangedListener(ISelectionChangedListener i) {
-		viewer.getViewer().removeSelectionChangedListener(i);
+		viewer.removeSelectionChangedListener(i);
+	}
+	
+	public void applyEditorValue() {
+		if (!viewer.isCellEditorActive()) return;
+		viewer.applyEditorValue();
+	}
+
+	public void setUseFilteredTree(boolean useFilteredTree) {
+		this.setUseFilteredTree  = useFilteredTree;
 	}
 
 }
