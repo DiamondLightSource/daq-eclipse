@@ -237,7 +237,6 @@ public class ControlTreeViewerTest extends ShellTest {
 
 	}
 
-
 	/**
 	 * Bit of funny logic for setting value because the tree editor
 	 * requires the user to press enter in order to take the value.
