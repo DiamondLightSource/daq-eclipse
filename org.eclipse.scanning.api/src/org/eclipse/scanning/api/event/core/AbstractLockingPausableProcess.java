@@ -309,7 +309,7 @@ public abstract class AbstractLockingPausableProcess<T extends StatusBean> imple
 				return;
 			}
 			Thread.sleep(100);
-			System.out.println("Dry run : "+bean.getPercentComplete());
+			//System.out.println("Dry run : "+bean.getPercentComplete());
 			bean.setPercentComplete(i);
 			broadcast(bean);
 		}
