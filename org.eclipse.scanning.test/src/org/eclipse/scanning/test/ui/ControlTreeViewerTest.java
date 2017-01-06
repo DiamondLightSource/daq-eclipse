@@ -50,6 +50,7 @@ public class ControlTreeViewerTest extends ShellTest {
 		this.controlTree = getControlTree("control_tree.xml");
 		
 		this.viewer = new ControlTreeViewer(controlTree, Services.getConnector());
+		viewer.setUseFilteredTree(false);
 
 		Shell shell = new Shell(display);
 		shell.setText("Control Tree");
@@ -216,14 +217,13 @@ public class ControlTreeViewerTest extends ShellTest {
 	   
 		node.click(1);
 	    setEditorValue("290.0");
-		assertEquals("290.0    K", item.cell(0, 1));
+		assertEquals("290.0    K", item.cell(0, 1));	
 		
 	    node.click(1);
 	    setEditorValue("295.0");
 		assertEquals("295.0    K", item.cell(0, 1));	
 	}
 	
-	@Ignore("Travis does not like this")
 	@Test
 	public void addANumericScannable() throws Exception {
 				
@@ -241,7 +241,6 @@ public class ControlTreeViewerTest extends ShellTest {
 
 	}
 
-	@Ignore("Travis does not like this")
 	@Test
 	public void addAStringScannable() throws Exception {
 				

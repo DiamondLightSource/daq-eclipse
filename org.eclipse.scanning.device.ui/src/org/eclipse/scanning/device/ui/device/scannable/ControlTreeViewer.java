@@ -137,6 +137,7 @@ public class ControlTreeViewer {
 	private TreeViewer viewer;
 	private Composite  content;
 	private List<IAction> editActions;
+	private boolean setUseFilteredTree = true;
 	
 	// Data
 	private ControlTree       defaultTree;
@@ -187,11 +188,11 @@ public class ControlTreeViewer {
 		if (defaultTree==null) defaultTree = ControlTreeUtils.clone(tree);
         if (tree == null)      tree        = ControlTreeUtils.clone(defaultTree);
 		
-        try {
+       if (setUseFilteredTree) {
         	FilteredTree ftree = new FilteredTree(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, new NamedNodeFilter(), true);
         	this.viewer  = ftree.getViewer();
         	this.content = ftree;
-        } catch (NoClassDefFoundError ne) { // Happens in junit tests or when workbench not available.
+       } else {
         	this.viewer  = new TreeViewer(parent, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE);
         	this.content = viewer.getTree();
         }
@@ -436,6 +437,7 @@ public class ControlTreeViewer {
 
 	
 	private boolean editNode = false; // Can be set to true when UI wants to edit
+
 	public boolean isEditNode() {
 		return editNode;
 	}
@@ -596,6 +598,10 @@ public class ControlTreeViewer {
 	public void applyEditorValue() {
 		if (!viewer.isCellEditorActive()) return;
 		viewer.applyEditorValue();
+	}
+
+	public void setUseFilteredTree(boolean useFilteredTree) {
+		this.setUseFilteredTree  = useFilteredTree;
 	}
 
 }
