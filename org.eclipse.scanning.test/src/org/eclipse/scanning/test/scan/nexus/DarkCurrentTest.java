@@ -84,7 +84,7 @@ public class DarkCurrentTest extends NexusTest {
 		dark.addRunListener(new IRunListener() {
 			@Override
 			public void writePerformed(RunEvent evt) throws ScanningException{
-                System.out.println("Wrote dark image @ "+evt.getPosition());
+                // System.out.println("Wrote dark image @ "+evt.getPosition());
 			}
 		});
 	}

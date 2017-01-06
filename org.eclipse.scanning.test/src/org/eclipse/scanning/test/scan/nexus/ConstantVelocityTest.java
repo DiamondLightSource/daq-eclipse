@@ -65,7 +65,7 @@ public class ConstantVelocityTest extends NexusTest {
 		detector.addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException{
-                System.out.println("Ran cv device detector @ "+evt.getPosition());
+                //System.out.println("Ran cv device detector @ "+evt.getPosition());
 			}
 		});
 
