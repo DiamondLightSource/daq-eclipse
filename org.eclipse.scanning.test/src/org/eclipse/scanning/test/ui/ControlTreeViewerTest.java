@@ -27,6 +27,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+@Ignore
 @RunWith(SWTBotJunit4ClassRunner.class)
 public class ControlTreeViewerTest extends ShellTest {
 
