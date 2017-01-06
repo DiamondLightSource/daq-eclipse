@@ -49,12 +49,11 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	 */
 	private void createMockObjects() {
 		System.out.println("Starting up Mock IScannableDeviceService");
-		this.positionPublisher = positionPublisher;
 		
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		register(new MockPausingMonitor("pauser", 10d,  -1));
 		register(new MockTopupScannable("topup", 1000));
-		register(new MockScannable("beamcurrent", 5d,  1, "V"));
+		register(new MockScannable("beamcurrent", 5d,  1, "mA"));
 		register(new MockStringScannable("portshutter", "Open"));
 		
 		register(new MockScannable("period", 1000d, 1, "ms"));

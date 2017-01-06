@@ -1,6 +1,5 @@
 package org.eclipse.scanning.device.ui.device.scannable;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
@@ -24,7 +23,7 @@ class ControlEditingSupport extends EditingSupport {
 
 	ControlEditingSupport(ColumnViewer viewer, IScannableDeviceService cservice, ControlViewerMode mode) {
 		super(viewer);
-		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
+		Activator.getStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
 		this.cservice = cservice;
 		this.mode = mode;
 	}

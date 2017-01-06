@@ -518,7 +518,6 @@ class ModelViewer<T> implements IModelViewer<T>, ISelectionListener, ISelectionP
 	@Override
 	public void applyEditorValue() {
 		if (!viewer.isCellEditorActive()) return;
-System.out.println("Applying");
 		viewer.applyEditorValue();
 	}
 

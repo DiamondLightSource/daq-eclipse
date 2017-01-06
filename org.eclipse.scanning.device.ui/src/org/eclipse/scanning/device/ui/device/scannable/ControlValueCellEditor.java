@@ -77,7 +77,7 @@ class ControlValueCellEditor extends CellEditor implements IPositionListener {
  
 		this.text = new Text(content, SWT.LEFT);
         text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true));
-        this.decorator = new FloatDecorator(text, Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
+        this.decorator = new FloatDecorator(text, Activator.getStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
         this.tip = new ToolTip(text.getShell(), SWT.BALLOON);
         tip.setMessage("Press enter to set the node or use the up and down arrows.");
         text.addListener(SWT.Traverse, new Listener() {
@@ -226,7 +226,7 @@ class ControlValueCellEditor extends CellEditor implements IPositionListener {
 		text.setFocus();
 		text.setSelection(text.getText().length());
 		
-		if (cmode.isDirectlyConnected() && Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS)) {
+		if (cmode.isDirectlyConnected() && Activator.getStore().getBoolean(DevicePreferenceConstants.SHOW_CONTROL_TOOLTIPS)) {
 			PointerInfo a = MouseInfo.getPointerInfo();
 			java.awt.Point loc = a.getLocation();
 			

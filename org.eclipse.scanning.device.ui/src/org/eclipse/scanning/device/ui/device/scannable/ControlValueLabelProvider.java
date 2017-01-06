@@ -25,7 +25,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 	private ControlViewerMode       mode;
 	
 	public ControlValueLabelProvider(IScannableDeviceService cservice, ControlViewerMode mode) {
-		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
+		Activator.getStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
 		this.cservice = cservice;
 		this.mode     = mode;
 	}
