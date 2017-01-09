@@ -1,7 +1,6 @@
 package org.eclipse.scanning.api.event.queues;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
 
 /**
@@ -98,17 +97,4 @@ public interface IQueueBroadcaster<T> {
 	 */
 	public void broadcast() throws EventException;
 	
-	/**
-	 * Return the IPublisher instance used to broadcast the bean status.
-	 * 
-	 * @return IPublisher for bean broadcasting.
-	 */
-	public IPublisher<T> getPublisher();
-	
-	/**
-	 * Return the bean whose status updates will be broadcast.
-	 * 
-	 * @return T Bean to be broadcast
-	 */
-	public T getBean();
 }
