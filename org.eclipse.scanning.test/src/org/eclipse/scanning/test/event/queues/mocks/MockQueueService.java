@@ -9,10 +9,15 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IResponder;
 import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.QueueBean;
+import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
+import org.eclipse.scanning.event.queues.ServicesHolder;
+import org.eclipse.scanning.event.queues.remote.QueueResponseCreator;
 
 public class MockQueueService implements IQueueService {
 	
@@ -31,6 +36,9 @@ public class MockQueueService implements IQueueService {
 	private URI uri;
 	
 	private boolean active = false, forced = false;
+	private boolean startResponder;
+
+	private IResponder<QueueRequest> queueResponder;
 	
 	public MockQueueService() {
 		jobQueue = null;
@@ -65,17 +73,28 @@ public class MockQueueService implements IQueueService {
 		activeQueueIDs.add(mockActiveQueue.getQueueID());
 		nrActiveQueues = 1;
 	}
+	
+	public MockQueueService(IQueue<QueueBean> mockJobQueue, IQueue<QueueAtom> mockActiveQueue, URI uri) {
+		this(mockJobQueue, mockActiveQueue);
+		this.uri = uri;
+		this.startResponder = true;
+	}
 
 	@Override
 	public void init() throws EventException {
-		// TODO Auto-generated method stub
-
+		if (startResponder) {
+			//Add responder
+			IEventService evServ = ServicesHolder.getEventService();
+			queueResponder = evServ.createResponder(uri, QUEUE_REQUEST_TOPIC, QUEUE_RESPONSE_TOPIC);
+			queueResponder.setBeanClass(QueueRequest.class);
+			queueResponder.setResponseCreator(new QueueResponseCreator());
+		}
 	}
 
 	@Override
 	public void disposeService() throws EventException {
-		// TODO Auto-generated method stub
-
+		// Shutdown the responder
+		if (queueResponder!=null) queueResponder.disconnect();
 	}
 
 	@Override

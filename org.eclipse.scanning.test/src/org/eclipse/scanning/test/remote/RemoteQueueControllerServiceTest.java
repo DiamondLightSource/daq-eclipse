@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.remote;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +32,7 @@ public class RemoteQueueControllerServiceTest extends BrokerTest {
 
 	private static IQueueControllerService      qservice;
 	private        IQueueControllerService      rservice;
+	private MockQueueService mockQServ;
 	private static IEventService                eservice;
 
 	@BeforeClass
@@ -51,13 +53,21 @@ public class RemoteQueueControllerServiceTest extends BrokerTest {
 		ServicesHolder.setEventService(eservice);
 		System.out.println("Set connectors");
 		
+
+	}
+
+	
+	@Before
+	public void createService() throws EventException {
+		
 		String jqID = "mock-job-queue";
 		String jqSubmQ = jqID+IQueue.SUBMISSION_QUEUE_SUFFIX;
 		String aqID = "mock-active-queue";
 		String aqSubmQ = aqID+IQueue.SUBMISSION_QUEUE_SUFFIX;
 		IQueue<QueueBean> mockJobQ = new Queue<>(jqID, uri);
 		IQueue<QueueAtom> mockActiveQ = new Queue<>(aqID, uri);
-		MockQueueService mockQServ = new MockQueueService(mockJobQ, mockActiveQ);
+		
+		this.mockQServ = new MockQueueService(mockJobQ, mockActiveQ, uri);
 		mockQServ.setCommandTopicName("mock-cmd-topic");
 		//Clear queues to avoid class cast errors (a StatusBean is prepopulated for another test elsewhere...)
 		mockQServ.getJobQueue().clearQueues();
@@ -71,16 +81,15 @@ public class RemoteQueueControllerServiceTest extends BrokerTest {
 		//A bit of boilerplate to start the service under test
 		qservice = new QueueControllerService();
 		qservice.init();
-
-	}
-	
-	@Before
-	public void createService() throws EventException {
+		ServicesHolder.setQueueControllerService(qservice);
+		
 		rservice = eservice.createRemoteService(uri, IQueueControllerService.class);
 	}
 	
 	@After
 	public void disposeService() throws EventException {
+		mockQServ.stop(true);
+		qservice.stopQueueService(true);
 		((IDisconnectable)rservice).disconnect();
 	}
 
@@ -89,5 +98,35 @@ public class RemoteQueueControllerServiceTest extends BrokerTest {
 		assertNotNull(rservice);
 	}
 	
+	/**
+	 * Test whether starting & stopping pushes the right buttons in the 
+	 * QueueService
+	 * @throws EventException 
+	 */
+	@Test
+	public void testStartStopService() throws EventException {
+		qservice.startQueueService();
+		assertTrue("Start didn't push the start button.", mockQServ.isActive());
+		
+		qservice.stopQueueService(false);
+		assertFalse("Stop didn't push the stop button.", mockQServ.isActive());
+		assertFalse("Stop should not have been forced.", mockQServ.isForced());
+		
+		qservice.stopQueueService(true);
+		assertTrue("Stop should have been forced.", mockQServ.isForced());
+	}
+	
+	@Test
+	public void testStartStopRemote() throws EventException {
+		rservice.startQueueService();
+		assertTrue("Start didn't push the start button.", mockQServ.isActive());
+		
+		rservice.stopQueueService(false);
+		assertFalse("Stop didn't push the stop button.", mockQServ.isActive());
+		assertFalse("Stop should not have been forced.", mockQServ.isForced());
+		
+		rservice.stopQueueService(true);
+		assertTrue("Stop should have been forced.", mockQServ.isForced());
+	}
 
 }
