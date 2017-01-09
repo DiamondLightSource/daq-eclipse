@@ -36,13 +36,14 @@ public class ModelValidationException extends RuntimeException {
 		super(e);
 	}
 
-
 	private List<Field> getFields(Object model) {
 		List<Field> fields = new ArrayList<>();
-		Field[] fa = model.getClass().getDeclaredFields();
-		if (fa!=null && fa.length>0) fields.addAll(Arrays.asList(fa));
-		fa =model.getClass().getSuperclass().getDeclaredFields();
-		fields.addAll(Arrays.asList(fa));
+		Class<? extends Object> cls = model.getClass();
+
+		while (!cls.equals(Object.class)) { 
+			fields.addAll(Arrays.asList(cls.getDeclaredFields()));
+			cls = cls.getSuperclass();
+		}
 		return fields;
 	}
 
