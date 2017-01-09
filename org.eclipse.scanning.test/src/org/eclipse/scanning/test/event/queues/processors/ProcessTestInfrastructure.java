@@ -36,6 +36,7 @@ public class ProcessTestInfrastructure {
 	private final CountDownLatch analysisLatch = new CountDownLatch(1);
 	
 	private QueueProcess<? extends Queueable, Queueable> qProc;
+	private Queueable qBean;
 	
 	/**
 	 * Generic method for running a queue process. When complete, it releases the execLatch.
@@ -47,6 +48,7 @@ public class ProcessTestInfrastructure {
 //	@SuppressWarnings("unchecked")
 	public <R extends Queueable> void executeProcess(QueueProcess<R, Queueable> qProc, R procBean) throws Exception {		
 		this.qProc = qProc;
+		this.qBean = procBean;
 		
 		//Check the bean doesn't have some weird initial state set on it:
 		assertEquals("Wrong initial status", Status.NONE, procBean.getStatus());
@@ -73,7 +75,7 @@ public class ProcessTestInfrastructure {
 		assertTrue("QueueProcess should be marked executed after execution", qProc.isExecuted());
 	}
 	
-	public void waitForExecutionEnd(Long timeoutMS) throws Exception {
+	public void waitForExecutionEnd(long timeoutMS) throws Exception {
 		boolean unLatched = analysisLatch.await(timeoutMS, TimeUnit.MILLISECONDS);
 		if (!unLatched) {
 			if (threadException == null) {
@@ -111,11 +113,11 @@ public class ProcessTestInfrastructure {
 	/**
 	 * Check the statuses of the first n beans depending on the number of 
 	 * statuses and percentages supplied.
-	 * @param bean with ID expected for broadcast beans
+	 * @param qBean with ID expected for broadcast beans
 	 * @param beanStatuses
 	 * @param beanPercent
 	 */
-	protected void checkFirstBroadcastBeanStatuses(Queueable bean, Status[] beanStatuses, Double[] beanPercent) throws Exception {
+	protected void checkFirstBroadcastBeanStatuses(Status[] beanStatuses, Double[] beanPercent) throws Exception {
 		if (beanStatuses.length != beanPercent.length) fail("Number of Statuses and percents to test must be equal");
 		
 		List<Queueable> broadcastBeans = getBroadcastBeans();
@@ -124,7 +126,7 @@ public class ProcessTestInfrastructure {
 		for (int i = 0; i < beanStatuses.length; i++) {
 			Queueable broadBean = broadcastBeans.get(i);
 			
-			if (!broadBean.getUniqueId().equals(bean.getUniqueId())){
+			if (!broadBean.getUniqueId().equals(qBean.getUniqueId())){
 				throw new EventException(i+"th bean is not the bean we were looking for");
 			}
 			assertEquals(i+"th bean has wrong status", beanStatuses[i], broadBean.getStatus());
@@ -138,12 +140,12 @@ public class ProcessTestInfrastructure {
 	/**
 	 * Check the statuses of the first last and (optionally) the penultimate 
 	 * bean,  for any processor outcome, depending on the supplied state.
-	 * @param bean
+	 * @param qBean
 	 * @param state
 	 * @param prevBean
 	 * @throws EventException
 	 */
-	public void checkLastBroadcastBeanStatuses(Queueable bean, Status state, boolean prevBean) throws EventException {
+	public void checkLastBroadcastBeanStatuses(Status state, boolean prevBean) throws EventException {
 		Double percentComplete = -1d;
 		Status previousBeanState = null;
 		if (state.equals(Status.NONE)) {
@@ -160,7 +162,7 @@ public class ProcessTestInfrastructure {
 		
 		//First bean should be RUNNING.
 		firstBean = broadcastBeans.get(0);
-		if (!firstBean.getUniqueId().equals(bean.getUniqueId())){
+		if (!firstBean.getUniqueId().equals(qBean.getUniqueId())){
 			throw new EventException("First bean is not the bean we were looking for");
 		}
 		assertEquals("First bean should be running", Status.RUNNING, firstBean.getStatus());
@@ -172,7 +174,7 @@ public class ProcessTestInfrastructure {
 		//Penultimate bean should have status depending on the above if/else block
 		if (prevBean) {
 			penultimateBean = broadcastBeans.get(broadcastBeans.size()-2);
-			if (!penultimateBean.getUniqueId().equals(bean.getUniqueId())){
+			if (!penultimateBean.getUniqueId().equals(qBean.getUniqueId())){
 				throw new EventException("Penultimate bean is not the bean we were looking for");
 			}
 			assertEquals("Second to last bean has wrong status", previousBeanState, penultimateBean.getStatus());
@@ -182,7 +184,7 @@ public class ProcessTestInfrastructure {
 		}
 		
 		//Last bean should have status in args and percent complete defined in if/else block
-		if (!lastBean.getUniqueId().equals(bean.getUniqueId())){
+		if (!lastBean.getUniqueId().equals(qBean.getUniqueId())){
 			throw new EventException("Last bean is not the bean we were looking for");
 		}
 		assertTrue("Last bean is not final (was: "+lastBean.getStatus()+")", lastBean.getStatus().isFinal());
@@ -227,21 +229,21 @@ public class ProcessTestInfrastructure {
 		}
 	}
 	
-	public void waitForBeanStatus(Queueable bean, Status state, long timeout) throws Exception {
-		waitForBeanState(bean, state, false, timeout);
+	public void waitForBeanStatus(Status state, long timeout) throws Exception {
+		waitForBeanState(state, false, timeout);
 	}
 	
-	public void waitForBeanFinalStatus(Queueable bean, long timeout) throws Exception {
-		waitForBeanState(bean, null, true, timeout);
+	public void waitForBeanFinalStatus(long timeout) throws Exception {
+		waitForBeanState(null, true, timeout);
 	}
 	
-	private void waitForBeanState(Queueable bean, Status state, boolean isFinal, long timeout) throws Exception {
+	private void waitForBeanState(Status state, boolean isFinal, long timeout) throws Exception {
 		Queueable lastBean= ((MockPublisher<Queueable>)statPub).getLastQueueable();
 		long startTime = System.currentTimeMillis();
 		long runTime = 0;
 		
 		while (runTime <= timeout) {
-			if ((lastBean != null) && (lastBean.getUniqueId().equals(bean.getUniqueId()))) {
+			if ((lastBean != null) && (lastBean.getUniqueId().equals(qBean.getUniqueId()))) {
 				if ((lastBean.getStatus().equals(state)) || (lastBean.getStatus().isFinal() && isFinal)) {
 					return;
 				}
@@ -260,7 +262,7 @@ public class ProcessTestInfrastructure {
 		} else {
 			beanStatus = lastBean.getStatus().toString();
 		}
-		throw new Exception("Bean state not reached before timeout (was: "+beanStatus+").");
+		throw new Exception("Bean state not reached before timeout (was: "+beanStatus+"; with message: "+lastBean.getMessage()+").");
 	}
 	
 	/**

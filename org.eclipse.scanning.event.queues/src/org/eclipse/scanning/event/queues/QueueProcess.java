@@ -1,5 +1,7 @@
 package org.eclipse.scanning.event.queues;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.AbstractLockingPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -32,6 +34,8 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 	protected final Q queueBean;
 	protected boolean blocking = true, executed = false, terminated = false, finished = false;
 	
+	protected final CountDownLatch processLatch = new CountDownLatch(1);
+	
 	@SuppressWarnings("unchecked")
 	protected QueueProcess(T bean, IPublisher<T> publisher, Boolean blocking) throws EventException {
 		super(bean, publisher);
@@ -44,6 +48,16 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 			throw new EventException("Unsupported bean type");
 		}
 	}
+	
+	@Override
+	public void execute() throws EventException, InterruptedException {
+		run();
+		processLatch.await();
+		postMatchAnalysis();
+	}
+	
+	protected abstract void run() throws EventException, InterruptedException;
+	protected abstract void postMatchAnalysis() throws EventException;
 	
 	@Override
 	public void updateBean(Status newStatus, Double newPercent, String newMessage) {

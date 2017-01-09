@@ -19,7 +19,7 @@ public class DummyProcessingTest {
 	private ProcessTestInfrastructure pti;
 	
 	@Before
-	public void setup() {
+	public void setUp() {
 		pti = new ProcessTestInfrastructure();
 	}
 	
@@ -34,8 +34,8 @@ public class DummyProcessingTest {
 		DummyAtomProcess<Queueable> dAtProc = new DummyAtomProcess<>(dAt, pti.getPublisher(), false);
 		
 		pti.executeProcess(dAtProc, dAt);
-		pti.waitForExecutionEnd(10000L);
-		pti.checkLastBroadcastBeanStatuses(dAt, Status.COMPLETE, false);
+		pti.waitForExecutionEnd(10000l);
+		pti.checkLastBroadcastBeanStatuses(Status.COMPLETE, false);
 	}
 	
 	@Test
@@ -45,7 +45,7 @@ public class DummyProcessingTest {
 		
 		pti.executeProcess(dBeProc, dBe);
 		pti.waitForExecutionEnd(10000L);
-		pti.checkLastBroadcastBeanStatuses(dBe, Status.COMPLETE, false);
+		pti.checkLastBroadcastBeanStatuses(Status.COMPLETE, false);
 	}
 	
 	@Test
@@ -55,7 +55,7 @@ public class DummyProcessingTest {
 		
 		pti.executeProcess(dHQProc, dHQ);
 		pti.waitForExecutionEnd(10000L);
-		pti.checkLastBroadcastBeanStatuses(dHQ, Status.COMPLETE, false);
+		pti.checkLastBroadcastBeanStatuses(Status.COMPLETE, false);
 	}
 	
 	/*
@@ -68,8 +68,8 @@ public class DummyProcessingTest {
 		
 		pti.executeProcess(dAtProc, dAt);
 		pti.waitToTerminate(10l);
-		pti.waitForBeanFinalStatus(dAt, 5000l);
-		pti.checkLastBroadcastBeanStatuses(dAt, Status.TERMINATED, false);
+		pti.waitForBeanFinalStatus(5000l);
+		pti.checkLastBroadcastBeanStatuses(Status.TERMINATED, false);
 	}
 	
 	
