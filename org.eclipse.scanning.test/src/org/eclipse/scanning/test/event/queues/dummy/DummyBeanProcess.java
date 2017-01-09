@@ -6,8 +6,10 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 public class DummyBeanProcess<T extends Queueable> extends DummyProcess<DummyBean, T> {
 	
-	public DummyBeanProcess(T bean, IPublisher<T> publisher) throws EventException {
-		super(bean, publisher, false);
+	public static final String BEAN_CLASS_NAME = DummyBean.class.getName();
+	
+	public DummyBeanProcess(T bean, IPublisher<T> publisher, Boolean blocking) throws EventException {
+		super(bean, publisher, blocking);
 	}
 
 	@Override

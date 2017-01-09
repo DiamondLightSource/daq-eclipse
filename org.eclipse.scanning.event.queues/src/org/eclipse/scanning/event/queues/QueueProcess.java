@@ -33,10 +33,10 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 	protected boolean blocking = true, executed = false, terminated = false, finished = false;
 	
 	@SuppressWarnings("unchecked")
-	protected QueueProcess(T bean, IPublisher<T> publisher, boolean blocking) throws EventException {
+	protected QueueProcess(T bean, IPublisher<T> publisher, Boolean blocking) throws EventException {
 		super(bean, publisher);
-		this.blocking = blocking;
 		
+		this.blocking = blocking;
 		if (bean.getClass().equals(getBeanClass())) {
 			this.queueBean = (Q)bean;
 		} else {

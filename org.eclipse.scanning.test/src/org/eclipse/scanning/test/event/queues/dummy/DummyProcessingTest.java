@@ -31,7 +31,7 @@ public class DummyProcessingTest {
 	@Test
 	public void testDummyAtomExecution() throws Exception {
 		DummyAtom dAt = new DummyAtom("Clotho", 400);
-		DummyAtomProcess<Queueable> dAtProc = new DummyAtomProcess<>(dAt, pti.getPublisher());
+		DummyAtomProcess<Queueable> dAtProc = new DummyAtomProcess<>(dAt, pti.getPublisher(), false);
 		
 		pti.executeProcess(dAtProc, dAt);
 		pti.waitForExecutionEnd(10000L);
@@ -41,7 +41,7 @@ public class DummyProcessingTest {
 	@Test
 	public void testDummyBeanExecution() throws Exception {
 		DummyBean dBe = new DummyBean("Lachesis", 200);
-		DummyBeanProcess<Queueable> dBeProc = new DummyBeanProcess<>(dBe, pti.getPublisher());
+		DummyBeanProcess<Queueable> dBeProc = new DummyBeanProcess<>(dBe, pti.getPublisher(), false);
 		
 		pti.executeProcess(dBeProc, dBe);
 		pti.waitForExecutionEnd(10000L);
@@ -51,7 +51,7 @@ public class DummyProcessingTest {
 	@Test
 	public void testDummyHasQueueExecution() throws Exception {
 		DummyHasQueue dHQ = new DummyHasQueue("Atropos", 300);
-		DummyHasQueueProcess<Queueable> dHQProc = new DummyHasQueueProcess<>(dHQ, pti.getPublisher());
+		DummyHasQueueProcess<Queueable> dHQProc = new DummyHasQueueProcess<>(dHQ, pti.getPublisher(), false);
 		
 		pti.executeProcess(dHQProc, dHQ);
 		pti.waitForExecutionEnd(10000L);
@@ -64,7 +64,7 @@ public class DummyProcessingTest {
 	@Test
 	public void testTermination() throws Exception {
 		DummyAtom dAt = new DummyAtom("Hera", 400);
-		DummyAtomProcess<Queueable> dAtProc = new DummyAtomProcess<>(dAt, pti.getPublisher());
+		DummyAtomProcess<Queueable> dAtProc = new DummyAtomProcess<>(dAt, pti.getPublisher(), false);
 		
 		pti.executeProcess(dAtProc, dAt);
 		pti.waitToTerminate(10l);
