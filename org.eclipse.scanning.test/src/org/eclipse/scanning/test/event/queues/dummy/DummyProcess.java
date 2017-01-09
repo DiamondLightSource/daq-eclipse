@@ -12,9 +12,8 @@ public abstract class DummyProcess<Q extends Queueable, T extends Queueable> ext
 	
 	private static final Logger logger = LoggerFactory.getLogger(DummyBeanProcess.class);
 
-	protected DummyProcess(T bean, IPublisher<T> publisher, boolean blocking) throws EventException {
+	protected DummyProcess(T bean, IPublisher<T> publisher, Boolean blocking) throws EventException {
 		super(bean, publisher, blocking);
-		
 	}
 
 	@Override

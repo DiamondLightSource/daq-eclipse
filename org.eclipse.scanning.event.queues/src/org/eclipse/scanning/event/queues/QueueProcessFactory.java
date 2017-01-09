@@ -125,7 +125,7 @@ public class QueueProcessFactory {
 	 *                        processor cannot be instantiated.
 	 */
 	@SuppressWarnings("rawtypes")
-	public static <T extends Queueable > IQueueProcess getProcessor(T bean, IPublisher<T> publisher, Boolean blocking) throws EventException {
+	public static <T extends Queueable> IQueueProcess getProcessor(T bean, IPublisher<T> publisher, Boolean blocking) throws EventException {
 		Class<? extends IQueueProcess> clazz = PROCESSES.get(bean.getClass().getName());
 		
 		if (clazz == null) throw new EventException("No processor registered for bean type '"+bean.getClass().getName()+"'");
