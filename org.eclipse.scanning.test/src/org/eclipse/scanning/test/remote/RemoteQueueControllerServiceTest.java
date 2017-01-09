@@ -150,7 +150,6 @@ public class RemoteQueueControllerServiceTest extends BrokerTest {
 		testSubmitRemove(qservice); 
 	}
 	
-	@Ignore("This does not seem to work with _QueueControllerService")
 	@Test
 	public void submitRemoveRemote() throws Exception {
 		testSubmitRemove(rservice); 
