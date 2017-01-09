@@ -11,15 +11,16 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.event.queues.ServicesHolder;
-import org.eclipse.scanning.event.queues.processors.MoveAtomProcessor;
+import org.eclipse.scanning.event.queues.processors.MoveAtomProcess;
 import org.eclipse.scanning.test.event.queues.mocks.MockPositioner;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.eclipse.scanning.test.event.queues.mocks.MockScanService;
 
+@Deprecated
 public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 	
 	private MoveAtom mvAt;
-	private MoveAtomProcessor mvProcr;
+	private MoveAtomProcess mvProcr;
 	
 	//Infrastructure
 	private IRunnableDeviceService mss;
@@ -40,7 +41,7 @@ public class MoveAtomProcessorTest extends AbstractQueueProcessorTest {
 
 	@Override
 	protected IQueueProcessor<? extends Queueable> getTestProcessor(boolean makeNew) {
-		if (mvProcr == null || makeNew) mvProcr = new MoveAtomProcessor();
+		if (mvProcr == null || makeNew) mvProcr = new MoveAtomProcess();
 		return mvProcr;
 	}
 

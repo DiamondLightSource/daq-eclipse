@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
  * @param <P> Bean type implementing {@link Queueable} which will be processed 
  *            by the concrete {@link IQueueProcessor} instance.
  */
+@Deprecated
 public abstract class AbstractQueueProcessor <P extends Queueable> implements IQueueProcessor<P> {
 
 	private static Logger logger = LoggerFactory.getLogger(AbstractQueueProcessor.class);
@@ -49,7 +50,7 @@ public abstract class AbstractQueueProcessor <P extends Queueable> implements IQ
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends Queueable> void setProcessBean(T bean) throws EventException {
+	public <R extends Queueable> void setProcessBean(R bean) throws EventException {
 		if (isExecuted()) {
 			logger.error("Cannot change bean to be processed after execution has started.");
 			throw new EventException("Cannot change bean to be processed after execution has started");

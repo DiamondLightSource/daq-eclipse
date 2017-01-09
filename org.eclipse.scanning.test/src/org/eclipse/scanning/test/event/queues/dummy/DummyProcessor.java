@@ -7,6 +7,7 @@ import org.eclipse.scanning.event.queues.processors.AbstractQueueProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated
 public abstract class DummyProcessor <P extends Queueable> extends AbstractQueueProcessor<P> {
 
 	private static final Logger logger = LoggerFactory.getLogger(DummyProcessor.class);

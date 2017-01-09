@@ -66,7 +66,7 @@ public abstract class AbstractQueueProcessorTest {
 	 * bean being accepted by the processor.
 	 * @throws Exception
 	 */
-	@Test
+	@Test@Deprecated
 	public void testWrongBeanType() throws Exception {
 		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
 		Queueable qBean = getTestBean();
@@ -92,7 +92,7 @@ public abstract class AbstractQueueProcessorTest {
 	 * processor cannot be changed.
 	 * @throws Exception
 	 */
-	@Test
+	@Test@Deprecated
 	public void testChangingProcessorAfterExecution() throws Exception {
 		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
 		Queueable qBean = getTestBean();
@@ -141,7 +141,7 @@ public abstract class AbstractQueueProcessorTest {
 	 * passed as Queueables. 
 	 * @throws Exception
 	 */
-	@Test
+	@Test@Deprecated
 	public void testDifferentBeanTypes() throws Exception {
 		IQueueProcessor<? extends Queueable> qProcr = getTestProcessor();
 		Queueable qBean = getTestBean();

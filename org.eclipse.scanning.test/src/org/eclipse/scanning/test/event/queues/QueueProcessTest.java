@@ -33,6 +33,7 @@ import org.junit.Test;
  * @author Michael Wharmby
  *
  */
+@Deprecated
 public class QueueProcessTest {
 
 	private QueueProcess<DummyBean> qProc;
@@ -155,7 +156,7 @@ public class QueueProcessTest {
 		IQueueProcess<DummyBean> pProc = new QueueProcess<DummyBean>(dummy, pub, blocking);
 		
 		//Mimic process execution
-		pProc.setExecuted();
+		((QueueProcess<?>)pProc).setExecuted();
 		try {
 			pProc.setProcessor(fakeProcr);
 			fail("Should not be able to change processor after execution start");
