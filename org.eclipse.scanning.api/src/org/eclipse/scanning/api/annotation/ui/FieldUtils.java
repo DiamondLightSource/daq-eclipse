@@ -50,14 +50,17 @@ public class FieldUtils {
 	public static Field getField(Object model, String fieldName) throws NoSuchFieldException, SecurityException {
 		
     	Field field;
-		try {
-			field = model.getClass().getDeclaredField(fieldName);
-		} catch (Exception ne) {
-			field = model.getClass().getSuperclass().getDeclaredField(fieldName);
-		}
-		return field;
+    	Class<? extends Object> cls = model.getClass();
+    	while (!cls.equals(Object.class)) {
+			try {
+				field = cls.getDeclaredField(fieldName);
+				return field;
+			} catch (Exception ne) {
+				cls = cls.getSuperclass();
+			}
+    	}
+    	throw new NoSuchFieldException(fieldName);
 	}
-
 	
 	/**
 	 * Get a collection of the fields of the model that should be edited in the User interface
@@ -71,8 +74,12 @@ public class FieldUtils {
 		// Decided not to use the obvious BeanMap here because class problems with
 		// GDA and we have to read annotations anyway.
 		final List<Field> allFields = new ArrayList<Field>(31);
-		allFields.addAll(Arrays.asList(model.getClass().getDeclaredFields()));
-		allFields.addAll(Arrays.asList(model.getClass().getSuperclass().getDeclaredFields()));
+		Class<? extends Object> cls = model.getClass();
+
+		while (!cls.equals(Object.class)) { 
+			allFields.addAll(Arrays.asList(cls.getDeclaredFields()));
+			cls = cls.getSuperclass();
+		}		
 		
 		// The returned descriptor
 		final Map<String, FieldValue> map = new HashMap<>();

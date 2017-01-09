@@ -189,10 +189,13 @@ public class FieldValue {
 	 * @throws IllegalAccessException 
 	 */
 	public static Object get(Object model, String name) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		
-		Object val = get(model, model.getClass(), name);
-		if (val==null) val = get(model, model.getClass().getSuperclass(), name);
-		return val;
+		Class<? extends Object> cls = model.getClass();
+		while (!cls.equals(Object.class)) {
+			Object val = get(model, cls, name);
+			if (val != null) return val;
+			cls = cls.getSuperclass();
+		}
+		return null;
 	}
 	
 	private static Object get(Object model, Class<?> clazz, String name) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -256,11 +259,15 @@ public class FieldValue {
 	public static boolean isModelField(Object model, String name) throws NoSuchFieldException, SecurityException {
 		
 		Field field = null;
-		try {
-		    field = model.getClass().getDeclaredField(name);
-		} catch (Exception ne) {
-			field = model.getClass().getSuperclass().getDeclaredField(name);
-		}
+		Class<? extends Object> cls = model.getClass();
+    	while (!cls.equals(Object.class)) {
+    		try {
+    			field = cls.getDeclaredField(name);
+    			break;
+    		} catch (Exception ne) {
+    			cls = cls.getSuperclass();
+    		}
+    	}
 
 		FieldDescriptor omf = field.getAnnotation(FieldDescriptor.class);
 		if (omf!=null && !omf.visible()) return false;
