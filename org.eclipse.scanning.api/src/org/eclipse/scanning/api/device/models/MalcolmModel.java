@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.annotation.ui.FileType;
 /**
  * The model for a malcolm device that writes h5 files.
  */
-public class MalcolmModel extends AbstractDetectorModel implements IMalcolmModel, IDetectorModel {
+public class MalcolmModel extends AbstractDetectorModel implements IMalcolmModel {
 
 	/**
 	 * The folder for malcolm to create its HDF5 files in. This is set by the scan, any value

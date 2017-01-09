@@ -16,6 +16,7 @@
  * with GDA. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 package org.eclipse.scanning.example.malcolm;
 
 import static org.eclipse.scanning.malcolm.core.MalcolmDatasetType.MONITOR;
@@ -324,6 +325,8 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	
 	private ScanInformation scanInformation = null; 
 	
+	private boolean paused = false;
+	
 	// the dummy devices are responsible for writing the nexus files 
 	private Map<String, IDummyMalcolmControlledDevice> devices = null;
 	
@@ -607,6 +610,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	
 	@Override
 	public void run(IPosition outerScanPosition) throws ScanningException, InterruptedException {
+		paused = false;
 		setDeviceState(DeviceState.RUNNING);
 		status.setValue("Running");
 		completedSteps.setValue(totalSteps.getValue());
@@ -623,6 +627,9 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		
 		// get each dummy device to write its position at each inner scan position
 		for (IPosition innerScanPosition : innerScanPositions) {
+			while (paused) {
+				Thread.sleep(1000);
+			}
 			final IPosition overallScanPosition = outerScanPosition.compound(innerScanPosition);
 			overallScanPosition.setStepIndex(stepIndex++);
 			for (IDummyMalcolmControlledDevice device : devices.values()) {
@@ -733,6 +740,16 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	}
 	
 	@Override
+	public void pause() throws ScanningException {
+		paused = true;
+	}
+	
+	@Override
+	public void resume() throws ScanningException {
+		paused = false;
+	}
+	
+	@Override
 	public List<MalcolmAttribute> getAllAttributes() throws ScanningException {
 		updateAttributesWithLatestValues();
 		
@@ -751,6 +768,10 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		
 		layout = createLayoutAttribute();
 		allAttributes.put("layout", layout);
+	}
+
+	public void setAxesToMove(final String[] axesToMove) {
+		this.axesToMove = new StringArrayAttribute(axesToMove);
 	}
 	
 	private static class DummyMalcolmConnectorService implements IMalcolmConnectorService<MalcolmMessage> {
@@ -799,6 +820,5 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		}
 		
 	}
-	
 	
 }

@@ -1,7 +1,6 @@
 package org.eclipse.scanning.device.ui.model;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,13 +37,14 @@ import org.eclipse.scanning.api.annotation.ui.FieldUtils;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.ui.CommandConstants;
+import org.eclipse.scanning.api.ui.auto.IModelViewer;
+import org.eclipse.scanning.api.ui.auto.InterfaceInvalidException;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.points.ScanView;
@@ -92,7 +92,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  *
  */
-class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
+class ModelViewer<T> implements IModelViewer<T>, ISelectionListener, ISelectionProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModelViewer.class);
 	
@@ -119,15 +119,13 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 	private IRunnableDeviceService dservice;
 
 	
-	public ModelViewer() throws EventException, URISyntaxException {
+	ModelViewer() {
 		super();
-		dservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IRunnableDeviceService.class);
 	}
 		
-	public ModelViewer(IViewSite site) throws EventException, URISyntaxException {
-		this();
-		if (site != null) site.getPage().addSelectionListener(this);
-		this.site = site;
+	public <V> void setViewSite(V site) {
+		this.site = (IViewSite)site;
+		if (site != null) this.site.getPage().addSelectionListener(this);
 	}
 	
 
@@ -135,9 +133,9 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 		if (PageUtil.getPage()!=null) PageUtil.getPage().removeSelectionListener(this);
 	}
 
-	public Composite createPartControl(Composite ancestor) {
+	public <U> U createPartControl(U ancestor) {
 		
-		this.content = new Composite(ancestor, SWT.NONE);
+		this.content = new Composite((Composite)ancestor, SWT.NONE);
 		content.setLayout(new GridLayout(1, false));
 		content.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		GridUtils.removeMargins(content);
@@ -233,7 +231,7 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 		
 		createActions();
 		
-		return content;
+		return (U)content;
 	}
 
 	private void createActions() {
@@ -264,8 +262,8 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 		
 	}
 
-	public Control getControl() {
-		return content;
+	public <U> U getControl() {
+		return (U)content;
 	}
 
 	private void createDropTarget(TableViewer viewer) {
@@ -400,6 +398,7 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 			// Special case for device information, we read the latest
 			if (ob instanceof DeviceInformation) {
 				String name = ((DeviceInformation<?>)ob).getName();
+				if (dservice==null) dservice = ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IRunnableDeviceService.class);
 				IRunnableDevice<?> device = dservice.getRunnableDevice(name);
 				setValidator(device);
 			}
@@ -407,13 +406,17 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 			if (ob instanceof IScanPathModel) setModel((T)ob);
 			
 			if (ob instanceof IROI && getModel() instanceof IBoundingBoxModel) {
-                BoundingBox box = ScanRegions.createBoxFromPlot(model);
-	    		((IBoundingBoxModel)getModel()).setBoundingBox(box);
-	    		refresh();
+				try {
+	                BoundingBox box = ScanRegions.createBoxFromPlot(model);
+		    		((IBoundingBoxModel)getModel()).setBoundingBox(box);
+		    		refresh();
+				} catch (Exception ne) {
+					logger.info("Unable to process box from plot!", ne);
+				}
 			}
 			
 		} catch (Exception ne) {
-			logger.error("Cannot set model for object "+ob);
+			logger.error("Cannot set model for object "+ob, ne);
 			if (site != null) site.getActionBars().getStatusLineManager().setErrorMessage("Cannot connect to server "+ne.getMessage());
 		}
 	}
@@ -428,7 +431,7 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 		this.validator = (IValidator<Object>)v;
 	}
 
-	public void setModel(T model) throws InstantiationException, IllegalAccessException {
+	public void setModel(T model) throws InterfaceInvalidException {
 		if (viewer.getTable().isDisposed()) return;
 		if (viewer.isCellEditorActive())    return;
 		this.model = model;
@@ -510,6 +513,12 @@ class ModelViewer<T> implements ISelectionListener, ISelectionProvider {
 
 	public void setValidationError(boolean validationError) {
 		this.validationError = validationError;
+	}
+
+	@Override
+	public void applyEditorValue() {
+		if (!viewer.isCellEditorActive()) return;
+		viewer.applyEditorValue();
 	}
 
 }

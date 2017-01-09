@@ -1,12 +1,12 @@
 package org.eclipse.scanning.api.event.dry;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
+import org.eclipse.scanning.api.event.core.AbstractLockingPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 
-public class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess<T> {
+public class DryRunProcess<T extends StatusBean> extends AbstractLockingPausableProcess<T> {
 
 	
 	private boolean blocking;
@@ -71,7 +71,7 @@ public class DryRunProcess<T extends StatusBean> extends AbstractPausableProcess
 			}
 			
 			//Moved broadcast to before sleep to prevent another spurious broadcast.
-			System.out.println("Dry run : "+getBean().getPercentComplete()+" : "+getBean().getName());
+			//System.out.println("Dry run : "+getBean().getPercentComplete()+" : "+getBean().getName());
 			getBean().setPercentComplete((Double.valueOf(i)/Double.valueOf(stop))*100d);
 			getPublisher().broadcast(getBean());
 			

@@ -14,9 +14,10 @@ import org.eclipse.scanning.api.points.Scalar;
  */
 public class MockTopupScannable extends MockScannable implements IDisconnectable {
 
-	private final long start;
+	private long start;
 	private long period;
     private volatile boolean isRunning;
+	private Thread thread;
 	/**
 	 * 
 	 * @param name
@@ -25,45 +26,59 @@ public class MockTopupScannable extends MockScannable implements IDisconnectable
 	public MockTopupScannable(String name, long period) {
 		super(name, System.currentTimeMillis());
 		setUnit("ms");
-		start = System.currentTimeMillis();
 		this.period = period;
 	}
 	
 	public void start() {
-		final Thread thread = new Thread(()->{
+		
+		if (thread!=null && isRunning) return; // We have one going.
+		this.start = System.currentTimeMillis();
+		this.thread = new Thread(()->{
+			isRunning = true;
 			try {
-				isRunning = true;
-				while(isRunning) {
-				    delegate.firePositionChanged(getLevel(), new Scalar(getName(), -1, getPosition()));
+				while(isRunning && !Thread.interrupted()) {
+					MockTopupScannable.this.position = nextPosition();
+				    delegate.firePositionChanged(getLevel(), new Scalar(getName(), -1, position));
 				    Thread.sleep(100);
 				}
+			} catch (InterruptedException e) {
+				return; // Normal
 			} catch (Exception e) {
 				e.printStackTrace();
+			} finally {
+				isRunning = false;
 			}
 		}, "Topup value thread");
 		thread.setDaemon(true);
 		thread.setPriority(Thread.MIN_PRIORITY+1);
 		thread.start();
+		System.out.println("Topup started @ 10Hz");
 	}
 	
 	@Override
 	public void disconnect() {
 		isRunning = false;
+		if (thread!=null) thread.interrupt();
+		System.out.println("Topup stopped");
+		this.position = 5000;
 	}
 	@Override
 	public boolean isDisconnected() {
 		return !isRunning;
 	}
 
+	public void setPosition(Number position) throws Exception {
+		setPosition(position, null);
+	}
 	public void setPosition(Number position, IPosition loc) throws Exception {
-		
+		this.position = position;
+	    delegate.firePositionChanged(getLevel(), new Scalar(getName(), -1, position));
 	}
 	
 	/**
 	 * Time in ms until next topup
 	 */
-	@Override
-	public Number getPosition() {
+    private Number nextPosition() {
 		long diff = System.currentTimeMillis() - start;
 		long timems = period-(diff%period);
 		return timems;

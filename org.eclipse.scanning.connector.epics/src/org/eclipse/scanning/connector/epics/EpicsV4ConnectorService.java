@@ -36,13 +36,20 @@ import org.epics.pvdata.pv.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class uses EpicsV4 class to connect to an Epics V4 endpoint.
+ * It provides the ability to get a pv, set a pv, call a method, and subsribe and unsubscribe to a pv.
+ * 
+ * @author Matt Taylor
+ *
+ */
 public class EpicsV4ConnectorService implements IMalcolmConnectorService<MalcolmMessage> {
 
 	static final FieldCreate fieldCreate = FieldFactory.getFieldCreate();
     static final PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
     static final double REQUEST_TIMEOUT = 3.0;
 	
-	private static final Logger logger = LoggerFactory.getLogger(EpicsV4ConnectorService.class); // TODO use
+	private static final Logger logger = LoggerFactory.getLogger(EpicsV4ConnectorService.class);
 	
 	private EpicsV4MessageMapper mapper;
 	
@@ -52,7 +59,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
     
     public EpicsV4ConnectorService() {
 		mapper = new EpicsV4MessageMapper();
-		org.epics.pvaccess.ClientFactory.start();
 		this.listeners = new Hashtable<Long, Collection<EpicsV4MonitorListener>>(7);
 		pvaClient = PvaClient.get("pva");
 	}
@@ -64,7 +70,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 
 	@Override
 	public void disconnect() throws MalcolmDeviceException {
-		org.epics.pvaccess.ClientFactory.stop();
         pvaClient.destroy();
 	}
 	
@@ -136,8 +141,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			logger.error(ex.getMessage());
-			System.out.println("TODO REINSTATE THIS WHEN MONITOR IS IMPLEMENTED"); // TODO and log
-			//throw new MalcolmDeviceException(device, ex.getMessage());
+			throw new MalcolmDeviceException(device, ex.getMessage());
 		}
 	}
 
@@ -199,8 +203,9 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	        }
+			
 			String requestString = message.getEndpoint();
-			logger.info("Get '" + requestString + "'");
+			logger.debug("Get '" + requestString + "'");
 	        PvaClientGet pvaGet = pvaChannel.createGet(requestString);
 	        pvaGet.issueConnect();
 	        status = pvaGet.waitConnect();
@@ -210,7 +215,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	    	}
 	        PvaClientGetData pvaData = pvaGet.getData();
 			pvResult = pvaData.getPVStructure();
-			logger.info("Get response = \n" + pvResult + "\nEND");
+			logger.debug("Get response = \n" + pvResult + "\nEND");
 	        returnMessage = mapper.convertGetPVStructureToMalcolmMessage(pvResult, message);
 		} catch (Exception ex) {
 			logger.error(ex.getMessage());
@@ -297,7 +302,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        	throw new Exception(errMEssage);
 	        }
 
-			logger.info("Call method = \n" + methodStructure + "\nEND");
+			logger.debug("Call method = \n" + methodStructure + "\nEND");
 	        PvaClientRPC rpc = pvaChannel.createRPC(methodStructure);
 	        rpc.issueConnect();
 	        status = rpc.waitConnect();
@@ -305,11 +310,10 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        	String errMEssage = "CreateRPC failed for " + message.getMethod() + "(" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	    	}
-			logger.info("Call param = \n" + parametersStructure + "\nEND");
+			logger.debug("Call param = \n" + parametersStructure + "\nEND");
 	        pvResult = rpc.request(parametersStructure);
-			logger.info("Call response = \n" + pvResult + "\nEND");
+			logger.debug("Call response = \n" + pvResult + "\nEND");
 			returnMessage = mapper.convertCallPVStructureToMalcolmMessage(pvResult, message);
-			pvaChannel.destroy();
 		} catch (Exception ex) {
 			logger.error(ex.getMessage());
 			ex.printStackTrace();
@@ -346,8 +350,6 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		public void event(PvaClientMonitor monitor) {
 			while (monitor.poll()) {
 				PvaClientMonitorData monitorData = monitor.getData();
-
-				logger.debug("monitor event: \n" + monitorData.getPVStructure() + "\nEND");
 				
 				MalcolmMessage message = new MalcolmMessage();
 				try {

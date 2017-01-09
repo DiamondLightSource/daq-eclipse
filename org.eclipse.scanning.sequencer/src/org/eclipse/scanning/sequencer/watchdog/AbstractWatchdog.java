@@ -3,8 +3,8 @@ package org.eclipse.scanning.sequencer.watchdog;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IDeviceWatchdog;
-import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -15,8 +15,7 @@ import org.eclipse.scanning.sequencer.ServiceHolder;
 public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	
 	protected DeviceWatchdogModel model;
-	protected IPausableDevice<?>  device;
-	protected ScanBean bean;
+	protected IDeviceController  controller;
 
 	public AbstractWatchdog() {
 		this(null);
@@ -24,6 +23,8 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	public AbstractWatchdog(DeviceWatchdogModel model2) {
 		this.model = model2;
 	}
+	
+	abstract String getId();
 	
 	public DeviceWatchdogModel getModel() {
 		return model;
@@ -33,19 +34,27 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	}
 
 	
-	protected long getValue(PositionEvent evt, String name, String unit) {
+	protected long getValueMs(PositionEvent evt, String name, String unit) {
 		double pos = evt.getPosition().getValue(name);
-		return getValue(pos, unit);
+		return getValueMs(pos, unit);
 	}
 
-	protected long getValue(String name, String unit) throws Exception {
+	protected long getValueMs(String name, String unit) throws Exception {
 	    IScannable<Number> scannable = getScannable(name);
-		return getValue(scannable.getPosition().doubleValue(), unit);
+		return getValueMs(scannable.getPosition().doubleValue(), unit);
 	}
 
-	protected long getValue(double pos, String unit) {
+	protected long getValueMs(double pos, String unit) {
 		TimeUnit tu = getTimeUnit(unit);
-		return tu.toMillis(Math.round(pos)); // Assuming that they do not use double and seconds and assume fraction is maintained.
+		switch (tu) {
+			case MINUTES: return Math.round(pos * 1000 * 60);
+			case SECONDS: return Math.round(pos * 1000);
+			case MILLISECONDS: return Math.round(pos);
+			default:
+				// sanity check: not actually possible as getTimeUnit only return the units above
+				throw new RuntimeException("Unexpected unit " + tu);
+		}
+		
 	}
 
 	protected <T> IScannable<T> getScannable(String name) throws ScanningException {
@@ -54,8 +63,8 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	}
 	
 	private static final TimeUnit getTimeUnit(String unit) {
-		TimeUnit tu = TimeUnit.SECONDS;
-		if (unit!=null) {
+		TimeUnit tu = TimeUnit.SECONDS; // if time unit not specified default to seconds
+		if (unit != null) {
 			if ("s".equalsIgnoreCase(unit))  tu = TimeUnit.SECONDS;
 			if ("seconds".equalsIgnoreCase(unit))  tu = TimeUnit.SECONDS;
 			if ("ms".equalsIgnoreCase(unit)) tu = TimeUnit.MILLISECONDS;
@@ -76,18 +85,11 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	public void deactivate() {
 		ServiceHolder.getWatchdogService().unregister(this);
 	}
-	public IPausableDevice<?> getDevice() {
-		return device;
+	public IDeviceController getController() {
+		return controller;
 	}
-	@Override
-	public void setDevice(IPausableDevice<?> device) {
-		this.device = device;
-	}
-	public ScanBean getBean() {
-		return bean;
-	}
-	public void setBean(ScanBean bean) {
-		this.bean = bean;
+	public void setController(IDeviceController controller) {
+		this.controller = controller;
 	}
 
 }

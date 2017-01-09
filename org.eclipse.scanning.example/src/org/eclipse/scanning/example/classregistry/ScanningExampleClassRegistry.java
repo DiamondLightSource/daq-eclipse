@@ -27,12 +27,7 @@ import org.eclipse.scanning.example.detector.ConstantVelocityModel;
 import org.eclipse.scanning.example.detector.DarkImageModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
-import org.eclipse.scanning.example.scannable.MockBeanOnMonitor;
-import org.eclipse.scanning.example.scannable.MockNeXusScannable;
-import org.eclipse.scanning.example.scannable.MockScannable;
-import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.example.scannable.MockScannableModel;
-import org.eclipse.scanning.example.scannable.MockPausingMonitor;
 
 public class ScanningExampleClassRegistry implements IClassRegistry {
 

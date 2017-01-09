@@ -72,6 +72,12 @@ public class ScanModel {
 	 */
 	private List<IScannable<?>> metadataScannables;
 	
+	/**
+	 * A list of objects which participant in the scan by having
+	 * annotated methods which the scan should call at different points.
+	 */
+	private List<?> annotationParticipants;
+	
 	public ScanModel() {
 		this(null);
 	}
@@ -241,6 +247,14 @@ public class ScanModel {
 			this.scanMetadata = new ArrayList<>();
 		}
 		this.scanMetadata.add(scanMetadata);
+	}
+
+	public List<?> getAnnotationParticipants() {
+		return annotationParticipants;
+	}
+
+	public void setAnnotationParticipants(List<?> annotationParticipants) {
+		this.annotationParticipants = annotationParticipants;
 	}
 	
 }

@@ -1,13 +1,21 @@
 package org.eclipse.scanning.api.event.scan;
 
+import java.io.Serializable;
+
+import org.eclipse.scanning.api.annotation.ui.EditType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
-public class SampleData {
+public class SampleData implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1110342376693211593L;
+
 	@FieldDescriptor(label="Sample Name", hint="The name of the sample.\nMay be used in the file name written by acqusition.", fieldPosition=1, regex="[a-zA-Z0-9_]+")
 	private String name;
 	
-	@FieldDescriptor(label="Description", hint="The description of the sample.\nWill be entered in the nexus file during scanning.", fieldPosition=2)
+	@FieldDescriptor(label="Description", hint="The description of the sample.\nWill be entered in the nexus file during scanning.", fieldPosition=2, edit=EditType.LONG)
 	private String description;
 	
 	public SampleData() {

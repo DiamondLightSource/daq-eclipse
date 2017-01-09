@@ -60,7 +60,6 @@ import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -223,6 +222,8 @@ public class MalcolmScanTest extends NexusTest {
 		for (DummyMalcolmControlledDetectorModel detectorModel : dummyMalcolmModel.getDummyDetectorModels()) {
 			String detectorName = detectorModel.getName();
 			NXdetector detector = instrument.getDetector(detectorName);
+			
+			assertEquals(dummyMalcolmModel.getExposureTime(), detector.getCount_timeScalar().doubleValue(), 1e-15);
 			
 			List<String> primaryDataFieldNames = primaryDataFieldNamesPerDetector.get(detectorName);
 			Map<String, String> expectedDataGroupNames = primaryDataFieldNames.stream().collect(Collectors.toMap(

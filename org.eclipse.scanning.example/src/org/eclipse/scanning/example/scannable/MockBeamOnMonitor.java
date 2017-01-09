@@ -8,9 +8,9 @@ import org.eclipse.scanning.api.points.IPosition;
  * @author Matthew Gerring
  *
  */
-public class MockBeanOnMonitor extends MockScannable {
+public class MockBeamOnMonitor extends MockScannable {
 
-	public MockBeanOnMonitor(String string, double d, int i) {
+	public MockBeamOnMonitor(String string, double d, int i) {
 		super(string,d,i);
 	}
 

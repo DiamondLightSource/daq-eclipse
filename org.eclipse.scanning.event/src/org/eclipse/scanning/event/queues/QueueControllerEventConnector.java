@@ -31,7 +31,7 @@ public class QueueControllerEventConnector implements IQueueControllerEventConne
 		try {
 			if (bean.getHostName() == null) {
 				String localhostName = InetAddress.getLocalHost().getHostName();
-				logger.warn("Hostname on received bean not set. Now set to '"+localhostName+"'.");
+				logger.trace("Hostname on received bean not set. Now set to '"+localhostName+"'.");
 				bean.setHostName(localhostName);
 			}
 		} catch (UnknownHostException ex) {

@@ -3,7 +3,6 @@ package org.eclipse.scanning.sequencer;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -21,7 +20,6 @@ import org.eclipse.scanning.api.annotation.scan.ScanPause;
 import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
-import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.models.DeviceRole;
@@ -162,10 +160,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		manager = new AnnotationManager(SequencerActivator.getInstance());
 		manager.addDevices(getScannables(model));
 		if (model.getMonitors()!=null) manager.addDevices(model.getMonitors());
-		if (ServiceHolder.getWatchdogService()!=null) {
-			List<IDeviceWatchdog> dogs = ServiceHolder.getWatchdogService().create(this);
-			if (dogs!=null) manager.addDevices(dogs);
-		}
+		if (model.getAnnotationParticipants()!=null) manager.addDevices(model.getAnnotationParticipants());
 		manager.addDevices(model.getDetectors());
 		
 		setDeviceState(DeviceState.READY); // Notify 
@@ -433,7 +428,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
         		if (getDeviceState() != DeviceState.PAUSED) setDeviceState(DeviceState.PAUSED);
         		manager.invoke(ScanPause.class);
         		paused.await();
-        		getBean().setStatus(Status.RUNNING);
+        		getBean().setStatus(Status.RESUMED);
         		setDeviceState(DeviceState.RUNNING);
         		manager.invoke(ScanResume.class);
         	}
@@ -496,14 +491,14 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			throw new ScanningException(ne);
 		}
 		
+		getBean().setPreviousStatus(getBean().getStatus());
+		getBean().setStatus(Status.PAUSED);
 		setDeviceState(DeviceState.SEEKING);
 		try {
 			awaitPaused = true;
 			if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 				if (device instanceof IPausableDevice) ((IPausableDevice)device).pause();
 			}
-			getBean().setPreviousStatus(getBean().getStatus());
-			getBean().setStatus(Status.PAUSED);
 			setDeviceState(DeviceState.PAUSED);
 			
 		} catch (ScanningException s) {

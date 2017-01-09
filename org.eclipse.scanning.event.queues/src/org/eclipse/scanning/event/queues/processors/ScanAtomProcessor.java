@@ -75,7 +75,7 @@ public class ScanAtomProcessor extends AbstractQueueProcessor<ScanAtom> {
 		broadcaster.broadcast(Status.RUNNING, queueBean.getPercentComplete()+configPercent*0.15,
 				"Creating scan request from configured values.");
 		ScanRequest<?> scanReq = new ScanRequest<>();
-		scanReq.setCompoundModel(new CompoundModel(queueBean.getPathModels()));
+		scanReq.setCompoundModel(new CompoundModel<>(queueBean.getPathModels()));
 		scanReq.setDetectors(queueBean.getDetectorModels());
 		scanReq.setMonitorNames(queueBean.getMonitors());
 

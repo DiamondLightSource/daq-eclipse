@@ -38,7 +38,9 @@ Export-Package: org.eclipse.scanning.api,
  org.eclipse.scanning.api.scan.rank,
  org.eclipse.scanning.api.scan.ui,
  org.eclipse.scanning.api.script,
+ org.eclipse.scanning.api.stashing,
  org.eclipse.scanning.api.streams,
- org.eclipse.scanning.api.ui
+ org.eclipse.scanning.api.ui,
+ org.eclipse.scanning.api.ui.auto
 Import-Package: org.slf4j
 

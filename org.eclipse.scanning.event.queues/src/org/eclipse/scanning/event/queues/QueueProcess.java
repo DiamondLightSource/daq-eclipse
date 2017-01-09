@@ -1,7 +1,7 @@
 package org.eclipse.scanning.event.queues;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
+import org.eclipse.scanning.api.event.core.AbstractLockingPausableProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.IQueueProcessor;
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * type. The concrete type should be identified by the 
  * {@link QueueProcessCreator} and  this class then instantiated with the 
  * {@link IQueueProcessor} associated with that type. This class uses 
- * {@link AbstractPausableProcess} to provide generic pause, resume & terminate
+ * {@link AbstractLockingPausableProcess} to provide generic pause, resume & terminate
  * functions, with bean specific methods called on the processors.
  * 
  * @author Michael Wharmby
@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * @param <T> Type acted on by queue consumer (this will probably be a 
  * super-type of the actual bean class). 
  */
-public class QueueProcess<T extends Queueable> extends AbstractPausableProcess<T> implements IQueueProcess<T> {
+public class QueueProcess<T extends Queueable> extends AbstractLockingPausableProcess<T> implements IQueueProcess<T> {
 	
 	private static Logger logger = LoggerFactory.getLogger(QueueProcess.class);
 	
