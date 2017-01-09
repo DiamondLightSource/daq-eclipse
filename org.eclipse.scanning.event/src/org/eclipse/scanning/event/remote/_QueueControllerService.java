@@ -287,7 +287,7 @@ public class _QueueControllerService extends AbstractRemoteService implements IQ
 		query.setRequestType(QueueRequestType.QUEUE);
 		query.setQueueID(queueID);
 		reply = sendQuery(query);
-		return getQueue(reply.getQueueID());
+		return new _Queue<>(uri, reply);
 	}
 
 	@Override
