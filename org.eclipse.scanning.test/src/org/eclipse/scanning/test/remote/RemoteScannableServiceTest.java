@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.remote;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -78,7 +79,6 @@ public class RemoteScannableServiceTest extends BrokerTest {
 	@Before
 	public void createService() throws EventException {
 		rservice = eservice.createRemoteService(uri, IScannableDeviceService.class);
-		System.out.println("Made remote service "+rservice+" ... "+rservice.getClass());
 	}
 	
 	@After
@@ -95,7 +95,7 @@ public class RemoteScannableServiceTest extends BrokerTest {
 
 	@Test
 	public void checkNotNull() throws Exception {
-		assertTrue(rservice!=null);
+		assertNotNull(rservice);
 	}
 	
 	@Test

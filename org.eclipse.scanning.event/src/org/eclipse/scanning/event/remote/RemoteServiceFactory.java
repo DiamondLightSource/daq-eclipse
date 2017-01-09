@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.ResponseConfiguration;
+import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 
 /**
  * 
@@ -51,6 +52,7 @@ public class RemoteServiceFactory {
 		Map<Class<?>, Class<?>> tmp = new HashMap<>(7);
 		tmp.put(IScannableDeviceService.class, _ScannableDeviceService.class);
 		tmp.put(IRunnableDeviceService.class,  _RunnableDeviceService.class);
+		tmp.put(IQueueControllerService.class,  _QueueControllerService.class);
 		remotes = Collections.unmodifiableMap(tmp);
 	}
 	
