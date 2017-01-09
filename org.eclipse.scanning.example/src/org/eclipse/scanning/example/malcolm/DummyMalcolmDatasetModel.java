@@ -1,5 +1,7 @@
 package org.eclipse.scanning.example.malcolm;
 
+import java.util.Arrays;
+
 /**
  * A model describing a dataset that should be written by a {@link DummyMalcolmDevice}.
  * 
@@ -64,6 +66,12 @@ public class DummyMalcolmDatasetModel {
 	
 	public int[] getShape() {
 		return shape;
+	}
+
+	@Override
+	public String toString() {
+		return "DummyMalcolmDatasetModel [name=" + name + ", dtype=" + dtype + ", rank=" + rank + ", shape="
+				+ Arrays.toString(shape) + "]";
 	}
 
 }

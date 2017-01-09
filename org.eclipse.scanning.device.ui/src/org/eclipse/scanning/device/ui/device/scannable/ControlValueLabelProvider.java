@@ -25,7 +25,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 	private ControlViewerMode       mode;
 	
 	public ControlValueLabelProvider(IScannableDeviceService cservice, ControlViewerMode mode) {
-		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
+		Activator.getStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
 		this.cservice = cservice;
 		this.mode     = mode;
 	}
@@ -44,7 +44,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 				final String scannableName = node.getName();
 				if (scannableName != null && !scannableName.equals("")) {
 					final IScannable<?> scannable = cservice.getScannable(node.getName());
-						if (scannable.getUnit() != null) {
+					if (scannable.getUnit() != null) {
 						styledText.append("    ");
 						styledText.append(scannable.getUnit(), StyledString.DECORATIONS_STYLER);
 					}
@@ -82,7 +82,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 				if (value == null) return "!VALUE";
 				if (value instanceof Number) {
 					try {
-						final DecimalFormat format = new DecimalFormat(Activator.getDefault().getPreferenceStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
+						final DecimalFormat format = new DecimalFormat(Activator.getStore().getString(DevicePreferenceConstants.NUMBER_FORMAT));
 						return format.format(value); 
 					} catch (Exception ne) {
 						logger.warn("Could not format value as a decimal: ", value);

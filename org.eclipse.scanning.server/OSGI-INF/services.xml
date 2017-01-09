@@ -11,4 +11,5 @@
    <reference bind="addPreprocessor" cardinality="0..n" interface="org.eclipse.scanning.api.scan.process.IPreprocessor" name="IPreprocessor" policy="dynamic" unbind="removePreprocessor"/>
    <reference bind="setMessagingService" cardinality="0..1" interface="org.eclipse.scanning.api.event.IMessagingService" name="IMessagingService" policy="dynamic"/>
    <reference bind="setValidatorService" cardinality="0..1" interface="org.eclipse.scanning.api.IValidatorService" name="IValidatorService" policy="dynamic"/>
+   <reference bind="setWatchdogService" cardinality="0..1" interface="org.eclipse.scanning.api.device.IDeviceWatchdogService" name="IDeviceWatchdogService" policy="dynamic"/>
 </scr:component>

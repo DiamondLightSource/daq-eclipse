@@ -1,12 +1,21 @@
 package org.eclipse.scanning.api.scan;
 
+import java.io.Serializable;
+
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FileType;
 
-public class AxisConfiguration {
+public class AxisConfiguration implements Serializable {
 	
-	@FieldDescriptor(file=FileType.EXISTING_FILE, hint="The microscope image to load into the scan as a background.", fieldPosition=-2)
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3907146006857647918L;
+
+	@FieldDescriptor(file=FileType.EXISTING_FILE, 
+			         hint="The microscope image to load into the scan as a background.", 
+			         fieldPosition=-2)
 	private String microscopeImage;
 	
 	@FieldDescriptor(label="Random", hint="If there is no image, create some random noise for one instead.", fieldPosition=-1, enableif="microscopeImage==null")

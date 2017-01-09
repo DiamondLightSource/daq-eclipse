@@ -87,7 +87,6 @@ public class AbstractScanTest extends BrokerTest {
 		pos.addPositionListener(new IPositionListener() {
 			@Override
 			public void levelPerformed(PositionEvent evt) {
-				System.out.println("Level complete "+evt.getLevel());
 				for (INameable s : evt.getLevelObjects()) scannablesMoved.add(s.getName());
 			}
 		});
@@ -131,7 +130,6 @@ public class AbstractScanTest extends BrokerTest {
 		positioner.addPositionListener(new IPositionListener() {
 			@Override
 			public void levelPerformed(PositionEvent evt) {
-				System.out.println("Level complete "+evt.getLevel());
 				for (ILevel s : evt.getLevelObjects()) {
 					levelsMoved.add(String.valueOf(s.getLevel()));
 				}
@@ -346,9 +344,9 @@ public class AbstractScanTest extends BrokerTest {
 			@Override
 			public void scanEventPerformed(ScanEvent evt) {
 				events.add(evt.getBean());
-				System.out.println("State : "+evt.getBean().getDeviceState());
-				System.out.println("Percent complete : "+evt.getBean().getPercentComplete());
-				System.out.println(evt.getBean().getPosition());
+//				System.out.println("State : "+evt.getBean().getDeviceState());
+//				System.out.println("Percent complete : "+evt.getBean().getPercentComplete());
+//				System.out.println(evt.getBean().getPosition());
 			}
 		});
 		

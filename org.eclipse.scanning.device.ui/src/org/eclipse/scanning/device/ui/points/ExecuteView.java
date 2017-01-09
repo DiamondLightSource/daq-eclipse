@@ -30,7 +30,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
-import org.eclipse.jface.window.Window;
 import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
@@ -54,14 +53,15 @@ import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.ui.AbstractControl;
 import org.eclipse.scanning.api.script.ScriptRequest;
+import org.eclipse.scanning.api.stashing.IStashing;
 import org.eclipse.scanning.api.ui.CommandConstants;
+import org.eclipse.scanning.api.ui.auto.IModelDialog;
+import org.eclipse.scanning.api.ui.auto.InterfaceInvalidException;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ScanningPerspective;
 import org.eclipse.scanning.device.ui.ServiceHolder;
-import org.eclipse.scanning.device.ui.model.ModelDialog;
 import org.eclipse.scanning.device.ui.util.PageUtil;
-import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -140,16 +140,22 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		updateJob.setSystem(true);
 		updateJob.setPriority(Job.INTERACTIVE);
 		
-		final Stashing stash = new Stashing("org.eclipse.scanning.device.ui.scan.execute.sample.json", ServiceHolder.getEventService().getEventConnectorService());
+		final IStashing stash = ServiceHolder.getStashingService().createStash("org.eclipse.scanning.device.ui.scan.execute.sample.json");
 		sampleData = new SampleData();
-		if (stash.isStashed()) sampleData = stash.unstash(SampleData.class);
+		if (stash.isStashed()) {
+			try {
+				sampleData = stash.unstash(SampleData.class);
+			} catch (Exception e) {
+				logger.error("Cannot unstash sample data!", e);
+			}
+		}
 	}
 	
 	@Override
     public void saveState(IMemento memento) {
 		super.saveState(memento);
 		try {
-			final Stashing stash = new Stashing("org.eclipse.scanning.device.ui.scan.execute.sample.json", ServiceHolder.getEventService().getEventConnectorService());
+			final IStashing stash = ServiceHolder.getStashingService().createStash("org.eclipse.scanning.device.ui.scan.execute.sample.json");
 			stash.stash(sampleData);
 		} catch (Exception ne) {
 			logger.error("Cannot save sample information!", ne);
@@ -228,18 +234,19 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	protected void sampleInformation() {
 		
 		try {
-			ModelDialog<SampleData> dialog = new ModelDialog<>(getViewSite().getShell());
+			IModelDialog<SampleData> dialog = ServiceHolder.getInterfaceService().createModelDialog(getViewSite().getShell());
 			dialog.setPreamble("Please define the sample data.");
 			dialog.create();
-			dialog.getShell().setSize(550,450); // As needed
-			dialog.getShell().setText("Scan Area");
+			dialog.setSize(550,450); // As needed
+			dialog.setText("Scan Area");
+			if (this.sampleData==null) sampleData = new SampleData();
 			dialog.setModel(sampleData);
 			int ok = dialog.open();
-			if (ok==Window.OK) {
+			if (ok==IModelDialog.OK) {
 				this.sampleData = dialog.getModel();
 				updateJob.schedule();
 			}
-		} catch ( InstantiationException | IllegalAccessException e) {
+		} catch ( InterfaceInvalidException e) {
 			logger.error("Internal error setting Sample Information", e);
 		}
  

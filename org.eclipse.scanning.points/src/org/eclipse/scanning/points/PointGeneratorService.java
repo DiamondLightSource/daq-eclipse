@@ -255,10 +255,29 @@ public class PointGeneratorService implements IPointGeneratorService {
 		final Collection<String> names = AbstractPointsModel.getScannableNames(model);
 		for (ScanRegion<R> region : sregions) {
 			// A region with no scannables is considered to act on all 
-			if (region.getScannables()==null || region.getScannables().containsAll(names)) {
+			List<String> scannables = region.getScannables();
+			if (scannables==null || scannables.containsAll(names)) {
 				regions.add((R)region.getRoi());
+				continue;
+			}
+			if (findNamesAsEntry(scannables, names)) {
+				regions.add((R)region.getRoi());
+				continue;
 			}
 		}
 		return regions;
+	}
+
+	private boolean findNamesAsEntry(List<String> scannables, Collection<String> names) {
+		
+		NAME_LOOP: for (String name : names) {
+			String regex = "/entry/.+/"+name+"_value_set";
+			for (String scannableName : scannables) {
+				if (scannableName.matches(regex)) continue NAME_LOOP;
+			}
+			// No scannableName matches.
+			return false;
+		}
+		return true;
 	}
 }

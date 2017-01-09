@@ -145,8 +145,8 @@ public class MappingScanTest extends BrokerTest{
 			publisher.broadcast(bean);
 			++size;
 		}
-		System.out.println("Did hardware scan of size " + size);
-		assertTrue(size == gen.size());
+		//System.out.println("Did hardware scan of size " + size);
+		assertTrue("Did hardware scan of size " + size, size == gen.size());
 
 		bean.setDeviceState(DeviceState.READY);
 		publisher.broadcast(bean);

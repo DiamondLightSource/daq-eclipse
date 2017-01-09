@@ -31,6 +31,7 @@ import org.eclipse.jface.window.ToolTip;
 import org.eclipse.richbeans.widgets.cell.CComboCellEditor;
 import org.eclipse.richbeans.widgets.cell.CComboWithEntryCellEditor;
 import org.eclipse.richbeans.widgets.cell.CComboWithEntryCellEditorData;
+import org.eclipse.richbeans.widgets.cell.LongStringCellEditor;
 import org.eclipse.richbeans.widgets.cell.NumberCellEditor;
 import org.eclipse.richbeans.widgets.decorator.RegexDecorator;
 import org.eclipse.richbeans.widgets.file.FileDialogCellEditor;
@@ -145,7 +146,7 @@ public class ModelFieldEditorFactory {
         	ed = getNumberEditor(field, clazz, parent);
         	
         } else if (IROI.class.isAssignableFrom(clazz)) { 
-        	throw new IllegalArgumentException("Have not ported RegionCellEditor to DAQ Eclipse yet!");
+        	throw new IllegalArgumentException("Have not ported RegionCellEditor to daq-eclipse yet!");
         	// TODO FIXME Need way of editing regions.
         	//ed = new RegionCellEditor(parent);
         	
@@ -169,19 +170,11 @@ public class ModelFieldEditorFactory {
         } else if (String.class.equals(clazz) && anot!=null && anot.dataset() != null &&!anot.dataset().isEmpty()) {
         	ed = getDatasetEditor(field, parent);
         	
-        } else if (String.class.equals(clazz)) {
-        	ed = new TextCellEditor(parent) {
-        	    @Override
-        		protected void doSetValue(Object value) {
-        	    	String string = value!=null ? value.toString() : "";
-        	    	super.doSetValue(string);
-        	    }
-        	};
-        	if (anot!=null && anot.regex().length()>0) {
-        	    Text text = (Text)ed.getControl();
-        	    RegexDecorator deco = new RegexDecorator(text, anot.regex());
-        	    deco.setAllowInvalidValues(false);
-        	}
+        } else if (String.class.equals(clazz) && anot!=null && anot.edit()==EditType.LONG) {
+        	ed = getLongTextEditor(parent, anot);
+        	
+        }else if (String.class.equals(clazz)) {
+        	ed = getSimpleTextEditor(parent, anot);
         }
         
         // Show the tooltip, if there is one
@@ -198,6 +191,26 @@ public class ModelFieldEditorFactory {
 
 	}
 	
+	private CellEditor getLongTextEditor(Composite parent, FieldDescriptor anot) {
+		return new LongStringCellEditor(parent, labelProvider);
+	}
+
+	private CellEditor getSimpleTextEditor(Composite parent, FieldDescriptor anot) {
+		TextCellEditor ed = new TextCellEditor(parent) {
+    	    @Override
+    		protected void doSetValue(Object value) {
+    	    	String string = value!=null ? value.toString() : "";
+    	    	super.doSetValue(string);
+    	    }
+    	};
+    	if (anot!=null && anot.regex().length()>0) {
+    	    Text text = (Text)ed.getControl();
+    	    RegexDecorator deco = new RegexDecorator(text, anot.regex());
+    	    deco.setAllowInvalidValues(false);
+    	}
+    	return ed;
+    }
+
 	public CellEditor getDeviceEditor(DeviceType deviceType, Composite parent) throws ScanningException {
         
 		final List<String> items;

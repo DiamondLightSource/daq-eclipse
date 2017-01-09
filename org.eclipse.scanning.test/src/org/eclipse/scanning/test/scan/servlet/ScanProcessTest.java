@@ -16,6 +16,7 @@ import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.device.IDeviceWatchdogService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
@@ -49,6 +50,7 @@ import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.points.validation.ValidatorService;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.ServiceHolder;
+import org.eclipse.scanning.sequencer.watchdog.DeviceWatchdogService;
 import org.eclipse.scanning.server.servlet.ScanProcess;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.ScanningTestClassRegistry;
@@ -91,6 +93,7 @@ public class ScanProcessTest {
 	private IPointGeneratorService      gservice;
 	private IEventService               eservice;
 	private ILoaderService              lservice;
+	private IDeviceWatchdogService      wservice;
 	private MockScriptService           sservice;
 	private MarshallerService           marshaller;
 	private ValidatorService            validator;
@@ -118,7 +121,7 @@ public class ScanProcessTest {
 		impl._register(DummyMalcolmModel.class, DummyMalcolmDevice.class);
 
 		gservice  = new PointGeneratorService();
-		
+		wservice = new DeviceWatchdogService();
 		lservice = new LoaderServiceMock();
 		sservice = new MockScriptService();
 		fpservice = new MockFilePathService();
@@ -129,6 +132,7 @@ public class ScanProcessTest {
 		Services.setGeneratorService(gservice);
 		Services.setConnector(connector);
 		Services.setScriptService(sservice);
+		Services.setWatchdogService(wservice);
 		fpservice = null; // only used for testMalcolmValidation
 
 		ServiceHolder.setTestServices(lservice, new DefaultNexusBuilderFactory(), null, null, gservice);

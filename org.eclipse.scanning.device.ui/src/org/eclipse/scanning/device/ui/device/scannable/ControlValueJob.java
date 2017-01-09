@@ -8,18 +8,21 @@ import org.eclipse.scanning.api.IScannable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ControlValueJob extends Job {
+class ControlValueJob<T> extends Job {
 	
 	private static Logger logger = LoggerFactory.getLogger(ControlValueJob.class);
 
 	
 	// Data
-	private IScannable<Number> scannable;
-	private Number             value;
+	private IScannable<T> scannable;
+	private T             value;
 
     // UI
 	private ControlValueCellEditor editor;
 
+	public ControlValueJob() { // TODO Float spinner?
+		this(null);
+	}
 
 	public ControlValueJob(ControlValueCellEditor editor) { // TODO Float spinner?
 		super("Set Value");
@@ -27,7 +30,7 @@ class ControlValueJob extends Job {
 	}
 	
 
-	public void setPosition(IScannable<Number> scannable, Number value) {
+	public void setPosition(IScannable<T> scannable, T value) {
 		cancel();
 		this.scannable = scannable;
 		this.value     = value;
@@ -38,9 +41,11 @@ class ControlValueJob extends Job {
 	@Override
 	protected IStatus run(IProgressMonitor monitor) {
 		try {
-			editor.setSafeEnabled(false);
+			if (editor!=null) editor.setSafeEnabled(false);
 		    scannable.setPosition(value); // Blocking call
-		    editor.setSafeValue(value.doubleValue());
+		    if (editor!=null && value instanceof Number) {
+		    	editor.setSafeValue(((Number)value).doubleValue());
+		    }
 		    return Status.OK_STATUS;
 		    
 		} catch (Exception e) {

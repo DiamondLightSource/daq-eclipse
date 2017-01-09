@@ -29,15 +29,21 @@ public interface IStageScanConfiguration {
 
 	/**
 	 * Return the name of the fast scan axis
-	 * @return fastAxisName
+	 * @return fast axis name
 	 */
 	String getActiveFastScanAxis();
 
 	/**
 	 * Return the name of the fast scan axis
-	 * @return slowAxisName
+	 * @return slow axis name
 	 */
 	String getActiveSlowScanAxis();
+	
+	/**
+	 * Returns the name of the associated axis. This may be the z-axis, for example.
+	 * @return associated axis name
+	 */
+	String getAssociatedAxis();
 	
 	/**
 	 * Add a property change listener
@@ -52,6 +58,7 @@ public interface IStageScanConfiguration {
 	 * @param listener
 	 */
 	void removePropertyChangeListener(PropertyChangeListener listener);
+
 
 	
 

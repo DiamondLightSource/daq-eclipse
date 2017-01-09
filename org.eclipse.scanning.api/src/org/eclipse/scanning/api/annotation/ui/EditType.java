@@ -8,6 +8,11 @@ public enum EditType {
 	DIRECT,
 	
 	/**
+	 * Edit using a dialog because value is too long to be edited in place.
+	 */
+	LONG,
+
+	/**
 	 * Popup a form with a table for editing the values because there is more than one.
 	 */
 	COMPOUND;

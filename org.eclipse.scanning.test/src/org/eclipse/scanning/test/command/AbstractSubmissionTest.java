@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.core.AbstractPausableProcess;
+import org.eclipse.scanning.api.event.core.AbstractLockingPausableProcess;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
@@ -51,7 +51,7 @@ public abstract class AbstractSubmissionTest extends AbstractJythonTest {
 					ScanBean bean, IPublisher<ScanBean> statusNotifier)
 							throws EventException {
 
-				return new AbstractPausableProcess<ScanBean>(bean, statusNotifier) {
+				return new AbstractLockingPausableProcess<ScanBean>(bean, statusNotifier) {
 
 					@Override
 					public void execute() throws EventException {

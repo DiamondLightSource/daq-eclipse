@@ -55,6 +55,7 @@ import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
 import org.eclipse.scanning.api.script.ScriptLanguage;
 import org.eclipse.scanning.api.script.ScriptRequest;
+import org.eclipse.scanning.api.stashing.IStashing;
 import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
@@ -64,7 +65,6 @@ import org.eclipse.scanning.device.ui.device.ControlTreeUtils;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
-import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -118,7 +118,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	private Map<String, ControlTree>     trees;
 
 	// File
-	private Stashing stash;
+	private IStashing stash;
 
 	// Preferences
 	private IPreferenceStore store;
@@ -130,7 +130,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 		this.pservice     = ServiceHolder.getGeneratorService();
         this.seriesTable  = new SeriesTable();
 		this.pointsFilter = new GeneratorFilter(pservice, seriesTable, this);
-		this.stash = new Stashing("org.eclipse.scanning.device.ui.scan.models.json", ServiceHolder.getEventConnectorService());
+		this.stash = ServiceHolder.getStashingService().createStash("org.eclipse.scanning.device.ui.scan.models.json");
 
 		this.store        = Activator.getDefault().getPreferenceStore();
 		store.setDefault(DevicePreferenceConstants.START_POSITION, false);
@@ -165,7 +165,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	    	stash.stash(models);
 	    	
 	        for (String propName : trees.keySet()) {
-	        	Stashing tstash = new Stashing(propName+".json", ServiceHolder.getEventConnectorService());
+	        	IStashing tstash = ServiceHolder.getStashingService().createStash(propName+".json");
 				tstash.stash(trees.get(propName));
 			}
 
@@ -269,7 +269,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 		// TODO FIXME The default control tree for the start and end positions should have their own definitions
 		// or the ability to create them. This code remembers what the user sets for start/end but
 		// the initial fields simply come from the same as the ControlView ones.
-		Stashing stash = new Stashing(propName+".json", ServiceHolder.getEventConnectorService());
+		IStashing stash = ServiceHolder.getStashingService().createStash(propName+".json");
 		
 		ControlTree tree = null;
 		try {
@@ -299,7 +299,7 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 		// TODO FIXME The default control tree for the start and end positions should have their own definitions
 		// or the ability to create them. This code remembers what the user sets for start/end but
 		// the initial fields simply come from the same as the ControlView ones.
-		Stashing stash = new Stashing(propName+".json", ServiceHolder.getEventConnectorService());
+		IStashing stash = ServiceHolder.getStashingService().createStash(propName+".json");
 		
 		ControlTree tree = null;
 		try {
@@ -606,13 +606,13 @@ public class ScanView  extends ViewPart implements SeriesItemListener {
 	}
 	
 	private void saveScans(String filename, List<IScanPathModel> models) {	
-		Stashing stash = new Stashing(new File(filename), ServiceHolder.getEventConnectorService());
-		stash.save(models, getViewSite().getShell());
+		IStashing stash = ServiceHolder.getStashingService().createStash(new File(filename));
+		stash.save(models);
 	}
 	
 	private void readScans(String filePath) {
-		Stashing stash = new Stashing(new File(filePath), ServiceHolder.getEventConnectorService());
-		List<IScanPathModel> models = stash.load(List.class, getViewSite().getShell());
+		IStashing stash =ServiceHolder.getStashingService().createStash(new File(filePath));
+		List<IScanPathModel> models = stash.load(List.class);
 		try {
 			this.saved = pointsFilter.createDescriptors(models);
 			this.seriesTable.setInput(saved, pointsFilter);

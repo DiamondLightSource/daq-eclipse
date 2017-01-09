@@ -40,13 +40,13 @@ import org.eclipse.richbeans.widgets.menu.MenuAction;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.points.models.ScanRegion;
+import org.eclipse.scanning.api.stashing.IStashing;
 import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PlotUtil;
 import org.eclipse.scanning.device.ui.util.ScanRegions;
-import org.eclipse.scanning.device.ui.util.Stashing;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
@@ -109,7 +109,7 @@ public class ScanRegionView extends ViewPart {
 	private IRegionListener regionListener;
 	
 	// File
-	private Stashing stash;
+	private IStashing stash;
 
 	private DelegatingSelectionProvider selectionDelegate;
 	
@@ -117,7 +117,7 @@ public class ScanRegionView extends ViewPart {
 		
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.AUTO_SAVE_REGIONS, true);
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_REGIONS, true);
-		this.stash = new Stashing("org.eclipse.scanning.device.ui.scan.regions.json", ServiceHolder.getEventConnectorService());
+		this.stash = ServiceHolder.getStashingService().createStash("org.eclipse.scanning.device.ui.scan.regions.json");
 		
 		this.regionListener = new IRegionListener.Stub() {
 
@@ -194,9 +194,14 @@ public class ScanRegionView extends ViewPart {
 		system.addRegionListener(regionListener);
 		
 		if (Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.AUTO_SAVE_REGIONS)) {
-			List<ScanRegion<IROI>> regions = stash.unstash(List.class);
-			createRegions(regions);
-			viewer.refresh();
+			List<ScanRegion<IROI>> regions;
+			try {
+				regions = stash.unstash(List.class);
+				createRegions(regions);
+				viewer.refresh();
+			} catch (Exception e1) {
+				logger.error("Cannot unstash regions", e1);
+			}
 		}
 		
 		// Called when user clicks on UI
@@ -370,13 +375,14 @@ public class ScanRegionView extends ViewPart {
 	}
 
 	private void saveRegions(String filename, List<ScanRegion<IROI>> regions) {	
-		Stashing stash = new Stashing(new File(filename), ServiceHolder.getEventConnectorService());
-		stash.save(regions, getViewSite().getShell());
+		IStashing stash = ServiceHolder.getStashingService().createStash(new File(filename));
+		stash.save(regions);
 	}
 	
 	private void readRegions(String filePath) {
-		Stashing stash = new Stashing(new File(filePath), ServiceHolder.getEventConnectorService());
-		List<ScanRegion<IROI>> regions = stash.load(List.class, getViewSite().getShell());
+		IStashing stash = ServiceHolder.getStashingService().createStash(new File(filePath));
+		@SuppressWarnings("unchecked")
+		List<ScanRegion<IROI>> regions = stash.load(List.class);
 		createRegions(regions);
 		viewer.refresh();
 	}

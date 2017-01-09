@@ -333,7 +333,7 @@ public class AbstractConsumerTest extends BrokerTest {
 				@Override
 				public void heartbeatPerformed(HeartbeatEvent evt) {
 					gotBack.add(evt.getBean());
-					System.out.println("The heart beated at "+((new SimpleDateFormat()).format(new Date(evt.getBean().getPublishTime()))));
+					//System.out.println("The heart beated at "+((new SimpleDateFormat()).format(new Date(evt.getBean().getPublishTime()))));
 				}
 			});
 			

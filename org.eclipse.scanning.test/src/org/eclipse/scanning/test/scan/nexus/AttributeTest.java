@@ -75,7 +75,7 @@ public class AttributeTest extends NexusTest{
 		detector.addRunListener(new IRunListener() {
 			@Override
 			public void runPerformed(RunEvent evt) throws ScanningException{
-                System.out.println("Ran mandelbrot detector @ "+evt.getPosition());
+                //System.out.println("Ran mandelbrot detector @ "+evt.getPosition());
 			}
 		});
 

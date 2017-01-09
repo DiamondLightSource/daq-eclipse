@@ -333,6 +333,9 @@ public class PseudoSpringParser implements ISpringParser {
 		if (valueClass==null) valueClass = value.getClass();
 		Method method = getMethod(clazz, setterName, valueClass);
 		try {
+			if (method==null||instance==null||value==null) {
+				System.err.println("Cannont find "+setterName+" in object "+instance+" to send value "+value);
+			}
 		    method.invoke(instance, value);
 		} catch (IllegalArgumentException are) {
 			throw new IllegalArgumentException("Cannot set "+fieldName+" to "+value+" of class "+valueClass);

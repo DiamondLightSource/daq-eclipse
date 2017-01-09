@@ -8,10 +8,12 @@ import org.eclipse.scanning.api.points.Scalar;
 public class MockStringScannable extends AbstractScannable<String> implements INameable {
 
 	private String value;
+	private String[] permittedValues;
 	
-	public MockStringScannable(String name, String pos) {
+	public MockStringScannable(String name, String pos, String... permittedValues) {
 		setName(name);
 		this.value = pos;
+		this.permittedValues = permittedValues;
 	}
 
 	@Override
@@ -25,5 +27,9 @@ public class MockStringScannable extends AbstractScannable<String> implements IN
 		delegate.firePositionChanged(getLevel(), new Scalar<String>(getName(), -1, value));
 	}
 
+	@Override
+	public String[] getPermittedValues() throws Exception {
+		return permittedValues;
+	}
 
 }

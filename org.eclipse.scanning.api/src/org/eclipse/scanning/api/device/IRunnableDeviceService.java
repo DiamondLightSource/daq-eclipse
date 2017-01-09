@@ -119,12 +119,27 @@ public interface IRunnableDeviceService {
      *
 	 * @param model, information to do the scan
 	 * @param To publish scan events on or null not to publish events.
-	 * @param hservice, may be null, in which case system looks for service using OSGi
-	 * @return
+	 * @return device
 	 * @throws ScanningException
 	 */
 	<T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher) throws ScanningException;
 	
+	/**
+	 * Create a new runnable device from a model. If the device has a name the
+	 * new device will be recorded in the name to device map and be retrievable by name.
+	 * 
+	 * The model is provided and the configure(...) method called on the scanner 
+	 * automatically. A ScanningException is thrown if the model is invalid.
+	 * 
+	 * If the model is for a malcolm device it must be of type {@link org.eclipse.scanning.api.malcolm.models.MalcolmDetectorConfiguration}. 
+	 * This class holds a bean with the port, hostname, and device name to make a connection to the device.
+     *
+	 * @param model information to do the scan
+	 * @param publisher To publish scan events on or null not to publish events.
+	 * @param configure may be false to stop automatic configuration.
+	 * @return
+	 */
+	<T> IRunnableDevice<T> createRunnableDevice(T model, IPublisher<ScanBean> publisher, boolean configure) throws ScanningException;
 
 	/**
 	 * Get a runnable device by name. If the device was created by spring it may need configuring

@@ -7,7 +7,6 @@
 	<bean id="topupModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">
 		<property name="message"           value="Paused for topup"/>
 		<property name="countdownName"     value="topup"/>
-		<property name="periodName"        value="period"/>
 		<property name="cooloff"           value="4000"/>
 		<property name="warmup"            value="5000"/>
         <property name="bundle"            value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->

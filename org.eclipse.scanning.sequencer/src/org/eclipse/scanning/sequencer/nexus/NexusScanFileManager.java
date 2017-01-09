@@ -336,6 +336,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		for (ScanRole deviceType : EnumSet.allOf(ScanRole.class)) {
 			addDevicesToEntry(entryBuilder, deviceType);
 		}
+		entryBuilder.add(scanPointsWriter.getNexusProvider(scanInfo));
 		
 		// create the NXdata groups
 		createNexusDataGroups(entryBuilder);
@@ -343,7 +344,6 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	
 	private void addDevicesToEntry(NexusEntryBuilder entryBuilder, ScanRole deviceType) throws NexusException {
 		entryBuilder.addAll(nexusObjectProviders.get(deviceType));
-		entryBuilder.add(scanPointsWriter.getNexusProvider(scanInfo));
 		
 		List<CustomNexusEntryModification> customModifications =
 				nexusDevices.get(deviceType).stream().

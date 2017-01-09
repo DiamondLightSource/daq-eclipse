@@ -216,11 +216,14 @@ public class ExampleMalcolmDeviceTest {
 			} else {
 				fail("datasets value was expected to be a TableAttribute but wasn't");
 			}
+			
+			// Check seek method works
+			modelledDevice.seek(4);
 
 			// Check the RPC calls were received correctly by the device
 			Map<String, PVStructure> rpcCalls = dummyMalcolmDevice.getReceivedRPCCalls();
 
-			assertEquals(3, rpcCalls.size());
+			assertEquals(4, rpcCalls.size());
 
 			// configure
 			PVStructure configureCall = rpcCalls.get("configure");
@@ -338,6 +341,16 @@ public class ExampleMalcolmDeviceTest {
 
 			assertEquals(runStructure, runCall.getStructure());
 			assertEquals(runPVStructure, runCall);
+			
+			// seek
+			PVStructure seekCall = rpcCalls.get("pause");
+
+			Structure seekStructure = FieldFactory.getFieldCreate().createFieldBuilder()
+					.add("completedSteps", ScalarType.pvInt).createStructure();
+			PVStructure seekPVStructure = PVDataFactory.getPVDataCreate().createPVStructure(seekStructure);
+			seekPVStructure.getIntField("completedSteps").put(4);
+			assertEquals(seekStructure, seekCall.getStructure());
+			assertEquals(seekPVStructure, seekCall);
 
 			modelledDevice.dispose();
 

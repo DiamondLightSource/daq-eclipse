@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.points.models;
 
-import org.eclipse.scanning.api.annotation.MinimumValue;
-
 public class LissajousModel extends AbstractBoundingBoxModel {
 
 	private double a = 1;
@@ -46,7 +44,6 @@ public class LissajousModel extends AbstractBoundingBoxModel {
 		this.thetaStep = thetaStep;
 		this.pcs.firePropertyChange("thetaStep", oldValue, thetaStep);
 	}
-	@MinimumValue("1")
 	public int getPoints() {
 		return points;
 	}

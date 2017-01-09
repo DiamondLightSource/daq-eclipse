@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.dawnsci.nexus.NXdetector;
 import org.eclipse.dawnsci.nexus.NXobject;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
@@ -137,6 +138,11 @@ class MalcolmNexusObjectBuilder<M extends IMalcolmModel> {
 		}
 		
 		final NXobject nexusObject = NexusNodeFactory.createNXobjectForClass(nexusBaseClass);
+		
+		if (nexusBaseClass == NexusBaseClass.NX_DETECTOR) {
+			((NXdetector) nexusObject).setCount_timeScalar(malcolmDevice.getModel().getExposureTime());
+		}
+		
 		final NexusObjectWrapper<NXobject> nexusWrapper = new NexusObjectWrapper<>(deviceName, nexusObject);
 		nexusWrappers.put(deviceName, nexusWrapper);
 		
