@@ -19,13 +19,13 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.api.event.queues.beans.TaskBean;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.QueueProcessorFactory;
+import org.eclipse.scanning.event.queues.QueueProcessFactory;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
-import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcessor;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcess;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.dummy.DummyBeanProcessor;
+import org.eclipse.scanning.test.event.queues.dummy.DummyBeanProcess;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,8 +39,8 @@ public class QueueServiceIntegrationPluginTest extends BrokerTest {
 	@Before
 	public void setup() throws Exception {
 		//FOR TESTS ONLY
-		QueueProcessorFactory.registerProcessor(DummyAtomProcessor.class);
-		QueueProcessorFactory.registerProcessor(DummyBeanProcessor.class);
+		QueueProcessFactory.registerProcess(DummyAtomProcess.class);
+		QueueProcessFactory.registerProcess(DummyBeanProcess.class);
 		
 		//Configure the queue service
 		queueService = ServicesHolder.getQueueService();
