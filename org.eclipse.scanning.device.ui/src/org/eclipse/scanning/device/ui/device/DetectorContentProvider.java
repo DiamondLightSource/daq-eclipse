@@ -2,6 +2,7 @@ package org.eclipse.scanning.device.ui.device;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -69,6 +70,9 @@ class DetectorContentProvider implements IStructuredContentProvider {
 		    		if (isMalcolm) devices.add(info);
 		    	}
 		    });
+		    // Since infos will be iterated through in an arbitrary order (from a user perspective), return a sorted 
+		    // list for display 
+		    devices.sort(Comparator.comparing(e -> e.getLabel()));
 		    return devices.toArray(new DeviceInformation[devices.size()]);
 		    
 		} catch (Exception ne) {
