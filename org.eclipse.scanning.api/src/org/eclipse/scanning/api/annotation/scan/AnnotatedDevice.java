@@ -12,9 +12,12 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * This class is an interface which defaults all the annotated methods
  * which a device may use when 
  * 
+ * Sadly this does not allow Jython classes to be defined due to http://bugs.jython.org/issue2403
+ *  
  * @author Matthew Gerring
  *
  */
+@Deprecated
 public interface AnnotatedDevice {
 	
 	default boolean isDebug() {
