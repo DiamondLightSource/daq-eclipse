@@ -25,38 +25,34 @@ import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 
-public class ProcessorTestInfrastructure {
+public class ProcessTestInfrastructure {
 	
 	private URI uri = null;
 	private String topic = null;
 	private MockPublisher<Queueable> statPub = new MockPublisher<>(uri, topic);
 	
-	private QueueProcess<Queueable> qProc;
-	
 	private Exception threadException;
 	private long execTime = 50;
-	private final CountDownLatch analysisLatch = new CountDownLatch(1);;
+	private final CountDownLatch analysisLatch = new CountDownLatch(1);
+	
+	private QueueProcess<? extends Queueable, Queueable> qProc;
 	
 	/**
-	 * Generic method for running a queue processor. When complete, it releases the execLatch.
+	 * Generic method for running a queue process. When complete, it releases the execLatch.
 	 * waitForExecutionEnd(timeoutMS) should be placed directly after this call.
-	 * @param qProcr
+	 * @param qProc
 	 * @param procBean
-	 * @param procrBean
 	 * @throws Exception
 	 */
-	public void executeProcessor(IQueueProcessor<? extends Queueable> qProcr, Queueable procrBean) throws Exception {
-		qProc = new QueueProcess<>(procrBean, statPub, true);
-		
-		//Configure the QueueProcess & QueueProcessor
-		qProcr.setQueueBroadcaster(qProc);
-		qProcr.setProcessBean(procrBean);
-		qProc.setProcessor(qProcr);
+//	@SuppressWarnings("unchecked")
+	public <R extends Queueable> void executeProcess(QueueProcess<R, Queueable> qProc, R procBean) throws Exception {		
+		this.qProc = qProc;
 		
 		//Check the bean doesn't have some weird initial state set on it:
-		assertEquals("Wrong initial status", Status.NONE, procrBean.getStatus());
-		assertEquals("Should not be non-zero percent complete", 0d, procrBean.getPercentComplete(), 0);
+		assertEquals("Wrong initial status", Status.NONE, procBean.getStatus());
+		assertEquals("Should not be non-zero percent complete", 0d, procBean.getPercentComplete(), 0);
 		
+		//TODO Does this need to be in a thread? And do we then need the CountDownLatch?
 		Thread th = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -74,6 +70,29 @@ public class ProcessorTestInfrastructure {
 		
 		System.out.println("INFO: Sleeping for "+execTime+"ms to give the processor time to run...");
 		Thread.sleep(execTime);
+		assertTrue("QueueProcess should be marked executed after execution", qProc.isExecuted());
+	}
+	
+	public void waitForExecutionEnd(Long timeoutMS) throws Exception {
+		boolean unLatched = analysisLatch.await(timeoutMS, TimeUnit.MILLISECONDS);
+		if (!unLatched) {
+			if (threadException == null) {
+				fail("Execution did not complete before timeout");
+			} else {
+				throw new Exception(threadException);
+			}
+		}
+	}
+	
+	public void waitToTerminate(long timeoutMS) throws Exception {
+		try {
+			Thread.sleep(timeoutMS);
+		} catch (InterruptedException iEx){
+			System.out.println("ERROR: Sleep before termination interrupted!");
+			throw iEx;
+		}
+		qProc.terminate();
+		assertTrue("QueueProcess should be marked terminated after termination", qProc.isTerminated());
 	}
 	
 	public void exceptionCheck() throws Exception {
@@ -124,7 +143,7 @@ public class ProcessorTestInfrastructure {
 	 * @param prevBean
 	 * @throws EventException
 	 */
-	protected void checkLastBroadcastBeanStatuses(Queueable bean, Status state, boolean prevBean) throws EventException {
+	public void checkLastBroadcastBeanStatuses(Queueable bean, Status state, boolean prevBean) throws EventException {
 		Double percentComplete = -1d;
 		Status previousBeanState = null;
 		if (state.equals(Status.NONE)) {
@@ -173,7 +192,6 @@ public class ProcessorTestInfrastructure {
 		} else {
 			assertTrue("The percent complete is not between 0% & 100% (is: "+lastBPercComp+")", ((lastBPercComp > 0d) && (lastBPercComp < 100d)));
 		}
-		
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -207,7 +225,42 @@ public class ProcessorTestInfrastructure {
 			if (entry.getKey().equals(qServ.getJobQueueID())) continue;
 			assertTrue("Consumer was not stopped (this was expected)", entry.getValue().isStopped());
 		}
+	}
+	
+	public void waitForBeanStatus(Queueable bean, Status state, long timeout) throws Exception {
+		waitForBeanState(bean, state, false, timeout);
+	}
+	
+	public void waitForBeanFinalStatus(Queueable bean, long timeout) throws Exception {
+		waitForBeanState(bean, null, true, timeout);
+	}
+	
+	private void waitForBeanState(Queueable bean, Status state, boolean isFinal, long timeout) throws Exception {
+		Queueable lastBean= ((MockPublisher<Queueable>)statPub).getLastQueueable();
+		long startTime = System.currentTimeMillis();
+		long runTime = 0;
 		
+		while (runTime <= timeout) {
+			if ((lastBean != null) && (lastBean.getUniqueId().equals(bean.getUniqueId()))) {
+				if ((lastBean.getStatus().equals(state)) || (lastBean.getStatus().isFinal() && isFinal)) {
+					return;
+				}
+			}
+			Thread.sleep(50);
+			runTime = System.currentTimeMillis() - startTime;
+			if (threadException != null) {
+				throw new EventException(threadException);
+			}
+			lastBean = ((MockPublisher<Queueable>)statPub).getLastQueueable();
+		}
+		
+		String beanStatus;
+		if (lastBean == null) {
+			beanStatus = "~~ bean is null ~~";
+		} else {
+			beanStatus = lastBean.getStatus().toString();
+		}
+		throw new Exception("Bean state not reached before timeout (was: "+beanStatus+").");
 	}
 	
 	/**
@@ -234,8 +287,8 @@ public class ProcessorTestInfrastructure {
 		return (IdBean) publBeans.get(publBeans.size()-1);
 	}
 	
-	public QueueProcess<Queueable> getQProc() {
-		return qProc;
+	public MockPublisher<Queueable> getPublisher() {
+		return statPub;
 	}
 	
 	public Exception getProcThreadException() {

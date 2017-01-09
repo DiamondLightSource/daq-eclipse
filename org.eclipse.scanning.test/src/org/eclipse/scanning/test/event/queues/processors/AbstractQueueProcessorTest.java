@@ -22,9 +22,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+@Deprecated
 public abstract class AbstractQueueProcessorTest {
 	
-	protected IQueueProcess<Queueable> qProc;	
+	protected IQueueProcess<Queueable, Queueable> qProc;	
 	
 	protected IPublisher<Queueable> statPub;
 	protected String topic = "active.queue";

@@ -1,9 +1,13 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
-public class DummyHasQueueProcessor extends DummyProcessor<DummyHasQueue> {
+import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
-	public DummyHasQueueProcessor() {
-		super();
+public class DummyHasQueueProcess<T extends Queueable> extends DummyProcess<DummyHasQueue, T> {
+
+	public DummyHasQueueProcess(T bean, IPublisher<T> publisher) throws EventException {
+		super(bean, publisher, false);
 	}
 
 	@Override
