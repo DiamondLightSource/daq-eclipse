@@ -60,7 +60,6 @@ public class SubscanModerator {
 	private List<Object> outer;
 	private List<Object> inner;
 
-	@SuppressWarnings("rawtypes")
 	private void moderate(Iterable<IPosition> generator, List<IRunnableDevice<?>> detectors) throws GeneratorException, ScanningException {
 		
 		outerIterable = generator; // We will reassign it to the outer scan if there is one, otherwise it is the full scan.
@@ -83,7 +82,7 @@ public class SubscanModerator {
 		}
 		
 		List<String> axes = getAxes(detectors);
-		if (axes==null || axes.isEmpty()) {
+		if (axes.isEmpty()) {
 			return;
 		}
 		
@@ -132,7 +131,7 @@ public class SubscanModerator {
 				if (axes!=null) ret.addAll(Arrays.asList(axes));
 			}
 		}
-		if (ret.isEmpty()) return null;
+		
 		return ret;
 	}
 

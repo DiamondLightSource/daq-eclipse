@@ -630,7 +630,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			
 		}
 		if (scanRank < 0) {
-			scanRank = model.getPositionIterable().iterator().next().getScanRank();
+			scanRank = gen.iterator().next().getScanRank();
 		}
 		if (scanRank < 0) {
 			scanRank = 1;

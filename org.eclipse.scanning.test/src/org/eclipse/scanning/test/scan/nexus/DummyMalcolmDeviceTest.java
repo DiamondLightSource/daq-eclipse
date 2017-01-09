@@ -41,7 +41,6 @@ import org.eclipse.scanning.api.points.StaticPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmControlledDetectorModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
@@ -49,7 +48,6 @@ import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -138,7 +136,6 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
 		((IMalcolmDevice<DummyMalcolmModel>) malcolmDevice).setPointGenerator(getGenerator(2, 2)); // Generator isn't actually used by the test malcolm device
 		int scanRank = 2;
-		setScanInformation(malcolmDevice, scanRank); // normally called when a scan is run using @ScanStart
 		assertNotNull(malcolmDevice);
 		malcolmDevice.configure(model);
 
@@ -153,7 +150,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmModel model = createModel();
 		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
 		int scanRank = 3;
-		setScanInformation(malcolmDevice, scanRank); // normally called when a scan is run using @ScanStart
+		((IMalcolmDevice<DummyMalcolmModel>) malcolmDevice).setPointGenerator(getGenerator(2, 2, 2));
 		malcolmDevice.configure(model);
 
 		NexusScanInfo nexusScanInfo = new NexusScanInfo();
@@ -163,13 +160,6 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		checkNexusObjectProviders(nexusProviders, model, scanRank);
 	}
 	
-	private void setScanInformation(IRunnableDevice<DummyMalcolmModel> malcolmDevice, int scanRank) {
-		ScanInformation scanInfo = new ScanInformation();
-		scanInfo.setRank(scanRank);
-		((DummyMalcolmDevice) malcolmDevice).setScanInformation(scanInfo);
-	}
-	
-
 	private NXentry getNexusEntry(String filePath) throws Exception {
 		INexusFileFactory fileFactory = org.eclipse.dawnsci.nexus.ServiceHolder
 				.getNexusFileFactory();
@@ -238,8 +228,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 			final NXobject nexusObject = nexusProvider.getNexusObject();
 			assertNotNull(nexusProvider);
 			assertNotNull(nexusObject);
-//			final String expectedFileName = malcolmOutputDir.getName() + "/" + device.getName() + FILE_EXTENSION_HDF5;
-			final String expectedFileName = malcolmOutputDir + "/" + device.getName() + FILE_EXTENSION_HDF5;
+			final String expectedFileName = malcolmOutputDir.getName() + "/" + device.getName() + FILE_EXTENSION_HDF5;
 			assertArrayEquals(new Object[] { expectedFileName }, nexusProvider.getExternalFileNames().toArray());
 			
 			boolean isFirst = true;
