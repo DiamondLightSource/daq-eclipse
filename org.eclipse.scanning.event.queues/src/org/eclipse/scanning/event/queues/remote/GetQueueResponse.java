@@ -34,7 +34,7 @@ public class GetQueueResponse extends AbstractQueueResponseProcess {
 		IQueue<? extends Queueable> remoteQueue = new _Queue<>(realQueue);
 		
 		//Send the remote copy back to the requester
-		request.setQueue(remoteQueue);
+		request.setQueueID(remoteQueue.getQueueID());
 		return request;
 	}
 

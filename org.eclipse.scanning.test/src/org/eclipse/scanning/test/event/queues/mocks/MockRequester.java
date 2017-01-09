@@ -141,7 +141,7 @@ public class MockRequester<T extends IdBean> implements IRequester<T> {
 				break;
 			case QUEUE:
 				IQueue<Queueable> mockQueue = new Queue<>(reply.getQueueID(), null);
-				reply.setQueue(new _Queue<>(mockQueue));
+				reply.setQueueID(mockQueue.getQueueID());
 				break;
 			case COMMAND_SET:
 				reply.setCommandSetName(qServCmdSet);

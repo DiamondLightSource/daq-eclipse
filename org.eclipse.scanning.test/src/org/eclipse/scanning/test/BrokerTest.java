@@ -1,19 +1,16 @@
 package org.eclipse.scanning.test;
 
-import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.ServerSocket;
 import java.net.URI;
 import java.util.Arrays;
 
-import org.apache.activemq.broker.BrokerService;
-import org.apache.activemq.usage.SystemUsage;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.xcen.classregistry.XcenBeanClassRegistry;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
@@ -36,11 +33,32 @@ public class BrokerTest extends TmpTest {
 
 	private static BrokerDelegate delegate;
 
+	private static boolean staticStart;
+	
+	protected BrokerTest() {
+		this(true);
+	}
+	
+	protected BrokerTest(boolean ss) {
+		staticStart = ss;
+	}
+
 	@BeforeClass
 	public final static void startBroker() throws Exception {
-		delegate = new BrokerDelegate();
-		delegate.start();
-		uri      = delegate.getUri();
+		if (staticStart) {
+			delegate = new BrokerDelegate();
+			delegate.start();
+			uri      = delegate.getUri();
+		}
+	}
+	
+	@Before
+	public final void startLocalBroker() throws Exception {
+		if (!staticStart) {
+			delegate = new BrokerDelegate();
+			delegate.start();
+			uri      = delegate.getUri();
+		}
 	}
 	
 	public final static void setUpNonOSGIActivemqMarshaller() {
@@ -55,9 +73,13 @@ public class BrokerTest extends TmpTest {
 
 	@AfterClass
 	public final static void stopBroker() throws Exception {
-		delegate.stop();
+		if (staticStart) delegate.stop();
 	}
 
+	@After
+	public final void stopLocalBroker() throws Exception {
+		if (!staticStart) delegate.stop();
+	}
 
 
 }

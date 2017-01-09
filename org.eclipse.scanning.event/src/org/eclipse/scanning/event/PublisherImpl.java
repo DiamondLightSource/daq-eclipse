@@ -76,7 +76,7 @@ class PublisherImpl<T> extends AbstractConnection implements IPublisher<T> {
 	protected void send(MessageProducer producer, Object message, long messageLifetime)  throws Exception {
 
 		int priority = message instanceof ConsumerCommandBean ? 8 : 4;
-		
+	
 		String json = service.marshal(message);
 		TextMessage msg = createTextMessage(json);
 		producer.send(msg, DeliveryMode.NON_PERSISTENT, priority, messageLifetime);	
