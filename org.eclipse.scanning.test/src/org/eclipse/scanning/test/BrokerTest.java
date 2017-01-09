@@ -33,28 +33,27 @@ public class BrokerTest extends TmpTest {
 
 	private static BrokerDelegate delegate;
 
-	private static boolean staticStart;
+	private boolean startEveryTime;
 	
 	protected BrokerTest() {
-		this(true);
+		this(false);
 	}
 	
-	protected BrokerTest(boolean ss) {
-		staticStart = ss;
+	protected BrokerTest(boolean startEveryTime) {
+		this.startEveryTime = startEveryTime;
 	}
 
 	@BeforeClass
 	public final static void startBroker() throws Exception {
-		if (staticStart) {
-			delegate = new BrokerDelegate();
-			delegate.start();
-			uri      = delegate.getUri();
-		}
+		delegate = new BrokerDelegate();
+		delegate.start();
+		uri      = delegate.getUri();
 	}
 	
 	@Before
 	public final void startLocalBroker() throws Exception {
-		if (!staticStart) {
+		if (startEveryTime) {
+			if (delegate!=null) delegate.stop();
 			delegate = new BrokerDelegate();
 			delegate.start();
 			uri      = delegate.getUri();
@@ -73,13 +72,7 @@ public class BrokerTest extends TmpTest {
 
 	@AfterClass
 	public final static void stopBroker() throws Exception {
-		if (staticStart) delegate.stop();
+		delegate.stop();
 	}
-
-	@After
-	public final void stopLocalBroker() throws Exception {
-		if (!staticStart) delegate.stop();
-	}
-
 
 }

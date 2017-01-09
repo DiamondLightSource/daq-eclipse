@@ -48,7 +48,7 @@ public class RemoteQueueControllerServiceTest extends BrokerTest {
 	private static IEventService                eservice;
 	
 	public RemoteQueueControllerServiceTest() {
-		super(false);
+		super(true);
 	}
 
 	@BeforeClass
