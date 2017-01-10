@@ -461,7 +461,7 @@ public class _QueueControllerServiceTest {
 	
 	private void analyseQueueRequest(QueueRequest req, String queueID) {
 		assertEquals("Incorrect request type sent", QueueRequestType.QUEUE, req.getRequestType());
-		assertEquals("Returned _Queue has unexpected queueID", queueID, req.getQueue().getQueueID());
+		assertEquals("Returned _Queue has unexpected queueID", queueID, req.getQueueID());
 	}
 	
 	private void analyseCommantTopicRequest(QueueRequest req) {

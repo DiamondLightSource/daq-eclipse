@@ -31,10 +31,20 @@ public class GetQueueResponse extends AbstractQueueResponseProcess {
 	public QueueRequest process(QueueRequest request) throws EventException {
 		//Get the requested queue & make a local copy with it
 		IQueue<? extends Queueable> realQueue = queueService.getQueue(request.getQueueID());
-		IQueue<? extends Queueable> remoteQueue = new _Queue<>(realQueue);
 		
 		//Send the remote copy back to the requester
-		request.setQueue(remoteQueue);
+		request.setCommandSetName(realQueue.getCommandSetName());
+		request.setCommandTopicName(realQueue.getCommandTopicName());
+		request.setHeartbeatTopicName(realQueue.getHeartbeatTopicName());
+		
+		request.setQueueID(realQueue.getQueueID());
+		request.setStatus(realQueue.getStatus());
+		
+		request.setStatusSetName(realQueue.getStatusSetName());
+		request.setStatusTopicName(realQueue.getStatusTopicName());
+		request.setSubmissionQueueName(realQueue.getSubmissionQueueName());
+		request.setConsumerId(realQueue.getConsumerID());
+
 		return request;
 	}
 

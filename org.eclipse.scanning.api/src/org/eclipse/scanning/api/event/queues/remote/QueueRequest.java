@@ -1,9 +1,10 @@
 package org.eclipse.scanning.api.event.queues.remote;
 
+import java.util.UUID;
+
 import org.eclipse.scanning.api.event.IdBean;
-import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.status.Status;
 
 /**
@@ -34,8 +35,11 @@ public class QueueRequest extends IdBean {
 	private String jobQueueID;//jobQueue of IQueueService
 	private String commandSetName, commandTopicName, heartbeatTopicName;//QueueService configured destinations
 	private Status beanStatus;//State of a the bean in the queue
-	private IQueue<? extends Queueable> queue;
 
+	private QueueStatus status;
+	private String submissionQueueName, statusSetName, statusTopicName;
+	private UUID consumerId;
+	
 	//Request variables
 	public QueueRequestType getRequestType() {
 		return requestType;
@@ -104,12 +108,6 @@ public class QueueRequest extends IdBean {
 	public Status getBeanStatus() {
 		return beanStatus;
 	}
-	public IQueue<? extends Queueable> getQueue() {
-		return queue;
-	}
-	public void setQueue(IQueue<? extends Queueable> queue) {
-		this.queue = queue;
-	}
 	
 	@Override
 	public String toString() {
@@ -127,13 +125,18 @@ public class QueueRequest extends IdBean {
 		result = prime * result + ((beanStatus == null) ? 0 : beanStatus.hashCode());
 		result = prime * result + ((commandSetName == null) ? 0 : commandSetName.hashCode());
 		result = prime * result + ((commandTopicName == null) ? 0 : commandTopicName.hashCode());
+		result = prime * result + ((consumerId == null) ? 0 : consumerId.hashCode());
 		result = prime * result + (forceStop ? 1231 : 1237);
 		result = prime * result + ((heartbeatTopicName == null) ? 0 : heartbeatTopicName.hashCode());
 		result = prime * result + ((jobQueueID == null) ? 0 : jobQueueID.hashCode());
 		result = prime * result + ((queueID == null) ? 0 : queueID.hashCode());
 		result = prime * result + ((requestType == null) ? 0 : requestType.hashCode());
 		result = prime * result + (startQueueService ? 1231 : 1237);
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result + ((statusSetName == null) ? 0 : statusSetName.hashCode());
+		result = prime * result + ((statusTopicName == null) ? 0 : statusTopicName.hashCode());
 		result = prime * result + (stopQueueService ? 1231 : 1237);
+		result = prime * result + ((submissionQueueName == null) ? 0 : submissionQueueName.hashCode());
 		return result;
 	}
 	
@@ -163,6 +166,11 @@ public class QueueRequest extends IdBean {
 				return false;
 		} else if (!commandTopicName.equals(other.commandTopicName))
 			return false;
+		if (consumerId == null) {
+			if (other.consumerId != null)
+				return false;
+		} else if (!consumerId.equals(other.consumerId))
+			return false;
 		if (forceStop != other.forceStop)
 			return false;
 		if (heartbeatTopicName == null) {
@@ -184,9 +192,56 @@ public class QueueRequest extends IdBean {
 			return false;
 		if (startQueueService != other.startQueueService)
 			return false;
+		if (status != other.status)
+			return false;
+		if (statusSetName == null) {
+			if (other.statusSetName != null)
+				return false;
+		} else if (!statusSetName.equals(other.statusSetName))
+			return false;
+		if (statusTopicName == null) {
+			if (other.statusTopicName != null)
+				return false;
+		} else if (!statusTopicName.equals(other.statusTopicName))
+			return false;
 		if (stopQueueService != other.stopQueueService)
 			return false;
+		if (submissionQueueName == null) {
+			if (other.submissionQueueName != null)
+				return false;
+		} else if (!submissionQueueName.equals(other.submissionQueueName))
+			return false;
 		return true;
+	}
+	public QueueStatus getStatus() {
+		return status;
+	}
+	public void setStatus(QueueStatus status) {
+		this.status = status;
+	}
+	public String getSubmissionQueueName() {
+		return submissionQueueName;
+	}
+	public void setSubmissionQueueName(String submissionQueueName) {
+		this.submissionQueueName = submissionQueueName;
+	}
+	public String getStatusSetName() {
+		return statusSetName;
+	}
+	public void setStatusSetName(String statusSetName) {
+		this.statusSetName = statusSetName;
+	}
+	public String getStatusTopicName() {
+		return statusTopicName;
+	}
+	public void setStatusTopicName(String statusTopicName) {
+		this.statusTopicName = statusTopicName;
+	}
+	public UUID getConsumerId() {
+		return consumerId;
+	}
+	public void setConsumerId(UUID consumerId) {
+		this.consumerId = consumerId;
 	}
 
 }

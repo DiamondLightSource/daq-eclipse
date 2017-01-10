@@ -9,6 +9,7 @@ import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.QueueStatus;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 
 /**
  * Remote {@link IQueue} class containing all the configuration information on 
@@ -43,18 +44,18 @@ public class _Queue<T extends Queueable> implements IQueue<T> {
 	 * 
 	 * @param realQueue {@link IQueue} which will be source for the config.
 	 */
-	public _Queue(IQueue<T> realQueue) {
-		commandSetName = realQueue.getCommandSetName();
-		commandTopicName = realQueue.getCommandTopicName();
-		heartbeatTopicName = realQueue.getHeartbeatTopicName();
-		queueID = realQueue.getQueueID();
-		status = realQueue.getStatus();
-		statusSetName = realQueue.getStatusSetName();
-		statusTopicName = realQueue.getStatusTopicName();
-		submissionQueueName = realQueue.getSubmissionQueueName();
-		uri = realQueue.getURI();
+	public _Queue(URI uri, QueueRequest reply) {
+		commandSetName = reply.getCommandSetName();
+		commandTopicName = reply.getCommandTopicName();
+		heartbeatTopicName = reply.getHeartbeatTopicName();
+		queueID = reply.getQueueID();
+		status = reply.getStatus();
+		statusSetName = reply.getStatusSetName();
+		statusTopicName = reply.getStatusTopicName();
+		submissionQueueName = reply.getSubmissionQueueName();
+		this.uri = uri;
 		
-		consumerID = realQueue.getConsumerID();
+		this.consumerID = reply.getConsumerId();
 	}
 	
 	@Override
