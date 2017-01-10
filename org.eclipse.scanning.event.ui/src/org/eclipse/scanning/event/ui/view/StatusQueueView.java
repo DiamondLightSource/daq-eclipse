@@ -9,6 +9,7 @@
 package org.eclipse.scanning.event.ui.view;
 
 import java.io.File;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -960,14 +961,17 @@ public class StatusQueueView extends EventConnectionView {
 				return ((StatusBean)element).getStatus().toString();
 			}
 		});
-
+		
 		final TableViewerColumn pc = new TableViewerColumn(viewer, SWT.CENTER);
 		pc.getColumn().setText("Complete");
 		pc.getColumn().setWidth(70);
+		final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+		percentFormat.setRoundingMode(RoundingMode.DOWN);
 		pc.setLabelProvider(new ColumnLabelProvider() {
 			public String getText(Object element) {
 				try {
-				    return NumberFormat.getPercentInstance().format(((StatusBean)element).getPercentComplete()/100d);
+				    String text = percentFormat.format(((StatusBean)element).getPercentComplete()/100d);
+				    return text;
 				} catch (Exception ne) {
 					return "-";
 				}
