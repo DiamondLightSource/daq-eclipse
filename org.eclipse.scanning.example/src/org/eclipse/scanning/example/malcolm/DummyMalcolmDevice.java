@@ -414,8 +414,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		allAttributes.put(totalSteps.getName(), totalSteps);
 
 		axesToMove = new StringArrayAttribute();
-		axesToMove.setValue(new String[]{"stage_x", "stage_y"});
-//		axesToMove.setValue(model.getAxesToMove().toArray(new String[model.getAxesToMove().size()]));
+		axesToMove.setValue(model.getAxesToMove().toArray(new String[model.getAxesToMove().size()]));
 		axesToMove.setName(ATTRIBUTE_NAME_AXES_TO_MOVE);
 		axesToMove.setLabel(ATTRIBUTE_NAME_AXES_TO_MOVE);
 		axesToMove.setDescription("Default axis names to scan for configure()");
@@ -424,6 +423,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		
 		// set scanRank to the size of axesToMove initially. this will be overwritten before a scan starts
 		scanRank = axesToMove.getValue().length;
+	}
+	
+	public void setModel(DummyMalcolmModel model) {
+		super.setModel(model);
+		axesToMove.setValue(model.getAxesToMove().toArray(new String[model.getAxesToMove().size()]));
 	}
 
 	@Override
@@ -656,8 +660,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		
 		// get each dummy device to write its position at each inner scan position
 		for (IPosition innerScanPosition : innerScanPositions) {
+			final long pointStartTime = System.nanoTime();
+			final long targetDuration = (long) (model.getExposureTime() * 1000000000.0); // nanoseconds
+			
 			while (paused) {
-				Thread.sleep(1000);
+				Thread.sleep(100);
 			}
 			final IPosition overallScanPosition = innerScanPosition.compound(outerScanPosition);
 			overallScanPosition.setStepIndex(stepIndex++);
@@ -668,6 +675,15 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 					logger.error("Couldn't write data for device " + device.getName(), e);
 				}
 			}
+			
+			// If required, sleep until the requested exposure time is over
+			long currentTime = System.nanoTime();
+			long duration = currentTime - pointStartTime;
+			if (duration < targetDuration) {
+				long millisToWait = (targetDuration - duration) / 1000000;
+				Thread.sleep(millisToWait);
+			}
+			
 			firePositionComplete(overallScanPosition);
 		}
 		
