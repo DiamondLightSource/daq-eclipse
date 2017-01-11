@@ -159,7 +159,6 @@ public class RemoteQueueControllerServiceTest extends BrokerTest {
 	 * @throws Exception 
 	 */
 	public void testSubmitRemove(IQueueControllerService test) throws Exception {
-		String submQ;
 		
 		//Beans for submission
 		DummyBean albert = new DummyBean("Albert", 10),bernard = new DummyBean("Bernard", 20);
@@ -184,7 +183,6 @@ public class RemoteQueueControllerServiceTest extends BrokerTest {
 		assertEquals("Bean has wrong name", "Bernard", beans.get(1).getName());
 		
 		//active-queue
-		submQ = mockQServ.getActiveQueue(aqID).getSubmissionQueueName();
 		test.submit(carlos, aqID);
 		QueueReader<DummyAtom> atomReader = new QueueReader<>(eservice.getEventConnectorService());
 		List<DummyAtom> atoms = atomReader.getBeans(uri, aqSubmQ, DummyAtom.class);		

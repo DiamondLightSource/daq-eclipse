@@ -8,9 +8,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
+import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
@@ -27,8 +31,10 @@ import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IFilePathService;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.script.IScriptService;
 import org.eclipse.scanning.api.script.ScriptExecutionException;
 import org.eclipse.scanning.api.script.ScriptLanguage;
@@ -60,6 +66,7 @@ import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
@@ -100,7 +107,7 @@ public class ScanProcessTest {
 	private IFilePathService            fpservice;
 
 	@Before
-	public void setUp() {
+	public void setUp() throws ScanningException {
 		marshaller = new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
 						new ScanningExampleClassRegistry(),
@@ -119,6 +126,11 @@ public class ScanProcessTest {
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
 		impl._register(MandelbrotModel.class, MandelbrotDetector.class);
 		impl._register(DummyMalcolmModel.class, DummyMalcolmDevice.class);
+		
+		MandelbrotModel model = new MandelbrotModel("p", "q");
+		model.setName("mandelbrot");
+		model.setExposureTime(0.00001);
+		impl.createRunnableDevice(model);
 
 		gservice  = new PointGeneratorService();
 		wservice = new DeviceWatchdogService();
@@ -192,6 +204,38 @@ public class ScanProcessTest {
 		assertThat(scriptRequests.size(), is(2));
 		assertThat(scriptRequests, hasItems(before, after));
 	}
+	
+	@Test
+	public void testSimpleNest() throws Exception {
+		// Arrange
+		ScanBean scanBean = new ScanBean();
+		ScanRequest<?> scanRequest = new ScanRequest<>();
+		
+		CompoundModel cmodel = new CompoundModel<>(Arrays.asList(new StepModel("T", 290, 291, 2), new GridModel("xNex", "yNex")));
+		cmodel.setRegions(Arrays.asList(new ScanRegion<IROI>(new RectangularROI(0, 0, 3, 3, 0), "xNex", "yNex")));
+		scanRequest.setCompoundModel(cmodel);
+		
+		final Map<String, Object> dmodels = new HashMap<String, Object>(3);
+		MandelbrotModel model = new MandelbrotModel("xNex", "yNex");
+		model.setName("mandelbrot");
+		model.setExposureTime(0.001);
+		dmodels.put("mandelbrot", model);
+		scanRequest.setDetectors(dmodels);
+		
+		final File tmp = File.createTempFile("scan_nested_test", ".nxs");
+		tmp.deleteOnExit();
+		scanRequest.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
+		
+		scanBean.setScanRequest(scanRequest);
+		ScanProcess process = new ScanProcess(scanBean, null, true);
+		
+		// Act
+		process.execute();
+
+		// Assert
+		
+	}
+
 	
 	@Test
 	public void testStartAndEndPos() throws Exception {

@@ -23,7 +23,7 @@
 		<property name="label"       value="Mandelbrot Example Detector"/>
 		<property name="description" value="A Mandelbrot detector which is only used for testing"/>
 		<property name="icon"        value="org.eclipse.scanning.example/icons/mandelbrot.png"/> <!--  bundle must be on client for that, if it isn't a default icon is used -->
-        <property name="bundle"   value="org.eclipse.scanning.example" /> <!-- Delete for real spring? -->
+        <property name="bundle"   value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->
 	</bean>
 	<bean id="mandelbrotDetector" class="org.eclipse.scanning.example.detector.MandelbrotDetector" init-method="register">
 		<property name="name"              value="mandelbrot"/>
@@ -48,7 +48,7 @@
 		<property name="label"       value="Dark Current Example Detector"/>
 		<property name="description" value="A detector which takes images at a frequency lower than the scan numbner to simulate a dark current reading."/>
 		<property name="icon"        value="org.eclipse.scanning.example/icons/darkcurrent.png"/> <!--  bundle must be on client for that, if it isn't a default icon is used -->
-        <property name="bundle"   value="org.eclipse.scanning.example" /> <!-- Delete for real spring? -->
+        <property name="bundle"   value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->
 	</bean>
 	<bean id="darkImageDetector" class="org.eclipse.scanning.example.detector.DarkImageDetector" init-method="register">
 		<property name="name"              value="dkExmpl"/>
@@ -71,7 +71,7 @@
 		<property name="id"          value="org.eclipse.scanning.example.detector.constantVelocityDevice"/>
 		<property name="label"       value="Constant Velocity Example Detector"/>
 		<property name="description" value="A detector which runs line scans within the arbitrary outer scan which it is given."/>
-        <property name="bundle"   value="org.eclipse.scanning.example" /> <!-- Delete for real spring? -->
+        <property name="bundle"   value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->
 	</bean>
 	<bean id="constantVelocityDevice" class="org.eclipse.scanning.example.detector.ConstantVelocityDevice" init-method="register">
 		<property name="name"              value="cvExmpl"/>
@@ -79,5 +79,27 @@
 		<property name="deviceInformation" ref="constantVelocityInfo"/>
         <property name="bundle"   value="org.eclipse.scanning.example" /> <!-- Delete for real spring? -->
 	</bean>
+
+
+	<!--  Malcolm Example -->
+	<bean id="dummyMalcolmModel" class="org.eclipse.scanning.example.malcolm.DummyMalcolmModel">
+		<property name="name"                   value="Malcolm (Dummy)"/>
+		<property name="exposureTime"           value="0.1"/>
+        <property name="bundle"   value="org.eclipse.scanning.example" /> <!-- Delete for real spring? -->
+    </bean>
+	<bean id="dummyMalcolmInfo" class="org.eclipse.scanning.api.event.scan.DeviceInformation">
+		<property name="id"          value="org.eclipse.scanning.example.malcolm.dummyMalcolmDetectorSpring"/>
+		<property name="label"       value="Dummy Malcolm Detector"/>
+		<property name="description" value="A dummy malcom detector which is only used for testing"/>
+		<property name="icon"        value="org.eclipse.scanning.example/icons/alarm-clock-select.png"/> <!--  bundle must be on client for that, if it isn't a default icon is used -->
+	</bean>
+	<bean id="dummyMalcolmDetector" class="org.eclipse.scanning.example.malcolm.DummyMalcolmDevice" init-method="register">
+		<property name="name"              value="Malcolm (Dummy)"/>
+		<property name="model"             ref="dummyMalcolmModel"/>
+		<property name="deviceInformation" ref="dummyMalcolmInfo"/>
+		<property name="activated"         value="true"/> <!-- This means it is activated as the default device to use in a scan -->
+        <property name="bundle"   value="org.eclipse.scanning.example" /> <!-- Delete for real spring? -->
+	</bean>
+
 
 </beans>

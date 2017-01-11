@@ -97,7 +97,7 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 	}
 
 	@Override
-	final public int size() throws GeneratorException {
+	public int size() throws GeneratorException {
 		validateModel();
 		return sizeOfValidModel();
 	}

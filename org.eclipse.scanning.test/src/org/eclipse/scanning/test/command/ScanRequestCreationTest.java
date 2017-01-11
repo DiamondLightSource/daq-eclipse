@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
+import org.eclipse.scanning.api.points.models.RepeatedPointModel;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
@@ -119,6 +120,34 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 		assertEquals("x", monitorIterator.next());
 		assertEquals("bill", monitorIterator.next());
 	}
+	
+	@Test
+	public void testRepeatCommandWithMonitors() throws Exception {
+		pi.exec("sr =                               "
+			+	"scan_request(                      "
+			+	"    repeat(my_scannable, 10, 2.2, 25),"
+			+	"    mon=['x', another_scannable],  "  // Monitor two scannables.
+			+	"    det=mandelbrot(0.1),           "
+			+	")                                  ");
+		@SuppressWarnings("unchecked")
+		ScanRequest<IROI> request = pi.get("sr", ScanRequest.class);
+
+		Object model = ((List<Object>) request.getCompoundModel().getModels()).get(0);
+		assertEquals(RepeatedPointModel.class, model.getClass());
+
+		RepeatedPointModel smodel = (RepeatedPointModel) model;
+		assertEquals("fred", smodel.getName());
+		assertEquals(10, smodel.getCount(), 1e-8);
+		assertEquals(2.2, smodel.getValue(), 1e-8);
+		assertEquals(25, smodel.getSleep(), 1e-8);
+
+		Collection<String> monitors = request.getMonitorNames();
+		assertEquals(2, monitors.size());
+		Iterator<String> monitorIterator = monitors.iterator();
+		assertEquals("x", monitorIterator.next());
+		assertEquals("bill", monitorIterator.next());
+	}
+
 
 	@Test
 	public void testRasterCommandWithROIs() throws Exception {
