@@ -40,7 +40,7 @@ from org.eclipse.dawnsci.analysis.dataset.roi import (
 from org.eclipse.scanning.api.points.models import (
     StepModel, GridModel, RasterModel, SinglePointModel,
     OneDEqualSpacingModel, OneDStepModel, ArrayModel,
-    BoundingBox, BoundingLine, CompoundModel)
+    BoundingBox, BoundingLine, CompoundModel, RepeatedPointModel)
 from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
 from org.eclipse.scanning.api.event.IEventService import (
     SUBMISSION_QUEUE, STATUS_TOPIC)
@@ -234,6 +234,36 @@ def step(axis=None, start=None, stop=None, step=None):
 
     return model, _listify(roi)
 
+def repeat(axis=None, count=None, value=None, sleep=None):
+    """Define a repeat scan path to be passed to mscan().
+
+    Note that this function may be called with or without keyword syntax. That
+    is, the following are mutually equivalent:
+    >>> step(axis=my_scannable, count=10, value=2.2, sleep=0)
+    >>> repeat(my_scannable, 10, 2.2, 0)
+    """
+    try:
+        assert None not in (axis, count, value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            '`axis`, `start`, `stop` and `step` must be provided.')
+
+    # For the first argument, users can pass either a Scannable object
+    # or a string. IScanPathModels are only interested in the string (i.e.
+    # the Scannable's name).
+    axis = _stringify(axis)
+
+    # No such thing as ROIs for StepModels.
+    roi = None
+
+    model = _instantiate(
+                RepeatedPointModel,
+                {'name': axis,
+                 'count': count,
+                 'value': value,
+                 'sleep': sleep})
+
+    return model, _listify(roi)
 
 def grid(axes=None, start=None, stop=None, step=None, count=None, snake=True,
          roi=None):

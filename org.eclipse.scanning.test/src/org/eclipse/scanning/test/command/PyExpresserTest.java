@@ -13,6 +13,7 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
+import org.eclipse.scanning.api.points.models.RepeatedPointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.command.ParserServiceImpl;
 import org.eclipse.scanning.command.PyExpressionNotImplementedException;
@@ -33,7 +34,7 @@ public class PyExpresserTest {
 	}
 
 	@Test
-	public void testScanRequestWithMonitor()
+	public void testScanRequestWithMonitor_Step()
 			throws Exception {
 
 		StepModel smodel = new StepModel();
@@ -57,6 +58,32 @@ public class PyExpresserTest {
 				"mscan(path=[step(axis='fred', start=0.0, stop=10.0, step=1.0)], mon=['someMonitor'])",
 				factory.pyExpress(request, true));
 	}
+	
+	@Test
+	public void testScanRequestWithMonitor_Repeat()
+			throws Exception {
+
+		RepeatedPointModel rmodel = new RepeatedPointModel();
+		rmodel.setCount(10);
+		rmodel.setValue(2.2);
+		rmodel.setSleep(25);
+		rmodel.setName("fred");
+
+		Collection<String> monitors = new ArrayList<>();
+		monitors.add("someMonitor");
+
+		ScanRequest<IROI> request = new ScanRequest<>();
+		request.setCompoundModel(new CompoundModel(rmodel));
+		request.setMonitorNames(monitors);
+
+		assertEquals(  // Concise.
+				"mscan(repeat('fred', 10, 2.2, 25), 'someMonitor')",
+				factory.pyExpress(request, false));
+		assertEquals(  // Verbose.
+				"mscan(path=[repeat(axis='fred', count=10, value=2.2, sleep=25)], mon=['someMonitor'])",
+				factory.pyExpress(request, true));
+	}
+
 
 	@Test
 	public void testScanRequestWithROI()
