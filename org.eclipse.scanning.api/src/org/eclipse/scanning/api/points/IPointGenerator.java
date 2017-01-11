@@ -127,4 +127,16 @@ public interface IPointGenerator<T> extends Iterable<IPosition>, IValidator<T>, 
 	default boolean isScanPointGeneratorFactory() {
 		return true;
 	}
+	
+	/**
+	 * By default this gets the first point from the iterator.
+	 * Override to define a more efficient first point, for instance
+	 * if the iterator does a sleep this method can be overridden to avoid
+	 * the sleep.
+	 * 
+	 * @return
+	 */
+	default IPosition getFirstPoint() {
+		return iterator().next();
+	}
 }

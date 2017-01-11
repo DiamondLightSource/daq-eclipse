@@ -9,6 +9,7 @@ import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.RepeatedPointModel;
 
 class RepeatedPointGenerator extends AbstractGenerator<RepeatedPointModel> implements IDeviceDependentIterable {
@@ -31,9 +32,8 @@ class RepeatedPointGenerator extends AbstractGenerator<RepeatedPointModel> imple
 		return new RepeatedPointIterator(this);
 	}
 
-
 	@Override
-	public int size() throws GeneratorException {
+	protected int sizeOfValidModel() throws GeneratorException {
 		return model.getCount();
 	}
 
@@ -50,5 +50,10 @@ class RepeatedPointGenerator extends AbstractGenerator<RepeatedPointModel> imple
 	
 	public boolean isScanPointGeneratorFactory() {
 		return false;
+	}
+	
+	@Override
+	public IPosition getFirstPoint() {
+		return new Scalar<>(model.getName(), 0, model.getValue());
 	}
 }

@@ -32,7 +32,10 @@ public class CompoundIterator implements Iterator<IPosition> {
 		
 	    IPosition pos = new MapPosition();
 		for (int i = 0; i < iterators.length-1; i++) {
-			pos = iterators[i].next().compound(pos);
+			IPosition with=null;
+			if (gen.getGenerators()[i] instanceof IPointGenerator) with = ((IPointGenerator)gen.getGenerators()[i]).getFirstPoint();
+			if (with==null) with = iterators[i].next();
+			pos = with.compound(pos);
 		}
 		return pos;
 	}

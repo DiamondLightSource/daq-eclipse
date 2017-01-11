@@ -598,8 +598,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		} else if (gen instanceof IPointGenerator<?>) {
 			size = ((IPointGenerator<?>)gen).size();
 			
-		} else {
-		    for (IPosition unused : model.getPositionIterable()) size++; // Fast even for large stuff providing they do not check hardware on the next() call.
+		} else if (gen!=null) {
+		    for (IPosition unused : gen) size++; // Fast even for large stuff providing they do not check hardware on the next() call.
 		}
 		return size;   		
 	}

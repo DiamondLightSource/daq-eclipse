@@ -34,7 +34,7 @@ public class ScanPointGeneratorFactory {
 	 * when it is first used, for instance in the UI, it will execute
 	 * fast because the interpreter has classloaded.
 	 */
-	static void init() {
+	public static void init() {
 		
 		final Thread background = new Thread() {
 			public void run() {

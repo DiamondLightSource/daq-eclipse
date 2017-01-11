@@ -22,6 +22,17 @@ public class RepeatedPointModel extends AbstractPointsModel {
 	@FieldDescriptor(label="Sleep", hint="Sleep time between points, if any", minimum=1, maximum=10000, fieldPosition=4)
 	private long sleep;
 
+	public RepeatedPointModel() {
+		
+	}
+	
+	public RepeatedPointModel(String name, int count, double value, long sleep) {
+		this.name  = name;
+		this.count = count;
+		this.value = value;
+		this.sleep = sleep;
+	}
+	
 	public String getName() {
 		return name;
 	}
