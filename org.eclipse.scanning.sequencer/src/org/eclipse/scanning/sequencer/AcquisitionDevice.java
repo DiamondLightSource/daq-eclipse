@@ -552,7 +552,9 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	@Override
 	public void positionPerformed(PositionEvent evt) throws ScanningException {
 		IPosition position = evt.getPosition();
-		innerPositionPercentComplete(position.getStepIndex());
+		if (outerSize > 0 && innerSize > 0) {
+			innerPositionPercentComplete(position.getStepIndex());
+		}
 	}
 
 	/**
@@ -561,9 +563,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 * @throws Exception
 	 */
 	private void innerPositionPercentComplete(int innerCount) {
-		if (outerSize == 0 || innerSize == 0) return;
-		
-
 		final ScanBean bean = getBean();
 		int overallCount = (outerCount * innerSize) + innerCount + 1; 
 		bean.setMessage("Point " + overallCount + " of " + totalSize);
