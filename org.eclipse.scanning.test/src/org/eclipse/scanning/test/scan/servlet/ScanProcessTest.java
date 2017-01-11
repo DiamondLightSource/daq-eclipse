@@ -205,7 +205,6 @@ public class ScanProcessTest {
 		assertThat(scriptRequests, hasItems(before, after));
 	}
 	
-	@Ignore
 	@Test
 	public void testSimpleNest() throws Exception {
 		// Arrange

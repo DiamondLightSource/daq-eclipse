@@ -11,7 +11,6 @@ import java.util.Set;
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.GeneratorException;
-import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
@@ -25,11 +24,10 @@ import org.python.core.PyDictionary;
  * @author Matthew Gerring
  *
  */
-class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySerializable, IDeviceDependentIterable {
+class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySerializable {
 	
 	private IPointGenerator<?>[]     generators;
 	private List<Collection<String>> dimensionNames;
-	private List<String>             scannableNames;
 
 	public CompoundGenerator(IPointGenerator<?>[] generators) throws GeneratorException {
 		super(createId(generators));
@@ -42,7 +40,6 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
         
         this.generators = generators;
 	    this.dimensionNames = createDimensionNames(generators);
-	    this.scannableNames = getScannableNames(dimensionNames);
 		setLabel("Compound");
 		setDescription("Compound generator used when wrapping scans.");
 		setVisible(false);
@@ -93,16 +90,6 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 			}
 		}
 		return size;
-	}
-	
-	@Override
-	public int size() throws GeneratorException {
-		return sizeOfValidModel();
-	}
-
-	@Override
-	public List<String> getScannableNames() {
-		return scannableNames;
 	}
 
     public PyDictionary toDict() {
