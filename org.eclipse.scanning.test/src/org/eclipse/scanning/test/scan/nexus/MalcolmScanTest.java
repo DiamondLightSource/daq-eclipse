@@ -138,25 +138,21 @@ public class MalcolmScanTest extends NexusTest {
 	}
 	
 	@Test
-	@Ignore
 	public void test3DMalcolmScan() throws Exception {
 		testMalcolmScan(3, 2, 5);
 	}
 	
 	@Test
-	@Ignore
 	public void test4DMalcolmScan() throws Exception {
 		testMalcolmScan(3,3,2,2);
 	}
 	
 	@Test
-	@Ignore
 	public void test5DMalcolmScan() throws Exception {
 		testMalcolmScan(1,1,1,2,2);
 	}
 	
 	@Test
-	@Ignore
 	public void test8DMalcolmScan() throws Exception {
 		testMalcolmScan(1,1,1,1,1,1,2,2);
 	}
@@ -275,12 +271,14 @@ public class MalcolmScanTest extends NexusTest {
 				final Collection<String> axisNames = pos.getNames();
 				
 				// Append _value_set to each name in list, then add detector axes fields to result
+				// stage_y doesn't have _value_set as to mimic the real i18 malcolm device
+				// malcolm doesn't know this value (as instead it has three jacks j1,j2,j3 for the y position)
 				int additionalRank = datasetModel.getRank(); // i.e. rank per position, e.g. 2 for images
-				List<String> expectedAxisNames = Stream.concat(
+				List<String> expectedAxesNames = Stream.concat(
 						axisNames.stream().map(axisName -> axisName + 
-								(dummyMalcolmModel.getPositionerNames().contains(axisName) ? "_value_set" : "")),
+								(!axisName.equals("stage_y") ? "_value_set" : "")),
 						Collections.nCopies(additionalRank, ".").stream()).collect(Collectors.toList()); // TODO 2 should be what number?
-				assertAxes(nxData, expectedAxisNames.toArray(new String[expectedAxisNames.size()]));
+				assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 				
 				int[] defaultDimensionMappings = IntStream.range(0, sizes.length).toArray();
 				int i = -1;
@@ -295,7 +293,7 @@ public class MalcolmScanTest extends NexusTest {
 					assertEquals(1, shape.length);
 					assertEquals(sizes[i], shape[0]);
 					
-					String nxDataFieldName = axisName + (malcolmDevice.getModel().getPositionerNames().contains(axisName) ? "_value_set" : "");
+					String nxDataFieldName = axisName + (!axisName.equals("stage_y") ? "_value_set" : "");
 					assertDataNodesEqual("", dataNode, nxData.getDataNode(nxDataFieldName));
 					assertIndices(nxData, nxDataFieldName, i);
 					// The value of the target attribute seems to come from the external file
