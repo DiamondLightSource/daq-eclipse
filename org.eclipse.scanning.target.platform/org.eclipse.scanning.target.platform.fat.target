@@ -2,10 +2,10 @@
 <?pde version="3.8"?><target name="Scanning (Fat)" sequenceNumber="120">
 <locations>
 <location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="false" type="InstallableUnit">
-<unit id="uk.ac.diamond.scisoft.peema.feature.feature.group" version="1.2.0.v20161209-1134"/>
-<unit id="uk.ac.diamond.dawn.product.feature.feature.group" version="2.4.0.v20161212-1719"/>
+<unit id="uk.ac.diamond.scisoft.peema.feature.feature.group" version="1.2.0.v20161221-1435"/>
+<unit id="uk.ac.diamond.dawn.product.feature.feature.group" version="2.4.0.v20170110-1741"/>
 <unit id="org.eclipse.equinox.executable.feature.group" version="3.6.200.v20150602-1417"/>
-<unit id="org.dawnsci.base.product.feature.feature.group" version="2.4.0.v20161212-1459"/>
+<unit id="org.dawnsci.base.product.feature.feature.group" version="2.4.0.v20170109-1547"/>
 <repository location="http://www.opengda.org/DawnDiamond/master/updates/snapshot/"/>
 </location>
 <location includeAllPlatforms="true" includeConfigurePhase="true" includeMode="slicer" includeSource="false" type="InstallableUnit">

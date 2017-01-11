@@ -6,6 +6,7 @@ import java.util.Map;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -97,10 +98,23 @@ public class ScanEstimator {
 				timePerPoint = Math.max(timePerPoint, Math.round(1000*((IDetectorModel)model).getExposureTime()));
 			}
 		}
-		this.size          = gen.size();
+		this.size          = getEstimatedSize(gen);
 		this.rank          = gen.iterator().next().getScanRank(); // The rank of the scan is constant
 		this.timePerPoint  = timePerPoint;
 		this.scanTime      = size*timePerPoint;
+	}
+
+	private int getEstimatedSize(IPointGenerator<?> gen) throws GeneratorException {
+		
+		int size=0;
+		if (gen instanceof IDeviceDependentIterable) {
+			size = ((IDeviceDependentIterable)gen).size();
+			
+		} else {
+			size = ((IPointGenerator<?>)gen).size();
+			
+		} 
+		return size;   		
 	}
 
 	public int getSize() {

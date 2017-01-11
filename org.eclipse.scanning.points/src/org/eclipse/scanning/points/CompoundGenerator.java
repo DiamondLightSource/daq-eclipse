@@ -54,7 +54,7 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 	private List<Collection<String>> createDimensionNames(IPointGenerator<?>[] generators) {
 		List<Collection<String>> names = new ArrayList<>(generators.length+2); // Roughly
 		for (IPointGenerator<?> gen : generators) {
-			IPosition pos = gen.iterator().next();
+			IPosition pos = gen.getFirstPoint();
 			if (pos != null) {
 				names.addAll(((AbstractPosition)pos).getDimensionNames());
 			}

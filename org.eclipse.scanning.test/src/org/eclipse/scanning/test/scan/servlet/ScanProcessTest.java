@@ -4,6 +4,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.RepeatedPointModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IFilePathService;
@@ -51,6 +54,8 @@ import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorService;
+import org.eclipse.scanning.points.RepeatedPointIterator;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.points.validation.ValidatorService;
@@ -66,7 +71,7 @@ import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
@@ -93,6 +98,11 @@ public class ScanProcessTest {
 			return scriptRequests;
 		}
 
+	}
+	
+	@BeforeClass
+	public static void init() {
+		ScanPointGeneratorFactory.init();
 	}
 	
 	private IRunnableDeviceService      dservice;
@@ -234,6 +244,46 @@ public class ScanProcessTest {
 
 		// Assert
 		
+	}
+	
+	@Test
+	public void testSimpleNestWithSleepInIterator() throws Exception {
+		// Arrange
+		ScanBean scanBean = new ScanBean();
+		ScanRequest<?> scanRequest = new ScanRequest<>();
+		
+		CompoundModel cmodel = new CompoundModel<>(Arrays.asList(new RepeatedPointModel("T1", 5, 290.2, 100), new GridModel("xNex", "yNex")));
+		cmodel.setRegions(Arrays.asList(new ScanRegion<IROI>(new RectangularROI(0, 0, 3, 3, 0), "xNex", "yNex")));
+		scanRequest.setCompoundModel(cmodel);
+		
+		final Map<String, Object> dmodels = new HashMap<String, Object>(3);
+		MandelbrotModel model = new MandelbrotModel("xNex", "yNex");
+		model.setName("mandelbrot");
+		model.setExposureTime(0.001);
+		dmodels.put("mandelbrot", model);
+		scanRequest.setDetectors(dmodels);
+		
+		final File tmp = File.createTempFile("scan_nested_test", ".nxs");
+		tmp.deleteOnExit();
+		scanRequest.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
+		
+		scanBean.setScanRequest(scanRequest);
+		ScanProcess process = new ScanProcess(scanBean, null, true);
+		
+		RepeatedPointIterator._setCountSleeps(true);
+		
+		// Act
+		long before = System.currentTimeMillis();
+		process.execute();
+		long after = System.currentTimeMillis();
+
+		// Assert
+		assertTrue("The time to do a scan of roughly 500ms of sleep was "+(after-before), (10000 > (after-before)));
+		
+		// Important: the number of sleeps must be five
+		// It will be greater if the scanning iterated when
+		// figuring things out and slept incorrectly.
+		assertEquals(5, RepeatedPointIterator._getSleepCount());
 	}
 
 	

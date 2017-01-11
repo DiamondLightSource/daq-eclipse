@@ -96,8 +96,11 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 		}
 	}
 
+	/**
+	 * Final use sizeOfValidModel() to calculate size!
+	 */
 	@Override
-	public int size() throws GeneratorException {
+	public final int size() throws GeneratorException {
 		validateModel();
 		return sizeOfValidModel();
 	}
