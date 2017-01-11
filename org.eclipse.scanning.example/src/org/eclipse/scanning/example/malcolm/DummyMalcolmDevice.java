@@ -414,8 +414,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		allAttributes.put(totalSteps.getName(), totalSteps);
 
 		axesToMove = new StringArrayAttribute();
-		axesToMove.setValue(new String[]{"stage_x", "stage_y"});
-//		axesToMove.setValue(model.getAxesToMove().toArray(new String[model.getAxesToMove().size()]));
+		axesToMove.setValue(model.getAxesToMove().toArray(new String[model.getAxesToMove().size()]));
 		axesToMove.setName(ATTRIBUTE_NAME_AXES_TO_MOVE);
 		axesToMove.setLabel(ATTRIBUTE_NAME_AXES_TO_MOVE);
 		axesToMove.setDescription("Default axis names to scan for configure()");
@@ -424,6 +423,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		
 		// set scanRank to the size of axesToMove initially. this will be overwritten before a scan starts
 		scanRank = axesToMove.getValue().length;
+	}
+	
+	public void setModel(DummyMalcolmModel model) {
+		super.setModel(model);
+		axesToMove.setValue(model.getAxesToMove().toArray(new String[model.getAxesToMove().size()]));
 	}
 
 	@Override
@@ -487,7 +491,6 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	public void scanFinally() {
 		// reset device state for next scan
 		devices = null;
-		stepIndex = 0;
 		firstRunCompleted = false;
 	}
 	
@@ -655,12 +658,15 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		Iterable<IPosition> innerScanPositions = moderator.getInnerIterable();
 		
 		// get each dummy device to write its position at each inner scan position
+		stepIndex = 0;
 		for (IPosition innerScanPosition : innerScanPositions) {
+			final long pointStartTime = System.nanoTime();
+			final long targetDuration = (long) (model.getExposureTime() * 1000000000.0); // nanoseconds
+			
 			while (paused) {
-				Thread.sleep(1000);
+				Thread.sleep(100);
 			}
 			final IPosition overallScanPosition = innerScanPosition.compound(outerScanPosition);
-			overallScanPosition.setStepIndex(stepIndex++);
 			for (IDummyMalcolmControlledDevice device : devices.values()) {
 				try {
 					device.writePosition(overallScanPosition);
@@ -668,8 +674,19 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 					logger.error("Couldn't write data for device " + device.getName(), e);
 				}
 			}
-			firePositionComplete(overallScanPosition);
+			
+			// If required, sleep until the requested exposure time is over
+			long currentTime = System.nanoTime();
+			long duration = currentTime - pointStartTime;
+			if (duration < targetDuration) {
+				long millisToWait = (targetDuration - duration) / 1000000;
+				Thread.sleep(millisToWait);
+			}
+			
+			innerScanPosition.setStepIndex(stepIndex++);
+			firePositionComplete(innerScanPosition);
 		}
+		stepIndex = 0;
 		
 		status.setValue("Finished writing");
 		setDeviceState(DeviceState.READY);
@@ -793,10 +810,6 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		allAttributes.put("layout", layout);
 	}
 
-	public void setAxesToMove(final String[] axesToMove) {
-		this.axesToMove = new StringArrayAttribute(axesToMove);
-	}
-	
 	private static class DummyMalcolmConnectorService implements IMalcolmConnectorService<MalcolmMessage> {
 
 		@Override

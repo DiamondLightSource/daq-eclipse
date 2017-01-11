@@ -88,9 +88,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	/**
 	 * Variables used to monitor progress of inner scans
 	 */
-    private int outerSize = 0;
-    private int outerCount = 0;
-    private int innerSize = 0;
+	private int outerSize = 0;
+	private int outerCount = 0;
+	private int innerSize = 0;
+	private int totalSize = 0;
 		
 	/**
 	 * Package private constructor, devices are created by the service.
@@ -199,7 +200,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
     		final int size  = getEstimatedSize(moderator.getOuterIterable());
     		int count = 0;
     		outerSize = size;
-            innerSize = getEstimatedSize(moderator.getInnerIterable());
+    		innerSize = getEstimatedSize(moderator.getInnerIterable());
+    		totalSize = getEstimatedSize(model.getPositionIterable());
 
     		fireStart(size);    		
 
@@ -550,11 +552,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	@Override
 	public void positionPerformed(PositionEvent evt) throws ScanningException {
 		IPosition position = evt.getPosition();
-		try {
-			innerPositionPercentComplete(position.getStepIndex());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		innerPositionPercentComplete(position.getStepIndex());
 	}
 
 	/**
@@ -562,9 +560,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 * @param innerCount The count representing the progress of of the inner scan
 	 * @throws Exception
 	 */
-	private void innerPositionPercentComplete(int innerCount) throws Exception {
-
+	private void innerPositionPercentComplete(int innerCount) {
 		if (outerSize == 0 || innerSize == 0) return;
+		
+
+		final ScanBean bean = getBean();
+		int overallCount = (outerCount * innerSize) + innerCount + 1; 
+		bean.setMessage("Point " + overallCount + " of " + totalSize);
 		
 		double innerPercentComplete = 0;
 		if (innerCount > -1) {
@@ -577,13 +579,14 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		double innerPercentOfOuter = 100 / (double) outerSize;
 		innerPercentOfOuter *= innerPercentComplete;
 		outerPercentComplete += innerPercentOfOuter;
-
-		final ScanBean bean = getBean();
 		bean.setPercentComplete(outerPercentComplete);
-		bean.setMessage("Inner Point " + innerCount + " of " + innerSize);
 		
 		if (getPublisher() != null) {
-			getPublisher().broadcast(bean);
+			try {
+				getPublisher().broadcast(bean);
+			} catch (EventException e) {
+				logger.warn("An error occurred publishing percent complete event ", e);
+			}
 		}
 	}
 

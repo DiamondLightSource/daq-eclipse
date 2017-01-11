@@ -243,7 +243,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		bean.setPreviousDeviceState(bean.getDeviceState());
 		if (size>-1) bean.setPercentComplete(((double)(count+1)/size)*100);
 		if (bean.getDeviceState()==DeviceState.RUNNING) { // Only set this message if we are still running.
-			bean.setMessage("Point "+pos.getStepIndex()+" of "+size);
+			bean.setMessage("Point " + (pos.getStepIndex() + 1) +" of " + size);
 		}
 		if (publisher != null) {
 			publisher.broadcast(bean);
