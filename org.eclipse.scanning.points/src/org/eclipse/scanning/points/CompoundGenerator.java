@@ -1,13 +1,17 @@
 package org.eclipse.scanning.points;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.GeneratorException;
+import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
@@ -21,25 +25,33 @@ import org.python.core.PyDictionary;
  * @author Matthew Gerring
  *
  */
-class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySerializable {
+class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySerializable, IDeviceDependentIterable {
 	
 	private IPointGenerator<?>[]     generators;
 	private List<Collection<String>> dimensionNames;
+	private List<String>             scannableNames;
 
 	public CompoundGenerator(IPointGenerator<?>[] generators) throws GeneratorException {
 		super(createId(generators));
         if (generators == null || generators.length<1) throw new GeneratorException("Cannot make a compound generator from a list of less than one generators!");
         
         // We create a model with no regions from the generators.
-        this.model = new CompoundModel();
+        this.model = new CompoundModel<>();
         for (IPointGenerator<?> g : generators) model.addData(g.getModel(), g.getRegions());
         // This model is not designed to hold all the data because we have the actual generators!
         
         this.generators = generators;
 	    this.dimensionNames = createDimensionNames(generators);
+	    this.scannableNames = getScannableNames(dimensionNames);
 		setLabel("Compound");
 		setDescription("Compound generator used when wrapping scans.");
 		setVisible(false);
+	}
+
+	private List<String> getScannableNames(List<Collection<String>> dNames) {
+		Set<String> names = new LinkedHashSet<>();
+		for (Collection<String> collection : dNames) names.addAll(collection);
+		return Arrays.asList(names.toArray(new String[names.size()]));
 	}
 
 	private List<Collection<String>> createDimensionNames(IPointGenerator<?>[] generators) {
@@ -71,10 +83,27 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 	
 	@Override
 	public int sizeOfValidModel() throws GeneratorException {
-		CompoundIterator it = (CompoundIterator) iteratorFromValidModel();
-		return it.size();
+		Iterator<IPosition> it = (Iterator<IPosition>) iteratorFromValidModel();
+		int size = 1;
+		if (it instanceof CompoundSpgIterator) {
+			size = ((CompoundSpgIterator)it).size();
+		} else {
+			for (int i = 0;i < generators.length; i++) {
+				size *= generators[i].size();
+			}
+		}
+		return size;
 	}
 	
+	@Override
+	public int size() throws GeneratorException {
+		return sizeOfValidModel();
+	}
+
+	@Override
+	public List<String> getScannableNames() {
+		return scannableNames;
+	}
 
     public PyDictionary toDict() {
 		Iterator<?> it = iteratorFromValidModel();
@@ -115,7 +144,11 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 	@Override
 	protected Iterator<IPosition> iteratorFromValidModel() {
 		try {
-			return new CompoundIterator(this);
+			if (isScanPointGeneratorFactory()) {
+			    return new CompoundSpgIterator(this);
+			} else {
+				return new CompoundIterator(this);
+			}
 		} catch (GeneratorException e) {
 			throw new IllegalArgumentException(e);
 		}
@@ -164,6 +197,14 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 
 	public void setDimensionNames(List<Collection<String>> dimensionNames) {
 		this.dimensionNames = dimensionNames;
+	}
+
+	
+	public boolean isScanPointGeneratorFactory() {
+		for (IPointGenerator<?> gen : generators) {
+			if (!gen.isScanPointGeneratorFactory()) return false;
+		}
+		return true;
 	}
 
 }

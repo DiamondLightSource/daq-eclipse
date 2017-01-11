@@ -26,7 +26,6 @@ import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.BoundingLine;
 import org.eclipse.scanning.api.points.models.CollatedStepModel;
 import org.eclipse.scanning.api.points.models.CompoundModel;
-import org.eclipse.scanning.api.points.models.StaticModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 import org.eclipse.scanning.api.points.models.IBoundingLineModel;
@@ -36,8 +35,10 @@ import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
+import org.eclipse.scanning.api.points.models.RepeatedPointModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.SpiralModel;
+import org.eclipse.scanning.api.points.models.StaticModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 
 public class PointGeneratorService implements IPointGeneratorService {
@@ -58,6 +59,7 @@ public class PointGeneratorService implements IPointGeneratorService {
 		// generator for a model.
 		gens.put(StepModel.class,             StepGenerator.class);
 		gens.put(CollatedStepModel.class,     CollatedStepGenerator.class);
+		gens.put(RepeatedPointModel.class,    RepeatedPointGenerator.class);
 		gens.put(ArrayModel.class,            ArrayGenerator.class);
 		gens.put(GridModel.class,             GridGenerator.class);
 		gens.put(OneDEqualSpacingModel.class, OneDEqualSpacingGenerator.class);
