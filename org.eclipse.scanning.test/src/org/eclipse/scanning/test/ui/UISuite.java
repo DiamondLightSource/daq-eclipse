@@ -29,8 +29,8 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 	SampleInformationTest.class,
 	AxisConfigurationTest.class,
 	KnownModelsTest.class,
-	ControlTreeViewerTest.class,
-	BoundingBoxTest.class
+	BoundingBoxTest.class,
+	ControlTreeViewerTest.class // Must be last!
 
 })
 public class UISuite {
