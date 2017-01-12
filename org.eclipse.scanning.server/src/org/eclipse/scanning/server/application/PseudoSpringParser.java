@@ -235,7 +235,11 @@ public class PseudoSpringParser implements ISpringParser {
 						NamedNodeMap attr = item.getAttributes();
 						if (attr==null) continue;
 						Node cbean  = attr.getNamedItem("bean");
-						refs.add(cbean.getNodeValue());
+						if (cbean!=null) {
+						    refs.add(cbean.getNodeValue());
+						} else {
+							refs.add(item.getTextContent());
+						}
 					}
 				}
 			    lists.put(id, new NamedList(name, refs));

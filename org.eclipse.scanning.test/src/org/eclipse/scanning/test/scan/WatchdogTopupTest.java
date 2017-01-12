@@ -131,6 +131,46 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 	}
 	
 	@Test
+	public void scanDuringTopup() throws Exception {
+
+		// Stop topup, we want to controll it programmatically.
+		final IScannable<Number>   topups  = connector.getScannable("topup");
+		final MockTopupScannable   topup   = (MockTopupScannable)topups;
+		assertNotNull(topup);
+		topup.disconnect();
+		Thread.sleep(120); // Make sure it stops, it sets value every 100ms but it should get interrupted
+		assertTrue(topup.isDisconnected());
+		topup.setPosition(10);
+		
+		IDeviceController controller = createTestScanner(null);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
+		
+		Set<DeviceState> states = new HashSet<>();
+		// This run should get paused for beam and restarted.
+		scanner.addRunListener(new IRunListener() {
+			public void stateChanged(RunEvent evt) throws ScanningException {
+				states.add(evt.getDeviceState());
+			}
+		});
+		
+		scanner.start(null);
+		Thread.sleep(50);  // Do a bit
+		assertEquals(DeviceState.PAUSED, scanner.getDeviceState());
+		
+		topup.setPosition(0);    // Should do nothing, device is already paused
+		topup.setPosition(5000); // Gets it ready to think it has to resume
+		topup.setPosition(4000); // Will resume it because warmup passed
+		
+		Thread.sleep(100);       // Ensure watchdog event has fired and it did something.		
+		assertEquals(DeviceState.RUNNING, scanner.getDeviceState()); // Should still be paused
+		
+		scanner.latch();
+		
+		assertEquals(DeviceState.READY, scanner.getDeviceState()); // Should still be paused
+	}
+
+	
+	@Test
 	public void topupWithExternalPause() throws Exception {
 
 		// Stop topup, we want to controll it programmatically.
