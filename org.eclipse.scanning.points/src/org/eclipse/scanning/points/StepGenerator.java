@@ -28,7 +28,7 @@ class StepGenerator extends AbstractGenerator<StepModel> {
 	public int sizeOfValidModel() throws GeneratorException {
 		if (containers!=null) throw new GeneratorException("Cannot deal with regions in a step scan!");
 		double div = ((model.getStop()-model.getStart())/model.getStep());
-		div += (model.getStep() / 100); // add tolerance of 1% of step value
+		div += (Math.abs(model.getStep()) / 100); // add tolerance of 1% of step value
 		return (int)Math.floor(div+1);
 	}
 	
