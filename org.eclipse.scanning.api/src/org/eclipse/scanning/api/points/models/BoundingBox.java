@@ -1,8 +1,8 @@
 package org.eclipse.scanning.api.points.models;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 
-import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 /**
@@ -21,25 +21,29 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  *
  * @Deprecated Replaced by ScanRegion which is provided with the CompoundModel
  */
-public class BoundingBox  {
+public class BoundingBox  implements Serializable {
 
-	
-	@FieldDescriptor(visible=false)
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3775847793520017725L;
+
+	@FieldDescriptor(editable=false, fieldPosition=0)
 	private String fastAxisName="stage_x";
 	
-	@FieldDescriptor(visible=false)
-	private String slowAxisName="stage_y";
-	
-	@FieldDescriptor(scannable="fastAxisName", fieldPosition=0)
+	@FieldDescriptor(scannable="fastAxisName", fieldPosition=1)
 	private double fastAxisStart;
 	
-	@FieldDescriptor(scannable="fastAxisName", validif="fastAxisLength!=0", fieldPosition=1)
+	@FieldDescriptor(scannable="fastAxisName", validif="fastAxisLength!=0", fieldPosition=2)
 	private double fastAxisLength;
 	
-	@FieldDescriptor(scannable="slowAxisName", fieldPosition=2)
+	@FieldDescriptor(editable=false, fieldPosition=3)
+	private String slowAxisName="stage_y";
+
+	@FieldDescriptor(scannable="slowAxisName", fieldPosition=4)
 	private double slowAxisStart;
 	
-	@FieldDescriptor(scannable="slowAxisName", validif="slowAxisLength!=0", fieldPosition=3)
+	@FieldDescriptor(scannable="slowAxisName", validif="slowAxisLength!=0", fieldPosition=5)
 	private double slowAxisLength;
 	
 	@FieldDescriptor(visible=false, hint="Provides information about the visible region we are linked to.")
@@ -165,19 +169,19 @@ public class BoundingBox  {
 			return false;
 		return true;
 	}
-	@UiHidden
+
 	public String getFastAxisName() {
 		return fastAxisName;
 	}
-	@UiHidden
+
 	public void setFastAxisName(String fastAxisName) {
 		this.fastAxisName = fastAxisName;
 	}
-	@UiHidden
+
 	public String getSlowAxisName() {
 		return slowAxisName;
 	}
-	@UiHidden
+
 	public void setSlowAxisName(String slowAxisName) {
 		this.slowAxisName = slowAxisName;
 	}

@@ -28,10 +28,11 @@ public class BrokerDelegate {
 
 	public void stop() throws Exception {
 		
-		service.stop();
-		service.waitUntilStopped();
-		service = null;
-
+		if (service!=null) {
+			service.stop();
+			service.waitUntilStopped();
+			service = null;
+		}
 	}
 	
 	public URI getUri() {
