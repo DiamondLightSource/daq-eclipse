@@ -83,7 +83,9 @@ public class MultiStepModel extends AbstractPointsModel {
 			sb.append(stepModel.getStop());
 			sb.append(", step=");
 			sb.append(stepModel.getStep());
+			sb.append("; ");
 		}
+		
 		sb.append(")]");
 		
 		return sb.toString();
