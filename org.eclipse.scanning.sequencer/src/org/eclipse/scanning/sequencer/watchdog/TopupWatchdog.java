@@ -92,14 +92,23 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 	 * The coutndown is likely to report at 10Hz. TODO Check if this is ok during a scan and does not
 	 * use too much CPU.
 	 */
+	@Override
 	public void positionChanged(PositionEvent evt) {
+		checkPosition(evt.getPosition());
+	}
+	
+	/**
+	 * Checks the position during the scan and at startup.
+	 * @param pos
+	 */
+	protected void checkPosition(IPosition pos) {
 		try {
 			// Topup is currently 10Hz which is the rate that the scannable should call positionChanged(...) at.
-			long time = getValueMs(evt, model.getCountdownName(), countdownUnit);
+			long time = getValueMs(pos, model.getCountdownName(), countdownUnit);
 			//logger.info("Topup time is "+time+" ms");
 			processPosition(time);
 		} catch (Exception ne) {
-			logger.error("Cannot process position "+evt, ne);
+			logger.error("Cannot process position "+pos, ne);
 		}
 	}
 
@@ -167,7 +176,10 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 				throw new ScanningException(model.getCountdownName()+" is not a position listenable!");
 			}
 			((IPositionListenable)topup).addPositionListener(this);
-		} catch (ScanningException ne) {
+			
+			processPosition(((Number)topup.getPosition()).longValue()); // Pauses the starting scan if topup already running.
+			
+		} catch (Exception ne) {
 			logger.error("Cannot start watchdog!", ne);
 		}
 		logger.debug("Watchdog started on "+controller.getName());

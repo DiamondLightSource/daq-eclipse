@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
+import org.eclipse.scanning.example.scannable.MockTopupScannable;
 import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
 import org.eclipse.scanning.sequencer.watchdog.ExpressionWatchdog;
 import org.junit.Test;
@@ -101,6 +102,27 @@ public class WatchdogShutterTest extends AbstractWatchdogTest {
 		Thread.sleep(100);
 		assertTrue(states.get(states.size()-1)==DeviceState.RUNNING);
 
+	}
+	
+	@Test(expected=ScanningException.class)
+	public void scanDuringShutterClosed() throws Exception {
+
+		// Stop topup, we want to controll it programmatically.
+		final IScannable<String>   mon  = connector.getScannable("portshutter");
+		mon.setPosition("Closed");
+		
+		IDeviceController controller = createTestScanner(null);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
+		
+		Set<DeviceState> states = new HashSet<>();
+		// This run should get paused for beam and restarted.
+		scanner.addRunListener(new IRunListener() {
+			public void stateChanged(RunEvent evt) throws ScanningException {
+				states.add(evt.getDeviceState());
+			}
+		});
+		
+		scanner.start(null);
 	}
 	
 	@Test
