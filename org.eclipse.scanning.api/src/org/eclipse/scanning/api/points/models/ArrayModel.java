@@ -50,4 +50,10 @@ public class ArrayModel extends AbstractPointsModel implements IScanPathModel {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "ArrayModel [positions=" + Arrays.toString(positions) + "]";
+	}
+	
 }
