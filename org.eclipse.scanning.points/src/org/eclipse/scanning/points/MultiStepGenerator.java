@@ -21,6 +21,10 @@ class MultiStepGenerator extends AbstractGenerator<MultiStepModel> {
 		setDescription("Creates a step scan as a series of ranges possibly with different step sizes");
 	}
 	
+	public boolean isScanPointGeneratorFactory() {
+		return false;
+	}
+
 	protected void validateModel() {
 		super.validateModel();
 		
