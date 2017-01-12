@@ -6,7 +6,6 @@ package org.eclipse.scanning.test.points;
 import static org.junit.Assert.assertArrayEquals;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -23,19 +22,20 @@ class GeneratorUtil {
 	/**
 	 * Checks the points list vs the iterator
 	 * @param gen
+	 * @param expectedShape 
 	 * @throws Exception 
 	 */
 	public static void testGeneratorPoints(IPointGenerator<?> gen, int... expectedShape) throws Exception {
 		
-		final List ponts = gen.createPoints();
+		final List points = gen.createPoints();
 		final List its   = new ArrayList<>(gen.size());
 		final Iterator it = gen.iterator();
 		while(it.hasNext()) its.add(it.next());
 		
-		IPosition[] pnts1 = array(ponts);
+		IPosition[] pnts1 = array(points);
 		IPosition[] pnts2 = array(its);
 		
-		if (pnts2.length!=pnts1.length) throw new Exception("Not the same size! Iterator size is "+its.size()+" full list size is "+ponts.size());
+		if (pnts2.length!=pnts1.length) throw new Exception("Not the same size! Iterator size is "+its.size()+" full list size is "+points.size());
         for (int i = 0; i < pnts1.length; i++) {
 			if (!pnts1[i].equals(pnts2[i])) {
 				throw new Exception(pnts1[i]+" does not equal "+pnts2[i]);
@@ -45,7 +45,7 @@ class GeneratorUtil {
 		// Check the estimator. In this case it is not doing anything
 		// that we don't already know, so we can test it.
 		final ScanEstimator estimator = new ScanEstimator(gen, null, 100);
-		if (ponts.size()!=estimator.getSize()) throw new Exception("Different size from shape estimator!");
+		if (points.size()!=estimator.getSize()) throw new Exception("Different size from shape estimator!");
 
 		if (expectedShape!=null && expectedShape.length>0) {// They set one
 		    int[] shape = estimator.getShape();
