@@ -3,11 +3,13 @@ package org.eclipse.scanning.test.points;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Before;
@@ -80,7 +82,19 @@ public class StepTest {
 		gen.setModel(model);
 		assertEquals(7, gen.size());
 		GeneratorUtil.testGeneratorPoints(gen);
-
+	}
+	
+	@Test
+	public void testDirectionSmaller() throws Exception {
+		StepModel model = new StepModel("Temperature", 4, 1, -0.5);
+		IPointGenerator<?> gen = service.createGenerator(model); 
+		assertEquals(7, gen.size());
+		GeneratorUtil.testGeneratorPoints(gen);
+		List<IPosition> points = gen.createPoints();
+		assertEquals(7, points.size());
+		for (int i = 0; i < points.size(); i++) {
+			assertEquals(new Scalar<>("Temperature", i, 4 - 0.5 * i), points.get(i));
+		}
 	}
 	
 	@Test

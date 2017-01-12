@@ -14,14 +14,19 @@ class StepIterator implements Iterator<IPosition> {
 	private double        value;
 	
 	public StepIterator(StepGenerator gen) {
-		this.model= gen.getModel();
+		this(gen.getModel());
+	}
+	
+	public StepIterator(StepModel model) {
+		this.model = model;
 		value = model.getStart()-model.getStep();
 	}
 
 	@Override
 	public boolean hasNext() {
 		double next = increment();
-		return next<=model.getStop();
+		double dir = Math.signum(model.getStop() - next);
+		return dir == 0 || dir == Math.signum(model.getStop() - model.getStart()); 
 	}
 
 	private double increment() {
