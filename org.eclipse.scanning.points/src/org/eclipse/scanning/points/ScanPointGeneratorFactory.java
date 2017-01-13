@@ -202,19 +202,26 @@ public class ScanPointGeneratorFactory {
     	PySystemState state = Py.getSystemState();
     	if (state==configuredState) return;
     	
-    	if (configuredState!=null && state!=null && loader==null) {
+    	if (loader==null) {
     		// Then someone else has changed the PySystemState
     		// They will not have added our 
 			loader = createJythonClassLoader(state.getClassLoader());   // Don't clobber their working.		
     	}
-    	
-    	fakeSysExecutable(state);
-    	addScriptPaths(state);
 	   	state.setClassLoader(loader);
+    	
+     	setJythonPaths(state);       // Tries to ensure that enough of jython is on the path
+     	setSpgGeneratorPaths(state); // Adds the scripts directory from points
 	   	Py.setSystemState(state);
  
 	   	configuredState = state;
 	}
+
+	private static void setSpgGeneratorPaths(PySystemState state) {
+		
+        final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
+        state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
+	}
+
 
 	private static void initializePythonPath(ClassLoader loader) {
 		try {
@@ -240,29 +247,7 @@ public class ScanPointGeneratorFactory {
 	    	logger.debug("Problem loading jython bundles!", ne);
 	    }
 	}
-	
-	private static void fakeSysExecutable(PySystemState sys) {
-		// fake an executable path to get around problem in pydoc.Helper.__init__
-		File f;
-		if (!(sys.executable instanceof PyNone)) {
-			f = new File(((PyString) sys.executable).asString());
-			if (f.exists()) {
-				return;
-			}
-		}
 
-		int n = sys.path.size() - 1;
-		for (int i = 0; i < n; i++) {
-			f = new File((String) sys.path.get(i));
-			if (f.exists()) {
-				sys.executable = new PyString(f.getPath());
-				return;
-			}
-		}
-		String home = System.getProperty("java.home");
-		sys.executable = new PyString(home);
-		logger.warn("Setting sys.executable to java.home: {}", home);
-	}
 
 	private static ClassLoader createJythonClassLoader(ClassLoader classLoader) {
 		
@@ -285,7 +270,7 @@ public class ScanPointGeneratorFactory {
     	return jythonClassloader;
 	}
 
-	private static void addScriptPaths(PySystemState state) {
+	private static void setJythonPaths(PySystemState state) {
     	        	
         try {
         	// Search for the Libs directory which should have been expanded out either
@@ -328,10 +313,7 @@ public class ScanPointGeneratorFactory {
         	ne.printStackTrace();
         	logger.debug("Problem setting jython path to include scripts!", ne);
         }
- 
-        final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
-        state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
-	}
+ 	}
 
 	private static ClassLoader getBundleLoader(String name) {
     	Bundle bundle = Platform.getBundle(name);
