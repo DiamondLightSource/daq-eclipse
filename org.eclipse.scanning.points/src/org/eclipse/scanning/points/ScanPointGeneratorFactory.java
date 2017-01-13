@@ -137,8 +137,7 @@ public class ScanPointGeneratorFactory {
         // This constructor passes through to the other constructor with the SystemState
         JythonObjectFactory(Class<?> javaClass, String moduleName, String className) {
 
-        	setupSystemState();
-        	PySystemState state = Py.getSystemState();
+        	PySystemState state = setupSystemState();
           
             this.javaClass = javaClass;
             PyObject importer = state.getBuiltins().__getitem__(Py.newString("__import__"));
@@ -189,22 +188,32 @@ public class ScanPointGeneratorFactory {
         return null;
 	}
 
-	private static volatile boolean setupPythonState = false;
-
-	private static synchronized void setupSystemState() {
+    private static volatile PySystemState lastConfiguredState;
+    
+    /**
+     * This ensures that the state used is the current global state.
+     * 
+     * GDA Does a reset namespace and resets the PySystemState at different 
+     * times. Whenever this happens the global state changes and 
+     * 
+     * @return
+     */
+	private static synchronized PySystemState setupSystemState() {
 		
-		if (setupPythonState) return;
+		PySystemState state = Py.getSystemState();
+      	 
+		if (state == lastConfiguredState) return lastConfiguredState;
 		
 		ClassLoader loader = createJythonClassLoader();
  		createPythonPath(loader); 
  		
-    	PySystemState state = Py.getSystemState();
     	fakeSysExecutable(state);
     	addScriptPaths(state);
 	   	state.setClassLoader(loader);
 	   	Py.setSystemState(state);
  
-        setupPythonState = true;
+	   	lastConfiguredState = state;
+	   	return lastConfiguredState;
 
 	}
 
