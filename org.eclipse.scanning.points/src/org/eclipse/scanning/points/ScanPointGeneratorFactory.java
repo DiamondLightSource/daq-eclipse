@@ -189,26 +189,34 @@ public class ScanPointGeneratorFactory {
         return null;
 	}
 
-	private static volatile boolean setupPythonState = false;
+	private static volatile PySystemState configuredState;
 
 	private static synchronized void setupSystemState() {
 		
-		if (setupPythonState) return;
+		ClassLoader loader=null;
+		if (configuredState==null) { // Relies on setupSystemState() being called early in the server startup.
+			loader = createJythonClassLoader(PySystemState.class.getClassLoader());
+	 		initializePythonPath(loader); 
+		}
 		
-		ClassLoader loader = createJythonClassLoader();
- 		createPythonPath(loader); 
- 		
     	PySystemState state = Py.getSystemState();
+    	if (state==configuredState) return;
+    	
+    	if (configuredState!=null && state!=null && loader==null) {
+    		// Then someone else has changed the PySystemState
+    		// They will not have added our 
+			loader = createJythonClassLoader(state.getClassLoader());   // Don't clobber their working.		
+    	}
+    	
     	fakeSysExecutable(state);
     	addScriptPaths(state);
 	   	state.setClassLoader(loader);
 	   	Py.setSystemState(state);
  
-        setupPythonState = true;
-
+	   	configuredState = state;
 	}
 
-	private static void createPythonPath(ClassLoader loader) {
+	private static void initializePythonPath(ClassLoader loader) {
 		try {
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 	        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
@@ -256,13 +264,13 @@ public class ScanPointGeneratorFactory {
 		logger.warn("Setting sys.executable to java.home: {}", home);
 	}
 
-	private static ClassLoader createJythonClassLoader() {
+	private static ClassLoader createJythonClassLoader(ClassLoader classLoader) {
 		
     	ClassLoader jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
     	
     	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
-    		CompositeClassLoader composite = new CompositeClassLoader(PySystemState.class.getClassLoader());
+    		CompositeClassLoader composite = new CompositeClassLoader(classLoader);
    	  	    // Classloader for org.eclipse.scanning.points
     		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
     		addLast(composite, jythonBundleName);
