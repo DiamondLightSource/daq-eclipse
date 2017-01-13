@@ -213,6 +213,7 @@ public class ScanPointGeneratorFactory {
 	   	state.setClassLoader(loader);
 	   	Py.setSystemState(state);
  
+	   	configuredState = state;
 	}
 
 	private static void initializePythonPath(ClassLoader loader) {
