@@ -194,7 +194,7 @@ public class ScanPointGeneratorFactory {
 	private static synchronized void setupSystemState() {
 		
 		ClassLoader loader=null;
-		if (configuredState==null) {	
+		if (configuredState==null) { // Relies on setupSystemState() being called early in the server startup.
 			loader = createJythonClassLoader(PySystemState.class.getClassLoader());
 	 		initializePythonPath(loader); 
 		}
