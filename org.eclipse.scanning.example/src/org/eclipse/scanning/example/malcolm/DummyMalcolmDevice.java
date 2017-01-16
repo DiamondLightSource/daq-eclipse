@@ -32,9 +32,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -94,6 +96,8 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	private static interface IDummyMalcolmControlledDevice {
 		
 		public void createNexusFile(String dirPath) throws NexusException;
+		
+		public void closeNexusFile() throws NexusException;
 
 		public void writePosition(IPosition position) throws Exception;
 		
@@ -107,6 +111,8 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	public abstract class DummyMalcolmControlledDevice implements IDummyMalcolmControlledDevice {
 		
 		private Map<String, ILazyWriteableDataset> datasets = new HashMap<>();
+		
+		protected NexusFile nexusFile = null;
 		
 		protected void addDataset(String datasetName, ILazyWriteableDataset dataset, int... datashape) {
 			datasets.put(datasetName, dataset);
@@ -148,6 +154,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			final int[] startPos = new int[] { index };
 			final int[] stopPos = new int[] { index + 1 };
 			dataset.setSlice(null, DatasetFactory.createFromObject(demandValue), startPos, stopPos, null);
+		}
+		
+		public void closeNexusFile() throws NexusException {
+			nexusFile.flush();
+			nexusFile.close();
 		}
 		
 	}
@@ -209,7 +220,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			}
 			
 			// save the nexus tree to disk
-			saveNexusFile(treeFile);
+			nexusFile = saveNexusFile(treeFile);
 		}
 		
 		private int[] getDataShape(DummyMalcolmDatasetModel datasetModel) {
@@ -241,6 +252,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			final int uniqueKey = position.getStepIndex() + 1;
 			final IDataset newPositionData = DatasetFactory.createFromObject(uniqueKey);
 			writeData(DATASET_NAME_UNIQUE_KEYS, position, newPositionData);
+			nexusFile.flush();
 		}
 
 		@Override
@@ -289,11 +301,11 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			addDataset(DATASET_NAME_UNIQUE_KEYS, ndAttributesCollection.initializeLazyDataset(
 					uniqueKeysDatasetPathSegments[3], getScanRank(), String.class));
 			
-			saveNexusFile(treeFile);
+			nexusFile = saveNexusFile(treeFile);
 		}
 
 		@Override
-		public void writePosition(IPosition position) throws DatasetException {
+		public void writePosition(IPosition position) throws Exception {
 			for (String positionerName : getModel().getPositionerNames()) {
 				Object posValue = position.get(positionerName);
 				if (posValue == null) { // a malcolm controlled positioner which is not a axis (maybe aggregated, e.g. one of a group of jacks)
@@ -310,6 +322,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			final int uniqueKey = position.getStepIndex() + 1;
 			final IDataset newPositionData = DatasetFactory.createFromObject(uniqueKey);
 			writeData(DATASET_NAME_UNIQUE_KEYS, position, newPositionData);
+			nexusFile.flush();
 		}
 
 		@Override
@@ -489,7 +502,16 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	
 	@ScanFinally
 	public void scanFinally() {
-		// reset device state for next scan
+		// close all the nexus file
+		for (Map.Entry<String, IDummyMalcolmControlledDevice> entry : devices.entrySet()) {
+			try {
+				entry.getValue().closeNexusFile();
+			} catch (NexusException e) {
+				throw new RuntimeException("Unable to create nexus file for device " + entry.getKey());
+			}
+		}
+		
+		// reset device state for next scan.
 		devices = null;
 		firstRunCompleted = false;
 	}
@@ -710,12 +732,13 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		}
 	}
 	
-	private void saveNexusFile(TreeFile nexusTree) throws NexusException {
+	private NexusFile saveNexusFile(TreeFile nexusTree) throws NexusException {
 		NexusFile file = ServiceHolder.getNexusFileFactory().newNexusFile(nexusTree.getFilename(), true);
 		file.createAndOpenToWrite();
 		file.addNode("/", nexusTree.getGroupNode());
 		file.flush();
-		file.close();
+		
+		return file;
 	}
 
 	@Override
