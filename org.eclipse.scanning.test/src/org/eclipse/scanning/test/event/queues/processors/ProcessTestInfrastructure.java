@@ -45,8 +45,18 @@ public class ProcessTestInfrastructure {
 	 * @param procBean
 	 * @throws Exception
 	 */
-//	@SuppressWarnings("unchecked")
-	public <R extends Queueable> void executeProcess(QueueProcess<R, Queueable> qProc, R procBean) throws Exception {		
+	public <R extends Queueable> void executeProcess(QueueProcess<R, Queueable> qProc, R procBean) throws Exception {
+		executeProcess(qProc, procBean, false);
+	}
+	
+	/**
+	 * Generic method for running a queue process. When complete, it releases the execLatch.
+	 * waitForExecutionEnd(timeoutMS) should be placed directly after this call.
+	 * @param qProc
+	 * @param procBean
+	 * @throws Exception
+	 */
+	public <R extends Queueable> void executeProcess(QueueProcess<R, Queueable> qProc, R procBean, boolean hasChildQueue) throws Exception { 
 		this.qProc = qProc;
 		this.qBean = procBean;
 		
@@ -73,10 +83,19 @@ public class ProcessTestInfrastructure {
 		System.out.println("INFO: Sleeping for "+execTime+"ms to give the processor time to run...");
 		Thread.sleep(execTime);
 		assertTrue("QueueProcess should be marked executed after execution", qProc.isExecuted());
+		
+		if (hasChildQueue) {
+			//We only want to test the process not the full pipeline
+			qProc.broadcast(Status.RUNNING, 99.5d, "Running finished.");
+			qProc.getProcessLatch().countDown();
+		}
 	}
+	
+	
 	
 	public void waitForExecutionEnd(long timeoutMS) throws Exception {
 		boolean unLatched = analysisLatch.await(timeoutMS, TimeUnit.MILLISECONDS);
+		exceptionCheck(null);
 		if (!unLatched) {
 			if (threadException == null) {
 				fail("Execution did not complete before timeout");
@@ -87,27 +106,38 @@ public class ProcessTestInfrastructure {
 	}
 	
 	public void waitToTerminate(long timeoutMS) throws Exception {
+		waitToTerminate(timeoutMS, false);
+	}
+	
+	public void waitToTerminate(long timeoutMS, boolean hasChildQueue) throws Exception {
 		try {
 			Thread.sleep(timeoutMS);
 		} catch (InterruptedException iEx){
 			System.out.println("ERROR: Sleep before termination interrupted!");
 			throw iEx;
 		}
+		//If process creates a child queue, set some arbitrary percent complete
+		if (hasChildQueue) {
+			qProc.broadcast(Status.REQUEST_TERMINATE, 20d);
+		}
+		
 		qProc.terminate();
 		assertTrue("QueueProcess should be marked terminated after termination", qProc.isTerminated());
+		exceptionCheck(null);
 	}
 	
-	public void exceptionCheck() throws Exception {
-		System.out.println("INFO: Waiting for thread to finish...");
-		long timeout = 2000;
-		boolean released = analysisLatch.await(timeout, TimeUnit.MILLISECONDS);
+	public void exceptionCheck(Long timeout) throws Exception {
+		if (timeout != null) {
+			System.out.println("INFO: Waiting for thread to finish...");
+			boolean released = analysisLatch.await(timeout, TimeUnit.MILLISECONDS);
+			if (!released) {
+				fail("Thread running the QueueProcess didn't complete within "+timeout+"ms");
+			}
+		}
 		if (threadException != null) {
 			throw threadException;
 		}
-		
-		if (!released) {
-			fail("Thread running the QueueProcess didn't complete within "+timeout+"ms");
-		}
+
 	}
 	
 	/**
@@ -138,8 +168,8 @@ public class ProcessTestInfrastructure {
 	}
 	
 	/**
-	 * Check the statuses of the first last and (optionally) the penultimate 
-	 * bean,  for any processor outcome, depending on the supplied state.
+	 * Check the statuses of the first, last and (optionally) the penultimate 
+	 * bean, for any process outcome, depending on the supplied state.
 	 * @param qBean
 	 * @param state
 	 * @param prevBean
