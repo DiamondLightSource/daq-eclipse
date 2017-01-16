@@ -54,17 +54,17 @@ it resets to time before next TopUp fill,
     |                        . |<-Tf->|
     |                          ........    t
     |                            
-    |__________________________________(t)
+    |__________________________________(time)
     
     |<-              p              ->|
     
     w  - warmup
     c  - cooloff
-    t  - topup countdown from end of fill
+    t  - time until next topup next occurs
     Tf - Topup fill time (variable but max 15s in normal mode)
     p  - Period of cycle, usually 10mins or so.
     
-    In order to scan:
+    In order for scanning to run, all of the following conditions must be satisfied:
     
     1. Mode is normal (8)
     2. t > c
