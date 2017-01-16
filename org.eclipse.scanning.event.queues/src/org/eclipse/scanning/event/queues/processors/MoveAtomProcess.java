@@ -123,20 +123,19 @@ public class MoveAtomProcess<T extends Queueable> extends QueueProcess<MoveAtom,
 	}
 	
 	@Override
-	public void terminate() throws EventException {
+	public void doTerminate() throws EventException {
 		moveThread.interrupt();
 		terminated = true;
-		super.terminate();
 	}
 	
 	@Override
-	public void pause() throws EventException {
+	public void doPause() throws EventException {
 		logger.error("Pause/resume not implemented on MoveAtom");
 		throw new EventException("Pause/resume not implemented on MoveAtom");
 	}
 
 	@Override
-	public void resume() throws EventException {
+	public void doResume() throws EventException {
 		logger.error("Pause/resume not implemented on MoveAtom");
 		throw new EventException("Pause/resume not implemented on MoveAtom");
 	}

@@ -41,9 +41,8 @@ public abstract class DummyProcess<Q extends Queueable, T extends Queueable> ext
 	}
 	
 	@Override
-	public void terminate() throws EventException {
+	public void doTerminate() throws EventException {
 		terminated = true;
-		super.terminate();
 	}
 
 }
