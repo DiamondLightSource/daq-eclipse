@@ -230,7 +230,7 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		if (model.getModeName()!=null) {
 			IScannable<?> mode = getScannable(model.getModeName());
             String smode = String.valueOf(mode.getPosition());
-            if (!"8".equals(smode)) throw new ScanningException("The machine is in low alpha or another mode where "+getClass().getSimpleName()+" cannot be used!");
+            if (!"VMX".equalsIgnoreCase(smode)) throw new ScanningException("The machine is in low alpha or another mode where "+getClass().getSimpleName()+" cannot be used!");
 		}
 		
 		try {
