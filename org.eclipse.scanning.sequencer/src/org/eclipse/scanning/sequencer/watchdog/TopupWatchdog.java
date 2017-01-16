@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
+ * <pre>
  * This watchdog may be started to run with a scan.
  * 
  * It will attempt to pause a scan when topup is about 
@@ -37,30 +38,86 @@ import org.slf4j.LoggerFactory;
  * Will Rogers and Nick Battam are the ones who know and maintain this page.
  * If you are missing information on this page, please ask them to explain and possibly add information to the page.
  * The gruesome details of the top-up application are here: http://confluence.diamond.ac.uk/x/QpRTAQ 
- * 
- *
- <pre>
+
 SR-CS-FILL-01:COUNTDOWN: this is a float-valued counter that runs to zero
 at the start of TopUp and remains there until the fill is complete when 
 it resets to time before next TopUp fill,
 </pre>
  
- Example XML configuration
-    <pre>
+<h3> Example XML configuration</h3>
+
+<pre>
     {@literal <!--  Watchdog Example -->}
 	{@literal <bean id="topupModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">}
-	{@literal 	<property name="countdownName"     value="topup"/>}
-	{@literal 	<property name="cooloff"           value="4000"/>}
-	{@literal 	<property name="message"           value="Paused during topup"/>}
-	{@literal 	<property name="warmup"            value="5000"/>}
-    {@literal   <property name="bundle"            value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->}
+	{@literal 	<property name="countdownName"          value="topup"/>}
+	{@literal 	<property name="cooloff"                value="4000"/>}
+	{@literal 	<property name="warmup"                 value="5000"/>} 
+
+    {@literal   <!-- Optional, recommended but not compulsory a scannable linked to SR-CS-RING-01:MODE, checks the mode is right -->}
+    {@literal 	<property name="modeName"               value="mode"/>}
+
+	{@literal   <!-- Optional, do not usually need to set -->}
+    {@literal 	<property name="period"                 value="600000"/>}
+	{@literal 	<property name="topupTime"              value="15000"/>}
+	{@literal   <!-- End optional, do not usually need to set -->}
+
+    {@literal   <property name="bundle"               value="org.eclipse.scanning.api" /> <!-- Delete for real spring? -->}
 	{@literal </bean>}
-	{@literal <bean id="topupWatchdog" class="org.eclipse.scanning.sequencer.watchdog.TopupWatchdog" init-method="activate">}
-	{@literal 	<property name="model"             ref="topupModel"/>}
-    {@literal   <property name="bundle"            value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->}
+	{@literal <bean id="topupWatchdog"    class="org.eclipse.scanning.sequencer.watchdog.TopupWatchdog" init-method="activate">}
+	{@literal 	<property name="model"    ref="topupModel"/>}
+    {@literal   <property name="bundle"   value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->}
 	{@literal </bean>}
+</pre>
+    
+<h3>Calculation of scannable parts of topup  </h3>  
+    <pre>
+    
+    |<-w->|
+    |.
+    |  .
+    |    .
+    |      .
+    |        .
+    |          .
+    |            .
+    |              .|<-   c  ->|
+    |                .
+    |                  .
+    |                    .
+    |                      .
+    |                        . |<-Tf->|
+    |                          ........    t
+    |                            
+    |__________________________________(t)
+    
+    |<-              p              ->|
+    
+    w  - warmup
+    c  - cooloff
+    t  - topup countdown from end of fill
+    Tf - Topup fill time (variable but max 15s in normal mode)
+    p  - Period of cycle, usually 10mins or so.
+    
+    In order to scan:
+    
+    1. Mode is normal (8)
+    2. t > c
+    3. t < (p-Tf)-w
+    
     </pre>
- 
+    
+<h3>Ring Mode</h3>
+
+The "Ring Mode" PV is SR-CS-RING-01:MODE.
+
+This PV has various states: 
+<img src="./doc/modes.png" /> 
+
+In brief though, the only one you need to care about is state 8 = VMX. This is "normal" mode now that we've installed the new VMX (AKA DDBA) components.
+
+If this PV = 8, then we're in normal mode. If this PV is anything else, then we're in some other state.
+
+    
  * @author Matthew Gerring
  *
  */
@@ -68,14 +125,11 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 	
 	private static Logger logger = LoggerFactory.getLogger(TopupWatchdog.class);
 
-	private String              countdownUnit;
+	private String             countdownUnit;
 	private volatile IPosition lastCompletedPoint;
 	
 	private volatile boolean busy   = false;
-
 	private volatile boolean rewind = false;
-	
-	private volatile long warmupEndPos = 0;
 
 	public TopupWatchdog() {
 		super();
@@ -118,17 +172,17 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 	 * beam dump so might not be desirable. If the beam is dumped, pos also
 	 * goes to 0 so the devices will be paused. In this case rewind must be called
 	 * because 
-	 * @param pos in ms or 0 if topup is happening, or -1 is no beam.
+	 * @param t in ms or 0 if topup is happening, or -1 is no beam.
 	 * @throws ScanningException 
 	 */
-	private void processPosition(long pos) throws Exception {
+	private void processPosition(long t) throws Exception {
 		
 		// It's 10Hz, we can ignore events if we are doing something.
 		// We ignore events while processing an event. 
 		// Events are frequent and blocking is bad.
 		if (busy) { 
-			logger.trace("Event '"+model.getCountdownName()+"'@"+pos+" has been ignored.");
-			System.out.println("Event '"+model.getCountdownName()+"'@"+pos+" has been ignored.");
+			logger.trace("Event '"+model.getCountdownName()+"'@"+t+" has been ignored.");
+			System.out.println("Event '"+model.getCountdownName()+"'@"+t+" has been ignored.");
 			return;
 		}
 		
@@ -136,38 +190,49 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 		// simple tests or FPE's
 		try {
 			busy = true;
-			if (pos <= model.getCooloff()) {
-				rewind = pos<0; // We did not detect it before loosing beam
+			if (!isPositionValid(t)) {
+				rewind = t<0; // We did not detect it before loosing beam
 				controller.pause(getId(), getModel());
-				warmupEndPos = 0; // set to 0, so we know be recalculate it when topup ends
 		
-			} else { // See if we can resume
-				if (pos <= model.getCooloff()) {
-					return;
+			} else { // We are a valid place in the topup, see if we can resume
+
+				// the warmup period has ended, we can resume the scan
+				if (rewind && lastCompletedPoint!=null) {
+					controller.seek(getId(), lastCompletedPoint.getStepIndex()); // Probably only does something useful for malcolm
+					rewind = false;
 				}
-				if (warmupEndPos == 0) {
-					// topup has finished and pos is now counting down to the next topup
-					// calculate the position at which warmup should end
-					warmupEndPos = pos - (model.getWarmup());
-				}
-			
-				if (pos <= warmupEndPos) {
-					// the warmup period has ended, we can resume the scan
-					if (rewind && lastCompletedPoint!=null) {
-						controller.seek(getId(), lastCompletedPoint.getStepIndex()); // Probably only does something useful for malcolm
-						rewind = false;
-					}
-					controller.resume(getId());
-				}
+				controller.resume(getId());
+				
 			}
 		} finally {
 			busy = false;
 		}
 	}
 	
+	private boolean isPositionValid(long t) {
+		long w  = model.getWarmup();
+		long c  = model.getCooloff();
+		long p  = model.getPeriod();
+		long Tf = model.getTopupTime();
+		
+		return t > c && t < ((p-Tf)-w);
+	}
+	
 	@ScanStart
-	public void start(ScanBean bean) {
+	public void start(ScanBean bean) throws Exception {
+		
 		logger.debug("Watchdog starting on "+controller.getName());
+		
+		// A scannble may optionally be defined to check that the mode of the machine
+		// fits with this watch dog. If it does not then there will be a nice exception
+		// to the user and the scan will fail. This watch dog should not be operational
+		// unless the mode is 8
+		if (model.getModeName()!=null) {
+			IScannable<?> mode = getScannable(model.getModeName());
+            String smode = String.valueOf(mode.getPosition());
+            if (!"8".equals(smode)) throw new ScanningException("The machine is in low alpha or another mode where "+getClass().getSimpleName()+" cannot be used!");
+		}
+		
 		try {
 			// Get the topup, the unit and add a listener
 			IScannable<?> topup = getScannable(model.getCountdownName());
@@ -177,7 +242,8 @@ public class TopupWatchdog extends AbstractWatchdog implements IPositionListener
 			}
 			((IPositionListenable)topup).addPositionListener(this);
 			
-			processPosition(((Number)topup.getPosition()).longValue()); // Pauses the starting scan if topup already running.
+			long t = getValueMs(((Number)topup.getPosition()).doubleValue(), countdownUnit);
+			processPosition(t); // Pauses the starting scan if topup already running.
 			
 		} catch (Exception ne) {
 			logger.error("Cannot start watchdog!", ne);
