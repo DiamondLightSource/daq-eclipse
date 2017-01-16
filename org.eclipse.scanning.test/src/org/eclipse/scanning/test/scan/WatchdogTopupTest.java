@@ -35,29 +35,42 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 	
 	private IDeviceWatchdog dog;
 		
-	void createWatchdogs() throws ScanningException {
+	void createWatchdogs() throws Exception {
 
 		// We create a device watchdog (done in spring for real server)
 		DeviceWatchdogModel model = new DeviceWatchdogModel();
 		model.setCountdownName("topup");
 		model.setCooloff(500); // Pause 500ms before
 		model.setWarmup(200);  // Unpause 200ms after
+		model.setTopupTime(150);
+		model.setPeriod(5000);
 		
+		final IScannable<Number>   topups  = connector.getScannable("topup");
+		final MockTopupScannable   topup   = (MockTopupScannable)topups;
+		assertNotNull(topup);
+		topup.setPosition(1000);
+
 		this.dog = new TopupWatchdog(model);
 		dog.activate();
 	}
 	
 	@After
-	public void disconnect() throws ScanningException {
+	public void disconnect() throws Exception {
 		final IScannable<Number>   topups  = connector.getScannable("topup");
 		final MockTopupScannable   topup   = (MockTopupScannable)topups;
 		assertNotNull(topup);
 		topup.disconnect();
+		topup.setPosition(1000);
 	}
 	
 	@Test(expected=Exception.class)
 	public void testBeamOn() throws Exception {
 		
+		final IScannable<Number>   topups  = connector.getScannable("topup");
+		final MockTopupScannable   topup   = (MockTopupScannable)topups;
+		assertNotNull(topup);
+		System.out.println(topup.getPosition());
+
 		final IScannable<Number>   beamon   = connector.getScannable("beamon");
 		beamon.setLevel(1);
 		
