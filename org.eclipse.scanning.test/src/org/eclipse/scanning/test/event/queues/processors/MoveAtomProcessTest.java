@@ -51,7 +51,6 @@ public class MoveAtomProcessTest {
 	 * - first bean in statPub should be Status.RUNNING
 	 * - last bean in statPub should be Status.COMPLETE and 100%
 	 * - status publisher should have: 1 RUNNING bean and 1 COMPLETE bean
-	 * 
 	 */
 	@Test
 	public void testExecution() throws Exception {
@@ -67,6 +66,7 @@ public class MoveAtomProcessTest {
 	 * - first bean in statPub should be Status.RUNNING
 	 * - last bean in statPub should Status.TERMINATED and not be 100% complete
 	 * - status publisher should have a TERMINATED bean
+	 * - termination message should be set on the bean
 	 * - IPositioner should have received an abort command
 	 * 
 	 * N.B. MoveAtomProcessorTest uses MockPostioner, which pauses for 100ms 
@@ -85,11 +85,16 @@ public class MoveAtomProcessTest {
 		assertFalse("Move should have been terminated", ((MockPositioner)mss.createPositioner()).isMoveComplete());
 	}
 	
+//	@Test
+	public void testPauseResume() throws Exception {
+		//TODO!
+	}
+	
 	/**
 	 * On failure:
 	 * - first bean in statPub should be Status.RUNNING
 	 * - last bean in statPub should Status.FAILED and not be 100% complete
-	 * - message with details should be set on bean
+	 * - message with details of failure should be set on bean
 	 * - IPositioner should have received an abort command
 	 */
 	@Test
