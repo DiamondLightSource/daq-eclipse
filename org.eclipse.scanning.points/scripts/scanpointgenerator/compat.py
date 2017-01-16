@@ -8,7 +8,7 @@ except NameError:
 
 
 if os.name == 'java':
-    import numjy as numpy
+    import scanpointgenerator.numjy as numpy
 else:
     import numpy
 
