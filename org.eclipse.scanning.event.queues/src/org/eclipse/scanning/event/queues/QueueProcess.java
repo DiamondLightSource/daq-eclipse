@@ -1,6 +1,8 @@
 package org.eclipse.scanning.event.queues;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.AbstractLockingPausableProcess;
@@ -36,6 +38,11 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 	
 	protected final CountDownLatch processLatch = new CountDownLatch(1);
 	
+	//Post-match analysis lock, ensures correct execution order of execute 
+	//method & control (e.g. terminate) methods 
+	protected final ReentrantLock postMatchAnalysisLock;
+	protected final Condition analysisDone;
+	
 	@SuppressWarnings("unchecked")
 	protected QueueProcess(T bean, IPublisher<T> publisher, Boolean blocking) throws EventException {
 		super(bean, publisher);
@@ -47,6 +54,9 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 			logger.error("Cannot set bean: Bean type "+bean.getClass().getSimpleName()+" not supported by "+getClass().getSimpleName()+".");
 			throw new EventException("Unsupported bean type");
 		}
+		
+		postMatchAnalysisLock = new ReentrantLock();
+		analysisDone = postMatchAnalysisLock.newCondition();
 	}
 	
 	@Override
@@ -57,7 +67,7 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 	}
 	
 	protected abstract void run() throws EventException, InterruptedException;
-	protected abstract void postMatchAnalysis() throws EventException;
+	protected abstract void postMatchAnalysis() throws EventException, InterruptedException;
 	
 	@Override
 	public void updateBean(Status newStatus, Double newPercent, String newMessage) {
@@ -99,6 +109,29 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 	@Override
 	public Q getQueueBean() {
 		return queueBean;
+	}
+	
+	/**
+	 * Called at the end of post-match analysis to report the process finished
+	 */
+	protected void executionEnded() {
+		finished = true;
+		analysisDone.signal();
+	}
+	
+	/**
+	 * Called when we would need to wait if post-match analysis hasn't yet run.
+	 * @throws InterruptedException 
+	 */
+	protected void continueIfExecutionEnded() throws InterruptedException {
+		if (finished) return;
+		else {
+			analysisDone.await();
+		}
+	}
+	
+	public CountDownLatch getProcessLatch() {
+		return processLatch;
 	}
 	
 //	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking) {
