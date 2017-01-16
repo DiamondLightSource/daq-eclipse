@@ -1,6 +1,7 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -13,9 +14,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IdBean;
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueService;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.queues.QueueProcess;
@@ -24,6 +27,7 @@ import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
+import org.eclipse.scanning.test.event.queues.mocks.MockSubmitter;
 
 public class ProcessTestInfrastructure {
 	
@@ -268,7 +272,7 @@ public class ProcessTestInfrastructure {
 	}
 	
 	private void waitForBeanState(Status state, boolean isFinal, long timeout) throws Exception {
-		Queueable lastBean= ((MockPublisher<Queueable>)statPub).getLastQueueable();
+		StatusBean lastBean= ((MockPublisher<? extends StatusBean>)statPub).getLastQueueable();
 		long startTime = System.currentTimeMillis();
 		long runTime = 0;
 		
@@ -283,7 +287,7 @@ public class ProcessTestInfrastructure {
 			if (threadException != null) {
 				throw new EventException(threadException);
 			}
-			lastBean = ((MockPublisher<Queueable>)statPub).getLastQueueable();
+			lastBean = ((MockPublisher<? extends StatusBean>)statPub).getLastQueueable();
 		}
 		
 		String beanStatus;
@@ -293,6 +297,33 @@ public class ProcessTestInfrastructure {
 			beanStatus = lastBean.getStatus().toString();
 		}
 		throw new Exception("Bean state not reached before timeout (was: "+beanStatus+"; with message: "+lastBean.getMessage()+").");
+	}
+	
+	public void checkSubmittedBeans(MockSubmitter<? extends StatusBean> ms, String queueID) throws Exception {
+		List<? extends StatusBean> submittedBeans = getSubmittedBeans(ms, queueID);
+		assertTrue("No beans in the final status set", submittedBeans.size() != 0);
+		for (StatusBean dummy : submittedBeans) {
+			//First check beans are in final state
+			assertEquals("Final bean "+dummy.getName()+" is not submitted (was: "+dummy.getStatus()+")", Status.SUBMITTED ,dummy.getStatus());
+			//Check the properties of the parent atom/bean have been correctly passed down
+			assertFalse("No hostname set", dummy.getHostName() == null);
+			assertEquals("Incorrect hostname", qBean.getHostName(), dummy.getHostName());
+			assertFalse("No username set", dummy.getUserName() == null);
+			assertEquals("Incorrect username", qBean.getUserName(), dummy.getUserName());
+			//
+			if (dummy instanceof QueueAtom) {
+				assertFalse("No beamline set", ((QueueAtom)dummy).getBeamline() == null);
+				assertEquals("Incorrect beamline", qBean.getBeamline(), ((QueueAtom)dummy).getBeamline());
+			} else if (dummy instanceof ScanBean) {
+				assertFalse("No beamline set", ((ScanBean)dummy).getBeamline() == null);
+				assertEquals("Incorrect beamline", qBean.getBeamline(), ((ScanBean)dummy).getBeamline());
+			}
+		}
+	}
+	
+	public List<? extends StatusBean> getSubmittedBeans(MockSubmitter<? extends StatusBean> ms, String queueID) {
+		String qName = queueID+IQueue.SUBMISSION_QUEUE_SUFFIX;
+		return ms.getQueue(qName);
 	}
 	
 	/**

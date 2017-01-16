@@ -136,7 +136,7 @@ public class SubTaskAtomProcessTest {
 		pti.checkFirstBroadcastBeanStatuses(reportedStatuses, reportedPercent);
 		pti.checkLastBroadcastBeanStatuses(Status.COMPLETE, true);
 		
-		checkSubmittedBeans(mockSub);
+		pti.checkSubmittedBeans(mockSub, ((SubTaskAtomProcess<Queueable>) stAtProcr).getAtomQueueProcessor().getActiveQueueID());
 		
 		//Child queue should be removed after execution
 		assertEquals("Active queues still registered after terminate", 0, qServ.getAllActiveQueueIDs().size());
@@ -200,23 +200,6 @@ public class SubTaskAtomProcessTest {
 		
 		//After fail child queue should be deregistered
 		assertEquals("Active queues still registered after terminate", 0, qServ.getAllActiveQueueIDs().size());
-	}
-	
-	private void checkSubmittedBeans(MockSubmitter<QueueAtom> ms) throws Exception {
-		String qName = ((SubTaskAtomProcess<Queueable>) stAtProcr).getAtomQueueProcessor().getActiveQueueID()+IQueue.SUBMISSION_QUEUE_SUFFIX;
-		List<QueueAtom> submittedBeans = ms.getQueue(qName);
-		assertTrue("No beans in the final status set", submittedBeans.size() != 0);
-		for (QueueAtom dummy : submittedBeans) {
-			//First check beans are in final state
-			assertEquals("Final bean "+dummy.getName()+" is not submitted (was: "+dummy.getStatus()+")", Status.SUBMITTED ,dummy.getStatus());
-			//Check the properties of the ScanAtom have been correctly passed down
-			assertFalse("No beamline set", dummy.getBeamline() == null);
-			assertEquals("Incorrect beamline", stAt.getBeamline(), dummy.getBeamline());
-			assertFalse("No hostname set", dummy.getHostName() == null);
-			assertEquals("Incorrect hostname", stAt.getHostName(), dummy.getHostName());
-			assertFalse("No username set", dummy.getUserName() == null);
-			assertEquals("Incorrect username", stAt.getUserName(), dummy.getUserName());
-		}
 	}
 
 }
