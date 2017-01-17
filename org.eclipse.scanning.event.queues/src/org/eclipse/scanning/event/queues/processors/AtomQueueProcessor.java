@@ -21,14 +21,17 @@ import org.slf4j.LoggerFactory;
 /**
  * Generic class for processing a {@link Queueable} implementing 
  * {@link IHasAtomQueue}. The processor spools the atoms in the contained queue
- *  into a new queue  created through the {@link IQueueService}. The new queue 
- *  is monitored using the {@link QueueListener} and through the queue service.
+ * into a new queue  created through the {@link IQueueService}. The new queue 
+ * is monitored using the {@link QueueListener} and through the queue service.
  * 
  * @author Michael Wharmby
  *
  * @param <P> Bean implementing {@link Queueable}, but must be an  
  *            {@link IHasAtomQueue}.
  * @param <Q> Bean from within the AtomQueue - implements {@link QueueAtom}.
+ * @param <T> The {@link Queueable} specified by the {@link IConsumer} 
+ *            instance using the parent {@link QueueProcess}. This might be a
+ *            {@link QueueBean} or a {@link QueueAtom}.
  */
 public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>, 
 								Q extends QueueAtom, 

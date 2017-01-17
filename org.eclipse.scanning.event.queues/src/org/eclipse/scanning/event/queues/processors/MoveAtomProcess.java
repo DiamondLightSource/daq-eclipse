@@ -2,8 +2,10 @@ package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.MoveAtom;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IPosition;
@@ -11,6 +13,7 @@ import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.event.queues.QueueProcess;
+import org.eclipse.scanning.event.queues.QueueProcessFactory;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +30,17 @@ import org.slf4j.LoggerFactory;
  * TODO Implement pausing/resuming when implemented in the IPositioner system.
  * 
  * @author Michael Wharmby
- *
+ * 
+ * @param <T> The {@link Queueable} specified by the {@link IConsumer} 
+ *            instance using this MoveAtomProcess. This will be 
+ *            {@link QueueAtom}.
  */
 public class MoveAtomProcess<T extends Queueable> extends QueueProcess<MoveAtom, T> {
 	
+	/**
+	 * Used by {@link QueueProcessFactory} to identify the bean type this 
+	 * {@link QueueProcess} handles.
+	 */
 	public static final String BEAN_CLASS_NAME = MoveAtom.class.getName();
 	
 	private static Logger logger = LoggerFactory.getLogger(MoveAtomProcess.class);
@@ -59,7 +69,7 @@ public class MoveAtomProcess<T extends Queueable> extends QueueProcess<MoveAtom,
 	}
 
 	@Override
-	public void run() throws EventException, InterruptedException {
+	protected void run() throws EventException, InterruptedException {
 		executed = true;
 		broadcast(Status.RUNNING,"Creating position from configured values.");
 		
@@ -123,40 +133,70 @@ public class MoveAtomProcess<T extends Queueable> extends QueueProcess<MoveAtom,
 	}
 	
 	@Override
-	public void doTerminate() throws EventException {
-		moveThread.interrupt();
-		terminated = true;
+	protected void postMatchAnalysis() throws EventException, InterruptedException {
+		try {
+			postMatchAnalysisLock.lockInterruptibly();
+
+			if (isTerminated()) {
+				broadcast("Move aborted before completion (requested).");
+				return;
+			}
+
+			if (queueBean.getPercentComplete() >= 99.5) {
+				//Clean finish
+				broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
+			} else {
+				//Scan failed
+				//TODO Set message? Or is it set elsewhere?
+				positioner.abort();
+				broadcast(Status.FAILED);
+			} 
+		} finally {
+			//And we're done, so let other processes continue
+			executionEnded();
+
+			postMatchAnalysisLock.unlock();
+
+			/*
+			 * N.B. Broadcasting needs to be done last; otherwise the next 
+			 * queue may start when we're not ready. Broadcasting should not 
+			 * happen if we've been terminated.
+			 */
+			if (!isTerminated()) {
+				broadcast();
+			}
+		}
 	}
 	
 	@Override
-	public void doPause() throws EventException {
+	protected void doTerminate() throws EventException {
+		try {
+			//Reentrant lock ensures execution method (and hence post-match 
+			//analysis) completes before terminate does
+			postMatchAnalysisLock.lockInterruptibly();
+
+			moveThread.interrupt();
+			terminated = true;
+
+			//Wait for post-match analysis to finish
+			continueIfExecutionEnded();
+		} catch (InterruptedException iEx) {
+			throw new EventException(iEx);
+		} finally {
+			postMatchAnalysisLock.unlock();
+		}
+	}
+	
+	@Override
+	protected void doPause() throws EventException {
 		logger.error("Pause/resume not implemented on MoveAtom");
 		throw new EventException("Pause/resume not implemented on MoveAtom");
 	}
 
 	@Override
-	public void doResume() throws EventException {
+	protected void doResume() throws EventException {
 		logger.error("Pause/resume not implemented on MoveAtom");
 		throw new EventException("Pause/resume not implemented on MoveAtom");
 	}
 
-		
-	@Override
-	public void postMatchAnalysis() throws EventException {
-		//Post-match analysis - set all final statuses here!
-		if (isTerminated()) {
-			broadcast("Move aborted before completion (requested).");
-			return;
-		}
-		
-		if (queueBean.getPercentComplete() >= 99.5) {
-			//Clean finish
-			broadcast(Status.COMPLETE, 100d, "Device move(s) completed.");
-		} else {
-			//Scan failed - don't set anything here as messages should have 
-			//been updated elsewhere
-			positioner.abort();
-			broadcast(Status.FAILED);
-		}
-	}
 }

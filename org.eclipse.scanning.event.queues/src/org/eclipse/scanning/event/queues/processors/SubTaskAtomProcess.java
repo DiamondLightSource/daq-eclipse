@@ -1,17 +1,36 @@
 package org.eclipse.scanning.event.queues.processors;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
-import org.eclipse.scanning.api.event.queues.beans.TaskBean;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcess;
+import org.eclipse.scanning.event.queues.QueueProcessFactory;
 
+/**
+ * SubTaskAtomProcess uses an {@link AtomQueueProcessor} to read the 
+ * {@link QueueAtom}s in a {@link SubTaskAtom} and form them into an 
+ * active-queue.
+ * 
+ * It differs from the {@link TaskBeanProcess} only in its failure 
+ * behaviour, passing control back to it's parent.
+ * 
+ * @author Michael Wharmby
+ *
+ * @param <T> The {@link Queueable} specified by the {@link IConsumer} 
+ *            instance using this SubTaskAtomProcess. This will be 
+ *            {@link QueueAtom}.
+ */
 public class SubTaskAtomProcess<T extends Queueable> extends QueueProcess<SubTaskAtom, T> {
 	
-	public static final String BEAN_CLASS_NAME = TaskBean.class.getName();
+	/**
+	 * Used by {@link QueueProcessFactory} to identify the bean type this 
+	 * {@link QueueProcess} handles.
+	 */
+	public static final String BEAN_CLASS_NAME = SubTaskAtom.class.getName();
 	
 	private AtomQueueProcessor<SubTaskAtom, QueueAtom, T> atomQueueProcessor;
 	
@@ -64,7 +83,7 @@ public class SubTaskAtomProcess<T extends Queueable> extends QueueProcess<SubTas
 	}
 	
 	@Override
-	public void doTerminate() throws EventException {
+	protected void doTerminate() throws EventException {
 		try {
 			//Reentrant lock ensures execution method (and hence post-match 
 			//analysis) completes before terminate does
@@ -80,33 +99,25 @@ public class SubTaskAtomProcess<T extends Queueable> extends QueueProcess<SubTas
 			postMatchAnalysisLock.unlock();
 		}
 	}
-
-
-
-//	@Override
-//	public void terminate() throws EventException {
-//		//Reentrant lock ensures execution method (and hence post-match 
-//		//analysis) complete before terminate does
-//		try{
-//			lock.lockInterruptibly();
-//
-//			setTerminated();
-//			processorLatch.countDown();
-//
-//			//Wait for post-match analysis to finish
-//			analysisDone.await();
-//		} catch (InterruptedException iEx) {
-//			throw new EventException(iEx);
-//		} finally {
-//			lock.unlock();
-//		}
-//	}
+	
+	@Override
+	protected void doPause() throws Exception {
+		//TODO!
+	}
+	
+	@Override
+	protected void doResume() throws Exception {
+		//TODO!
+	}
 
 	@Override
 	public Class<SubTaskAtom> getBeanClass() {
 		return SubTaskAtom.class;
 	}
 	
+	/*
+	 * For tests 
+	 */
 	public AtomQueueProcessor<SubTaskAtom, QueueAtom, T> getAtomQueueProcessor() {
 		return atomQueueProcessor;
 	}

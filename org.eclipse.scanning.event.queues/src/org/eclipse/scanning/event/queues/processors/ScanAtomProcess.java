@@ -7,9 +7,11 @@ import java.util.UUID;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -18,22 +20,30 @@ import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.event.queues.QueueProcess;
+import org.eclipse.scanning.event.queues.QueueProcessFactory;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * ScanAtomProcessor takes the fields of a {@link ScanAtom} and from them makes
+ * ScanAtomProcess takes the fields of a {@link ScanAtom} and from them makes
  * a {@link ScanBean}, which is then submitted to the scan event service.
  * 
- * The processor uses a {@link QueueListener} to monitor the process of the 
+ * The process uses a {@link QueueListener} to monitor the process of the 
  * scan and pass up messages to the rest of the queue.
  * 
  * @author Michael Wharmby
  * 
+ * @param <T> The {@link Queueable} specified by the {@link IConsumer} 
+ *            instance using this ScanAtomProcess. This will be 
+ *            {@link QueueAtom}. 
  */
 public class ScanAtomProcess<T extends Queueable> extends QueueProcess<ScanAtom, T> {
 	
+	/**
+	 * Used by {@link QueueProcessFactory} to identify the bean type this 
+	 * {@link QueueProcess} handles.
+	 */
 	public static final String BEAN_CLASS_NAME = ScanAtom.class.getName();
 	
 	private static Logger logger = LoggerFactory.getLogger(ScanAtomProcess.class);
@@ -170,11 +180,11 @@ public class ScanAtomProcess<T extends Queueable> extends QueueProcess<ScanAtom,
 			if (!isTerminated()) {
 				broadcast();
 			}
-		}		
+		}
 	}
 	
 	@Override
-	public void doTerminate() throws EventException {
+	protected void doTerminate() throws EventException {
 		try {
 			//Reentrant lock ensures execution method (and hence post-match 
 			//analysis) completes before terminate does
@@ -192,21 +202,21 @@ public class ScanAtomProcess<T extends Queueable> extends QueueProcess<ScanAtom,
 		}
 	}
 	
-//	@Override
-//	public void doPause() throws EventException {
+	@Override
+	protected void doPause() throws EventException {
 //		if (!queueListener.isChildCommand()) {
 //			commandScanBean(Status.REQUEST_PAUSE);
 //		}
-//		//TODO More?
-//	}
-//
-//	@Override
-//	public void doResume() throws EventException {
+		//TODO!
+	}
+
+	@Override
+	protected void doResume() throws EventException {
 //		if (!queueListener.isChildCommand()) {
 //			commandScanBean(Status.REQUEST_RESUME);
 //		}
-//		//TODO More?
-//	}
+		//TODO!
+	}
 
 	
 	@Override
