@@ -138,7 +138,7 @@ public class MockScannable extends AbstractScannable<Number> implements IConfigu
 		boolean ok = delegate.firePositionWillPerform(new Scalar(getName(), index, val));
 		if (!ok) return;
 		
-		if (value!=null) {
+		if (value!=null && position!=null) {
 			long waitTime = Math.abs(Math.round((val-this.position.doubleValue()))*100);
 			waitTime = Math.max(waitTime, 1);
 
