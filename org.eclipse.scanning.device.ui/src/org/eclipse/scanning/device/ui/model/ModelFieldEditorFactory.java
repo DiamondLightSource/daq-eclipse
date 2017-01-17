@@ -1,7 +1,6 @@
 package org.eclipse.scanning.device.ui.model;
 
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,7 +46,6 @@ import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.SortNatural;
@@ -80,17 +78,11 @@ public class ModelFieldEditorFactory {
 	private ColumnLabelProvider labelProvider;
 	
 	public ModelFieldEditorFactory() {
-		cservice = getService(IScannableDeviceService.class);
-		dservice = getService(IRunnableDeviceService.class);
-
-	}
-	
-	private <T> T getService(Class<T> clazz) {
 		try {
-			return (T)ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), clazz);
+			cservice = ServiceHolder.getRemote(IScannableDeviceService.class);
+			dservice = ServiceHolder.getRemote(IRunnableDeviceService.class);
 		} catch (Exception e) {
-			logger.error("Unable to make a remote connection to "+clazz.getSimpleName());
-			return null;
+			logger.error("Cannot get remote services!", e);
 		}
 	}
 	
@@ -477,6 +469,10 @@ public class ModelFieldEditorFactory {
 		job.schedule();
 			
 		return ed;
+	}
+
+	public IScannableDeviceService getScannableDeviceService() {
+		return cservice;
 	}
 
 }

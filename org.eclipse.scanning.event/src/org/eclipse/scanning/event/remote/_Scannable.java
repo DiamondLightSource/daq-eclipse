@@ -20,6 +20,7 @@ import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.ILocationListener;
 import org.eclipse.scanning.api.scan.event.IPositionListenable;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
@@ -205,6 +206,20 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 				return since < 1000*60*2; // If a last value update was within two minutes, we wait some more.
 			}
 		};
+	}
+
+	@Override
+	public boolean isActivated() {
+		if (info==null) update();
+		return info.isActivated();
+	}
+
+	@Override
+	public boolean setActivated(boolean activated) throws ScanningException {
+		if (info==null) update();
+		boolean wasactivated = info.isActivated();
+		method(new DeviceRequest(info.getName(), DeviceType.SCANNABLE, DeviceAction.ACTIVATE, activated));
+		return wasactivated;
 	}
 
 }

@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
@@ -119,6 +120,11 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 			IPointGenerator<?> gen = getGenerator(bean.getScanRequest());
 			initializeMalcolmDevice(bean, gen);
 			
+			// We set any activated monitors in the request if none have been specified.
+			if (bean.getScanRequest().getMonitorNames()==null) {
+				bean.getScanRequest().setMonitorNames(getMonitors());
+			}
+			
 			if (!Boolean.getBoolean("org.eclipse.scanning.server.servlet.scanProcess.disableValidate")) {
 			    Services.getValidatorService().validate(bean.getScanRequest());
 			}
@@ -170,6 +176,18 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 			throw new EventException(ne);
 		}
 	}
+	
+
+	private Collection<String> getMonitors() throws Exception {
+		
+		final Collection<DeviceInformation<?>> scannables = Services.getConnector().getDeviceInformation();
+		final List<String> ret = new ArrayList<String>();
+		for (DeviceInformation<?> info : scannables) {
+			if (info.isActivated()) ret.add(info.getName());
+		}
+		return ret;
+	}
+
 	
 	private void setFilePath(ScanBean bean) throws EventException {
 		ScanRequest<?> req = bean.getScanRequest();

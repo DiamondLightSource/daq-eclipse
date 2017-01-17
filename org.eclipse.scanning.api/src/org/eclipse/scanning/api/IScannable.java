@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api;
 
+import org.eclipse.scanning.api.device.IActivatable;
 import org.eclipse.scanning.api.points.IPosition;
 
 /**
@@ -22,7 +23,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * @param <T> the type of value returned by {@link #getPosition()}
  *
  */
-public interface IScannable<T> extends ILevel, INameable, ITimeoutable, IBoundable<T> {
+public interface IScannable<T> extends ILevel, INameable, ITimeoutable, IBoundable<T>, IActivatable {
 	
 	/**
 	 * Returns the current position of the Scannable. Called by ConcurentScan at the end of the point. 
