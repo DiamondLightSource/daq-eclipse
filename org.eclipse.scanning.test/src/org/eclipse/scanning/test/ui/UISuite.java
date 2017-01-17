@@ -30,6 +30,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 	AxisConfigurationTest.class,
 	KnownModelsTest.class,
 	BoundingBoxTest.class,
+	ScannableViewerTest.class,
 	ControlTreeViewerTest.class // Must be last!
 
 })
@@ -73,7 +74,11 @@ public class UISuite {
 
 	public static void disposeTestServices() throws Exception {
 		if (delegate!=null) delegate.stop();
-		dservlet.disconnect();
+		try {
+			dservlet.disconnect();
+		} catch (Exception ignored) {
+			
+		}
 	}
 	
 

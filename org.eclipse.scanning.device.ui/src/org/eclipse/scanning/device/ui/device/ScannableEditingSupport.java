@@ -12,13 +12,13 @@ import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class NameEditingSupport extends EditingSupport {
+class ScannableEditingSupport extends EditingSupport {
 	
-	private static final Logger logger = LoggerFactory.getLogger(NameEditingSupport.class);
+	private static final Logger logger = LoggerFactory.getLogger(ScannableEditingSupport.class);
 	private ModelFieldEditorFactory factory;
 	private IScannableDeviceService cservice;
 	
-	public NameEditingSupport(ColumnViewer viewer) {
+	public ScannableEditingSupport(ColumnViewer viewer) {
 		super(viewer);
 		this.factory = new ModelFieldEditorFactory();
 		this.cservice = factory.getScannableDeviceService();
