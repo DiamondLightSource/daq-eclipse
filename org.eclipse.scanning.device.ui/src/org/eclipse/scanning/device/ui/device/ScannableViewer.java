@@ -18,6 +18,7 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.scanning.api.AbstractScannable;
@@ -224,7 +225,7 @@ public class ScannableViewer {
 		ViewUtil.addGroups("refresh", mans, refresh);
 	}
 	
-	protected void refresh() throws Exception {
+	public void refresh() throws Exception {
 		final Collection<DeviceInformation<?>> scannables = cservice.getDeviceInformation();
 		ScannableContentProvider prov = (ScannableContentProvider)viewer.getContentProvider();
         for (DeviceInformation<?> info : scannables) {
@@ -252,13 +253,17 @@ public class ScannableViewer {
         prov.remove(sscannable);
 	}
 
-	protected IScannable<?> getSelection() {
+	public IScannable<?> getSelection() {
 		final ISelection selection = viewer.getSelection();
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection ssel = (IStructuredSelection)selection;
 			return (IScannable<?>)ssel.getFirstElement();
 		}
 		return null;
+	}
+
+	public void setSelection(IScannable<?> scannable) {
+		viewer.setSelection(new StructuredSelection(scannable));
 	}
 
 	

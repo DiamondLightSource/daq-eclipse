@@ -156,7 +156,26 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 		return was;
 	}
 	
-    
+	@Override
+	public boolean equals(Object obj) {
+		
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof IScannable))
+			return false;
+
+		IScannable<?> other = (IScannable)obj;
+		if (name == null) {
+			if (other.getName() != null)
+				return false;
+		} else if (!name.equals(other.getName()))
+			return false;
+		
+		return true;
+	}
+ 
 	public static final <T> IScannable<T> empty() {
 		return new AbstractScannable<T>() {
 			@Override

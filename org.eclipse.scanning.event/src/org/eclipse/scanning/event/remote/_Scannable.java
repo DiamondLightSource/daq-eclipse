@@ -222,4 +222,23 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 		return wasactivated;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof IScannable))
+			return false;
+
+		IScannable<?> other = (IScannable)obj;
+		if (name == null) {
+			if (other.getName() != null)
+				return false;
+		} else if (!name.equals(other.getName()))
+			return false;
+		
+		return true;
+	}
 }

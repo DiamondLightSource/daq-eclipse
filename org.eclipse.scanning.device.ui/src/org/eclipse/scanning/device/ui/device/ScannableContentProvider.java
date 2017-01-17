@@ -35,13 +35,15 @@ class ScannableContentProvider implements IStructuredContentProvider {
 		this.viewer = viewer;
         content.clear();
         
-		for (String name : (List<String>)newInput) {
-			try {
-				content.put(name, cservice.getScannable(name));
-			} catch (ScanningException e) {
-				e.printStackTrace();
+        if (newInput!=null) {
+			for (String name : (List<String>)newInput) {
+				try {
+					content.put(name, cservice.getScannable(name));
+				} catch (ScanningException e) {
+					e.printStackTrace();
+				}
 			}
-		}
+        }
 
 	}
 
