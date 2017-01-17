@@ -15,6 +15,7 @@ import java.util.NoSuchElementException;
  *
  * @param <T> type of object recorded in the internal list.
  */
+@Deprecated
 public class SizeLimitedRecorder<T extends Object> {
 	
 	private final LinkedList<T> record;

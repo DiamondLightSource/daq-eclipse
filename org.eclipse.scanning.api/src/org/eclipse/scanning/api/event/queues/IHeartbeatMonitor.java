@@ -23,6 +23,7 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
  * @author Michael Wharmby
  *
  */
+@Deprecated
 public interface IHeartbeatMonitor {
 	
 	/**
