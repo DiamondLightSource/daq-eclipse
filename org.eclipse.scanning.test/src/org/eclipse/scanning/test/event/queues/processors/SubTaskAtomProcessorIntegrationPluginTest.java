@@ -3,24 +3,16 @@ package org.eclipse.scanning.test.event.queues.processors;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.bean.BeanEvent;
-import org.eclipse.scanning.api.event.bean.IBeanListener;
-import org.eclipse.scanning.api.event.core.ISubscriber;
-import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.IQueueService;
-import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcessFactory;
 import org.eclipse.scanning.event.queues.ServicesHolder;
-import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcessor;
+import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcess;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcess;
@@ -35,12 +27,12 @@ public class SubTaskAtomProcessorIntegrationPluginTest extends BrokerTest {
 	protected static IQueueControllerService queueControl;
 	private String qRoot = "fake-queue-root";
 	
-	private ProcessorTestInfrastructure pti;
-	private SubTaskAtomProcessor stAtProcr;
+	private ProcessTestInfrastructure pti;
+	private SubTaskAtomProcess<Queueable> stAtProcr;
 	
 	@Before
 	public void setup() throws Exception {
-		pti = new ProcessorTestInfrastructure();
+		pti = new ProcessTestInfrastructure();
 		
 		/*
 		 * This section is the same as the QueueServiceIntegrationTest
@@ -70,8 +62,6 @@ public class SubTaskAtomProcessorIntegrationPluginTest extends BrokerTest {
 	
 	@Test
 	public void testSubTaskAtom() throws Exception {
-		stAtProcr = new SubTaskAtomProcessor();
-		
 		//Create the beans to be processed
 		SubTaskAtom subTask = new SubTaskAtom();
 		subTask.setName("Test SubTask");
@@ -79,8 +69,10 @@ public class SubTaskAtomProcessorIntegrationPluginTest extends BrokerTest {
 		DummyAtom dummyA = new DummyAtom("Gregor", 70);
 		subTask.addAtom(dummyA);
 		
+		stAtProcr = new SubTaskAtomProcess<>(subTask, pti.getPublisher(), false);
+		
 		//Execute the processor & wait for it to complete
-		pti.executeProcessor(stAtProcr, subTask);
+		pti.executeProcess(stAtProcr, subTask);
 		waitForBeanFinalStatus(subTask, queueService.getJobQueueID());//FIXME Put this on the QueueController
 			
 		//Check the bean state and that it's the right bean
