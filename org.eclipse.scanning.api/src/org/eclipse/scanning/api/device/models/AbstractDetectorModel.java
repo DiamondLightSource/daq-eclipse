@@ -75,4 +75,10 @@ public abstract class AbstractDetectorModel implements IDetectorModel {
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getName() + '@' + Integer.toHexString(hashCode())
+				+ " [timeout=" + timeout + ", name=" + name + ", exposureTime=" + exposureTime + "]";
+	}
 }
