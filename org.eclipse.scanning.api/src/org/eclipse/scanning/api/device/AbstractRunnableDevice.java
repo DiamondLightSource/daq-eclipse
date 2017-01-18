@@ -587,6 +587,8 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		this.configureTime = configureTime;
 	}
 
-
-
+	@Override
+	public String toString() {
+		return getClass().getName() + '@' + Integer.toHexString(hashCode()) +" [name=" + name + "]";
+	}
 }
