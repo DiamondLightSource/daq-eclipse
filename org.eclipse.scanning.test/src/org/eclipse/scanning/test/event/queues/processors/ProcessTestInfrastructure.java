@@ -21,8 +21,8 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
-import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.event.queues.ServicesHolder;
+import org.eclipse.scanning.event.queues.processors.QueueProcess;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
@@ -96,7 +96,15 @@ public class ProcessTestInfrastructure {
 	}
 	
 	
-	
+	/**
+	 * Wait a specific amount of time for the execution to end (indicated by 
+	 * release of latch by execution thread. If no unlatch happens before 
+	 * timeout, check for exceptions thrown by the execution thread and throw 
+	 * those or fail the test.
+	 * 
+	 * @param timeoutMS
+	 * @throws Exception
+	 */
 	public void waitForExecutionEnd(long timeoutMS) throws Exception {
 		boolean unLatched = analysisLatch.await(timeoutMS, TimeUnit.MILLISECONDS);
 		exceptionCheck(null);
@@ -109,10 +117,28 @@ public class ProcessTestInfrastructure {
 		}
 	}
 	
+	/**
+	 * Wait a specific amount of time before calling terminate method on the 
+	 * executing {@link QueueProcess}. Then check for exceptions thrown in the 
+	 * execution thread.
+	 * 
+	 * @param timeoutMS
+	 * @throws Exception
+	 */
 	public void waitToTerminate(long timeoutMS) throws Exception {
 		waitToTerminate(timeoutMS, false);
 	}
 	
+	/**
+	 * Wait a specific amount of time before calling terminate method on the 
+	 * executing {@link QueueProcess}. Then check for exceptions thrown in the 
+	 * execution thread. If the {@link QueueProcess} creates a child queue, 
+	 * send REQUEST_TERMINATE before terminating the process.
+	 * 
+	 * @param timeoutMS
+	 * @param hasChildQueue
+	 * @throws Exception
+	 */
 	public void waitToTerminate(long timeoutMS, boolean hasChildQueue) throws Exception {
 		try {
 			Thread.sleep(timeoutMS);
@@ -130,11 +156,18 @@ public class ProcessTestInfrastructure {
 		exceptionCheck(null);
 	}
 	
+	/**
+	 * Check for thrown exceptions in the execution thread. Check not made 
+	 * until analysis thread is unlatched.
+	 * 
+	 * @param timeout a number of ms to wait before checking for exceptions.
+	 * @throws Exception
+	 */
 	public void exceptionCheck(Long timeout) throws Exception {
 		if (timeout != null) {
 			System.out.println("INFO: Waiting for thread to finish...");
 			boolean released = analysisLatch.await(timeout, TimeUnit.MILLISECONDS);
-			if (!released) {
+			if (analysisLatch.getCount() == 0 || !released) {
 				fail("Thread running the QueueProcess didn't complete within "+timeout+"ms");
 			}
 		}
@@ -191,8 +224,8 @@ public class ProcessTestInfrastructure {
 			previousBeanState = Status.REQUEST_TERMINATE;
 		}
 		
-		Queueable lastBean, penultimateBean, firstBean;
-		List<Queueable> broadcastBeans = getBroadcastBeans();
+		StatusBean lastBean, penultimateBean, firstBean;
+		List<? extends StatusBean> broadcastBeans = getBroadcastBeans();
 		
 		//First bean should be RUNNING.
 		firstBean = broadcastBeans.get(0);
@@ -335,8 +368,8 @@ public class ProcessTestInfrastructure {
 		return (List<Queueable>) getPublishedBeans(statPub);
 	}
 	
-	public Queueable getLastBroadcastBean() {
-		return (Queueable)getLastPublishedBean(statPub);
+	public StatusBean getLastBroadcastBean() {
+		return (StatusBean) getLastPublishedBean(statPub);
 	}
 	
 	public List<?> getPublishedBeans(MockPublisher<?> mockPub) {

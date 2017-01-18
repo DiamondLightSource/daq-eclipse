@@ -1,22 +1,17 @@
 package org.eclipse.scanning.test.event.queues.processors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
 
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.queues.IQueue;
 import org.eclipse.scanning.api.event.queues.IQueueControllerService;
 import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueControllerService;
-import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
+import org.eclipse.scanning.event.queues.processors.QueueProcess;
 import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcess;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.mocks.MockConsumer;
@@ -158,7 +153,7 @@ public class SubTaskAtomProcessTest {
 		pti.waitForBeanFinalStatus(5000l);
 		pti.checkLastBroadcastBeanStatuses(Status.TERMINATED, false);
 		
-//		//TODO Should this be the message or the queue-message?
+		//TODO Should this be the message or the queue-message?
 		assertEquals("Wrong message set after termination.", "Active-queue aborted before completion (requested)", pti.getLastBroadcastBean().getMessage());
 		assertEquals("Active queues still registered after terminate", 0, qServ.getAllActiveQueueIDs().size());
 		

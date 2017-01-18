@@ -1,4 +1,4 @@
-package org.eclipse.scanning.event.queues;
+package org.eclipse.scanning.event.queues.processors;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Condition;
@@ -6,30 +6,32 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.AbstractLockingPausableProcess;
+import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.IQueueProcess;
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.event.queues.QueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * TODO Update java-doc
- * Generic class for processing a queue item, irrespective of its concrete 
- * type. The concrete type should be identified by the 
- * {@link QueueProcessCreator} and  this class then instantiated with the 
- * {@link IQueueProcessor} associated with that type. This class uses 
- * {@link AbstractLockingPausableProcess} to provide generic pause, resume & terminate
- * functions, with bean specific methods called on the processors.
+ * Parent class for all {@link QueueService} queue processes. QueueProcess 
+ * provides flow control to ensure post-match (i.e. after bean task) analysis 
+ * is allowed to complete before other operations (e.g. termination) finish.
  * 
  * @author Michael Wharmby
  *
- * @param <T> Type acted on by queue consumer (this will probably be a 
- * super-type of the actual bean class). 
+ * @param <Q> {@link Queueable} bean type to be operated on. 
+ * @param <T> The {@link Queueable} specified by the {@link IConsumer} 
+ *            instance using the IQueueProcess. This might be a 
+ *            {@link QueueBean} or a {@link QueueAtom}. 
  */
-public abstract class QueueProcess<Q extends Queueable, T extends Queueable> extends AbstractLockingPausableProcess<T> implements IQueueProcess<Q, T>, IQueueBroadcaster<T> {
+public abstract class QueueProcess<Q extends Queueable, T extends Queueable> 
+		extends AbstractLockingPausableProcess<T> implements IQueueProcess<Q, T>, IQueueBroadcaster<T> {
 	
 	private static Logger logger = LoggerFactory.getLogger(QueueProcess.class);
 	
@@ -66,7 +68,27 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 		postMatchAnalysis();
 	}
 	
+	/**
+	 * Performs the process described by the {@link Queueable} bean type to be 
+	 * processed, using the configured parameters from the input bean.
+	 * 
+	 * @throws EventException in case of broadcast failure or in case of 
+	 *         failure of {@link IEventService} infrastructure. Failures 
+	 *         during proceessing should also be re-thrown as 
+	 *         {@link EventExceptions}. 
+	 * @throws InterruptedException if child run thread is interrupted
+	 */
 	protected abstract void run() throws EventException, InterruptedException;
+	
+	/**
+	 * On completion of processing, determine the outcome - i.e. did 
+	 * processing complete or fail in some way? Report back a message.
+	 * 
+	 * Final statuses should be set on the bean here and nowhere else. 
+	 * 
+	 * @throws EventException in case of broadcast failure.
+	 * @throws InterruptedException if the analysis lock is interrupted
+	 */
 	protected abstract void postMatchAnalysis() throws EventException, InterruptedException;
 	
 	@Override
@@ -121,7 +143,8 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 	
 	/**
 	 * Called when we would need to wait if post-match analysis hasn't yet run.
-	 * @throws InterruptedException 
+	 * 
+	 * @throws InterruptedException if wait is interrupted.
 	 */
 	protected void continueIfExecutionEnded() throws InterruptedException {
 		if (finished) return;
@@ -130,93 +153,13 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable> ext
 		}
 	}
 	
+	/**
+	 * Get the latch controlling whether post-match analysis can be performed.
+	 * 
+	 * @return processLatch controlling released when run complete.
+	 */
 	public CountDownLatch getProcessLatch() {
 		return processLatch;
 	}
-	
-//	public QueueProcess(T bean, IPublisher<T> publisher, boolean blocking) {
-//		super(bean, publisher);
-//		this.blocking = blocking; //TODO
-//	}
-//	
-//	@Override
-//	public void execute() throws EventException, InterruptedException {
-//		executed = true;
-//		processor.execute();
-//	}
-//
-//	/*
-//	 * The following methods (doPause, doResume and doTerminate) are called by 
-//	 * the pause, resume and terminate methods of AbstractPausableProcess 
-//	 * (which override the default methods of IQueueProcess API). 
-//	 * e.g. @see org.eclipse.scanning.api.event.core.AbstractPausableProcess#doTerminate()
-//	 */
-//	@Override
-//	public void doPause() throws EventException {
-//		processor.pause();
-//	}
-//	
-//	@Override
-//	public void doResume() throws Exception {
-//		processor.resume();
-//	}
-//	
-//	@Override
-//	public void doTerminate() throws EventException {
-//		terminated = true;
-//		processor.terminate();
-//	}
-//	
-
-//	
-//	@Override
-//	public void broadcast(Status newStatus, Double newPercent, String newMessage) throws EventException {
-//		if (publisher != null && processor != null) {
-//			updateBean(newStatus, newPercent, newMessage);
-//			publisher.broadcast(bean);
-//		}		
-//	}
-//
-//	@Override
-//	public void broadcast() throws EventException {
-//		if (publisher != null) {
-//			publisher.broadcast(bean);
-//		}
-//	}
-//
-//	@Override
-//	public IQueueProcessor<? extends Queueable> getProcessor() {
-//		return processor;
-//	}
-//
-//	@Override
-//	public void setProcessor(IQueueProcessor<? extends Queueable> processor) throws EventException {
-//		if (isExecuted()) throw new EventException("Cannot chance processor after execution started");
-//		//This should stop bean type mismatches. A second catch should be included in the execute() of the IQueueProcessor
-//		if (!(bean.getClass().equals(processor.getBeanClass()))) throw new EventException("Cannot set processor - incorrect bean type");
-//		this.processor = processor;
-//	}
-//	
-//	@Override
-//	public boolean isExecuted() {
-//		return executed;
-//	}
-//
-//	@Override
-//	public boolean isTerminated() {
-//		return terminated;
-//	}
-//
-//	public boolean isBlocking() {
-//		return blocking;
-//	}
-//
-//	public void setBlocking(boolean blocking) {
-//		this.blocking = blocking;
-//	}
-//	
-//	public void setExecuted() {
-//		executed = true;
-//	}
 
 }

@@ -13,7 +13,6 @@ import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.Queue;
-import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,4 +173,5 @@ public class AtomQueueProcessor<P extends Queueable & IHasAtomQueue<Q>,
 	public String getActiveQueueID() {
 		return activeQueueID;
 	}
+	
 }

@@ -12,12 +12,12 @@ import org.eclipse.scanning.api.event.bean.BeanEvent;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.beans.IHasChildQueue;
-import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.QueueProcess;
+import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.queues.processors.QueueListener;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
+import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueueProcess;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
 import org.junit.Before;
@@ -66,9 +66,7 @@ public class QueueListenerTest {
 		queue.add(childB);
 		
 		statPub = new MockPublisher<>(null, "test.topic");
-		broadcaster = new QueueProcess<>(parent, statPub, false);
-//		processor = new MockQueueProcessor<>(broadcaster, parent, new CountDownLatch(1));//TODO Update to allow broadcaster to be set
-//		((IQueueProcess<?>)broadcaster).setProcessor(processor);
+		broadcaster = new DummyHasQueueProcess<>(parent, statPub, false);
 		
 		latch = new CountDownLatch(1);
 	}
@@ -84,7 +82,6 @@ public class QueueListenerTest {
 		statPub = null;
 		broadcaster = null;
 		latch = null;
-//		processor = null;
 	}
 	
 	@Test
@@ -339,8 +336,8 @@ public class QueueListenerTest {
 		assertEquals("Latch has not been released when it should have been.", 0, latch.getCount(), 0);
 	}
 
-	private Queueable getLastBroadcast() {
-		List<Queueable> broadBeans = ((MockPublisher<?>)statPub).getBroadcastBeans();
+	private StatusBean getLastBroadcast() {
+		List<StatusBean> broadBeans = ((MockPublisher<?>)statPub).getBroadcastBeans();
 		if (broadBeans.size() == 0) {
 			return null;
 		} else {

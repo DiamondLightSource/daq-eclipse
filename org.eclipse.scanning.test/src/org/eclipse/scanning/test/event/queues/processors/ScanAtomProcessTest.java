@@ -21,8 +21,8 @@ import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.event.queues.QueueProcess;
 import org.eclipse.scanning.event.queues.ServicesHolder;
+import org.eclipse.scanning.event.queues.processors.QueueProcess;
 import org.eclipse.scanning.event.queues.processors.ScanAtomProcess;
 import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
@@ -44,7 +44,7 @@ public class ScanAtomProcessTest {
 	private static MockSubscriber<? extends EventListener> mockSubsc;
 	private static MockSubmitter<? extends StatusBean> mockSub;
 	private static MockEventService mockEvServ;
-		
+	
 	@BeforeClass
 	public static void setUpClass() {
 		mockPub = new MockPublisher<>(null, null);

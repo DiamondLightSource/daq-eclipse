@@ -9,9 +9,10 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.QueueProcess;
+import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.eclipse.scanning.event.queues.processors.MoveAtomProcess;
+import org.eclipse.scanning.event.queues.processors.QueueProcess;
 import org.eclipse.scanning.test.event.queues.mocks.MockPositioner;
 import org.eclipse.scanning.test.event.queues.mocks.MockScanService;
 import org.junit.After;
@@ -107,11 +108,10 @@ public class MoveAtomProcessTest {
 		pti.waitForBeanFinalStatus(5000l);
 		pti.checkLastBroadcastBeanStatuses(Status.FAILED, false);
 		
-		Queueable lastBean = pti.getLastBroadcastBean();
+		StatusBean lastBean = pti.getLastBroadcastBean();
 		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) in '"+lastBean.getName()+
 				"' failed: \"The badger apocalypse cometh! (EXPECTED - we pressed the button...)\".", lastBean.getMessage());
 		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());
 	}
-	
 
 }
