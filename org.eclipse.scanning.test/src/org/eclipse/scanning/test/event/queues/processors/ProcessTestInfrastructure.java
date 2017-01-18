@@ -263,6 +263,14 @@ public class ProcessTestInfrastructure {
 		}
 	}
 	
+	/**
+	 * Get beans published to child queue from the {@link MockPublisher} held 
+	 * by the configured {@link MockEventService}. Check their {@link Status}es
+	 *  and their names against args.
+	 *  
+	 * @param state
+	 * @param childBeanNames
+	 */
 	@SuppressWarnings("unchecked")
 	protected void checkLastBroadcastChildBeanStatus(Status state, String[] childBeanNames) {
 		MockPublisher<?> mp = (MockPublisher<?>) ServicesHolder.getEventService().createPublisher(null, null);
@@ -286,6 +294,13 @@ public class ProcessTestInfrastructure {
 		}		
 	}
 	
+	/**
+	 * Test whether the {@link MockConsumer}s of the {@link IQueueService} held
+	 *  in the referenced {@link MockEventService} have been stopped.
+	 *  
+	 * @param mockEvServ
+	 * @param qServ
+	 */
 	public void checkConsumersStopped(MockEventService mockEvServ, IQueueService qServ) {
 		Map<String, MockConsumer<? extends StatusBean>> consumers = mockEvServ.getRegisteredConsumers();
 		
@@ -296,14 +311,36 @@ public class ProcessTestInfrastructure {
 		}
 	}
 	
+	/**
+	 * Wait for bean to reach a specific {@link State} in a given time.
+	 * 
+	 * @param state
+	 * @param timeout
+	 * @throws Exception
+	 */
 	public void waitForBeanStatus(Status state, long timeout) throws Exception {
 		waitForBeanState(state, false, timeout);
 	}
 	
+	/**
+	 * Wait for a bean to reach any final {@link State} in a given time. 
+	 * @param timeout
+	 * @throws Exception
+	 */
 	public void waitForBeanFinalStatus(long timeout) throws Exception {
 		waitForBeanState(null, true, timeout);
 	}
 	
+	/**
+	 * Wait for the bean configured in the execute() method to reach the 
+	 * specified {@link State} or to reach a final {@link State}. A timeout is 
+	 * given to limit the waiting time for this to occur in.
+	 * 
+	 * @param state
+	 * @param isFinal
+	 * @param timeout
+	 * @throws Exception
+	 */
 	private void waitForBeanState(Status state, boolean isFinal, long timeout) throws Exception {
 		StatusBean lastBean= ((MockPublisher<? extends StatusBean>)statPub).getLastQueueable();
 		long startTime = System.currentTimeMillis();
@@ -332,6 +369,16 @@ public class ProcessTestInfrastructure {
 		throw new Exception("Bean state not reached before timeout (was: "+beanStatus+"; with message: "+lastBean.getMessage()+").");
 	}
 	
+	/**
+	 * Test whether submitted beans (extending {@link StatusBean}) on a given 
+	 * {@link MockSubmitter} (usually of a child queue of the queueBean under 
+	 * test) have the SUBMITTED {@link State} and the fields hostname, username
+	 *  and beamline set.
+	 *  
+	 * @param ms
+	 * @param queueID
+	 * @throws Exception
+	 */
 	public void checkSubmittedBeans(MockSubmitter<? extends StatusBean> ms, String queueID) throws Exception {
 		List<? extends StatusBean> submittedBeans = getSubmittedBeans(ms, queueID);
 		assertTrue("No beans in the final status set", submittedBeans.size() != 0);
@@ -354,13 +401,20 @@ public class ProcessTestInfrastructure {
 		}
 	}
 	
+	/**
+	 * From a given {@link MockSubmitter}, get all the beans submitted to queueID.
+	 * 
+	 * @param ms
+	 * @param queueID
+	 * @return
+	 */
 	public List<? extends StatusBean> getSubmittedBeans(MockSubmitter<? extends StatusBean> ms, String queueID) {
 		String qName = queueID+IQueue.SUBMISSION_QUEUE_SUFFIX;
 		return ms.getQueue(qName);
 	}
 	
 	/**
-	 * Request all the broadcast beans from the mock publisher.
+	 * Request all the broadcast beans from the {@link MockPublisher}.
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
@@ -368,32 +422,64 @@ public class ProcessTestInfrastructure {
 		return (List<Queueable>) getPublishedBeans(statPub);
 	}
 	
+	/**
+	 * Get the last bean broadcast to statpub.
+	 * 
+	 * @return
+	 */
 	public StatusBean getLastBroadcastBean() {
-		return (StatusBean) getLastPublishedBean(statPub);
+		List<?> publBeans = getPublishedBeans(statPub);
+		return (StatusBean) publBeans.get(publBeans.size()-1);
 	}
 	
+	/**
+	 * Get the last bean published to the given {@link MockPublisher}.
+	 * 
+	 * @param mockPub
+	 * @return
+	 */
+	public IdBean getLastPublishedBean(MockPublisher<?> mockPub) {
+		List<?> publBeans = getPublishedBeans(mockPub);
+		return (IdBean) publBeans.get(publBeans.size()-1);
+	}
+	
+	/**
+	 * Get the complete list of beans published to the given {@link MockPublisher}.
+	 * 
+	 * @param mockPub
+	 * @return
+	 */
 	public List<?> getPublishedBeans(MockPublisher<?> mockPub) {
 		List<?> publBeans = mockPub.getBroadcastBeans();
 		if (publBeans.size() == 0) fail("No beans broadcast to publisher");
 		return publBeans;
 	}
 	
-	public IdBean getLastPublishedBean(MockPublisher<?> mockPub) {
-		List<?> publBeans = getPublishedBeans(mockPub);
-		return (IdBean) publBeans.get(publBeans.size()-1);
-	}
-	
+	/**
+	 * Get the statPub
+	 * 
+	 * @return
+	 */
 	public MockPublisher<Queueable> getPublisher() {
 		return statPub;
 	}
 	
+	/**
+	 * Get the exception thrown by the execution thread (if any).
+	 * 
+	 * @return
+	 */
 	public Exception getProcThreadException() {
 		return threadException;
 	}
 	
+	/**
+	 * Rest the infrastructure used by this ProcessTestInfrastructure instance.
+	 */
 	public void resetInfrastructure() {
 		statPub = new MockPublisher<>(uri, topic);
 		qProc = null;
+		qBean = null;
 	}
 
 }
