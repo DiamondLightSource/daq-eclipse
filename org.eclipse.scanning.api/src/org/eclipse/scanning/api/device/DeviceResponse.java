@@ -100,6 +100,8 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 				 */
 				Thread.sleep(10); 
 				 /* End warning */
+			} else if (action==DeviceAction.ACTIVATE) {
+				device.setActivated((Boolean)request.getDeviceValue());
 			}
 			
 			
@@ -138,6 +140,7 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
         info.setUpper(device.getMaximum());	
         info.setLower(device.getMinimum());
         info.setPermittedValues(device.getPermittedValues());
+        info.setActivated(device.isActivated());
  	}
 
 	private static void processRunnables(DeviceRequest request, IRunnableDeviceService dservice) throws Exception {

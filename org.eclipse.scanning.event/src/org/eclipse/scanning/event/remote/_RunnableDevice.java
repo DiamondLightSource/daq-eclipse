@@ -123,15 +123,6 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 		method(new DeviceRequest(info.getName(), DeviceAction.DISABLE));
 	}
 
-	private void method(DeviceRequest deviceRequest) throws ScanningException {
-		try {
-			DeviceRequest req = requester.post(deviceRequest);
-			merge((DeviceInformation<M>)req.getDeviceInformation());
-		} catch (Exception ne) {
-			throw new ScanningException(ne);
-		}
-	}
-
 	public boolean isActivated() {
 		update();
 		return info.isActivated();

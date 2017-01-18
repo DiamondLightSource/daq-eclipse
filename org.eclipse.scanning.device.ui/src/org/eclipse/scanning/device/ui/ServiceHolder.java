@@ -1,5 +1,7 @@
 package org.eclipse.scanning.device.ui;
 
+import java.net.URI;
+
 import org.eclipse.dawnsci.analysis.api.expressions.IExpressionService;
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.analysis.api.io.IRemoteDatasetService;
@@ -12,6 +14,7 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.IParserService;
 import org.eclipse.scanning.api.stashing.IStashingService;
+import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.api.ui.auto.IInterfaceService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -93,6 +96,10 @@ public class ServiceHolder {
 		} catch (NullPointerException npe) {
 			return null;
 		}
+	}
+	
+	public static <T> T getRemote(Class<T> clazz) throws Exception {
+		return (T)ServiceHolder.getEventService().createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), clazz);
 	}
 
 	public static IValidatorService getValidatorService() {

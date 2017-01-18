@@ -59,12 +59,18 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		register(new MockScannable("period", 1000d, 1, "ms"));
 		register(new MockBeamOnMonitor("beamon", 10d, 1));
 		register(new MockScannable("bpos",  0.001,  -1));
-		register(new MockScannable("a", 10d, 1, "mm"));
+		
+		MockScannable a = new MockScannable("a", 10d, 1, "mm");
+		a.setActivated(true);
+		register(a);
 		register(new MockScannable("b", 10d, 1, "mm"));
 		register(new MockScannable("c", 10d, 1, "mm"));
-		register(new MockScannable("p", 10d, 2, "Âµm"));
-		register(new MockScannable("q", 10d, 2, "Âµm"));
-		register(new MockScannable("r", 10d, 2, "Âµm"));
+		
+		MockScannable p = new MockScannable("p", 10d, 2, "µm");
+		p.setActivated(true);
+		register(p);
+		register(new MockScannable("q", 10d, 2, "µm"));
+		register(new MockScannable("r", 10d, 2, "µm"));
 		
 		MockScannable x = new MockNeXusScannable("x", 0d,  3, "mm");
 		x.setRealisticMove(true);
@@ -118,7 +124,9 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 			register(new MockNeXusScannable("neXusScannable"+i, 0d,  3));
 	    }
 		for (int i = 0; i < 10; i++) {
-			register(new MockNeXusScannable("monitor"+i, 0d,  3));
+			MockNeXusScannable mon = new MockNeXusScannable("monitor"+i, 0d,  3);
+			mon.setActivated(i%3==0);
+			register(mon);
 	    }
 		for (int i = 0; i < 10; i++) {
 			MockNeXusScannable metadataScannable = new MockNeXusScannable("metadataScannable"+i, 0d, 3);

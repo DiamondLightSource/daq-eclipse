@@ -1,19 +1,14 @@
 package org.eclipse.scanning.device.ui.device.scannable;
 
-import java.net.URI;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
-import org.eclipse.scanning.api.ui.CommandConstants;
-import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.model.ModelFieldEditorFactory;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;

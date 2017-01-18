@@ -1,10 +1,13 @@
 package org.eclipse.scanning.api.device;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 
 /**
@@ -72,4 +75,39 @@ public interface IScannableDeviceService {
 		return Collections.emptySet();
 	}
 	
+	/**
+	 * Get a list of all the IScannables known to the service as a list of DeviceInformation<?>
+	 * objects. DeviceInformation is JSON serializable and this method is 
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	default Collection<DeviceInformation<?>> getDeviceInformation() throws Exception {
+
+		final Collection<String> names = getScannableNames();
+		final Collection<DeviceInformation<?>> ret = new ArrayList<>(names.size());
+		for (String name : names) {
+	
+			IScannable<?> device = getScannable(name);
+			if (device==null) throw new ScanningException("There is no created device called '"+name+"'");
+	
+			DeviceInformation<?> info = new DeviceInformation<Object>(name);
+			Util.merge(info, device);
+			ret.add(info);
+		}
+		return ret;
+	}	
+
+
+}
+
+final class Util {
+	static void merge(DeviceInformation<?> info, IScannable<?> device) throws Exception {
+		info.setLevel(device.getLevel());
+		info.setUnit(device.getUnit());
+		info.setUpper(device.getMaximum());	
+		info.setLower(device.getMinimum());
+		info.setPermittedValues(device.getPermittedValues());
+		info.setActivated(device.isActivated());
+	}
 }
