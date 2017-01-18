@@ -1,24 +1,21 @@
 package org.eclipse.scanning.test.event.queues;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.IQueueProcess;
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+//import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.event.queues.QueueProcessCreator;
 import org.eclipse.scanning.event.queues.QueueProcessFactory;
@@ -29,6 +26,7 @@ import org.eclipse.scanning.test.event.queues.dummy.DummyBeanProcess;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueueProcess;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
+import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,7 +67,7 @@ public class QueueProcessCreatorTest {
 	 * 
 	 * @throws Exception
 	 */
-//	@Test //TODO FIXME
+	@Test //TODO FIXME
 	@SuppressWarnings("unchecked")
 	public void testProcessTypeCreation() throws Exception {
 		List<Queueable> testAtoms = new ArrayList<>();
@@ -77,8 +75,8 @@ public class QueueProcessCreatorTest {
 		testAtoms.add(new MoveAtom("Move robot arm", "robot_arm", "1250", 12000));
 		testAtoms.add(makeScanAtom());
 //		testAtoms.add(new ProcessAtom(...) TODO
-//		testAtoms.add(TestAtomQueueBeanMaker.makeDummySubTaskBeanA()); FIXME
-//		testAtoms.add(TestAtomQueueBeanMaker.makeDummyTaskBeanA()); FIXME
+		testAtoms.add(TestAtomQueueBeanMaker.makeDummySubTaskBeanA());
+		testAtoms.add(TestAtomQueueBeanMaker.makeDummyTaskBeanA());
 		
 		for (Queueable atom : testAtoms) {
 			qProc = (IQueueProcess<?, Queueable>) qpc.createProcess(atom, statPub);

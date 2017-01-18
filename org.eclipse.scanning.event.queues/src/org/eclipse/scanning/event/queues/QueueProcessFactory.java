@@ -7,7 +7,10 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.IQueueProcess;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.event.queues.processors.MoveAtomProcess;
+import org.eclipse.scanning.event.queues.processes.MoveAtomProcess;
+import org.eclipse.scanning.event.queues.processes.ScanAtomProcess;
+import org.eclipse.scanning.event.queues.processes.SubTaskAtomProcess;
+import org.eclipse.scanning.event.queues.processes.TaskBeanProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,9 +61,9 @@ public class QueueProcessFactory {
 		
 		//Register default processors
 		try {
-			QueueProcessFactory.registerProcesses(MoveAtomProcess.class);//,
-//					ScanAtomProcessor.class, SubTaskAtomProcessor.class, 
-//					TaskBeanProcessor.class);// MonitorAtomProcessor.class,
+			QueueProcessFactory.registerProcesses(MoveAtomProcess.class,
+					ScanAtomProcess.class, SubTaskAtomProcess.class, 
+					TaskBeanProcess.class);// MonitorAtomProcessor.class,
 		} catch (EventException evEx) {
 			logger.error("Initial configuration of QueueProcessorFactory failed. Could not register processor(s): "+evEx.getMessage());
 		}

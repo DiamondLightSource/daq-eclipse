@@ -26,10 +26,10 @@ import org.eclipse.scanning.test.event.queues.mocks.MockEventService;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore("TODO Fails on travis wit: QueueResponseProcessTest.setUp:65 » UnsupportedOperation Cannot change queue r...")
+//@Ignore("TODO Fails on travis wit: QueueResponseProcessTest.setUp:65 ï¿½ UnsupportedOperation Cannot change queue r...")
+//I don't see this error locally. Will try on my travis.
 public class QueueResponseProcessTest {
 	
 	private DummyBean submDummy, statDummy;
