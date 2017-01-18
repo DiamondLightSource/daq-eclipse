@@ -70,8 +70,8 @@ public class LinearTest {
         
         for (int i = 0; i < pointList.size(); i++) {
 		    IPosition pos = pointList.get(i);
-		    int xIndex = pos.getIndex(model.getxName());
-		    int yIndex = pos.getIndex(model.getyName());
+		    int xIndex = pos.getIndex(model.getFastAxisName());
+		    int yIndex = pos.getIndex(model.getSlowAxisName());
 		    
 		    assertEquals(i, xIndex);
 		    assertEquals(i, yIndex);

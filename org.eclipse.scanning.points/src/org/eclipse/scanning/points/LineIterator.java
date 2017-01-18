@@ -46,7 +46,7 @@ class LineIterator extends AbstractScanPointIterator {
 		double xStep = step * Math.cos(line.getAngle());
 		double yStep = step * Math.sin(line.getAngle());
 
-        PyList names =  new PyList(Arrays.asList(new String[] {model.getxName(), model.getyName()}));
+        PyList names =  new PyList(Arrays.asList(new String[] {model.getFastAxisName(), model.getSlowAxisName()}));
 		double[] start = {line.getxStart() + xStep/2, line.getyStart() + yStep/2};
 		double[] stop = {line.getxStart() + xStep * (numPoints - 0.5), line.getyStart() + yStep * (numPoints - 0.5)};
         
@@ -66,7 +66,7 @@ class LineIterator extends AbstractScanPointIterator {
         double xStep = model.getStep() * Math.cos(line.getAngle());
         double yStep = model.getStep() * Math.sin(line.getAngle());
 
-        PyList names =  new PyList(Arrays.asList(new String[] {model.getxName(), model.getyName()}));
+        PyList names =  new PyList(Arrays.asList(new String[] {model.getFastAxisName(), model.getSlowAxisName()}));
 		double[] start = {line.getxStart(), line.getyStart()};
         double[] stop = {line.getxStart() + xStep * numPoints, line.getyStart() + yStep * numPoints};
         

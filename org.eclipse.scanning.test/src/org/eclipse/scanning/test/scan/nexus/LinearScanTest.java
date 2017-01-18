@@ -143,8 +143,8 @@ public class LinearScanTest extends BrokerTest{
 
         OneDEqualSpacingModel model = new OneDEqualSpacingModel();
         model.setPoints(size);
-        model.setxName("xNex");
-        model.setyName("yNex");
+        model.setFastAxisName("xNex");
+        model.setSlowAxisName("yNex");
         return model;
 	}
 

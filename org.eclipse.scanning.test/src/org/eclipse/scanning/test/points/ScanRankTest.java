@@ -85,8 +85,8 @@ public class ScanRankTest {
 
         OneDEqualSpacingModel model = new OneDEqualSpacingModel();
         model.setPoints(10);
-        model.setxName("x");
-        model.setyName("y");
+        model.setFastAxisName("x");
+        model.setSlowAxisName("y");
 		
 		// Get the point list
 		IPointGenerator<?> gen = service.createGenerator(model, roi);
