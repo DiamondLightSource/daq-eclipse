@@ -28,8 +28,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-//@Ignore("TODO Fails on travis wit: QueueResponseProcessTest.setUp:65 � UnsupportedOperation Cannot change queue r...")
-//I don't see this error locally. Will try on my travis.
 public class QueueResponseProcessTest {
 	
 	private DummyBean submDummy, statDummy;
