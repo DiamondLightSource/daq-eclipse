@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.processors;
+package org.eclipse.scanning.test.event.queues.processes;
 
 import static org.junit.Assert.assertEquals;
 
@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.event.queues.QueueProcessFactory;
 import org.eclipse.scanning.event.queues.ServicesHolder;
-import org.eclipse.scanning.event.queues.processors.SubTaskAtomProcess;
+import org.eclipse.scanning.event.queues.processes.SubTaskAtomProcess;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcess;

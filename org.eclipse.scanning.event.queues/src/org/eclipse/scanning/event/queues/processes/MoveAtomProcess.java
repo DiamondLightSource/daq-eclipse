@@ -1,4 +1,4 @@
-package org.eclipse.scanning.event.queues.processors;
+package org.eclipse.scanning.event.queues.processes;
 
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.EventException;

@@ -1,4 +1,4 @@
-package org.eclipse.scanning.event.queues.processors;
+package org.eclipse.scanning.event.queues.processes;
 
 import java.util.HashMap;
 import java.util.List;

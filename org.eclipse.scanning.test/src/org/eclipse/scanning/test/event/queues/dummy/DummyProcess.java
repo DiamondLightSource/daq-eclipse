@@ -4,7 +4,7 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.processors.QueueProcess;
+import org.eclipse.scanning.event.queues.processes.QueueProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

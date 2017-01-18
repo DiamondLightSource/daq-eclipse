@@ -3,7 +3,7 @@ package org.eclipse.scanning.test.event.queues.dummy;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.event.queues.processors.AbstractQueueProcessor;
+import org.eclipse.scanning.event.queues.processes.AbstractQueueProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

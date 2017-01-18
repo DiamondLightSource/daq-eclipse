@@ -1,4 +1,4 @@
-package org.eclipse.scanning.event.queues.processors;
+package org.eclipse.scanning.event.queues.processes;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Condition;

@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.processors;
+package org.eclipse.scanning.test.event.queues.processes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.beans.IHasChildQueue;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
-import org.eclipse.scanning.event.queues.processors.QueueListener;
+import org.eclipse.scanning.event.queues.processes.QueueListener;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueueProcess;

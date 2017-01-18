@@ -2,7 +2,7 @@ package org.eclipse.scanning.test.event.queues.dummy;
 
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.test.event.queues.processors.ProcessTestInfrastructure;
+import org.eclipse.scanning.test.event.queues.processes.ProcessTestInfrastructure;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

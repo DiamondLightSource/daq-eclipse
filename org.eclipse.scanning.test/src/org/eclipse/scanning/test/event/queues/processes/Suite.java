@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.processors;
+package org.eclipse.scanning.test.event.queues.processes;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;

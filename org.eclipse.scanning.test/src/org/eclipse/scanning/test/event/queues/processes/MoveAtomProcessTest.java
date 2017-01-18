@@ -1,4 +1,4 @@
-package org.eclipse.scanning.test.event.queues.processors;
+package org.eclipse.scanning.test.event.queues.processes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -11,8 +11,8 @@ import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.queues.ServicesHolder;
-import org.eclipse.scanning.event.queues.processors.MoveAtomProcess;
-import org.eclipse.scanning.event.queues.processors.QueueProcess;
+import org.eclipse.scanning.event.queues.processes.MoveAtomProcess;
+import org.eclipse.scanning.event.queues.processes.QueueProcess;
 import org.eclipse.scanning.test.event.queues.mocks.MockPositioner;
 import org.eclipse.scanning.test.event.queues.mocks.MockScanService;
 import org.junit.After;
