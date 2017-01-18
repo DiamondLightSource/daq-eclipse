@@ -2,6 +2,7 @@ package org.eclipse.scanning.api.annotation.scan;
 
 import java.io.PrintStream;
 
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.LevelInformation;
 import org.eclipse.scanning.api.scan.ScanInformation;
@@ -35,7 +36,7 @@ public interface AnnotatedDevice {
 	 * @param model
 	 */
 	@PreConfigure
-	default void preConfigure(Object model) throws ScanningException {
+	default void preConfigure(IDetectorModel model, ScanInformation info) throws ScanningException {
 		if (isDebug()) getStream().println("Pre-configure of "+model);
 	}
 	
@@ -46,7 +47,7 @@ public interface AnnotatedDevice {
 	 * @param model
 	 */
 	@PostConfigure
-	default void postConfigure(Object model) throws ScanningException {
+	default void postConfigure(IDetectorModel model, ScanInformation info) throws ScanningException {
 		if (isDebug()) getStream().println("Post-configure of "+model);
 	}
 

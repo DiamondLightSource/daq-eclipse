@@ -309,6 +309,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, ScanEstimator estimator, IPointGenerator<?> generator) throws Exception {
 		
 		ScanInformation info = new ScanInformation(estimator);
+		info.setFilePath(model.getFilePath());
 		info.setScannableNames(getScannableNames(model.getPositionIterable()));
 		
 		for (IRunnableDevice<?> device : model.getDetectors()) {
