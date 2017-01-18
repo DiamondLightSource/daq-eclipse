@@ -104,10 +104,10 @@ public class ScannableViewerTest extends ShellTest {
 
 		assertEquals(6, bot.table(0).rowCount());
 		IScannable<?> orig = Services.getConnector().getScannable("monitor0");
-		synchExec(()->viewer.setSelection(orig));
+		synchExec(()->viewer.setScannableSelected("monitor0"));
 		
 		IScannable<?> mon = synchExec(()->viewer.getSelection());
-		assertEquals(orig, mon);
+		assertEquals(orig.getName(), mon.getName());
 		
 		synchExec(()->viewer.removeScannable());
 		assertFalse(orig.isActivated());
@@ -117,6 +117,86 @@ public class ScannableViewerTest extends ShellTest {
 		synchExec(()->viewer.refresh());
 		assertEquals(6, bot.table(0).rowCount());
 		
+	}
+
+	@Test
+	public void checkValueChange() throws Exception {
+
+		Thread.sleep(100);
+		assertEquals(6, bot.table(0).rowCount());
+		
+		IScannable<Double> p = Services.getConnector().getScannable("p");		
+		assertEquals(p.getPosition()+"    µm", bot.table(0).cell(1, 2));
+		
+		p.setPosition(11.0);
+		synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
+		assertEquals(p.getPosition()+"    µm", bot.table(0).cell(1, 2));
+		
+		p.setPosition(10.0);
+		synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
+		assertEquals(p.getPosition()+"    µm", bot.table(0).cell(1, 2));
+	}
+
+	@Test
+	public void nothingThere() throws Exception {
+		
+		List<IScannable<?>> activated = new ArrayList<>();
+		try {
+			for (String name : Services.getConnector().getScannableNames()) {
+				IScannable<?> scannable = Services.getConnector().getScannable(name);
+				if (scannable.isActivated()) activated.add(scannable);
+				scannable.setActivated(false);
+			}
+			
+			synchExec(()->viewer.reset());
+	
+			assertEquals(0, bot.table(0).rowCount());
+
+		} finally {
+			for (IScannable<?> scannable : activated) {
+				scannable.setActivated(true);
+			}
+	
+			synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
+		}
+	}
+	
+	@Test
+	public void somethingFromNothing() throws Exception {
+		
+		List<IScannable<?>> activated = new ArrayList<>();
+		try {
+			for (String name : Services.getConnector().getScannableNames()) {
+				IScannable<?> scannable = Services.getConnector().getScannable(name);
+				if (scannable.isActivated()) activated.add(scannable);
+				scannable.setActivated(false);
+			}
+			
+			synchExec(()->viewer.reset());
+	
+			assertEquals(0, bot.table(0).rowCount());
+
+			IScannable<?> orig = activated.get(0);
+			orig.setActivated(true);
+			synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
+			assertEquals(1, bot.table(0).rowCount());
+		
+			synchExec(()->viewer.setScannableSelected(orig.getName()));
+			
+			IScannable<?> mon = synchExec(()->viewer.getSelection());
+			assertEquals(orig.getName(), mon.getName());
+			
+			synchExec(()->viewer.removeScannable());
+			assertFalse(orig.isActivated());
+			assertEquals(0, bot.table(0).rowCount());
+			
+		} finally {
+			for (IScannable<?> scannable : activated) {
+				scannable.setActivated(true);
+			}
+	
+			synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
+		}
 	}
 
 

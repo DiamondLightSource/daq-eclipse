@@ -4,6 +4,7 @@ import java.util.EventObject;
 import java.util.List;
 
 import org.eclipse.scanning.api.ILevel;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.points.IPosition;
 
 /**
@@ -21,9 +22,12 @@ public class PositionEvent extends EventObject {
 	
 	private int          level;
 	private List<? extends ILevel> levelObjects;
+
+	private INameable device;
 	
-	public PositionEvent(IPosition position) {
+	public PositionEvent(IPosition position, INameable device) {
 		super(position);
+		this.device = device;
 	}
 	
 	/**
@@ -53,6 +57,14 @@ public class PositionEvent extends EventObject {
 
 	public void setLevelObjects(List<? extends ILevel> levelObjects) {
 		this.levelObjects = levelObjects;
+	}
+
+	public INameable getDevice() {
+		return device;
+	}
+
+	public void setDevice(INameable device) {
+		this.device = device;
 	}
 
 }

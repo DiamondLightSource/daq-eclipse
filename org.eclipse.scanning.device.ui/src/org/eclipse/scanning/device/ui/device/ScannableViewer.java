@@ -3,21 +3,15 @@ package org.eclipse.scanning.device.ui.device;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IContributionManager;
-import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -31,7 +25,6 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.ServiceHolder;
-import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -172,59 +165,7 @@ public class ScannableViewer {
 		valueColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new ScannableValueLabelProvider()));
 
 	}
-    
-	/**
-	 * Create the actions.
-	 */
-	private void createActions(IContributionManager... managers) {
-		
-		List<IContributionManager> mans = new ArrayList<>(Arrays.asList(managers));
-		MenuManager     rightClick     = new MenuManager();
-		mans.add(rightClick);
-		// Action to add a new ControlNode
-		final IAction addNode = new Action("Add monitor", Activator.getImageDescriptor("icons/ui-toolbar--plus.png")) {
-			public void run() {
-				addScannable();
-			}
-		};
-		
-		// Action to remove the currently selected ControlNode or ControlGroup
-		final IAction removeNode = new Action("Remove monitor", Activator.getImageDescriptor("icons/ui-toolbar--minus.png")) {
-			public void run() {
-				try {
-					removeScannable();
-				} catch (ScanningException e) {
-					logger.error("Problem removing monitor from "+getClass().getSimpleName(), e);
-				}
-			}
-		};
-		removeNode.setEnabled(false);
-			
-		ViewUtil.addGroups("add", mans, addNode, removeNode);
-		
-		viewer.getControl().setMenu(rightClick.createContextMenu(viewer.getControl()));
-		
-		viewer.addSelectionChangedListener(new ISelectionChangedListener() {
-			
-			public void selectionChanged(SelectionChangedEvent event) {
-				IScannable<?> scannable = getSelection();
-				removeNode.setEnabled(scannable != null); // can only remove node if one is selected
-			}
-		});
-		
-		IAction refresh = new Action("Refresh", Activator.getImageDescriptor("icons/recycle.png")) {
-			public void run() {
-				try {
-					refresh();
-				} catch (Exception e) {
-					logger.error("Problem refreshing from server!", e);
-				}
-			}
-		};
-		
-		ViewUtil.addGroups("refresh", mans, refresh);
-	}
-	
+ 
 	public void refresh() throws Exception {
 		final Collection<DeviceInformation<?>> scannables = cservice.getDeviceInformation();
 		ScannableContentProvider prov = (ScannableContentProvider)viewer.getContentProvider();
@@ -262,6 +203,12 @@ public class ScannableViewer {
 		return null;
 	}
 
+
+	public void setScannableSelected(String scannableName) throws ScanningException {
+		IScannable<?> remoteScannable = cservice.getScannable(scannableName);
+		setSelection(remoteScannable);
+	}
+
 	public void setSelection(IScannable<?> scannable) {
 		viewer.setSelection(new StructuredSelection(scannable));
 	}
@@ -288,5 +235,13 @@ public class ScannableViewer {
 
 	public void addSelectionChangedListener(ISelectionChangedListener listener) {
 		viewer.addSelectionChangedListener(listener);
+	}
+	
+	public void reset() {
+		try {
+			viewer.setInput(getMonitors());
+		} catch (Exception e) {
+			logger.error("Cannot find selected monitors");
+		}		
 	}
 }

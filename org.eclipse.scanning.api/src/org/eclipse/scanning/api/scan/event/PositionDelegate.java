@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.eclipse.scanning.api.ILevel;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.points.IPosition;
@@ -22,21 +23,23 @@ public class PositionDelegate {
 		
 	private Collection<IPositionListener> listeners;
 	private IPublisher<Location>          publisher;
+	private INameable                     device;
 
 	public PositionDelegate() {
-		this(null);
+		this(null, null);
 	}
 
 	/**
 	 * 
 	 * @param publisher to send events to, may be null.
 	 */
-	public PositionDelegate(IPublisher<Location> publisher) {
+	public PositionDelegate(IPublisher<Location> publisher, INameable device) {
 		this.publisher = publisher;
+		this.device    = device;
 	}
 
 	public boolean firePositionWillPerform(IPosition position) throws ScanningException {
-		final PositionEvent evnt = new PositionEvent(position);
+		final PositionEvent evnt = new PositionEvent(position, device);
 		broadcast(LocationType.positionWillPerform, evnt);
 		if (listeners==null) return true;
 		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
@@ -60,7 +63,7 @@ public class PositionDelegate {
 	}
 
 	public void firePositionChanged(int finalLevel, IPosition position) throws ScanningException {
-		final PositionEvent evnt = new PositionEvent(position);
+		final PositionEvent evnt = new PositionEvent(position, device);
 		evnt.setLevel(finalLevel);
 		broadcast(LocationType.positionChanged, evnt);
 		
@@ -70,7 +73,7 @@ public class PositionDelegate {
 	}
 
 	public void firePositionPerformed(int finalLevel, IPosition position) throws ScanningException {
-		final PositionEvent evnt = new PositionEvent(position);
+		final PositionEvent evnt = new PositionEvent(position, device);
 		evnt.setLevel(finalLevel);
 		broadcast(LocationType.positionPerformed, evnt);
 
@@ -80,7 +83,7 @@ public class PositionDelegate {
 	}
 
 	public void fireLevelPerformed(int level, List<? extends ILevel> levels, IPosition position) throws ScanningException {
-		final PositionEvent evnt = new PositionEvent(position);
+		final PositionEvent evnt = new PositionEvent(position, device);
 		evnt.setLevel(level);
 	    evnt.setLevelObjects(levels);
 		broadcast(LocationType.levelPerformed, evnt);

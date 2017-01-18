@@ -293,7 +293,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void firePositionComplete(IPosition position) throws ScanningException {
 		if (posListeners == null) return;
 		
-		final PositionEvent evt = new PositionEvent(position);
+		final PositionEvent evt = new PositionEvent(position, this);
 		
 		// Make array, avoid multi-threading issues
 		final IPositionListener[] la = posListeners.toArray(new IPositionListener[posListeners.size()]);

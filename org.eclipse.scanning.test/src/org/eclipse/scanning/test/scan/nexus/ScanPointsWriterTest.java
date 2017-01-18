@@ -262,7 +262,7 @@ public class ScanPointsWriterTest {
 		position.setDimensionNames(names);
 		
 		// act
-		scanPointsWriter.positionPerformed(new PositionEvent(position));
+		scanPointsWriter.positionPerformed(new PositionEvent(position, null));
 		scanPointsWriter.scanFinished();
 
 		// assert

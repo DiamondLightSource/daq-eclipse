@@ -50,7 +50,7 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 	 */
 	protected AbstractScannable(IPublisher<Location> publisher) {
 		this.attributes = new HashMap<>(7);
-		this.delegate   = new PositionDelegate(publisher);
+		this.delegate   = new PositionDelegate(publisher, this);
 	}
 	
 	@Override
@@ -155,39 +155,17 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 		this.activated = activated;
 		return was;
 	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (!(obj instanceof IScannable))
-			return false;
-
-		IScannable<?> other = (IScannable)obj;
-		if (name == null) {
-			if (other.getName() != null)
-				return false;
-		} else if (!name.equals(other.getName()))
-			return false;
-		
-		return true;
-	}
  
 	public static final <T> IScannable<T> empty() {
 		return new AbstractScannable<T>() {
 			@Override
 			public T getPosition() throws Exception {
-				// TODO Auto-generated method stub
 				return null;
 			}
 
 			@Override
 			public void setPosition(T value, IPosition position) throws Exception {
-				// TODO Auto-generated method stub
-				
+				throw new Exception("Cannot set position, scannable is empty!");
 			}
 		};
 	}

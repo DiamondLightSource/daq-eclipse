@@ -7,17 +7,25 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListenable;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-class ScannableContentProvider implements IStructuredContentProvider {
+class ScannableContentProvider implements IStructuredContentProvider, IPositionListener {
+	
+	private static final Logger logger = LoggerFactory.getLogger(ScannableContentProvider.class);
 
 	private final IScannableDeviceService cservice;
 	private final Map<String, IScannable<?>> content;
 
-	private Viewer viewer;
+	private TableViewer viewer;
 	
 	public ScannableContentProvider(IScannableDeviceService cservice) {
 		this.cservice = cservice;
@@ -26,25 +34,54 @@ class ScannableContentProvider implements IStructuredContentProvider {
 
 	@Override
 	public void dispose() {
+		for (IScannable<?> scannable : content.values()) {
+			if (scannable instanceof IPositionListenable) {
+				((IPositionListenable)scannable).removePositionListener(this);
+			}
+		}
 		content.clear();
 	}
 
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 
-		this.viewer = viewer;
+		this.viewer = (TableViewer)viewer;
         content.clear();
         
         if (newInput!=null) {
 			for (String name : (List<String>)newInput) {
 				try {
-					content.put(name, cservice.getScannable(name));
+					register(name, cservice.getScannable(name));
 				} catch (ScanningException e) {
-					e.printStackTrace();
+					logger.error("Cannot add scannable to monitor view", e);
 				}
 			}
         }
 
+	}
+	@Override
+	public void positionChanged(PositionEvent evt) throws ScanningException {
+		update(evt);
+	}
+	
+	@Override
+	public void positionPerformed(PositionEvent evt) throws ScanningException {
+		update(evt);
+	}
+
+	private void update(PositionEvent evt) {
+		viewer.getControl().getDisplay().syncExec(()->viewer.refresh(evt.getDevice()));
+	}
+
+	private void register(String name, IScannable<?> scannable) {
+		content.put(name, scannable);
+		if (scannable instanceof IPositionListenable) {
+			try {
+				((IPositionListenable)scannable).addPositionListener(this);
+			} catch (Exception ne) {
+				logger.trace("Could not listen to value of "+scannable+". This might not be fatal.", ne);
+			}
+		}
 	}
 
 	@Override
@@ -58,7 +95,7 @@ class ScannableContentProvider implements IStructuredContentProvider {
 		content.clear();
 		for (String name : copy.keySet()) {
 			if (oscannable.getName()==name || name.equals(oscannable.getName())) {
-				content.put(nscannable.getName(), nscannable);
+				register(nscannable.getName(), nscannable);
 			} else {
 				content.put(name, copy.get(name));
 			}
@@ -72,7 +109,7 @@ class ScannableContentProvider implements IStructuredContentProvider {
 		for (String name : copy.keySet()) {
 			if (sscannable.getName()==name || name.equals(sscannable.getName())) {
 				content.put(sscannable.getName(), sscannable);
-				content.put(nscannable.getName(), nscannable);
+				register(nscannable.getName(), nscannable);
 			} else {
 				content.put(name, copy.get(name));
 			}
@@ -98,11 +135,14 @@ class ScannableContentProvider implements IStructuredContentProvider {
 
 	public void remove(IScannable<?> sscannable) {
 		content.remove(sscannable.getName());
+		if (sscannable instanceof IPositionListenable) {
+			((IPositionListenable)sscannable).removePositionListener(this);
+		}
 		viewer.refresh();
 	}
 
 	public void add(String name) throws ScanningException {
-		if (!content.containsKey(name)) content.put(name, cservice.getScannable(name));
+		if (!content.containsKey(name)) register(name, cservice.getScannable(name));
 	}
 
 }
