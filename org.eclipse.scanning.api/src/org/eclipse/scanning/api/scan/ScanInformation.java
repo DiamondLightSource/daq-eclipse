@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.scan;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -109,5 +110,12 @@ public class ScanInformation {
 
 	public void setShape(int[] shape) {
 		this.shape = shape;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getName() + '@' + Integer.toHexString(hashCode())
+				+" [filePath=" + filePath + ", size=" + size + ", rank=" + rank + ","
+				+ " scannableNames=" + scannableNames + ", shape=" + Arrays.toString(shape) + "]";
 	}
 }
