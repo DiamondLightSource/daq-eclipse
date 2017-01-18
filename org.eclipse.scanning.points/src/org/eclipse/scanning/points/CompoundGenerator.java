@@ -1,9 +1,12 @@
 package org.eclipse.scanning.points;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.AbstractPosition;
@@ -31,7 +34,7 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
         if (generators == null || generators.length<1) throw new GeneratorException("Cannot make a compound generator from a list of less than one generators!");
         
         // We create a model with no regions from the generators.
-        this.model = new CompoundModel();
+        this.model = new CompoundModel<>();
         for (IPointGenerator<?> g : generators) model.addData(g.getModel(), g.getRegions());
         // This model is not designed to hold all the data because we have the actual generators!
         
@@ -42,10 +45,16 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 		setVisible(false);
 	}
 
+	private List<String> getScannableNames(List<Collection<String>> dNames) {
+		Set<String> names = new LinkedHashSet<>();
+		for (Collection<String> collection : dNames) names.addAll(collection);
+		return Arrays.asList(names.toArray(new String[names.size()]));
+	}
+
 	private List<Collection<String>> createDimensionNames(IPointGenerator<?>[] generators) {
 		List<Collection<String>> names = new ArrayList<>(generators.length+2); // Roughly
 		for (IPointGenerator<?> gen : generators) {
-			IPosition pos = gen.iterator().next();
+			IPosition pos = gen.getFirstPoint();
 			if (pos != null) {
 				names.addAll(((AbstractPosition)pos).getDimensionNames());
 			}
@@ -71,10 +80,17 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 	
 	@Override
 	public int sizeOfValidModel() throws GeneratorException {
-		CompoundIterator it = (CompoundIterator) iteratorFromValidModel();
-		return it.size();
+		Iterator<IPosition> it = (Iterator<IPosition>) iteratorFromValidModel();
+		int size = 1;
+		if (it instanceof CompoundSpgIterator) {
+			size = ((CompoundSpgIterator)it).size();
+		} else {
+			for (int i = 0;i < generators.length; i++) {
+				size *= generators[i].size();
+			}
+		}
+		return size;
 	}
-	
 
     public PyDictionary toDict() {
 		Iterator<?> it = iteratorFromValidModel();
@@ -115,7 +131,11 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 	@Override
 	protected Iterator<IPosition> iteratorFromValidModel() {
 		try {
-			return new CompoundIterator(this);
+			if (isScanPointGeneratorFactory()) {
+			    return new CompoundSpgIterator(this);
+			} else {
+				return new CompoundIterator(this);
+			}
 		} catch (GeneratorException e) {
 			throw new IllegalArgumentException(e);
 		}
@@ -164,6 +184,14 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 
 	public void setDimensionNames(List<Collection<String>> dimensionNames) {
 		this.dimensionNames = dimensionNames;
+	}
+
+	
+	public boolean isScanPointGeneratorFactory() {
+		for (IPointGenerator<?> gen : generators) {
+			if (!gen.isScanPointGeneratorFactory()) return false;
+		}
+		return true;
 	}
 
 }

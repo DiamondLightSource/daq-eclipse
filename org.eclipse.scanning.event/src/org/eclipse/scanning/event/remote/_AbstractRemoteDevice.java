@@ -9,6 +9,7 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
+import org.eclipse.scanning.api.scan.ScanningException;
 
 abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 
@@ -79,4 +80,14 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 		}
 		this.info.merge(info);       
 	}
+	
+	protected void method(DeviceRequest deviceRequest) throws ScanningException {
+		try {
+			DeviceRequest req = requester.post(deviceRequest);
+			merge((DeviceInformation<M>)req.getDeviceInformation());
+		} catch (Exception ne) {
+			throw new ScanningException(ne);
+		}
+	}
+
 }

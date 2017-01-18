@@ -46,5 +46,16 @@ public interface IDeviceDependentIterable extends Iterable<IPosition> {
 	default int getScanRank() {
 		return 1;
 	}
-
+	
+	/**
+	 * Generating the first point is better to do not using the iterator
+	 * if each point generation takes time. For instance if there is a 
+	 * sleep on the next() method of the iterator, implementing this method
+	 * means that the sleep is avoided.
+	 * 
+	 * @return
+	 */
+	default IPosition getFirstPoint() {
+		return iterator().next();
+	}
 }

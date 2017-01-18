@@ -52,5 +52,7 @@ public class StaticGenerator extends AbstractGenerator<StaticModel> {
 	public boolean isVisible() {
 		return false;
 	}
-
+	public boolean isScanPointGeneratorFactory() {
+		return false;
+	}
 }

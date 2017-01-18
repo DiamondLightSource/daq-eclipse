@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.scanning.api.annotation.UiHidden;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
 /**
@@ -43,6 +44,7 @@ public abstract class AbstractPointsModel implements IScanPathModel {
 		return Arrays.asList(getName());
 	}
 	
+	@UiHidden
 	public String getSummary() {
 		StringBuilder buf = new StringBuilder();
 		String sname = getClass().getSimpleName();

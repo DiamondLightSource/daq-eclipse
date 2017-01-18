@@ -2,6 +2,7 @@ package org.eclipse.scanning.api.annotation.scan;
 
 import java.io.PrintStream;
 
+import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.LevelInformation;
 import org.eclipse.scanning.api.scan.ScanInformation;
@@ -12,9 +13,12 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * This class is an interface which defaults all the annotated methods
  * which a device may use when 
  * 
+ * Sadly this does not allow Jython classes to be defined due to http://bugs.jython.org/issue2403
+ *  
  * @author Matthew Gerring
  *
  */
+@Deprecated
 public interface AnnotatedDevice {
 	
 	default boolean isDebug() {
@@ -29,10 +33,10 @@ public interface AnnotatedDevice {
 	 * Implement default method for use with Jython.
 	 * NOTE: Arguments are filled with annotations using introspection. OSGi services may be requested (null if not found)
 	 * NOTE: More than one method may be annotated.
-	 * @param info
+	 * @param model
 	 */
 	@PreConfigure
-	default void preConfigure(Object model) throws ScanningException {
+	default void preConfigure(IDetectorModel model, ScanInformation info) throws ScanningException {
 		if (isDebug()) getStream().println("Pre-configure of "+model);
 	}
 	
@@ -40,10 +44,10 @@ public interface AnnotatedDevice {
 	 * Implement default method for use with Jython.
 	 * NOTE: Arguments are filled with annotations using introspection. OSGi services may be requested (null if not found)
 	 * NOTE: More than one method may be annotated.
-	 * @param info
+	 * @param model
 	 */
 	@PostConfigure
-	default void postConfogure(Object model) throws ScanningException {
+	default void postConfigure(IDetectorModel model, ScanInformation info) throws ScanningException {
 		if (isDebug()) getStream().println("Post-configure of "+model);
 	}
 
@@ -74,7 +78,7 @@ public interface AnnotatedDevice {
 	 * Implement default method for use with Jython.
 	 * NOTE: Arguments are filled with annotations using introspection. OSGi services may be requested (null if not found)
 	 * NOTE: More than one method may be annotated.
-	 * @param info
+	 * @param point
 	 */
 	@PointStart
 	default void pointStart(IPosition point) throws ScanningException {
@@ -85,7 +89,7 @@ public interface AnnotatedDevice {
 	 * Implement default method for use with Jython.
 	 * NOTE: Arguments are filled with annotations using introspection. OSGi services may be requested (null if not found)
 	 * NOTE: More than one method may be annotated.
-	 * @param info
+	 * @param point
 	 */
 	@PointEnd
 	default void pointEnd(IPosition point) throws ScanningException {

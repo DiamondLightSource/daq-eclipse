@@ -34,7 +34,7 @@ public class ScanPointGeneratorFactory {
 	 * when it is first used, for instance in the UI, it will execute
 	 * fast because the interpreter has classloaded.
 	 */
-	static void init() {
+	public static void init() {
 		
 		final Thread background = new Thread() {
 			public void run() {
@@ -189,26 +189,41 @@ public class ScanPointGeneratorFactory {
         return null;
 	}
 
-	private static volatile boolean setupPythonState = false;
+	private static volatile PySystemState configuredState;
 
 	private static synchronized void setupSystemState() {
 		
-		if (setupPythonState) return;
+		ClassLoader loader=null;
+		if (configuredState==null) { // Relies on setupSystemState() being called early in the server startup.
+			loader = createJythonClassLoader(PySystemState.class.getClassLoader());
+	 		initializePythonPath(loader); 
+		}
 		
-		ClassLoader loader = createJythonClassLoader();
- 		createPythonPath(loader); 
- 		
     	PySystemState state = Py.getSystemState();
-    	fakeSysExecutable(state);
-    	addScriptPaths(state);
+    	if (state==configuredState) return;
+    	
+    	if (loader==null) {
+    		// Then someone else has changed the PySystemState
+    		// They will not have added our 
+			loader = createJythonClassLoader(state.getClassLoader());   // Don't clobber their working.		
+    	}
 	   	state.setClassLoader(loader);
+    	
+     	setJythonPaths(state);       // Tries to ensure that enough of jython is on the path
+     	setSpgGeneratorPaths(state); // Adds the scripts directory from points
 	   	Py.setSystemState(state);
  
-        setupPythonState = true;
-
+	   	configuredState = state;
 	}
 
-	private static void createPythonPath(ClassLoader loader) {
+	private static void setSpgGeneratorPaths(PySystemState state) {
+		
+        final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
+        state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
+	}
+
+
+	private static void initializePythonPath(ClassLoader loader) {
 		try {
 	    	String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
 	        File loc = getBundleLocation(jythonBundleName); // TODO Name the jython OSGi bundle without Diamond in it!
@@ -232,37 +247,15 @@ public class ScanPointGeneratorFactory {
 	    	logger.debug("Problem loading jython bundles!", ne);
 	    }
 	}
-	
-	private static void fakeSysExecutable(PySystemState sys) {
-		// fake an executable path to get around problem in pydoc.Helper.__init__
-		File f;
-		if (!(sys.executable instanceof PyNone)) {
-			f = new File(((PyString) sys.executable).asString());
-			if (f.exists()) {
-				return;
-			}
-		}
 
-		int n = sys.path.size() - 1;
-		for (int i = 0; i < n; i++) {
-			f = new File((String) sys.path.get(i));
-			if (f.exists()) {
-				sys.executable = new PyString(f.getPath());
-				return;
-			}
-		}
-		String home = System.getProperty("java.home");
-		sys.executable = new PyString(home);
-		logger.warn("Setting sys.executable to java.home: {}", home);
-	}
 
-	private static ClassLoader createJythonClassLoader() {
+	private static ClassLoader createJythonClassLoader(ClassLoader classLoader) {
 		
     	ClassLoader jythonClassloader = ScanPointGeneratorFactory.class.getClassLoader();
     	
     	try { // For non-unit tests, attempt to use the OSGi classloader of this bundle.
     		String jythonBundleName = System.getProperty("org.eclipse.scanning.jython.osgi.bundle.name", "uk.ac.diamond.jython");
-    		CompositeClassLoader composite = new CompositeClassLoader(PySystemState.class.getClassLoader());
+    		CompositeClassLoader composite = new CompositeClassLoader(classLoader);
    	  	    // Classloader for org.eclipse.scanning.points
     		composite.addLast(ScanPointGeneratorFactory.class.getClassLoader());
     		addLast(composite, jythonBundleName);
@@ -277,7 +270,7 @@ public class ScanPointGeneratorFactory {
     	return jythonClassloader;
 	}
 
-	private static void addScriptPaths(PySystemState state) {
+	private static void setJythonPaths(PySystemState state) {
     	        	
         try {
         	// Search for the Libs directory which should have been expanded out either
@@ -320,10 +313,7 @@ public class ScanPointGeneratorFactory {
         	ne.printStackTrace();
         	logger.debug("Problem setting jython path to include scripts!", ne);
         }
- 
-        final File pointsLocation = getBundleLocation("org.eclipse.scanning.points");
-        state.path.add(new PyString(pointsLocation.getAbsolutePath() + "/scripts/"));
-	}
+ 	}
 
 	private static ClassLoader getBundleLoader(String name) {
     	Bundle bundle = Platform.getBundle(name);

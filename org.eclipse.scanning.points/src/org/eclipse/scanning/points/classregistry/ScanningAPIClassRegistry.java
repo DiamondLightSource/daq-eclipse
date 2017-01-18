@@ -16,6 +16,7 @@ import org.eclipse.scanning.api.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.api.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.api.event.queues.beans.SubTaskAtom;
 import org.eclipse.scanning.api.event.queues.beans.TaskBean;
+import org.eclipse.scanning.api.event.queues.remote.QueueRequest;
 import org.eclipse.scanning.api.event.scan.AcquireRequest;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.event.scan.PositionerRequest;
@@ -48,10 +49,12 @@ import org.eclipse.scanning.api.points.models.CollatedStepModel;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.LissajousModel;
+import org.eclipse.scanning.api.points.models.MultiStepModel;
 import org.eclipse.scanning.api.points.models.OneDEqualSpacingModel;
 import org.eclipse.scanning.api.points.models.OneDStepModel;
 import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.api.points.models.RasterModel;
+import org.eclipse.scanning.api.points.models.RepeatedPointModel;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.SinglePointModel;
 import org.eclipse.scanning.api.points.models.SpiralModel;
@@ -117,7 +120,9 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, ScanRegion.class);
 		registerClass(tmp, SinglePointModel.class);
 		registerClass(tmp, SpiralModel.class);
+		registerClass(tmp, RepeatedPointModel.class);
 		registerClass(tmp, StepModel.class);
+		registerClass(tmp, MultiStepModel.class);
 		
 		// scan.ui
 		registerClass(tmp, ControlEnumNode.class);
@@ -137,6 +142,7 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, StatusBean.class);
 		
 		// event.queues.beans
+		registerClass(tmp, QueueRequest.class);
 		registerClass(tmp, MonitorAtom.class);
 		registerClass(tmp, MoveAtom.class);
 		registerClass(tmp, ScanAtom.class);

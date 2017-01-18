@@ -18,6 +18,8 @@ import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.sequencer.ServiceHolder;
+import org.eclipse.scanning.sequencer.SubscanModerator;
 
 /**
  * Extends {@link NexusScanFileManager} to build nexus file for scans that include
@@ -79,6 +81,12 @@ public class MalcolmNexusScanFileManager extends NexusScanFileManager {
 		scanPointsWriter.setMalcolmScan(true);
 		return scanPointsWriter;
 	}
+	
+	protected int getScanRank(ScanModel model) throws ScanningException {
+		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(),
+				null, model.getDetectors(), ServiceHolder.getGeneratorService());
+		return getScanRank(moderator.getOuterIterable());
+	}
 
 	private Set<String> getMalcolmControlledAxes() throws ScanningException {
 		try {
@@ -88,7 +96,6 @@ public class MalcolmNexusScanFileManager extends NexusScanFileManager {
 			return null; // not possible, above always throws exception
 		}
 	}
-	
 	
 	private Set<String> getAxesToMove(IRunnableDevice<?> device) {
 		try {

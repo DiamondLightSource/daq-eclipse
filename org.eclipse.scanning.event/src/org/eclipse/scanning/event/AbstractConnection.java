@@ -77,7 +77,7 @@ class AbstractConnection {
 			createConnection();
 			createQSession();
 			
-			return session.createTopic(topicName);
+			return (session!=null) ? session.createTopic(topicName) : null;
 		}
 	}
 	

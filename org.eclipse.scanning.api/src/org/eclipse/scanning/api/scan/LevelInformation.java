@@ -49,4 +49,8 @@ public class LevelInformation {
 			return false;
 		return true;
 	}
+	@Override
+	public String toString() {
+		return getClass().getName() + '@' + Integer.toHexString(hashCode()) +" [level=" + level + ", objects=" + objects + "]";
+	}
 }

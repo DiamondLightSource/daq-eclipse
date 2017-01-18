@@ -5,6 +5,8 @@ import org.eclipse.scanning.api.scan.ScanningException;
 /**
  * 
  * An interface for devices that are activatable and part of the scan.
+ * For runnable devices (detectors etc) they get included as detectors,
+ * for scannables activated scannables are included as monitors.
  * 
  * This is normally used to mark detectors as being active so that if 
  * scan algorithm data is contstructed they will be included in the scan.
@@ -19,6 +21,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
  * to those activated. It is perfectly possible to run non-activated devices
  * by putting them in the scan request.
  * 
+ * 
  * @author Matthew Gerring
  *
  */
@@ -28,12 +31,16 @@ public interface IActivatable {
 	 * 
 	 * @return true if device is activated.
 	 */
-	public boolean isActivated();
+	default boolean isActivated() {
+		return false;
+	}
 	
 	/**
 	 * 
 	 * @param activated
 	 * @return the old value of activated
 	 */
-	public boolean setActivated(boolean activated)  throws ScanningException;
+	default boolean setActivated(boolean activated)  throws ScanningException {
+		throw new ScanningException("setActivated is not implemented!");
+	}
 }

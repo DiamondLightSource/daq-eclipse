@@ -7,8 +7,7 @@ import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
-import org.eclipse.scanning.api.event.scan.ScanBean;
-import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.sequencer.ServiceHolder;
 
@@ -34,8 +33,8 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	}
 
 	
-	protected long getValueMs(PositionEvent evt, String name, String unit) {
-		double pos = evt.getPosition().getValue(name);
+	protected long getValueMs(IPosition ipos, String name, String unit) {
+		double pos = ipos.getValue(name);
 		return getValueMs(pos, unit);
 	}
 
@@ -58,6 +57,7 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	}
 
 	protected <T> IScannable<T> getScannable(String name) throws ScanningException {
+		if (ServiceHolder.getRunnableDeviceService()==null) return null;
 		IScannableDeviceService cservice = ServiceHolder.getRunnableDeviceService().getDeviceConnectorService();
 		return cservice.getScannable(name);
 	}

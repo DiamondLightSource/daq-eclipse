@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.scanning.api.event.core.IPublisher;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.event.IPositionListenable;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.Location;
@@ -33,6 +34,7 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 	private Map<String, Object> attributes;
 	private int                 level;
 	private String              name;
+	private boolean             activated;
 	
 	/**
 	 * Implementors should use the delegate to notify of position.
@@ -48,7 +50,7 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 	 */
 	protected AbstractScannable(IPublisher<Location> publisher) {
 		this.attributes = new HashMap<>(7);
-		this.delegate   = new PositionDelegate(publisher);
+		this.delegate   = new PositionDelegate(publisher, this);
 	}
 	
 	@Override
@@ -142,6 +144,30 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 		T ret = this.min;
 		this.min = lower;
 		return ret;
+	}
+    @Override
+	public boolean isActivated() {
+		return activated;
+	}
+    @Override
+	public boolean setActivated(boolean activated) {
+    	boolean was = this.activated;
+		this.activated = activated;
+		return was;
+	}
+ 
+	public static final <T> IScannable<T> empty() {
+		return new AbstractScannable<T>() {
+			@Override
+			public T getPosition() throws Exception {
+				return null;
+			}
+
+			@Override
+			public void setPosition(T value, IPosition position) throws Exception {
+				throw new Exception("Cannot set position, scannable is empty!");
+			}
+		};
 	}
 	
 }

@@ -11,7 +11,6 @@ import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
-import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
@@ -74,24 +73,23 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 	 * Called on a thread when the position changes.
 	 */
 	public void positionChanged(PositionEvent evt) {
-		checkPosition(evt);
+		checkPosition(evt.getPosition());
 	}
 	public void positionPerformed(PositionEvent evt) {
-		checkPosition(evt);
+		checkPosition(evt.getPosition());
 	}
 
-	private void checkPosition(PositionEvent evt) {
+	private void checkPosition(IPosition pos) {
 		try {
 			if (engine==null) return;
 			
-			IPosition pos = evt.getPosition();
 			if (pos.getNames().size()!=1) return;
 			String name = pos.getNames().get(0);
 			engine.addLoadedVariable(name, pos.get(name));
 			checkExpression(true);
 					
 		} catch (Exception ne) {
-			logger.error("Cannot process position "+evt, ne);
+			logger.error("Cannot process position "+pos, ne);
 		}	
 	}
 	
@@ -114,7 +112,7 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 	}
 	
 	@ScanStart
-	public void start(ScanBean bean) throws ScanningException {
+	public void start(ScanBean bean, IPosition firstPosition) throws ScanningException {
 		
 		logger.debug("Expression Watchdog starting on "+controller.getName());
 		try {
@@ -140,6 +138,8 @@ public class ExpressionWatchdog extends AbstractWatchdog implements IPositionLis
 		    for (IScannable<?> scannable : scannables) {
 			    ((IPositionListenable)scannable).addPositionListener(this);
 			}
+		    
+		    checkPosition(firstPosition);
 		    
 		} catch (ScanningException ne) {
 			throw ne; // If there is something badly wrong a proper scanning exception will be prepared and thrown

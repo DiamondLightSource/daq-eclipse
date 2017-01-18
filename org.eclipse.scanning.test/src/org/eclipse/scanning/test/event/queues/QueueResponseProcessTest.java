@@ -246,7 +246,7 @@ public class QueueResponseProcessTest {
 
 		//Get the job-queue & compare it's config
 		IQueue<QueueBean> jobQueue = qServ.getJobQueue();
-		IQueue<? extends Queueable> remoteJobQueue = qAns.getQueue();
+		IQueue<? extends Queueable> remoteJobQueue = qControl.getQueue(qAns.getQueueID());
 		
 		assertEquals("CommandSetName different", jobQueue.getCommandSetName(), remoteJobQueue.getCommandSetName());
 		assertEquals("CommandTopicName different", jobQueue.getCommandTopicName(), remoteJobQueue.getCommandTopicName());

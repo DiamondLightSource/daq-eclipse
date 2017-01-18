@@ -1,13 +1,11 @@
 package org.eclipse.scanning.test.ui;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.EventConstants;
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
@@ -20,7 +18,6 @@ import org.eclipse.scanning.server.servlet.DeviceServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.BrokerDelegate;
 import org.eclipse.scanning.test.ScanningTestClassRegistry;
-import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
@@ -32,7 +29,9 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 	SampleInformationTest.class,
 	AxisConfigurationTest.class,
 	KnownModelsTest.class,
-	ControlTreeViewerTest.class
+	BoundingBoxTest.class,
+	ScannableViewerTest.class,
+	ControlTreeViewerTest.class // Must be last!
 
 })
 public class UISuite {
@@ -75,7 +74,11 @@ public class UISuite {
 
 	public static void disposeTestServices() throws Exception {
 		if (delegate!=null) delegate.stop();
-		dservlet.disconnect();
+		try {
+			dservlet.disconnect();
+		} catch (Exception ignored) {
+			
+		}
 	}
 	
 

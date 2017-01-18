@@ -116,4 +116,27 @@ public interface IPointGenerator<T> extends Iterable<IPosition>, IValidator<T>, 
 	 */
 	public String getIconPath();
 	public void setIconPath(String path);
+	
+	/**
+	 * Most generators can be used with Jython/CPython and are interoperable with
+	 * the malcolm layer. Others are java only because they are not needed to be
+	 * operated with the malcolm layer.
+	 * 
+	 * @return
+	 */
+	default boolean isScanPointGeneratorFactory() {
+		return true;
+	}
+	
+	/**
+	 * By default this gets the first point from the iterator.
+	 * Override to define a more efficient first point, for instance
+	 * if the iterator does a sleep this method can be overridden to avoid
+	 * the sleep.
+	 * 
+	 * @return
+	 */
+	default IPosition getFirstPoint() {
+		return iterator().next();
+	}
 }

@@ -56,6 +56,8 @@ public class WatchdogCombinedTest extends AbstractWatchdogTest {
 		model.setCountdownName("topup");
 		model.setCooloff(500); // Pause 500ms before
 		model.setWarmup(200);  // Unpause 200ms after
+		model.setTopupTime(150);
+		model.setPeriod(5000);
 		
 		this.tdog = new TopupWatchdog(model);
 		tdog.activate();

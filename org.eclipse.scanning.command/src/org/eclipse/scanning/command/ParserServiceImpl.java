@@ -11,6 +11,7 @@ import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IParserResult;
 import org.eclipse.scanning.api.scan.IParserService;
 import org.eclipse.scanning.api.scan.ParsingException;
+import org.eclipse.scanning.command.factory.PyExpressionFactory;
 
 public class ParserServiceImpl implements IParserService {
 	
@@ -149,7 +150,8 @@ public class ParserServiceImpl implements IParserService {
 
 	@Override
 	public <T> String getCommand(ScanRequest<T> req, boolean verbose) throws Exception {
-		return PyExpresser.pyExpress(req, verbose);
+		PyExpressionFactory factory = new PyExpressionFactory();
+		return factory.pyExpress(req, verbose);
 	}
 
 	

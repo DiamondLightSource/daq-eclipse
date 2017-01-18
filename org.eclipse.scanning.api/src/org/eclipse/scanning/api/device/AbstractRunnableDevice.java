@@ -243,7 +243,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		bean.setPreviousDeviceState(bean.getDeviceState());
 		if (size>-1) bean.setPercentComplete(((double)(count+1)/size)*100);
 		if (bean.getDeviceState()==DeviceState.RUNNING) { // Only set this message if we are still running.
-			bean.setMessage("Point "+pos.getStepIndex()+" of "+size);
+			bean.setMessage("Point " + (pos.getStepIndex() + 1) +" of " + size);
 		}
 		if (publisher != null) {
 			publisher.broadcast(bean);
@@ -293,7 +293,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	public void firePositionComplete(IPosition position) throws ScanningException {
 		if (posListeners == null) return;
 		
-		final PositionEvent evt = new PositionEvent(position);
+		final PositionEvent evt = new PositionEvent(position, this);
 		
 		// Make array, avoid multi-threading issues
 		final IPositionListener[] la = posListeners.toArray(new IPositionListener[posListeners.size()]);
@@ -587,6 +587,8 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		this.configureTime = configureTime;
 	}
 
-
-
+	@Override
+	public String toString() {
+		return getClass().getName() + '@' + Integer.toHexString(hashCode()) +" [name=" + name + "]";
+	}
 }

@@ -4,10 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.richbeans.test.ui.ShellTest;
 import org.eclipse.scanning.api.scan.AxisConfiguration;
 import org.eclipse.scanning.api.ui.auto.IInterfaceService;
+import org.eclipse.scanning.api.ui.auto.IModelDialog;
 import org.eclipse.scanning.api.ui.auto.IModelViewer;
 import org.eclipse.scanning.device.ui.model.InterfaceService;
 import org.eclipse.swt.graphics.Color;
@@ -76,6 +80,26 @@ public class AxisConfigurationTest extends ShellTest{
 		assertNotNull(bot.shell("Scan Area"));
 	}
 	
+	@Test
+	public void testDialog() throws Exception {
+		Shell shell = bot.shell("Scan Area").widget;
+		
+		List<Exception> errors = new ArrayList<>();
+ 		shell.getDisplay().syncExec(()->{
+ 			try {
+ 				// Intentionally loose generics here because the
+ 				// ModelCellEditor cannot type check so we mimik
+ 				// what it does to reproduce an old defect
+ 				IModelDialog dialog = interfaceService.createModelDialog(shell);
+ 				dialog.create();
+				dialog.setModel((Serializable)config);
+ 			} catch (Exception ne) {
+ 				errors.add(ne);
+ 			}
+		});
+ 		if (errors.size()>0) throw errors.get(0);
+	}
+
 	@Test
 	public void checkInitialValues() throws Exception {
 		

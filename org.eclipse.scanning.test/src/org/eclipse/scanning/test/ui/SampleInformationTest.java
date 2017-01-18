@@ -3,9 +3,14 @@ package org.eclipse.scanning.test.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.richbeans.test.ui.ShellTest;
 import org.eclipse.scanning.api.event.scan.SampleData;
 import org.eclipse.scanning.api.ui.auto.IInterfaceService;
+import org.eclipse.scanning.api.ui.auto.IModelDialog;
 import org.eclipse.scanning.api.ui.auto.IModelViewer;
 import org.eclipse.scanning.device.ui.model.InterfaceService;
 import org.eclipse.swt.layout.GridLayout;
@@ -63,6 +68,26 @@ public class SampleInformationTest extends ShellTest {
 		assertNotNull(bot.shell("Sample"));
 	}
 	
+	@Test
+	public void testDialog() throws Exception {
+		Shell shell = bot.shell("Sample").widget;
+		
+		List<Exception> errors = new ArrayList<>();
+ 		shell.getDisplay().syncExec(()->{
+ 			try {
+ 				// Intentionally loose generics here because the
+ 				// ModelCellEditor cannot type check so we mimik
+ 				// what it does to reproduce an old defect
+ 				IModelDialog dialog = interfaceService.createModelDialog(shell);
+ 				dialog.create();
+				dialog.setModel((Serializable)config);
+ 			} catch (Exception ne) {
+ 				errors.add(ne);
+ 			}
+		});
+ 		if (errors.size()>0) throw errors.get(0);
+	}
+
 	@Test
 	public void checkInitialValues() throws Exception {
 		
