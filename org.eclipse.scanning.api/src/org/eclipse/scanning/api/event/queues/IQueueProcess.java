@@ -1,71 +1,35 @@
 package org.eclipse.scanning.api.event.queues;
 
-import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IConsumerProcess;
+import org.eclipse.scanning.api.event.queues.beans.QueueAtom;
+import org.eclipse.scanning.api.event.queues.beans.QueueBean;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
 /**
  * Process used in the queue service to run the instructions provided by a 
- * queue bean. By separating the process and the processor, it is possible to 
- * configure the behaviour of the process at runtime, allowing processing of 
- * beans from a heterogenous queue. 
+ * {@link Queueable} object. This interface provides a coarse route to identify
+ * how complete the process is and also the bean class that will be operated on
+ * (Q). To  complete the implementation an additional static string is required:
+ * <pre>
+ * public static final String BEAN_CLASS_NAME = ...
+ * </pre>
  * 
  * @author Michael Wharmby
  *
- * @param <T> Bean type passed by consumer (this might be a super-type of the 
- *            bean to be processed in the case of heterogenous queues).
+ * @param <Q> Bean type that will be operated on
+ * @param <T> The {@link Queueable} specified by the {@link IConsumer} 
+ *            instance using the IQueueProcess. This might be a 
+ *            {@link QueueBean} or a {@link QueueAtom}.
  */
-public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>, IQueueBroadcaster<T> {
+public interface IQueueProcess <Q extends Queueable, T extends Queueable> extends IConsumerProcess<T> {
 
 	/**
-	 * Default method, implementing method of {@link IConsumerProcess}. 
-	 * Instructs the {@link IQueueProcessor} to start processing. 
-	 */
-	public default void execute() throws EventException, InterruptedException {
-		setExecuted();
-		getProcessor().execute();
-	}
-
-	/**
-	 * Default method, implementing method of {@link IConsumerProcess}. 
-	 * Instructs the {@link IQueueProcessor} to temporarily halt processing.
-	 */
-	public default void pause() throws EventException {
-		getProcessor().pause();
-	}
-
-	/**
-	 * Default method, implementing method of {@link IConsumerProcess}.
-	 * Instructs {@link IQueueProcessor} to restart processing after a pause.
-	 */
-	public default void resume() throws EventException {
-		getProcessor().resume();
-	}
-
-	/**
-	 * Default method, implementing method of {@link IConsumerProcess}.
-	 * Instructs the {@link IQueueProcessor} to abort processing.
-	 */
-	public default void terminate() throws EventException {
-		setTerminated();
-		getProcessor().terminate();
-	}
-
-	/**
-	 * Return the queue processor which will be used to process the bean 
-	 * associated with this process.
+	 * Returns the bean which will be operated on by this process.
 	 * 
-	 * @return {@link IQueueProcessor} to process the bean.
+	 * @return P bean to be processed.
 	 */
-	public IQueueProcessor<? extends Queueable> getProcessor();
-
-	/**
-	 * Change the configured {@link IQueueProcessor} used to process beans. This cannot be changed after execute has been called.
-	 * 
-	 * @param processor New queue processor.
-	 * @throws EventException if called after execute.
-	 */
-	public void setProcessor(IQueueProcessor<? extends Queueable> processor) throws EventException;
+	public Q getQueueBean();
 	
 	/**
 	 * Return whether execution has begun.
@@ -75,21 +39,17 @@ public interface IQueueProcess <T extends Queueable> extends IConsumerProcess<T>
 	public boolean isExecuted();
 
 	/**
-	 * Set boolean executed to indicate start of execution.
-	 */
-	public void setExecuted();
-
-	/**
 	 * Return whether the process has been terminated.
 	 * 
 	 * @return true if has been terminated.
 	 */
 	public boolean isTerminated();
-
+	
 	/**
-	 * Set boolean terminated to indicate that a terminated call has been 
-	 * received & action should be taken.
+	 * Return the class of the bean which this IQueueProcessor can process.
+	 * 
+	 * @return Class of bean which can be processed.
 	 */
-	public void setTerminated();
+	public Class<Q> getBeanClass();
 
 }

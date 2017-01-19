@@ -1,15 +1,15 @@
-package org.eclipse.scanning.test.event.queues.processors;
+package org.eclipse.scanning.test.event.queues.processes;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
-	MoveAtomProcessorTest.class,
+	MoveAtomProcessTest.class,
 	QueueListenerTest.class,
-	ScanAtomProcessorTest.class,
-	SubTaskAtomProcessorTest.class,
-	TaskBeanProcessorTest.class
+	ScanAtomProcessTest.class,
+	SubTaskAtomProcessTest.class,
+	TaskBeanProcessTest.class
 })
 public class Suite {
 

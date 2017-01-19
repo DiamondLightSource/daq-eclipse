@@ -1,9 +1,10 @@
 package org.eclipse.scanning.test.event.queues.dummy;
 
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.test.event.queues.processors.AbstractQueueProcessorTest;
+import org.eclipse.scanning.test.event.queues.processes.ProcessTestInfrastructure;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -13,106 +14,64 @@ import org.junit.Test;
  * 
  * @author Michael Wharmby
  */
-public class DummyProcessingTest extends AbstractQueueProcessorTest {
-
-	private DummyBean dBe;
-	private DummyHasQueue dHQ;
+public class DummyProcessingTest {
 	
-	private DummyAtomProcessor dAtProcr;
-	private DummyBeanProcessor dBeProcr;
-	private DummyHasQueueProcessor dHQProcr;
+	private ProcessTestInfrastructure pti;
 	
-	@Override
-	protected void localSetup() {
-		//Do nothing
+	@Before
+	public void setUp() {
+		pti = new ProcessTestInfrastructure();
 	}
 	
-	@Override
-	protected void localTearDown() {
-		dBe = null;
-		dHQ = null;
+	@After
+	public void tearDown() {
+		pti = null;
+	}
+	
+	@Test
+	public void testDummyAtomExecution() throws Exception {
+		DummyAtom dAt = new DummyAtom("Clotho", 400);
+		DummyAtomProcess<Queueable> dAtProc = new DummyAtomProcess<>(dAt, pti.getPublisher(), false);
 		
-		dAtProcr = null;
-		dBeProcr = null;
-		dHQProcr = null;
+		pti.executeProcess(dAtProc, dAt);
+		pti.waitForExecutionEnd(10000l);
+		pti.checkLastBroadcastBeanStatuses(Status.COMPLETE, false);
 	}
 	
-	@Override
-	protected Queueable getTestBean() {
-		return new DummyAtom("Hera", 400);
-	}
-	@Override
-	protected IQueueProcessor<DummyAtom> getTestProcessor(boolean makeNew) {
-		if (dAtProcr == null || makeNew) dAtProcr = new DummyAtomProcessor();
-		return dAtProcr;
-	}
-	
-	/**
-	 * Extra test to check processing of other Dummy type
-	 * @throws Exception
-	 */
 	@Test
 	public void testDummyBeanExecution() throws Exception {
-		dBe = new DummyBean("Lachesis", 200);
-		dBeProcr = new DummyBeanProcessor();
+		DummyBean dBe = new DummyBean("Lachesis", 200);
+		DummyBeanProcess<Queueable> dBeProc = new DummyBeanProcess<>(dBe, pti.getPublisher(), false);
 		
-		checkInitialBeanState(dBe);
-		
-		doExecute(dBeProcr, dBe);
-		waitForExecutionEnd(10000l);
-		
-		checkLastBroadcastBeanStatuses(dBe, Status.COMPLETE, false);
+		pti.executeProcess(dBeProc, dBe);
+		pti.waitForExecutionEnd(10000L);
+		pti.checkLastBroadcastBeanStatuses(Status.COMPLETE, false);
 	}
 	
-	/**
-	 * Extra test to check processing of other Dummy type
-	 * @throws Exception
-	 */
 	@Test
 	public void testDummyHasQueueExecution() throws Exception {
-		dHQ = new DummyHasQueue("Atropos", 300);
-		dHQProcr = new DummyHasQueueProcessor();
+		DummyHasQueue dHQ = new DummyHasQueue("Atropos", 300);
+		DummyHasQueueProcess<Queueable> dHQProc = new DummyHasQueueProcess<>(dHQ, pti.getPublisher(), false);
 		
-		checkInitialBeanState(dHQ);
+		pti.executeProcess(dHQProc, dHQ);
+		pti.waitForExecutionEnd(10000L);
+		pti.checkLastBroadcastBeanStatuses(Status.COMPLETE, false);
+	}
+	
+	/*
+	 * Rest of the test is only for DummyAtoms since the process class is the same
+	 */
+	@Test
+	public void testTermination() throws Exception {
+		DummyAtom dAt = new DummyAtom("Hera", 400);
+		DummyAtomProcess<Queueable> dAtProc = new DummyAtomProcess<>(dAt, pti.getPublisher(), false);
 		
-		doExecute(dHQProcr, dHQ);
-		waitForExecutionEnd(10000l);
-		
-		checkLastBroadcastBeanStatuses(dHQ, Status.COMPLETE, false);
+		pti.executeProcess(dAtProc, dAt);
+		pti.waitToTerminate(10l);
+		pti.waitForBeanFinalStatus(5000l);
+		pti.checkLastBroadcastBeanStatuses(Status.TERMINATED, false);
 	}
-
-	@Override
-	protected void processorSpecificExecTests() throws Exception {
-		//None	
-	}
-
-	@Override
-	protected void processorSpecificTermTests() throws Exception {
-		//None
-	}
-
-	@Override
-	protected Queueable getFailBean() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	protected void causeFail() throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	protected void processorSpecificFailTests() throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	protected void waitToTerminate() throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
-
+	
+	
+	
 }

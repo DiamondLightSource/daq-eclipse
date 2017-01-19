@@ -10,8 +10,14 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
 
 public class MockSubscriber<T extends EventListener> implements ISubscriber<T> {
 	
+	private boolean disconnected = false;
+	
 	public MockSubscriber(URI uri, String topicName) {
 		// TODO Auto-generated constructor stub
+	}
+	
+	public void resetSubscriber() {
+		disconnected= false;
 	}
 
 	@Override
@@ -28,8 +34,7 @@ public class MockSubscriber<T extends EventListener> implements ISubscriber<T> {
 
 	@Override
 	public void disconnect() throws EventException {
-		// TODO Auto-generated method stub
-		
+		disconnected = true;
 	}
 
 	@Override
@@ -70,8 +75,7 @@ public class MockSubscriber<T extends EventListener> implements ISubscriber<T> {
 
 	@Override
 	public boolean isDisconnected() {
-		// TODO Auto-generated method stub
-		return false;
+		return disconnected;
 	}
 
 	@Override

@@ -23,6 +23,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
  * @author Michael Wharmby
  *
  */
+@Deprecated
 public class EventInfrastructureFactoryService extends BrokerTest {
 	
 	private boolean active = false, unitTest = false;

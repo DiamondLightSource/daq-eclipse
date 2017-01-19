@@ -29,6 +29,7 @@ public class MockEventService implements IEventService {
 	private MockPublisher<?> mockPublisher;
 	private MockPublisher<? extends ConsumerCommandBean> mockCmdPub;
 	private MockSubmitter<? extends StatusBean> mockSubmitter;
+	private MockSubscriber<? extends EventListener> mockSubscriber;
 	private MockRequester<? extends IdBean> mockRequester; 
 
 	@Override
@@ -37,9 +38,11 @@ public class MockEventService implements IEventService {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends EventListener> ISubscriber<T> createSubscriber(URI uri, String topicName) {
-		return new MockSubscriber<>(uri, topicName);
+		if (mockSubscriber == null) return new MockSubscriber<>(uri, topicName);
+		return (ISubscriber<T>) mockSubscriber;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -146,6 +149,10 @@ public class MockEventService implements IEventService {
 	
 	public <U extends StatusBean> void setMockSubmitter(MockSubmitter<U> mockSub) {
 		this.mockSubmitter = mockSub;
+	}
+	
+	public <U extends EventListener> void setMockSubscriber(MockSubscriber<U> mockSub) {
+		this.mockSubscriber = mockSub;
 	}
 	
 	public <T extends IdBean> void setMockRequester(MockRequester<T> mockReq) {

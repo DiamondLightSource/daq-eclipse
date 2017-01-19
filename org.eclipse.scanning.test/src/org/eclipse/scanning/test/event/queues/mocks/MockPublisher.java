@@ -14,6 +14,7 @@ import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.queues.beans.IHasChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
+import org.eclipse.scanning.api.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
 
@@ -26,9 +27,9 @@ public class MockPublisher<T> implements IPublisher<T> {
 	private MockConsumer<Queueable> mockCons;
 	
 	private volatile List<ConsumerCommandBean> broadcastCmdBeans = new ArrayList<>();
-	private volatile List<Queueable> broadcastStatusBeans = new ArrayList<>();
+	private volatile List<StatusBean> broadcastStatusBeans = new ArrayList<>();
 	
-	private boolean disconnected;
+	private boolean disconnected = false;
 	
 	private boolean alive;
 	
@@ -42,6 +43,7 @@ public class MockPublisher<T> implements IPublisher<T> {
 	
 	public void resetPublisher() {
 		broadcastStatusBeans.clear();
+		disconnected = false;
 	}
 
 	@Override
@@ -74,7 +76,21 @@ public class MockPublisher<T> implements IPublisher<T> {
 				addKillBean((KillBean) bean);
 			}
 		} else {
-			final DummyHasQueue broadBean = new DummyHasQueue();
+			StatusBean broadBean;
+			if (bean instanceof IHasChildQueue) {
+				if (bean instanceof ScanAtom) {
+					broadBean = new ScanAtom();
+					((ScanAtom)broadBean).setQueueMessage(((ScanAtom)bean).getQueueMessage());
+					((ScanAtom)broadBean).setScanSubmitQueueName(((ScanAtom)bean).getScanSubmitQueueName());
+					((ScanAtom)broadBean).setScanStatusTopicName(((ScanAtom)bean).getScanStatusTopicName());
+				} else {
+					broadBean = new DummyHasQueue();
+					((DummyHasQueue)broadBean).setQueueMessage(((IHasChildQueue)bean).getQueueMessage());
+				}
+				
+			} else {
+				broadBean = new StatusBean(); 
+			}
 			StatusBean loBean = (StatusBean)bean;
 			broadBean.setMessage(loBean.getMessage());
 			broadBean.setPreviousStatus(loBean.getPreviousStatus());
@@ -83,17 +99,15 @@ public class MockPublisher<T> implements IPublisher<T> {
 			broadBean.setUniqueId(loBean.getUniqueId());
 			broadBean.setName(loBean.getName());
 			
-			if (bean instanceof IHasChildQueue) {
-				broadBean.setQueueMessage(((IHasChildQueue)bean).getQueueMessage());
-			}
+			
 			broadcastStatusBeans.add(broadBean);
 			if ((loBean.getStatus().isRequest()) && (mockCons != null)) {
-				mockCons.addToStatusSet(broadBean);
+				mockCons.addToStatusSet((Queueable) broadBean);
 			}
 		}
 	}
 	
-	public List<Queueable> getBroadcastBeans() {
+	public List<StatusBean> getBroadcastBeans() {
 		return broadcastStatusBeans;
 	}
 	
@@ -101,7 +115,7 @@ public class MockPublisher<T> implements IPublisher<T> {
 		return broadcastCmdBeans;
 	}
 	
-	public Queueable getLastQueueable() {
+	public StatusBean getLastQueueable() {
 		if (broadcastStatusBeans.size() > 0) {
 			return broadcastStatusBeans.get(broadcastStatusBeans.size()-1);
 		} else {

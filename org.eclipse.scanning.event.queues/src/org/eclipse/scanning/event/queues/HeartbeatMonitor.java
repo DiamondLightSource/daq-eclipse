@@ -16,6 +16,7 @@ import org.eclipse.scanning.api.event.queues.IQueueService;
 import org.eclipse.scanning.api.event.queues.SizeLimitedRecorder;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 
+@Deprecated
 public class HeartbeatMonitor implements IHeartbeatMonitor {
 
 	private ISubscriber<IHeartbeatListener> monitor;
