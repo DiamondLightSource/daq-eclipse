@@ -2,12 +2,10 @@ package org.eclipse.scanning.test.event.queues.dummy;
 
 import org.eclipse.scanning.api.event.queues.beans.IHasChildQueue;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
-import org.eclipse.scanning.test.event.queues.processors.ScanAtomProcessorTest;
 
 /**
  * Generic class to mock behaviour of a POJO in a Queue. Has an additional 
- * queue message option for testing a second message field (e.g. see 
- * {@link ScanAtomProcessorTest}).
+ * queue message option for testing a second message field
  * 
  * @author Michael Wharmby
  *

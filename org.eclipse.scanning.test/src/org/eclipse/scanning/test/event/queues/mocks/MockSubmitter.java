@@ -20,7 +20,7 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	private Map<String, List<ReorderedBean>> reorderedBeans;
 	private String uniqueId, submitQ;
 	
-	private boolean sendToConsumer = false;
+	private boolean sendToConsumer = false, disconnected = false;
 	
 	public MockSubmitter() {
 		submittedBeans = new HashMap<>();
@@ -33,6 +33,7 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 	
 	public void resetSubmitter() {
 		submittedBeans.clear();
+		disconnected= false;
 	}
 	
 	/**
@@ -135,7 +136,7 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 
 	@Override
 	public void disconnect() throws EventException {
-		// TODO Auto-generated method stub
+		disconnected = true;
 		
 	}
 
@@ -281,8 +282,7 @@ public class MockSubmitter<T extends StatusBean> implements ISubmitter<T> {
 
 	@Override
 	public boolean isDisconnected() {
-		// TODO Auto-generated method stub
-		return false;
+		return disconnected;
 	}
 	
 	public boolean isBeanReordered(T bean) {

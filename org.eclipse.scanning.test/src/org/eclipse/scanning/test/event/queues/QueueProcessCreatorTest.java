@@ -1,34 +1,32 @@
 package org.eclipse.scanning.test.event.queues;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
-import org.eclipse.scanning.api.event.queues.IQueueBroadcaster;
 import org.eclipse.scanning.api.event.queues.IQueueProcess;
-import org.eclipse.scanning.api.event.queues.IQueueProcessor;
 import org.eclipse.scanning.api.event.queues.beans.MoveAtom;
 import org.eclipse.scanning.api.event.queues.beans.Queueable;
 import org.eclipse.scanning.api.event.queues.beans.ScanAtom;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
+//import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.event.queues.QueueProcessCreator;
-import org.eclipse.scanning.event.queues.QueueProcessorFactory;
+import org.eclipse.scanning.event.queues.QueueProcessFactory;
 import org.eclipse.scanning.test.event.queues.dummy.DummyAtom;
-import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcessor;
+import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcess;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
-import org.eclipse.scanning.test.event.queues.dummy.DummyBeanProcessor;
+import org.eclipse.scanning.test.event.queues.dummy.DummyBeanProcess;
 import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueue;
-import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueueProcessor;
+import org.eclipse.scanning.test.event.queues.dummy.DummyHasQueueProcess;
 import org.eclipse.scanning.test.event.queues.mocks.MockPublisher;
+import org.eclipse.scanning.test.event.queues.util.TestAtomQueueBeanMaker;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +43,7 @@ import org.junit.Test;
 public class QueueProcessCreatorTest {
 	
 	private IProcessCreator<Queueable> qpc;
-	private IQueueProcess<Queueable> qProc;
+	private IQueueProcess<?, Queueable> qProc;
 	
 	//Infrastructure
 	private IPublisher<Queueable> statPub;
@@ -59,66 +57,72 @@ public class QueueProcessCreatorTest {
 		qpc = new QueueProcessCreator<>(true);
 		
 		statPub = new MockPublisher<Queueable>(null, "test.topic");
-		QueueProcessorFactory.initialize();
+		QueueProcessFactory.initialize();
 	}
 
 	/**
-	 * For a set of test atoms, check the correct processor is created.
+	 * Test of the standard registered Process classes
 	 * 
-	 * Test of the Test support class {@link QueueProcessCreator}
-	 * @throws EventException
-	**/
-	@Test
+	 * Check correct Process is created.
+	 * 
+	 * @throws Exception
+	 */
+	@Test //TODO FIXME
+	@SuppressWarnings("unchecked")
 	public void testProcessTypeCreation() throws Exception {
-		//Atoms to test
 		List<Queueable> testAtoms = new ArrayList<>();
 //		testAtoms.add(new MonitorAtom("Read bpm3", "bpm3", 10000)); FIXME
 		testAtoms.add(new MoveAtom("Move robot arm", "robot_arm", "1250", 12000));
 		testAtoms.add(makeScanAtom());
 //		testAtoms.add(new ProcessAtom(...) TODO
-//		testAtoms.add(TestAtomQueueBeanMaker.makeDummySubTaskBeanA()); FIXME
-//		testAtoms.add(TestAtomQueueBeanMaker.makeDummyTaskBeanA()); FIXME
+		testAtoms.add(TestAtomQueueBeanMaker.makeDummySubTaskBeanA());
+		testAtoms.add(TestAtomQueueBeanMaker.makeDummyTaskBeanA());
 		
-		
-		IQueueProcessor<? extends Queueable> qProcr;
 		for (Queueable atom : testAtoms) {
-			qProc = (IQueueProcess<Queueable>) qpc.createProcess(atom, statPub);
-			qProcr = qProc.getProcessor();
-			
-			assertEquals("Class of test atom & processor do not match", atom.getClass(), qProcr.getBeanClass());
+			qProc = (IQueueProcess<?, Queueable>) qpc.createProcess(atom, statPub);
+			assertEquals("Class of test atom & processor do not match", atom.getClass(), qProc.getBeanClass());
 			assertEquals("Process has different publisher associated", statPub, qProc.getPublisher());
 		}
+	}
+	
+	/**
+	 * Test of the Dummy*Process creation only. These are not normally 
+	 * registered.
+	 * 
+	 * Check correct Process is created.
+	 * 
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testDummyProcessTypeCreation() throws Exception {
+		QueueProcessFactory.registerProcesses(DummyAtomProcess.class, DummyBeanProcess.class, DummyHasQueueProcess.class);
 		
-		QueueProcessorFactory.registerProcessors(DummyAtomProcessor.class, DummyBeanProcessor.class, DummyHasQueueProcessor.class);
-		
-		List<Queueable> dummyAtoms = new ArrayList<>();
-		dummyAtoms.add(new DummyAtom("Marvin", 10));
-		dummyAtoms.add(new DummyBean("Doris", 20));
-		dummyAtoms.add(new DummyHasQueue("Delores", 30));
+		List<Queueable> testAtoms = new ArrayList<>();
+		testAtoms.add(new DummyAtom("Marvin", 10));
+		testAtoms.add(new DummyBean("Doris", 20));
+		testAtoms.add(new DummyHasQueue("Delores", 30));
 		
 		for (Queueable atom : testAtoms) {
-			qProc = (IQueueProcess<Queueable>) qpc.createProcess(atom, statPub);
-			qProcr = qProc.getProcessor();
+			qProc = (IQueueProcess<?,Queueable>) qpc.createProcess(atom, statPub);
 			
-			assertEquals("Class of test atom & processor do not match", atom.getClass(), qProcr.getBeanClass());
-			assertEquals("The atom to be processed differs from the input", atom, qProcr.getProcessBean());
-			assertEquals("Queue broadcaster differs from the expected configuration", (IQueueBroadcaster<Queueable>)qProc, qProcr.getQueueBroadcaster());
-			
+			assertEquals("Class of test atom & processor do not match", atom.getClass(), qProc.getBeanClass());
+			assertEquals("The atom to be processed differs from the input", atom, qProc.getQueueBean());			
 			assertEquals("Publisher differs from the expect configuration", statPub, qProc.getPublisher());
 		}
 	}
 	
-	@Test
-	public void testNoRegisteredProcessorForBean() throws Exception {
-		DummyAtom dAt = new DummyAtom("Marvin", 10);
-		
-		try {
-			qProc = (IQueueProcess<Queueable>) qpc.createProcess(dAt, statPub);
-			fail("Should not be able to create QueueProcess for unregistered bean class");
-		} catch (EventException evEx) {
-			//Expected
-		}
-	}
+//	@Test
+//	public void testNoRegisteredProcessorForBean() throws Exception {
+//		DummyAtom dAt = new DummyAtom("Marvin", 10);
+//		
+//		try {
+//			qProc = (IQueueProcess<Queueable>) qpc.createProcess(dAt, statPub);
+//			fail("Should not be able to create QueueProcess for unregistered bean class");
+//		} catch (EventException evEx) {
+//			//Expected
+//		}
+//	}
 	
 	//TODO Check blocking persisted
 	//TODO Setting blocking on a per-processor basis.

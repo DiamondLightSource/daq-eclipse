@@ -5,4 +5,4 @@
  * in queue beans into actions (either software or hardware).
  *
  */
-package org.eclipse.scanning.event.queues.processors;
+package org.eclipse.scanning.event.queues.processes;

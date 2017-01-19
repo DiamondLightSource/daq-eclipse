@@ -1,4 +1,4 @@
-package org.eclipse.scanning.event.queues.processors;
+package org.eclipse.scanning.event.queues.processes;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * and percent complete of the bean causing the event and updates the 
  * parent bean appropriately.
  * 
- * The QueueListener is used in the ScanAtomProcessor and also in the 
+ * The QueueListener is used in the ScanAtomProcess and also in the 
  * AtomQueueProcessor.
  * 
  * @author Michael Wharmby
@@ -39,7 +39,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 	
 	//Infrastructure
 	private final IQueueBroadcaster<? extends Queueable> broadcaster;
-	private final CountDownLatch processorLatch;
+	private final CountDownLatch processLatch;
 	
 	//
 	private P parent;
@@ -52,7 +52,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 	private QueueListener(IQueueBroadcaster<? extends Queueable> broadcaster, P parent, CountDownLatch procLatch, boolean fakeArg) {
 		this.broadcaster = broadcaster;
 		this.parent = parent;
-		processorLatch = procLatch;
+		processLatch = procLatch;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -222,7 +222,7 @@ public class QueueListener<P extends Queueable, Q extends StatusBean> implements
 				} catch (EventException evEx) {
 					logger.error("Broadcasting completed message failed with: "+evEx.getMessage());
 				}
-				processorLatch.countDown();
+				processLatch.countDown();
 			}
 		}
 	}

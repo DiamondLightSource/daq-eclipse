@@ -8,8 +8,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	_QueueControllerServiceTest.class,
 	QueueControllerServiceTest.class,
 	QueueProcessCreatorTest.class,
-	QueueProcessorFactoryTest.class,
-	QueueProcessTest.class,
+	QueueProcessFactoryTest.class,
 	QueueResponseProcessTest.class,
 	QueueServiceTest.class,
 	QueueTest.class
