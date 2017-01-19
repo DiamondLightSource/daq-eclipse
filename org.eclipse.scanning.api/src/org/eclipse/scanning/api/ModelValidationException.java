@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.eclipse.scanning.api.annotation.ui.FieldValue;
 
-public class ModelValidationException extends RuntimeException {
+public class ModelValidationException extends ValidationException {
 	// Use an unchecked exception because IPointGenerator.iterator() cannot
 	// throw a checked exception. (TODO: Why can't we change signature of
 	// IPointGenerator.iterator())?

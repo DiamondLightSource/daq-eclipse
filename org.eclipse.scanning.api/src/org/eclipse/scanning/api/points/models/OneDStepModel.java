@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.points.models;
 
-import org.eclipse.scanning.api.annotation.MinimumValue;
-
 /**
  * A model for a scan along a straight line in two-dimensional space, starting at the beginning of the line and moving
  * in steps of the size given in this model.
@@ -12,13 +10,8 @@ import org.eclipse.scanning.api.annotation.MinimumValue;
 public class OneDStepModel extends AbstractBoundingLineModel implements IBoundingLineModel {
     
 
-	private double step = 1;
+	private double step;
 
-	public OneDStepModel(){
-		setName("Step"); // TODO Should be 'Single Step'
-	}
-	
-	@MinimumValue("0")
 	public double getStep() {
 		return step;
 	}

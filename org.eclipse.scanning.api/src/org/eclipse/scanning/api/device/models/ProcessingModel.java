@@ -34,6 +34,17 @@ public class ProcessingModel implements ITimeoutable {
 
 	private long timeout = -1;
 	
+	public ProcessingModel() {
+		
+	}
+	
+    public ProcessingModel(String detectorName, String dataFile, String operationsFile, long timeout) {
+    	this.detectorName   = detectorName;
+       	this.dataFile       = dataFile;
+       	this.operationsFile = operationsFile;
+       	this.timeout        = timeout;
+    }
+	
 	public String getOperationsFile() {
 		return operationsFile;
 	}

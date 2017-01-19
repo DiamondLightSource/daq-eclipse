@@ -1,8 +1,8 @@
 package org.eclipse.scanning.example.detector;
 
-import org.eclipse.scanning.api.ITimeoutable;
+import org.eclipse.scanning.api.device.models.AbstractDetectorModel;
 
-public class ConstantVelocityModel implements ITimeoutable {
+public class ConstantVelocityModel extends AbstractDetectorModel {
 
 	private double start,stop,step;
 	private String name      = "cvExmpl";

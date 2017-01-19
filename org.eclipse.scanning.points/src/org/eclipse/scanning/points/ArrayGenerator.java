@@ -2,6 +2,8 @@ package org.eclipse.scanning.points;
 
 import java.util.Iterator;
 
+import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.points.AbstractGenerator;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPosition;
@@ -15,7 +17,9 @@ public class ArrayGenerator extends AbstractGenerator<ArrayModel> {
 	}
 
 	@Override
-	protected void validateModel() {
+	protected void validateModel() throws ValidationException {
+		if (getModel().getPositions()==null) throw new ModelValidationException("There are no positions!", model, "positions");
+		if (getModel().getName()==null) throw new ModelValidationException("The model must have a name!\nIt is the motor name used for the array of points.", model, "name");
 		super.validateModel();
 	}
 

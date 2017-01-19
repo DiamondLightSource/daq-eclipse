@@ -16,6 +16,7 @@ import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.LazyWriteableDataset;
 import org.eclipse.january.dataset.Random;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
@@ -119,12 +120,12 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmModel> {
 	}
 
 	@Override
-	public void validate(MapMalcolmModel model) throws MalcolmDeviceException {
+	public void validate(MapMalcolmModel model) throws ValidationException {
 		Map<String, Object> params = model.getParameterMap();
-		if (!params.containsKey("shape")) throw new MalcolmDeviceException(this, "shape must be set!");
-		if (!params.containsKey("nframes")) throw new MalcolmDeviceException(this, "nframes must be set!");
-		if (!params.containsKey("file")) throw new MalcolmDeviceException(this, "file must be set!");
-		if (!params.containsKey("exposure")) throw new MalcolmDeviceException(this, "exposure must be set!");
+		if (!params.containsKey("shape")) throw new ValidationException("shape must be set!");
+		if (!params.containsKey("nframes")) throw new ValidationException("nframes must be set!");
+		if (!params.containsKey("file")) throw new ValidationException("file must be set!");
+		if (!params.containsKey("exposure")) throw new ValidationException("exposure must be set!");
 		return;
 	}
 

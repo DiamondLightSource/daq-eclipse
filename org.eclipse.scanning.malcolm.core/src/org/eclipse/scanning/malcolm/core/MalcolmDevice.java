@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.MalcolmModel;
@@ -26,7 +27,6 @@ import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
 import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.malcolm.message.MalcolmUtil;
 import org.eclipse.scanning.api.malcolm.message.Type;
-import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IMutator;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
@@ -306,13 +306,18 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 
 
 	@Override
-	public void validate(M params) throws MalcolmDeviceException {
+	public void validate(M params) throws ValidationException {
 		logger.info("validate params = " + params);
 		final EpicsMalcolmModel epicsModel = createEpicsMalcolmModel(params);
-		final MalcolmMessage msg   = connectionDelegate.createCallMessage("validate", epicsModel);
-		final MalcolmMessage reply = connector.send(this, msg);
-		if (reply.getType()==Type.ERROR) {
-			throw new MalcolmDeviceException(reply.getMessage());
+		
+		try {
+			final MalcolmMessage msg   = connectionDelegate.createCallMessage("validate", epicsModel);
+			final MalcolmMessage reply = connector.send(this, msg);
+			if (reply.getType()==Type.ERROR) {
+				throw new ValidationException(reply.getMessage());
+			}
+		} catch (MalcolmDeviceException mde) {
+			throw new ValidationException(mde);
 		}
 	}
 	

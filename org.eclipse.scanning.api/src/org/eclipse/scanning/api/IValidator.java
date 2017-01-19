@@ -23,7 +23,7 @@ public interface IValidator<T> {
 	 * @throw exception if model invalid
 	 * @return 
 	 */
-	default void validate(T model) throws Exception, ModelValidationException {
+	default void validate(T model) throws ValidationException, InstantiationException, IllegalAccessException {
 		return; // They should implement a validation which throws an exception
 	}
 

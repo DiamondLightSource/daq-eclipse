@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.points.models.IBoundingBoxModel;
 
 /**
@@ -64,8 +65,9 @@ public abstract class AbstractGenerator<T> implements IPointGenerator<T>, Iterab
 	 * 
 	 * @throw exception if model invalid
 	 */
-	protected void validateModel() {
+	protected void validateModel() throws ValidationException {
 		T model = getModel();
+		
 		if (model instanceof IBoundingBoxModel) {
 			IBoundingBoxModel bmodel = (IBoundingBoxModel)model;
 			// As implemented, model width and/or height can be negative,

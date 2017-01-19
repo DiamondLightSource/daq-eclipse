@@ -9,16 +9,15 @@ import java.util.Map;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.richbeans.widgets.table.ISeriesItemDescriptor;
 import org.eclipse.richbeans.widgets.table.SeriesTable;
 import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.IValidator;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.swt.graphics.Image;
@@ -180,7 +179,7 @@ public class GeneratorDescriptor<T extends IScanPathModel> implements ISeriesIte
 	}
 	
 	@Override
-	public void validate(T model) throws Exception {
+	public void validate(T model) throws ValidationException, InstantiationException, IllegalAccessException {
 		generator.validate(model);
 	}
 

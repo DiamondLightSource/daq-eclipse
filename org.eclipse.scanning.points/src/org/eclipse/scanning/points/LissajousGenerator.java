@@ -23,6 +23,8 @@ public class LissajousGenerator extends AbstractGenerator<LissajousModel> {
 	@Override
 	protected void validateModel() {
 		if (model.getPoints() < 1) throw new ModelValidationException("Must have one or more points in model!", model, "points");
+		if (model.getFastAxisName()==null) throw new ModelValidationException("The model must have a fast axis!\nIt is the motor name used for this axis.", model, "fastAxisName");
+		if (model.getSlowAxisName()==null) throw new ModelValidationException("The model must have a slow axis!\nIt is the motor name used for this axis.", model, "slowAxisName");
 	}
 
 }

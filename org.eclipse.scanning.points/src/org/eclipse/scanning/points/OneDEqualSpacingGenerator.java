@@ -19,6 +19,8 @@ public class OneDEqualSpacingGenerator extends AbstractGenerator<OneDEqualSpacin
 	protected void validateModel() {
 		super.validateModel();
 		if (model.getPoints() < 1) throw new ModelValidationException("Must have one or more points in model!", model, "points");
+		if (model.getxName()==null) throw new ModelValidationException("The model must have a x axis!\nIt is the motor name used for this axis.", model, "xName");
+		if (model.getyName()==null) throw new ModelValidationException("The model must have a y axis!\nIt is the motor name used for this axis.", model, "yName");
 	}
 
 	@Override

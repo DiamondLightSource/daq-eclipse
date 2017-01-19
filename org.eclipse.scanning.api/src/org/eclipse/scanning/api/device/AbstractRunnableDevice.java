@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.EventException;
@@ -491,7 +492,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * If overriding don't forget the old super.validate(...)
 	 */
 	@Override
-	public void validate(T model) throws Exception {
+	public void validate(T model) throws ValidationException {
 		if (model instanceof IDetectorModel) {
 			IDetectorModel dmodel = (IDetectorModel)model;
 		    if (dmodel.getName()==null || dmodel.getName().length()<1) {
