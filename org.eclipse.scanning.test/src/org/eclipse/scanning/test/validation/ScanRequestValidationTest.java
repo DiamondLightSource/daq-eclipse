@@ -9,14 +9,11 @@ import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
-import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
-import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
-import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.junit.Test;
 
 public class ScanRequestValidationTest extends AbstractValidationTest {
