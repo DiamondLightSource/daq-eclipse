@@ -120,7 +120,7 @@ public class KnownModelsTest extends ShellTest{
 		List<ModelTest> models = new ArrayList<>();
 		models.add(new ModelTest(new MandelbrotModel("x", "y"), 17));
 		models.add(new ModelTest(new DarkImageModel(), 4));
-		models.add(new ModelTest(new ConstantVelocityModel(), 8));
+		models.add(new ModelTest(new ConstantVelocityModel(), 9));
 		return models;
 	}
 

@@ -3,6 +3,7 @@ package org.eclipse.scanning.event.remote;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -37,7 +38,7 @@ abstract class _AbstractRemoteDevice<M> extends AbstractRemoteService {
 	    connect(req);
 	}
 	
-	private void connect(DeviceRequest req) throws EventException, InterruptedException {
+	private void connect(DeviceRequest req) throws EventException, InterruptedException, ValidationException {
 		req = requester.post(req);
 		req.checkException();
 		info = (DeviceInformation<M>)req.getDeviceInformation();

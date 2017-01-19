@@ -19,7 +19,7 @@ public interface IValidatorService {
 	 * @param model
 	 * @throws Exception, ModelValidationException
 	 */
-    <T> void validate(T model) throws Exception;
+    <T> void validate(T model) throws ValidationException, InstantiationException, IllegalAccessException;
 
     /**
      * Get the validator for a given model or null if the model is not supported.

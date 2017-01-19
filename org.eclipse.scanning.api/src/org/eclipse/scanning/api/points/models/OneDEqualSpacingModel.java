@@ -1,7 +1,5 @@
 package org.eclipse.scanning.api.points.models;
 
-import org.eclipse.scanning.api.annotation.MinimumValue;
-
 /**
  * A model for a scan along a straight line in two-dimensional space, dividing the line into the number of points given
  * in this model.
@@ -11,13 +9,8 @@ import org.eclipse.scanning.api.annotation.MinimumValue;
  */
 public class OneDEqualSpacingModel extends AbstractBoundingLineModel implements IBoundingLineModel {
 
-	private int points = 5;
-
-	public OneDEqualSpacingModel() {
-		setName("Equal Spacing");
-	}
+	private int points;
 	
-	@MinimumValue("1")
 	public int getPoints() {
 		return points;
 	}

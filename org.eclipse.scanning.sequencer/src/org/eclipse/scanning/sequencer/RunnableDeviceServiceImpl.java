@@ -93,10 +93,13 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		}
 	}
 	
-	// Test
+	// Test, we clear the devices so that each test is clean
 	public RunnableDeviceServiceImpl(IScannableDeviceService deviceConnectorService) {
 		this();
 		RunnableDeviceServiceImpl.deviceConnectorService = deviceConnectorService;	
+		modelledDevices.clear();
+		modelledDevices.put(ScanModel.class,         AcquisitionDevice.class);
+		namedDevices.clear();
 	}
 	
 	

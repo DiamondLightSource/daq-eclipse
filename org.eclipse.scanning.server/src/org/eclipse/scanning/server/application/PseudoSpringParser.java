@@ -224,6 +224,7 @@ public class PseudoSpringParser implements ISpringParser {
 			} else if (ref!=null && objects.containsKey(ref.getNodeValue())) {
 				conf.put(name, objects.get(ref.getNodeValue()));
 			} else {
+				boolean useLists = true;
 				NodeList children = prop.getChildNodes();
 				final List<String> refs = new ArrayList<>();
 				for (int k = 0; k < children.getLength(); k++) {
@@ -237,12 +238,18 @@ public class PseudoSpringParser implements ISpringParser {
 						Node cbean  = attr.getNamedItem("bean");
 						if (cbean!=null) {
 						    refs.add(cbean.getNodeValue());
+						    useLists = true;
 						} else {
 							refs.add(item.getTextContent());
+							useLists = false;
 						}
 					}
 				}
-			    lists.put(id, new NamedList(name, refs));
+				if (useLists) {
+					lists.put(id, new NamedList(name, refs));
+				} else {
+			        conf.put(name, refs);
+				}
 			}
 		}
 		Object created = createObject(className, init, conf);

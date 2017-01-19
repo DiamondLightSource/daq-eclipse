@@ -185,16 +185,16 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		run.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		run.setLayout(new GridLayout(3, false));
 		
-		final Button execute = new Button(run, SWT.PUSH);
-		execute.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		execute.setText("Submit");
-		execute.setToolTipText("Execute current scan\n(Submits it to the queue of scans to be run.)");
-		execute.addSelectionListener(new SelectionAdapter() {
+		submitButton = new Button(run, SWT.PUSH);
+		submitButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		submitButton.setText("Submit");
+		submitButton.setToolTipText("Execute current scan\n(Submits it to the queue of scans to be run.)");
+		submitButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				submit();
 			}
 		});
-		execute.setImage(Activator.getImageDescriptor("icons/shoe--arrow.png").createImage());
+		submitButton.setImage(Activator.getImageDescriptor("icons/shoe--arrow.png").createImage());
 
 		timeEstimate = new Label(run, SWT.NONE);
 		timeEstimate.setText("                    ");
@@ -363,6 +363,8 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	}
 	
 	private IAdaptable modelAdaptable;
+	private IAction    submitAction;
+	private Button     submitButton;
 	
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
@@ -414,6 +416,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	        if (cm != null) {
 	        	// Validate
 	        	vservice.validate(cm);
+				setThreadSafeEnabled(true);
 	        	
 	    		StyledString styledString = new StyledString();
 		        	
@@ -503,9 +506,11 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	        	setThreadSafeLabel(timeEstimate, timeString);
  	        }
 		} catch (ModelValidationException ne) {
+			setThreadSafeEnabled(false);
 			setThreadSafeText(text, ne.getMessage());
 			 
 		} catch (Exception ne) {
+			setThreadSafeEnabled(false);
 			logger.error("Cannot create summary of scan!", ne);
 			if (ne.getMessage()!=null) {
 				setThreadSafeText(text, ne.getMessage());
@@ -513,6 +518,13 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 				setThreadSafeText(text, ne.toString());
 			}
 		}
+	}
+
+	private void setThreadSafeEnabled(boolean enabled) {
+		submitButton.getDisplay().syncExec(()->{
+			this.submitAction.setEnabled(enabled);
+			this.submitButton.setEnabled(enabled);
+		});
 	}
 
 	private String getModelNames(CompoundModel<IROI> compound) {
@@ -676,7 +688,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	
 		ViewUtil.addGroups("show", mans, showInfo, showCmd, showTime);
 		
-		IAction run = new Action("Execute current scan\n(Submits it to the queue of scans to be run.)", Activator.getImageDescriptor("icons/shoe--arrow.png")) {
+		this.submitAction = new Action("Submit current scan\n(Submits it to the queue of scans to be run.)", Activator.getImageDescriptor("icons/shoe--arrow.png")) {
 			public void run() {
 				submit();
 			}
@@ -697,7 +709,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 			}
 		};
 	
-		ViewUtil.addGroups("execute", mans, run);
+		ViewUtil.addGroups("execute", mans, submitAction);
 		ViewUtil.addGroups("auxilary", mans, copy, sample, showQueue);
 
 		

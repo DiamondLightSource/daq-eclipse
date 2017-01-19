@@ -22,6 +22,7 @@ import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.device.models.DeviceRole;
@@ -69,7 +70,7 @@ public class ProcessingRunnableDevice extends AbstractRunnableDevice<ProcessingM
 	}
 	
 	@Override
-	public void validate(ProcessingModel model) throws Exception {
+	public void validate(ProcessingModel model) throws ValidationException {
 		if (model.getDataFile()==null) throw new ModelValidationException("The data file must be set!", model, "dataFile");
 		if (model.getOperationsFile()==null) throw new ModelValidationException("The operation file must be set!", model, "operationsFile");
 		if (model.getDetectorName()==null) throw new ModelValidationException("The detector name must be set!", model, "detectorName");

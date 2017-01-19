@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.IValidatorService;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
@@ -89,7 +90,9 @@ public class ValidatorService implements IValidatorService {
 	}
 
 	@Override
-	public <T> void validate(T model) throws Exception {
+	public <T> void validate(T model) throws ValidationException, InstantiationException, IllegalAccessException {
+		
+		if (model==null) throw new ValidationException("The object to validate is null and cannot be checked!");
 		IValidator<T> validator = getValidator(model);
 		if (validator==null) throw new IllegalAccessException("There is no validator for "+model.getClass().getSimpleName());
 		validator.setService(this);
@@ -117,6 +120,13 @@ public class ValidatorService implements IValidatorService {
 			} catch (GeneratorException e) {
 				throw new IllegalAccessException(e.getMessage());
 			}
+		} else {
+			try {
+				IPointGenerator<?> gen    = factory.createGenerator(model);
+				return (IValidator<T>)gen;
+			} catch (Exception legallyPossible) {
+				// Do nothing
+			}
 		}
 		
 		if (model instanceof IDetectorModel && dservice!=null) {
@@ -131,6 +141,14 @@ public class ValidatorService implements IValidatorService {
 				logger.trace("No device found for "+model, e);
 			}
 			if (device!=null) return (IValidator<T>)device;
+		} else {
+			try {
+				IRunnableDevice<Object> device  = dservice.createRunnableDevice(model, false);
+				return (IValidator<T>)device;
+			} catch (Exception legallyPossible) {
+				// Do nothing
+			}
+			
 		}
 		
 		return null;

@@ -1,5 +1,6 @@
 package org.eclipse.scanning.test.malcolm.device;
 
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.MalcolmEventBean;
@@ -24,8 +25,8 @@ public class LoopingMockedMalcolmDevice extends PausableMockedMalcolmDevice {
 	}
 
 	@Override
-	public void validate(MapMalcolmModel params) throws MalcolmDeviceException {
-		throw new MalcolmDeviceException(this, "Validate is not implemented!");
+	public void validate(MapMalcolmModel params) throws ValidationException {
+		throw new ValidationException("Validate is not implemented!");
 	}
 
 	@Override
