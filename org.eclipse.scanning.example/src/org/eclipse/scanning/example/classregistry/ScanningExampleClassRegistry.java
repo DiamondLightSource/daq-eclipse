@@ -27,6 +27,7 @@ import org.eclipse.scanning.example.detector.ConstantVelocityModel;
 import org.eclipse.scanning.example.detector.DarkImageModel;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmTriggeredDeviceModel;
 import org.eclipse.scanning.example.scannable.MockScannableModel;
 
 public class ScanningExampleClassRegistry implements IClassRegistry {
@@ -40,6 +41,7 @@ public class ScanningExampleClassRegistry implements IClassRegistry {
 		registerClass(tmp, DarkImageModel.class);
 		registerClass(tmp, MandelbrotModel.class);
 		registerClass(tmp, DummyMalcolmModel.class);
+		registerClass(tmp, DummyMalcolmTriggeredDeviceModel.class);
 
 		// scannable
 		registerClass(tmp, MockScannableModel.class);
