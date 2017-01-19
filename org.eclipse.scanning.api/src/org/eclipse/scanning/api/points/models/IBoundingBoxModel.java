@@ -6,15 +6,9 @@ package org.eclipse.scanning.api.points.models;
  * @author Colin Palmer
  * @author Matthew Gerring
  */
-public interface IBoundingBoxModel extends IScanPathModel {
+public interface IBoundingBoxModel extends IMapPathModel {
 
 	public BoundingBox getBoundingBox();
 	public void setBoundingBox(BoundingBox boundingBox);
 	
-	public String getFastAxisName();
-	public void setFastAxisName(String newValue);
-	
-	public String getSlowAxisName();
-	public void setSlowAxisName(String newValue);
-
 }
