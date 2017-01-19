@@ -109,6 +109,34 @@ public class ScanRequestValidationTest extends AbstractValidationTest {
 		validator.validate(req);
 	}
 	
+	@Test
+	public void twoCPUAndProcessing() throws Exception {
+		
+		ScanRequest<IROI> req = createScanRequest();
+		
+		IRunnableDeviceService dservice = validator.getRunnableDeviceService();
+		req.putDetector("mandelbrot", dservice.getDeviceInformation("mandelbrot").getModel());
+		req.putDetector("dkExmpl", dservice.getDeviceInformation("dkExmpl").getModel());
+		req.putDetector("processing", new ProcessingModel("processing", "/tmp/datafile", "/tmp/operationfile", 100));
+
+		validator.validate(req);
+	}
+
+	@Test
+	public void twoCPUAndTwoProcessing() throws Exception {
+		
+		ScanRequest<IROI> req = createScanRequest();
+		
+		IRunnableDeviceService dservice = validator.getRunnableDeviceService();
+		req.putDetector("mandelbrot", dservice.getDeviceInformation("mandelbrot").getModel());
+		req.putDetector("dkExmpl", dservice.getDeviceInformation("dkExmpl").getModel());
+		req.putDetector("processing1", new ProcessingModel("processing1", "/tmp/datafile1", "/tmp/operationfile1", 100));
+		req.putDetector("processing2", new ProcessingModel("processing2", "/tmp/datafile2", "/tmp/operationfile2", 200));
+
+		validator.validate(req);
+	}
+
+
 	@Test(expected=ValidationException.class)
 	public void aCPUAndAMalcolm() throws Exception {
 		
@@ -146,7 +174,19 @@ public class ScanRequestValidationTest extends AbstractValidationTest {
 		validator.validate(req);
 	}
 
-	
+	@Test(expected=ValidationException.class)
+	public void threeMalcolms() throws Exception {
+		
+		ScanRequest<IROI> req = createScanRequest();
+		
+		IRunnableDeviceService dservice = validator.getRunnableDeviceService();
+		req.putDetector("malcolm1",    dservice.getDeviceInformation("malcolm").getModel());
+		req.putDetector("malcolm2",    dservice.getDeviceInformation("malcolm").getModel());
+		req.putDetector("malcolm3",    dservice.getDeviceInformation("malcolm").getModel());
+
+		validator.validate(req);
+	}
+
 	private ScanRequest<IROI> createScanRequest() {
 		GridModel gmodel = new GridModel("stage_x", "stage_y");
 		gmodel.setBoundingBox(new BoundingBox(10, -10, 100, -100));
