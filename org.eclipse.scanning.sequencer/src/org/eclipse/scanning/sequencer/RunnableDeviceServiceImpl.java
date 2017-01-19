@@ -98,6 +98,7 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		this();
 		RunnableDeviceServiceImpl.deviceConnectorService = deviceConnectorService;	
 		modelledDevices.clear();
+		modelledDevices.put(ScanModel.class,         AcquisitionDevice.class);
 		namedDevices.clear();
 	}
 	
