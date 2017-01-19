@@ -2,8 +2,6 @@ package org.eclipse.scanning.api.points.models;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * A model for a scan at a single two-dimensional point.
@@ -11,7 +9,7 @@ import java.util.List;
  * @author Colin Palmer
  *
  */
-public class SinglePointModel extends AbstractPointsModel {
+public class SinglePointModel extends AbstractMapModel {
 
 	protected final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 	@Override
@@ -22,11 +20,6 @@ public class SinglePointModel extends AbstractPointsModel {
 	public void removePropertyChangeListener(PropertyChangeListener listener) {
 		this.pcs.removePropertyChangeListener(listener);
 	}
-	@Override
-	public List<String> getScannableNames() {
-		return Arrays.asList("x", "y");
-	}
-
 	private double x;
 	private double y;
 
