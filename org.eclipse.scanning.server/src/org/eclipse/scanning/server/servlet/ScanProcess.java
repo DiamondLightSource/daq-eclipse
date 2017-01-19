@@ -126,7 +126,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 			}
 			
 			if (!Boolean.getBoolean("org.eclipse.scanning.server.servlet.scanProcess.disableValidate")) {
-//			    Services.getValidatorService().validate(bean.getScanRequest());
+			    Services.getValidatorService().validate(bean.getScanRequest());
 			}
 
 			// Move to a position if they set one
