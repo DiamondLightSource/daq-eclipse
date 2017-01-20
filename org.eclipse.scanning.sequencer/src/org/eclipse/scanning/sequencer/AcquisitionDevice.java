@@ -185,6 +185,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		manager.addContext(getBean());
 		manager.addContext(model);
+		manager.addContext(moderator);
 	
 		boolean errorFound = false;
 		IPosition pos = null;
