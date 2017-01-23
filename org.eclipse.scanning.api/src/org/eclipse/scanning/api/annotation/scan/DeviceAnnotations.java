@@ -15,6 +15,7 @@ public class DeviceAnnotations {
 		// Alphabetic order
 		tmp.add(LevelEnd.class);
 		tmp.add(LevelStart.class);
+		tmp.add(WriteComplete.class);
 		tmp.add(PointEnd.class);
 		tmp.add(PointStart.class);
 		tmp.add(ScanAbort.class);

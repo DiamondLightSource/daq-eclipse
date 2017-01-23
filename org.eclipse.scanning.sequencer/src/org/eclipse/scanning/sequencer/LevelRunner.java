@@ -335,6 +335,7 @@ abstract class LevelRunner<L extends ILevel> {
 			
 			@Override
 			protected boolean run(IPosition position, boolean block) {
+				this.position = position;
 				return true;
 			}
 			@Override

@@ -239,7 +239,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
 	        	IPosition written = writers.await();          // Wait for the previous write out to return, if any
-	       		manager.invoke(WriteComplete.class, written);
+	       		if (written!=null) manager.invoke(WriteComplete.class, written);
 	        	
         		nexusScanFileManager.flushNexusFile(); // flush the nexus file
 	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
@@ -252,8 +252,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
-        	writers.await();                   // Wait for the previous read out to return, if any
-        	
+        	IPosition written = writers.await();          // Wait for the previous write out to return, if any
+       		manager.invoke(WriteComplete.class, written);
+
+      	
 		} catch (ScanningException | InterruptedException i) {
 			errorFound=true;
 			processException(i);

@@ -23,6 +23,7 @@ import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanPause;
 import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
+import org.eclipse.scanning.api.annotation.scan.WriteComplete;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
@@ -175,6 +176,7 @@ public class ScanSpeedTest extends BrokerTest {
 			assertEquals(1,    ams.getCount(ScanStart.class));
 			assertEquals(100,  ams.getCount(PointStart.class));
 			assertEquals(100,  ams.getCount(PointEnd.class));
+			assertEquals(100,  ams.getCount(WriteComplete.class));
 			assertEquals(100,  ams.getCount(LevelStart.class));
 			assertEquals(100,  ams.getCount(LevelEnd.class));
 			assertEquals(1,    ams.getCount(ScanEnd.class));
@@ -187,6 +189,7 @@ public class ScanSpeedTest extends BrokerTest {
 			assertEquals(1,    ams.getCount(ScanStart.class));
 			assertEquals(100,  ams.getCount(PointStart.class));
 			assertEquals(100,  ams.getCount(PointEnd.class));
+			assertEquals(100,  ams.getCount(WriteComplete.class));
 			assertEquals(100,  ams.getCount(LevelStart.class)); // run is called, but write is not as no nexus file is configured
 			assertEquals(100,  ams.getCount(LevelEnd.class));   // run is called, but write is not as no nexus file is configured
 			assertEquals(1,    ams.getCount(ScanEnd.class));

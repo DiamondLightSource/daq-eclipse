@@ -15,6 +15,7 @@ import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanPause;
 import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
+import org.eclipse.scanning.api.annotation.scan.WriteComplete;
 import org.eclipse.scanning.api.scan.ScanInformation;
 
 /**
@@ -58,6 +59,11 @@ public interface AnnotationRecorder {
 	@PointEnd
 	default void pointEnd() {
 		record(PointEnd.class);
+	}
+	
+	@WriteComplete
+	default void writeComplete() {
+		record(WriteComplete.class);
 	}
 
 	@LevelStart
