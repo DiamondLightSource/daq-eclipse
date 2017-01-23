@@ -1,6 +1,5 @@
 package org.eclipse.scanning.api.scan;
 
-
 /**
  * This service provides useful file paths for writing to. It has method to get the
  * path of the next scan file.
@@ -18,6 +17,21 @@ public interface IFilePathService {
 	 */
 	String getNextPath(String template) throws Exception;
 	
+	/**
+	 * 
+	 * @return the current scan number. Same as NumTracker.getCurrentFileNumber() in GDA8.
+	 * @throws Exception
+	 */
+	int getScanNumber() throws Exception;
+	
+	
+	/**
+	 * 
+	 * @return the current visit number LocalProperties.get(LocalProperties.GDA_DEF_VISIT, LocalProperties.DEFAULT_VISIT)
+	 * @throws Exception
+	 */
+	String getVisit() throws Exception;
+
 	/**
 	 * Creates and returns the path of a new folder in the same parent folder as file path with
 	 * the same name as the given file, minus the file extension. This folder can be used to

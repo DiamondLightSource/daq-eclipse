@@ -99,5 +99,17 @@ public class MockFilePathService implements IFilePathService {
 	public String getProcessingTemplatesDir() {
 		return new File(getPersistenceDir(), "processingTemplates").toString();
 	}
+	
+	private static int scanNumber = 0;
+
+	@Override
+	public int getScanNumber() throws Exception {
+		return scanNumber++;
+	}
+
+	@Override
+	public String getVisit() throws Exception {
+		return "test-mock0";
+	}
 
 }
