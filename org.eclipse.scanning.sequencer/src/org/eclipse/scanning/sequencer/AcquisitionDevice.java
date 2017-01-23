@@ -19,6 +19,7 @@ import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanPause;
 import org.eclipse.scanning.api.annotation.scan.ScanResume;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
+import org.eclipse.scanning.api.annotation.scan.WriteComplete;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -237,7 +238,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
         		manager.invoke(PointStart.class, pos);
 	        	positioner.setPosition(pos);   // moveTo in GDA8
 	        	
-	        	writers.await();               // Wait for the previous write out to return, if any
+	        	IPosition written = writers.await();          // Wait for the previous write out to return, if any
+	       		manager.invoke(WriteComplete.class, written);
 	        	
         		nexusScanFileManager.flushNexusFile(); // flush the nexus file
 	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
