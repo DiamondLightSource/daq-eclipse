@@ -27,6 +27,7 @@ import org.eclipse.january.DatasetException;
 import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.DatasetUtils;
 import org.eclipse.january.dataset.IDataset;
+import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
@@ -39,47 +40,47 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.example.scannable.MockScannableConfiguration;
+import org.eclipse.scanning.server.application.PseudoSpringParser;
 import org.junit.Before;
 import org.junit.Test;
 
-public class BasicScanTest extends NexusTest {
+public class MetadataScannableTest extends NexusTest {
 
 	
-    private IScannable<?>                  monitor;
-
+    private IScannable<?> monitor;
+    private IScannable<?> metadataScannable;
+	private IScannable<Number> dcs;
+    
     @Before
 	public void beforeTest() throws Exception {
 		monitor = connector.getScannable("monitor1");
+		metadataScannable = connector.getScannable("metadataScannable1");  // Ordinary scannable
+		
+		// Make a few detectors and models...
+		PseudoSpringParser parser = new PseudoSpringParser();
+		parser.parse(MetadataScannableTest.class.getResourceAsStream("test_scannables.xml"));
+        
+		// TODO See this scannable which is a MockNeXusSlit
+		// Use NexusNodeFactory to create children as correct for http://confluence.diamond.ac.uk/pages/viewpage.action?pageId=37814632
+		this.dcs = connector.getScannable("dcs"); // Scannable created by spring with a model.
+		dcs.setPosition(10.0);
+	}
+    
+	@Test
+	public void modelCheck() throws Exception {
+		MockScannableConfiguration conf = new MockScannableConfiguration("s1gapX", "s1gapY", "s1cenX", "s1cenY");
+        assertEquals(conf, ((AbstractScannable)dcs).getModel());
 	}
 	
 	@Test
-	public void testBasicScan1D() throws Exception {	
-		test(null, null, 5);
+	public void testBasicScanWithMetadataScannable() throws Exception {
+		test(monitor, metadataScannable, 8, 5);
 	}
 	
 	@Test
-	public void testBasicScan2D() throws Exception {	
-		test(null, null, 8, 5);
-	}
-	
-	@Test
-	public void testBasicScan3D() throws Exception {	
-		test(null, null, 5, 8, 5);
-	}
-	
-	@Test
-	public void testBasicScan1DWithMonitor() throws Exception {	
-		test(monitor, null, 5);
-	}
-	
-	@Test
-	public void testBasicScan2DWithMonitor() throws Exception {	
-		test(monitor, null, 8, 5);
-	}
-	
-	@Test
-	public void testBasicScan3DWithMonitor() throws Exception {	
-		test(monitor, null, 5, 8, 5);
+	public void testScanWithConfiguredScannable() throws Exception {
+		test(monitor, dcs, 8, 5);
 	}
 
 	private void test(IScannable<?> monitor, IScannable<?> metadataScannable, int... shape) throws Exception {
@@ -254,7 +255,7 @@ public class BasicScanTest extends NexusTest {
 	}
 
 	public static void setFileFactory(INexusFileFactory fileFactory) {
-		BasicScanTest.fileFactory = fileFactory;
+		MetadataScannableTest.fileFactory = fileFactory;
 	}
 
 }

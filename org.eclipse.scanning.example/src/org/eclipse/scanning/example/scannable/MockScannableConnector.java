@@ -43,6 +43,11 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		this.positionPublisher = positionPublisher;
         createMockObjects();
 	}
+	
+	@Override
+	public <T> void register(IScannable<T> scannable) {
+		cache.put(scannable.getName(), scannable);
+	}
 
 	/**
 	 * Makes a bunch of things that the tests and example user interface connect to.

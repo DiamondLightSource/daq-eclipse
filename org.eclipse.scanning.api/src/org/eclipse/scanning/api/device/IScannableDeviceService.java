@@ -38,6 +38,15 @@ import org.eclipse.scanning.api.scan.ScanningException;
 public interface IScannableDeviceService {
 	
 	/**
+	 * Used to register a device. This is required so that spring may create
+	 * detectors and call the register method by telling the detector to register
+	 * itself.
+	 * 
+	 * @param device
+	 */
+	<T> void register(IScannable<T> scannable);
+
+	/**
 	 * Get the names of all scannables known to the connector.
 	 * @return
 	 * @throws ScanningException
@@ -96,7 +105,7 @@ public interface IScannableDeviceService {
 			ret.add(info);
 		}
 		return ret;
-	}	
+	}
 
 
 }
