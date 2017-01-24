@@ -1,8 +1,6 @@
 package org.eclipse.scanning.test.scan.servlet;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,13 +8,18 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
+import org.eclipse.dawnsci.json.MarshallerService;
+import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
+import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
+import org.eclipse.scanning.api.device.IDeviceWatchdogService;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
@@ -24,35 +27,115 @@ import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
-import org.eclipse.scanning.api.malcolm.IMalcolmService;
-import org.eclipse.scanning.api.malcolm.models.MapMalcolmModel;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.api.script.IScriptService;
+import org.eclipse.scanning.event.EventServiceImpl;
+import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
+import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
+import org.eclipse.scanning.points.PointGeneratorService;
+import org.eclipse.scanning.points.ScanPointGeneratorFactory;
+import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
+import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
+import org.eclipse.scanning.points.validation.ValidatorService;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
+import org.eclipse.scanning.sequencer.ServiceHolder;
+import org.eclipse.scanning.sequencer.watchdog.DeviceWatchdogService;
 import org.eclipse.scanning.server.servlet.ScanServlet;
 import org.eclipse.scanning.server.servlet.Services;
-import org.eclipse.scanning.test.malcolm.device.MockedMalcolmService;
+import org.eclipse.scanning.test.BrokerTest;
+import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
+import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
+import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
+import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class ScanServletPluginTest {
+import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+
+public class ScanServletTest extends BrokerTest {
 
 	private static ScanServlet servlet; 
 	
 	@BeforeClass
-	public static void connect()  throws Exception {
-		
-		
-		// Set up stuff because we are not the server
-		doHardCodedTestThings();
+	public static void init() {
+		ScanPointGeneratorFactory.init();
+	}
+	
+	private static IRunnableDeviceService      dservice;
+	private static IScannableDeviceService     connector;
+	private static IPointGeneratorService      gservice;
+	private static IEventService               eservice;
+	private static ILoaderService              lservice;
+	private static IDeviceWatchdogService      wservice;
+	private static IScriptService              sservice;
+	private static MarshallerService           marshaller;
+	private static ValidatorService            validator;
 
+	@BeforeClass
+	public static void create() throws Exception {
+		
+		marshaller = new MarshallerService(
+				Arrays.asList(new ScanningAPIClassRegistry(),
+						new ScanningExampleClassRegistry(),
+						new ScanningTestClassRegistry()),
+				Arrays.asList(new PointsModelMarshaller())
+				);
+		ActivemqConnectorService.setJsonMarshaller(marshaller);
+		eservice  = new EventServiceImpl(new ActivemqConnectorService());
+		
+		// We wire things together without OSGi here
+		// DO NOT COPY THIS IN NON-TEST CODE
+		connector = new MockScannableConnector(null);
+		dservice  = new RunnableDeviceServiceImpl(connector);
+		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)dservice;
+		impl._register(MockDetectorModel.class, MockWritableDetector.class);
+		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
+		impl._register(MandelbrotModel.class, MandelbrotDetector.class);
+		impl._register(DummyMalcolmModel.class, DummyMalcolmDevice.class);
+		
+		final MockDetectorModel dmodel = new MockDetectorModel();
+		dmodel.setName("detector");
+		dmodel.setExposureTime(0.1);
+		impl.createRunnableDevice(dmodel);
+
+		MandelbrotModel model = new MandelbrotModel("p", "q");
+		model.setName("mandelbrot");
+		model.setExposureTime(0.00001);
+		impl.createRunnableDevice(model);
+
+		gservice  = new PointGeneratorService();
+		wservice = new DeviceWatchdogService();
+		lservice = new LoaderServiceMock();
+		sservice = new MockScriptService();
+		
+		// Provide lots of services that OSGi would normally.
+		Services.setEventService(eservice);
+		Services.setRunnableDeviceService(dservice);
+		Services.setGeneratorService(gservice);
+		Services.setConnector(connector);
+		Services.setScriptService(sservice);
+		Services.setWatchdogService(wservice);
+
+		ServiceHolder.setTestServices(lservice, new DefaultNexusBuilderFactory(), null, null, gservice);
+		org.eclipse.scanning.example.Services.setPointGeneratorService(gservice);
+		org.eclipse.dawnsci.nexus.ServiceHolder.setNexusFileFactory(new NexusFileFactoryHDF5());
+		
+		validator = new ValidatorService();
+		validator.setPointGeneratorService(gservice);
+		validator.setRunnableDeviceService(dservice);
+		Services.setValidatorService(validator);
+		
 		
 		// Create an object for the servlet
 		/**
@@ -69,16 +152,16 @@ public class ScanServletPluginTest {
 
 		 */
 		servlet = new ScanServlet();
-		servlet.setBroker("vm://localhost?broker.persistent=false");
+		servlet.setBroker(uri.toString());
 		servlet.setSubmitQueue("org.eclipse.scanning.test.servlet.submitQueue");
 		servlet.setStatusSet("org.eclipse.scanning.test.servlet.statusSet");
 		servlet.setStatusTopic("org.eclipse.scanning.test.servlet.statusTopic");
 		servlet.connect(); // Gets called by Spring automatically
-		
+
 	}
 
 	@AfterClass
-	public static void disconnect() throws EventException, InterruptedException {
+	public static void disconnect()  throws Exception {
 		servlet.disconnect();
 	}
 	
@@ -113,7 +196,7 @@ public class ScanServletPluginTest {
 				ScanRequest<?> req = scanBean.getScanRequest();
 				
 				StepModel step = (StepModel)req.getCompoundModel().getModels().toArray()[0];
-				assertTrue(step.getName().equals("xfred"));
+				assertEquals("fred", step.getName());
 			}
 		} finally {
 		    System.setProperty("org.eclipse.scanning.api.preprocessor.name", "");
@@ -129,15 +212,6 @@ public class ScanServletPluginTest {
 		runAndCheck(bean, 20);
 
 	}
-	
-	@Test
-	public void testMalcScan() throws Exception {
-		
-		ScanBean bean = createMalcolmScan();
-		runAndCheck(bean, 20);
-		// TODO check nexus file written correctly, including unique keys
-	}
-
 
 	@Test
 	public void testStepGridScanNested1() throws Exception {
@@ -211,7 +285,7 @@ public class ScanServletPluginTest {
 		mandyModel.setName("mandelbrot");
 		mandyModel.setRealAxisName("xNex");
 		mandyModel.setImaginaryAxisName("yNex");
-		mandyModel.setExposureTime(0.01);
+		mandyModel.setExposureTime(0.001);
 		req.putDetector("mandelbrot", mandyModel);
 		
 		final MockDetectorModel dmodel = new MockDetectorModel();
@@ -262,49 +336,6 @@ public class ScanServletPluginTest {
 		return bean;
 	}
 
-	private ScanBean createMalcolmScan() throws Exception {
-		
-		
-		// We write some pojos together to define the scan
-		final ScanBean bean = new ScanBean();
-		bean.setName("Hello Scanning World");
-		
-		final ScanRequest<?> req = new ScanRequest<IROI>();
-		req.setCompoundModel(new CompoundModel(new StepModel("temperature", 0, 9, 1)));
-		req.setMonitorNames(Arrays.asList("monitor"));
-		
-		final File tmp = File.createTempFile("scan_servlet_test_malc", ".nxs");
-		tmp.deleteOnExit();
-		req.setFilePath(tmp.getAbsolutePath()); // TODO This will really come from the scan file service which is not written.
-		
-		final MapMalcolmModel malcModel = new MapMalcolmModel();
-		// Test params for starting the device
-		fillParameters(malcModel.getParameterMap(), -1, 10);
-
-		req.putDetector("zebra", malcModel);
-		
-		bean.setScanRequest(req);
-		return bean;
-	}
-	
-	private void fillParameters(Map<String, Object> config, long configureSleep, int imageCount) throws Exception {
-		
-		// Params for driving mock mode
-		config.put("nframes", imageCount); // IMAGE_COUNT images to write
-		config.put("shape", new int[]{1024,1024});
-		
-		final File temp = File.createTempFile("testingFile", ".hdf5");
-		temp.deleteOnExit();
-		config.put("file", temp.getAbsolutePath());
-		
-		// The exposure is in seconds
-		config.put("exposure", 0.5);
-		
-		double csleep = configureSleep/1000d;
-		if (configureSleep>0) config.put("configureSleep", csleep); // Sleeps during configure
-
-	}
-
 	private List<ScanBean> runAndCheck(ScanBean bean, long maxScanTimeS) throws Exception {
 		
 		final IEventService eservice = Services.getEventService();
@@ -322,7 +353,6 @@ public class ScanServletPluginTest {
 			subscriber.addListener(new IScanListener() {
 				@Override
 				public void scanEventPerformed(ScanEvent evt) {
-					System.out.println(evt.getBean());
 					if (evt.getBean().getPosition()!=null) {
 						beans.add(evt.getBean());
 					}
@@ -330,20 +360,11 @@ public class ScanServletPluginTest {
 	
 				@Override
 				public void scanStateChanged(ScanEvent evt) {
-					System.out.println("Device:"+evt.getBean().getPreviousDeviceState()+"->"+evt.getBean().getDeviceState());
-					System.out.println("Status:"+evt.getBean().getPreviousStatus()+"->"+evt.getBean().getStatus());
 					if (evt.getBean().scanStart()) {
-						System.out.println("Scan started. Size is "+evt.getBean().getSize());
 						startEvents.add(evt.getBean()); // Should be just one
 					}
 	                if (evt.getBean().scanEnd()) {
 	                	endEvents.add(evt.getBean());
-	                	try {
-							Thread.sleep(100); // TODO Why does scanEnd() sometimes come over slightly before the device is done?
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
 	                	latch.countDown();
 	                }
 				}
@@ -366,25 +387,6 @@ public class ScanServletPluginTest {
 			subscriber.disconnect();
 			submitter.disconnect();
 		}
-	}
-	
-	private static void doHardCodedTestThings() throws Exception {
-		
-		
-		// We will run this test without real GDA devices. Therefore we
-		// override the connector
-		// DO NOT COPY TESTING ONLY
-		IScannableDeviceService dservice = new MockScannableConnector(null);
-		RunnableDeviceServiceImpl.setDeviceConnectorService(dservice); 
-		Services.setConnector(dservice);
-		
-		// DO NOT COPY TESTING ONLY
-		// We double check that the services injected into the servlet bundle are there.
-		assertNotNull(Services.getConnector());
-		assertNotNull(Services.getEventService());
-		assertNotNull(Services.getGeneratorService());
-		assertNotNull(Services.getMalcService());
-		assertNotNull(Services.getRunnableDeviceService());
 	}
 
 }
