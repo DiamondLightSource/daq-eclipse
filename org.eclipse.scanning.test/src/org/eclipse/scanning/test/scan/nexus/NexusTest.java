@@ -92,6 +92,11 @@ public class NexusTest extends TmpTest {
 		org.eclipse.scanning.sequencer.ServiceHolder.setTestServices(new LoaderServiceMock(),
 				new DefaultNexusBuilderFactory(), new MockOperationService(), new MockFilePathService(), gservice);
 	
+		org.eclipse.scanning.example.Services.setEventService(eservice);
+		org.eclipse.scanning.example.Services.setPointGeneratorService(gservice);		
+		org.eclipse.scanning.example.Services.setRunnableDeviceService(dservice);		
+		org.eclipse.scanning.example.Services.setScannableDeviceService(connector);		
+		
 	    clearTmp();
 	}
 

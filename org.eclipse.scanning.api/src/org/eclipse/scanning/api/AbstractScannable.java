@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.event.IPositionListenable;
@@ -37,22 +38,65 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 	private boolean             activated;
 	
 	/**
+	 * Model is used for some scannables for instance those writing NeXus 
+	 * in a complex way to configure the scannable such that it can write
+	 * the complex information. It is not compulsory to provide a model,
+	 * only those scannables requiring extra-ordinary information require
+	 * one.
+	 */
+	private Object              model;
+	
+	/**
+	 * The service used to register this device.
+	 */
+	private IScannableDeviceService scannableDeviceService;
+	
+	/**
 	 * Implementors should use the delegate to notify of position.
 	 */
 	protected PositionDelegate  delegate;
 	
 	protected AbstractScannable() {
-		this(null);
+		this(null, null);
 	}
 	/**
 	 * 
 	 * @param publisher used to notify of positions externally.
 	 */
 	protected AbstractScannable(IPublisher<Location> publisher) {
-		this.attributes = new HashMap<>(7);
-		this.delegate   = new PositionDelegate(publisher, this);
+		this(publisher, null);
 	}
 	
+	/**
+	 * 
+	 * @param sservice
+	 */
+	protected AbstractScannable(IScannableDeviceService sservice) {
+		this(null, sservice);
+	}
+	
+	/**
+	 * 
+	 * @param publisher
+	 * @param sservice
+	 */
+	protected AbstractScannable(IPublisher<Location> publisher, IScannableDeviceService sservice) {
+		this.attributes = new HashMap<>(7);
+		this.delegate   = new PositionDelegate(publisher, this);
+	    setScannableDeviceService(sservice);
+	}
+	
+	/**
+	 * Used by spring to register the detector with the Runnable device service
+	 * *WARNING* Before calling register the detector must be given a service to 
+	 * register this. This can be done from the constructor super(IRunnableDeviceService)
+	 * of the detector to make it easy to instantiate a no-argument detector and
+	 * register it from spring.
+	 */
+	public void register() {
+		scannableDeviceService.register(this);
+	}
+
 	@Override
 	public void addPositionListener(IPositionListener listener) {
 		delegate.addPositionListener(listener);
@@ -168,6 +212,20 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 				throw new Exception("Cannot set position, scannable is empty!");
 			}
 		};
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <M> M getModel() {
+		return (M)model;
+	}
+	public <M> void setModel(M model) {
+		this.model = model;
+	}
+	public IScannableDeviceService getScannableDeviceService() {
+		return scannableDeviceService;
+	}
+	public void setScannableDeviceService(IScannableDeviceService scannableDeviceService) {
+		this.scannableDeviceService = scannableDeviceService;
 	}
 	
 }

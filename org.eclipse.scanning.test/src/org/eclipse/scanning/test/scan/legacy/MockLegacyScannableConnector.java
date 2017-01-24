@@ -28,16 +28,16 @@ public class MockLegacyScannableConnector implements IScannableDeviceService {
 		System.out.println("Starting up MockLegacyScannableConnector");
 		cache = new HashMap<String, INameable>(3);
 		for (int i = 0; i < 10; i++) {
-			register(new MockNeXusScannable("neXusScannable"+i, 0d,  3));
+			put(new MockNeXusScannable("neXusScannable"+i, 0d,  3));
 	    }
 		for (int i = 0; i < 10; i++) {
-			register(new MockNeXusScannable("monitor"+i, 0d,  3));
+			put(new MockNeXusScannable("monitor"+i, 0d,  3));
 	    }
 		String[] metadataScannableNames =
 				new String[] { "a", "b", "c", "d", "e", "f", "g", "h",
 						"p", "q", "r", "s", "t", "u", "v", "x", "y", "z" };
 		for(String metadataScannableName : metadataScannableNames) {
-			register(new MockNeXusScannable(metadataScannableName, 0d,  3));
+			put(new MockNeXusScannable(metadataScannableName, 0d,  3));
 		}
 		// the global metadata scannables to be automatically added to scans
 		globalMetadataScannableNames = new HashSet<>(Arrays.asList("a", "b", "c"));
@@ -50,7 +50,7 @@ public class MockLegacyScannableConnector implements IScannableDeviceService {
 		requiredMetadataScannableNames.put("c", new HashSet<>(Arrays.asList("d", "e", "f")));
 	}
 	
-	private static void register(INameable mockScannable) {
+	private static void put(INameable mockScannable) {
 		cache.put(mockScannable.getName(), mockScannable);
 	}
 
@@ -76,6 +76,11 @@ public class MockLegacyScannableConnector implements IScannableDeviceService {
 	@Override
 	public Set<String> getRequiredMetadataScannableNames(String scannableName) {
 		return requiredMetadataScannableNames.getOrDefault(scannableName, Collections.emptySet());
+	}
+
+	@Override
+	public <T> void register(IScannable<T> scannable) {
+		put(scannable);
 	}
 	
 }

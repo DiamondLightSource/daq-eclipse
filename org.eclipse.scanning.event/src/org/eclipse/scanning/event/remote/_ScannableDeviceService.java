@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -74,6 +75,11 @@ class _ScannableDeviceService extends AbstractRemoteService implements IScannabl
 		} catch (EventException | InterruptedException e) { // If no Scannable
 			throw new ScanningException(e);
 		}
+	}
+
+	@Override
+	public <T> void register(IScannable<T> device) {
+		throw new IllegalArgumentException("New scannables may not be registered on a remote service implementation!");
 	}
 
 }
