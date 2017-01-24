@@ -32,6 +32,10 @@ public class MockedWriteInLoopPausableMalcolmDevice extends LoopingMockedMalcolm
 	private NexusFileFactoryHDF5 factory;
 	private NexusFile file;
 	private ILazyWriteableDataset writer;
+	
+	public MockedWriteInLoopPausableMalcolmDevice() throws Exception {	
+		this("zebra", new LatchDelegate());
+	}
 
 	public MockedWriteInLoopPausableMalcolmDevice(final String name, final LatchDelegate latcher) throws Exception {		
 		

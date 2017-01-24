@@ -8,7 +8,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -38,12 +37,8 @@ import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.IFilePathService;
 import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.api.script.IScriptService;
-import org.eclipse.scanning.api.script.ScriptExecutionException;
 import org.eclipse.scanning.api.script.ScriptLanguage;
 import org.eclipse.scanning.api.script.ScriptRequest;
-import org.eclipse.scanning.api.script.ScriptResponse;
-import org.eclipse.scanning.api.script.UnsupportedLanguageException;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
@@ -79,27 +74,6 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 
 public class ScanProcessTest {
 	
-	private static final class MockScriptService implements IScriptService {
-
-		private List<ScriptRequest> scriptRequests = new ArrayList<>();
-		
-		@Override
-		public ScriptLanguage[] supported() {
-			return ScriptLanguage.values();
-		}
-
-		@Override
-		public ScriptResponse<?> execute(ScriptRequest req)
-				throws UnsupportedLanguageException, ScriptExecutionException {
-			scriptRequests.add(req);
-			return new ScriptResponse<>();
-		}
-		
-		public List<ScriptRequest> getScriptRequests() {
-			return scriptRequests;
-		}
-
-	}
 	
 	@BeforeClass
 	public static void init() {
