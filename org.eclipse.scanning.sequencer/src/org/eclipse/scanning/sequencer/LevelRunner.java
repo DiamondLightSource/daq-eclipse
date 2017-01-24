@@ -186,8 +186,8 @@ abstract class LevelRunner<L extends ILevel> {
 	 * 
 	 * @throws InterruptedException 
 	 */
-	protected void await() throws InterruptedException, ScanningException {
-        await(getTimeout(null));
+	protected IPosition await() throws InterruptedException, ScanningException {
+        return await(getTimeout(null));
 	}
 	
 	/** 
@@ -199,16 +199,17 @@ abstract class LevelRunner<L extends ILevel> {
 	 * 
 	 * @throws InterruptedException 
 	 */
-	protected void await(long time) throws InterruptedException, ScanningException{
-		if (eservice==null)          return;
+	protected IPosition await(long time) throws InterruptedException, ScanningException{
+		if (eservice==null)          return position;
 		if (eservice.isTerminated()) {
 			eservice = null;
-			return;
+			return position;
 		}
 		boolean ok = eservice.awaitQuiescence(time, TimeUnit.SECONDS); 
 		if (!ok) { // Might have nullified service during wait.
 			throw new ScanningException("The timeout of "+timeout+"s has been reached, scan aborting. Please implement ITimeoutable to define how long your device needs to write.");
 		}
+		return position;
 	}
 	
 	public void abort() {
@@ -334,11 +335,12 @@ abstract class LevelRunner<L extends ILevel> {
 			
 			@Override
 			protected boolean run(IPosition position, boolean block) {
+				this.position = position;
 				return true;
 			}
 			@Override
-			protected void await(long time) throws InterruptedException {
-				return;
+			protected IPosition await(long time) throws InterruptedException {
+				return position;
 			}
 
 			@Override
