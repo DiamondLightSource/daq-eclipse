@@ -265,8 +265,9 @@ public class ControlTreeViewerTest extends ShellTest {
 	 * requires the user to press enter in order to take the value.
 	 * 
 	 * @param string
+	 * @throws InterruptedException 
 	 */
-    private void setEditorValue(String value) {
+    private void setEditorValue(String value) throws InterruptedException {
     	
 	    bot.text(0).setText(value);
 	    bot.getDisplay().syncExec(()->{
@@ -278,6 +279,7 @@ public class ControlTreeViewerTest extends ShellTest {
 			}
 	    	viewer.applyEditorValue();
 	    });
+	    Thread.sleep(200); // Wait briefly for mock motor to simulate moving to this position.
 	}
     
 	@Test

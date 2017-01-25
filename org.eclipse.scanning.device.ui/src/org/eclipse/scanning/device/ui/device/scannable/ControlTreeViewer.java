@@ -247,7 +247,7 @@ public class ControlTreeViewer {
 		TreeViewerColumn valueColumn = new TreeViewerColumn(viewer, SWT.LEFT, 1);
 		valueColumn.getColumn().setText("Value");
 		valueColumn.getColumn().setWidth(300);
-		valueColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new ControlValueLabelProvider(cservice, controlViewerMode)));
+		valueColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new ControlValueLabelProvider(cservice, this)));
 		valueColumn.setEditingSupport(new ControlEditingSupport(viewer, cservice, controlViewerMode));
 	}
 
@@ -602,6 +602,23 @@ public class ControlTreeViewer {
 
 	public void setUseFilteredTree(boolean useFilteredTree) {
 		this.setUseFilteredTree  = useFilteredTree;
+	}
+
+	public ControlViewerMode getMode() {
+		return controlViewerMode;
+	}
+
+	public void safeRefresh(INamedNode node) {
+		if (node == null) return;
+		if (viewer.getControl().isDisposed()) return;
+		if (viewer.getControl().getDisplay().isDisposed()) return;
+		viewer.getControl().getDisplay().syncExec(()->{
+			try {
+				viewer.refresh(node);
+			} catch (Exception ignored) {
+				// Sometimes happens in unit tests.
+			}
+		});
 	}
 
 }

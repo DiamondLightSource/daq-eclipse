@@ -2,6 +2,8 @@ package org.eclipse.scanning.device.ui.device.scannable;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -9,6 +11,10 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.IPositionListenable;
+import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.ui.ControlEnumNode;
 import org.eclipse.scanning.api.scan.ui.ControlFileNode;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
@@ -17,17 +23,17 @@ import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLabelProvider {
+class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLabelProvider, IPositionListener {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ControlValueLabelProvider.class);
 	
 	private IScannableDeviceService cservice;
-	private ControlViewerMode       mode;
+	private ControlTreeViewer       viewer;
 	
-	public ControlValueLabelProvider(IScannableDeviceService cservice, ControlViewerMode mode) {
+	public ControlValueLabelProvider(IScannableDeviceService cservice, ControlTreeViewer viewer) {
 		Activator.getStore().setDefault(DevicePreferenceConstants.NUMBER_FORMAT, "##########0.0###");
 		this.cservice = cservice;
-		this.mode     = mode;
+		this.viewer   = viewer;
 	}
 
 	@Override
@@ -44,6 +50,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 				final String scannableName = node.getName();
 				if (scannableName != null && !scannableName.equals("")) {
 					final IScannable<?> scannable = cservice.getScannable(node.getName());
+					registerListener(scannable, node);
 					if (scannable.getUnit() != null) {
 						styledText.append("    ");
 						styledText.append(scannable.getUnit(), StyledString.DECORATIONS_STYLER);
@@ -60,6 +67,50 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 		
 		return styledText;
 	}
+	
+	private Map<String, INamedNode>    scannableNodes;
+	private Map<String, IScannable<?>> scannables;
+	
+	private void registerListener(IScannable<?> scannable, INamedNode node) {
+		
+		if (!(scannable instanceof IPositionListenable)) return;
+		if (scannableNodes==null) scannableNodes = new HashMap<>();
+		if (scannables==null)     scannables     = new HashMap<>();
+		
+		String name = scannable.getName();
+		
+		if (scannables.containsKey(name)) {
+			((IPositionListenable)scannables.remove(name)).removePositionListener(this);
+		}
+		
+		IPositionListenable pl = (IPositionListenable)scannable;
+		pl.addPositionListener(this);
+		scannableNodes.put(name, node);
+		scannables.put(name, scannable);
+	}
+
+	/**
+	 * Not the SWT thread, events come from the device.
+	 */
+	@Override
+	public void positionChanged(PositionEvent evt) throws ScanningException {
+		updatePosition(evt);
+	}
+	
+	@Override
+	public void positionPerformed(PositionEvent evt) throws ScanningException {
+		updatePosition(evt);
+	}
+	
+	private void updatePosition(PositionEvent evt) {
+		viewer.safeRefresh(scannableNodes.get(evt.getDevice().getName()));
+	}
+
+	@Override
+	public void dispose() {
+		super.dispose();
+	}
+
 
 	@Override
 	public String getText(Object element) {
@@ -77,7 +128,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 					return "";
 				}
 
-				Object value = cnode.getValue(mode.isDirectlyConnected(), cservice);
+				Object value = cnode.getValue(viewer.getMode().isDirectlyConnected(), cservice);
 				
 				if (value == null) return "!VALUE";
 				if (value instanceof Number) {
