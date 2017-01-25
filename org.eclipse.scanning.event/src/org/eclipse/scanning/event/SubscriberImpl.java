@@ -126,6 +126,7 @@ class SubscriberImpl<T extends EventListener> extends AbstractConnection impleme
 		if (isSynchronous()) {
 		    if (queue!=null) queue.add(event);
 		} else {
+			if (event==DiseminateEvent.STOP) return;
 			// TODO FIXME Might not be right...
 			final Thread thread = new Thread("Execute event "+getTopicName()) {
 				public void run() {
