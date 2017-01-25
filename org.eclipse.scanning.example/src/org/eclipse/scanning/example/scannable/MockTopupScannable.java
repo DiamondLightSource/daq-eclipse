@@ -24,7 +24,7 @@ public class MockTopupScannable extends MockScannable implements IDisconnectable
 	 * @param period in ms that topup happens over e.g. 5000 for testing
 	 */
 	public MockTopupScannable(String name, long period) {
-		super(name, System.currentTimeMillis());
+		super(name, 6000);
 		setUnit("ms");
 		this.period = period;
 	}
