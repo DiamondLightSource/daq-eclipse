@@ -374,6 +374,7 @@ public class ScanServletTest extends BrokerTest {
 			// Ok done that, now we sent it off...
 			submitter.submit(bean);
 			
+			Thread.sleep(200);
 			boolean ok = latch.await(maxScanTimeS, TimeUnit.SECONDS);
 			if (!ok) throw new Exception("The latch broke before the scan finished!");
 			
