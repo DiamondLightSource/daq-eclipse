@@ -8,25 +8,30 @@ import java.util.Map;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
-import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IDisconnectable;
 import org.eclipse.scanning.api.event.core.IRequester;
+import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.DeviceRequest;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.api.scan.event.ILocationListener;
 
 class _ScannableDeviceService extends AbstractRemoteService implements IScannableDeviceService {
 
 	private IRequester<DeviceRequest>  requester;
 	private Map<String, IScannable<?>> scannables;
+	private ISubscriber<ILocationListener> subscriber;
 	
 	public void init() throws EventException {
 		requester = eservice.createRequestor(uri, IEventService.DEVICE_REQUEST_TOPIC, IEventService.DEVICE_RESPONSE_TOPIC);
 	    requester.setTimeout(RemoteServiceFactory.getTime(), RemoteServiceFactory.getTimeUnit()); // Useful for debugging testing 
 	    scannables = new HashMap<>();
+	    
+		subscriber = eservice.createSubscriber(uri, EventConstants.POSITION_TOPIC);
 	}
 	
 	@Override
@@ -36,6 +41,7 @@ class _ScannableDeviceService extends AbstractRemoteService implements IScannabl
 			IScannable<?> scannable = scannables.remove(name);
 			if (scannable instanceof IDisconnectable) ((IDisconnectable)scannable).disconnect();
 		}
+		subscriber.disconnect();
 		scannables.clear();
 		setDisconnected(true);
 	}
@@ -69,7 +75,7 @@ class _ScannableDeviceService extends AbstractRemoteService implements IScannabl
 		
 		if (scannables.containsKey(name)) return (IScannable<T>)scannables.get(name);
 		try {
-			_Scannable<T> ret = new _Scannable<T>(new DeviceRequest(name, DeviceType.SCANNABLE), uri, eservice);
+			_Scannable<T> ret = new _Scannable<T>(new DeviceRequest(name, DeviceType.SCANNABLE), uri, subscriber, eservice);
 			scannables.put(name, ret);
 			return ret;
 		} catch (EventException | InterruptedException e) { // If no Scannable

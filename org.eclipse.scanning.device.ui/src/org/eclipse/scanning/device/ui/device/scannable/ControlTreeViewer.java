@@ -1,11 +1,8 @@
 package org.eclipse.scanning.device.ui.device.scannable;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EventListener;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jface.action.Action;
@@ -29,20 +26,12 @@ import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.scanning.api.INamedNode;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
-import org.eclipse.scanning.api.event.IEventService;
-import org.eclipse.scanning.api.event.core.ISubscriber;
-import org.eclipse.scanning.api.scan.event.ILocationListener;
-import org.eclipse.scanning.api.scan.event.Location.LocationType;
-import org.eclipse.scanning.api.scan.event.LocationEvent;
 import org.eclipse.scanning.api.scan.ui.ControlGroup;
 import org.eclipse.scanning.api.scan.ui.ControlNode;
 import org.eclipse.scanning.api.scan.ui.ControlTree;
-import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
-import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.device.ControlTreeUtils;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.scanning.device.ui.util.ViewerUtils;
@@ -50,7 +39,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.dialogs.FilteredTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,9 +117,6 @@ public class ControlTreeViewer {
 
 	// Services
 	private final IScannableDeviceService cservice;
-
-	// Events
-	private ISubscriber<EventListener> subscriber;
 	
 	// UI
 	private TreeViewer viewer;
@@ -467,11 +452,7 @@ public class ControlTreeViewer {
 	}
 
 	public void dispose() {
-		try {
-			if (subscriber!=null) subscriber.disconnect();
-		} catch (EventException e) {
-			logger.error("Unable to disconnect subscriber in "+getClass().getSimpleName());
-		}
+
 	}
 
 
@@ -485,38 +466,6 @@ public class ControlTreeViewer {
 		
 		if (!controlViewerMode.isDirectlyConnected()) return; // Nothing to monitor.
 		
-		if (subscriber!=null) subscriber.disconnect();
-		
-	    IEventService eservice  = ServiceHolder.getEventService();
-	    this.subscriber = eservice.createSubscriber(new URI(CommandConstants.getScanningBrokerUri()), EventConstants.POSITION_TOPIC);
-
-	    Iterator<INamedNode> it = getControlTree().iterator();
-	    while(it.hasNext()) register(it.next());
-	}
-
-	private void register(final INamedNode node) throws EventException {
-		
-		if (!controlViewerMode.isDirectlyConnected()) return; // Nothing to monitor.
-		if (node instanceof ControlNode) {
-			subscriber.addListener(node.getName(), new ILocationListener() {
-				@Override
-				public void locationPerformed(LocationEvent evt) {
-					if (evt.getLocation().getType()==LocationType.positionChanged) {
-						Display.getDefault().asyncExec(new Runnable() {
-							public void run() {
-								if (viewer.isCellEditorActive()) {
-									final Object sel = viewer.getStructuredSelection().getFirstElement(); // editing object
-									if (sel!=node) viewer.update(node, new String[]{"Value"});
-								} else {
-									if (viewer.getControl().isDisposed()) return;
-									viewer.refresh(node);
-								}
-							}
-						});
-					}
-				}
-			});
-		}
 	}
 
 	/**
@@ -546,7 +495,6 @@ public class ControlTreeViewer {
 			boolean ok = MessageDialog.openQuestion(content.getShell(), "Confirm Delete", "The item '"+selectedNode.getName()+"' is a group.\n\nAre you sure you would like to delete it?");
 			if (ok) controlTree.delete(selectedNode);
 		}
-		if (subscriber!=null) subscriber.removeListeners(selectedNode.getName());
 		viewer.refresh();
 		if (parent.hasChildren()) {
 			setSelection(parent.getChildren()[parent.getChildren().length-1]);

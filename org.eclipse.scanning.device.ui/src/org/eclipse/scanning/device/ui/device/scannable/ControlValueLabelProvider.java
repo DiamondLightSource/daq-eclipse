@@ -109,6 +109,9 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 	@Override
 	public void dispose() {
 		super.dispose();
+		for (String name : scannables.keySet()) {
+			((IPositionListenable)scannables.remove(name)).removePositionListener(this);
+		}
 	}
 
 

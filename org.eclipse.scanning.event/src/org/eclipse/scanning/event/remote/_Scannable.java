@@ -29,14 +29,15 @@ import org.eclipse.scanning.api.scan.event.LocationEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, IPositionListenable, ITerminatable {
+class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, IPositionListenable, ITerminatable, ILocationListener {
 
 	private final static Logger logger = LoggerFactory.getLogger(_Scannable.class);
 
-	private ISubscriber<ILocationListener> subscriber;
+	private final ISubscriber<ILocationListener> subscriber;
 	
-	_Scannable(DeviceRequest req, URI uri, IEventService eservice) throws EventException, InterruptedException {
+	_Scannable(DeviceRequest req, URI uri, ISubscriber<ILocationListener> positionListener, IEventService eservice) throws EventException, InterruptedException {
 		super(req, 250, uri, eservice);
+		this.subscriber = positionListener;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -57,7 +58,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 	public void setPosition(T value, IPosition position) throws Exception {
 		try {
 			// Will tell us that the value is changing by recording the time of the change 
-			if (this.subscriber == null) createSubscriber(); 
+			addListener(); 
 
 			DeviceRequest req = new DeviceRequest(info.getName(), DeviceType.SCANNABLE);
 			req.setDeviceAction(DeviceAction.SET);
@@ -146,7 +147,7 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 	
 	@Override
 	public void addPositionListener(IPositionListener listener) {
-		if (this.subscriber == null) createSubscriber();
+		addListener();
 		if (listeners==null) listeners = new LinkedHashSet<IPositionListener>(3);
 		listeners.add(listener);
 	}
@@ -157,46 +158,50 @@ class _Scannable<T> extends _AbstractRemoteDevice<T> implements IScannable<T>, I
 		listeners.remove(listener);
 	}
 	
-	private long lastActive = System.currentTimeMillis();
+	private boolean listenerAdded = false;
 	/**
 	 * A subscriber that notifies position and also resets
 	 * timeouts for calls to set position, because it knows
 	 * that the link is not dead.
 	 */
-	private void createSubscriber() {
+	private void addListener() {
 
-		subscriber = eservice.createSubscriber(uri, EventConstants.POSITION_TOPIC);
+		if (this.listenerAdded) return;
+
 		// We must use the name as the key to avoid too many events.
 		try {
-			subscriber.addListener(getName(), new ILocationListener() {
-				@Override
-				public void locationPerformed(LocationEvent evt) {
-					if (listeners == null) return;
-
-					lastActive = System.currentTimeMillis();
-					final Location      loc  = evt.getLocation();
-					if (loc.getType()==null) return;
-					
-					final PositionEvent evnt = new PositionEvent(loc.getPosition(), _Scannable.this);
-					evnt.setLevel(loc.getLevel());
-
-					IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
-					try {
-						final Method method = IPositionListener.class.getMethod(loc.getType().toString(), PositionEvent.class);
-						for (IPositionListener l : ls)  {
-							method.invoke(l, evnt);
-						}
-					} catch (Exception ne) {
-						logger.error("Cannot diseminate event "+loc, ne);
-					}
-
-				}
-			});
+			subscriber.addListener(getName(), this);
 		} catch (EventException e) {
 			logger.error("Problem creating subscriber!", e);
 		}
+		listenerAdded = true;
 	}
 
+	private long lastActive = System.currentTimeMillis();
+
+	@Override
+	public void locationPerformed(LocationEvent evt) {
+		if (listeners == null) return;
+		if (listeners.isEmpty()) return;
+
+		lastActive = System.currentTimeMillis();
+		final Location      loc  = evt.getLocation();
+		if (loc.getType()==null) return;
+		
+		final PositionEvent evnt = new PositionEvent(loc.getPosition(), _Scannable.this);
+		evnt.setLevel(loc.getLevel());
+
+		IPositionListener[] ls = listeners.toArray(new IPositionListener[listeners.size()]);
+		try {
+			final Method method = IPositionListener.class.getMethod(loc.getType().toString(), PositionEvent.class);
+			for (IPositionListener l : ls)  {
+				method.invoke(l, evnt);
+			}
+		} catch (Exception ne) {
+			logger.error("Cannot diseminate event "+loc, ne);
+		}
+
+	}
 
 	private ResponseWaiter createResponseWaiter() {
 		return new ResponseWaiter() {
