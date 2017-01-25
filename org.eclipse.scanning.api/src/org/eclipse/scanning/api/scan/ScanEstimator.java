@@ -147,12 +147,34 @@ public class ScanEstimator {
 	
 		Iterator<IPosition> iterator = generator.iterator();
 		IPosition last  = null;
-		while(iterator.hasNext()) last = iterator.next(); // Could be large...
+		int pointNum = 0;
+		long lastTime = System.currentTimeMillis();
+		while(iterator.hasNext()) {
+			last = iterator.next(); // Could be large...
+			pointNum++;
+			if (pointNum % 10000 == 0) {
+				long newTime = System.currentTimeMillis();
+				System.err.println("Point number " + pointNum++ + ", took " + (newTime - lastTime) + "ms");
+			}
+		}
 		
 		this.shape = new int[getRank()];
 		for (int i = 0; i < shape.length; i++) {
 			shape[i] = last.getIndex(i)+1;
 		}
+		
+		iterator = generator.iterator();
+		int lastInnerIndex = -1;
+		final int scanRank = getRank();
+		while (iterator.hasNext()) {
+			int innerIndex = iterator.next().getIndex(scanRank - 1);
+			if (innerIndex <= lastInnerIndex) {
+				break;
+			}
+			lastInnerIndex = innerIndex;
+		}
+		shape[scanRank - 1] = lastInnerIndex + 1;
+		
 		return shape;
 	}
 }
