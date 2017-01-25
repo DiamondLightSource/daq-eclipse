@@ -56,7 +56,6 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	 * Makes a bunch of things that the tests and example user interface connect to.
 	 */
 	private void createMockObjects() {
-		System.out.println("Starting up Mock IScannableDeviceService");
 		
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		register(new MockPausingMonitor("pauser", 10d,  -1));
