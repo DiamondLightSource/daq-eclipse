@@ -45,8 +45,11 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	}
 	
 	@Override
-	public <T> void register(IScannable<T> scannable) {
-		cache.put(scannable.getName(), scannable);
+	public <T> void register(IScannable<T> mockScannable) {
+		cache.put(mockScannable.getName(), mockScannable);
+		if (mockScannable instanceof AbstractScannable) {
+			((AbstractScannable)mockScannable).setPublisher(positionPublisher);
+		}
 	}
 
 	/**
