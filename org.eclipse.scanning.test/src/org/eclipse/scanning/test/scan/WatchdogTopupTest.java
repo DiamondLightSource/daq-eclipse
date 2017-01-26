@@ -27,6 +27,7 @@ import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockTopupScannable;
 import org.eclipse.scanning.sequencer.watchdog.TopupWatchdog;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class WatchdogTopupTest extends AbstractWatchdogTest {
@@ -117,15 +118,30 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 	}
 	
 	@Test
-	public void topupInScan() throws Exception {
-
+	public void topupIn2DScan() throws Exception {
+        topupInScan(2);
+	}
+	
+	@Test
+	public void topupIn3DScan() throws Exception {
+        topupInScan(3);
+	}
+	
+	@Ignore("Needs to work and does but takes a long time so not part of main tests.")
+	@Test
+	public void topupIn5DScan() throws Exception {
+        topupInScan(5);
+	}
+	
+	private void topupInScan(int size) throws Exception {
+		
 		final IScannable<Number>   topups  = connector.getScannable("topup");
 		final MockTopupScannable   topup   = (MockTopupScannable)topups;
 		assertNotNull(topup);
         topup.start();
 		
 		// x and y are level 3
-		IDeviceController controller = createTestScanner(null);
+		IDeviceController controller = createTestScanner(null, size);
 		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 		
 		Set<DeviceState> states = new HashSet<>();
@@ -142,7 +158,7 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 		assertTrue(states.contains(DeviceState.RUNNING));
 		assertTrue(states.contains(DeviceState.SEEKING));
 	}
-	
+
 	@Test
 	public void scanDuringTopup() throws Exception {
 

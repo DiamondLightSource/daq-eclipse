@@ -18,7 +18,10 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
+import org.eclipse.scanning.api.points.models.IScanPathModel;
+import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
@@ -105,15 +108,25 @@ public abstract class AbstractWatchdogTest {
 		ServiceHolder.setWatchdogService(null);
 	}
 
-	
 	protected IDeviceController createTestScanner(IScannable<?> monitor) throws Exception {
+		return createTestScanner(monitor, 2);
+	}
+	protected IDeviceController createTestScanner(IScannable<?> monitor, int dims) throws Exception {
 		
+		List<IScanPathModel> models = new ArrayList<>();
+		if (dims>2) {
+			for (int i = dims; i>2; i--) {
+				models.add(new StepModel("T"+i, 290, 292, 1));
+			}
+		}
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel("x", "y");
 		gmodel.setSlowAxisPoints(5);
 		gmodel.setFastAxisPoints(5);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
-		IPointGenerator<?> gen = gservice.createGenerator(gmodel);
+		models.add(gmodel);
+		
+		IPointGenerator<?> gen = gservice.createCompoundGenerator(new CompoundModel<>(models));
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
