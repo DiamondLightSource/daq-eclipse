@@ -1,11 +1,21 @@
 package org.eclipse.scanning.test.scan;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.json.MarshallerService;
+import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
+import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.PostConfigure;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IDeviceWatchdogService;
 import org.eclipse.scanning.api.device.IPausableDevice;
@@ -22,19 +32,25 @@ import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.api.scan.ScanEstimator;
+import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
+import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.sequencer.ServiceHolder;
 import org.eclipse.scanning.sequencer.watchdog.DeviceWatchdogService;
+import org.eclipse.scanning.server.application.Activator;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
@@ -76,6 +92,7 @@ public abstract class AbstractWatchdogTest {
 		RunnableDeviceServiceImpl impl = (RunnableDeviceServiceImpl)sservice;
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
+		impl._register(DummyMalcolmModel.class, DummyMalcolmDevice.class);
 		ServiceHolder.setRunnableDeviceService(sservice);
 
 		gservice  = new PointGeneratorService();
@@ -97,6 +114,19 @@ public abstract class AbstractWatchdogTest {
 		IDeviceWatchdogService wservice = new DeviceWatchdogService();
 		ServiceHolder.setWatchdogService(wservice);
 		Services.setWatchdogService(wservice);
+	
+		// Provide lots of services that OSGi would normally.
+		Services.setEventService(eservice);
+		Services.setRunnableDeviceService(sservice);
+		Services.setGeneratorService(gservice);
+		Services.setConnector(connector);
+		org.eclipse.scanning.example.Services.setPointGeneratorService(gservice);
+		org.eclipse.scanning.example.Services.setEventService(eservice);
+		org.eclipse.scanning.example.Services.setRunnableDeviceService(sservice);
+		org.eclipse.scanning.example.Services.setScannableDeviceService(connector);
+		
+		ServiceHolder.setTestServices(new LoaderServiceMock(), new DefaultNexusBuilderFactory(), null, null, gservice);
+		org.eclipse.dawnsci.nexus.ServiceHolder.setNexusFileFactory(new NexusFileFactoryHDF5());
 
 		createWatchdogs();
 	}
@@ -109,9 +139,10 @@ public abstract class AbstractWatchdogTest {
 	}
 
 	protected IDeviceController createTestScanner(IScannable<?> monitor) throws Exception {
-		return createTestScanner(monitor, 2);
+		return createTestScanner(monitor, null, null, 2);
 	}
-	protected IDeviceController createTestScanner(IScannable<?> monitor, int dims) throws Exception {
+	
+	protected <T> IDeviceController createTestScanner(IScannable<?> monitor, IRunnableDevice<T> device, T dmodel, int dims) throws Exception {
 		
 		List<IScanPathModel> models = new ArrayList<>();
 		if (dims>2) {
@@ -127,11 +158,30 @@ public abstract class AbstractWatchdogTest {
 		models.add(gmodel);
 		
 		IPointGenerator<?> gen = gservice.createCompoundGenerator(new CompoundModel<>(models));
+		
+		if (dmodel!=null) {
+			AnnotationManager manager = new AnnotationManager(Activator.createResolver());
+			manager.addDevices(device);
+			manager.addContext(new ScanInformation(new ScanEstimator(gen, (Map<String, Object>)null, 1)));
+			
+			manager.invoke(PreConfigure.class, dmodel, gen);
+			if (device instanceof AbstractMalcolmDevice) {
+				assertNotNull(((AbstractMalcolmDevice)device).getPointGenerator());
+			}
+			
+			device.configure(dmodel);
+			assertNotNull(device.getModel());
+			assertEquals(dmodel, device.getModel());
+			
+			manager.invoke(PostConfigure.class, dmodel, gen);
+		}
 
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
-		smodel.setDetectors(detector);
+		
+		if (device==null) device = (IRunnableDevice<T>)detector;
+		smodel.setDetectors(device);
 		if (monitor!=null) smodel.setMonitors(monitor);
 		
 		// Create a scan and run it without publishing events

@@ -68,4 +68,9 @@ public interface IDeviceController {
 	 */
 	String getName();
 	
+	/**
+	 * 
+	 * @return true if the devices (watchdogs) in this contoller all think they are running in a scan.
+	 */
+	boolean isActive();
 }

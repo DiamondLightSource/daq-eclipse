@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
+import org.eclipse.dawnsci.nexus.INexusFileFactory;
 import org.eclipse.dawnsci.nexus.NXcollection;
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NXentry;
@@ -58,6 +59,7 @@ import org.eclipse.january.dataset.Random;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.ValidationException;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
@@ -156,8 +158,10 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		}
 		
 		public void closeNexusFile() throws NexusException {
-			nexusFile.flush();
-			nexusFile.close();
+			if (nexusFile!=null) {
+				nexusFile.flush();
+				nexusFile.close();
+			}
 		}
 		
 	}
@@ -472,7 +476,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		// validate the point generator has been set (not part of the model, but it does need
 		// to be set. In the real MalcolmDevice class this is part of the model sent over the
 		// connection to the actual malcolm device for validation
-		if (getPointGenerator() == null) {
+		if (pointGenerator == null) {
 			throw new ModelValidationException("The point generator was not set on the malcolm device",
 					this, "pointGenerator");
 		}
@@ -502,7 +506,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	@ScanFinally
 	public void scanFinally() {
 		// close all the nexus file
-		for (Map.Entry<String, IDummyMalcolmControlledDevice> entry : devices.entrySet()) {
+		if (devices!=null) for (Map.Entry<String, IDummyMalcolmControlledDevice> entry : devices.entrySet()) {
 			try {
 				entry.getValue().closeNexusFile();
 			} catch (NexusException e) {
@@ -523,6 +527,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		}
 	}
 	
+	@PreConfigure
 	public void setPointGenerator(IPointGenerator<?> pointGenerator) {
 		super.setPointGenerator(pointGenerator);
 		
@@ -674,7 +679,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		}
 
 		// get an iterator over the inner scan positions
-		final SubscanModerator moderator = new SubscanModerator(getPointGenerator(),
+		final SubscanModerator moderator = new SubscanModerator(pointGenerator,
 				Arrays.asList(this), Services.getPointGeneratorService());
 		Iterable<IPosition> innerScanPositions = moderator.getInnerIterable();
 		
@@ -732,7 +737,8 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	}
 	
 	private NexusFile saveNexusFile(TreeFile nexusTree) throws NexusException {
-		NexusFile file = ServiceHolder.getNexusFileFactory().newNexusFile(nexusTree.getFilename(), true);
+		INexusFileFactory nff = ServiceHolder.getNexusFileFactory();
+		NexusFile file = nff.newNexusFile(nexusTree.getFilename(), true);
 		file.createAndOpenToWrite();
 		file.addNode("/", nexusTree.getGroupNode());
 		file.flush();

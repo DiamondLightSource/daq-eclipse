@@ -351,7 +351,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 
 	private EpicsMalcolmModel createEpicsMalcolmModel(M model) {
 		double exposureTime = model.getExposureTime();
-		IPointGenerator<?> pointGenerator = getPointGenerator();
+
 		if (pointGenerator != null) { // TODO could the point generator be null here?
 			List<IMutator> mutators = Arrays.asList(new FixedDurationMutator(exposureTime));
 			((CompoundModel<?>) pointGenerator.getModel()).setMutators(mutators);
