@@ -34,7 +34,9 @@ class CompoundValidator implements IValidator<CompoundModel<?>> {
         for (Object model : models) {
 			if (model instanceof IScanPathModel) {
 				List<String> axes = ((IScanPathModel)model).getScannableNames();
-				if (axes.stream().anyMatch(usedAxes::contains)) throw new ModelValidationException("The axes "+axes+" are used in a previous model!", model);
+				if (axes!=null && axes.size()>0 && usedAxes.size()>0 && axes.stream().anyMatch(usedAxes::contains)) {
+					throw new ValidationException("One or more of the axes '"+axes+"' are used in a previous model!");
+				}
 				usedAxes.addAll(axes);
 			}
 		}

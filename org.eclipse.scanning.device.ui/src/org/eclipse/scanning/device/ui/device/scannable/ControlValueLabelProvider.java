@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -75,7 +76,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 		
 		if (!(scannable instanceof IPositionListenable)) return;
 		if (scannableNodes==null) scannableNodes = new HashMap<>();
-		if (scannables==null)     scannables     = new HashMap<>();
+		if (scannables==null)     scannables     = new ConcurrentHashMap<>();
 		
 		String name = scannable.getName();
 		
@@ -109,6 +110,9 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 	@Override
 	public void dispose() {
 		super.dispose();
+		for (String name : scannables.keySet()) {
+			((IPositionListenable)scannables.remove(name)).removePositionListener(this);
+		}
 	}
 
 

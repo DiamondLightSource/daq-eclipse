@@ -123,6 +123,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * register it from spring.
 	 */
 	public void register() {
+		if (runnableDeviceService==null) throw new RuntimeException("Unable to register "+getClass().getSimpleName()+" because the runnable device service was not injected correctly.");
 		runnableDeviceService.register(this);
 	}
 
