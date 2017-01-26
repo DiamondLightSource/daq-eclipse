@@ -531,9 +531,12 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	public void setPointGenerator(IPointGenerator<?> pointGenerator) {
 		super.setPointGenerator(pointGenerator);
 		
-		scanRank = pointGenerator.iterator().next().getScanRank();
-		if (scanRank < 0) {
-			scanRank = 1;
+		if (pointGenerator!=null) { // Some tests end up using the configure call of 
+			                        // RunnableDeviceService which does not have a pointGenerator
+			scanRank = pointGenerator.iterator().next().getScanRank();
+			if (scanRank < 0) {
+				scanRank = 1;
+			}
 		}
 	}
 	
