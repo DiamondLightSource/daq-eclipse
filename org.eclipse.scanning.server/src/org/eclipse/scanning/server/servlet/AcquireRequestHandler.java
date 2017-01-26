@@ -16,6 +16,8 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.StaticModel;
 import org.eclipse.scanning.api.scan.IFilePathService;
+import org.eclipse.scanning.api.scan.ScanEstimator;
+import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.server.application.Activator;
@@ -77,7 +79,7 @@ public class AcquireRequestHandler implements IResponseProcess<AcquireRequest> {
 			IRunnableDevice<?> detector = deviceService.getRunnableDevice(bean.getDetectorName());
 			scanModel.setDetectors(detector);
 			
-			configureDetector(detector, request.getDetectorModel());
+			configureDetector(detector, request.getDetectorModel(), scanModel);
 			return deviceService.createRunnableDevice(scanModel, null);
 		} catch (Exception e) {
 			if (e instanceof EventException) throw (EventException) e;
@@ -99,8 +101,18 @@ public class AcquireRequestHandler implements IResponseProcess<AcquireRequest> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void configureDetector(IRunnableDevice<?> detector, Object detectorModel) throws Exception {
+	private void configureDetector(IRunnableDevice<?> detector, Object detectorModel,
+			ScanModel scanModel) throws Exception {
+		
+		ScanInformation info = new ScanInformation();
+		info.setRank(0);
+		info.setShape(new int[0]);
+		info.setSize(1);
+		
+		info.setFilePath(scanModel.getFilePath());
+		
 		AnnotationManager manager = new AnnotationManager(Activator.createResolver());
+		manager.addContext(info);
 		manager.addDevices(detector);
 		
 		manager.invoke(PreConfigure.class, detectorModel);
