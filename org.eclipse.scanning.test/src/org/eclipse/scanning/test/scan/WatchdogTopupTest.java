@@ -6,7 +6,11 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +18,7 @@ import java.util.Set;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IDeviceWatchdog;
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -23,17 +28,25 @@ import org.eclipse.scanning.api.scan.event.IPositionListenable;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockTopupScannable;
 import org.eclipse.scanning.sequencer.watchdog.TopupWatchdog;
+import org.eclipse.scanning.test.messaging.FileUtils;
+import org.eclipse.scanning.test.scan.nexus.DummyMalcolmDeviceTest;
 import org.junit.After;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class WatchdogTopupTest extends AbstractWatchdogTest {
 
 	
-	
 	private IDeviceWatchdog dog;
+	private File dir;
 		
 	void createWatchdogs() throws Exception {
 
@@ -54,13 +67,23 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 		dog.activate();
 	}
 	
+	@Before
+	public void createDir() throws IOException{
+		this.dir = Files.createTempDirectory(DummyMalcolmDeviceTest.class.getSimpleName()).toFile();
+		dir.deleteOnExit();
+	}
+	
 	@After
 	public void disconnect() throws Exception {
+		
 		final IScannable<Number>   topups  = connector.getScannable("topup");
 		final MockTopupScannable   topup   = (MockTopupScannable)topups;
 		assertNotNull(topup);
 		topup.disconnect();
 		topup.setPosition(1000);
+		
+		FileUtils.recursiveDelete(dir);
+
 	}
 	
 	@Test(expected=Exception.class)
@@ -117,15 +140,77 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 	}
 	
 	@Test
-	public void topupInScan() throws Exception {
+	public void topupIn2DScan() throws Exception {
+        topupInScan(2);
+	}
+	
+	@Test
+	public void topupIn3DScan() throws Exception {
+        topupInScan(3);
+	}
+	
+	@Ignore("Needs to work and does but takes a long time so not part of main tests.")
+	@Test
+	public void topupIn5DScan() throws Exception {
+        topupInScan(5);
+	}
+	
+	@Test
+	public void topupIn2DScanMalcolm() throws Exception {
+		
+		DummyMalcolmModel model = createModel();
+		IRunnableDevice<DummyMalcolmModel> malcolmDevice = sservice.createRunnableDevice(model, false);
+      
+		topupInScan(malcolmDevice, model, 2);		
+	}
+	
+	@Test
+	public void topupIn3DScanMalcolm() throws Exception {
+		
+		DummyMalcolmModel model = createModel();
+		IRunnableDevice<DummyMalcolmModel> malcolmDevice = sservice.createRunnableDevice(model, false);
+      
+		topupInScan(malcolmDevice, model, 3);
+	}
+	
+	@Test
+	public void topupSeveralMalcolm() throws Exception {
+		
+		DummyMalcolmModel model = createModel();
+		IRunnableDevice<DummyMalcolmModel> malcolmDevice = sservice.createRunnableDevice(model, false);
+      
+		topupInScan(malcolmDevice, model, 2);
+		
+		// We do another one to see if 2 in a row are the problem
+		topupInScan(malcolmDevice, model, 3);
 
+		// We do another one to see if 3 in a row are the problem
+		topupInScan(malcolmDevice, model, 3);
+	}
+
+
+	private DummyMalcolmModel createModel() throws IOException {
+		
+		DummyMalcolmModel model = DummyMalcolmDeviceTest.createModel(dir);
+		model.setExposureTime(0.05);
+		model.setAxesToMove(Arrays.asList("x", "y"));
+		assertNotNull(model.getFileDir());
+		return model;
+	}
+
+	private void topupInScan(int size) throws Exception {
+		topupInScan(null, null, size);
+	}
+
+	private <T> void topupInScan(IRunnableDevice<T> device, T detectorModel, int size) throws Exception {
+		
 		final IScannable<Number>   topups  = connector.getScannable("topup");
 		final MockTopupScannable   topup   = (MockTopupScannable)topups;
 		assertNotNull(topup);
         topup.start();
 		
 		// x and y are level 3
-		IDeviceController controller = createTestScanner(null);
+		IDeviceController controller = createTestScanner(null, device, detectorModel, size);
 		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
 		
 		Set<DeviceState> states = new HashSet<>();
@@ -136,13 +221,14 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 			}
 		});
 		
-		scanner.run(null);
+		scanner.run(null);				
+		assertTrue(!controller.isActive());
 		
-		assertTrue(states.contains(DeviceState.PAUSED));
-		assertTrue(states.contains(DeviceState.RUNNING));
-		assertTrue(states.contains(DeviceState.SEEKING));
+		assertTrue("States contain no paused: "+states,  states.contains(DeviceState.PAUSED));
+		assertTrue("States contain no running: "+states, states.contains(DeviceState.RUNNING));
+		assertTrue("States contain no seeking: "+states, states.contains(DeviceState.SEEKING));
 	}
-	
+
 	@Test
 	public void scanDuringTopup() throws Exception {
 

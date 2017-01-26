@@ -23,7 +23,6 @@ import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -256,10 +255,6 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 		malcolmModel.setFileDir(malcolmOutputDir.toString());
 		logger.info("Set malcolm output dir to {}", malcolmOutputDir);
 		
-		// Set the point generator for the malcolm device
-		final IRunnableDeviceService service = Services.getRunnableDeviceService();
-		IRunnableDevice<?> malcolmDevice = service.getRunnableDevice(malcolmDeviceName);
-		((IMalcolmDevice<?>) malcolmDevice).setPointGenerator(gen);
 	}
 
 	private ScriptResponse<?> runScript(ScriptRequest req) throws EventException, UnsupportedLanguageException, ScriptExecutionException {
@@ -321,12 +316,9 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 			@SuppressWarnings("unchecked")
 			IRunnableDevice<Object> odevice = (IRunnableDevice<Object>)device;
 			Object dmodel = dmodels.get(odevice.getName());
-			if (odevice instanceof IMalcolmDevice<?>) {
-				((IMalcolmDevice<?>) odevice).setPointGenerator(generator);
-			}
-			manager.invoke(PreConfigure.class, dmodel);
+			manager.invoke(PreConfigure.class, dmodel, generator);
 			odevice.configure(dmodel);
-			manager.invoke(PostConfigure.class, dmodel);
+			manager.invoke(PostConfigure.class, dmodel, generator);
 		}
 	}
 

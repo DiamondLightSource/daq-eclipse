@@ -10,6 +10,7 @@ import org.eclipse.dawnsci.nexus.IMultipleNexusDevice;
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceRole;
@@ -56,7 +57,7 @@ public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends Abs
 	
 	protected IMalcolmConnectorService<MalcolmMessage> connector;
 	
-	private IPointGenerator<?> pointGenerator;
+	protected IPointGenerator<?> pointGenerator;
 	
 	public AbstractMalcolmDevice(IMalcolmConnectorService<MalcolmMessage> connector,
 			IRunnableDeviceService runnableDeviceService) throws MalcolmDeviceException {
@@ -67,6 +68,14 @@ public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends Abs
    		setRole(DeviceRole.MALCOLM);
 	}
 		
+	@PreConfigure
+	public void setPointGenerator(IPointGenerator<?> pointGenerator) {
+		this.pointGenerator = pointGenerator;
+	}
+	public IPointGenerator<?> getPointGenerator() {
+		return pointGenerator;
+	}
+	
 	/**
 	 * Enacts any pre-actions or conditions before the device attempts to run the task block.
 	 *  
@@ -87,16 +96,6 @@ public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends Abs
 	
 	protected void setTemplateBean(MalcolmEventBean bean) {
 		eventDelegate.setTemplateBean(bean);
-	}
-	
-	@Override
-	public void setPointGenerator(IPointGenerator<?> pointGenerator) {
-		this.pointGenerator = pointGenerator;
-	}
-	
-	@Override
-	public IPointGenerator<?> getPointGenerator() {
-		return pointGenerator;
 	}
 
 	public void start(final IPosition pos) throws ScanningException, InterruptedException {

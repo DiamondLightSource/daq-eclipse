@@ -8,16 +8,16 @@ import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
  */
 public class StepModel extends AbstractPointsModel {
 
-	@FieldDescriptor(label="Device", device=DeviceType.SCANNABLE)
+	@FieldDescriptor(label="Device", device=DeviceType.SCANNABLE, fieldPosition=0)
 	private String name;
 	
-	@FieldDescriptor(label="Start", scannable="name", hint="This is the start position for the scan") // The scannable lookup gets the units
+	@FieldDescriptor(label="Start", scannable="name", hint="This is the start position for the scan", fieldPosition=1) // The scannable lookup gets the units
 	private double start;
 	
-	@FieldDescriptor(label="Stop", scannable="name", hint="This is the stop position for the scan") // The scannable lookup gets the units
+	@FieldDescriptor(label="Stop", scannable="name", hint="This is the stop position for the scan", fieldPosition=2) // The scannable lookup gets the units
 	private double stop;
 	
-	@FieldDescriptor(label="Step", scannable="name", hint="This is the step during the scan") // The scannable lookup gets the units
+	@FieldDescriptor(label="Step", scannable="name", hint="This is the step during the scan", fieldPosition=3) // The scannable lookup gets the units
 	private double step;
 	
 	public StepModel() {

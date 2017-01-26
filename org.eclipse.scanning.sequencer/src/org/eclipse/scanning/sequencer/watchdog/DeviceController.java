@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.eclipse.scanning.api.device.IDeviceController;
+import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -127,6 +127,14 @@ class DeviceController implements IDeviceController {
 
 	public void setObjects(List<?> objects) {
 		this.objects = objects;
+	}
+	
+	public boolean isActive() {
+		boolean is = true;
+		for (Object object : objects) {
+			if (object instanceof IDeviceWatchdog) is = is && ((IDeviceWatchdog)object).isActive();
+		}
+		return is;
 	}
 
 	@Override

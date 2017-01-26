@@ -23,6 +23,7 @@ import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.connector.epics.EpicsV4ConnectorService;
 import org.eclipse.scanning.example.malcolm.ExampleMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.ExampleMalcolmModel;
+import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.PointGeneratorService;
 import org.epics.pvdata.factory.FieldFactory;
@@ -83,7 +84,8 @@ public class ExampleMalcolmDeviceTest {
 			pmac1.setFileDir("/TestFile/Dir");
 
 			// Set the generator on the device
-			modelledDevice.setPointGenerator(scan);
+			// Cannot set the generator from @PreConfigure in this unit test.
+			((AbstractMalcolmDevice)modelledDevice).setPointGenerator(scan);
 			
 			// Call configure
 			modelledDevice.configure(pmac1);

@@ -66,6 +66,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	public void setUp() throws Exception {
 		// create a temp directory for the dummy malcolm device to write hdf files into
 		malcolmOutputDir = Files.createTempDirectory(DummyMalcolmDeviceTest.class.getSimpleName()).toFile();
+		malcolmOutputDir.deleteOnExit();
 	}
 
 	@After
@@ -110,9 +111,9 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		return gen;
 	}
 
-	private DummyMalcolmModel createModel() {
+	public static DummyMalcolmModel createModel(File dir) {
 		DummyMalcolmModel model = new DummyMalcolmModel();
-		model.setFileDir(malcolmOutputDir.getAbsolutePath());
+		model.setFileDir(dir.getAbsolutePath());
 
 		DummyMalcolmControlledDetectorModel det1Model = new DummyMalcolmControlledDetectorModel();
 		det1Model.setName("detector");
@@ -132,9 +133,10 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	
 	@Test
 	public void testDummyMalcolmNexusFiles() throws Exception {
-		DummyMalcolmModel model = createModel();
+		DummyMalcolmModel model = createModel(malcolmOutputDir);
 		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
-		((IMalcolmDevice<DummyMalcolmModel>) malcolmDevice).setPointGenerator(getGenerator(2, 2)); // Generator isn't actually used by the test malcolm device
+		// Cannot set the generator from @PreConfigure in this unit test.
+		((AbstractMalcolmDevice)malcolmDevice).setPointGenerator(getGenerator(2, 2));// Generator isn't actually used by the test malcolm device
 		int scanRank = 2;
 		assertNotNull(malcolmDevice);
 		malcolmDevice.configure(model);
@@ -147,10 +149,11 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 	
 	@Test
 	public void testMalcolmNexusObjects() throws Exception {
-		DummyMalcolmModel model = createModel();
+		DummyMalcolmModel model = createModel(malcolmOutputDir);
 		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
 		int scanRank = 3;
-		((IMalcolmDevice<DummyMalcolmModel>) malcolmDevice).setPointGenerator(getGenerator(2, 2, 2));
+		// Cannot set the generator from @PreConfigure in this unit test.
+		((AbstractMalcolmDevice)malcolmDevice).setPointGenerator(getGenerator(2, 2, 2));// Generator isn't actually used by the test malcolm device
 		malcolmDevice.configure(model);
 
 		NexusScanInfo nexusScanInfo = new NexusScanInfo();

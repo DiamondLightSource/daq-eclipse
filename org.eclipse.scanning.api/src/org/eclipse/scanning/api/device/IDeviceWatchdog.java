@@ -59,6 +59,12 @@ public interface IDeviceWatchdog extends IModelProvider<DeviceWatchdogModel> {
 	 */
 	void activate();
 	
+	/**
+	 * 
+	 * @return true if the watchdog is active in a scan and checking things.
+	 */
+	boolean isActive();
+
     /**
 	 * Make this device inactive
 	 */
@@ -80,4 +86,5 @@ public interface IDeviceWatchdog extends IModelProvider<DeviceWatchdogModel> {
 	 * @param model
 	 */
 	void setModel(DeviceWatchdogModel model);
+
 }
