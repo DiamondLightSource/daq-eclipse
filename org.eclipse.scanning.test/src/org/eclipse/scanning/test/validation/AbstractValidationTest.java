@@ -17,6 +17,8 @@ import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmTriggeredDetector;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmTriggeredModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.eclipse.scanning.points.PointGeneratorService;
@@ -55,6 +57,7 @@ public abstract class AbstractValidationTest {
 		impl._register(ProcessingModel.class, ProcessingRunnableDevice.class);
 		impl._register(ClusterProcessingModel.class, ClusterProcessingRunnableDevice.class);
 		impl._register(DummyMalcolmModel.class, DummyMalcolmDevice.class);
+		impl._register(DummyMalcolmTriggeredModel.class, DummyMalcolmTriggeredDetector.class);
 		
 		validator.setRunnableDeviceService(dservice);
 		Services.setValidatorService(validator);

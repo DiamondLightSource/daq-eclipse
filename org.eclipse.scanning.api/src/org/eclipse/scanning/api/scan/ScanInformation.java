@@ -3,6 +3,8 @@ package org.eclipse.scanning.api.scan;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.eclipse.scanning.api.device.models.ScanMode;
+
 /**
  * 
  * Holds state of whole scan. May be used in annotated methods like &#64;ScanStart
@@ -20,6 +22,7 @@ public class ScanInformation {
 	private Collection<String> scannableNames;
 	private transient ScanEstimator  estimator;
 	private int[] shape;
+	private ScanMode scanMode;
 	
 	public ScanInformation() {
 		
@@ -61,6 +64,7 @@ public class ScanInformation {
 		result = prime * result + rank;
 		result = prime * result + ((scannableNames == null) ? 0 : scannableNames.hashCode());
 		result = prime * result + size;
+		result = prime * result + ((scanMode == null) ? 0 : scanMode.hashCode());
 		return result;
 	}
 	@Override
@@ -85,6 +89,11 @@ public class ScanInformation {
 		} else if (!scannableNames.equals(other.scannableNames))
 			return false;
 		if (size != other.size)
+			return false;
+		if (scanMode == null) {
+			if (other.scanMode != null)
+				return false;
+		} else if (!scanMode.equals(other.scanMode))
 			return false;
 		return true;
 	}
@@ -114,8 +123,9 @@ public class ScanInformation {
 
 	@Override
 	public String toString() {
-		return getClass().getName() + '@' + Integer.toHexString(hashCode())
-				+" [filePath=" + filePath + ", size=" + size + ", rank=" + rank + ","
-				+ " scannableNames=" + scannableNames + ", shape=" + Arrays.toString(shape) + "]";
+		return "ScanInformation [filePath=" + filePath + ", size=" + size + ", rank=" + rank
+				+ ", scannableNames=" + scannableNames + ", shape=" + Arrays.toString(shape)
+				+ ", scanMode=" + scanMode + "]";
 	}
+
 }

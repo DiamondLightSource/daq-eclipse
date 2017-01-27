@@ -15,6 +15,7 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.device.models.IMalcolmModel;
+import org.eclipse.scanning.api.device.models.ScanMode;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.connector.IMalcolmConnectorService;
@@ -66,6 +67,7 @@ public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends Abs
    		this.connectionDelegate = connector.createDeviceConnection(this);
    		this.eventDelegate = new MalcolmEventDelegate(getName(), connector);
    		setRole(DeviceRole.MALCOLM);
+   		setSupportedScanMode(ScanMode.HARDWARE);
 	}
 		
 	@PreConfigure

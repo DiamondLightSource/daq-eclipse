@@ -3,6 +3,7 @@ package org.eclipse.scanning.sequencer;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -24,6 +25,7 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.models.DeviceRole;
+import org.eclipse.scanning.api.device.models.ScanMode;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -104,6 +106,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		setName("solstice_scan");
 		setPrimaryScanDevice(true);
 		setRole(DeviceRole.VIRTUAL);
+		setSupportedScanModes(EnumSet.allOf(ScanMode.class));
 	}
 	
 	/**

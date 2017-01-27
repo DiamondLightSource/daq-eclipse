@@ -5,12 +5,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -339,13 +346,29 @@ public class PseudoSpringParser implements ISpringParser {
 		setValue(instance.getClass(), instance, fieldName, value, valueClass);
 	}
 	
-	private void setValue(final Class<?> clazz, Object instance, final String fieldName, final Object value, Class<?> valueClass) throws NoSuchMethodException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException, InvocationTargetException {
+	private void setValue(final Class<?> clazz, Object instance, final String fieldName, Object value, Class<?> valueClass) throws NoSuchMethodException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException, InvocationTargetException {
 		final String setterName = getSetterName(fieldName);
 		if (valueClass==null) valueClass = value.getClass();
 		Method method = getMethod(clazz, setterName, valueClass);
 		try {
 			if (method==null||instance==null||value==null) {
-				System.err.println("Cannont find "+setterName+" in object "+instance+" to send value "+value);
+				System.err.println("Cannot find "+setterName+" in object "+instance+" to send value "+value);
+			}
+			if (value instanceof List) {
+				Type argType = method.getGenericParameterTypes()[0];
+				if (argType instanceof ParameterizedType) {
+					if (((ParameterizedType) argType).getRawType().equals(Set.class)) {
+						Type actualTypeArg = ((ParameterizedType) argType).getActualTypeArguments()[0];
+						if (actualTypeArg instanceof Class && ((Class<?>) actualTypeArg).isEnum()) {
+							Map<String, Enum<?>> enumMap =
+									Arrays.stream(((Class<?>) actualTypeArg).getEnumConstants()).map(
+											Enum.class::cast).collect(Collectors.toMap(Enum::name, Function.identity()));
+							value = ((List<String>) value).stream().map(strVal -> enumMap.get(strVal)).collect(Collectors.toSet());
+						} else {
+							value = new HashSet<String>((List<String>) value);
+						}
+					}
+				}
 			}
 		    method.invoke(instance, value);
 		} catch (IllegalArgumentException are) {
