@@ -3,6 +3,8 @@ package org.eclipse.scanning.sequencer.watchdog;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
+import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.IDeviceController;
 import org.eclipse.scanning.api.device.IDeviceWatchdog;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
@@ -15,6 +17,7 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	
 	protected DeviceWatchdogModel model;
 	protected IDeviceController  controller;
+	protected boolean active = false;
 
 	public AbstractWatchdog() {
 		this(null);
@@ -92,4 +95,18 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 		this.controller = controller;
 	}
 
+	@ScanStart
+	public void scanStarted() {
+		active = true;
+	}
+	
+	@ScanFinally
+	public void scanFinally() {
+		active = false;
+	}
+	
+	@Override
+	public boolean isActive() {
+		return active;
+	}
 }

@@ -355,7 +355,8 @@ public class MalcolmScanTest extends NexusTest {
 		final ScanModel smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
 		smodel.setDetectors(malcolmDevice);
-		((IMalcolmDevice<?>) malcolmDevice).setPointGenerator(gen);
+		// Cannot set the generator from @PreConfigure in this unit test.
+		((AbstractMalcolmDevice)malcolmDevice).setPointGenerator(gen);
 		
 		// Create a file to scan into.
 		smodel.setFilePath(file.getAbsolutePath());
