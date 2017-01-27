@@ -17,12 +17,16 @@ import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.Random;
 import org.eclipse.january.dataset.SliceND;
+import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.annotation.scan.PostConfigure;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.device.models.ScanMode;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
@@ -42,8 +46,10 @@ import org.eclipse.scanning.sequencer.SubscanModerator;
  * 
  * @author Matthew Dickie
  */
-public class DummyMalcolmTriggeredDetector extends AbstractRunnableDevice<DummyMalcolmTriggeredDeviceModel> implements INexusDevice<NXdetector>, IPositionListener {
+public class DummyMalcolmTriggeredDetector<T extends DummyMalcolmTriggeredModel> extends AbstractRunnableDevice<T> implements INexusDevice<NXdetector>, IPositionListener {
 	
+	private DummyMalcolmDevice dummyMalcolmDevice;
+
 	private IPosition outerPoint = null;
 
 	private Iterable<IPosition> innerPointsIterable;
@@ -64,10 +70,12 @@ public class DummyMalcolmTriggeredDetector extends AbstractRunnableDevice<DummyM
 	
 	private ILazyWriteableDataset count = null;
 	
+	@SuppressWarnings("unchecked")
 	public DummyMalcolmTriggeredDetector() throws ScanningException {
 		super(Services.getRunnableDeviceService());
-		this.model = new DummyMalcolmTriggeredDeviceModel();
+		this.model = (T) new DummyMalcolmTriggeredModel();
 		setDeviceState(DeviceState.IDLE);
+		setSupportedScanMode(ScanMode.HARDWARE);
 	}
 	
 	@Override
@@ -75,6 +83,17 @@ public class DummyMalcolmTriggeredDetector extends AbstractRunnableDevice<DummyM
 		setDeviceState(DeviceState.RUNNING);
 	}
 	
+	@Override
+	public void validate(T model) throws ValidationException {
+		if (model instanceof IDetectorModel) {
+			IDetectorModel dmodel = (IDetectorModel)model;
+		    if (dmodel.getName()==null || dmodel.getName().length()<1) {
+		    	throw new ModelValidationException("The name must be set!", model, "name");
+		    }
+		    // don't validate exposure time. The malcolm device determines the exposure time
+		}
+	}
+
 	@ScanStart
 	public void scanStart(ScanBean scanBean, SubscanModerator subscanModerator) throws ScanningException {
 		this.innerPointsIterable = subscanModerator.getInnerIterable();
@@ -161,7 +180,6 @@ public class DummyMalcolmTriggeredDetector extends AbstractRunnableDevice<DummyM
 		}
 	}
 	
-	private DummyMalcolmDevice dummyMalcolmDevice;
 	public void writeLine() throws DatasetException {
 		// This could be done in a separate thread, which could be given references to the
 		// arrays currently pointed to by these member fields, while the actual member fields

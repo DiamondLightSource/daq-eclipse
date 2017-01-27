@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.device.models.ScanMode;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
@@ -48,7 +50,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
                                                            IModelProvider<T>, 
                                                            IScanAttributeContainer, 
                                                            IPositionListenable,
-                                                           IActivatable {
+                                                           IActivatable{
 
 	// Data
 	protected T                          model;
@@ -58,6 +60,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private   ScanBean                   bean;
 	private   DeviceInformation<T>       deviceInformation;
 	private   DeviceRole                 role = DeviceRole.HARDWARE;
+	private   Set<ScanMode>              supportedScanModes = EnumSet.of(ScanMode.SOFTWARE);
 
 	// Devices can either be the top of the scan or somewhere in the
 	// scan tree. By default they are the scan but if used in a nested
@@ -468,6 +471,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		deviceInformation.setModel(getModel());
 		deviceInformation.setState(getDeviceState());
 		deviceInformation.setDeviceRole(getRole());
+		deviceInformation.setSupportedScanModes(getSupportedScanModes());
 		deviceInformation.setStatus(getDeviceStatus());
 		deviceInformation.setBusy(isDeviceBusy());
 		deviceInformation.setAttributes(getAllAttributes());
@@ -572,6 +576,19 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 
 	public void setRole(DeviceRole role) {
 		this.role = role;
+	}
+	
+	@Override
+	public Set<ScanMode> getSupportedScanModes() {
+		return supportedScanModes;
+	}
+	
+	public void setSupportedScanModes(Set<ScanMode> supportedScanModes) {
+		this.supportedScanModes = supportedScanModes;
+	}
+	
+	public void setSupportedScanMode(ScanMode supportedScanMode) {
+		this.supportedScanModes = EnumSet.of(supportedScanMode);
 	}
 
 	public boolean isRequireMetrics() {

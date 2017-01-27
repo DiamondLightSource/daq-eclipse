@@ -145,7 +145,7 @@ public class ScanRequestValidationTest extends AbstractValidationTest {
 
 		validator.validate(req);
 	}
-
+	
 	@Test
 	public void aProcessingAndAMalcolm() throws Exception {
 		
@@ -156,6 +156,82 @@ public class ScanRequestValidationTest extends AbstractValidationTest {
 		req.putDetector("malcolm",    dservice.getDeviceInformation("malcolm").getModel());
      	req.putDetector("processing", new ProcessingModel("processing", "/tmp/datafile", "/tmp/operationfile", 100));
 
+		validator.validate(req);
+	}
+	
+	@Test
+	public void aTriggeredAndAMalcolm() throws Exception {
+		
+		ScanRequest<IROI> req = createScanRequest();
+		
+		IRunnableDeviceService dservice = validator.getRunnableDeviceService();
+		
+		req.putDetector("malcolm", dservice.getDeviceInformation("malcolm").getModel());
+		req.putDetector("dummyMalcolmTriggered", dservice.getDeviceInformation("dummyMalcolmTriggered").getModel());
+		
+		validator.validate(req);
+	}
+	
+	@Test(expected = ValidationException.class)
+	public void aCPUaTriggeredAndAMalcolm() throws Exception {
+		
+		ScanRequest<IROI> req = createScanRequest();
+		
+		IRunnableDeviceService dservice = validator.getRunnableDeviceService();
+		
+		req.putDetector("mandelbrot", dservice.getDeviceInformation("mandelbrot").getModel());
+		req.putDetector("malcolm", dservice.getDeviceInformation("malcolm").getModel());
+		req.putDetector("dummyMalcolmTriggered", dservice.getDeviceInformation("dummyMalcolmTriggered").getModel());
+		
+		validator.validate(req);
+	}
+	
+	@Test
+	public void aTriggeredAMalcolmAndAProcessing() throws Exception {
+		
+		ScanRequest<IROI> req = createScanRequest();
+		
+		IRunnableDeviceService dservice = validator.getRunnableDeviceService();
+		
+		req.putDetector("malcolm", dservice.getDeviceInformation("malcolm").getModel());
+		req.putDetector("dummyMalcolmTriggered", dservice.getDeviceInformation("dummyMalcolmTriggered").getModel());
+     	req.putDetector("processing", new ProcessingModel("processing", "/tmp/datafile", "/tmp/operationfile", 100));
+		
+		validator.validate(req);
+	}
+	
+	@Test(expected=ValidationException.class)
+	public void aTriggered() throws Exception {
+		
+		ScanRequest<IROI> req = createScanRequest();
+		
+		IRunnableDeviceService dservice = validator.getRunnableDeviceService();
+		
+		req.putDetector("dummyMalcolmTriggered", dservice.getDeviceInformation("dummyMalcolmTriggered").getModel());
+		
+		validator.validate(req);
+	}
+	
+	@Test
+	public void aHardwareOrSoftwareTriggered() throws Exception {
+		ScanRequest<IROI> req = createScanRequest();
+		
+		IRunnableDeviceService dservice = validator.getRunnableDeviceService();
+		req.putDetector("dummyHardwareOrSoftwareTriggered", dservice.getDeviceInformation("dummyMalcolmTriggered").getModel());
+		
+		validator.validate(req);
+	}
+	
+	@Test
+	public void aHardwareOrSoftwareTriggeredAndMalcolm() throws Exception {
+		
+		ScanRequest<IROI> req = createScanRequest();
+		
+		IRunnableDeviceService dservice = validator.getRunnableDeviceService();
+		
+		req.putDetector("malcolm", dservice.getDeviceInformation("malcolm").getModel());
+		req.putDetector("dummyHardwareOrSoftwareTriggered", dservice.getDeviceInformation("dummyMalcolmTriggered").getModel());
+		
 		validator.validate(req);
 	}
 
