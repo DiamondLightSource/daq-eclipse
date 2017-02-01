@@ -59,15 +59,14 @@ public class ExampleMalcolmDevice {
     public void start() {
     	try {
             PVDatabase master = PVDatabaseFactory.getMaster();
-            ChannelProvider channelProvider = ChannelProviderLocalFactory.getChannelServer();
+            ChannelProvider channelProvider = ChannelProviderLocalFactory.getChannelProviderLocal();
             pvRecord = DummyMalcolmRecord.create(recordName);
             pvRecord.setTraceLevel(traceLevel);
             master.addRecord(pvRecord);
             ServerContextImpl context = ServerContextImpl.startPVAServer(channelProvider.getProviderName(),0,true,null);
             latch.await();
+            master.removeRecord(pvRecord);
             context.destroy();
-            master.destroy();
-            channelProvider.destroy();
         } catch (PVAException e) {
 			e.printStackTrace();
             System.exit(1);
