@@ -100,6 +100,43 @@ public class EpicsV4ConnectorTest {
 		}
 	}
 
+	/**
+	 * Starts an instance of the ExampleMalcolmDevice and then attempts to get an attribute that doesn't exist.
+	 * This should throw an exception with a message detailing that the attribute is not accessible.
+	 * @throws Exception
+	 */
+	@Test
+	public void GetNonExistantAttribute() throws Exception {
+
+		try {
+			// Setup the objects
+			this.connectorService = new EpicsV4ConnectorService();
+
+			// The real service, get it from OSGi outside this test!
+			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
+			this.service = new MalcolmService(connectorService, null);
+
+			// Start the dummy test device
+			new Thread(new DeviceRunner()).start();
+
+			// Get the device
+			IMalcolmDevice<ExampleMalcolmModel> modelledDevice = service.getDevice(getTestDeviceName());
+
+			// Get the device state. This should fail as the device does no exist
+			modelledDevice.getAttribute("NON_EXISTANT");
+
+			fail("No exception thrown but one was expected");
+
+		} catch (Exception ex) {
+			assertEquals(MalcolmDeviceException.class, ex.getClass());
+			assertTrue("Message was: " + ex.getMessage(), ex.getMessage().contains("CreateGet failed for 'NON_EXISTANT'"));
+			assertTrue(ex.getMessage().contains("illegal pvRequest"));
+		} finally {
+			// Stop the device
+			dummyMalcolmDevice.stop();
+		}
+	}
+
 	public class DeviceRunner implements Runnable {
 
 		public void run() {
