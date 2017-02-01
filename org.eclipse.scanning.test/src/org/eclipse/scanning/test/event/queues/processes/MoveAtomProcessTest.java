@@ -109,8 +109,10 @@ public class MoveAtomProcessTest {
 		pti.checkLastBroadcastBeanStatuses(Status.FAILED, false);
 		
 		StatusBean lastBean = pti.getLastBroadcastBean();
-		assertEquals("Fail message from IPositioner incorrectly set", "Moving device(s) in '"+lastBean.getName()+
-				"' failed: \"The badger apocalypse cometh! (EXPECTED - we pressed the button...)\".", lastBean.getMessage());
+		
+		String req = "Moving device(s) in '"+lastBean.getName()+
+				"' failed with: \"The badger apocalypse cometh! (EXPECTED - we pressed the button...)\".";
+		assertEquals("Fail message from IPositioner incorrectly set", req, lastBean.getMessage());
 		assertTrue("IPositioner not aborted", ((MockPositioner)mss.createPositioner()).isAborted());
 	}
 
