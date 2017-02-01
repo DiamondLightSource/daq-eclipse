@@ -41,6 +41,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import gda.factory.FactoryException;
+
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class WatchdogTopupTest extends AbstractWatchdogTest {
 
@@ -195,7 +197,7 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 	}
 
 
-	private DummyMalcolmModel createModel() throws IOException {
+	private DummyMalcolmModel createModel() throws IOException, FactoryException {
 		
 		DummyMalcolmModel model = DummyMalcolmDeviceTest.createModel(dir);
 		model.setExposureTime(0.05);

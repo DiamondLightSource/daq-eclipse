@@ -50,6 +50,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import gda.factory.FactoryException;
+
 /**
  * This test uses the RunnableDeviceService to create a {@link DummyMalcolmDevice}
  * and run it. Creates nexus files according to the {@link DummyMalcolmModel}.
@@ -111,8 +113,9 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		return gen;
 	}
 
-	public static DummyMalcolmModel createModel(File dir) {
+	public static DummyMalcolmModel createModel(File dir) throws FactoryException {
 		DummyMalcolmModel model = new DummyMalcolmModel();
+		model.configure();
 		model.setFileDir(dir.getAbsolutePath());
 
 		DummyMalcolmControlledDetectorModel det1Model = new DummyMalcolmControlledDetectorModel();

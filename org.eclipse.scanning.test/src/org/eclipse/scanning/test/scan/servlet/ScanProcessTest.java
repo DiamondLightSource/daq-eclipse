@@ -320,6 +320,7 @@ public class ScanProcessTest {
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
 		
 		DummyMalcolmModel dmodel = new DummyMalcolmModel();
+		dmodel.configure();
 		dmodel.setName("malcolm");
 		dmodel.setExposureTime(0.1);
 		dservice.createRunnableDevice(dmodel);

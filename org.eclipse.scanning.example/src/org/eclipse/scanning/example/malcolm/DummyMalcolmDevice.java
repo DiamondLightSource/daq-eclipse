@@ -71,11 +71,14 @@ import org.eclipse.scanning.sequencer.SubscanModerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gda.factory.Configurable;
+import gda.factory.FactoryException;
+
 /**
  * A dummy Malcolm device for use in dummy mode or tests.
  */
 public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
-		implements IMalcolmDevice<DummyMalcolmModel> {
+		implements IMalcolmDevice<DummyMalcolmModel>, Configurable {
 	
 	public static final String DATASET_NAME_UNIQUE_KEYS = "uniqueKeys";
 
@@ -109,13 +112,25 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	private Map<String, IDummyMalcolmControlledDevice> devices = null;
 	
 	public DummyMalcolmDevice() throws IOException, ScanningException {
-		super(new DummyMalcolmConnectorService(),
-				Services.getRunnableDeviceService()); // Necessary if you are going to spring it
-		this.model = new DummyMalcolmModel();
-		setupAttributes();
-		setDeviceState(DeviceState.IDLE);
+		super(new DummyMalcolmConnectorService(), Services.getRunnableDeviceService()); // Necessary if you are going to spring it
 	}
 	
+	@Override
+	public void configure() throws FactoryException {
+		if (model == null) {
+			model = new DummyMalcolmModel();
+			model.configure();
+		}
+
+		setupAttributes();
+		
+		try {
+			setDeviceState(DeviceState.IDLE);
+		} catch (ScanningException e) {
+			throw new FactoryException("Exception configuring DummyMalcolmDevice", e);
+		}
+	}
+
 	private void setupAttributes() {
 		allAttributes = new LinkedHashMap<>();
 
@@ -181,11 +196,6 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		
 		// set scanRank to the size of axesToMove initially. this will be overwritten before a scan starts
 		scanRank = axesToMove.getValue().length;
-	}
-	
-	public void setModel(DummyMalcolmModel model) {
-		super.setModel(model);
-		axesToMove.setValue(model.getAxesToMove().toArray(new String[model.getAxesToMove().size()]));
 	}
 
 	@Override

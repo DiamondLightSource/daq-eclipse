@@ -63,6 +63,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import gda.factory.FactoryException;
+
 public class MalcolmScanTest extends NexusTest {
 	
 	private String malcolmOutputDir;
@@ -100,8 +102,9 @@ public class MalcolmScanTest extends NexusTest {
 		participant.clear();
 	}
 
-	private DummyMalcolmModel createModel() {
+	private DummyMalcolmModel createModel() throws FactoryException {
 		DummyMalcolmModel model = new DummyMalcolmModel();
+		model.configure();
 		model.setTimeout(10 * 60); // increased timeout for debugging purposes
 		model.setFileDir(malcolmOutputDir);
 
