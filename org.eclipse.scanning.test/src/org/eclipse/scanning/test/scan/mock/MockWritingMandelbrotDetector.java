@@ -35,6 +35,7 @@ import org.eclipse.january.dataset.LazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.january.metadata.IMetadata;
 import org.eclipse.january.metadata.Metadata;
+import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.scan.DeviceState;
@@ -148,6 +149,11 @@ public class MockWritingMandelbrotDetector extends AbstractRunnableDevice<MockWr
 		}
         
 		return true;
+	}
+	
+	@ScanFinally
+	public void close() {
+		writer = null;
 	}
 
 	/**

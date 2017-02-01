@@ -109,20 +109,8 @@ public class MoveAtomProcess<T extends Queueable> extends QueueProcess<MoveAtom,
 						positioner.abort();
 						processLatch.countDown();
 					} else {
-						reportFail(ex);
+						reportFail(ex, "Moving device(s) in '"+queueBean.getName()+"' failed with: \""+ex.getMessage()+"\".");
 					}
-				}
-			}
-
-			private void reportFail(Exception ex) {
-				logger.error("Moving device(s) in '"+queueBean.getName()+"' failed with: \""+ex.getMessage()+"\".");
-				try {
-					//Bean has failed, but we don't want to set a final status here.
-					broadcast(Status.RUNNING, "Moving device(s) in '"+queueBean.getName()+"' failed: \""+ex.getMessage()+"\".");
-				} catch(EventException evEx) {
-					logger.error("Broadcasting bean failed with: \""+evEx.getMessage()+"\".");
-				} finally {
-					processLatch.countDown();
 				}
 			}
 		});
