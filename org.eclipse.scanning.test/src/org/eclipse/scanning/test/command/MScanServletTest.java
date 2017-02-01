@@ -23,6 +23,7 @@ import org.eclipse.scanning.api.event.core.ISubscriber;
 import org.eclipse.scanning.api.event.scan.IScanListener;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
+import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
@@ -157,11 +158,24 @@ public class MScanServletTest extends AbstractJythonTest {
 		runAndCheck("sr", false, 10);
 	}
 	
+	@Test(expected=Exception.class)
+	public void testGridScanWrongAxis() throws Exception {
+		pi.exec("sr = scan_request(grid(axes=('x', 'y'), start=(0, 0), stop=(10, 10), count=(5, 5), snake=True), det=detector('mandelbrot', 0.1))");
+		runAndCheck("sr", false, 10);
+	}
+	
 	@Test
 	public void testGridScanNoDetector() throws Exception {
 		pi.exec("sr = scan_request(grid(axes=('p', 'q'), start=(0, 0), stop=(10, 10), count=(5, 5), snake=True))");
 		runAndCheck("sr", false, 10);
 	}
+	
+	@Test
+	public void testGridWithROIScan() throws Exception {
+		pi.exec("sr = scan_request(grid(axes=('p', 'q'), start=(0.0, 1.0), stop=(10.0, 12.0), count=(3, 4), snake=False, roi=[circ(origin=(0.0, 0.0), radius=1.0)]), det=detector('mandelbrot', 0.1))");
+		runAndCheck("sr", false, 10);
+	}
+	
 
 	private List<ScanBean> runAndCheck(String name, boolean blocking, long maxScanTimeS) throws Exception {
 		
@@ -173,6 +187,7 @@ public class MScanServletTest extends AbstractJythonTest {
 		
 		try {
 			final List<ScanBean> beans = new ArrayList<>(13);
+			final List<ScanBean> failed = new ArrayList<>(13);
 			final List<ScanBean> startEvents = new ArrayList<>(13);
 			final List<ScanBean> endEvents   = new ArrayList<>(13);
 			
@@ -180,6 +195,7 @@ public class MScanServletTest extends AbstractJythonTest {
 			subscriber.addListener(new IScanListener() {
 				@Override
 				public void scanEventPerformed(ScanEvent evt) {
+					if (evt.getBean().getStatus()==Status.FAILED) failed.add(evt.getBean());
 					if (evt.getBean().getPosition()!=null) {
 						beans.add(evt.getBean());
 					}
@@ -187,6 +203,7 @@ public class MScanServletTest extends AbstractJythonTest {
 	
 				@Override
 				public void scanStateChanged(ScanEvent evt) {
+					if (evt.getBean().getStatus()==Status.FAILED) failed.add(evt.getBean());
 					if (evt.getBean().scanStart()) {
 						startEvents.add(evt.getBean()); // Should be just one
 					}
@@ -205,7 +222,10 @@ public class MScanServletTest extends AbstractJythonTest {
 			boolean ok = latch.await(maxScanTimeS, TimeUnit.SECONDS);
 			if (!ok) throw new Exception("The latch broke before the scan finished!");
 			
-			assertEquals(startEvents.get(0).getSize(), beans.size());
+			if (failed.size()>0) throw new Exception(failed.get(0).getMessage());
+			
+			ScanBean start = startEvents.get(0);
+			assertEquals(start.getSize(), beans.size());
 			assertEquals(1, startEvents.size());
 			assertEquals(1, endEvents.size());
 			
