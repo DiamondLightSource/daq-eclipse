@@ -45,6 +45,7 @@ public class SubscanModeratorTest {
 		
 		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
 		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.configure();
 		det.setModel(tmodel);
 		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
 		
@@ -71,6 +72,7 @@ public class SubscanModeratorTest {
 		
 		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
 		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.configure();
 		det.setModel(tmodel);
 		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
 		
@@ -99,6 +101,7 @@ public class SubscanModeratorTest {
 		
 		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
 		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.configure();
 		det.setModel(tmodel);
 		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
 		
@@ -179,6 +182,7 @@ public class SubscanModeratorTest {
 		
 		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
 		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.configure();
 		det.setModel(tmodel);
 		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
 			
@@ -206,6 +210,7 @@ public class SubscanModeratorTest {
 		
 		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
 		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.configure();
 		det.setModel(tmodel);
 		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
 		
@@ -233,6 +238,7 @@ public class SubscanModeratorTest {
 		
 		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
 		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.configure();
 		det.setModel(tmodel);
 		det.setAttributeValue("axesToMove", new String[]{"x", "y"});
 		
@@ -260,6 +266,7 @@ public class SubscanModeratorTest {
 		
 		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
 		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.configure();
 		det.setModel(tmodel);
 		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
 		
@@ -286,6 +293,7 @@ public class SubscanModeratorTest {
 		
 		final DummyMalcolmModel tmodel = new DummyMalcolmModel();
 		final DummyMalcolmDevice det = new DummyMalcolmDevice();
+		det.configure();
 		det.setModel(tmodel);
 		det.setAttributeValue("axesToMove", new String[]{"p", "y"});
 		

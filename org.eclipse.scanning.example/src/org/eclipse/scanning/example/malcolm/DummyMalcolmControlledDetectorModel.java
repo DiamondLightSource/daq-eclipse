@@ -63,4 +63,9 @@ public class DummyMalcolmControlledDetectorModel implements INameable {
 		datasets.add(dataset);
 	}
 
+	@Override
+	public String toString() {
+		return "DummyMalcolmControlledDetectorModel [name=" + name + ", datasets=" + datasets + "]";
+	}
+
 }
