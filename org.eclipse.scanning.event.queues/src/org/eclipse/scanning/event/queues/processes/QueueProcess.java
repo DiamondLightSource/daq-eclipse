@@ -5,6 +5,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.scanning.api.event.EventException;
+import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.AbstractLockingPausableProcess;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.IPublisher;
@@ -160,6 +161,19 @@ public abstract class QueueProcess<Q extends Queueable, T extends Queueable>
 	 */
 	public CountDownLatch getProcessLatch() {
 		return processLatch;
+	}
+
+
+	protected void reportFail(Exception ex, String message) {
+		logger.error(message);
+		try {
+			//Bean has failed, but we don't want to set a final status here.
+			broadcast(Status.RUNNING, message);
+		} catch(EventException evEx) {
+			logger.error("Broadcasting bean failed with: \""+evEx.getMessage()+"\".");
+		} finally {
+			processLatch.countDown();
+		}
 	}
 
 }

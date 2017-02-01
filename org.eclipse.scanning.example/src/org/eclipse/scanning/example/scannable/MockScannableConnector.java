@@ -151,6 +151,8 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 
 	@Override
 	public <T> IScannable<T> getScannable(String name) throws ScanningException {
+		
+		if (name==null) throw new ScanningException("Invalid scannable "+name);
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		if (cache.containsKey(name)) return (IScannable<T>)cache.get(name);
 		register(new MockScannable(name, 0d));
