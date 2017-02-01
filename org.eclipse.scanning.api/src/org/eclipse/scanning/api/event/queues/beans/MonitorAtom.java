@@ -19,6 +19,8 @@ public class MonitorAtom extends QueueAtom {
 	private static final long serialVersionUID = 20161021L;
 	
 	private String monitor;
+	private String filePath;
+	private String dataset;
 	
 	/**
 	 * No arg constructor for JSON
@@ -69,6 +71,8 @@ public class MonitorAtom extends QueueAtom {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
+		result = prime * result + ((dataset == null) ? 0 : dataset.hashCode());
+		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + ((monitor == null) ? 0 : monitor.hashCode());
 		return result;
 	}
@@ -82,12 +86,43 @@ public class MonitorAtom extends QueueAtom {
 		if (getClass() != obj.getClass())
 			return false;
 		MonitorAtom other = (MonitorAtom) obj;
+		if (dataset == null) {
+			if (other.dataset != null)
+				return false;
+		} else if (!dataset.equals(other.dataset))
+			return false;
+		if (filePath == null) {
+			if (other.filePath != null)
+				return false;
+		} else if (!filePath.equals(other.filePath))
+			return false;
 		if (monitor == null) {
 			if (other.monitor != null)
 				return false;
 		} else if (!monitor.equals(other.monitor))
 			return false;
 		return true;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
+	public String getDataset() {
+		return dataset;
+	}
+
+	public void setDataset(String dataset) {
+		this.dataset = dataset;
+	}
+
+	@Override
+	public String toString() {
+		return "MonitorAtom [monitor=" + monitor + ", filePath=" + filePath + ", dataset=" + dataset + "]";
 	}
 	
 }

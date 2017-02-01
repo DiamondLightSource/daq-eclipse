@@ -36,12 +36,19 @@ public class ProcessTestInfrastructure {
 	private MockPublisher<Queueable> statPub = new MockPublisher<>(uri, topic);
 	
 	private Exception threadException;
-	private long execTime = 50;
+	private long execTime;
 	private final CountDownLatch analysisLatch = new CountDownLatch(1);
 	
 	private QueueProcess<? extends Queueable, Queueable> qProc;
 	private Queueable qBean;
 	
+	public ProcessTestInfrastructure() {
+		this(50);
+	}
+	
+	public ProcessTestInfrastructure(long time) {
+		this.execTime = time;
+	}
 	/**
 	 * Generic method for running a queue process. When complete, it releases the execLatch.
 	 * waitForExecutionEnd(timeoutMS) should be placed directly after this call.

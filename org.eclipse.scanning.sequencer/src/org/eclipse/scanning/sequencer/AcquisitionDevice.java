@@ -522,6 +522,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	
 	@Override
 	public void seek(int stepNumber) throws ScanningException {
+		// TODO FIXME The positioner should seek back to the previous position!!
 		if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 			if (device instanceof IPausableDevice) ((IPausableDevice)device).seek(stepNumber);
 		}
