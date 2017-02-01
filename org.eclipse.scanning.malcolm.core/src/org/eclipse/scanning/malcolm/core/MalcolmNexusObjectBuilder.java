@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.dawnsci.nexus.NXdetector;
+import org.eclipse.dawnsci.nexus.NXmonitor;
 import org.eclipse.dawnsci.nexus.NXobject;
 import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
@@ -141,6 +142,8 @@ class MalcolmNexusObjectBuilder<M extends IMalcolmModel> {
 		
 		if (nexusBaseClass == NexusBaseClass.NX_DETECTOR) {
 			((NXdetector) nexusObject).setCount_timeScalar(malcolmDevice.getModel().getExposureTime());
+		} else if (nexusBaseClass == NexusBaseClass.NX_MONITOR) {
+			((NXmonitor) nexusObject).setCount_timeScalar(malcolmDevice.getModel().getExposureTime());
 		}
 		
 		final NexusObjectWrapper<NXobject> nexusWrapper = new NexusObjectWrapper<>(deviceName, nexusObject);

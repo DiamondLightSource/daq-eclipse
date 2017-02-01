@@ -27,7 +27,8 @@ public enum DeviceRole {
 	/**
 	 * The device is either backed by a GDA hardware connection
 	 * through EPICS or DAServer or is an in memory device which
-	 * should be treated like a hardware one, for instance the MandelbrotDetector. 
+	 * should be treated like a hardware one, for instance the MandelbrotDetector.
+	 * The device writes its data at each point in the GDA software scan 
 	 */
 	HARDWARE,
 	

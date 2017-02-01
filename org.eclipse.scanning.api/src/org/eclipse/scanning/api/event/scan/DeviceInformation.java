@@ -3,9 +3,11 @@ package org.eclipse.scanning.api.event.scan;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.scanning.api.IModelProvider;
 import org.eclipse.scanning.api.device.models.DeviceRole;
+import org.eclipse.scanning.api.device.models.ScanMode;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 
 /**
@@ -109,14 +111,8 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	private List<MalcolmAttribute> attributes;
 
 	private DeviceRole deviceRole;
-
-	public DeviceRole getDeviceRole() {
-		return deviceRole;
-	}
-
-	public void setDeviceRole(DeviceRole deviceRole) {
-		this.deviceRole = deviceRole;
-	}
+	
+	private Set<ScanMode> supportedScanModes;
 
 	public DeviceInformation() {
 
@@ -183,6 +179,22 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		this.icon = icon;
 	}
 
+	public DeviceRole getDeviceRole() {
+		return deviceRole;
+	}
+
+	public void setDeviceRole(DeviceRole deviceRole) {
+		this.deviceRole = deviceRole;
+	}
+	
+	public Set<ScanMode> getSupportedScanModes() {
+		return supportedScanModes;
+	}
+	
+	public void setSupportedScanModes(Set<ScanMode> supportedScanModes) {
+		this.supportedScanModes = supportedScanModes;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -202,6 +214,8 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		result = prime * result + Arrays.hashCode(permittedValues);
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result
+				+ ((supportedScanModes == null) ? 0 : supportedScanModes.hashCode());
 		result = prime * result + ((unit == null) ? 0 : unit.hashCode());
 		result = prime * result + ((upper == null) ? 0 : upper.hashCode());
 		return result;
@@ -273,6 +287,11 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 				return false;
 		} else if (!status.equals(other.status))
 			return false;
+		if (supportedScanModes == null) {
+			if (other.supportedScanModes != null)
+				return false;
+		} else if (!supportedScanModes.equals(other.supportedScanModes))
+			return false;
 		if (unit == null) {
 			if (other.unit != null)
 				return false;
@@ -285,7 +304,7 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 			return false;
 		return true;
 	}
-
+	
 	@Override
 	public String toString() {
 		return "DeviceInformation [name=" + name + ", label=" + label + "]";
