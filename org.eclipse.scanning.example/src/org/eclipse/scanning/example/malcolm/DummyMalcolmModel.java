@@ -23,8 +23,6 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable {
 	
 	private List<DummyMalcolmControlledDetectorModel> dummyDetectorModels = Collections.emptyList();
 
-	private List<String> positionerNames;
-	
 	private List<String> monitorNames;
 	
 	public DummyMalcolmModel() {
@@ -37,7 +35,6 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable {
 		detModel.setDatasets(datasets);
 		List<String> axes = Arrays.asList("stage_x", "stage_y");
 		setAxesToMove(axes); // determines the _set (i.e. demand) values to be written
-		setPositionerNames(axes); // determines the value (a.k.a rbv) values to be written
 		setDummyDetectorModels(Arrays.asList(detModel));
 	}
 	
@@ -56,15 +53,6 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable {
 
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;
-	}
-
-	public List<String> getPositionerNames() {
-		if (positionerNames == null) return Collections.emptyList();
-		return positionerNames;
-	}
-
-	public void setPositionerNames(List<String> positionerNames) {
-		this.positionerNames = positionerNames;
 	}
 
 	public List<String> getMonitorNames() {

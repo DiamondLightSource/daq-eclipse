@@ -130,7 +130,6 @@ public class MalcolmScanTest extends NexusTest {
 
 		model.setDummyDetectorModels(Arrays.asList(det1Model, det2Model));
 		model.setAxesToMove(Arrays.asList("stage_x", "stage_y" ));
-		model.setPositionerNames(Arrays.asList("stage_x", "j1", "j2", "j3"));
 		model.setMonitorNames(Arrays.asList("i0"));
 
 		return model;
@@ -316,7 +315,7 @@ public class MalcolmScanTest extends NexusTest {
 //							"/entry/" + firstDetectorName + "/" + nxDataFieldName);
 					
 					// value field (a.k.a rbv) only created if in list of positioners in model
-					if (dummyMalcolmModel.getPositionerNames().contains(axisName)) {
+					if (dummyMalcolmModel.getAxesToMove().contains(axisName)) {
 						// Actual values should be scanD
 						dataNode = positioner.getDataNode(NXpositioner.NX_VALUE);
 						assertNotNull(dataNode);
