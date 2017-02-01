@@ -253,7 +253,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			final MalcolmMessage message = connectionDelegate.createGetMessage(STATE_ENDPOINT);
 			final MalcolmMessage reply   = connector.send(this, message);
 			if (reply.getType()==Type.ERROR) {
-				throw new MalcolmDeviceException(reply.getMessage());
+				throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
 			}
 
 			return MalcolmUtil.getState(reply);
@@ -272,7 +272,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			final MalcolmMessage message = connectionDelegate.createGetMessage(STATUS_ENDPOINT);
 			final MalcolmMessage reply   = connector.send(this, message);
 			if (reply.getType()==Type.ERROR) {
-				throw new MalcolmDeviceException(reply.getMessage());
+				throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
 			}
 
 			return MalcolmUtil.getStatus(reply);
@@ -291,7 +291,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			final MalcolmMessage message = connectionDelegate.createGetMessage(BUSY_ENDPOINT);
 			final MalcolmMessage reply   = connector.send(this, message);
 			if (reply.getType()==Type.ERROR) {
-				throw new MalcolmDeviceException(reply.getMessage());
+				throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
 			}
 
 			return MalcolmUtil.getBusy(reply);
@@ -314,7 +314,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			final MalcolmMessage msg   = connectionDelegate.createCallMessage("validate", epicsModel);
 			final MalcolmMessage reply = connector.send(this, msg);
 			if (reply.getType()==Type.ERROR) {
-				throw new ValidationException(reply.getMessage());
+				throw new ValidationException("Error from Malcolm Device Connection: " + reply.getMessage());
 			}
 		} catch (MalcolmDeviceException mde) {
 			throw new ValidationException(mde);
@@ -335,7 +335,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("configure", epicsModel);
 		MalcolmMessage reply = connector.send(this, msg);
 		if (reply.getType() == Type.ERROR) {
-			throw new MalcolmDeviceException(reply.getMessage());
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
 		}
 		setModel(model);
 		resetProgressCounting();
@@ -374,7 +374,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		final MalcolmMessage msg   = connectionDelegate.createCallMessage("pause", seekParameters);
 		final MalcolmMessage reply = connector.send(this, msg);
 		if (reply.getType()==Type.ERROR) {
-			throw new MalcolmDeviceException(reply.getMessage());
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
 		}
 	}
 
@@ -499,7 +499,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		final MalcolmMessage message = connectionDelegate.createGetMessage(attribute);
 		final MalcolmMessage reply   = connector.send(this, message);
 		if (reply.getType()==Type.ERROR) {
-			throw new MalcolmDeviceException(reply.getMessage());
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
 		}
 		return reply.getValue();
 	}
@@ -510,7 +510,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		final MalcolmMessage message = connectionDelegate.createGetMessage(endpoint);
 		final MalcolmMessage reply   = connector.send(this, message);
 		if (reply.getType()==Type.ERROR) {
-			throw new MalcolmDeviceException(reply.getMessage());
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
 		}
 		
 		Object wholeBlock = reply.getValue();

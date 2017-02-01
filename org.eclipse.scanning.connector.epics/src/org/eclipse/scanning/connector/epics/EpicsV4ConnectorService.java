@@ -123,7 +123,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        pvaChannel.issueConnect();
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
-	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
+	        	String errMEssage = "Failed to connect to device '" + device.getName() + "' (" + status.getType() + ": " + status.getMessage() + ")";
 	        	logger.error(errMEssage);
 	        	throw new Exception(errMEssage);
 	        }
@@ -200,7 +200,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        pvaChannel.issueConnect();
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
-	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
+	        	String errMEssage = "Failed to connect to device '" + device.getName() + "' (" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	        }
 			
@@ -210,7 +210,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        pvaGet.issueConnect();
 	        status = pvaGet.waitConnect();
 	        if(!status.isOK()) {
-	        	String errMEssage = "CreateGet failed for " + requestString + "(" + status.getType() + ": " + status.getMessage() + ")";
+	        	String errMEssage = "CreateGet failed for '" + requestString + "' (" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	    	}
 	        PvaClientGetData pvaData = pvaGet.getData();
@@ -250,14 +250,14 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 			pvaChannel.issueConnect();
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
-	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
+	        	String errMEssage = "Failed to connect to device '" + device.getName() + "' (" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	        }
 	        PvaClientPut pvaPut = pvaChannel.createPut(requestString);
 	        pvaPut.issueConnect();
 	        status = pvaPut.waitConnect();
 	        if(!status.isOK()) {
-	        	String errMEssage = "CreatePut failed for " + requestString + "(" + status.getType() + ": " + status.getMessage() + ")";
+	        	String errMEssage = "CreatePut failed for '" + requestString + "' (" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	    	}
 	        PvaClientPutData putData = pvaPut.getData();
@@ -298,7 +298,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 			pvaChannel.issueConnect();
 	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
 	        if(!status.isOK()) {
-	        	String errMEssage = "Connect failed for " + device.getName() + "(" + status.getType() + ": " + status.getMessage() + ")";
+	        	String errMEssage = "Failed to connect to device '" + device.getName() + "' (" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	        }
 
@@ -307,7 +307,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	        rpc.issueConnect();
 	        status = rpc.waitConnect();
 	        if(!status.isOK()) {
-	        	String errMEssage = "CreateRPC failed for " + message.getMethod() + "(" + status.getType() + ": " + status.getMessage() + ")";
+	        	String errMEssage = "CreateRPC failed for '" + message.getMethod() + "' (" + status.getType() + ": " + status.getMessage() + ")";
 	        	throw new Exception(errMEssage);
 	    	}
 			logger.debug("Call param = \n" + parametersStructure + "\nEND");
