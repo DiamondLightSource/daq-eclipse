@@ -40,17 +40,18 @@ import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.dawnsci.nexus.ServiceHolder;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.PositionIterator;
+import org.eclipse.scanning.api.annotation.scan.FileDeclared;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
+import org.eclipse.scanning.api.scan.IScanParticipant;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
@@ -61,7 +62,6 @@ import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class MalcolmScanTest extends NexusTest {
@@ -69,6 +69,8 @@ public class MalcolmScanTest extends NexusTest {
 	private String malcolmOutputDir;
 
 	private IRunnableDevice<DummyMalcolmModel> malcolmDevice;
+
+	private MockScanParticpiant participant;
 	
 	@Before
 	public void before() throws Exception {
@@ -84,7 +86,7 @@ public class MalcolmScanTest extends NexusTest {
 				System.out.println("Ran test malcolm device @ " + evt.getPosition());
 			}
 		});
-		
+		participant = new MockScanParticpiant();
 	}
 	
 	@After
@@ -94,6 +96,7 @@ public class MalcolmScanTest extends NexusTest {
 			file.delete();
 		}
 		new File(malcolmOutputDir).delete();
+		participant.clear();
 	}
 
 	private DummyMalcolmModel createModel() {
@@ -135,6 +138,12 @@ public class MalcolmScanTest extends NexusTest {
 	@Test
 	public void test2DMalcolmScan() throws Exception {
 		testMalcolmScan(8, 5);
+		assertEquals(4, participant.getCount(FileDeclared.class));
+		
+		List<String> paths = participant.getPaths();
+		assertTrue(paths.stream().anyMatch(path -> path.endsWith("detector.h5")));
+		assertTrue(paths.stream().anyMatch(path -> path.endsWith("detector2.h5")));
+		assertTrue(paths.stream().anyMatch(path -> path.endsWith("panda.h5")));
 	}
 	
 	@Test
@@ -355,6 +364,7 @@ public class MalcolmScanTest extends NexusTest {
 		final ScanModel smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
 		smodel.setDetectors(malcolmDevice);
+		smodel.setAnnotationParticipants(Arrays.asList(participant));
 		// Cannot set the generator from @PreConfigure in this unit test.
 		((AbstractMalcolmDevice)malcolmDevice).setPointGenerator(gen);
 		

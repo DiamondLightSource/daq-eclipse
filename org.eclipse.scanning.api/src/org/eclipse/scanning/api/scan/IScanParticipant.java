@@ -20,6 +20,6 @@ package org.eclipse.scanning.api.scan;
  * @author Matthew Gerring
  *
  */
-public class IScanParticipant {
+public interface IScanParticipant {
 
 }
