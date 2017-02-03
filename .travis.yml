@@ -26,6 +26,8 @@ git:
 before_install:
  - chmod +x ./org.eclipse.scanning.releng/build/commit-msg.sh
  - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
+ - chmod +x ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
+ - bash ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
  
  # Stat xvfb, this allows SWTBot to execute in tests.
  - export DISPLAY=:99.0
@@ -37,6 +39,7 @@ before_install:
  - git clone --depth=50 --branch=master https://github.com/eclipse/richbeans.git ../../eclipse/org.eclipse.richbeans
  - git clone --depth=50 --branch=master https://github.com/eclipse/dawnsci.git ../../eclipse/org.eclipse.dawnsci
  - git clone --depth=50 --branch=master https://github.com/DawnScience/dawn-hdf.git ../../dawn-hdf
+ - git clone --depth=50 --branch=master https://github.com/dls-controls/pymalcolm.git ../../pymalcolm
  
 # Just needed for travis build, not if making an IDE version. No need to copy this if doing
 # a manual checkout because uk.ac.diamond.jython is in the target or an appropriate OSGi jython bundle.
