@@ -72,6 +72,21 @@ public class BasicScanTest extends NexusTest {
 		test(monitor, null, 5);
 	}
 	
+	/**
+	 * This is an important test, it showed a race condition
+	 * in the multi-threaded positioning, do not ignore :)
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testBasicScan1DWithMonitorMultipleTimes() throws Exception {	
+		
+		for (int i = 0; i < 5; i++) {
+			//System.out.println("Iteration "+i+":");
+			test(monitor, null, 5);
+		}
+	}
+	
 	@Test
 	public void testBasicScan2DWithMonitor() throws Exception {	
 		test(monitor, null, 8, 5);
