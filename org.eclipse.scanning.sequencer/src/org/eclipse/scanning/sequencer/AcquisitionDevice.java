@@ -37,6 +37,8 @@ import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
+import org.eclipse.scanning.api.scan.IScanParticipant;
+import org.eclipse.scanning.api.scan.IScanService;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -164,11 +166,15 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		// Create the manager and populate it
 		if (manager!=null) manager.dispose(); // It is allowed to configure more than once.
+		
+		Collection<IScanParticipant> globalParticipants = ((IScanService)runnableDeviceService).getScanParticipants();
+
 		manager = new AnnotationManager(SequencerActivator.getInstance());
 		manager.addDevices(getScannables(model));
-		if (model.getMonitors()!=null) manager.addDevices(model.getMonitors());
+		if (model.getMonitors()!=null)               manager.addDevices(model.getMonitors());
 		if (model.getAnnotationParticipants()!=null) manager.addDevices(model.getAnnotationParticipants());
-		manager.addDevices(model.getDetectors());
+		if (globalParticipants!=null)                manager.addDevices(globalParticipants);
+		if (model.getDetectors()!=null)              manager.addDevices(model.getDetectors());
 		
 		setDeviceState(DeviceState.READY); // Notify 
 		
@@ -209,7 +215,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
     		outerSize = size;
     		innerSize = getEstimatedSize(moderator.getInnerIterable());
     		totalSize = getEstimatedSize(model.getPositionIterable());
-
+    		fireStart(size);
+    		
     		// We allow monitors which can block a position until a setpoint is
     		// reached or add an extra record to the NeXus file.
     		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
@@ -227,7 +234,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	pos.setStepIndex(count);
 	        	
 	        	if (!firedFirst) {
-	        		fireStart(size, pos);
+	        		fireFirst(pos);
 	            	firedFirst = true;
 	        	}
 	        	
@@ -270,6 +277,20 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		} finally {
 			close(errorFound, pos);
 		}
+	}
+
+	private void fireFirst(IPosition firstPosition) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException, EventException {
+		
+		// Notify that we will do a run and provide the first position.
+		manager.invoke(ScanStart.class, firstPosition);
+		if (model.getFilePath()!=null) manager.invoke(FileDeclared.class, model.getFilePath());
+		
+		final Set<String> otherFiles = nexusScanFileManager.getExternalFilePaths();
+		if (otherFiles!=null && otherFiles.size()>0) {
+			for (String path : otherFiles) if (path!=null) manager.invoke(FileDeclared.class, path);
+		}
+		
+    	fireRunWillPerform(firstPosition);
 	}
 
 	/**
@@ -361,7 +382,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 
 	}
 
-	private void fireStart(int size, IPosition firstPosition) throws Exception {
+	private void fireStart(int size) throws Exception {
 		
 		ScanInformation info = new ScanInformation();
 		info.setSize(size);
@@ -380,18 +401,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		// Leave previous state as running now that we have notified of the start.
 		getBean().setPreviousStatus(Status.RUNNING);
-		
-		// Notify that we will do a run and provide the first position.
-		manager.invoke(ScanStart.class, firstPosition);
-		if (model.getFilePath()!=null) manager.invoke(FileDeclared.class, model.getFilePath());
-		
-		final Set<String> otherFiles = nexusScanFileManager.getExternalFilePaths();
-		if (otherFiles!=null && otherFiles.size()>0) {
-			for (String path : otherFiles) if (path!=null) manager.invoke(FileDeclared.class, path);
-		}
-		
-    	fireRunWillPerform(firstPosition);
-
 	}
 
 	private void fireEnd() throws ScanningException {
