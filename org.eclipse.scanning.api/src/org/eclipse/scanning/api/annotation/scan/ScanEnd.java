@@ -8,8 +8,8 @@ import java.lang.annotation.Target;
 /**
  * Used to annotate methods as participating at a location in a scan.
  * ScanEnd is called after the files are closed for writing and the scan
- * has finished with sucess. It is called before ScanFinally but will not
- * be called if no sucess occurred.
+ * has finished with success. It is called before ScanFinally but will not
+ * be called if no success occurred.
  * 
  * <p>
  * It is possible using annotations to have more than one method annotated
