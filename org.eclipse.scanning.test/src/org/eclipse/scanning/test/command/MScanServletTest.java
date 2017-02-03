@@ -189,7 +189,6 @@ public class MScanServletTest extends AbstractJythonTest {
 			final List<ScanBean> beans = new ArrayList<>(13);
 			final List<ScanBean> failed = new ArrayList<>(13);
 			final List<ScanBean> startEvents = new ArrayList<>(13);
-			final List<ScanBean> endEvents   = new ArrayList<>(13);
 			
 			final CountDownLatch latch = new CountDownLatch(1);
 			subscriber.addListener(new IScanListener() {
@@ -208,7 +207,6 @@ public class MScanServletTest extends AbstractJythonTest {
 						startEvents.add(evt.getBean()); // Should be just one
 					}
 	                if (evt.getBean().scanEnd()) {
-	                	endEvents.add(evt.getBean());
 	                	latch.countDown();
 	                }
 				}
@@ -227,7 +225,6 @@ public class MScanServletTest extends AbstractJythonTest {
 			ScanBean start = startEvents.get(0);
 			assertEquals(start.getSize(), beans.size());
 			assertEquals(1, startEvents.size());
-			assertEquals(1, endEvents.size());
 			
 			return beans;
 			
