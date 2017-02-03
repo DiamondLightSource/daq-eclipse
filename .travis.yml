@@ -53,10 +53,6 @@ install:
   - mv ../DiamondLightSource/daq-eclipse org.eclipse.scanning
   - cd org.eclipse.scanning
  
-# start pyMalcolm server
- - chmod +x ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
- - bash ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
-
 # Set LD_LIBRARY_PATH for the tests. Also set a variable that attempts to clear /tmp on the travis node to avoid it getting large
 env:
   - CLEAR_TMP=true LD_LIBRARY_PATH=/home/travis/build/dawn-hdf/hdf.hdf5lib/lib/linux-x86_64
