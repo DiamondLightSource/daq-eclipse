@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
-echo "STOP PYMALC TEST"
+echo "Stopping PyMalcolm..."
+ps aux | grep -i imalcolm.py | awk {'print $2'} | xargs kill
+echo "PyMalcolm Stopped"
 
 exit 0
