@@ -6,7 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used to annotate methods as participating at a location in a scan.
+ * Used to annotate methods which wish to be notified when a file
+ * to which we will write, is declared for use in a scan.
+ * FileDeclared is invoked after ScanStart and before anything else.
+ * 
  * <p>
  * It is possible using annotations to have more than one method annotated
  * which means a super class can declare its implementation as final, requiring a 
@@ -60,14 +63,12 @@ import java.lang.annotation.Target;
  *}
  * </pre></code>
  * 
- * ScanFinally is always run, even if there was an error.
- * 
  * <p>
  * @author Matthew Gerring
  *
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ScanFinally {
+public @interface FileDeclared {
 
 }

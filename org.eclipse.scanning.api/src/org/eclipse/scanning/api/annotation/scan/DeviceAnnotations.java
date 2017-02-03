@@ -25,6 +25,7 @@ public class DeviceAnnotations {
 		tmp.add(ScanPause.class);
 		tmp.add(ScanResume.class);
 		tmp.add(ScanStart.class);
+		tmp.add(FileDeclared.class);
 		tmp.add(PreConfigure.class);
 		tmp.add(PostConfigure.class);
 		

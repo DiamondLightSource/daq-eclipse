@@ -60,7 +60,7 @@ public class AnnotationManagerTest {
 	private InvalidInjectionDevice invDevice;
 	
 	@Before
-	public void before() {
+	public void before() throws Exception {
 		
 		final Map<Class<?>, Object> testServices = new HashMap<>();
 		testServices.put(IPointGeneratorService.class,  new PointGeneratorService());

@@ -17,8 +17,11 @@ import java.util.Set;
 import org.eclipse.scanning.api.IServiceResolver;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.IScanParticipant;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -43,6 +46,8 @@ import org.eclipse.scanning.api.scan.ScanningException;
  */
 public class AnnotationManager {
 	
+	private static Logger logger = LoggerFactory.getLogger(AnnotationManager.class);
+	
 	private Map<Class<? extends Annotation>, Collection<MethodWrapper>> annotationMap;
 	private Map<Class<?>, Collection<Class<?>>>                         cachedClasses;
 	private Map<Class<?>, Object>                                       services;
@@ -60,18 +65,6 @@ public class AnnotationManager {
 	public AnnotationManager(IServiceResolver resolver, Class<? extends Annotation>... a) {
 		this(resolver, Arrays.asList(a));
 	}
-	
-	/**
-	 * 
-	 * @param resolver - may be null
-	 * @param a
-	 */
-	public AnnotationManager(IServiceResolver resolver, Collection<Class<? extends Annotation>> a) {
-		this.resolver = resolver;
-		this.annotationMap = new Hashtable<>(31); // Intentionally synch
-		this.cachedClasses = new Hashtable<>(31); // Intentionally synch
-		this.annotations = a;
-	}
 
 	/**
 	 * Set some implementations of types, for instance services.
@@ -84,7 +77,26 @@ public class AnnotationManager {
 		this(resolver);
 		this.services = services;
 	}
-
+	
+	/**
+	 * 
+	 * @param resolver - may be null
+	 * @param a
+	 */
+	private AnnotationManager(IServiceResolver resolver, Collection<Class<? extends Annotation>> a) {
+		this.resolver = resolver;
+		this.annotationMap = new Hashtable<>(31); // Intentionally synch
+		this.cachedClasses = new Hashtable<>(31); // Intentionally synch
+		this.annotations = a;
+		
+		try {
+			Collection<IScanParticipant> others = resolver.getServices(IScanParticipant.class);
+			if (others !=null) addDevices(others);
+		} catch (Exception ne) {
+			// We do not actually care if scanning could not get the IScanParticipants.
+			logger.warn("Could not add implementors of "+IScanParticipant.class+" into annotated devices!", ne);
+		}
+	}
 
 	/**
 	 * Add a group of devices. As the devices are added if they implement ILevel,
