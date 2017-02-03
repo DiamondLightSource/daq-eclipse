@@ -5,7 +5,8 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({
-	ExampleMalcolmDeviceTest.class
+	ExampleMalcolmDeviceTest.class,
+	PyMalcolmConnectionTest.class
 })
 public class Suite {
 
