@@ -2,4 +2,4 @@
 
 echo "RUN PYMALC TEST"
 
-exit 1
+exit 0

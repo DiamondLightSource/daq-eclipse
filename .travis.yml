@@ -26,8 +26,6 @@ git:
 before_install:
  - chmod +x ./org.eclipse.scanning.releng/build/commit-msg.sh
  - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
- - chmod +x ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
- - bash ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
  
  # Stat xvfb, this allows SWTBot to execute in tests.
  - export DISPLAY=:99.0
@@ -55,6 +53,9 @@ install:
   - cd ../../eclipse
   - mv ../DiamondLightSource/daq-eclipse org.eclipse.scanning
   - cd org.eclipse.scanning
+   
+  - chmod +x ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
+  - bash ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
  
 # Set LD_LIBRARY_PATH for the tests. Also set a variable that attempts to clear /tmp on the travis node to avoid it getting large
 env:
