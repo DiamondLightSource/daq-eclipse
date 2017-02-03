@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.scan.rank;
 
+import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
 
 /**
@@ -17,6 +18,8 @@ class ScanRankService implements IScanRankService {
 		
        
 		final int scanRank = position.getScanRank();
+		if (scanRank==0) throw new IllegalArgumentException("A zero scan rank is not allowed");
+
 		final int[] start = new int[scanRank+datashape.length];
 		final int[] stop  = new int[scanRank+datashape.length];
 		
