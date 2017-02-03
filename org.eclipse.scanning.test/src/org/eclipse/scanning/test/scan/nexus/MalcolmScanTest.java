@@ -51,7 +51,6 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.StepModel;
-import org.eclipse.scanning.api.scan.IScanParticipant;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
@@ -87,6 +86,8 @@ public class MalcolmScanTest extends NexusTest {
 			}
 		});
 		participant = new MockScanParticpiant();
+		dservice.addScanParticipant(participant);
+
 	}
 	
 	@After
@@ -138,14 +139,8 @@ public class MalcolmScanTest extends NexusTest {
 	@Test
 	public void test2DMalcolmScan() throws Exception {
 		testMalcolmScan(8, 5);
-		assertEquals(4, participant.getCount(FileDeclared.class));
-		
-		List<String> paths = participant.getPaths();
-		assertTrue(paths.stream().anyMatch(path -> path.endsWith("detector.h5")));
-		assertTrue(paths.stream().anyMatch(path -> path.endsWith("detector2.h5")));
-		assertTrue(paths.stream().anyMatch(path -> path.endsWith("panda.h5")));
 	}
-	
+
 	@Test
 	public void test3DMalcolmScan() throws Exception {
 		testMalcolmScan(3, 2, 5);
@@ -170,9 +165,20 @@ public class MalcolmScanTest extends NexusTest {
 		IRunnableDevice<ScanModel> scanner = createMalcolmGridScan(malcolmDevice, output, shape); // Outer scan of another scannable, for instance temp.
 		scanner.run(null);
 		
+		checkFiles();
+
 		// Check we reached ready (it will normally throw an exception on error)
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 		checkNexusFile(scanner, shape); // Step model is +1 on the size
+	
+	}
+	
+	private void checkFiles() {
+		assertEquals(4, participant.getCount(FileDeclared.class));
+		List<String> paths = participant.getPaths();
+		assertTrue(paths.stream().anyMatch(path -> path.endsWith("detector.h5")));
+		assertTrue(paths.stream().anyMatch(path -> path.endsWith("detector2.h5")));
+		assertTrue(paths.stream().anyMatch(path -> path.endsWith("panda.h5")));
 	}
 	
 	private NXroot getNexusRoot(IRunnableDevice<ScanModel> scanner) throws Exception {
@@ -364,7 +370,6 @@ public class MalcolmScanTest extends NexusTest {
 		final ScanModel smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
 		smodel.setDetectors(malcolmDevice);
-		smodel.setAnnotationParticipants(Arrays.asList(participant));
 		// Cannot set the generator from @PreConfigure in this unit test.
 		((AbstractMalcolmDevice)malcolmDevice).setPointGenerator(gen);
 		

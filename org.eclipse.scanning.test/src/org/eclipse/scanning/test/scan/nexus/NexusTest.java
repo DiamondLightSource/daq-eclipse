@@ -14,6 +14,7 @@ import org.eclipse.scanning.api.device.models.ClusterProcessingModel;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.scan.IScanService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.detector.ConstantVelocityDevice;
 import org.eclipse.scanning.example.detector.ConstantVelocityModel;
@@ -54,7 +55,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 public class NexusTest extends TmpTest {
 	
 	protected static IScannableDeviceService connector;
-	protected static IRunnableDeviceService  dservice;
+	protected static IScanService            dservice;
 	protected static IPointGeneratorService  gservice;
 	protected static INexusFileFactory       fileFactory;
 
