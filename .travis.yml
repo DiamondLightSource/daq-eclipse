@@ -54,8 +54,8 @@ install:
   - mv ../DiamondLightSource/daq-eclipse org.eclipse.scanning
   - cd org.eclipse.scanning
    
-  - chmod +x ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
-  - bash ./org.eclipse.scanning.test/scripts/runPyMalcolm.sh
+  - chmod +x ../../pymalcolm/malcolm/imalcolm.py
+  - bash ../../pymalcolm/malcolm/imalcolm.py ../../pymalcolm/examples/DEMO-HELLO-PVA.yaml
  
 # Set LD_LIBRARY_PATH for the tests. Also set a variable that attempts to clear /tmp on the travis node to avoid it getting large
 env:
