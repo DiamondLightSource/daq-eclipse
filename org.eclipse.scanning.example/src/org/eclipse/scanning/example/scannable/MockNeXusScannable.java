@@ -1,6 +1,7 @@
 package org.eclipse.scanning.example.scannable;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXobject;
@@ -17,6 +18,7 @@ import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.annotation.scan.ScanFinally;
+import org.eclipse.scanning.api.points.AbstractPosition;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Scalar;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
@@ -105,7 +107,9 @@ public class MockNeXusScannable extends MockScannable implements INexusDevice<NX
 			delegate.firePositionPerformed(-1, new Scalar(getName(), index, value.doubleValue()));
 		}
 
-		if (position!=null) write(value, getPosition(), position);
+		if (position!=null) {
+			write(value, getPosition(), position);
+		}
 	}
 
 	private void write(Number demand, Number actual, IPosition loc) throws Exception {
