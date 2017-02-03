@@ -30,8 +30,8 @@ public class PyMalcolmConnectionTest {
 	private ExampleMalcolmDevice dummyMalcolmDevice;
 
 	/**
-	 * Creates a connection to a test malcolm device running PyMalcolm.
-	 * N.B. The PyMalcolm example 'DEMO-HELLO-PVA needs to be running or this test will fail.
+	 * Creates a connection to a test Malcolm device running PyMalcolm.
+	 * N.B. The PyMalcolm example 'DEMO-HELLO-PVA' needs to be running or this test will fail.
 	 * See http://pymalcolm.readthedocs.io/en/latest/user_docs/hello.html
 	 * @throws Exception
 	 */
