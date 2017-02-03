@@ -89,12 +89,14 @@ public class AnnotationManager {
 		this.cachedClasses = new Hashtable<>(31); // Intentionally synch
 		this.annotations = a;
 		
-		try {
-			Collection<IScanParticipant> others = resolver.getServices(IScanParticipant.class);
-			if (others !=null) addDevices(others);
-		} catch (Exception ne) {
-			// We do not actually care if scanning could not get the IScanParticipants.
-			logger.warn("Could not add implementors of "+IScanParticipant.class+" into annotated devices!", ne);
+		if (resolver!=null) {
+			try {
+				Collection<IScanParticipant> others = resolver.getServices(IScanParticipant.class);
+				if (others !=null) addDevices(others);
+			} catch (Exception ne) {
+				// We do not actually care if scanning could not get the IScanParticipants.
+				logger.warn("Could not add implementors of "+IScanParticipant.class+" into annotated devices!", ne);
+			}
 		}
 	}
 
