@@ -57,7 +57,7 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	 */
 	private void createMockObjects() {
 		
-		cache = new HashMap<String, INameable>(3);
+		if (cache==null) cache = new HashMap<String, INameable>(3);
 		register(new MockPausingMonitor("pauser", 10d,  -1));
 		register(new MockTopupScannable("topup", 1000));
 		register(new MockScannable("beamcurrent", 5d,  1, "mA"));
@@ -153,7 +153,7 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	public <T> IScannable<T> getScannable(String name) throws ScanningException {
 		
 		if (name==null) throw new ScanningException("Invalid scannable "+name);
-		if (cache==null) throw new ScanningException("The scannable cache has not been created!");
+		if (cache==null) cache = new HashMap<String, INameable>(3);
 		if (cache.containsKey(name)) return (IScannable<T>)cache.get(name);
 		register(new MockScannable(name, 0d));
 		return (IScannable<T>)cache.get(name);
