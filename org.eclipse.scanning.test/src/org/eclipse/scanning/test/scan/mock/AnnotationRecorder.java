@@ -2,6 +2,7 @@ package org.eclipse.scanning.test.scan.mock;
 
 import java.lang.annotation.Annotation;
 
+import org.eclipse.scanning.api.annotation.scan.FileDeclared;
 import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
@@ -46,6 +47,11 @@ public interface AnnotationRecorder {
 		record(ScanStart.class);
 	}
 	
+	@FileDeclared
+	default void fileDeclared() {
+		record(FileDeclared.class);
+	}
+
 	@ScanEnd
 	default void scanEnd() {
 		record(ScanEnd.class);

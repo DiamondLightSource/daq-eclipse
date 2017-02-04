@@ -40,11 +40,11 @@ import org.eclipse.dawnsci.nexus.NexusUtils;
 import org.eclipse.dawnsci.nexus.ServiceHolder;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.PositionIterator;
+import org.eclipse.scanning.api.annotation.scan.FileDeclared;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
@@ -61,7 +61,6 @@ import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class MalcolmScanTest extends NexusTest {
@@ -69,6 +68,8 @@ public class MalcolmScanTest extends NexusTest {
 	private String malcolmOutputDir;
 
 	private IRunnableDevice<DummyMalcolmModel> malcolmDevice;
+
+	private MockScanParticpiant participant;
 	
 	@Before
 	public void before() throws Exception {
@@ -84,7 +85,9 @@ public class MalcolmScanTest extends NexusTest {
 				System.out.println("Ran test malcolm device @ " + evt.getPosition());
 			}
 		});
-		
+		participant = new MockScanParticpiant();
+		dservice.addScanParticipant(participant);
+
 	}
 	
 	@After
@@ -94,6 +97,7 @@ public class MalcolmScanTest extends NexusTest {
 			file.delete();
 		}
 		new File(malcolmOutputDir).delete();
+		participant.clear();
 	}
 
 	private DummyMalcolmModel createModel() {
@@ -136,7 +140,7 @@ public class MalcolmScanTest extends NexusTest {
 	public void test2DMalcolmScan() throws Exception {
 		testMalcolmScan(8, 5);
 	}
-	
+
 	@Test
 	public void test3DMalcolmScan() throws Exception {
 		testMalcolmScan(3, 2, 5);
@@ -161,9 +165,20 @@ public class MalcolmScanTest extends NexusTest {
 		IRunnableDevice<ScanModel> scanner = createMalcolmGridScan(malcolmDevice, output, shape); // Outer scan of another scannable, for instance temp.
 		scanner.run(null);
 		
+		checkFiles();
+
 		// Check we reached ready (it will normally throw an exception on error)
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 		checkNexusFile(scanner, shape); // Step model is +1 on the size
+	
+	}
+	
+	private void checkFiles() {
+		assertEquals(4, participant.getCount(FileDeclared.class));
+		List<String> paths = participant.getPaths();
+		assertTrue(paths.stream().anyMatch(path -> path.endsWith("detector.h5")));
+		assertTrue(paths.stream().anyMatch(path -> path.endsWith("detector2.h5")));
+		assertTrue(paths.stream().anyMatch(path -> path.endsWith("panda.h5")));
 	}
 	
 	private NXroot getNexusRoot(IRunnableDevice<ScanModel> scanner) throws Exception {

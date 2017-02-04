@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api;
 
+import java.util.Collection;
+
 /**
  * 
  * This interface exists to provide a mechanism for scanning.api to
@@ -21,4 +23,11 @@ public interface IServiceResolver {
 	 * @return
 	 */
 	<T> T getService(Class<T> serviceClass);
+	
+	/**
+	 * Try and get all the declaring instances of a given service.
+	 * @param serviceClass
+	 * @return
+	 */
+	<T> Collection<T> getServices(Class<T> serviceClass) throws Exception;
 }

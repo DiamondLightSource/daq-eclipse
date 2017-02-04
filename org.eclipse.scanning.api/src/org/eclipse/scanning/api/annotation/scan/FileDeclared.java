@@ -6,10 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used to annotate methods as participating at a location in a scan.
- * ScanEnd is called after the files are closed for writing and the scan
- * has finished with success. It is called before ScanFinally but will not
- * be called if no success occurred.
+ * Used to annotate methods which wish to be notified when a file
+ * to which we will write, is declared for use in a scan.
+ * FileDeclared is invoked after ScanStart and before anything else.
  * 
  * <p>
  * It is possible using annotations to have more than one method annotated
@@ -27,7 +26,7 @@ import java.lang.annotation.Target;
  * <p>
  * Examples:<p>
  * <code><pre>
- * public class Fred implements IScannnable {
+ * public class Fred implements IScannable {
  *     &#64;ScanStart
  *     public final void prepareVoltages() throws Exception {
  *        ...
@@ -70,6 +69,6 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ScanEnd {
+public @interface FileDeclared {
 
 }
