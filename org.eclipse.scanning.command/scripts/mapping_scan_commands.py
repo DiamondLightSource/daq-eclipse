@@ -44,7 +44,7 @@ from org.eclipse.scanning.api.points.models import (
 from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
 from org.eclipse.scanning.api.event.IEventService import (
     SUBMISSION_QUEUE, STATUS_TOPIC)
-from org.eclipse.scanning.server.servlet.Services import (
+from org.eclipse.scanning.command.Services import (
     getEventService, getRunnableDeviceService)
 
 

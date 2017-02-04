@@ -11,6 +11,7 @@ import org.eclipse.dawnsci.hdf5.nexus.NexusFileFactoryHDF5;
 import org.eclipse.dawnsci.nexus.builder.impl.DefaultNexusBuilderFactory;
 import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.annotation.scan.FileDeclared;
 import org.eclipse.scanning.api.annotation.scan.LevelEnd;
 import org.eclipse.scanning.api.annotation.scan.LevelStart;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
@@ -169,11 +170,12 @@ public class ScanSpeedTest extends BrokerTest {
 		final List<IRunnableDevice<?>> detectors = createAnnotatedDetectors("annotatedDetector", 100, false);
 		
 		long time = checkTimes(pointCount, scannables, detectors, "all annotations");
-		assertTrue("Time should be less than 30ms and is: "+time, time<30);
+		assertTrue("Time should be less than 30ms and is: "+time, time<60);
 		
 		for (IScannable<?> s : scannables) {
 			AnnotatedMockScannable ams = (AnnotatedMockScannable)s;
 			assertEquals(1,    ams.getCount(ScanStart.class));
+			assertEquals(0,    ams.getCount(FileDeclared.class)); // No file!
 			assertEquals(100,  ams.getCount(PointStart.class));
 			assertEquals(100,  ams.getCount(PointEnd.class));
 			assertEquals(100,  ams.getCount(WriteComplete.class));
@@ -187,6 +189,7 @@ public class ScanSpeedTest extends BrokerTest {
 			assertEquals(1,    ams.getCount(PreConfigure.class));
 			assertEquals(1,    ams.getCount(PostConfigure.class));
 			assertEquals(1,    ams.getCount(ScanStart.class));
+			assertEquals(0,    ams.getCount(FileDeclared.class)); // No file!
 			assertEquals(100,  ams.getCount(PointStart.class));
 			assertEquals(100,  ams.getCount(PointEnd.class));
 			assertEquals(100,  ams.getCount(WriteComplete.class));
@@ -212,6 +215,7 @@ public class ScanSpeedTest extends BrokerTest {
 		for (IScannable<?> s : scannables) {
 			AnnotatedMockScannable ams = (AnnotatedMockScannable)s;
 			assertEquals(1,  ams.getCount(ScanStart.class));
+			assertEquals(0,  ams.getCount(FileDeclared.class)); // No file!
 			assertEquals(1,  ams.getCount(ScanAbort.class));
 			assertEquals(0,  ams.getCount(ScanEnd.class));
 		}
@@ -219,6 +223,7 @@ public class ScanSpeedTest extends BrokerTest {
 		for (IRunnableDevice<?> d : detectors) {
 			AnnotatedMockWritableDetector ams = (AnnotatedMockWritableDetector)d;
 			assertEquals(1,  ams.getCount(ScanStart.class));
+			assertEquals(0,  ams.getCount(FileDeclared.class)); // No file!
 			assertEquals(1,  ams.getCount(ScanAbort.class));
 			assertEquals(0,  ams.getCount(ScanEnd.class));
 			assertEquals(1,  ams.getCount(ScanFinally.class));
@@ -244,6 +249,7 @@ public class ScanSpeedTest extends BrokerTest {
 		for (IScannable<?> s : scannables) {
 			AnnotatedMockScannable ams = (AnnotatedMockScannable)s;
 			assertEquals(1,  ams.getCount(ScanStart.class));
+			assertEquals(0,  ams.getCount(FileDeclared.class)); // No file!
 			assertEquals(1,  ams.getCount(ScanPause.class));
 			assertEquals(1,  ams.getCount(ScanResume.class));
 			assertEquals(0,  ams.getCount(ScanAbort.class));
@@ -254,6 +260,7 @@ public class ScanSpeedTest extends BrokerTest {
 		for (IRunnableDevice<?> d : detectors) {
 			AnnotatedMockWritableDetector ams = (AnnotatedMockWritableDetector)d;
 			assertEquals(1,  ams.getCount(ScanStart.class));
+			assertEquals(0,  ams.getCount(FileDeclared.class)); // No file!
 			assertEquals(1,  ams.getCount(ScanPause.class));
 			assertEquals(1,  ams.getCount(ScanResume.class));
 			assertEquals(0,  ams.getCount(ScanAbort.class));

@@ -122,8 +122,23 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		scanPointsWriter = createScanPointsWriter();
 		scanDevice.addPositionListener(scanPointsWriter);
 	}
+	
+	/**
+	 * 
+	 * @return the paths of all the external files to which we will be writing.
+	 */
+	public Set<String> getExternalFilePaths() {
+		Set<String> paths = new HashSet<>();
+		// Big looking loop over small number of things.
+		for (List<NexusObjectProvider<?>> provList : nexusObjectProviders.values()) {
+			for (NexusObjectProvider<?> prov : provList) {
+				paths.addAll(prov.getExternalFileNames());
+			}
+		}
+		return paths;
+	}
 
-	public void createNexusFile(boolean async) throws ScanningException {
+	public String createNexusFile(boolean async) throws ScanningException {
 		// We use the new nexus framework to join everything up into the scan
 		// Create a builder
 		fileBuilder = ServiceHolder.getFactory().newNexusFileBuilder(model.getFilePath());
@@ -132,6 +147,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 			// create the file from the builder and open it
 			nexusScanFile = fileBuilder.createFile(async);
 			nexusScanFile.openToWrite();
+			return model.getFilePath();
 		} catch (NexusException e) {
 			throw new ScanningException("Cannot create nexus file", e);
 		}

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.sequencer.nexus;
 
+import java.util.Set;
+
 import org.eclipse.dawnsci.nexus.IMultipleNexusDevice;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
@@ -17,8 +19,9 @@ public class NexusScanFileManagerFactory {
 		}
 
 		@Override
-		public void createNexusFile(boolean async) throws ScanningException {
+		public String createNexusFile(boolean async) throws ScanningException {
 			// do nothing
+			return null;
 		}
 
 		@Override
@@ -38,6 +41,11 @@ public class NexusScanFileManagerFactory {
 
 		@Override
 		public NexusScanInfo getNexusScanInfo() {
+			return null;
+		}
+
+		@Override
+		public Set<String> getExternalFilePaths() {
 			return null;
 		}
 

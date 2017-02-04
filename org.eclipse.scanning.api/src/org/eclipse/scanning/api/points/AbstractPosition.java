@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.scanning.api.annotation.UiHidden;
 
 public abstract class AbstractPosition implements IPosition, Serializable {
 	
@@ -20,7 +19,6 @@ public abstract class AbstractPosition implements IPosition, Serializable {
 	private int stepIndex = -1;
 	protected List<Collection<String>> dimensionNames; // Dimension->Names@dimension
 	
-	@UiHidden
 	public int getStepIndex() {
 		return stepIndex;
 	}
@@ -189,9 +187,20 @@ public abstract class AbstractPosition implements IPosition, Serializable {
 		return null; // Do not have to support dimension names
 	}
 
-	@UiHidden
-	public List<Collection<String>> getDimensionNames() {
-		if (dimensionNames==null)  {
+	/**
+	 * This method makes dimensionNames if they are null.
+	 * It must be synchronized because getDimensionNames() 
+	 * is called within the thread pool, for instance when
+	 * neXus writing positions.
+	 * 
+	 * Quite a lot of tests were intermittently failing the
+	 * tests because of this issue. Be careful when creating
+	 * member data in this class that things are thread safe.
+	 * 
+	 * @return
+	 */
+	public synchronized List<Collection<String>> getDimensionNames() {
+		if (dimensionNames==null||dimensionNames.isEmpty())  {
 			dimensionNames = new ArrayList<>();
 			dimensionNames.add(new ArrayList<>(getNames())); // List adding a collection, we copy the keys here run SerializationTest to see why
 		}
@@ -200,8 +209,7 @@ public abstract class AbstractPosition implements IPosition, Serializable {
 	public void setDimensionNames(List<Collection<String>> dNames) {
 		this.dimensionNames = dNames;
 	}
-	
-	@UiHidden
+
 	@Override
 	public int getScanRank() {
 		return getDimensionNames().size();

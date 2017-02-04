@@ -5,7 +5,9 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,8 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
+import org.eclipse.scanning.api.scan.IScanParticipant;
+import org.eclipse.scanning.api.scan.IScanService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -35,7 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("rawtypes")
-public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
+public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, IScanService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(RunnableDeviceServiceImpl.class);
 	
@@ -366,4 +370,21 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService {
 		return ((AbstractRunnableDevice<?>)device).getDeviceInformation();
 	}
 
+	private Collection<IScanParticipant> participants;
+	
+	@Override
+	public void addScanParticipant(IScanParticipant device) {
+		if (participants==null) participants = Collections.synchronizedSet(new LinkedHashSet<>(7));
+		participants.add(device);
+	}
+
+	@Override
+	public void removeScanParticipant(IScanParticipant device) {
+		participants.remove(device);
+	}
+
+	@Override
+	public Collection<IScanParticipant> getScanParticipants() {
+		return participants; // May be null
+	}
 }

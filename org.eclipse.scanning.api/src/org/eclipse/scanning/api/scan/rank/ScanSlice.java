@@ -62,4 +62,9 @@ class ScanSlice implements IScanSlice {
 			return false;
 		return true;
 	}
+	@Override
+	public String toString() {
+		return "ScanSlice [start=" + Arrays.toString(start) + ", stop=" + Arrays.toString(stop) + ", step="
+				+ Arrays.toString(step) + "]";
+	}
 }

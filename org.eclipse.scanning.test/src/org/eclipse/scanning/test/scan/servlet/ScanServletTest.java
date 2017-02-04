@@ -106,12 +106,12 @@ public class ScanServletTest extends BrokerTest {
 		
 		final MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setName("detector");
-		dmodel.setExposureTime(0.1);
+		dmodel.setExposureTime(0.001);
 		impl.createRunnableDevice(dmodel);
 
 		MandelbrotModel model = new MandelbrotModel("p", "q");
 		model.setName("mandelbrot");
-		model.setExposureTime(0.00001);
+		model.setExposureTime(0.001);
 		impl.createRunnableDevice(model);
 
 		gservice  = new PointGeneratorService();
@@ -175,7 +175,7 @@ public class ScanServletTest extends BrokerTest {
 	public void testStepScan() throws Exception {
 		
 		ScanBean bean = createStepScan();
-		runAndCheck(bean, 20);
+		runAndCheck(bean, 60);
 	}
 	
 	/**
@@ -239,7 +239,7 @@ public class ScanServletTest extends BrokerTest {
 
 		final MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setName("detector");
-		dmodel.setExposureTime(0.1);
+		dmodel.setExposureTime(0.001);
 		req.putDetector("detector", dmodel);
 		
 		bean.setScanRequest(req);
@@ -290,7 +290,7 @@ public class ScanServletTest extends BrokerTest {
 		
 		final MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setName("detector");
-		dmodel.setExposureTime(0.01);
+		dmodel.setExposureTime(0.001);
 		req.putDetector("detector", dmodel);
 
 		bean.setScanRequest(req);
@@ -330,6 +330,7 @@ public class ScanServletTest extends BrokerTest {
 		mandyModel.setName("mandelbrot");
 		mandyModel.setRealAxisName("xNex");
 		mandyModel.setImaginaryAxisName("yNex");
+		mandyModel.setExposureTime(0.001);
 		req.putDetector("mandelbrot", mandyModel);
 		
 		bean.setScanRequest(req);
@@ -345,11 +346,11 @@ public class ScanServletTest extends BrokerTest {
 		final ISubmitter<ScanBean>       submitter  = eservice.createSubmitter(new URI(servlet.getBroker()),  servlet.getSubmitQueue());
 		
 		try {
-			final List<ScanBean> beans = new ArrayList<>(13);
+			final List<ScanBean> beans       = new ArrayList<>(13);
 			final List<ScanBean> startEvents = new ArrayList<>(13);
-			final List<ScanBean> endEvents   = new ArrayList<>(13);
+			final List<ScanBean> endEvents   = new ArrayList<>(13);			
+			final CountDownLatch latch       = new CountDownLatch(1);
 			
-			final CountDownLatch latch = new CountDownLatch(1);
 			subscriber.addListener(new IScanListener() {
 				@Override
 				public void scanEventPerformed(ScanEvent evt) {
@@ -374,11 +375,9 @@ public class ScanServletTest extends BrokerTest {
 			// Ok done that, now we sent it off...
 			submitter.submit(bean);
 			
-			Thread.sleep(200);
 			boolean ok = latch.await(maxScanTimeS, TimeUnit.SECONDS);
 			if (!ok) throw new Exception("The latch broke before the scan finished!");
 			
-			assertEquals(startEvents.get(0).getSize(), beans.size());
 			assertEquals(1, startEvents.size());
 			assertEquals(1, endEvents.size());
 			
