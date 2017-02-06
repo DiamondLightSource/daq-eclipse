@@ -115,10 +115,9 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	}
 	
 	public void register() {
-		super.register();
-		
 		try {
 			initialize();
+			super.register();
 		} catch (MalcolmDeviceException e) {
 			logger.error("Could not initialize malcolm device " + getName(), e);
 		}

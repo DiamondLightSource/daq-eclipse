@@ -342,16 +342,18 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, 
 		Collection<DeviceInformation<?>> ret = new ArrayList<>();
 		final Collection<String> names = getRunnableDeviceNames();
 		for (String name : names) {
-
-			if (name==null) continue;
-
-			IRunnableDevice<Object> device = getRunnableDevice(name);
-			if (device==null)  continue;		
-			if (!(device instanceof AbstractRunnableDevice)) continue;
+			try {
+				if (name==null) continue;
 	
-
-			DeviceInformation<?> info = ((AbstractRunnableDevice<?>)device).getDeviceInformation();
-			ret.add(info);
+				IRunnableDevice<Object> device = getRunnableDevice(name);
+				if (device==null)  continue;		
+				if (!(device instanceof AbstractRunnableDevice)) continue;
+				
+				DeviceInformation<?> info = ((AbstractRunnableDevice<?>)device).getDeviceInformation();
+				ret.add(info);
+			} catch (Exception ex) {
+				logger.warn("Error getting device info for : " + name);
+			}
 		}
 		return ret;
 	}
