@@ -20,7 +20,7 @@ public interface IScanService extends IRunnableDeviceService {
 	 * 
 	 * @param device
 	 */
-	void addScanParticipant(IScanParticipant device);
+	void addScanParticipant(Object device);
 
 	
 	/**
@@ -29,11 +29,11 @@ public interface IScanService extends IRunnableDeviceService {
 	 * 
 	 * @param device
 	 */
-	void removeScanParticipant(IScanParticipant device);
+	void removeScanParticipant(Object device);
 
 	/**
 	 * The list of objects to be run as particpants with the scan.
 	 * @return
 	 */
-	Collection<IScanParticipant> getScanParticipants();
+	Collection<Object> getScanParticipants();
 }
