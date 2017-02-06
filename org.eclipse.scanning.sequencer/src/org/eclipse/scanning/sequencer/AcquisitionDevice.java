@@ -37,7 +37,6 @@ import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
-import org.eclipse.scanning.api.scan.IScanParticipant;
 import org.eclipse.scanning.api.scan.IScanService;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanInformation;
@@ -167,7 +166,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		// Create the manager and populate it
 		if (manager!=null) manager.dispose(); // It is allowed to configure more than once.
 		
-		Collection<IScanParticipant> globalParticipants = ((IScanService)runnableDeviceService).getScanParticipants();
+		Collection<Object> globalParticipants = ((IScanService)runnableDeviceService).getScanParticipants();
 
 		manager = new AnnotationManager(SequencerActivator.getInstance());
 		manager.addDevices(getScannables(model));
@@ -283,11 +282,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		// Notify that we will do a run and provide the first position.
 		manager.invoke(ScanStart.class, firstPosition);
-		if (model.getFilePath()!=null) manager.invoke(FileDeclared.class, model.getFilePath());
+		if (model.getFilePath()!=null) manager.invoke(FileDeclared.class, model.getFilePath(), firstPosition);
 		
 		final Set<String> otherFiles = nexusScanFileManager.getExternalFilePaths();
 		if (otherFiles!=null && otherFiles.size()>0) {
-			for (String path : otherFiles) if (path!=null) manager.invoke(FileDeclared.class, path);
+			for (String path : otherFiles) if (path!=null) manager.invoke(FileDeclared.class, path, firstPosition);
 		}
 		
     	fireRunWillPerform(firstPosition);

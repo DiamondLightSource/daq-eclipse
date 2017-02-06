@@ -28,7 +28,6 @@ import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
-import org.eclipse.scanning.api.scan.IScanParticipant;
 import org.eclipse.scanning.api.scan.IScanService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositioner;
@@ -372,21 +371,21 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, 
 		return ((AbstractRunnableDevice<?>)device).getDeviceInformation();
 	}
 
-	private Collection<IScanParticipant> participants;
+	private Collection<Object> participants;
 	
 	@Override
-	public void addScanParticipant(IScanParticipant device) {
+	public void addScanParticipant(Object device) {
 		if (participants==null) participants = Collections.synchronizedSet(new LinkedHashSet<>(7));
 		participants.add(device);
 	}
 
 	@Override
-	public void removeScanParticipant(IScanParticipant device) {
+	public void removeScanParticipant(Object device) {
 		participants.remove(device);
 	}
 
 	@Override
-	public Collection<IScanParticipant> getScanParticipants() {
+	public Collection<Object> getScanParticipants() {
 		return participants; // May be null
 	}
 }

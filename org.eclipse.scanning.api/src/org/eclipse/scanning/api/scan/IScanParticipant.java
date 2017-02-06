@@ -28,7 +28,7 @@ package org.eclipse.scanning.api.scan;
  * <pre>
         {@literal <bean id="FileRegistrar" class="gda.data.fileregistrar.FileRegistrar" init-method="register">}
         {@literal         <property name="name" value="FileRegistrar" />}
-        {@literal         <property name="directory" value="/dls/bl-misc/dropfiles2/icat/dropZone/${gda.instrument}-" />}
+        {@literal         <property name="directory" value="/dls/bl-misc/dropfiles2/icat/dropZone/}${gda.instrument}-" />
         {@literal </bean>}
 
  *  </pre>
