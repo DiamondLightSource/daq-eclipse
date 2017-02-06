@@ -282,11 +282,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		// Notify that we will do a run and provide the first position.
 		manager.invoke(ScanStart.class, firstPosition);
-		if (model.getFilePath()!=null) manager.invoke(FileDeclared.class, model.getFilePath());
+		if (model.getFilePath()!=null) manager.invoke(FileDeclared.class, model.getFilePath(), firstPosition);
 		
 		final Set<String> otherFiles = nexusScanFileManager.getExternalFilePaths();
 		if (otherFiles!=null && otherFiles.size()>0) {
-			for (String path : otherFiles) if (path!=null) manager.invoke(FileDeclared.class, path);
+			for (String path : otherFiles) if (path!=null) manager.invoke(FileDeclared.class, path, firstPosition);
 		}
 		
     	fireRunWillPerform(firstPosition);
