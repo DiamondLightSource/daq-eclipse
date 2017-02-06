@@ -3,7 +3,6 @@ package org.eclipse.scanning.points;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.EllipticalROI;
@@ -58,7 +57,7 @@ public class CompoundSpgIterator extends AbstractScanPointIterator {
 		
 		JythonObjectFactory compoundGeneratorFactory = ScanPointGeneratorFactory.JCompoundGeneratorFactory();
 		
-        Object[] excluders = {}; //getExcluders(gen.getModel().getRegions()); TODO put back in when excluders are fixed in Python
+        Object[] excluders = getExcluders(gen.getModel().getRegions());
         Object[] mutators = getMutators(gen.getModel().getMutators());
         
         @SuppressWarnings("unchecked")
