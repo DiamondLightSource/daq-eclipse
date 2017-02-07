@@ -149,7 +149,7 @@ public class MScanServletTest extends AbstractJythonTest {
 
 	@AfterClass
 	public static void disconnect()  throws Exception {
-		servlet.disconnect();
+		if (servlet!=null) servlet.disconnect();
 	}
 	
 	@Test
