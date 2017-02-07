@@ -373,6 +373,7 @@ public class ScanServletTest extends BrokerTest {
 	
 			
 			// Ok done that, now we sent it off...
+			Thread.sleep(200);
 			submitter.submit(bean);
 			
 			boolean ok = latch.await(maxScanTimeS, TimeUnit.SECONDS);
