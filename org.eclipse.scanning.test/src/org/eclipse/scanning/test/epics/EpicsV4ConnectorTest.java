@@ -51,7 +51,7 @@ public class EpicsV4ConnectorTest {
 			// Get the device
 			IMalcolmDevice<ExampleMalcolmModel> modelledDevice = service.getDevice(getTestDeviceName());
 
-			// Get the device state. This should fail as the device does no exist
+			// Get the device state.
 			DeviceState deviceState = modelledDevice.getDeviceState();
 			
 			assertEquals(DeviceState.IDLE, deviceState);
@@ -88,7 +88,7 @@ public class EpicsV4ConnectorTest {
 			// Get the device
 			IMalcolmDevice<ExampleMalcolmModel> modelledDevice = service.getDevice("INVALID_DEVICE");
 
-			// Get the device state. This should fail as the device does no exist
+			// Get the device state. This should fail as the device does not exist
 			modelledDevice.getDeviceState();
 			
 			fail("No exception thrown but one was expected");
