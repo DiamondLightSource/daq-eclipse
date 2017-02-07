@@ -47,7 +47,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 
 	static final FieldCreate fieldCreate = FieldFactory.getFieldCreate();
     static final PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
-    static final double REQUEST_TIMEOUT = 1;
+    static final double REQUEST_TIMEOUT = 0.5;
 	
 	private static final Logger logger = LoggerFactory.getLogger(EpicsV4ConnectorService.class);
 	
