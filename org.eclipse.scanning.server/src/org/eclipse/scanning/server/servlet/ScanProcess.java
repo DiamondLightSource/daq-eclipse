@@ -281,7 +281,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 			IPointGenerator<?> generator = getGenerator(req);
 			scanModel.setPositionIterable(generator);
 			
-			ScanEstimator estimator = new ScanEstimator(Services.getGeneratorService(), bean.getScanRequest());
+			ScanEstimator estimator = new ScanEstimator(gen, req.getDetectors(), 0);
 			bean.setSize(estimator.getSize());
 			scanModel.setFilePath(bean.getFilePath());
 			
