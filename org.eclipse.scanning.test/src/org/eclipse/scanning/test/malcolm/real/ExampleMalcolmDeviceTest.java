@@ -326,7 +326,6 @@ public class ExampleMalcolmDeviceTest {
 			crUnionArray[1] = PVDataFactory.getPVDataCreate().createPVUnion(union);
 			crUnionArray[1].set(expectedExcluder2PVStructure);
 				
-			// TODO Put back in when excluders are fixed in python
 			configurePVStructure.getUnionArrayField("generator.excluders").put(0, crUnionArray.length, crUnionArray, 0);
 
 			PVString fileDirVal = configurePVStructure.getSubField(PVString.class, "fileDir");
