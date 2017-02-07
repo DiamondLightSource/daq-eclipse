@@ -18,15 +18,14 @@
 
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
-import java.util.List;
+import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Before;
@@ -50,22 +49,25 @@ public class RandomOffsetGridTest {
 		box.setFastAxisLength(5);
 		box.setSlowAxisLength(10);
 
-		RandomOffsetGridModel model = new RandomOffsetGridModel("x", "y");
-		model.setSlowAxisPoints(5);
-		model.setFastAxisPoints(5);
-		model.setBoundingBox(box);
-		model.setSeed(10);
-		model.setOffset(25);
+		RandomOffsetGridModel rmodel = new RandomOffsetGridModel("x", "y");
+		rmodel.setSlowAxisPoints(5);
+		rmodel.setFastAxisPoints(5);
+		rmodel.setBoundingBox(box);
+		rmodel.setSeed(10);
+		rmodel.setOffset(25);
 
-		IPointGenerator<RandomOffsetGridModel> gen = service.createGenerator(model);
-		List<IPosition> pointList = gen.createPoints();
+		IPointGenerator<RandomOffsetGridModel> genWithRandom = service.createGenerator(rmodel);
+		GeneratorUtil.testGeneratorPoints(genWithRandom, 5, 5);
+
+		GridModel gmodel = new GridModel("x", "y");
+		gmodel.setSlowAxisPoints(5);
+		gmodel.setFastAxisPoints(5);
+		gmodel.setBoundingBox(box);
+		IPointGenerator<GridModel> gen = service.createGenerator(gmodel);
 		
-		assertEquals(new Point("x", 0, 0.012403455250000084,"y", 0, 0.09924303325000006), pointList.get(0));
-		assertEquals(new Point("x", 1, 0.837235318,"y", 0, 0.1643560529999999), pointList.get(1));
-		assertEquals(new Point("x", 2, 2.20470153075,"y", 0, 0.018593022749999966), pointList.get(2));
-		assertEquals(new Point("x", 3, 3.057925353,"y", 0, -0.024424061750000003), pointList.get(3));
-		assertEquals(new Point("x", 4, 3.78130160075,"y", 0, 0.021858763000000003), pointList.get(4));
-		assertEquals(new Point("x", 0, 0.09698760274999996,"y", 1, 1.83863665575), pointList.get(5));
+		for (Iterator it1 = genWithRandom.iterator(), it2 = gen.iterator(); it1.hasNext() && it2.hasNext();) {
+			assertNotEquals(it1.next(), it2.next());
+		}
 	}
 
 }
