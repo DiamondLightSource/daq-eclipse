@@ -209,11 +209,6 @@ public class PointGeneratorService implements IPointGeneratorService {
 		}
 		return ret;
 	}
-	
-	@Override
-	public IPointGenerator<?> createCompoundGenerator(IPointGenerator<?>... generators) throws GeneratorException {
-		return new CompoundGenerator(generators);
-	}
 
 	@Override
 	public Collection<String> getRegisteredGenerators() {
@@ -234,6 +229,11 @@ public class PointGeneratorService implements IPointGeneratorService {
 		} catch (IllegalAccessException | InstantiationException ne) {
 			throw new GeneratorException(ne);
 		}
+	}
+
+	@Override
+	public IPointGenerator<?> createCompoundGenerator(IPointGenerator<?>... generators) throws GeneratorException {
+		return new CompoundGenerator(generators);
 	}
 
 	@Override
