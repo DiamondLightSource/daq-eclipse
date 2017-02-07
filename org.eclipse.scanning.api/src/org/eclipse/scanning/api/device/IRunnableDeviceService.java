@@ -8,7 +8,7 @@ import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.api.scan.event.IPositioner;
+import org.eclipse.scanning.api.scan.event.IPositionerService;
 
 
 /**
@@ -52,7 +52,7 @@ import org.eclipse.scanning.api.scan.event.IPositioner;
  *
  * @see {@link IMalcolmService}, {@link IMalcolmConnection}
  */
-public interface IRunnableDeviceService {
+public interface IRunnableDeviceService extends IPositionerService {
 	
 	/**
 	 * Used to register a device. This is required so that spring may create
@@ -62,17 +62,6 @@ public interface IRunnableDeviceService {
 	 * @param device
 	 */
 	<T> void register(IRunnableDevice<T> device);
-	
-	/**
-	 * This method sets the value of the scannables named to this position.
-	 * It takes into account the levels of the scannbles. 
-	 * It is blocking until all the scannables have reached the desired location.
-	 * 
-	 * @return
-	 * @throws ScanningException
-	 */
-	IPositioner createPositioner() throws ScanningException;
-
 	
 	/**
 	 * Create a new runnable device from a model. If the device has a name the

@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -11,6 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
+import org.eclipse.scanning.api.annotation.scan.FileDeclared;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.annotation.scan.ScanAbort;
@@ -35,6 +37,7 @@ import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.CompoundModel;
+import org.eclipse.scanning.api.scan.IScanService;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
@@ -162,11 +165,15 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		// Create the manager and populate it
 		if (manager!=null) manager.dispose(); // It is allowed to configure more than once.
+		
+		Collection<Object> globalParticipants = ((IScanService)runnableDeviceService).getScanParticipants();
+
 		manager = new AnnotationManager(SequencerActivator.getInstance());
 		manager.addDevices(getScannables(model));
-		if (model.getMonitors()!=null) manager.addDevices(model.getMonitors());
+		if (model.getMonitors()!=null)               manager.addDevices(model.getMonitors());
 		if (model.getAnnotationParticipants()!=null) manager.addDevices(model.getAnnotationParticipants());
-		manager.addDevices(model.getDetectors());
+		if (globalParticipants!=null)                manager.addDevices(globalParticipants);
+		if (model.getDetectors()!=null)              manager.addDevices(model.getDetectors());
 		
 		setDeviceState(DeviceState.READY); // Notify 
 		
@@ -207,9 +214,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
     		outerSize = size;
     		innerSize = getEstimatedSize(moderator.getInnerIterable());
     		totalSize = getEstimatedSize(model.getPositionIterable());
-
-    		fireStart(size);    		
-
+    		fireStart(size);
+    		
     		// We allow monitors which can block a position until a setpoint is
     		// reached or add an extra record to the NeXus file.
     		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
@@ -227,9 +233,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	pos.setStepIndex(count);
 	        	
 	        	if (!firedFirst) {
-	        		// Notify that we will do a run and provide the first position.
-	        		manager.invoke(ScanStart.class, pos);
-	            	fireRunWillPerform(pos);
+	        		fireFirst(pos);
 	            	firedFirst = true;
 	        	}
 	        	
@@ -272,6 +276,20 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		} finally {
 			close(errorFound, pos);
 		}
+	}
+
+	private void fireFirst(IPosition firstPosition) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException, EventException {
+		
+		// Notify that we will do a run and provide the first position.
+		manager.invoke(ScanStart.class, firstPosition);
+		if (model.getFilePath()!=null) manager.invoke(FileDeclared.class, model.getFilePath(), firstPosition);
+		
+		final Set<String> otherFiles = nexusScanFileManager.getExternalFilePaths();
+		if (otherFiles!=null && otherFiles.size()>0) {
+			for (String path : otherFiles) if (path!=null) manager.invoke(FileDeclared.class, path, firstPosition);
+		}
+		
+    	fireRunWillPerform(firstPosition);
 	}
 
 	/**
@@ -326,18 +344,17 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	// Tests wait for this step and reread the file.
 	       	    fireRunPerformed(last);              // Say that we did the overall run using the position we stopped at.
 			
-			} finally {
-	       	    try {
-					manager.invoke(ScanFinally.class, last);
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException | EventException e) {
-					throw new ScanningException(e);
-				}
-	       	    
+			} finally {    	    
 	    		// only fire end if finished normally
-	    		if (!errorFound) fireEnd();
+	    		if (!errorFound) fireEnd();	
 			}
 			
 		} finally {
+       	    try {
+				manager.invoke(ScanFinally.class, last);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException | EventException e) {
+				throw new ScanningException(e);
+			}
 			if (latch!=null) latch.countDown();
 		}
 	}
@@ -364,24 +381,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 
 	}
 
-	private void fireEnd() throws ScanningException {
-		
-		// Setup the bean to sent
-		getBean().setPreviousStatus(getBean().getStatus());
-		getBean().setStatus(Status.COMPLETE);
-		getBean().setPercentComplete(100);
-		getBean().setMessage("Scan Complete");
-		
-		// Will send the state of the scan off.
-		try {
-			manager.invoke(ScanEnd.class);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException  | EventException e) {
-			throw new ScanningException(e);
-		}
-   	    setDeviceState(DeviceState.READY); // Fires!
-				
-	}
-
 	private void fireStart(int size) throws Exception {
 		
 		ScanInformation info = new ScanInformation();
@@ -401,6 +400,24 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		// Leave previous state as running now that we have notified of the start.
 		getBean().setPreviousStatus(Status.RUNNING);
+	}
+
+	private void fireEnd() throws ScanningException {
+		
+		// Setup the bean to sent
+		getBean().setPreviousStatus(getBean().getStatus());
+		getBean().setStatus(Status.COMPLETE);
+		getBean().setPercentComplete(100);
+		getBean().setMessage("Scan Complete");
+		
+		// Will send the state of the scan off.
+		try {
+			manager.invoke(ScanEnd.class);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException  | EventException e) {
+			throw new ScanningException(e);
+		}
+   	    setDeviceState(DeviceState.READY); // Fires!
+				
 	}
 
 	public void reset() throws ScanningException {

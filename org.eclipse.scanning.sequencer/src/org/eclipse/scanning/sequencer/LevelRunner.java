@@ -95,12 +95,17 @@ abstract class LevelRunner<L extends ILevel> {
 	 * @return
 	 * @throws ScanningException
 	 */
-	protected boolean run(IPosition position, boolean block) throws ScanningException, InterruptedException {
+	protected boolean run(IPosition loc, boolean block) throws ScanningException, InterruptedException {
 		
 		if (abortException!=null) throw abortException;
 
-		this.position = position;
-		boolean ok = pDelegate.firePositionWillPerform(position);
+		/** NOTE: The position is passed down to run in the tread pool.
+		 *  A subsequent run and await could in theory return the last
+		 *  run position while returning the last-1 run position.
+		 *  Position is a best guess of what position happened.
+		 */
+		this.position = loc;
+		boolean ok = pDelegate.firePositionWillPerform(loc);
         if (!ok) return false;
 		
 		Map<Integer, List<L>> positionMap = getLevelOrderedDevices(getDevices());
@@ -121,12 +126,12 @@ abstract class LevelRunner<L extends ILevel> {
 				List<L> lobjects = positionMap.get(level);
 				Collection<Callable<IPosition>> tasks = new ArrayList<>(lobjects.size());
 				for (L lobject : lobjects) {
-					Callable<IPosition> c = create(lobject, position);
+					Callable<IPosition> c = create(lobject, loc);
 					if (c==null) continue; // legal to say that there is nothing to do for a given object.
 					tasks.add(c);
 				}
 				
-				managerMap.get(level).invoke(LevelStart.class, position, new LevelInformation(level, lobjects));
+				managerMap.get(level).invoke(LevelStart.class, loc, new LevelInformation(level, lobjects));
 				if (!it.hasNext() && !block) { 
 					// The last one and we are non-blocking
 					for (Callable<IPosition> callable : tasks) eservice.submit(callable);
@@ -139,12 +144,12 @@ abstract class LevelRunner<L extends ILevel> {
 				    for (Future<IPosition> future : pos) {
 						if (!future.isDone()) throw new ScanningException("The timeout of "+timeout+"s has been reached waiting for level "+level+" objects "+toString(lobjects));
 					}
-				    pDelegate.fireLevelPerformed(level, lobjects, getPosition(position, pos));
+				    pDelegate.fireLevelPerformed(level, lobjects, getPosition(loc, pos));
 				}
-				managerMap.get(level).invoke(LevelEnd.class, position, new LevelInformation(level, lobjects));
+				managerMap.get(level).invoke(LevelEnd.class, loc, new LevelInformation(level, lobjects));
 			}
 			
-			pDelegate.firePositionPerformed(finalLevel, position);
+			pDelegate.firePositionPerformed(finalLevel, loc);
 			
 		} catch (ScanningException s) {
 			throw s;
@@ -198,6 +203,7 @@ abstract class LevelRunner<L extends ILevel> {
 	 * created and latch() will directly return.
 	 * 
 	 * @throws InterruptedException 
+	 * @return the position of the last 'run' call, which may not always be what was awaited.
 	 */
 	protected IPosition await(long time) throws InterruptedException, ScanningException{
 		if (eservice==null)          return position;
@@ -321,6 +327,10 @@ abstract class LevelRunner<L extends ILevel> {
 		pDelegate.removePositionListener(listener);
 	}
 
+	/**
+	 * 
+	 * @return the position of the last 'run' call, which may not always be what was run.
+	 */
 	public IPosition getPosition()  throws ScanningException {
 		return position;
 	}

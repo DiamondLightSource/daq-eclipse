@@ -23,17 +23,20 @@ import org.eclipse.scanning.api.annotation.scan.PointStart;
 import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.Point;
+import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -50,7 +53,16 @@ import org.junit.Test;
  */
 public class AnnotationManagerTest {
 	
+	private static IPointGeneratorService pservice;
+	
+	@BeforeClass
+	public static void createGeneratorService() {
+		pservice = new PointGeneratorService();
+	}
+
+	
 	private AnnotationManager      manager;
+	
 	
 	// Test devices
 	private SimpleDevice           sdevice;
@@ -60,7 +72,7 @@ public class AnnotationManagerTest {
 	private InvalidInjectionDevice invDevice;
 	
 	@Before
-	public void before() {
+	public void before() throws Exception {
 		
 		final Map<Class<?>, Object> testServices = new HashMap<>();
 		testServices.put(IPointGeneratorService.class,  new PointGeneratorService());
@@ -147,6 +159,15 @@ public class AnnotationManagerTest {
 		if (firstPoint==null) throw new Exception("The manager failed to inject a position!");
 		assertTrue(firstPoint.equals(new Point(0, 10, 0, 20)));
 	}
+	
+	@Test
+	public void scanPointGeneratorInject() throws Exception {
+		
+		IPointGenerator<GridModel> gen = pservice.createGenerator(new GridModel());
+		manager.invoke(PreConfigure.class, gen, new ScanInformation()); 
+		assertEquals(gen, idevice.getPointGenerator());
+	}
+
 	
 	@Test
 	public void scanInfoInject() throws Exception {
