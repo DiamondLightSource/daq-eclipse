@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.scanning.api.annotation.scan.PointStart;
+import org.eclipse.scanning.api.annotation.scan.PreConfigure;
 import org.eclipse.scanning.api.annotation.scan.ScanEnd;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
 
@@ -20,6 +22,7 @@ import org.eclipse.scanning.api.points.IPosition;
 public class InjectionDevice extends CountingDevice {
 	
 	private Map<String, List<Object[]>> calls = new HashMap<>();
+	private IPointGenerator<?> pointGenerator;
 	
     @PointStart
     public void method1(IRunnableDeviceService rservice) throws Exception {
@@ -55,6 +58,11 @@ public class InjectionDevice extends CountingDevice {
 		}
 		count.add(oa);
 	}
+	
+	@PreConfigure
+	public void setPointGenerator(IPointGenerator<?> pointGenerator) {
+		this.pointGenerator = pointGenerator;
+	}
 
     @Override
     @ScanEnd
@@ -66,4 +74,7 @@ public class InjectionDevice extends CountingDevice {
     public List<Object[]> getArguments(String methodName) {
     	return calls.get(methodName);
     }
+	public IPointGenerator<?> getPointGenerator() {
+		return pointGenerator;
+	}
 }
