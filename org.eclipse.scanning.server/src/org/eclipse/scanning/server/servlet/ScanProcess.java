@@ -23,6 +23,7 @@ import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPointGenerator;
@@ -257,6 +258,11 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 		malcolmModel.setFileDir(malcolmOutputDir.toString());
 		logger.info("Set malcolm output dir to {}", malcolmOutputDir);
 		
+		// Set the point generator for the malcolm device
+		// We must set it explicitly here because validation checks for a generator and will fail.
+		final IRunnableDeviceService service = Services.getRunnableDeviceService();
+		IRunnableDevice<?> malcolmDevice = service.getRunnableDevice(malcolmDeviceName);
+		((IMalcolmDevice<?>) malcolmDevice).setPointGenerator(gen);
 	}
 
 	private ScriptResponse<?> runScript(ScriptRequest req) throws EventException, UnsupportedLanguageException, ScriptExecutionException {
