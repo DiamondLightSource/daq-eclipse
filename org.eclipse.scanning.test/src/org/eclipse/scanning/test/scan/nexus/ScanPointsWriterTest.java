@@ -1,9 +1,9 @@
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_SCAN_FINISHED;
-import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_SCAN_RANK;
-import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.FIELD_NAME_UNIQUE_KEYS;
-import static org.eclipse.scanning.sequencer.nexus.ScanPointsWriter.GROUP_NAME_KEYS;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_FINISHED;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_RANK;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_UNIQUE_KEYS;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_KEYS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -34,6 +34,7 @@ import org.eclipse.january.dataset.SliceND;
 import org.eclipse.january.io.ILazySaver;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
 import org.junit.Test;
 
@@ -142,7 +143,7 @@ public class ScanPointsWriterTest {
 			nexusObjectProviders.add(new ExternalFileWritingPositioner(positionerName));
 		}
 
-		ScanPointsWriter scanPointsWriter = new ScanPointsWriter();
+		ScanPointsWriter scanPointsWriter = new ScanPointsWriter(new ScanModel());
 		scanPointsWriter.setNexusObjectProviders(nexusObjectProviders);
 		
 		final int scanRank = 2;
@@ -208,7 +209,7 @@ public class ScanPointsWriterTest {
 			nexusObjectProviders.add(new ExternalFileWritingPositioner(positionerName));
 		}
 
-		ScanPointsWriter scanPointsWriter = new ScanPointsWriter();
+		ScanPointsWriter scanPointsWriter = new ScanPointsWriter(new ScanModel());
 		scanPointsWriter.setNexusObjectProviders(nexusObjectProviders);
 		
 		final int scanRank = 2;

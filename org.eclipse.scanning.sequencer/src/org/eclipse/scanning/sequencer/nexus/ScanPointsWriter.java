@@ -1,5 +1,14 @@
 package org.eclipse.scanning.sequencer.nexus;
 
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_CMD;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_FINISHED;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_MODELS;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_RANK;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_UNIQUE_KEYS;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_KEYS;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_SOLSTICE_SCAN;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.PROPERTY_NAME_UNIQUE_KEYS_PATH;
+
 import java.io.File;
 import java.util.List;
 
@@ -19,8 +28,12 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
+import org.eclipse.scanning.sequencer.ServiceHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The scan points writer creates and writes to the unique keys and points
@@ -29,32 +42,25 @@ import org.eclipse.scanning.api.scan.rank.IScanSlice;
  * @author Matthew Dickie
  */
 public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionListener {
+	
+	private static final Logger logger = LoggerFactory.getLogger(ScanPointsWriter.class);
 
-	public static final String GROUP_NAME_SOLSTICE_SCAN = "solstice_scan";
-	
-	public static final String GROUP_NAME_KEYS = "keys";
-	
-	public static final String FIELD_NAME_UNIQUE_KEYS = "uniqueKeys";
-	
-	public static final String FIELD_NAME_SCAN_RANK = "scanRank";
-	
-	public static final String FIELD_NAME_SCAN_FINISHED = "scan_finished";
-	
-	/**
-	 * Property name for the path within an external (linked) nexus file to the unique keys dataset. 
-	 */
-	public static final String PROPERTY_NAME_UNIQUE_KEYS_PATH = "uniqueKeys";
-
+	// Nexus
 	private List<NexusObjectProvider<?>> nexusObjectProviders = null;
-	
-	private ILazyWriteableDataset uniqueKeys = null;
-
-	private ILazyWriteableDataset scanFinished = null;
-
 	private NexusObjectWrapper<NXcollection> nexusProvider = null;
 	
+	// Writing Datasets
+	private ILazyWriteableDataset uniqueKeys = null;
+	private ILazyWriteableDataset scanFinished = null;
+
+	// State
 	private boolean malcolmScan = false;
+	private final ScanModel model;
 	
+	public ScanPointsWriter(ScanModel model) {
+		this.model = model;
+	}
+
 	public void setNexusObjectProviders(List<NexusObjectProvider<?>> nexusObjectProviders) {
 		this.nexusObjectProviders = nexusObjectProviders;
 	}
@@ -68,11 +74,11 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	 */
 	@Override
 	public NexusObjectProvider<NXcollection> getNexusProvider(NexusScanInfo info) {
+		
 		// Note: NexusScanFileManager relies on this method returning the same object each time
 		if (nexusProvider == null) {
 			NXcollection scanPointsCollection = createNexusObject(info);
-			nexusProvider = new NexusObjectWrapper<NXcollection>(
-					GROUP_NAME_SOLSTICE_SCAN, scanPointsCollection);
+			nexusProvider = new NexusObjectWrapper<NXcollection>(GROUP_NAME_SOLSTICE_SCAN, scanPointsCollection);
 			nexusProvider.setPrimaryDataFieldName(FIELD_NAME_UNIQUE_KEYS);
 			nexusProvider.setAxisDataFieldNames(FIELD_NAME_UNIQUE_KEYS);
 		}
@@ -85,6 +91,21 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		
 		// add a field for the scan rank
 		scanPointsCollection.setField(FIELD_NAME_SCAN_RANK, info.getRank());
+		
+		try {
+		    String cmd = ServiceHolder.getParserService().getCommand(model.getBean().getScanRequest(), true);
+			scanPointsCollection.setField(FIELD_NAME_SCAN_CMD,  cmd);
+		} catch (Exception ne) {
+			logger.error("Unable to write scan command", ne);
+		}
+		
+		try {
+			List<?> models = model.getBean().getScanRequest().getCompoundModel().getModels();
+			String json = ServiceHolder.getMarshallerService().marshal(models);
+			scanPointsCollection.setField(FIELD_NAME_SCAN_MODELS, json);
+		} catch (Exception ne) {
+			logger.error("Unable to write point models", ne);
+		}
 
 		// create the scan finished dataset and set the initial value to false
 //		scanFinished = scanPointsCollection.initializeFixedSizeLazyDataset(

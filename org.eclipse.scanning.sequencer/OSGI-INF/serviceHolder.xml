@@ -10,4 +10,6 @@
    <reference bind="setGeneratorService" cardinality="0..1" interface="org.eclipse.scanning.api.points.IPointGeneratorService" name="IPointGeneratorService" policy="dynamic"/>
    <reference bind="setRunnableDeviceService" cardinality="1..1" interface="org.eclipse.scanning.api.device.IRunnableDeviceService" name="IRunnableDeviceService" policy="static"/>
    <reference bind="setWatchdogService" cardinality="1..1" interface="org.eclipse.scanning.api.device.IDeviceWatchdogService" name="IDeviceWatchdogService" policy="static"/>
+   <reference bind="setParserService" cardinality="0..1" interface="org.eclipse.scanning.api.scan.IParserService" name="IParserService" policy="dynamic"/>
+   <reference bind="setMarshallerService" cardinality="0..1" interface="org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService" name="IMarshallerService" policy="dynamic"/>
 </scr:component>
