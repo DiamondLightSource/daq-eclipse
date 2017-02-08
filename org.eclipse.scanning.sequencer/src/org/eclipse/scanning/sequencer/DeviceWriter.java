@@ -65,7 +65,7 @@ final class DeviceWriter extends DeviceRunner {
 				return null; // faster if not adding new information
 				
 			} catch (Exception ne) {
-				abort(detector, null, position, ne);
+				abort(detector, position, ne);
                 throw ne;
 			}
 		}
