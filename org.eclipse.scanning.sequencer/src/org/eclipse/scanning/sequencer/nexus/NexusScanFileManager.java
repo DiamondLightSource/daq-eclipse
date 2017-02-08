@@ -327,7 +327,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	}
 	
 	protected ScanPointsWriter createScanPointsWriter() {
-		ScanPointsWriter scanPointsWriter = new ScanPointsWriter();
+		ScanPointsWriter scanPointsWriter = new ScanPointsWriter(model);
 		
 		// get the nexus object providers for all device types excluding metadata scannables
 		EnumSet<ScanRole> deviceTypes = EnumSet.complementOf(EnumSet.of(ScanRole.METADATA));

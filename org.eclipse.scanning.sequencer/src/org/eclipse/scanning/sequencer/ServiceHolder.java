@@ -1,6 +1,7 @@
 package org.eclipse.scanning.sequencer;
 
 import org.eclipse.dawnsci.analysis.api.io.ILoaderService;
+import org.eclipse.dawnsci.analysis.api.persistence.IMarshallerService;
 import org.eclipse.dawnsci.analysis.api.persistence.IPersistenceService;
 import org.eclipse.dawnsci.analysis.api.processing.IOperationService;
 import org.eclipse.dawnsci.nexus.builder.NexusBuilderFactory;
@@ -9,6 +10,7 @@ import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.IFilePathService;
+import org.eclipse.scanning.api.scan.IParserService;
 
 public class ServiceHolder {
 	
@@ -103,6 +105,27 @@ public class ServiceHolder {
 
 	public void setGeneratorService(IPointGeneratorService generatorService) {
 		ServiceHolder.generatorService = generatorService;
+	}
+	
+	private static IParserService parserService;
+
+	public static IParserService getParserService() {
+		return parserService;
+	}
+
+	public void setParserService(IParserService parserService) {
+		ServiceHolder.parserService = parserService;
+	}
+	
+	private static IMarshallerService marshallerService;
+	
+
+	public static IMarshallerService getMarshallerService() {
+		return marshallerService;
+	}
+
+	public void setMarshallerService(IMarshallerService marshallerService) {
+		ServiceHolder.marshallerService = marshallerService;
 	}
 
 	/**
