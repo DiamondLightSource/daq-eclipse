@@ -1,5 +1,7 @@
 package org.eclipse.scanning.sequencer.analysis;
 
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_SOLSTICE_SCAN;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -19,7 +21,6 @@ import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.ui.CommandConstants;
 import org.eclipse.scanning.sequencer.ServiceHolder;
-import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public class ClusterProcessingRunnableDevice extends AbstractRunnableDevice<Clus
 		// The path for the NXdata for the primary data field of the detector
 		operationBean.setDatasetPath(DEFAULT_ENTRY_PATH + model.getDetectorName());
 		operationBean.setScanRank(scanInfo.getRank()); // set scan rank
-		operationBean.setDataKey(DEFAULT_ENTRY_PATH + ScanPointsWriter.GROUP_NAME_SOLSTICE_SCAN);
+		operationBean.setDataKey(DEFAULT_ENTRY_PATH + GROUP_NAME_SOLSTICE_SCAN);
 
 		operationBean.setReadable(true); // true as this is a SWMR file so can be read while scan in running
 		operationBean.setXmx("1024m"); // TODO what should this be set to?
