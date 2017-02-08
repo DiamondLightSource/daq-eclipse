@@ -364,6 +364,12 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		if (latch==null) return;
 		latch.await();
 	}
+	
+	@Override
+	public boolean latch(long time, TimeUnit unit) throws InterruptedException {
+		if (latch==null) return true;
+		return latch.await(time, unit);
+	}
 
 	private void processException(Exception ne) throws ScanningException {
 		
