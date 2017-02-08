@@ -2,6 +2,10 @@ package org.eclipse.scanning.api.device;
 
 /**
  * 
+   <h3>Welcome to Watchdogs</h3>
+   <i>The new standard in scan monitoring</i>
+   <p>
+   
  * This service holds available watchdogs and if they are
  * active will start them for a given IRunnableDevice.
  * 
@@ -10,6 +14,7 @@ package org.eclipse.scanning.api.device;
  * called at different points of the scan so that they can monitor
  * the scan.
  * 
+    <h3>Adding in Spring</h3>
     <pre>
     {@literal <!--  Watchdog Example -->}
 	{@literal <bean id="topupModel" class="org.eclipse.scanning.api.device.models.DeviceWatchdogModel">}
@@ -24,6 +29,14 @@ package org.eclipse.scanning.api.device;
     {@literal     <property name="bundle"            value="org.eclipse.scanning.sequencer" /> <!-- Delete for real spring? -->}
 	{@literal </bean>}
     </pre>
+    
+    <p>
+    
+    <h3>Controlling from Jython</h3>
+<ul>
+    <li>Get the service from one of the holders e.g. <code>wservice = org.eclipse.scanning.sequencer.ServiceHolder.getWatchdogService();</code></li>
+    <li>Set the watchdog required to disabled. <code>wservice.getWatchdog("topup").setEnabled(false);</code></li>
+</ul>
 
  * 
  * @author Matthew Gerring
@@ -58,5 +71,12 @@ public interface IDeviceWatchdogService {
 	 */
 	IDeviceController create(IPausableDevice<?> device);
 	
+	/**
+	 * Get the watchdog by name.
+	 * 
+	 * @param name
+	 * @return the watchdog with this name
+	 */
+	IDeviceWatchdog getWatchdog(String name);
 
 }
