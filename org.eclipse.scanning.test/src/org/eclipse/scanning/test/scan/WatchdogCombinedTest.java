@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IDeviceController;
@@ -21,6 +22,7 @@ import org.eclipse.scanning.example.scannable.MockTopupScannable;
 import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
 import org.eclipse.scanning.sequencer.watchdog.ExpressionWatchdog;
 import org.eclipse.scanning.sequencer.watchdog.TopupWatchdog;
+import org.eclipse.scanning.server.servlet.Services;
 import org.junit.Test;
 
 public class WatchdogCombinedTest extends AbstractWatchdogTest {
@@ -63,6 +65,111 @@ public class WatchdogCombinedTest extends AbstractWatchdogTest {
 		tdog.activate();
 
 	}
+
+	
+	@Test
+	public void dogsSame() {
+		assertEquals(edog, Services.getWatchdogService().getWatchdog("ExpressionWatchdog"));
+		assertEquals(tdog, Services.getWatchdogService().getWatchdog("TopupWatchdog"));
+	}
+	
+	@Test
+	public void deactivated() throws Exception {
+
+		try {
+			// Deactivate!=disabled because deactivate removes it from the service.
+			edog.deactivate(); // Are a testing a pausing monitor here
+			tdog.deactivate(); // Are a testing a pausing monitor here
+			runQuickie();
+		} finally {
+			edog.activate();
+			tdog.activate();
+		}
+	}
+	
+	
+	@Test
+	public void disabled() throws Exception {
+
+		try {
+			edog.setEnabled(false); // Are a testing a pausing monitor here
+			tdog.setEnabled(false); // Are a testing a pausing monitor here
+			IRunnableEventDevice<?> scanner = runQuickie(true);
+			final IScannable<String>   mon  = connector.getScannable("portshutter");
+			mon.setPosition("Closed");
+			final IScannable<Number>   topup  = connector.getScannable("topup");
+			topup.setPosition(10);
+			assertTrue(scanner.latch(10, TimeUnit.SECONDS));
+			
+		} finally {
+			edog.setEnabled(true); 
+			tdog.setEnabled(true); 
+		}
+	}
+	
+	@Test
+	public void deactivatedExpression() throws Exception {
+
+		try {
+			// Deactivate!=disabled because deactivate removes it from the service.
+			edog.deactivate(); // Are a testing a pausing monitor here
+			runQuickie();
+		} finally {
+			edog.activate();
+		}
+	}
+	
+	
+	@Test
+	public void disabledExpression() throws Exception {
+
+		try {
+			// Deactivate!=disabled because deactivate removes it from the service.
+			edog.setEnabled(false); // Are a testing a pausing monitor here
+			IRunnableEventDevice<?> scanner = runQuickie(true);
+			final IScannable<String>   mon  = connector.getScannable("portshutter");
+			mon.setPosition("Closed");
+			assertTrue(scanner.latch(10, TimeUnit.SECONDS));
+		} finally {
+			edog.setEnabled(true); 
+		}
+	}
+	@Test
+	public void deactivatedTopup() throws Exception {
+
+		try {
+			// Deactivate!=disabled because deactivate removes it from the service.
+			tdog.deactivate(); // Are a testing a pausing monitor here
+			runQuickie();
+		} finally {
+			tdog.activate();
+		}
+	}
+	
+	
+	@Test
+	public void disabledTopup() throws Exception {
+
+		final IScannable<Number>   topups  = connector.getScannable("topup");
+		final MockTopupScannable   topup   = (MockTopupScannable)topups;
+		assertNotNull(topup);
+	
+		long fastPeriod = 500;
+		long orig = topup.getPeriod();
+		topup.setPeriod(fastPeriod);
+		topup.start();
+		Thread.sleep(100);
+		try {
+			// Deactivate!=disabled because deactivate removes it from the service.
+			tdog.setEnabled(false); // Are a testing a pausing monitor here
+			IRunnableEventDevice<?> scanner = runQuickie(true);
+			assertTrue(scanner.latch(10, TimeUnit.SECONDS));
+		} finally {
+			tdog.setEnabled(true); 
+			topup.setPeriod(orig);
+		}
+	}
+
 
 	@Test
 	public void shutterWithExternalPause() throws Exception {

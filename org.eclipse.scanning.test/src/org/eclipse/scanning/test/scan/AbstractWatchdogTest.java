@@ -1,7 +1,9 @@
 package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,9 +23,11 @@ import org.eclipse.scanning.api.device.IDeviceWatchdogService;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.IWritableDetector;
 import org.eclipse.scanning.api.event.IEventService;
+import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
@@ -192,6 +196,36 @@ public abstract class AbstractWatchdogTest {
 		scanner.configure(smodel);
 		
 		return controller;
+	}
+	
+	protected IRunnableEventDevice<?> runQuickie() throws Exception {
+		return runQuickie(false);
+	}
+
+	protected IRunnableEventDevice<?> runQuickie(boolean asych) throws Exception {
+
+		// x and y are level 3
+		IDeviceController controller = createTestScanner(null);
+		IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
+		
+		List<DeviceState> states = new ArrayList<>();
+		// This run should get paused for beam and restarted.
+		scanner.addRunListener(new IRunListener() {
+			public void stateChanged(RunEvent evt) throws ScanningException {
+				states.add(evt.getDeviceState());
+			}
+		});
+		
+		if (asych) {
+			scanner.start(null);
+		} else {
+			scanner.run(null);
+			
+			assertFalse(states.contains(DeviceState.PAUSED));
+			assertTrue(states.contains(DeviceState.RUNNING));
+			assertFalse(states.contains(DeviceState.SEEKING));
+		}
+		return scanner;
 	}
 
 }
