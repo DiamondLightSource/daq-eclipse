@@ -18,6 +18,17 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	protected DeviceWatchdogModel model;
 	protected IDeviceController  controller;
 	protected boolean active = false;
+	
+	/**
+	 * Name should be set by spring as it is the mechanism by
+	 * which a watchdog can be retrieved and turned on or off.
+	 */
+	private String name = getClass().getSimpleName(); 
+	
+	/**
+	 * A disabled watchdog will not monitor when a scan runs.
+	 */
+	private boolean enabled=true;
 
 	public AbstractWatchdog() {
 		this(null);
@@ -108,5 +119,17 @@ public abstract class AbstractWatchdog implements IDeviceWatchdog {
 	@Override
 	public boolean isActive() {
 		return active;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public boolean isEnabled() {
+		return enabled;
+	}
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 }

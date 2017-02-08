@@ -2,7 +2,9 @@ package org.eclipse.scanning.sequencer.watchdog;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceController;
@@ -15,7 +17,8 @@ import org.slf4j.LoggerFactory;
 public class DeviceWatchdogService implements IDeviceWatchdogService {
 	
 	private static Logger logger = LoggerFactory.getLogger(DeviceWatchdogService.class);
-	private List<IDeviceWatchdog> templates = Collections.synchronizedList(new ArrayList<>(3));
+	
+	private Map<String, IDeviceWatchdog> templates = Collections.synchronizedMap(new LinkedHashMap<>(3));
 	
 	static {
 		if (System.getProperty("org.eclipse.scanning.watchdogs.active")==null) {
@@ -25,12 +28,13 @@ public class DeviceWatchdogService implements IDeviceWatchdogService {
 
 	@Override
 	public void register(IDeviceWatchdog dog) {
-		templates.add(dog);
+		if (templates.containsKey(dog.getName())) throw new IllegalArgumentException("The watchdog name '"+dog.getName()+"' is already registered! A watchdog with a given name may only be registered once.");
+		templates.put(dog.getName(), dog);
 	}
 
 	@Override
 	public void unregister(IDeviceWatchdog dog) {
-		templates.remove(dog);
+		templates.remove(dog.getName());
 	}
 
 	@Override
@@ -44,7 +48,8 @@ public class DeviceWatchdogService implements IDeviceWatchdogService {
 				controller.setBean(((AbstractRunnableDevice<?>)device).getBean());
 			}
 			List<IDeviceWatchdog> objects = new ArrayList<>(templates.size());
-			for (final IDeviceWatchdog dog : templates) {
+			for (final IDeviceWatchdog dog : templates.values()) {
+				if (!dog.isEnabled()) continue;
 				IDeviceWatchdog ndog = dog.getClass().newInstance();
 				ndog.setModel(dog.getModel());
 				ndog.setController(controller);
@@ -57,6 +62,11 @@ public class DeviceWatchdogService implements IDeviceWatchdogService {
 			logger.error("Cannot create watchdogs", ne);
 			return null;
 		}
+	}
+
+	@Override
+	public IDeviceWatchdog getWatchdog(String name) {
+		return templates.get(name);
 	}
 
 }

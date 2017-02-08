@@ -1,7 +1,6 @@
 package org.eclipse.scanning.test.scan;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -32,6 +31,7 @@ import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.example.scannable.MockScannable;
 import org.eclipse.scanning.example.scannable.MockTopupScannable;
 import org.eclipse.scanning.sequencer.watchdog.TopupWatchdog;
+import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.messaging.FileUtils;
 import org.eclipse.scanning.test.scan.nexus.DummyMalcolmDeviceTest;
 import org.junit.After;
@@ -64,6 +64,7 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 		topup.setPosition(1000);
 
 		this.dog = new TopupWatchdog(model);
+		dog.setName("topupDog");
 		dog.activate();
 	}
 	
@@ -84,6 +85,11 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 		
 		FileUtils.recursiveDelete(dir);
 
+	}
+	
+	@Test
+	public void dogsSame() {
+		assertEquals(dog, Services.getWatchdogService().getWatchdog("topupDog"));
 	}
 	
 	@Test(expected=Exception.class)
@@ -324,34 +330,30 @@ public class WatchdogTopupTest extends AbstractWatchdogTest {
 
 	
 	@Test
-	public void topupOutScan() throws Exception {
+	public void topupDeactivated() throws Exception {
 
 		try {
+			// Deactivate!=disabled because deactivate removes it from the service.
 			dog.deactivate(); // Are a testing a pausing monitor here
-
-			// x and y are level 3
-			IDeviceController controller = createTestScanner(null);
-			IRunnableEventDevice<?> scanner = (IRunnableEventDevice<?>)controller.getDevice();
-			
-			List<DeviceState> states = new ArrayList<>();
-			// This run should get paused for beam and restarted.
-			scanner.addRunListener(new IRunListener() {
-				public void stateChanged(RunEvent evt) throws ScanningException {
-					states.add(evt.getDeviceState());
-				}
-			});
-			
-			scanner.run(null);
-			
-			assertFalse(states.contains(DeviceState.PAUSED));
-			assertTrue(states.contains(DeviceState.RUNNING));
-			assertFalse(states.contains(DeviceState.SEEKING));
-			
+			runQuickie();
 		} finally {
 			dog.activate();
 		}
 	}
 	
+	
+	@Test
+	public void topupDisabled() throws Exception {
+
+		try {
+			dog.setEnabled(false); // Are a testing a pausing monitor here
+			runQuickie();
+		} finally {
+			dog.setEnabled(true); 
+		}
+	}
+
+
 	@Test
 	public void testPause() throws Exception {
 		
