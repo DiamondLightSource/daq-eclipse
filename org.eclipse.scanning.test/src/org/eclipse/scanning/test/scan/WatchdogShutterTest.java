@@ -19,9 +19,9 @@ import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
-import org.eclipse.scanning.example.scannable.MockTopupScannable;
 import org.eclipse.scanning.sequencer.expression.ServerExpressionService;
 import org.eclipse.scanning.sequencer.watchdog.ExpressionWatchdog;
+import org.eclipse.scanning.server.servlet.Services;
 import org.junit.Test;
 
 public class WatchdogShutterTest extends AbstractWatchdogTest {
@@ -41,10 +41,41 @@ public class WatchdogShutterTest extends AbstractWatchdogTest {
 		model.setExpression("beamcurrent >= 1.0 && !portshutter.equalsIgnoreCase(\"Closed\")");
 		
 		this.dog = new ExpressionWatchdog(model);
+		dog.setName("expr1");
 		dog.activate();
 	}
 	
 	
+	
+	@Test
+	public void dogsSame() {
+		assertEquals(dog, Services.getWatchdogService().getWatchdog("expr1"));
+	}
+	
+	@Test
+	public void expressionDeactivated() throws Exception {
+
+		try {
+			// Deactivate!=disabled because deactivate removes it from the service.
+			dog.deactivate(); // Are a testing a pausing monitor here
+			runQuickie();
+		} finally {
+			dog.activate();
+		}
+	}
+	
+	
+	@Test
+	public void expressionDisabled() throws Exception {
+
+		try {
+			dog.setEnabled(false); // Are a testing a pausing monitor here
+			runQuickie();
+		} finally {
+			dog.setEnabled(true); 
+		}
+	}
+
 	
 	@Test
 	public void beamLostInScan() throws Exception {

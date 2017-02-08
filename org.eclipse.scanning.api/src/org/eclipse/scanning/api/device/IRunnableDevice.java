@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.device;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.IConfigurable;
 import org.eclipse.scanning.api.ILevel;
@@ -11,8 +12,6 @@ import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.device.models.IDeviceRoleActor;
 import org.eclipse.scanning.api.event.scan.DeviceState;
-import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
-import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -158,6 +157,9 @@ public interface IRunnableDevice<T> extends INameable, IDeviceRoleActor, ILevel,
 		throw new ScanningException("Latch is not implemnented for "+getClass().getSimpleName());
 	}
 	
+	default boolean latch(long time, TimeUnit unit) throws ScanningException, InterruptedException	{
+		throw new ScanningException("Latch is not implemnented for "+getClass().getSimpleName());
+	}
 	/**
 	 * The model being used for the device.
 	 * @return

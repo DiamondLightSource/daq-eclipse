@@ -1,6 +1,7 @@
 package org.eclipse.scanning.api.device;
 
 import org.eclipse.scanning.api.IModelProvider;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.device.models.DeviceWatchdogModel;
 
 /**
@@ -51,25 +52,39 @@ Example XML configuration
  * @author Matthew Gerring
  *
  */
-public interface IDeviceWatchdog extends IModelProvider<DeviceWatchdogModel> {
+public interface IDeviceWatchdog extends IModelProvider<DeviceWatchdogModel>, INameable {
 	
     /**
 	 * Make this device active, it will then be used in any scans run
 	 * IMPORTANT: Call this method when the object is created in spring to register with the service.
 	 */
 	void activate();
+
+    /**
+	 * Make this device inactive, removes the watchdog from the service.
+	 */
+	void deactivate();
 	
 	/**
 	 * 
 	 * @return true if the watchdog is active in a scan and checking things.
 	 */
 	boolean isActive();
-
-    /**
-	 * Make this device inactive
-	 */
-	void deactivate();
 	
+	/**
+	 * A disabled watch dog does not participate in a scan, but
+	 * is not removed from the service.
+	 * 
+	 * @param enabled
+	 */
+	void setEnabled(boolean enabled);
+	
+	/**
+	 * A disabled watch dog does not participate in a scan, but
+	 * is not removed from the service.	 * 
+	 */
+	boolean isEnabled();
+
 	/**
 	 * Called by the framework when a device is created to run with a specific scan.
 	 * @param device
