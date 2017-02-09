@@ -10,6 +10,7 @@ import org.eclipse.scanning.api.device.models.MalcolmModel;
 
 import gda.factory.Configurable;
 import gda.factory.FactoryException;
+import org.springframework.util.StringUtils;
 
 /**
  * A Malcolm Model for a {@link DummyMalcolmDevice}. This model describes which nexus files
@@ -30,10 +31,13 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable, Con
 
 	@Override
 	public void configure() throws FactoryException {
-		setName("malcolm");
-		
-		// If no detectors have been explicitly configured,
-		// add a single detector with a single dataset
+		// Set name if not explicitly set
+		if (StringUtils.isEmpty(getName())) {
+			setName("dummyMalcolmModel");
+		}
+
+		// If no detectors have been explicitly configured, add a single
+		// detector with a single dataset
 		if (dummyDetectorModels == null) {
 			final List<DummyMalcolmDatasetModel> datasets = new ArrayList<>();
 			datasets.add(new DummyMalcolmDatasetModel("detector", 2, Double.class));
@@ -43,7 +47,7 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable, Con
 
 			setDummyDetectorModels(Arrays.asList(detModel));
 		}
-		
+
 		// Set axes to move if not explicitly set
 		if (getAxesToMove() == null) {
 			setAxesToMove(Arrays.asList("stage_x", "stage_y"));

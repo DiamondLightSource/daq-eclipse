@@ -81,9 +81,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		implements IMalcolmDevice<DummyMalcolmModel>, Configurable {
 	
 	public static final String DATASET_NAME_UNIQUE_KEYS = "uniqueKeys";
-
 	public static final String UNIQUE_KEYS_DATASET_PATH = "/entry/NDAttributes/NDArrayUniqueId";
-	
 	public static final String FILE_EXTENSION_HDF5 = ".h5";
 	
 	private static Logger logger = LoggerFactory.getLogger(DummyMalcolmDevice.class);
@@ -101,12 +99,10 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	private Map<String, MalcolmAttribute> allAttributes;
 
 	private boolean firstRunCompleted = false;
-	
 	private int stepIndex = 0;
-	
 	private boolean paused = false;
-	
 	private int scanRank;
+	private boolean configured = false;
 	
 	// the dummy devices are responsible for writing the nexus files 
 	private Map<String, IDummyMalcolmControlledDevice> devices = null;
@@ -129,6 +125,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		} catch (ScanningException e) {
 			throw new FactoryException("Exception configuring DummyMalcolmDevice", e);
 		}
+		configured = true;
 	}
 
 	private void setupAttributes() {
@@ -198,8 +195,16 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		scanRank = axesToMove.getValue().length;
 	}
 
+	private void checkConfigured() {
+		// Check that parameterless configure() has been called 
+		if (!configured) {
+			throw new IllegalStateException("DummyMalcolmDevice \"" + getName() + "\" is not configured");
+		}
+	}
+
 	@Override
 	public void validate(DummyMalcolmModel model) throws ValidationException {
+		checkConfigured();
 		super.validate(model);
 		// validate field: axesToMove
 		if (model.getAxesToMove() != null) {
@@ -228,13 +233,14 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 
 	@Override
 	public void configure(DummyMalcolmModel model) throws ScanningException {
+		checkConfigured();
 		setDeviceState(DeviceState.CONFIGURING);
 
 		// Note: cannot create dataset attr at this point as we don't know the scan rank,
 		// which is required for the datasets for the scannables
 		totalSteps.setValue(64);
 		configuredSteps.setValue(64);
-		List<String> axesToMoveList = model.getAxesToMove();
+		final List<String> axesToMoveList = model.getAxesToMove();
 		if (axesToMoveList != null) {
 			this.axesToMove.setValue((axesToMoveList.toArray(new String[axesToMoveList.size()])));
 		}
@@ -250,14 +256,16 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	@ScanFinally
 	public void scanFinally() {
 		// close all the nexus file
-		if (devices!=null) for (Map.Entry<String, IDummyMalcolmControlledDevice> entry : devices.entrySet()) {
-			try {
-				entry.getValue().closeNexusFile();
-			} catch (NexusException e) {
-				throw new RuntimeException("Unable to create nexus file for device " + entry.getKey());
+		if (devices != null) {
+			for (Map.Entry<String, IDummyMalcolmControlledDevice> entry : devices.entrySet()) {
+				try {
+					entry.getValue().closeNexusFile();
+				} catch (NexusException e) {
+					throw new RuntimeException("Unable to close nexus file for device " + entry.getKey());
+				}
 			}
 		}
-		
+
 		// reset device state for next scan.
 		devices = null;
 		firstRunCompleted = false;
@@ -283,13 +291,9 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			}
 		}
 	}
-	
-	private int getScanRank() {
-		return scanRank;
-	}
 
 	private TableAttribute createDatasetsAttribute(DummyMalcolmModel model) throws MalcolmDeviceException {
-		Map<String, Class<?>> types = new LinkedHashMap<>();
+		final Map<String, Class<?>> types = new LinkedHashMap<>();
 		types.put(DATASETS_TABLE_COLUMN_NAME, String.class);
 		types.put(DATASETS_TABLE_COLUMN_FILENAME, String.class);
 		types.put(DATASETS_TABLE_COLUMN_TYPE, String.class);
@@ -298,16 +302,14 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		types.put(DATASETS_TABLE_COLUMN_UNIQUEID, String.class);
 		
 		// add rows for each DummyMalcolmDatasetModel
-		MalcolmTable table = new MalcolmTable(types);
+		final MalcolmTable table = new MalcolmTable(types);
 
-		int scanRank = getScanRank();
 		for (DummyMalcolmControlledDetectorModel detectorModel : model.getDummyDetectorModels()) {
-			String deviceName = detectorModel.getName();
+			final String deviceName = detectorModel.getName();
 			MalcolmDatasetType datasetType = PRIMARY; // the first dataset is the primary dataset
 			for (DummyMalcolmDatasetModel datasetModel : detectorModel.getDatasets()) {
 				final String datasetName = datasetModel.getName();
 				final String path = String.format("/entry/%s/%s", datasetName, datasetName);
-				// The primary dataset is called det.data, whatever its actual name
 				final String linkName = datasetType == PRIMARY ? NXdata.NX_DATA : datasetName;
 				final int datasetRank = scanRank + datasetModel.getRank();
 				table.addRow(createDatasetRow(deviceName, linkName,
@@ -343,7 +345,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 					MONITOR, path, scanRank)); // TODO can currently only handle scalar monitors
 		}
 		
-		TableAttribute datasets = new TableAttribute();
+		final TableAttribute datasets = new TableAttribute();
 		datasets.setValue(table);
 		datasets.setHeadings(table.getHeadings().toArray(new String[table.getHeadings().size()]));
 		datasets.setName("datasets");
@@ -367,7 +369,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	}
 
 	private TableAttribute createLayoutAttribute() throws MalcolmDeviceException {
-		Map<String, Class<?>> types = new LinkedHashMap<>();
+		final Map<String, Class<?>> types = new LinkedHashMap<>();
 		types.put("name", String.class);
 		types.put("mri", String.class);
 		types.put("x", Double.class);
@@ -375,23 +377,23 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		types.put("visible", Boolean.class);
 		
 		// add rows for each DummyMalcolmDatasetModel
-		MalcolmTable table = new MalcolmTable(types);
+		final MalcolmTable table = new MalcolmTable(types);
 		
-		Map<String, Object> datasetRow1 = new HashMap<>();
+		final Map<String, Object> datasetRow1 = new HashMap<>();
 		datasetRow1.put("name", "BRICK");
 		datasetRow1.put("mri", "P45-BRICK01");
 		datasetRow1.put("x", 0);
 		datasetRow1.put("y", 0);
 		datasetRow1.put("visible", false);
 		
-		Map<String, Object> datasetRow2 = new HashMap<>();
+		final Map<String, Object> datasetRow2 = new HashMap<>();
 		datasetRow2.put("name", "MIC");
 		datasetRow2.put("mri", "P45-MIC");
 		datasetRow2.put("x", 0);
 		datasetRow2.put("y", 0);
 		datasetRow2.put("visible", false);
 		
-		Map<String, Object> datasetRow3 = new HashMap<>();
+		final Map<String, Object> datasetRow3 = new HashMap<>();
 		datasetRow3.put("name", "ZEBRA");
 		datasetRow3.put("mri", "ZEBRA");
 		datasetRow3.put("x", 0);
@@ -402,7 +404,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		table.addRow(datasetRow2);
 		table.addRow(datasetRow3);
 		
-		TableAttribute layout = new TableAttribute();
+		final TableAttribute layout = new TableAttribute();
 		layout.setValue(table);
 		layout.setHeadings(table.getHeadings().toArray(new String[table.getHeadings().size()]));
 		layout.setName("layout");
@@ -513,6 +515,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 
 	@Override
 	public Object getAttributeValue(String attribute) throws MalcolmDeviceException {
+		logger.warn("getAttributeValue() " + attribute);
 		try {
 			updateAttributesWithLatestValues();
 		} catch (ScanningException e) {
