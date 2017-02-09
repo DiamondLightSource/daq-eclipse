@@ -3,6 +3,28 @@ package org.eclipse.scanning.api.filter;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * <h3> Filters </h3>
+ * Filters work as follows:<p>
+ * 
+ * <pre>
+ * L = list of things to be filtered
+ * e = excluded function
+ * i = included function
+ * l = filtered list.
+ * <p>
+ *   l = L-e(L)+i(L)
+ * </pre>
+ * 
+ * This means that all combinations are possible.
+ * An exclude of .* may be applied if only particular devices
+ * are required in the filter and everything done with includes.
+ * A particular set of devices may be removed but if one is
+ * required, it may be added back in with the final include.
+ * 
+ * @author Matthew Gerring
+ *
+ */
 public interface IFilterService {
 
 	/**
