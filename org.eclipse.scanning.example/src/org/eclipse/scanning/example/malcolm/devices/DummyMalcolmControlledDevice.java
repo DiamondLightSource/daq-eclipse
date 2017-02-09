@@ -23,10 +23,16 @@ import org.eclipse.scanning.api.scan.rank.IScanSlice;
  */
 public abstract class DummyMalcolmControlledDevice implements IDummyMalcolmControlledDevice {
 	
+	private final String name;
+
 	private Map<String, ILazyWriteableDataset> datasets = new HashMap<>();
 	
 	protected NexusFile nexusFile = null;
 	
+	public DummyMalcolmControlledDevice(String name) {
+		this.name = name;
+	}
+
 	protected void addDataset(String datasetName, ILazyWriteableDataset dataset, int scanRank, int... datashape) {
 		datasets.put(datasetName, dataset);
 		dataset.setChunking(createChunk(dataset, scanRank, datashape));
@@ -52,18 +58,18 @@ public abstract class DummyMalcolmControlledDevice implements IDummyMalcolmContr
 	}
 	
 	protected void writeData(String datasetName, IPosition position, IDataset data) throws DatasetException {
-		ILazyWriteableDataset dataset = datasets.get(datasetName);
-		IScanSlice slice = IScanRankService.getScanRankService().createScanSlice(position, data.getShape());
-		SliceND sliceND = new SliceND(dataset.getShape(), dataset.getMaxShape(),
+		final ILazyWriteableDataset dataset = datasets.get(datasetName);
+		final IScanSlice slice = IScanRankService.getScanRankService().createScanSlice(position, data.getShape());
+		final SliceND sliceND = new SliceND(dataset.getShape(), dataset.getMaxShape(),
 				slice.getStart(), slice.getStop(), slice.getStep());
 		dataset.setSlice(null, data, sliceND);
 	}
 	
 	protected void writeDemandData(String datasetName, IPosition position) throws DatasetException {
-		double demandValue = ((Double) position.get(datasetName)).doubleValue();
-		ILazyWriteableDataset dataset = datasets.get(datasetName);
+		final double demandValue = ((Double) position.get(datasetName)).doubleValue();
+		final ILazyWriteableDataset dataset = datasets.get(datasetName);
 		
-		int index = position.getIndex(datasetName);
+		final int index = position.getIndex(datasetName);
 		final int[] startPos = new int[] { index };
 		final int[] stopPos = new int[] { index + 1 };
 		dataset.setSlice(null, DatasetFactory.createFromObject(demandValue), startPos, stopPos, null);
@@ -78,12 +84,16 @@ public abstract class DummyMalcolmControlledDevice implements IDummyMalcolmContr
 	}
 
 	protected static NexusFile saveNexusFile(TreeFile nexusTree) throws NexusException {
-		INexusFileFactory nff = ServiceHolder.getNexusFileFactory();
-		NexusFile file = nff.newNexusFile(nexusTree.getFilename(), true);
+		final INexusFileFactory nff = ServiceHolder.getNexusFileFactory();
+		final NexusFile file = nff.newNexusFile(nexusTree.getFilename(), true);
 		file.createAndOpenToWrite();
 		file.addNode("/", nexusTree.getGroupNode());
 		file.flush();
 		
 		return file;
+	}
+
+	public String getName() {
+		return name;
 	}
 }

@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.malcolm.attributes;
 
+import java.util.Arrays;
+
 /**
  * 
  * Encapsulates a string array attribute as read from a malcolm device
@@ -10,7 +12,7 @@ package org.eclipse.scanning.api.malcolm.attributes;
 public class StringArrayAttribute extends MalcolmAttribute {
 	public static final String STRINGARRAY_ID = "malcolm:core/StringArrayMeta:";
 	
-	String[] value;
+	private String[] value;
 	
 	public StringArrayAttribute() {
 		
@@ -27,5 +29,10 @@ public class StringArrayAttribute extends MalcolmAttribute {
 
 	public void setValue(String[] value) {
 		this.value = value;
+	}
+
+	@Override
+	public String toString() {
+		return "StringArrayAttribute [value=" + Arrays.toString(value) + ", " + super.toString() + "]";
 	}
 }

@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.eclipse.scanning.api.ITimeoutable;
 import org.eclipse.scanning.api.device.models.MalcolmModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import gda.factory.Configurable;
 import gda.factory.FactoryException;
@@ -21,46 +23,28 @@ import org.springframework.util.StringUtils;
  * @author Matthew Dickie
  */
 public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable, Configurable {
+	
+	private static final Logger logger = LoggerFactory.getLogger(DummyMalcolmModel.class);
 
 	// timeout is added to the dummy model so that it can be increased for debugging purposes
 	private long timeout = -1;
 	
-	private List<DummyMalcolmControlledDetectorModel> dummyDetectorModels;
-
 	private List<String> monitorNames;
 
 	@Override
 	public void configure() throws FactoryException {
-		// Set name if not explicitly set
+
 		if (StringUtils.isEmpty(getName())) {
-			setName("dummyMalcolmModel");
+			final String message = "Name not set";
+			logger.error(message);
+			throw new FactoryException(message);
 		}
 
-		// If no detectors have been explicitly configured, add a single
-		// detector with a single dataset
-		if (dummyDetectorModels == null) {
-			final List<DummyMalcolmDatasetModel> datasets = new ArrayList<>();
-			datasets.add(new DummyMalcolmDatasetModel("detector", 2, Double.class));
-
-			final DummyMalcolmControlledDetectorModel detModel = new DummyMalcolmControlledDetectorModel("detector");
-			detModel.setDatasets(datasets);
-
-			setDummyDetectorModels(Arrays.asList(detModel));
-		}
-
-		// Set axes to move if not explicitly set
 		if (getAxesToMove() == null) {
-			setAxesToMove(Arrays.asList("stage_x", "stage_y"));
+			final String message = "Axes to move not set";
+			logger.error(message);
+			throw new FactoryException(message);
 		}
-	}
-
-	public List<DummyMalcolmControlledDetectorModel> getDummyDetectorModels() {
-		if (dummyDetectorModels == null) return Collections.emptyList();
-		return dummyDetectorModels;
-	}
-
-	public void setDummyDetectorModels(List<DummyMalcolmControlledDetectorModel> dummyDetectorModels) {
-		this.dummyDetectorModels = dummyDetectorModels;
 	}
 	
 	public long getTimeout() {
@@ -72,7 +56,9 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable, Con
 	}
 
 	public List<String> getMonitorNames() {
-		if (monitorNames == null) return Collections.emptyList();
+		if (monitorNames == null) {
+			return Collections.emptyList();
+		}
 		return monitorNames;
 	}
 
@@ -82,7 +68,7 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable, Con
 
 	@Override
 	public String toString() {
-		return "DummyMalcolmModel [name = " + getName() + ", timeout=" + timeout + ", dummyDetectorModels=" + dummyDetectorModels
+		return "DummyMalcolmModel [name = " + getName() + ", timeout=" + timeout
 				+ ", monitorNames=" + monitorNames + ", fileDir=" + getFileDir() + ", axesToMove=" + getAxesToMove()
 				+ ", getExposureTime()=" + getExposureTime() + "]";
 	}

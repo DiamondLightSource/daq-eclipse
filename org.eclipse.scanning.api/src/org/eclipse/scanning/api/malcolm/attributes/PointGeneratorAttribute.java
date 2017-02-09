@@ -10,7 +10,7 @@ package org.eclipse.scanning.api.malcolm.attributes;
 public class PointGeneratorAttribute extends MalcolmAttribute {
 	public static final String POINTGENERATOR_ID = "malcolm:core/PointGenerator:";
 	
-	Object value;
+	private Object value;
 
 	@Override
 	public Object getValue() {
@@ -20,5 +20,10 @@ public class PointGeneratorAttribute extends MalcolmAttribute {
 	public void setValue(Object value) {
 		this.value = value;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "PointGeneratorAttribute [value=" + value + ", " + super.toString() + "]";
+	}
+
 }

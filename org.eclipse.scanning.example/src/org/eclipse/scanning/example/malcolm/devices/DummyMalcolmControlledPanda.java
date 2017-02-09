@@ -1,5 +1,6 @@
 package org.eclipse.scanning.example.malcolm.devices;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.tree.TreeFile;
@@ -14,44 +15,57 @@ import org.eclipse.january.dataset.DatasetFactory;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.Random;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gda.factory.Configurable;
+import gda.factory.FactoryException;
 
 /**
  * The panda devices controls the motors and writes nexus for them.
  */
-public final class DummyMalcolmControlledPanda extends DummyMalcolmControlledDevice {
+public final class DummyMalcolmControlledPanda extends DummyMalcolmControlledDevice implements Configurable {
+	
+	private static final Logger logger = LoggerFactory.getLogger(DummyMalcolmControlledPanda.class);
 
 	private final List<String> monitorNames;
 	private final List<String> axesToMove;
 
-	public DummyMalcolmControlledPanda(List<String> monitorNames, List<String> axesToMove) {
-		super();
+	public DummyMalcolmControlledPanda(String name, List<String> monitorNames, List<String> axesToMove) {
+		super(name);
 		this.monitorNames = monitorNames;
 		this.axesToMove = axesToMove;
 	}
 
 	@Override
+	public void configure() throws FactoryException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	public void createNexusFile(String dirPath, int scanRank) throws NexusException {
 		final String filePath = dirPath + "panda" + DummyMalcolmDevice.FILE_EXTENSION_HDF5;
-		System.out.println("Dummy malcolm device creating nexus file " + filePath);
-		TreeFile treeFile = NexusNodeFactory.createTreeFile(filePath);
-		NXroot root = NexusNodeFactory.createNXroot();
+		logger.info("Creating nexus file " + filePath);
+		final TreeFile treeFile = NexusNodeFactory.createTreeFile(filePath);
+		final NXroot root = NexusNodeFactory.createNXroot();
 		treeFile.setGroupNode(root);
-		NXentry entry = NexusNodeFactory.createNXentry();
+		final NXentry entry = NexusNodeFactory.createNXentry();
 		root.setEntry(entry);
 
 		// add the positioners to the entry
 		for (String axis : axesToMove) {
 			// The path to positioner datasets written by malcolm is e.g. /entry/x/x
-			NXpositioner positioner = NexusNodeFactory.createNXpositioner();
+			final NXpositioner positioner = NexusNodeFactory.createNXpositioner();
 			entry.addGroupNode(axis, positioner);
-			addDataset(axis, positioner.initializeLazyDataset(
-					axis, scanRank, Double.class), scanRank);
+			addDataset(axis, positioner.initializeLazyDataset(axis, scanRank, Double.class), scanRank);
 		}
 		
 		// add the monitors to the entry
 		for (String monitorName : monitorNames) {
-			NXmonitor monitor = NexusNodeFactory.createNXmonitor();
+			final NXmonitor monitor = NexusNodeFactory.createNXmonitor();
 			entry.addGroupNode(monitorName, monitor);
 			// TODO: if we want non-scalar monitors we'll have to change the model
 			addDataset(monitorName, monitor.initializeLazyDataset(
@@ -59,8 +73,8 @@ public final class DummyMalcolmControlledPanda extends DummyMalcolmControlledDev
 		}
 		
 		// add an entry to the unique keys collection
-		String[] uniqueKeysDatasetPathSegments = DummyMalcolmDevice.UNIQUE_KEYS_DATASET_PATH.split("/");
-		NXcollection ndAttributesCollection = NexusNodeFactory.createNXcollection();
+		final String[] uniqueKeysDatasetPathSegments = DummyMalcolmDevice.UNIQUE_KEYS_DATASET_PATH.split("/");
+		final NXcollection ndAttributesCollection = NexusNodeFactory.createNXcollection();
 		entry.setCollection(uniqueKeysDatasetPathSegments[2], ndAttributesCollection);
 		addDataset(DummyMalcolmDevice.DATASET_NAME_UNIQUE_KEYS, ndAttributesCollection.initializeLazyDataset(
 				uniqueKeysDatasetPathSegments[3], scanRank, String.class), scanRank);
@@ -75,7 +89,7 @@ public final class DummyMalcolmControlledPanda extends DummyMalcolmControlledDev
 			if (posValue == null) { // a malcolm controlled positioner which is not a axis (maybe aggregated, e.g. one of a group of jacks)
 				posValue = Random.rand();
 			}
-			IDataset data = DatasetFactory.createFromObject(posValue);
+			final IDataset data = DatasetFactory.createFromObject(posValue);
 			writeData(axis, position, data);
 		}
 		for (String monitorName : monitorNames) {
@@ -90,8 +104,12 @@ public final class DummyMalcolmControlledPanda extends DummyMalcolmControlledDev
 	}
 
 	@Override
-	public String getName() {
-		return "panda";
+	public String toString() {
+		return "DummyMalcolmControlledPanda [name=" + getName() + ", monitorNames=" + monitorNames + ", axesToMove=" + axesToMove + "]";
 	}
-	
+
+	@Override
+	public List<DummyMalcolmDatasetModel> getDatasetModels() {
+		return Collections.emptyList();
+	}
 }

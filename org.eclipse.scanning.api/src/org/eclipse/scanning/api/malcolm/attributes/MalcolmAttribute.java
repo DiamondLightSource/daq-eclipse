@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.malcolm.attributes;
 
+import java.util.Arrays;
+
 /**
  * 
  * Encapsulates an attribute as read from a malcolm device
@@ -45,4 +47,10 @@ public abstract class MalcolmAttribute {
 		this.label = label;
 	}
 	public abstract Object getValue();
+
+	@Override
+	public String toString() {
+		return "MalcolmAttribute [name=" + name + ", description=" + description + ", tags=" + Arrays.toString(tags)
+				+ ", writeable=" + writeable + ", label=" + label + "]";
+	}
 }

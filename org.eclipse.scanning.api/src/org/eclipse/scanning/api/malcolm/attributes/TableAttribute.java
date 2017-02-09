@@ -1,5 +1,6 @@
 package org.eclipse.scanning.api.malcolm.attributes;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,9 +16,8 @@ import org.eclipse.scanning.api.malcolm.MalcolmTable;
 public class TableAttribute extends MalcolmAttribute {
 	public static final String TABLE_ID = "malcolm:core/TableMeta:";
 	
-	MalcolmTable tableValue;
-	String[] headings;
-	List<MalcolmAttribute> elements = new LinkedList<MalcolmAttribute>();
+	private MalcolmTable tableValue;
+	private String[] headings;
 	
 	@Override
 	public MalcolmTable getValue() {
@@ -31,5 +31,9 @@ public class TableAttribute extends MalcolmAttribute {
 	}
 	public void setHeadings(String[] headings) {
 		this.headings = headings;
+	}
+	@Override
+	public String toString() {
+		return "TableAttribute [tableValue=" + tableValue + ", headings=" + Arrays.toString(headings) + ", " + super.toString() + "]";
 	}
 }

@@ -1,7 +1,10 @@
 package org.eclipse.scanning.example.malcolm.devices;
 
+import java.util.List;
+
 import org.eclipse.dawnsci.nexus.NexusException;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmDatasetModel;
 
 public interface IDummyMalcolmControlledDevice {
 	
@@ -13,4 +16,5 @@ public interface IDummyMalcolmControlledDevice {
 	
 	public String getName();
 	
+	public List<DummyMalcolmDatasetModel> getDatasetModels();
 }

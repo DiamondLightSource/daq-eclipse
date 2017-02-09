@@ -35,7 +35,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.eclipse.dawnsci.nexus.NXdata;
 import org.eclipse.dawnsci.nexus.NexusException;
@@ -63,7 +62,6 @@ import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.example.Services;
 import org.eclipse.scanning.example.malcolm.devices.DummyMalcolmControlledDetector;
-import org.eclipse.scanning.example.malcolm.devices.DummyMalcolmControlledPanda;
 import org.eclipse.scanning.example.malcolm.devices.IDummyMalcolmControlledDevice;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.eclipse.scanning.malcolm.core.MalcolmDatasetType;
@@ -79,13 +77,12 @@ import gda.factory.FactoryException;
  */
 public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		implements IMalcolmDevice<DummyMalcolmModel>, Configurable {
-	
 	public static final String DATASET_NAME_UNIQUE_KEYS = "uniqueKeys";
 	public static final String UNIQUE_KEYS_DATASET_PATH = "/entry/NDAttributes/NDArrayUniqueId";
 	public static final String FILE_EXTENSION_HDF5 = ".h5";
-	
+
 	private static Logger logger = LoggerFactory.getLogger(DummyMalcolmDevice.class);
-	
+
 	private ChoiceAttribute state;
 	private StringAttribute status;
 	private BooleanAttribute busy;
@@ -103,27 +100,41 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	private boolean paused = false;
 	private int scanRank;
 	private boolean configured = false;
-	
-	// the dummy devices are responsible for writing the nexus files 
-	private Map<String, IDummyMalcolmControlledDevice> devices = null;
-	
+
+	// the dummy devices are responsible for writing the nexus files
+	private Map<String, IDummyMalcolmControlledDevice> devices = new HashMap<>();
+
 	public DummyMalcolmDevice() throws IOException, ScanningException {
-		super(new DummyMalcolmConnectorService(), Services.getRunnableDeviceService()); // Necessary if you are going to spring it
+		super(new DummyMalcolmConnectorService(), Services.getRunnableDeviceService());
 	}
-	
+
 	@Override
 	public void configure() throws FactoryException {
 		if (model == null) {
-			model = new DummyMalcolmModel();
-			model.configure();
+			final String message = "Model not set";
+			logger.error(message);
+			throw new FactoryException(message);
+		}
+		
+		if (devices.size() == 0) {
+			final String message = "No devices set";
+			logger.error(message);
+			throw new FactoryException(message);
 		}
 
 		setupAttributes();
-		
+
 		try {
 			setDeviceState(DeviceState.IDLE);
 		} catch (ScanningException e) {
 			throw new FactoryException("Exception configuring DummyMalcolmDevice", e);
+		}
+		configured = true;
+	}
+	
+	public void setDevices(List<IDummyMalcolmControlledDevice> devices) {
+		for (IDummyMalcolmControlledDevice device : devices) {
+			this.devices.put(device.getName(), device);
 		}
 		configured = true;
 	}
@@ -132,8 +143,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		allAttributes = new LinkedHashMap<>();
 
 		state = new ChoiceAttribute();
-		state.setChoices(Arrays.stream(DeviceState.values()).map(
-				state -> state.toString()).toArray(String[]::new));
+		state.setChoices(Arrays.stream(DeviceState.values()).map(state -> state.toString()).toArray(String[]::new));
 		state.setValue(DeviceState.IDLE.toString());
 		state.setName("state");
 		state.setLabel("state");
@@ -190,8 +200,9 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		axesToMove.setDescription("Default axis names to scan for configure()");
 		axesToMove.setWriteable(false);
 		allAttributes.put(axesToMove.getName(), axesToMove);
-		
-		// set scanRank to the size of axesToMove initially. this will be overwritten before a scan starts
+
+		// set scanRank to the size of axesToMove initially. this will be
+		// overwritten before a scan starts
 		scanRank = axesToMove.getValue().length;
 	}
 
@@ -215,7 +226,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 				}
 			}
 		}
-		
+
 		// validate field: fileDir
 		if (model.getFileDir() == null) {
 			throw new ModelValidationException("Output dir for malcolm not set", model, "fileDir");
@@ -236,8 +247,8 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		checkConfigured();
 		setDeviceState(DeviceState.CONFIGURING);
 
-		// Note: cannot create dataset attr at this point as we don't know the scan rank,
-		// which is required for the datasets for the scannables
+		// Note: cannot create dataset attr at this point as we don't know the
+		// scan rank, which is required for the datasets for the scannables
 		totalSteps.setValue(64);
 		configuredSteps.setValue(64);
 		final List<String> axesToMoveList = model.getAxesToMove();
@@ -247,12 +258,12 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 
 		// super.configure sets device state to ready
 		super.configure(model);
-		
-		devices = model.getDummyDetectorModels().stream().collect(Collectors.toMap(
-				d -> d.getName(), d -> new DummyMalcolmControlledDetector(d, axesToMoveList)));
-		devices.put("panda", new DummyMalcolmControlledPanda(axesToMoveList, model.getMonitorNames()));
+
+//		devices = model.getDummyDetectorModels().stream().collect(
+//				Collectors.toMap(d -> d.getName(), d -> new DummyMalcolmControlledDetector(d, axesToMoveList)));
+//		devices.put("panda", new DummyMalcolmControlledPanda(axesToMoveList, model.getMonitorNames()));
 	}
-	
+
 	@ScanFinally
 	public void scanFinally() {
 		// close all the nexus file
@@ -270,7 +281,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		devices = null;
 		firstRunCompleted = false;
 	}
-	
+
 	@Override
 	protected void setDeviceState(DeviceState nstate) throws ScanningException {
 		super.setDeviceState(nstate);
@@ -278,13 +289,14 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			state.setValue(nstate.toString());
 		}
 	}
-	
+
 	@PreConfigure
 	public void setPointGenerator(IPointGenerator<?> pointGenerator) {
 		super.setPointGenerator(pointGenerator);
-		
-		if (pointGenerator!=null) { // Some tests end up using the configure call of 
-			                        // RunnableDeviceService which does not have a pointGenerator
+
+		// Some tests end up using the configure call of RunnableDeviceService
+		// which does not have a pointGenerator
+		if (pointGenerator != null) {
 			scanRank = pointGenerator.iterator().next().getScanRank();
 			if (scanRank < 0) {
 				scanRank = 1;
@@ -300,51 +312,51 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		types.put(DATASETS_TABLE_COLUMN_PATH, String.class);
 		types.put(DATASETS_TABLE_COLUMN_RANK, Integer.class);
 		types.put(DATASETS_TABLE_COLUMN_UNIQUEID, String.class);
-		
+
 		// add rows for each DummyMalcolmDatasetModel
 		final MalcolmTable table = new MalcolmTable(types);
 
-		for (DummyMalcolmControlledDetectorModel detectorModel : model.getDummyDetectorModels()) {
-			final String deviceName = detectorModel.getName();
+		for (IDummyMalcolmControlledDevice device : devices.values()) {
+			final String deviceName = device.getName();
 			MalcolmDatasetType datasetType = PRIMARY; // the first dataset is the primary dataset
-			for (DummyMalcolmDatasetModel datasetModel : detectorModel.getDatasets()) {
+			for (DummyMalcolmDatasetModel datasetModel : device.getDatasetModels()) {
 				final String datasetName = datasetModel.getName();
 				final String path = String.format("/entry/%s/%s", datasetName, datasetName);
 				final String linkName = datasetType == PRIMARY ? NXdata.NX_DATA : datasetName;
 				final int datasetRank = scanRank + datasetModel.getRank();
-				table.addRow(createDatasetRow(deviceName, linkName,
-						deviceName + FILE_EXTENSION_HDF5, datasetType, path, datasetRank));
+				table.addRow(createDatasetRow(deviceName, linkName, deviceName + FILE_EXTENSION_HDF5, datasetType, path, datasetRank));
 				datasetType = SECONDARY;
 			}
 		}
-		
-		// Add rows for the demand values for the axes controlled by malcolm. Malcolm adds these
-		// to the NXdata for each primary and secondary dataset of each detector. As they
-		// are all the same, the datasets attribute only returns the first one
-		if (!model.getDummyDetectorModels().isEmpty()) {
-			final String firstDetectorName = model.getDummyDetectorModels().get(0).getName();
-			for (String axisToMove : model.getAxesToMove()) {
-				final String datasetName = "value_set";
-				final String path = String.format("/entry/%s/%s_set", firstDetectorName, axisToMove); // e.g. /entry/detector/x_set
-				table.addRow(createDatasetRow(axisToMove, datasetName,
-						firstDetectorName + FILE_EXTENSION_HDF5, POSITION_SET, path, 1)); 
+
+		// Add rows for the demand values for the axes controlled by malcolm.
+		// Malcolm adds these to the NXdata for each primary and secondary dataset of each detector.
+		// As they are all the same, the datasets attribute only returns the first one
+		for (IDummyMalcolmControlledDevice device : devices.values()) {
+			if (device instanceof DummyMalcolmControlledDetector) {
+				final String firstDetectorName = device.getName();
+				for (String axisToMove : model.getAxesToMove()) {
+					final String datasetName = "value_set";
+					final String path = String.format("/entry/%s/%s_set", firstDetectorName, axisToMove); // e.g. /entry/detector/x_set
+					table.addRow(createDatasetRow(axisToMove, datasetName, firstDetectorName + FILE_EXTENSION_HDF5,	POSITION_SET, path, 1));
+				}
+				break;
 			}
 		}
-		
+
 		// Add rows for the value datasets of each positioner (i.e. read-back-value)
-		for (String axis: model.getAxesToMove()) {
+		for (String axis : model.getAxesToMove()) {
 			final String path = String.format("/entry/%s/%s", axis, axis); // e.g. /entry/j1/j1
-			table.addRow(createDatasetRow(axis, "value",
-					"panda" + FILE_EXTENSION_HDF5, POSITION_VALUE, path, scanRank));
+			table.addRow(createDatasetRow(axis, "value", "panda" + FILE_EXTENSION_HDF5, POSITION_VALUE, path, scanRank));
 		}
-		
+
 		// Add rows for the value datasets of each monitor
 		for (String monitorName : model.getMonitorNames()) {
 			final String path = String.format("/entry/%s/%s", monitorName, monitorName); // e.g. /entry/i0/i0
-			table.addRow(createDatasetRow(monitorName, "value", "panda" + FILE_EXTENSION_HDF5,
-					MONITOR, path, scanRank)); // TODO can currently only handle scalar monitors
+			// TODO: can currently only handle scalar monitors
+			table.addRow(createDatasetRow(monitorName, "value", "panda" + FILE_EXTENSION_HDF5, MONITOR, path, scanRank));
 		}
-		
+
 		final TableAttribute datasets = new TableAttribute();
 		datasets.setValue(table);
 		datasets.setHeadings(table.getHeadings().toArray(new String[table.getHeadings().size()]));
@@ -352,13 +364,13 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		datasets.setLabel("datasets");
 		datasets.setDescription("Datasets produced in HDF file");
 		datasets.setWriteable(true);
-		
+
 		return datasets;
 	}
-	
-	private Map<String, Object> createDatasetRow(String deviceName, String datasetName,
-			String fileName, MalcolmDatasetType type, String path, int rank) {
-		Map<String, Object> datasetRow = new HashMap<>();
+
+	private Map<String, Object> createDatasetRow(String deviceName, String datasetName, String fileName,
+			MalcolmDatasetType type, String path, int rank) {
+		final Map<String, Object> datasetRow = new HashMap<>();
 		datasetRow.put(DATASETS_TABLE_COLUMN_NAME, deviceName + "." + datasetName);
 		datasetRow.put(DATASETS_TABLE_COLUMN_FILENAME, fileName);
 		datasetRow.put(DATASETS_TABLE_COLUMN_TYPE, type.name().toLowerCase());
@@ -375,35 +387,35 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		types.put("x", Double.class);
 		types.put("y", Double.class);
 		types.put("visible", Boolean.class);
-		
+
 		// add rows for each DummyMalcolmDatasetModel
 		final MalcolmTable table = new MalcolmTable(types);
-		
+
 		final Map<String, Object> datasetRow1 = new HashMap<>();
 		datasetRow1.put("name", "BRICK");
 		datasetRow1.put("mri", "P45-BRICK01");
 		datasetRow1.put("x", 0);
 		datasetRow1.put("y", 0);
 		datasetRow1.put("visible", false);
-		
+
 		final Map<String, Object> datasetRow2 = new HashMap<>();
 		datasetRow2.put("name", "MIC");
 		datasetRow2.put("mri", "P45-MIC");
 		datasetRow2.put("x", 0);
 		datasetRow2.put("y", 0);
 		datasetRow2.put("visible", false);
-		
+
 		final Map<String, Object> datasetRow3 = new HashMap<>();
 		datasetRow3.put("name", "ZEBRA");
 		datasetRow3.put("mri", "ZEBRA");
 		datasetRow3.put("x", 0);
 		datasetRow3.put("y", 0);
 		datasetRow3.put("visible", false);
-				
+
 		table.addRow(datasetRow1);
 		table.addRow(datasetRow2);
 		table.addRow(datasetRow3);
-		
+
 		final TableAttribute layout = new TableAttribute();
 		layout.setValue(table);
 		layout.setHeadings(table.getHeadings().toArray(new String[table.getHeadings().size()]));
@@ -411,33 +423,33 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		layout.setLabel("");
 		layout.setDescription("Layout of child blocks");
 		layout.setWriteable(false);
-		
+
 		return layout;
 	}
-	
+
 	@Override
 	public void run(IPosition outerScanPosition) throws ScanningException, InterruptedException {
 		paused = false;
 		setDeviceState(DeviceState.RUNNING);
 		status.setValue("Running");
 		completedSteps.setValue(totalSteps.getValue());
-		
+
 		if (!firstRunCompleted) {
 			createNexusFiles();
 			firstRunCompleted = true;
 		}
 
 		// get an iterator over the inner scan positions
-		final SubscanModerator moderator = new SubscanModerator(pointGenerator,
-				Arrays.asList(this), Services.getPointGeneratorService());
-		Iterable<IPosition> innerScanPositions = moderator.getInnerIterable();
-		
+		final SubscanModerator moderator = new SubscanModerator(pointGenerator, Arrays.asList(this),
+				Services.getPointGeneratorService());
+		final Iterable<IPosition> innerScanPositions = moderator.getInnerIterable();
+
 		// get each dummy device to write its position at each inner scan position
 		stepIndex = 0;
 		for (IPosition innerScanPosition : innerScanPositions) {
 			final long pointStartTime = System.nanoTime();
 			final long targetDuration = (long) (model.getExposureTime() * 1000000000.0); // nanoseconds
-			
+
 			while (paused) {
 				Thread.sleep(100);
 			}
@@ -449,29 +461,26 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 					logger.error("Couldn't write data for device " + device.getName(), e);
 				}
 			}
-			
+
 			// If required, sleep until the requested exposure time is over
-			long currentTime = System.nanoTime();
-			long duration = currentTime - pointStartTime;
+			final long currentTime = System.nanoTime();
+			final long duration = currentTime - pointStartTime;
 			if (duration < targetDuration) {
 				long millisToWait = (targetDuration - duration) / 1000000;
 				Thread.sleep(millisToWait);
 			}
-			
+
 			innerScanPosition.setStepIndex(stepIndex++);
 			firePositionComplete(innerScanPosition);
 		}
 		stepIndex = 0;
-		
+
 		status.setValue("Finished writing");
 		setDeviceState(DeviceState.READY);
 	}
 
 	private void createNexusFiles() throws ScanningException {
-		DummyMalcolmModel model = getModel();
-		if (model.getDummyDetectorModels().isEmpty()) return;
-		
-		String dirPath = model.getFileDir();
+		String dirPath = getModel().getFileDir();
 		if (!dirPath.endsWith("/")) {
 			dirPath += "/";
 		}
@@ -487,12 +496,12 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 
 	@Override
 	public void addMalcolmListener(IMalcolmListener l) {
-		// nothing to do  (TODO: do we need malcolm listeners?)
+		// nothing to do (TODO: do we need malcolm listeners?)
 	}
 
 	@Override
 	public void removeMalcolmListener(IMalcolmListener l) {
-		// nothing to do  (TODO: do we need malcolm listeners?)
+		// nothing to do (TODO: do we need malcolm listeners?)
 	}
 
 	@Override
@@ -521,8 +530,8 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		} catch (ScanningException e) {
 			throw new MalcolmDeviceException(e.getMessage());
 		}
-		
-		MalcolmAttribute malcolmAttribute = allAttributes.get(attribute);
+
+		final MalcolmAttribute malcolmAttribute = allAttributes.get(attribute);
 		if (malcolmAttribute != null) {
 			return malcolmAttribute.getValue();
 		}
@@ -532,48 +541,51 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 	@Override
 	public Object getAttribute(String attribute) throws ScanningException {
 		updateAttributesWithLatestValues();
-		
+
 		return allAttributes.get(attribute);
 	}
-	
+
 	public void setAttributeValue(String attributeName, Object value) throws ScanningException {
-		Object attr = getAttribute(attributeName);
-		if (attr==null) throw new ScanningException("There is no attribute called "+attributeName);
+		final Object attr = getAttribute(attributeName);
+		if (attr == null)
+			throw new ScanningException("There is no attribute called " + attributeName);
 		try {
-			Method setValue = attr.getClass().getMethod("setValue", value.getClass());
+			final Method setValue = attr.getClass().getMethod("setValue", value.getClass());
 			setValue.invoke(attr, value);
 		} catch (NoSuchMethodError | Exception ne) {
 			throw new ScanningException(ne);
 		}
 	}
-	
+
 	@Override
 	public void pause() throws ScanningException {
 		paused = true;
 	}
-	
+
 	@Override
 	public void resume() throws ScanningException {
 		paused = false;
 	}
-	
+
 	@Override
 	public List<MalcolmAttribute> getAllAttributes() throws ScanningException {
 		updateAttributesWithLatestValues();
-		
+
 		return new ArrayList<>(allAttributes.values());
 	}
 
 	private void updateAttributesWithLatestValues() throws ScanningException {
 		DeviceState deviceState = getDeviceState();
-		if (deviceState == null) deviceState = DeviceState.IDLE;
+		if (deviceState == null) {
+			deviceState = DeviceState.IDLE;
+		}
 		state.setValue(deviceState.toString());
 		status.setValue(getDeviceStatus());
 		busy.setValue(isDeviceBusy());
-		
+
 		datasets = createDatasetsAttribute(model);
 		allAttributes.put("datasets", datasets);
-		
+
 		layout = createLayoutAttribute();
 		allAttributes.put("layout", layout);
 	}
@@ -591,15 +603,14 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		}
 
 		@Override
-		public MalcolmMessage send(IMalcolmDevice device, MalcolmMessage message)
-				throws MalcolmDeviceException {
+		public MalcolmMessage send(IMalcolmDevice device, MalcolmMessage message) throws MalcolmDeviceException {
 			// do nothing
 			return null;
 		}
 
 		@Override
-		public void subscribe(IMalcolmDevice device, MalcolmMessage msg,
-				IMalcolmListener<MalcolmMessage> listener) throws MalcolmDeviceException {
+		public void subscribe(IMalcolmDevice device, MalcolmMessage msg, IMalcolmListener<MalcolmMessage> listener)
+				throws MalcolmDeviceException {
 			// do nothing
 		}
 
@@ -622,7 +633,7 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			// do nothing
 			return null;
 		}
-		
+
 	}
-	
+
 }

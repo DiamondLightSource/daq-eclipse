@@ -10,7 +10,7 @@ package org.eclipse.scanning.api.malcolm.attributes;
 public class BooleanAttribute extends MalcolmAttribute {
 	public static final String BOOLEAN_ID = "malcolm:core/BooleanMeta:";
 	
-	boolean value;
+	private boolean value;
 
 	@Override
 	public Boolean getValue() {
@@ -19,6 +19,11 @@ public class BooleanAttribute extends MalcolmAttribute {
 
 	public void setValue(boolean value) {
 		this.value = value;
+	}
+
+	@Override
+	public String toString() {
+		return "BooleanAttribute [value=" + value + ", " + super.toString() + "]";
 	}
 	
 }

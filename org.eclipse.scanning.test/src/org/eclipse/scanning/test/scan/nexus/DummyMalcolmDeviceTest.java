@@ -127,7 +127,6 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		det2Model.setName("detector2");
 		det2Model.addDataset(new DummyMalcolmDatasetModel("detector", 2, Double.class));
 
-		model.setDummyDetectorModels(Arrays.asList(det1Model, det2Model));
 		model.setAxesToMove(Arrays.asList("stage_x", "stage_y" ));
 		model.setMonitorNames(Arrays.asList("i0"));
 
@@ -139,7 +138,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		DummyMalcolmModel model = createModel(malcolmOutputDir);
 		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
 		// Cannot set the generator from @PreConfigure in this unit test.
-		((AbstractMalcolmDevice)malcolmDevice).setPointGenerator(getGenerator(2, 2));// Generator isn't actually used by the test malcolm device
+		((AbstractMalcolmDevice<DummyMalcolmModel>)malcolmDevice).setPointGenerator(getGenerator(2, 2));// Generator isn't actually used by the test malcolm device
 		int scanRank = 2;
 		assertNotNull(malcolmDevice);
 		malcolmDevice.configure(model);
@@ -156,7 +155,7 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		IRunnableDevice<DummyMalcolmModel> malcolmDevice = dservice.createRunnableDevice(model, false);
 		int scanRank = 3;
 		// Cannot set the generator from @PreConfigure in this unit test.
-		((AbstractMalcolmDevice)malcolmDevice).setPointGenerator(getGenerator(2, 2, 2));// Generator isn't actually used by the test malcolm device
+		((AbstractMalcolmDevice<DummyMalcolmModel>)malcolmDevice).setPointGenerator(getGenerator(2, 2, 2));// Generator isn't actually used by the test malcolm device
 		malcolmDevice.configure(model);
 
 		NexusScanInfo nexusScanInfo = new NexusScanInfo();
@@ -228,17 +227,17 @@ public class DummyMalcolmDeviceTest extends NexusTest {
 		// convert list into a map keyed by name
 		final Map<String, NexusObjectProvider<?>> nexusObjectMap = nexusProviders.stream().collect(
 				Collectors.toMap(n -> n.getName(), Function.identity()));
-		for (DummyMalcolmControlledDetectorModel device : model.getDummyDetectorModels()) {
-			final String deviceName = device.getName();
+		for (DummyMalcolmControlledDetectorModel deviceModel : model.getDummyDetectorModels()) {
+			final String deviceName = deviceModel.getName();
 			final NexusObjectProvider<?> nexusProvider = nexusObjectMap.get(deviceName);
 			final NXobject nexusObject = nexusProvider.getNexusObject();
 			assertNotNull(nexusProvider);
 			assertNotNull(nexusObject);
-			final String expectedFileName = malcolmOutputDir.getName() + "/" + device.getName() + FILE_EXTENSION_HDF5;
+			final String expectedFileName = malcolmOutputDir.getName() + "/" + deviceModel.getName() + FILE_EXTENSION_HDF5;
 			assertArrayEquals(new Object[] { expectedFileName }, nexusProvider.getExternalFileNames().toArray());
 			
 			boolean isFirst = true;
-			for (DummyMalcolmDatasetModel datasetModel : device.getDatasets()) {
+			for (DummyMalcolmDatasetModel datasetModel : deviceModel.getDatasets()) {
 				final String targetDatasetName = datasetModel.getName();
 				final String linkName = isFirst ? NXdata.NX_DATA : targetDatasetName;
 				final SymbolicNode externalLinkNode = nexusObject.getSymbolicNode(linkName);

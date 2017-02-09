@@ -7,16 +7,19 @@ import java.util.List;
 import org.eclipse.scanning.api.INameable;
 
 /**
- * A model describing a detector that would be controlled by malcolm in a real scan.
- * 
- * Note that this is <em>NOT</em> the model for a malcolm device - {@link DummyMalcolmModel}
- * fulfils that role. Instead one or more of these models in a child of a 
-   {@link DummyMalcolmModel} tells the
- * {@link DummyMalcolmDevice} what nexus files and datasets to write, so that it can be
- * set up to produce a nexus file similar to what a real malcolm device would.
- * 
+ * A model describing a detector that would be controlled by malcolm in a real
+ * scan.
+ * <p>
+ * Note that this is <em>NOT</em> the model for a malcolm device -
+ * {@link DummyMalcolmModel} fulfils that role. Instead one or more of these
+ * models in a child of a {@link DummyMalcolmModel} tells the
+ * {@link DummyMalcolmDevice} what nexus files and datasets to write, so that it
+ * can be set up to produce a nexus file similar to what a real malcolm device
+ * would.
+ * <p>
  * The first {@link DummyMalcolmDatasetModel} in the {@link List} returned by
  * {@link #getDatasets()} will be the primary one, the others will be secondary.
+ * <p>
  * 
  * @author Matthew Dickie
  */
@@ -45,7 +48,9 @@ public class DummyMalcolmControlledDetectorModel implements INameable {
 	}
 
 	public List<DummyMalcolmDatasetModel> getDatasets() {
-		if (datasets == null) return Collections.emptyList();
+		if (datasets == null) {
+			return Collections.emptyList();
+		}
 		return datasets;
 	}
 
@@ -59,7 +64,9 @@ public class DummyMalcolmControlledDetectorModel implements INameable {
 	}
 	
 	public void addDataset(DummyMalcolmDatasetModel dataset) {
-		if (this.datasets == null) this.datasets = new ArrayList<>();
+		if (this.datasets == null) {
+			this.datasets = new ArrayList<>();
+		}
 		datasets.add(dataset);
 	}
 

@@ -208,4 +208,10 @@ public class MalcolmTable implements Iterable<Map<String, Object>> {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "MalcolmTable [tableData=" + tableData + ", tableDataTypes=" + tableDataTypes + ", headings=" + headings
+				+ ", numRows=" + numRows + "]";
+	}
 }

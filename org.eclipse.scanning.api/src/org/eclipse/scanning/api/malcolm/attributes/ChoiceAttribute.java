@@ -1,5 +1,7 @@
 package org.eclipse.scanning.api.malcolm.attributes;
 
+import java.util.Arrays;
+
 /**
  * 
  * Encapsulates a choice attribute as read from a malcolm device
@@ -29,5 +31,10 @@ public class ChoiceAttribute extends MalcolmAttribute {
 	public void setValue(String value) {
 		this.value = value;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "ChoiceAttribute [choices=" + Arrays.toString(choices) + ", value=" + value + ", " + super.toString() + "]";
+	}
+
 }
