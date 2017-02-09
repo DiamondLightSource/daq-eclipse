@@ -10,6 +10,7 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.richbeans.widgets.internal.GridUtils;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.filter.IFilterService;
 import org.eclipse.scanning.api.points.models.ScanRegion;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.device.ui.util.SortNatural;
@@ -33,7 +34,8 @@ public class AxesCellEditor extends CellEditor {
 	public AxesCellEditor(Composite control, DelegatingSelectionProvider prov, IScannableDeviceService cservice) throws ScanningException {
 		super();
 		this.prov   = prov;
-		this.names = cservice.getScannableNames();
+		this.names = IFilterService.DEFAULT.filter("org.eclipse.scanning.scannableFilter", cservice.getScannableNames());
+
 		Collections.sort(names, new SortNatural<>(false));
 		create(control);
 	}

@@ -45,6 +45,7 @@ import org.eclipse.scanning.api.annotation.ui.FileType;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
+import org.eclipse.scanning.api.filter.IFilterService;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.device.ui.ServiceHolder;
 import org.eclipse.scanning.device.ui.util.PageUtil;
@@ -207,11 +208,12 @@ public class ModelFieldEditorFactory {
         
 		final List<String> items;
 		if (deviceType == DeviceType.SCANNABLE) {
-			items = cservice.getScannableNames();
+			items = IFilterService.DEFAULT.filter("org.eclipse.scanning.scannableFilter", cservice.getScannableNames());
 		} else if (deviceType == DeviceType.RUNNABLE) {
 			Collection<DeviceInformation<?>> infos = dservice.getDeviceInformation();
-			items = new ArrayList<String>(infos.size());
-			infos.forEach(info->{if (info.getDeviceRole().isDetector()) items.add(info.getName());});
+			List<String> names = new ArrayList<String>(infos.size());
+			infos.forEach(info->{if (info.getDeviceRole().isDetector()) names.add(info.getName());});
+			items = IFilterService.DEFAULT.filter("org.eclipse.scanning.detectorFilter", names);
 		} else {
 			throw new ScanningException("Unrecognised device "+deviceType);
 		}

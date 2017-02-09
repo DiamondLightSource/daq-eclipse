@@ -26,6 +26,8 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	private Map<String, INameable> cache;
 	private IPublisher<Location>   positionPublisher;
 	
+	private boolean createIfNotThere = true;
+	
 	// Spring
 	public MockScannableConnector() {
 		// Called by Spring.
@@ -155,8 +157,11 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 		if (name==null) throw new ScanningException("Invalid scannable "+name);
 		if (cache==null) cache = new HashMap<String, INameable>(3);
 		if (cache.containsKey(name)) return (IScannable<T>)cache.get(name);
-		register(new MockScannable(name, 0d));
-		return (IScannable<T>)cache.get(name);
+		if (createIfNotThere) {
+			register(new MockScannable(name, 0d));
+			return (IScannable<T>)cache.get(name);
+		} 
+		return null;
 	}
 
 
@@ -189,6 +194,14 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 
 	public void setBroker(String broker) {
 		this.broker = broker;
+	}
+
+	public boolean isCreateIfNotThere() {
+		return createIfNotThere;
+	}
+
+	public void setCreateIfNotThere(boolean createIfNotThere) {
+		this.createIfNotThere = createIfNotThere;
 	}
 
 }
