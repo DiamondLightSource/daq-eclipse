@@ -292,10 +292,10 @@ public class DetectorView extends EventConnectionView {
 				                "(If not the 'Configure' action can be used to send your local edits to a device.)");
 		if (!ok) return;
 		
-		viewer.setInput(new Object());
 		if (info!=null) {
 			try {
-			    Collection<DeviceInformation<?>> devices = dservice.getDeviceInformation();
+			    Collection<DeviceInformation<?>> devices = dservice.getDeviceInformationIncludingNonAlive();
+				viewer.setInput(new Object());
 			    for (DeviceInformation<?> di : devices) {
 					if (di.getName()!=null && info.getName()!=null && di.getName().equals(info.getName())) {
 						viewer.setSelection(new StructuredSelection(di));

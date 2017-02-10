@@ -84,6 +84,11 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	private boolean requireMetrics;
 	
 	/**
+	 * Alive here is taken to represent the device being on and responding.
+	 */
+	private boolean alive = true;
+	
+	/**
 	 * Since making the tree takes a while we measure its
 	 * time and make that available to clients.
 	 * It is optional if a given AbstractRunnableDevice
@@ -465,19 +470,52 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 * @throws ScanningException
 	 */
 	public final DeviceInformation<T> getDeviceInformation() throws ScanningException {
+ 		return getDeviceInformationIncludeNonAlive(false);
+	}
+
+	/**
+	 * Do not override without calling super.getDeviceInformation()
+	 * Method is final for now to help avoid that problem.
+	 * Gets the device information, with the ability to specify whether to get information that is potentially held
+	 * on a device or not in the case that the device is not marked as being alive.
+	 * 
+	 * @param includeNonAlive If set to false, if a device is not alive, information potentially held on the device will not be retrieved
+	 * @return
+	 * @throws ScanningException
+	 */
+	public final DeviceInformation<T> getDeviceInformationIncludeNonAlive(boolean includeNonAlive) throws ScanningException {
 		if (deviceInformation==null) {
 			deviceInformation = new DeviceInformation<T>();
 		}
 		deviceInformation.setModel(getModel());
-		deviceInformation.setState(getDeviceState());
 		deviceInformation.setDeviceRole(getRole());
 		deviceInformation.setSupportedScanModes(getSupportedScanModes());
-		deviceInformation.setStatus(getDeviceStatus());
-		deviceInformation.setBusy(isDeviceBusy());
-		deviceInformation.setAttributes(getAllAttributes());
 		if (getName()!=null) deviceInformation.setName(getName());
 		deviceInformation.setLevel(getLevel());
 		deviceInformation.setActivated(isActivated());
+		deviceInformation.setAlive(isAlive());
+		
+		// Information below may come from an actual device. Check if device is alive before attempting to get this 
+		if (includeNonAlive || deviceInformation.isAlive()) {
+			try {
+				deviceInformation.setState(getDeviceState());
+				deviceInformation.setStatus(getDeviceStatus());
+				deviceInformation.setBusy(isDeviceBusy());
+				deviceInformation.setAttributes(getAllAttributes());
+				deviceInformation.setAlive(isAlive());
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				deviceInformation.setAlive(false);
+			}
+		}
+
+		// TODO TEMPFIX for DAQ-419 before GUI updated. Just need some way of showing user if a device is offline.
+		deviceInformation.setLabel(deviceInformation.getLabel().replace(" [*]","")); // Get rid of any existing non-alive flag
+		if (!deviceInformation.isAlive()) {
+			deviceInformation.setLabel(deviceInformation.getLabel() + " [*]"); 
+			deviceInformation.setState(DeviceState.OFFLINE);
+		}
+		
  		return deviceInformation;
 	}
 
@@ -609,5 +647,13 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	@Override
 	public String toString() {
 		return getClass().getName() + '@' + Integer.toHexString(hashCode()) +" [name=" + name + "]";
+	}
+	
+	public boolean isAlive() {
+		return alive;
+	}
+	
+	public void setAlive(boolean alive) {
+		this.alive = alive;
 	}
 }
