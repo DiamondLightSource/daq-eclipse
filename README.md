@@ -11,6 +11,8 @@ This repository is checked by a Travis CI build which looks at the last commit m
 It is compulsory to reference a jira commit or merge from a commit that does or the build will fail.
 
 # Adding Tests
+The test system is linked into Travis CI and your pull request will be checked with the build and test. Tests should not be added in the same bundle that created the feature but in a .test bundle which may be a fragment of the original bundle. This enables the build to remove test code from the binary easily because those bundles are not in the feature. NOTE This has the added benefit that your test bunles or fragment may have dependencies which the main bundle does not. For instance in org.eclipse.scanning.test we depend on almost eveything imaginable but of course this bundle is not part of the binary product.
+
 Instead of having to name your class *Test as in other projects, in this project you should add a Suite to each package of tests. This defines the tests that are run automatically in the build. This procedure allows for long running or CPU/threading tests to be ommited from a build to keep the run time down while waiting for the merge.
 
 Example: [org.eclipse.scanning.test.points.Suite](https://github.com/DiamondLightSource/daq-eclipse/blob/master/org.eclipse.scanning.test/src/org/eclipse/scanning/test/points/Suite.java)
