@@ -510,9 +510,13 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 		}
 
 		// TODO TEMPFIX for DAQ-419 before GUI updated. Just need some way of showing user if a device is offline.
-		deviceInformation.setLabel(deviceInformation.getLabel().replace(" [*]","")); // Get rid of any existing non-alive flag
+		if (deviceInformation.getLabel() != null) {
+			deviceInformation.setLabel(deviceInformation.getLabel().replace(" [*]","")); // Get rid of any existing non-alive flag
+		}
 		if (!deviceInformation.isAlive()) {
-			deviceInformation.setLabel(deviceInformation.getLabel() + " [*]"); 
+			if (deviceInformation.getLabel() != null) {
+				deviceInformation.setLabel(deviceInformation.getLabel() + " [*]"); 
+			}
 			deviceInformation.setState(DeviceState.OFFLINE);
 		}
 		
