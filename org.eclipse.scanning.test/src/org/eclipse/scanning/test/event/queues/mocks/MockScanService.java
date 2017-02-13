@@ -103,4 +103,10 @@ public class MockScanService implements IRunnableDeviceService {
 		return null;
 	}
 
+	@Override
+	public Collection<DeviceInformation<?>> getDeviceInformationIncludingNonAlive() throws ScanningException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

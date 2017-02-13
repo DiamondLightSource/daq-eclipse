@@ -169,12 +169,14 @@ public interface IRunnableDeviceService extends IPositionerService {
 
     /**
      * Get the information for all the runnable devices currently created.
+     * Will not get device information that is potentially held on the device if the device is not alive.
      * @return
      */
 	Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException;
 	
     /**
-     * Get the information for all the runnable devices currently created.
+     * Get the information for all the runnable devices currently created with a specific role.
+     * Will not get device information that is potentially held on the device if the device is not alive.
      * @return
      */
 	Collection<DeviceInformation<?>> getDeviceInformation(DeviceRole role) throws ScanningException;
@@ -184,6 +186,13 @@ public interface IRunnableDeviceService extends IPositionerService {
      * @return
      */
 	DeviceInformation<?> getDeviceInformation(String name) throws ScanningException;
+	
+    /**
+     * Get the information for all the runnable devices currently created.
+     * Will attempt to get device information that is potentially held on the device even if the device is not alive.
+     * @return
+     */
+	Collection<DeviceInformation<?>> getDeviceInformationIncludingNonAlive() throws ScanningException;
 
 
 }

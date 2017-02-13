@@ -166,4 +166,14 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 		return info.getAttributes();
 	}
 
+	@Override
+	public boolean isAlive() {
+		return info.isAlive();
+	}
+
+	@Override
+	public void setAlive(boolean alive) {
+		info.setAlive(alive);
+	}
+
 }

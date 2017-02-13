@@ -121,14 +121,27 @@ public class _RunnableDeviceService extends AbstractRemoteService implements IRu
 	}
 
 	private DeviceInformation<?>[] getDevices() throws ScanningException {
+	    return getDevices(false);
+	}
+
+	private DeviceInformation<?>[] getDevices(boolean getNonAlive) throws ScanningException {
 	    DeviceRequest req;
 		try {
-			req = requester.post(new DeviceRequest());
+			DeviceRequest outboundRequest = new DeviceRequest();
+			outboundRequest.setIncludeNonAlive(getNonAlive);
+			req = requester.post(outboundRequest);
 			req.checkException();
 		} catch (EventException | InterruptedException e) {
 			throw new ScanningException("Cannot get devices! Connection to broker may be lost or no server up!", e);
 		}
 	    return req.getDevices().toArray(new DeviceInformation<?>[req.size()]);
+	}
+
+	@Override
+	public Collection<DeviceInformation<?>> getDeviceInformationIncludingNonAlive() throws ScanningException {
+		// TODO Matt G - extend the timeout here. Timeout seems to be set in init(). Possibly need to set new
+		// ResponseConfiguration with longer timeout here, and then set it back afterwards?
+		return Arrays.asList(getDevices(true));
 	}
 
 	@Override
