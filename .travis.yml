@@ -5,11 +5,7 @@ language: java
 # Makes build faster to cache maven things.
 cache:
   directories:
-  - .autoconf
-  - $HOME/.m2
-
-services:
-  - docker
+   - $HOME/.m2  # Maven dependencies
 
 # whitelist
 branches:
@@ -19,10 +15,6 @@ branches:
 jdk:
  - oraclejdk8
  
-# Handle git submodules manually
-git:
-    submodules: false
-
 before_install:
  - chmod +x ./org.eclipse.scanning.releng/build/commit-msg.sh
  - bash ./org.eclipse.scanning.releng/build/commit-msg.sh
@@ -55,7 +47,7 @@ install:
  
 # Set LD_LIBRARY_PATH for the tests. Also set a variable that attempts to clear /tmp on the travis node to avoid it getting large
 env:
-  - CLEAR_TMP=true LD_LIBRARY_PATH=/home/travis/build/dawn-hdf/hdf.hdf5lib/lib/linux-x86_64
+  - LD_LIBRARY_PATH=/home/travis/build/dawn-hdf/hdf.hdf5lib/lib/linux-x86_64
  
 # compile and test
 script: 
