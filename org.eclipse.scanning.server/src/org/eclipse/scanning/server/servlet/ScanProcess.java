@@ -287,7 +287,6 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 			
 			scanModel.setDetectors(getDetectors(req.getDetectors()));
 			scanModel.setMonitors(getScannables(req.getMonitorNames()));
-			scanModel.setMetadataScannables(getScannables(req.getMetadataScannableNames()));
 			scanModel.setScanMetadata(req.getScanMetadata());
 			scanModel.setBean(bean);
 			

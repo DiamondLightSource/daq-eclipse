@@ -35,6 +35,7 @@ import org.eclipse.dawnsci.nexus.builder.data.PrimaryDataDevice;
 import org.eclipse.dawnsci.nexus.builder.impl.MapBasedMetadataProvider;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.points.AbstractPosition;
@@ -198,8 +199,13 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		Map<ScanRole, Collection<INexusDevice<?>>> nexusDevices = new EnumMap<>(ScanRole.class);
 		nexusDevices.put(ScanRole.DETECTOR,  getNexusDevices(model.getDetectors()));
 		nexusDevices.put(ScanRole.SCANNABLE, getNexusScannables(scannableNames));
-		nexusDevices.put(ScanRole.MONITOR,   getNexusDevices(model.getMonitors()));
-		nexusDevices.put(ScanRole.METADATA,  getNexusDevices(model.getMetadataScannables()));
+		
+		if (model.getMonitors()!=null) {
+			Collection<IScannable<?>> perPoint = model.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_POINT).collect(Collectors.toList());
+			Collection<IScannable<?>> perScan  = model.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_SCAN).collect(Collectors.toList());
+			nexusDevices.put(ScanRole.MONITOR,   getNexusDevices(perPoint));
+			nexusDevices.put(ScanRole.METADATA,  getNexusDevices(perScan));
+		}
 		
 		return nexusDevices;
 	}
@@ -243,8 +249,10 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		final Set<String> metadataScannableNames = new HashSet<>();
 		
 		// add the metadata scannables in the model
-		metadataScannableNames.addAll(model.getMetadataScannables().stream().
-				map(m -> m.getName()).collect(Collectors.toSet()));
+		if (model.getMonitors()!=null) {
+			Collection<IScannable<?>> perScan  = model.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_SCAN).collect(Collectors.toList());
+			metadataScannableNames.addAll(perScan.stream().map(m -> m.getName()).collect(Collectors.toSet()));
+		}
 		
 		// add the global metadata scannables, and the required metadata scannables for
 		// each scannable in the scan
@@ -276,7 +284,14 @@ public class NexusScanFileManager implements INexusScanFileManager {
 			metadataScannables.add(metadataScannable);
 		}
 		
-		model.setMetadataScannables(metadataScannables);
+		for (IScannable<?> iScannable : metadataScannables) {
+			try {
+				iScannable.setMonitorRole(MonitorRole.PER_SCAN);
+				iScannable.setActivated(true);
+			} catch (Exception ne) {
+			    logger.error("Cannot setup metadata scannable (per scan moinitor) "+iScannable.getName(), ne);
+			}
+		}
 	}
 	
 	private List<String> getScannableNames(Iterable<IPosition> gen) {
@@ -297,8 +312,11 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		scanInfo.setRank(scanRank);
 		
 		scanInfo.setDetectorNames(getDeviceNames(scanModel.getDetectors()));
-		scanInfo.setMonitorNames(getDeviceNames(scanModel.getMonitors()));
-		scanInfo.setMetadataScannableNames(getDeviceNames(scanModel.getMetadataScannables()));
+
+		Collection<IScannable<?>> perPoint = model.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_POINT).collect(Collectors.toList());
+		Collection<IScannable<?>> perScan  = model.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_SCAN).collect(Collectors.toList());
+        scanInfo.setMonitorNames(getDeviceNames(perPoint));
+		scanInfo.setMetadataScannableNames(getDeviceNames(perScan));
 		
 		return scanInfo;
 	}
