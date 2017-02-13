@@ -36,6 +36,7 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 	private int                 level;
 	private String              name;
 	private boolean             activated;
+	private MonitorRole         monitorRole=MonitorRole.PER_POINT;
 	
 	/**
 	 * Model is used for some scannables for instance those writing NeXus 
@@ -226,6 +227,14 @@ public abstract class AbstractScannable<T> implements IScannable<T>, IScanAttrib
 	}
 	public void setScannableDeviceService(IScannableDeviceService scannableDeviceService) {
 		this.scannableDeviceService = scannableDeviceService;
+	}
+	public MonitorRole getMonitorRole() {
+		return monitorRole;
+	}
+	public MonitorRole setMonitorRole(MonitorRole monitorRole) {
+		MonitorRole orig = this.monitorRole;
+		this.monitorRole = monitorRole;
+		return orig;
 	}
 	
 }
