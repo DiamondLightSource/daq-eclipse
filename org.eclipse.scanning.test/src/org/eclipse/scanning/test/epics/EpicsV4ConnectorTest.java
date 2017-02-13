@@ -4,16 +4,26 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
+import org.eclipse.dawnsci.analysis.api.roi.IROI;
+import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.IMalcolmService;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
+import org.eclipse.scanning.api.points.IPointGenerator;
+import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.SpiralModel;
 import org.eclipse.scanning.connector.epics.EpicsV4ConnectorService;
 import org.eclipse.scanning.example.malcolm.ExampleMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.ExampleMalcolmModel;
+import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
+import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Test;
 
 /**
@@ -134,6 +144,140 @@ public class EpicsV4ConnectorTest {
 		} finally {
 			// Stop the device
 			dummyMalcolmDevice.stop();
+		}
+	}
+
+	/**
+	 * Starts an instance of the ExampleMalcolmDevice and then attempts to configure the device after having stopped the device.
+	 * Expect to get an error message saying it can't connect to the device.
+	 * @throws Exception
+	 */
+	@Test
+	public void ConnectToValidDeviceButOfflineWhenConfigure() throws Exception {
+
+		try {
+			// Setup the objects
+			this.connectorService = new EpicsV4ConnectorService();
+
+			// The real service, get it from OSGi outside this test!
+			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
+			this.service = new MalcolmService(connectorService, null);
+
+			// Start the dummy test device
+			new Thread(new DeviceRunner()).start();
+
+			// Get the device
+			IMalcolmDevice<ExampleMalcolmModel> modelledDevice = service.getDevice(getTestDeviceName());
+
+			// Get the device state.
+			DeviceState deviceState = modelledDevice.getDeviceState();
+			
+			assertEquals(DeviceState.IDLE, deviceState);
+			
+			List<IROI> regions = new LinkedList<>();
+			regions.add(new CircularROI(2, 6, 1));
+			
+			IPointGeneratorService pgService = new PointGeneratorService();
+			IPointGenerator<SpiralModel> temp = pgService
+					.createGenerator(new SpiralModel("stage_x", "stage_y", 1, new BoundingBox(0, -5, 8, 3)), regions);
+			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
+			
+			ExampleMalcolmModel pmac1 = new ExampleMalcolmModel();
+			pmac1.setExposureTime(23.1);
+			pmac1.setFileDir("/TestFile/Dir");
+
+			// Set the generator on the device
+			// Cannot set the generator from @PreConfigure in this unit test.
+			((AbstractMalcolmDevice)modelledDevice).setPointGenerator(scan);
+			
+			dummyMalcolmDevice.stop();
+			
+			try {
+				// Call configure
+				modelledDevice.configure(pmac1);
+				fail("No exception thrown but one was expected");
+				
+			} catch (Exception ex) {
+				assertEquals(MalcolmDeviceException.class, ex.getClass());
+				assertTrue("Message was: " + ex.getMessage(), ex.getMessage().contains("Failed to connect to device"));
+				assertTrue("Message was: " + ex.getMessage(), ex.getMessage().contains(getTestDeviceName()));
+			}
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		} finally {
+			// Stop the device (if not stopped already)
+			dummyMalcolmDevice.stop();
+			Thread.sleep(1000);
+		}
+	}
+
+	/**
+	 * Starts an instance of the ExampleMalcolmDevice and then attempts to run the device after having stopped the device.
+	 * Expect to get an error message saying it can't connect to the device.
+	 * @throws Exception
+	 */
+	@Test
+	public void ConnectToValidDeviceButOfflineWhenRun() throws Exception {
+
+		try {
+			// Setup the objects
+			this.connectorService = new EpicsV4ConnectorService();
+
+			// The real service, get it from OSGi outside this test!
+			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
+			this.service = new MalcolmService(connectorService, null);
+
+			// Start the dummy test device
+			new Thread(new DeviceRunner()).start();
+
+			// Get the device
+			IMalcolmDevice<ExampleMalcolmModel> modelledDevice = service.getDevice(getTestDeviceName());
+
+			// Get the device state.
+			DeviceState deviceState = modelledDevice.getDeviceState();
+			
+			assertEquals(DeviceState.IDLE, deviceState);
+			
+			List<IROI> regions = new LinkedList<>();
+			regions.add(new CircularROI(2, 6, 1));
+			
+			IPointGeneratorService pgService = new PointGeneratorService();
+			IPointGenerator<SpiralModel> temp = pgService
+					.createGenerator(new SpiralModel("stage_x", "stage_y", 1, new BoundingBox(0, -5, 8, 3)), regions);
+			IPointGenerator<?> scan = pgService.createCompoundGenerator(temp);
+			
+			ExampleMalcolmModel pmac1 = new ExampleMalcolmModel();
+			pmac1.setExposureTime(23.1);
+			pmac1.setFileDir("/TestFile/Dir");
+
+			// Set the generator on the device
+			// Cannot set the generator from @PreConfigure in this unit test.
+			((AbstractMalcolmDevice)modelledDevice).setPointGenerator(scan);
+			
+			// Call configure
+			modelledDevice.configure(pmac1);
+
+			dummyMalcolmDevice.stop();
+			
+			try {
+				modelledDevice.run(null);
+				fail("No exception thrown but one was expected");
+				
+			} catch (Exception ex) {
+				assertEquals(MalcolmDeviceException.class, ex.getClass());
+				assertTrue("Message was: " + ex.getMessage(), ex.getMessage().contains("Failed to connect to device"));
+				assertTrue("Message was: " + ex.getMessage(), ex.getMessage().contains(getTestDeviceName()));
+			}
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail(ex.getMessage());
+		} finally {
+			// Stop the device (if not stopped already)
+			dummyMalcolmDevice.stop();
+			Thread.sleep(1000);
 		}
 	}
 

@@ -191,7 +191,12 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			
 		} else {  // Device list needed.
 			
-			Collection<DeviceInformation<?>> info = dservice.getDeviceInformation();
+			Collection<DeviceInformation<?>> info;
+			if (request.isIncludeNonAlive()) {
+				info = dservice.getDeviceInformationIncludingNonAlive();
+			} else {
+				info = dservice.getDeviceInformation();
+			}
 			request.setDevices(info);
 		}
 	}

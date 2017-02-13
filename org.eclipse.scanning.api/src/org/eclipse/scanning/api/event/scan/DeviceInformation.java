@@ -116,6 +116,11 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	
 	private Set<ScanMode> supportedScanModes;
 
+	/**
+	 * A device is 'alive' if it exists and is responding.
+	 */
+	private boolean alive = true;
+
 	public DeviceInformation() {
 
 	}
@@ -408,6 +413,14 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 
 	public void setAttributes(List<MalcolmAttribute> attributes) {
 		this.attributes = attributes;
+	}
+
+	public boolean isAlive() {
+		return alive;
+	}
+
+	public void setAlive(boolean alive) {
+		this.alive = alive;
 	}
 
 }

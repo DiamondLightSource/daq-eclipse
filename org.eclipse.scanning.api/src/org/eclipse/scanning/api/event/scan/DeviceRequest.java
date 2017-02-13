@@ -93,6 +93,12 @@ public class DeviceRequest extends IdBean {
 	private String errorMessage;
 	
 	private String[] errorFieldNames;
+
+	/**
+	 * Set whether to get device information that is potentially held 
+	 * the device itself from a device that is marked as not being alive.
+	 */
+	private boolean includeNonAlive = false;
 	
 	@Override
 	public <A extends IdBean> void merge(A with) {
@@ -108,6 +114,7 @@ public class DeviceRequest extends IdBean {
 		position         = dr.position;
 		errorMessage     = dr.errorMessage;
 		errorFieldNames  = dr.errorFieldNames;
+		includeNonAlive  = dr.includeNonAlive;
 	}
 
 	
@@ -213,6 +220,8 @@ public class DeviceRequest extends IdBean {
 			return false;
 		DeviceRequest other = (DeviceRequest) obj;
 		if (configure != other.configure)
+			return false;
+		if (includeNonAlive != other.includeNonAlive)
 			return false;
 		if (deviceAction != other.deviceAction)
 			return false;
@@ -352,6 +361,14 @@ public class DeviceRequest extends IdBean {
 
 	public void setErrorFieldNames(String[] errorFieldNames) {
 		this.errorFieldNames = errorFieldNames;
+	}
+
+	public boolean isIncludeNonAlive() {
+		return includeNonAlive;
+	}
+	
+	public void setIncludeNonAlive(boolean includeNonAlive) {
+		this.includeNonAlive = includeNonAlive;
 	}
 
 	/**

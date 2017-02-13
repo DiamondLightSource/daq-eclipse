@@ -337,6 +337,15 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, 
 
 	@Override
 	public Collection<DeviceInformation<?>> getDeviceInformation() throws ScanningException {
+		return getDeviceInformation(false);
+	}
+
+	@Override
+	public Collection<DeviceInformation<?>> getDeviceInformationIncludingNonAlive() throws ScanningException {
+		return getDeviceInformation(true);
+	}
+
+	private Collection<DeviceInformation<?>> getDeviceInformation(boolean getNonAliveDeviceInformation) throws ScanningException {
 		
 		Collection<DeviceInformation<?>> ret = new ArrayList<>();
 		final Collection<String> names = getRunnableDeviceNames();
@@ -347,8 +356,13 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, 
 				IRunnableDevice<Object> device = getRunnableDevice(name);
 				if (device==null)  continue;		
 				if (!(device instanceof AbstractRunnableDevice)) continue;
+				DeviceInformation<?> info;
+				if (getNonAliveDeviceInformation) {
+					info = ((AbstractRunnableDevice<?>)device).getDeviceInformationIncludeNonAlive(true);
+				} else {
+					info = ((AbstractRunnableDevice<?>)device).getDeviceInformation();
+				}
 				
-				DeviceInformation<?> info = ((AbstractRunnableDevice<?>)device).getDeviceInformation();
 				ret.add(info);
 			} catch (Exception ex) {
 				logger.warn("Error getting device info for : " + name);
