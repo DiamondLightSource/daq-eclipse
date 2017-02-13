@@ -364,7 +364,10 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 
 	@Override
 	public void run(IPosition pos) throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace(), DeviceState.RUNNING);
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace(), DeviceState.RUNNING);
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 	
 	@Override
@@ -380,27 +383,42 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 
 	@Override
 	public void abort() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 
 	@Override
 	public void disable() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 
 	@Override
 	public void reset() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 
 	@Override
 	public void pause() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 	
 	@Override
 	public void resume() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 
 	@Override
