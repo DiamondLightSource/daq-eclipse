@@ -14,6 +14,8 @@ import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
  * 
  * Information about a given device. It may be an IRunnabDevice or an IScannableDevice.
  * 
+ * The type of information is for displaying the device in the UI.
+ * 
  * @author Matthew Gerring
  *
  */
@@ -160,10 +162,18 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		this.label = label;
 	}
 
+	/**
+	 * @deprecated the id is no longer needed. It is just a fall back
+	 * for when the name is not available.
+	 */
 	public String getId() {
 		return id;
 	}
 
+	/**
+	 * @deprecated the id is no longer needed. It is just a fall back
+	 * for when the name is not available.
+	 */
 	public void setId(String id) {
 		this.id = id;
 	}

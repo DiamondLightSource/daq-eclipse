@@ -57,12 +57,6 @@ public class ScanRequest<T> implements Serializable {
 	 * The sample data which the user entered (if any) which determines
 	 */
 	private SampleData sampleData;
-	
-	/**
-	 * The names of metadata scannables. These are scannables whose field value(s)
-	 * are written once during the scan, may be null.
-	 */
-	private Collection<String> metadataScannableNames;
 
 	/**
 	 * Scan metadata that is not produced by a particular device, e.g.
@@ -140,14 +134,6 @@ public class ScanRequest<T> implements Serializable {
 		this.monitorNames = monitorNames;
 	}
 	
-	public Collection<String> getMetadataScannableNames() {
-		return metadataScannableNames;
-	}
-	
-	public void setMetadataScannableNames(Collection<String> metadataScannableNames) {
-		this.metadataScannableNames = metadataScannableNames;
-	}
-	
 	public String getFilePath() {
 		return filePath;
 	}
@@ -168,7 +154,6 @@ public class ScanRequest<T> implements Serializable {
 		result = prime * result + ((end == null) ? 0 : end.hashCode());
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
 		result = prime * result + (ignorePreprocess ? 1231 : 1237);
-		result = prime * result + ((metadataScannableNames == null) ? 0 : metadataScannableNames.hashCode());
 		result = prime * result + ((compoundModel == null) ? 0 : compoundModel.hashCode());
 		result = prime * result + ((monitorNames == null) ? 0 : monitorNames.hashCode());
 		result = prime * result + ((scanMetadata == null) ? 0 : scanMetadata.hashCode());
@@ -222,11 +207,6 @@ public class ScanRequest<T> implements Serializable {
 			return false;
 		if (ignorePreprocess != other.ignorePreprocess)
 			return false;
-		if (metadataScannableNames == null) {
-			if (other.metadataScannableNames != null)
-				return false;
-		} else if (!metadataScannableNames.equals(other.metadataScannableNames))
-			return false;
 		if (compoundModel == null) {
 			if (other.compoundModel != null)
 				return false;
@@ -254,7 +234,6 @@ public class ScanRequest<T> implements Serializable {
 	public String toString() {
 		return "ScanRequest [model=" + compoundModel + ", detectors=" + detectors +
 				", monitorNames=" + monitorNames +
-				", metadataScannableNames=" + metadataScannableNames +
 				", filePath=" + filePath + ", start=" + start + ", end=" + end + "]";
 	}
 

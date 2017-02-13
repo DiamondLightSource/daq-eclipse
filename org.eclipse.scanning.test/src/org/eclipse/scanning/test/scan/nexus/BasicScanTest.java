@@ -11,6 +11,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
@@ -28,6 +30,7 @@ import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.DatasetUtils;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
@@ -143,15 +146,19 @@ public class BasicScanTest extends NexusTest {
 		int[] shape = null;
 		
 		// check metadata scannables
-		if (scanModel.getMetadataScannables() != null) {
+		if (scanModel.getMonitors() != null) {
 			checkMetadataScannables(scanModel, instrument);
 		}
 		
 		final IPosition pos = scanModel.getPositionIterable().iterator().next();
 		final Collection<String> scannableNames = pos.getNames();
-		final boolean hasMonitor = scanModel.getMonitors() != null && !scanModel.getMonitors().isEmpty();
 		
-		String dataGroupName = hasMonitor ? scanModel.getMonitors().get(0).getName() : pos.getNames().get(0);
+		List<IScannable<?>> perPoint  = scanModel.getMonitors() != null
+                ? scanModel.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_POINT).collect(Collectors.toList())
+                : null;
+        final boolean hasMonitor = perPoint != null && !perPoint.isEmpty();
+ 		
+		String dataGroupName = hasMonitor ? perPoint.get(0).getName() : pos.getNames().get(0);
 		NXdata nxData = entry.getData(dataGroupName);
 		assertNotNull(nxData);
 
@@ -197,7 +204,9 @@ public class BasicScanTest extends NexusTest {
 	private void checkMetadataScannables(final ScanModel scanModel, NXinstrument instrument) throws DatasetException {
 		DataNode dataNode;
 		Dataset dataset;
-		for (IScannable<?> metadataScannable : scanModel.getMetadataScannables()) {
+
+		Collection<IScannable<?>> perScan  = scanModel.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_SCAN).collect(Collectors.toList());
+        for (IScannable<?> metadataScannable : perScan) {
 			NXpositioner positioner = instrument.getPositioner(metadataScannable.getName());
 			assertNotNull(positioner);
 			assertEquals(metadataScannable.getName(), positioner.getNameScalar());
@@ -239,8 +248,11 @@ public class BasicScanTest extends NexusTest {
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
-		if (monitor!=null) smodel.setMonitors(monitor);
-		if (metadataScannable != null) smodel.setMetadataScannables(metadataScannable);
+		if (metadataScannable != null) {
+			metadataScannable.setMonitorRole(MonitorRole.PER_SCAN);
+			metadataScannable.setActivated(true);
+		}
+		smodel.setMonitors(monitor, metadataScannable);
 		
 		// Create a file to scan into.
 		smodel.setFilePath(output.getAbsolutePath());

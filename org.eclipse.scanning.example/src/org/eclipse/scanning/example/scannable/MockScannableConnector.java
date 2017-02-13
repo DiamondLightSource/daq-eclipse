@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
@@ -139,6 +140,7 @@ public class MockScannableConnector implements IScannableDeviceService, IDisconn
 	    }
 		for (int i = 0; i < 10; i++) {
 			MockNeXusScannable metadataScannable = new MockNeXusScannable("metadataScannable"+i, 0d, 3);
+			metadataScannable.setMonitorRole(MonitorRole.PER_SCAN);
 			metadataScannable.setInitialPosition(i * 10.0);
 			register(metadataScannable);
 		}
