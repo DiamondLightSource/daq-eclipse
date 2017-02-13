@@ -197,8 +197,7 @@ public class SerializationTest {
 		
 		final ScanRequest<?> req = new ScanRequest<IROI>();
 		req.setCompoundModel(new CompoundModel(new StepModel("fred", 0, 9, 1)));
-		req.setMonitorNames(Arrays.asList("monitor"));
-		req.setMetadataScannableNames(Arrays.asList("metadata"));
+		req.setMonitorNames(Arrays.asList("monitor", "metadata"));
 
 		final MockDetectorModel dmodel = new MockDetectorModel();
 		dmodel.setName("detector");

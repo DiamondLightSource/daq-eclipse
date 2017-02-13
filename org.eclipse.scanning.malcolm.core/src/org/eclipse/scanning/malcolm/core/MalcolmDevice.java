@@ -76,8 +76,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	}
 
 	private static Logger logger = LoggerFactory.getLogger(MalcolmDevice.class);
-		
-	private boolean                          alive;
+
     private MalcolmMessage                      stateSubscriber;
     private MalcolmMessage                      scanSubscriber;
 
@@ -112,21 +111,23 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		super(service, runnableDeviceService);
     	setName(name);
        	this.publisher = publisher;
+       	setAlive(false);
 	}
 	
 	public void register() {
 		try {
-			initialize();
 			super.register();
+			initialize();
 		} catch (MalcolmDeviceException e) {
 			logger.error("Could not initialize malcolm device " + getName(), e);
 		}
 	}
 	
 	public void initialize() throws MalcolmDeviceException {
+		setAlive(false);
     	final DeviceState currentState = getDeviceState();
 		logger.debug("Connecting '"+getName()+"'. Current state: "+currentState);
-		alive = true;
+		setAlive(true);
 		
 		stateSubscriber = connectionDelegate.createSubscribeMessage(STATE_ENDPOINT);
 		connector.subscribe(this, stateSubscriber, new IMalcolmListener<MalcolmMessage>() {
@@ -254,7 +255,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			if (reply.getType()==Type.ERROR) {
 				throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
 			}
-
+			setAlive(true);
 			return MalcolmUtil.getState(reply);
 			
 		} catch (MalcolmDeviceException mne) {
@@ -363,7 +364,10 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 
 	@Override
 	public void run(IPosition pos) throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace(), DeviceState.RUNNING);
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace(), DeviceState.RUNNING);
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 	
 	@Override
@@ -379,27 +383,42 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 
 	@Override
 	public void abort() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 
 	@Override
 	public void disable() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 
 	@Override
 	public void reset() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 
 	@Override
 	public void pause() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 	
 	@Override
 	public void resume() throws MalcolmDeviceException {
-		connectionDelegate.call(Thread.currentThread().getStackTrace());
+		MalcolmMessage reply = connectionDelegate.call(Thread.currentThread().getStackTrace());
+		if (reply.getType()==Type.ERROR) {
+			throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
+		}
 	}
 
 	@Override
@@ -423,14 +442,6 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	public boolean isLocked() throws MalcolmDeviceException {
 		final DeviceState state = getDeviceState();
 		return state.isTransient(); // Device is not locked but it is doing something.
-	}
-
-	public boolean isAlive() {
-		return alive;
-	}
-
-	public void setAlive(boolean alive) {
-		this.alive = alive;
 	}
 
 	@Override

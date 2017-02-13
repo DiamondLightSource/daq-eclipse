@@ -23,7 +23,7 @@ import org.eclipse.scanning.api.points.IPosition;
  * @param <T> the type of value returned by {@link #getPosition()}
  *
  */
-public interface IScannable<T> extends ILevel, INameable, ITimeoutable, IBoundable<T>, IActivatable {
+public interface IScannable<T> extends ILevel, INameable, ITimeoutable, IBoundable<T>, IMonitoredDevice {
 	
 	/**
 	 * Returns the current position of the Scannable. Called by ConcurentScan at the end of the point. 

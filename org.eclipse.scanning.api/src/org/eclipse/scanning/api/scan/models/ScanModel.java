@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.scanning.api.IScannable;
@@ -62,16 +63,6 @@ public class ScanModel {
 	 */
 	private List<ScanMetadata> scanMetadata;
 
-	
-	/**
-	 * A set of scannables may optionally be 'readout' just
-	 * once at the beginning of the scan.
-	 * They have setPosition(null, IPosition) called and should 
-	 * ensure that if their value is null, they do not move but
-	 * still readout position
-	 */
-	private List<IScannable<?>> metadataScannables;
-	
 	/**
 	 * A list of objects which participant in the scan by having
 	 * annotated methods which the scan should call at different points.
@@ -107,8 +98,6 @@ public class ScanModel {
 				+ ((positionIterable == null) ? 0 : positionIterable.hashCode());
 		result = prime * result
 				+ ((scanMetadata == null) ? 0 : scanMetadata.hashCode());
-		result = prime * result
-				+ ((metadataScannables == null) ? 0 : metadataScannables.hashCode());
 		return result;
 	}
 	
@@ -145,11 +134,6 @@ public class ScanModel {
 			if (other.scanMetadata != null)
 				return false;
 		} else if (!scanMetadata.equals(other.scanMetadata))
-			return false;
-		if (metadataScannables == null) {
-			if (other.metadataScannables != null)
-				return false;
-		} else if (!metadataScannables.equals(other.metadataScannables))
 			return false;
 		if (positionIterable == null) {
 			if (other.positionIterable != null)
@@ -205,22 +189,10 @@ public class ScanModel {
 	}
 	
 	public void setMonitors(IScannable<?>... monitors) {
-		this.monitors = Arrays.asList(monitors);
-	}
-	
-	public List<IScannable<?>> getMetadataScannables() {
-		if (metadataScannables == null) {
-			return Collections.emptyList();
+		this.monitors = new ArrayList<>(Arrays.asList(monitors));
+		for (Iterator<IScannable<?>> iterator = this.monitors.iterator(); iterator.hasNext();) {
+			if (iterator.next()==null) iterator.remove();
 		}
-		return metadataScannables;
-	}
-	
-	public void setMetadataScannables(List<IScannable<?>> metadataScannables) {
-		this.metadataScannables = metadataScannables;
-	}
-	
-	public void setMetadataScannables(IScannable<?>... metadataScannables) {
-		this.metadataScannables = Arrays.asList(metadataScannables);
 	}
 	
 	public String getFilePath() {

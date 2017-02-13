@@ -96,7 +96,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		    String cmd = ServiceHolder.getParserService().getCommand(model.getBean().getScanRequest(), true);
 			scanPointsCollection.setField(FIELD_NAME_SCAN_CMD,  cmd);
 		} catch (Exception ne) {
-			logger.error("Unable to write scan command", ne);
+			logger.debug("Unable to write scan command", ne);
 		}
 		
 		try {
@@ -104,7 +104,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 			String json = ServiceHolder.getMarshallerService().marshal(models);
 			scanPointsCollection.setField(FIELD_NAME_SCAN_MODELS, json);
 		} catch (Exception ne) {
-			logger.error("Unable to write point models", ne);
+			logger.debug("Unable to write point models", ne);
 		}
 
 		// create the scan finished dataset and set the initial value to false
