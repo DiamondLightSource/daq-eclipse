@@ -278,20 +278,18 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		metadataScannableNames.removeAll(scannableNames);
 		
 		// get the metadata scannables for the given names
-		final List<IScannable<?>> metadataScannables = new ArrayList<>(metadataScannableNames.size());
+		final List<IScannable<?>> monitors = model.getMonitors() != null ? model.getMonitors() : new ArrayList<>();
 		for (String scannableName : metadataScannableNames) {
 			IScannable<?> metadataScannable = deviceConnectorService.getScannable(scannableName);
-			metadataScannables.add(metadataScannable);
+			try {
+			    metadataScannable.setMonitorRole(MonitorRole.PER_SCAN);
+			} catch (IllegalArgumentException ne) {
+				continue;
+			}
+			monitors.add(metadataScannable);
 		}
 		
-		for (IScannable<?> iScannable : metadataScannables) {
-			try {
-				iScannable.setMonitorRole(MonitorRole.PER_SCAN);
-				iScannable.setActivated(true);
-			} catch (Exception ne) {
-			    logger.error("Cannot setup metadata scannable (per scan moinitor) "+iScannable.getName(), ne);
-			}
-		}
+		model.setMonitors(monitors);
 	}
 	
 	private List<String> getScannableNames(Iterable<IPosition> gen) {
