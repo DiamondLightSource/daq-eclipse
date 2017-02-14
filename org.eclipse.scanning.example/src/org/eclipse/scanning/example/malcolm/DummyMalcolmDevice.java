@@ -472,14 +472,6 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 			throw new ModelValidationException("The output dir for malcolm is not a directory: " + model.getFileDir(),
 					model, "fileDir");
 		}
-		
-		// validate the point generator has been set (not part of the model, but it does need
-		// to be set. In the real MalcolmDevice class this is part of the model sent over the
-		// connection to the actual malcolm device for validation
-		if (pointGenerator == null) {
-			throw new ModelValidationException("The point generator was not set on the malcolm device",
-					this, "pointGenerator");
-		}
 	}
 
 	@Override
