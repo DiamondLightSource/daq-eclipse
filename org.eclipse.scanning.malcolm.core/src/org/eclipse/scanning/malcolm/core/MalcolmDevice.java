@@ -307,8 +307,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 
 	@Override
 	public void validate(M params) throws ValidationException {
-		boolean skipValidate = Boolean.getBoolean("org.eclipse.scanning.malcolm.skipvalidation");
-		if (skipValidate) {
+		if (Boolean.getBoolean("org.eclipse.scanning.malcolm.skipvalidation")) {
 			logger.warn("Skipping Malcolm Validate");
 			return;
 		}
