@@ -4,13 +4,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.FileDeclared;
 import org.eclipse.scanning.api.annotation.scan.PointEnd;
@@ -218,7 +221,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
     		
     		// We allow monitors which can block a position until a setpoint is
     		// reached or add an extra record to the NeXus file.
-    		if (model.getMonitors()!=null) positioner.setMonitors(model.getMonitors());
+    		if (model.getMonitors()!=null) {
+    			List<IScannable<?>> perPoint = model.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_POINT).collect(Collectors.toList());
+    			positioner.setMonitors(perPoint);
+    		}
     		
     		// Add the malcolm listners so that progress on inner malcolm scans can be reported
     		addMalcolmListeners();
