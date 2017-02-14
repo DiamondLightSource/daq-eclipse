@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.persistence.IClassRegistry;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.device.models.ClusterProcessingModel;
 import org.eclipse.scanning.api.device.models.MalcolmModel;
 import org.eclipse.scanning.api.device.models.ProcessingModel;
@@ -90,6 +91,7 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		
 		// event.scan
 		registerClass(tmp, DeviceRequest.class);
+		registerClass(tmp, MonitorRole.class);  // TODO Is this wrong? Should enums not need explicit registration.
 		registerClass(tmp, PositionerRequest.class);
 		registerClass(tmp, AcquireRequest.class);
 		registerClass(tmp, ScanBean.class);

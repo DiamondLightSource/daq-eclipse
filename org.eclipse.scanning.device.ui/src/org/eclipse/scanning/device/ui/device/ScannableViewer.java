@@ -17,6 +17,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -79,7 +80,7 @@ public class ScannableViewer {
 		viewer.getTable().setHeaderVisible(true);
 		viewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		
-		createColumns(viewer, "Name", "Value");
+		createColumns(viewer, "Name", "Value", "Type");
 		
 		viewer.setContentProvider(new ScannableContentProvider(cservice));
 
@@ -102,7 +103,7 @@ public class ScannableViewer {
 		return ret;
 	}
 
-	private void createColumns(TableViewer tableViewer, String nameTitle, String valueTitle) {
+	private void createColumns(TableViewer tableViewer, String nameTitle, String valueTitle, String typeTitle) {
 
 		TableViewerColumn tickedColumn = new TableViewerColumn(tableViewer, SWT.CENTER, 0);
 		tickedColumn.getColumn().setWidth(24);
@@ -159,10 +160,25 @@ public class ScannableViewer {
 		nameColumn.setEditingSupport(new ScannableEditingSupport(tableViewer));
 		
 		TableViewerColumn valueColumn = new TableViewerColumn(tableViewer, SWT.LEFT, 2);
-		valueColumn.getColumn().setWidth(250);
+		valueColumn.getColumn().setWidth(150);
 		valueColumn.getColumn().setMoveable(false);
 		valueColumn.getColumn().setText(valueTitle);
 		valueColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new ScannableValueLabelProvider()));
+
+		TableViewerColumn typeColumn = new TableViewerColumn(tableViewer, SWT.LEFT, 3);
+		typeColumn.getColumn().setWidth(100);
+		typeColumn.getColumn().setMoveable(false);
+		typeColumn.getColumn().setText(typeTitle);
+		typeColumn.setLabelProvider(new ColumnLabelProvider() {
+			public String getText(Object element) {
+				if (!(element instanceof IScannable<?>)) return null;
+				IScannable<?> scannable = (IScannable<?>)element;
+				if (scannable==null) return MonitorRole.NONE.getLabel();
+				if (scannable.getMonitorRole()==null) return MonitorRole.NONE.getLabel();
+				return scannable.getMonitorRole().getLabel();
+			}
+		});
+		typeColumn.setEditingSupport(new TypeEditingSupport(tableViewer));
 
 	}
  
