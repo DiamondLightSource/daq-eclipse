@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.scanning.api.IModelProvider;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.device.models.ScanMode;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
@@ -109,6 +110,15 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	
 	private DeviceRole deviceRole;
 	
+	/**
+	 * For devices that may be used as monitors, they
+	 * have a specific role in the system.
+	 */
+	private MonitorRole monitorRole;
+	
+	/**
+	 * 
+	 */
 	private Set<ScanMode> supportedScanModes;
 
 	/**
@@ -219,12 +229,12 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		result = prime * result + level;
 		result = prime * result + ((lower == null) ? 0 : lower.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
+		result = prime * result + ((monitorRole == null) ? 0 : monitorRole.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + Arrays.hashCode(permittedValues);
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		result = prime * result + ((status == null) ? 0 : status.hashCode());
-		result = prime * result
-				+ ((supportedScanModes == null) ? 0 : supportedScanModes.hashCode());
+		result = prime * result + ((supportedScanModes == null) ? 0 : supportedScanModes.hashCode());
 		result = prime * result + ((unit == null) ? 0 : unit.hashCode());
 		result = prime * result + ((upper == null) ? 0 : upper.hashCode());
 		return result;
@@ -276,6 +286,8 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 			if (other.model != null)
 				return false;
 		} else if (!model.equals(other.model))
+			return false;
+		if (monitorRole != other.monitorRole)
 			return false;
 		if (name == null) {
 			if (other.name != null)
@@ -402,6 +414,14 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 
 	public void setAlive(boolean alive) {
 		this.alive = alive;
+	}
+
+	public MonitorRole getMonitorRole() {
+		return monitorRole;
+	}
+
+	public void setMonitorRole(MonitorRole monitorRole) {
+		this.monitorRole = monitorRole;
 	}
 
 }

@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.eclipse.richbeans.test.ui.ShellTest;
 import org.eclipse.scanning.api.IScannable;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.event.scan.DeviceInformation;
 import org.eclipse.scanning.device.ui.device.ScannableViewer;
 import org.eclipse.scanning.server.servlet.Services;
@@ -17,6 +18,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -126,15 +128,15 @@ public class ScannableViewerTest extends ShellTest {
 		assertEquals(6, bot.table(0).rowCount());
 		
 		IScannable<Double> p = Services.getConnector().getScannable("p");		
-		assertEquals(p.getPosition()+"    µm", bot.table(0).cell(1, 2));
+		assertEquals(p.getPosition()+"    µm", bot.table(0).cell(5, 2));
 		
 		p.setPosition(11.0);
 		synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
-		assertEquals(p.getPosition()+"    µm", bot.table(0).cell(1, 2));
+		assertEquals(p.getPosition()+"    µm", bot.table(0).cell(5, 2));
 		
 		p.setPosition(10.0);
 		synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
-		assertEquals(p.getPosition()+"    µm", bot.table(0).cell(1, 2));
+		assertEquals(p.getPosition()+"    µm", bot.table(0).cell(5, 2));
 	}
 
 	@Test
@@ -199,7 +201,36 @@ public class ScannableViewerTest extends ShellTest {
 		}
 	}
 
+	@Test
+	public void checkMonitorRole() throws Exception {
 
+		assertEquals(6, bot.table(0).rowCount());
+		
+		// The mocks which MockScannableConnector creates.
+		IScannable<?> a    = Services.getConnector().getScannable("a");
+		a.setMonitorRole(MonitorRole.NONE);
+		IScannable<?> mon0 = Services.getConnector().getScannable("monitor0");
+		mon0.setMonitorRole(MonitorRole.PER_SCAN);
+ 	    IScannable<?> mon3 = Services.getConnector().getScannable("monitor3");
+		mon3.setMonitorRole(MonitorRole.PER_POINT);
+		IScannable<?> mon6 = Services.getConnector().getScannable("monitor6");
+		mon6.setMonitorRole(MonitorRole.NONE);
+		IScannable<?> mon9 = Services.getConnector().getScannable("monitor9");
+		mon9.setMonitorRole(MonitorRole.PER_SCAN);
+		IScannable<?> p    = Services.getConnector().getScannable("p");
+		p.setMonitorRole(MonitorRole.PER_POINT);
+		
+		synchExec(()->viewer.refresh());
+
+		SWTBotTable table = bot.table(0);
+		assertEquals(MonitorRole.NONE.getLabel(), table.cell(0, 3));
+		assertEquals(MonitorRole.PER_SCAN.getLabel(), table.cell(1, 3));
+		assertEquals(MonitorRole.PER_POINT.getLabel(), table.cell(2, 3));
+		assertEquals(MonitorRole.NONE.getLabel(), table.cell(3, 3));
+		assertEquals(MonitorRole.PER_SCAN.getLabel(), table.cell(4, 3));
+		assertEquals(MonitorRole.PER_POINT.getLabel(), table.cell(5, 3));
+	}
+		
 	private Collection<String> getMonitors() throws Exception {
 		
 		final Collection<DeviceInformation<?>> scannables = Services.getConnector().getDeviceInformation();
