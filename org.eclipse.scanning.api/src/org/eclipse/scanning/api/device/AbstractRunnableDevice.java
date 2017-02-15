@@ -501,7 +501,6 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 				deviceInformation.setState(getDeviceState());
 				deviceInformation.setStatus(getDeviceStatus());
 				deviceInformation.setBusy(isDeviceBusy());
-				deviceInformation.setAttributes(getAllAttributes());
 				deviceInformation.setAlive(isAlive());
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -592,24 +591,6 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 */
 	public void setBusy(boolean busy) {
 		this.busy = busy;
-	}
-	
-	/**
-	 * Please override to get an attribute from the device
-	 * The default returns null.
-	 * @return the specified attribute
-	 */
-	public Object getAttribute(String attribute) throws ScanningException {
-		return null;
-	}
-	
-	/**
-	 * Please override to get all attributes from the device
-	 * The default returns null.
-	 * @return a list of all attributes on the device
-	 */
-	public <A> List<A> getAllAttributes() throws ScanningException {
-		return null;
 	}
 	
 	public DeviceRole getRole() {
