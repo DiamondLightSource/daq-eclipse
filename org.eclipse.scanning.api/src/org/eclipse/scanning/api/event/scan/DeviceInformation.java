@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.scanning.api.IModelProvider;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.device.models.DeviceRole;
 import org.eclipse.scanning.api.device.models.ScanMode;
 import org.eclipse.scanning.api.malcolm.attributes.MalcolmAttribute;
@@ -107,13 +108,17 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	 */
 	private boolean busy;
 	
-	/**
-	 * List of all attributes
-	 */
-	private List<MalcolmAttribute> attributes;
-
 	private DeviceRole deviceRole;
 	
+	/**
+	 * For devices that may be used as monitors, they
+	 * have a specific role in the system.
+	 */
+	private MonitorRole monitorRole;
+	
+	/**
+	 * 
+	 */
 	private Set<ScanMode> supportedScanModes;
 
 	/**
@@ -215,7 +220,6 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (activated ? 1231 : 1237);
-		result = prime * result + ((attributes == null) ? 0 : attributes.hashCode());
 		result = prime * result + (busy ? 1231 : 1237);
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + ((deviceRole == null) ? 0 : deviceRole.hashCode());
@@ -225,12 +229,12 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		result = prime * result + level;
 		result = prime * result + ((lower == null) ? 0 : lower.hashCode());
 		result = prime * result + ((model == null) ? 0 : model.hashCode());
+		result = prime * result + ((monitorRole == null) ? 0 : monitorRole.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + Arrays.hashCode(permittedValues);
 		result = prime * result + ((state == null) ? 0 : state.hashCode());
 		result = prime * result + ((status == null) ? 0 : status.hashCode());
-		result = prime * result
-				+ ((supportedScanModes == null) ? 0 : supportedScanModes.hashCode());
+		result = prime * result + ((supportedScanModes == null) ? 0 : supportedScanModes.hashCode());
 		result = prime * result + ((unit == null) ? 0 : unit.hashCode());
 		result = prime * result + ((upper == null) ? 0 : upper.hashCode());
 		return result;
@@ -246,11 +250,6 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 			return false;
 		DeviceInformation other = (DeviceInformation) obj;
 		if (activated != other.activated)
-			return false;
-		if (attributes == null) {
-			if (other.attributes != null)
-				return false;
-		} else if (!attributes.equals(other.attributes))
 			return false;
 		if (busy != other.busy)
 			return false;
@@ -287,6 +286,8 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 			if (other.model != null)
 				return false;
 		} else if (!model.equals(other.model))
+			return false;
+		if (monitorRole != other.monitorRole)
 			return false;
 		if (name == null) {
 			if (other.name != null)
@@ -407,20 +408,20 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		this.busy = busy;
 	}
 
-	public List<MalcolmAttribute> getAttributes() {
-		return attributes;
-	}
-
-	public void setAttributes(List<MalcolmAttribute> attributes) {
-		this.attributes = attributes;
-	}
-
 	public boolean isAlive() {
 		return alive;
 	}
 
 	public void setAlive(boolean alive) {
 		this.alive = alive;
+	}
+
+	public MonitorRole getMonitorRole() {
+		return monitorRole;
+	}
+
+	public void setMonitorRole(MonitorRole monitorRole) {
+		this.monitorRole = monitorRole;
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.ITerminatable;
 import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.MonitorRole;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.EventException;
@@ -91,15 +92,21 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			IScannable<Object> device = cservice.getScannable(request.getDeviceName());
 			DeviceAction action = request.getDeviceAction();
 			if (action==DeviceAction.SET && request.getDeviceValue()!=null) {
-				device.setPosition(request.getDeviceValue(), request.getPosition());
-				/* This thread is executing to set position, while it does that it
-				 * sends events over AMQ. These events queue up with no higher priority
-				 * than this call. Therefore if we return immediately it is possible
-				 * for this call to return before position events are sent out.
-				 * FUDGE warning
-				 */
-				Thread.sleep(10); 
-				 /* End warning */
+				
+				// Not sure if using type is a good design idea.
+				if (request.getDeviceValue() instanceof MonitorRole) {
+					device.setMonitorRole((MonitorRole)request.getDeviceValue());
+				} else {
+					device.setPosition(request.getDeviceValue(), request.getPosition());
+					/* This thread is executing to set position, while it does that it
+					 * sends events over AMQ. These events queue up with no higher priority
+					 * than this call. Therefore if we return immediately it is possible
+					 * for this call to return before position events are sent out.
+					 * FUDGE warning
+					 */
+					Thread.sleep(10); 
+					 /* End warning */
+				}
 			} else if (action==DeviceAction.ACTIVATE) {
 				device.setActivated((Boolean)request.getDeviceValue());
 			}
@@ -141,6 +148,7 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
         info.setLower(device.getMinimum());
         info.setPermittedValues(device.getPermittedValues());
         info.setActivated(device.isActivated());
+        info.setMonitorRole(device.getMonitorRole());
  	}
 
 	private static void processRunnables(DeviceRequest request, IRunnableDeviceService dservice) throws Exception {
