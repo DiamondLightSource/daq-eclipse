@@ -294,6 +294,10 @@ public class MonitorTest extends NexusTest {
 			assertEquals(0, nexusObject.getNumberOfGroupNodes());
 			assertEquals(1, nexusObject.getNumberOfAttributes());
 
+        	DataNode dataNode = nexusObject.getDataNode("value");
+        	IDataset dataset = dataNode.getDataset().getSlice();
+        	
+        	assertEquals(0, dataset.getRank()); // A scalar value not the shape of the scan.
 			//System.out.println("The scannable '"+name+"' was ok!");
 		}
 	}
