@@ -383,16 +383,6 @@ public class GetDeviceInformationTest extends BrokerTest {
 		}
 
 		@Override
-		public Object getAttribute(String attribute) throws ScanningException {
-			return null;
-		}
-
-		@Override
-		public <A> List<A> getAllAttributes() throws ScanningException {
-			return null;
-		}
-
-		@Override
 		public boolean isAlive() {
 			return alive;
 		}
