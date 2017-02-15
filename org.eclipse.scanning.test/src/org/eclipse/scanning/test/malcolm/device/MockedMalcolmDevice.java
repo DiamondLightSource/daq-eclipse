@@ -396,4 +396,9 @@ class MockedMalcolmDevice extends AbstractMalcolmDevice<MapMalcolmModel> {
 	public List<MalcolmAttribute> getAllAttributes() {
 		return null;
 	}
+
+	@Override
+	public Object getAttribute(String attribute) throws ScanningException {
+		return null;
+	}
 }

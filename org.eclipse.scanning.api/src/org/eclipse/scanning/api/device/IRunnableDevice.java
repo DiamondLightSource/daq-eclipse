@@ -165,16 +165,6 @@ public interface IRunnableDevice<T> extends INameable, IDeviceRoleActor, ILevel,
 	 * @return
 	 */
 	public T getModel();
-	
-	/**
-	 * Gets the an attribute on the device
-	 */
-	public Object getAttribute(String attribute) throws ScanningException;
-	
-	/**
-	 * Gets a list of all attributes on the device
-	 */
-	public <A> List<A> getAllAttributes() throws ScanningException;
 
 	/**
 	 * Gets whether the device is 'alive' or not. 'Alive' is taken to mean that the device is on and responding.

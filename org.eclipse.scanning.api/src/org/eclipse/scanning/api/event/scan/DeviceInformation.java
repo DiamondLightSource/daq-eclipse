@@ -107,11 +107,6 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	 */
 	private boolean busy;
 	
-	/**
-	 * List of all attributes
-	 */
-	private List<MalcolmAttribute> attributes;
-
 	private DeviceRole deviceRole;
 	
 	private Set<ScanMode> supportedScanModes;
@@ -215,7 +210,6 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + (activated ? 1231 : 1237);
-		result = prime * result + ((attributes == null) ? 0 : attributes.hashCode());
 		result = prime * result + (busy ? 1231 : 1237);
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + ((deviceRole == null) ? 0 : deviceRole.hashCode());
@@ -246,11 +240,6 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 			return false;
 		DeviceInformation other = (DeviceInformation) obj;
 		if (activated != other.activated)
-			return false;
-		if (attributes == null) {
-			if (other.attributes != null)
-				return false;
-		} else if (!attributes.equals(other.attributes))
 			return false;
 		if (busy != other.busy)
 			return false;
@@ -405,14 +394,6 @@ public class DeviceInformation<T> implements IModelProvider<T> {
 	
 	public void setBusy(boolean busy) {
 		this.busy = busy;
-	}
-
-	public List<MalcolmAttribute> getAttributes() {
-		return attributes;
-	}
-
-	public void setAttributes(List<MalcolmAttribute> attributes) {
-		this.attributes = attributes;
 	}
 
 	public boolean isAlive() {
