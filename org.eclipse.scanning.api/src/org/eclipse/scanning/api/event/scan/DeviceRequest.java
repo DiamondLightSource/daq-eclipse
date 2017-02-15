@@ -184,6 +184,11 @@ public class DeviceRequest extends IdBean {
 		this.deviceValue  = activated;
 	}
 
+	public DeviceRequest(String name, DeviceType type, DeviceAction action, Object deviceValue) {
+		this(name, type);
+		this.deviceAction = action;
+		this.deviceValue  = deviceValue;
+	}
 
 	public Collection<DeviceInformation<?>> getDevices() {
 		return devices;
