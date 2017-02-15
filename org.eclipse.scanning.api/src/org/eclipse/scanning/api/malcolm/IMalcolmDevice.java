@@ -3,6 +3,7 @@ package org.eclipse.scanning.api.malcolm;
 import java.util.Set;
 
 import org.eclipse.scanning.api.IValidator;
+import org.eclipse.scanning.api.device.IAttributableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.points.IPointGenerator;
 
@@ -46,7 +47,7 @@ import org.eclipse.scanning.api.points.IPointGenerator;
  * @author Matthew Gerring
  *
  */
-public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEventPublisher, ILatchableDevice, IValidator<T> {
+public interface IMalcolmDevice<T> extends IRunnableEventDevice<T>, IMalcolmEventPublisher, ILatchableDevice, IAttributableDevice, IValidator<T> {
 	
 	/**
 	 * Attempts to determine if the device is locked doing something like a configure or a run.
