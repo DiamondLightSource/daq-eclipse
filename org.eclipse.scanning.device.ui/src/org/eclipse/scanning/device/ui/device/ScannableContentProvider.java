@@ -104,17 +104,21 @@ class ScannableContentProvider implements IStructuredContentProvider, IPositionL
 	}
 
 	public void insert(IScannable<?> sscannable, IScannable<?> nscannable) {
-		Map<String, IScannable<?>> copy = new LinkedHashMap<>(content);
-		content.clear();
-		for (String name : copy.keySet()) {
-			if (sscannable.getName()==name || name.equals(sscannable.getName())) {
-				content.put(sscannable.getName(), sscannable);
-				register(nscannable.getName(), nscannable);
-			} else {
-				content.put(name, copy.get(name));
+		if (content.isEmpty()) {
+			register(nscannable.getName(), nscannable);
+		} else {
+			Map<String, IScannable<?>> copy = new LinkedHashMap<>(content);
+			content.clear();
+			for (String name : copy.keySet()) {
+				if (sscannable.getName()==name || name.equals(sscannable.getName())) {
+					content.put(sscannable.getName(), sscannable);
+					register(nscannable.getName(), nscannable);
+				} else {
+					content.put(name, copy.get(name));
+				}
 			}
 		}
-		viewer.refresh();		
+		viewer.refresh();
 	}
 
 	public IScannable<?> last() {

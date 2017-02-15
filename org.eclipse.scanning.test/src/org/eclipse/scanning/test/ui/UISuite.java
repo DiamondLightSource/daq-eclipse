@@ -31,6 +31,7 @@ import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
 	KnownModelsTest.class,
 	BoundingBoxTest.class,
 	ScannableViewerTest.class,
+	ScannableViewerTest2.class,
 	ControlTreeViewerTest.class // Must be last!
 
 })
