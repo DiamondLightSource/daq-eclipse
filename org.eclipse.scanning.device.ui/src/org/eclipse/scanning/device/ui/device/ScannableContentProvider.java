@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -15,6 +16,7 @@ import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListenable;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
+import org.eclipse.scanning.device.ui.util.SortNatural;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +31,7 @@ class ScannableContentProvider implements IStructuredContentProvider, IPositionL
 	
 	public ScannableContentProvider(IScannableDeviceService cservice) {
 		this.cservice = cservice;
-		this.content = new LinkedHashMap<>();
+		this.content = new TreeMap<>(new SortNatural<>(true));
 	}
 
 	@Override
