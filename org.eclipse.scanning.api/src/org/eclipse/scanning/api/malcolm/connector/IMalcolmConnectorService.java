@@ -2,7 +2,6 @@ package org.eclipse.scanning.api.malcolm.connector;
 
 import java.net.URI;
 
-import org.eclipse.scanning.api.event.IEventConnectorService;
 import org.eclipse.scanning.api.malcolm.IMalcolmDevice;
 import org.eclipse.scanning.api.malcolm.MalcolmDeviceException;
 import org.eclipse.scanning.api.malcolm.event.IMalcolmListener;
@@ -41,7 +40,7 @@ public interface IMalcolmConnectorService<T> {
 	 * @return
 	 * @throws MalcolmDeviceException
 	 */
-	T send(IMalcolmDevice device, T message) throws MalcolmDeviceException;
+	T send(IMalcolmDevice<?> device, T message) throws MalcolmDeviceException;
 
 
 	/**
@@ -50,7 +49,7 @@ public interface IMalcolmConnectorService<T> {
 	 * @return
 	 * @throws MalcolmDeviceException
 	 */
-	public void subscribe(IMalcolmDevice device, T msg, IMalcolmListener<T> listener) throws MalcolmDeviceException;
+	public void subscribe(IMalcolmDevice<?> device, T msg, IMalcolmListener<T> listener) throws MalcolmDeviceException;
 
 
 	/**
@@ -59,7 +58,7 @@ public interface IMalcolmConnectorService<T> {
 	 * @return
 	 * @throws MalcolmDeviceException
 	 */
-	public T unsubscribe(IMalcolmDevice device, T msg, IMalcolmListener<T>... listeners) throws MalcolmDeviceException;
+	public T unsubscribe(IMalcolmDevice<?> device, T msg, IMalcolmListener<T>... listeners) throws MalcolmDeviceException;
 
 	
 	/**
@@ -78,7 +77,16 @@ public interface IMalcolmConnectorService<T> {
 	 * 
 	 * @throws MalcolmDeviceException
 	 */
-	MessageGenerator<T> createDeviceConnection(IMalcolmDevice device) throws MalcolmDeviceException;
+	MessageGenerator<T> createDeviceConnection(IMalcolmDevice<?> device) throws MalcolmDeviceException;
 
+	/**
+	 * Listens to connection state changes on the device, notifying the specified listener of any change.
+	 * 
+	 * @param device the device to listen to
+	 * @param listener the listener to be notified of changes
+	 * @throws MalcolmDeviceException
+	 */
+	public void subscribeToConnectionStateChange(IMalcolmDevice<?> device, IMalcolmListener<Boolean> listener)
+			throws MalcolmDeviceException;
 
 }

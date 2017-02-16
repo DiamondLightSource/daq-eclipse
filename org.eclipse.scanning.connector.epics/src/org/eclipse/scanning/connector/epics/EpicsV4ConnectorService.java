@@ -18,6 +18,7 @@ import org.eclipse.scanning.api.malcolm.message.MalcolmMessage;
 import org.eclipse.scanning.api.malcolm.message.Type;
 import org.epics.pvaClient.PvaClient;
 import org.epics.pvaClient.PvaClientChannel;
+import org.epics.pvaClient.PvaClientChannelStateChangeRequester;
 import org.epics.pvaClient.PvaClientGet;
 import org.epics.pvaClient.PvaClientGetData;
 import org.epics.pvaClient.PvaClientMonitor;
@@ -82,7 +83,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	}
 
 	@Override
-	public MalcolmMessage send(IMalcolmDevice device, MalcolmMessage message) throws MalcolmDeviceException {
+	public MalcolmMessage send(IMalcolmDevice<?> device, MalcolmMessage message) throws MalcolmDeviceException {
 		
 		MalcolmMessage result = new MalcolmMessage();
 				
@@ -114,7 +115,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	}
 
 	@Override
-	public void subscribe(IMalcolmDevice device, MalcolmMessage msg, IMalcolmListener<MalcolmMessage> listener)
+	public void subscribe(IMalcolmDevice<?> device, MalcolmMessage msg, IMalcolmListener<MalcolmMessage> listener)
 			throws MalcolmDeviceException {
 
 		try {
@@ -146,7 +147,29 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 	}
 
 	@Override
-	public MalcolmMessage unsubscribe(IMalcolmDevice device, MalcolmMessage msg, IMalcolmListener<MalcolmMessage>... removeListeners)
+	public void subscribeToConnectionStateChange(IMalcolmDevice<?> device, IMalcolmListener<Boolean> listener)
+			throws MalcolmDeviceException  {
+
+		try {
+			PvaClientChannel pvaChannel = pvaClient.createChannel(device.getName(),"pva");
+	        pvaChannel.issueConnect();
+	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
+	        if(!status.isOK()) {
+	        	String errMEssage = "Failed to connect to device '" + device.getName() + "' (" + status.getType() + ": " + status.getMessage() + ")";
+	        	logger.error(errMEssage);
+	        	throw new Exception(errMEssage);
+	        }
+	        pvaChannel.setStateChangeRequester(new StateChangeRequester(listener));
+	        
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			logger.error(ex.getMessage());
+			throw new MalcolmDeviceException(device, ex.getMessage());
+		}
+	}
+
+	@Override
+	public MalcolmMessage unsubscribe(IMalcolmDevice<?> device, MalcolmMessage msg, IMalcolmListener<MalcolmMessage>... removeListeners)
 			throws MalcolmDeviceException {
 		
 		MalcolmMessage result = new MalcolmMessage();
@@ -190,7 +213,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		return result;
 	}
 	
-	private MalcolmMessage sendGetMessage(IMalcolmDevice device, MalcolmMessage message) {
+	private MalcolmMessage sendGetMessage(IMalcolmDevice<?> device, MalcolmMessage message) {
 
 		MalcolmMessage returnMessage = new MalcolmMessage();
 		PvaClientChannel pvaChannel = null;
@@ -230,7 +253,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
         return returnMessage;
 	}
 	
-	private MalcolmMessage sendPutMessage(IMalcolmDevice device, MalcolmMessage message) {
+	private MalcolmMessage sendPutMessage(IMalcolmDevice<?> device, MalcolmMessage message) {
 		
 		MalcolmMessage returnMessage = new MalcolmMessage();
         returnMessage.setType(Type.RETURN);
@@ -281,7 +304,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
         return returnMessage;
 	}
 	
-	private MalcolmMessage sendCallMessage(IMalcolmDevice device, MalcolmMessage message) {
+	private MalcolmMessage sendCallMessage(IMalcolmDevice<?> device, MalcolmMessage message) {
 		
 		MalcolmMessage returnMessage = new MalcolmMessage();
 		PvaClientChannel pvaChannel = null;
@@ -328,7 +351,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
         return returnMessage;		
 	}
 	
-	public MessageGenerator<MalcolmMessage> createDeviceConnection(IMalcolmDevice device) throws MalcolmDeviceException {
+	public MessageGenerator<MalcolmMessage> createDeviceConnection(IMalcolmDevice<?> device) throws MalcolmDeviceException {
 		return (MessageGenerator<MalcolmMessage>) new EpicsV4MalcolmMessageGenerator(device, this);
 	}
 
@@ -370,4 +393,17 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		}
 	}
 
+	class StateChangeRequester implements PvaClientChannelStateChangeRequester
+    {
+		private IMalcolmListener<Boolean> listener;
+
+		public StateChangeRequester(IMalcolmListener<Boolean> listener) {
+			this.listener = listener;
+		}
+		
+		@Override
+		public void channelStateChange(PvaClientChannel channel, boolean isConnected) {
+			listener.eventPerformed(new MalcolmEvent<Boolean>(isConnected));
+		}
+    }
 }
