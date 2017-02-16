@@ -60,14 +60,14 @@ public class BrokerTest extends TmpTest {
 		}
 	}
 	
-	public final static void setUpNonOSGIActivemqMarshaller() {
+	public final static void setUpNonOSGIActivemqMarshaller(Class<?>...extras) {
 		ActivemqConnectorService.setJsonMarshaller(new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
-						new ScanningExampleClassRegistry(),
-						new XcenBeanClassRegistry(),
-						new ScanningTestClassRegistry()),
+						      new ScanningExampleClassRegistry(),
+						      new XcenBeanClassRegistry(),
+						      new ScanningTestClassRegistry(extras)),
 				Arrays.asList(new PointsModelMarshaller())
-				));
+        ));
 	}
 
 	@AfterClass
