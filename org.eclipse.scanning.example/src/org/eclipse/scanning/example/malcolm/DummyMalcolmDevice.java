@@ -846,20 +846,20 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		}
 
 		@Override
-		public MalcolmMessage send(IMalcolmDevice device, MalcolmMessage message)
+		public MalcolmMessage send(IMalcolmDevice<?> device, MalcolmMessage message)
 				throws MalcolmDeviceException {
 			// do nothing
 			return null;
 		}
 
 		@Override
-		public void subscribe(IMalcolmDevice device, MalcolmMessage msg,
+		public void subscribe(IMalcolmDevice<?> device, MalcolmMessage msg,
 				IMalcolmListener<MalcolmMessage> listener) throws MalcolmDeviceException {
 			// do nothing
 		}
 
 		@Override
-		public MalcolmMessage unsubscribe(IMalcolmDevice device, MalcolmMessage msg,
+		public MalcolmMessage unsubscribe(IMalcolmDevice<?> device, MalcolmMessage msg,
 				IMalcolmListener<MalcolmMessage>... listeners) throws MalcolmDeviceException {
 			// do nothing
 			return null;
@@ -872,10 +872,16 @@ public class DummyMalcolmDevice extends AbstractMalcolmDevice<DummyMalcolmModel>
 		}
 
 		@Override
-		public MessageGenerator<MalcolmMessage> createDeviceConnection(IMalcolmDevice device)
+		public MessageGenerator<MalcolmMessage> createDeviceConnection(IMalcolmDevice<?> device)
 				throws MalcolmDeviceException {
 			// do nothing
 			return null;
+		}
+
+		@Override
+		public void subscribeToConnectionStateChange(IMalcolmDevice<?> device, IMalcolmListener<Boolean> listener)
+				throws MalcolmDeviceException {
+			// do nothing
 		}
 		
 	}

@@ -126,7 +126,7 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	public void initialize() throws MalcolmDeviceException {
 		setAlive(false);
     	final DeviceState currentState = getDeviceState();
-		logger.debug("Connecting '"+getName()+"'. Current state: "+currentState);
+		logger.debug("Connecting to '"+getName()+"'. Current state: "+currentState);
 		setAlive(true);
 		
 		stateSubscriber = connectionDelegate.createSubscribeMessage(STATE_ENDPOINT);
@@ -155,6 +155,28 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			}
 		});		
 		
+		connector.subscribeToConnectionStateChange(this, new IMalcolmListener<Boolean>() {
+			
+			@Override
+			public void eventPerformed(MalcolmEvent<Boolean> e) {				
+				try {	
+					setAlive(e.getBean());
+					    java.awt.EventQueue.invokeLater(new Runnable() {
+					        public void run() {
+								if (e.getBean()) {
+									try {
+										getDeviceState();
+									} catch (MalcolmDeviceException e1) {
+										// Swallow error
+									}
+								}
+					        }
+					    });
+				} catch (Exception ne) {
+					logger.error("Problem dispatching message!", ne);
+				}
+			}
+		});		
 	}
 	 
 	/**
@@ -255,7 +277,6 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 			if (reply.getType()==Type.ERROR) {
 				throw new MalcolmDeviceException("Error from Malcolm Device Connection: " + reply.getMessage());
 			}
-			setAlive(true);
 			return MalcolmUtil.getState(reply);
 			
 		} catch (MalcolmDeviceException mne) {
