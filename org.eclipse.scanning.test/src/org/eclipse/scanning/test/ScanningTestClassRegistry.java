@@ -18,7 +18,6 @@
 
 package org.eclipse.scanning.test;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,7 +52,18 @@ public class ScanningTestClassRegistry implements IClassRegistry {
 		// scan.real
 		registerClass(tmp, TestScanBean.class);
 
-		idToClassMap = Collections.unmodifiableMap(tmp);
+		idToClassMap = tmp;
+	}
+	
+	public ScanningTestClassRegistry() {
+		
+	}
+	public ScanningTestClassRegistry(Class<?>... extras) {
+		if (extras!=null) {
+			for (Class<?> class1 : extras) {
+				registerClass(idToClassMap, class1);
+			}
+		}
 	}
 	
 	private static void registerClass(Map<String, Class<?>> map, Class<?> clazz) {

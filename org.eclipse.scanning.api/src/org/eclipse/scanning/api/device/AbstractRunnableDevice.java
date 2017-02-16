@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -608,6 +607,15 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	
 	public void setSupportedScanModes(Set<ScanMode> supportedScanModes) {
 		this.supportedScanModes = supportedScanModes;
+	}
+	
+
+	protected void setSupportedScanModes(ScanMode... supportedScanModes) {
+		if (supportedScanModes==null) {
+			supportedScanModes = null;
+			return;
+		}
+		this.supportedScanModes = EnumSet.of(supportedScanModes[0], supportedScanModes);
 	}
 	
 	public void setSupportedScanMode(ScanMode supportedScanMode) {
