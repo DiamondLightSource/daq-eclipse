@@ -9,7 +9,7 @@ import org.eclipse.scanning.event.queues.QueueService;
 import org.eclipse.scanning.event.queues.ServicesHolder;
 import org.junit.BeforeClass;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class SubTaskAtomProcessorIntegrationTest extends SubTaskAtomProcessorIntegrationPluginTest {
 	

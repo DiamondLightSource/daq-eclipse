@@ -51,7 +51,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class MScanServletTest extends AbstractJythonTest {
 

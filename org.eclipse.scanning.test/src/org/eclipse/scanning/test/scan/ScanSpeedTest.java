@@ -57,7 +57,7 @@ import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class ScanSpeedTest extends BrokerTest {
 

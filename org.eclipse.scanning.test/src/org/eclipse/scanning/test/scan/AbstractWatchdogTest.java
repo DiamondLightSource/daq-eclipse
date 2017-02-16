@@ -64,7 +64,7 @@ import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.AfterClass;
 import org.junit.Before;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public abstract class AbstractWatchdogTest {
 

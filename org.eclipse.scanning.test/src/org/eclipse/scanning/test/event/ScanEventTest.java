@@ -12,7 +12,7 @@ import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.junit.Before;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 /**
  * Designed to be run outside OSGi

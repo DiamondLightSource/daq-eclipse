@@ -25,7 +25,7 @@ import org.eclipse.scanning.test.BrokerTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 
 /**

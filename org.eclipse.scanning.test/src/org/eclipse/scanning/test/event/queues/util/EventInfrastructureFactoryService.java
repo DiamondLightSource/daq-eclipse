@@ -14,7 +14,7 @@ import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.test.BrokerTest;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 /**
  * Manages Broker service through the BrokerTest class and allows 

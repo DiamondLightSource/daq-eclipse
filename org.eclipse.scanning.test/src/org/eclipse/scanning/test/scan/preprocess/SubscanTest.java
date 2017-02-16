@@ -22,7 +22,7 @@ import org.eclipse.scanning.test.TmpTest;
 import org.eclipse.scanning.test.scan.mock.MockOperationService;
 import org.junit.BeforeClass;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class SubscanTest extends TmpTest{
 

@@ -12,7 +12,7 @@ import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.junit.Before;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 /**
  * Class to test that we can run 

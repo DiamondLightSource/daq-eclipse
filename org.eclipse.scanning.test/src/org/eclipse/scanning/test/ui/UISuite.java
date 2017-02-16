@@ -21,7 +21,7 @@ import org.eclipse.scanning.test.ScanningTestClassRegistry;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 @RunWith(org.junit.runners.Suite.class)
 @SuiteClasses({

@@ -12,7 +12,7 @@ import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.Before;
 
-import uk.ac.diamond.daq.activemq.connector.ActivemqConnectorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class ScanTest extends AbstractScanTest {
 	
