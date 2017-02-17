@@ -1,3 +1,14 @@
+/*-
+ *******************************************************************************
+ * Copyright (c) 2011, 2016 Diamond Light Source Ltd.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Matthew Gerring - initial API and implementation and/or initial documentation
+ *******************************************************************************/
 package org.eclipse.scanning.event;
 
 import java.lang.ref.WeakReference;
@@ -444,13 +455,11 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	            
         	} catch (EventException | InterruptedException ne) {
         		if (Thread.interrupted()) break;
-        		ne.printStackTrace();
-				logger.error("Cannot consume message ", ne);
+ 				logger.error("Cannot consume message ", ne);
        		    if (isDurable()) continue;
         		break;
          		
         	} catch (Throwable ne) {
-        		ne.printStackTrace();
         		logger.debug("Error in consumer!", ne);
         		if (ne.getClass().getSimpleName().contains("Json")) {
             		logger.error("Fatal except deserializing object!", ne);
