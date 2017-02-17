@@ -455,8 +455,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	            
         	} catch (EventException | InterruptedException ne) {
         		if (Thread.interrupted()) break;
-        		ne.printStackTrace();
-				logger.error("Cannot consume message ", ne);
+ 				logger.error("Cannot consume message ", ne);
        		    if (isDurable()) continue;
         		break;
          		
