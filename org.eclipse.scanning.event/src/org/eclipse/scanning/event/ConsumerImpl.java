@@ -460,7 +460,6 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
         		break;
          		
         	} catch (Throwable ne) {
-        		ne.printStackTrace();
         		logger.debug("Error in consumer!", ne);
         		if (ne.getClass().getSimpleName().contains("Json")) {
             		logger.error("Fatal except deserializing object!", ne);
