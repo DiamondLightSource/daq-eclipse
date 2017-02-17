@@ -10,8 +10,6 @@ import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanNotFini
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
-import static org.hamcrest.CoreMatchers.both;
-import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -89,6 +87,7 @@ public class ScanClusterProcessingTest extends NexusTest {
 	@BeforeClass
 	public static void beforeClass() throws Exception {
 		// called after NexusTest.beforeClass()
+		BrokerTest.setUpNonOSGIActivemqMarshaller(DummyOperationBean.class);
 		BrokerTest.startBroker();
 		
 		IEventService eventService = new EventServiceImpl(new ActivemqConnectorService());
@@ -132,10 +131,10 @@ public class ScanClusterProcessingTest extends NexusTest {
 		DummyOperationBean operationBean = (DummyOperationBean) statusSet.get(0);
 		
 		assertThat(operationBean.getDataKey(), is(equalTo(DEFAULT_ENTRY_PATH + GROUP_NAME_SOLSTICE_SCAN)));
-		assertThat(operationBean.getFilePath(),
-				both(startsWith("/tmp/test_mandel_nexus")).and(endsWith(NEXUS_FILE_EXTENSION)));
-		assertThat(operationBean.getOutputFilePath(), 
-				both(startsWith("/tmp/processed/test_mandel_nexus")).and(endsWith(NEXUS_FILE_EXTENSION)));
+		assertTrue(operationBean.getFilePath().contains("test_nexus"));
+		assertTrue(operationBean.getFilePath().endsWith(NEXUS_FILE_EXTENSION));
+		assertTrue(operationBean.getOutputFilePath().contains("processed"));
+		assertTrue(operationBean.getOutputFilePath().endsWith("-sum"+NEXUS_FILE_EXTENSION));
 		assertThat(operationBean.getDatasetPath(), is(equalTo(DEFAULT_ENTRY_PATH + "mandelbrot")));
 		assertThat(operationBean.getSlicing(), is(nullValue()));
 		assertThat(operationBean.getProcessingPath(), is(equalTo("/tmp/sum.nxs")));
@@ -146,7 +145,8 @@ public class ScanClusterProcessingTest extends NexusTest {
 		assertThat(operationBean.getScanRank(), is(2));
 		assertThat(operationBean.isReadable(), is(true));
 		assertThat(operationBean.getName(), is("sum"));
-		assertThat(operationBean.getRunDirectory(), is("/tmp"));
+		
+		assertThat(System.getProperty("java.io.tmpdir"), startsWith(operationBean.getRunDirectory()));
 		assertThat(operationBean.getNumberOfCores(), is(1));
 	}
 	

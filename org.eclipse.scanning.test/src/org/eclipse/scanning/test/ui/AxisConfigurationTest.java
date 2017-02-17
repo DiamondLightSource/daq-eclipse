@@ -43,7 +43,7 @@ public class AxisConfigurationTest extends ShellTest{
 	}
 
 	private AxisConfiguration    config;
-	private IModelViewer<Object> viewer;
+	private IModelViewer<AxisConfiguration> viewer;
 
 	@Override
 	protected Shell createShell(Display display) throws Exception {

@@ -18,6 +18,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	MonitorTest.class,
 	ScanMetadataTest.class,
 	ScanProcessingTest.class,
+	ScanClusterProcessingTest.class,
 	ScanPointsWriterTest.class,
 	LinearScanTest.class,
 	NexusStepScanSpeedTest.class
