@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.scanning.points.validation;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +21,8 @@ import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.ValidationException;
+import org.eclipse.scanning.api.annotation.ui.DeviceType;
+import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.models.DeviceRole;
@@ -54,12 +58,52 @@ class ScanRequestValidator implements IValidator<ScanRequest<?>> {
 				if (dmodels.isEmpty()) throw new ModelValidationException("The detector models are empty!", req, "detectors");
 			    validateMalcolmRules(dmodels);
 		        validateDetectors(dmodels);
+		        validateAnnotations(dmodels);
+
 			}
+			
+			
 		} catch (ScanningException ne) {
             throw new ValidationException(ne);
 		}
 	}
 	
+	private void validateAnnotations(Map<String, Object> dmodels) throws ValidationException, IllegalArgumentException, IllegalAccessException {
+		
+		for (String name : dmodels.keySet()) {
+			
+			// The model we will validate
+			Object model = dmodels.get(name);
+			
+			// If the model has an annotated field which points at 
+			// a detector, that detector must be in the scan.
+			Field[] fields = model.getClass().getDeclaredFields();
+			for (Field field : fields) {
+				Annotation[] anots = field.getAnnotations();
+				for (Annotation annotation : anots) {
+					if (annotation instanceof FieldDescriptor) {
+						
+						FieldDescriptor des = (FieldDescriptor)annotation;
+						if (des.device()==DeviceType.RUNNABLE) { // Then its value must be in the devices.
+							
+							boolean accessible = field.isAccessible();
+							try {
+								field.setAccessible(true);
+								String value = (String)field.get(model);
+								if (!dmodels.containsKey(value)) {
+									String label = des.label()!=null && des.label().length()>0 ? des.label() : field.getName();
+									throw new ModelValidationException("The value of '"+label+"' references a device ("+value+") not in the scan!", model, field.getName());
+								}
+							} finally {
+								field.setAccessible(accessible);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	private void validateMalcolmRules(Map<String, Object> dmodels)  throws ValidationException, ScanningException {
 		ScanMode scanMode = dmodels.values().stream().anyMatch(IMalcolmModel.class::isInstance) ?
 				ScanMode.HARDWARE : ScanMode.SOFTWARE;

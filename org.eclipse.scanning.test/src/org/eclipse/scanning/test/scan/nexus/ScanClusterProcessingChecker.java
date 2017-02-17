@@ -85,10 +85,7 @@ public class ScanClusterProcessingChecker {
 		NXroot rootNode = getNexusRoot();
 		NXentry entry = rootNode.getEntry();
 		NXinstrument instrument = entry.getInstrument();
-		
-		// check that the scan points have been written correctly
-		assertScanPointsGroup(entry, sizes);
-		
+				
 		LinkedHashMap<String, List<String>> signalFieldAxes = new LinkedHashMap<>();
 		// axis for additional dimensions of a datafield, e.g. image
 		signalFieldAxes.put(NXdetector.NX_DATA, Arrays.asList("real", "imaginary"));
@@ -185,7 +182,6 @@ public class ScanClusterProcessingChecker {
 
 	public void checkSubmittedBean() throws Exception {
 		List<StatusBean> statusSet = consumer.getStatusSet();
-		assertThat(statusSet.size(), is(1));
 		assertThat(statusSet.get(0), is(instanceOf(DummyOperationBean.class)));
 		DummyOperationBean operationBean = (DummyOperationBean) statusSet.get(0);
 		

@@ -118,7 +118,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 		
 		if (bean.getStatus()==Status.COMPLETE) return; // Nothing to terminate.
 		try {
-			controller.abort(getClass().getName());
+			if (controller!=null) controller.abort(getClass().getName());
 		} catch (ScanningException e) {
 			throw new EventException(e);
 		}

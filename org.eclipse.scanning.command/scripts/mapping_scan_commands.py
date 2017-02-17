@@ -32,18 +32,17 @@ interest (ROI) when using grid(). They are: circ(), rect(), poly().
 import sys
 
 from java.lang import System
-
-from java.util import HashMap, ArrayList
 from java.net import URI
+from java.util import HashMap, ArrayList
 from org.eclipse.dawnsci.analysis.dataset.roi import (
     CircularROI, RectangularROI, PolygonalROI, PolylineROI, PointROI)
-from org.eclipse.scanning.api.points.models import (
-    StepModel, GridModel, RasterModel, SinglePointModel,
-    OneDEqualSpacingModel, OneDStepModel, ArrayModel,
-    BoundingBox, BoundingLine, CompoundModel, RepeatedPointModel)
-from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
 from org.eclipse.scanning.api.event.IEventService import (
     SUBMISSION_QUEUE, STATUS_TOPIC)
+from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
+from org.eclipse.scanning.api.points.models import (
+    StepModel, CollatedStepModel, GridModel, RasterModel, SinglePointModel,
+    OneDEqualSpacingModel, OneDStepModel, ArrayModel,
+    BoundingBox, BoundingLine, CompoundModel, RepeatedPointModel)
 from org.eclipse.scanning.command.Services import (
     getEventService, getRunnableDeviceService)
 
@@ -235,6 +234,37 @@ def step(axis=None, start=None, stop=None, step=None):
                  'step': step})
 
     return model, _listify(roi)
+
+def cstep(names=None, start=None, stop=None, step=None):
+    """Define a step scan path to be passed to mscan().
+
+    Note that this function may be called with or without keyword syntax. That
+    is, the following are mutually equivalent:
+    >>> step(axis=my_scannable, start=0, stop=10, step=1)
+    >>> step(['x','y'], 0, 10, 1)
+    
+    TODO This command is untested and no scan point generator exists than can do
+    this on the Jython side.
+    
+    """
+    try:
+        assert None not in (names, start, stop, step)
+    except (TypeError, ValueError):
+        raise ValueError(
+            '`axis`, `start`, `stop` and `step` must be provided.')
+
+    # No such thing as ROIs for StepModels.
+    roi = None
+
+    model = _instantiate(
+                CollatedStepModel,
+                {'start': start,
+                 'stop': stop,
+                 'step': step,
+                 'names': names})
+
+    return model, _listify(roi)
+
 
 def repeat(axis=None, count=None, value=None, sleep=None):
     """Define a repeat scan path to be passed to mscan().
