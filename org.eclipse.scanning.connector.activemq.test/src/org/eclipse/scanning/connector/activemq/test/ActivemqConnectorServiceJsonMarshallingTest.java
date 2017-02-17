@@ -13,7 +13,9 @@ package org.eclipse.scanning.connector.activemq.test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -23,14 +25,14 @@ import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
 import org.eclipse.dawnsci.json.MarshallerService;
 import org.eclipse.scanning.api.event.status.StatusBean;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
+import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-
-import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 /**
  * Regression tests to ensure JSON marshalling still works correctly now it is delegated to another service
@@ -43,24 +45,23 @@ public class ActivemqConnectorServiceJsonMarshallingTest {
 	// An example of a bean used by Xia2 which could be sent by another process and must deserialize correctly in current version
 	private static final String JSON_FOR_PROJECT_BEAN = "{\"status\":\"COMPLETE\",\"name\":\"X1_weak_M1S1_1 - X1_weak_M1S1_1\",\"message\":\"Xia2 run completed normally\",\"percentComplete\":100.0,\"userName\":\"awa25\",\"hostName\":\"cs04r-sc-vserv-45.diamond.ac.uk\",\"runDirectory\":\"/dls/i03/data/2016/cm14451-1/processed/tmp/2016-01-27/fake085224/MultiCrystal_1\",\"uniqueId\":\"1453910139320_94ed2a2b-997e-4dbc-ad6e-0c3c04bb2c82\",\"submissionTime\":1453910139340,\"properties\":null,\"projectName\":\"MultiCrystalRerun\",\"cystalName\":\"fake085224\",\"sweeps\":[{\"name\":\"X1_weak_M1S1_1\",\"sessionId\":\"55167\",\"dataCollectionId\":\"1007379\",\"imageDirectory\":\"/dls/i03/data/2016/cm14451-1/tmp/2016-01-27/fake085224/\",\"firstImageName\":\"X1_weak_M1S1_1_0001.cbf\",\"start\":1,\"end\":900,\"wavelength\":0.979493,\"xBeam\":212.51,\"yBeam\":219.98,\"resolution\":null}],\"wavelength\":\"NaN\",\"commandLineSwitches\":\"\",\"anomalous\":true,\"spaceGroup\":null,\"unitCell\":null,\"resolution\":null}";
 
-	// Example of JSON produced for an ROI. (Encoded object should really be a ROIBean but is actually a String)
-	private static final String JSON_FOR_RECTANGULAR_ROI = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI\",\n  \"plot\" : false,\n  \"lengths\" : [ 8.0, 6.1 ],\n  \"angle\" : 0.0,\n  \"point\" : [ -3.5, 4.0 ]\n}";
-
-	private static final String JSON_FOR_GENERIC_WRAPPED_RECTANGULAR_ROI = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.scanning.connector.activemq.test.ObjectWrapper\",\n  \"object\" : {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI\",\n    \"angle\" : 0.0,\n    \"lengths\" : [ 8.0, 6.1 ],\n    \"point\" : [ -3.5, 4.0 ]\n  }\n}";
-	private static final String JSON_FOR_WRAPPED_RECTANGULAR_ROI_LIST = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.scanning.connector.activemq.test.ObjectWrapper\",\n  \"object\" : [ \"bundle=&version=&class=java.util.ArrayList\", [ {\n    \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI\",\n    \"angle\" : 0.0,\n    \"lengths\" : [ 8.0, 6.1 ],\n    \"point\" : [ -3.5, 4.0 ]\n  } ] ]\n}";
+	private static final String JSON_FOR_WRAPPED_RECTANGULAR_ROI_LIST = "{\"object\":[\"ArrayList\",[{\"@type\":\"roi.rectangular\",\"lengths\":[8.0,6.1],\"angle\":0.0,\"point\":[-3.5,4.0]}]]}";
 
 	private static final String[] STRING_ARRAY = { "a", "b", "c" };
-	private static final String JSON_FOR_STRING_ARRAY = "[ \"a\", \"b\", \"c\" ]";
-	private static final String JSON_FOR_WRAPPED_STRING_ARRAY = "{\n  \"@bundle_and_class\" : \"bundle=&version=&class=org.eclipse.scanning.connector.activemq.test.ObjectWrapper\",\n  \"object\" : [ \"bundle=&version=&class=[Ljava.lang.String;\", [ \"a\", \"b\", \"c\" ] ]\n}";
+	private static final String JSON_FOR_STRING_ARRAY = "[\"String[]\",[\"a\",\"b\",\"c\"]]";
+	private static final String JSON_FOR_WRAPPED_STRING_ARRAY = "{\"object\":[\"String[]\",[\"a\",\"b\",\"c\"]]}";
 
 	private ActivemqConnectorService marshaller;
 	private String json;
 
 	@Before
 	public void setUp() throws Exception {
-		MarshallerService jsonMarshaller = new MarshallerService(new PointsModelMarshaller());
-		ActivemqConnectorService.setJsonMarshaller(jsonMarshaller);
-		marshaller = new ActivemqConnectorService();
+		MarshallerService marshaller = new MarshallerService(
+				Arrays.asList(new ScanningAPIClassRegistry()),
+				Arrays.asList(new PointsModelMarshaller()));
+		
+		ActivemqConnectorService.setJsonMarshaller(marshaller);
+		this.marshaller = new ActivemqConnectorService();
 	}
 
 	@After
@@ -116,7 +117,8 @@ public class ActivemqConnectorServiceJsonMarshallingTest {
 
 	@Test
 	public void testROIDeserialization() throws Exception {
-		IROI actual = marshaller.unmarshal(JSON_FOR_RECTANGULAR_ROI, IROI.class);
+		String roi = marshaller.marshal(new RectangularROI(-3.5, 4.0, 8.0, 6.1, 0.0));
+		IROI actual = marshaller.unmarshal(roi, IROI.class);
 		IROI expected = new RectangularROI(-3.5, 4.0, 8.0, 6.1, 0.0);
 		assertEquals(expected, actual);
 	}
@@ -126,13 +128,13 @@ public class ActivemqConnectorServiceJsonMarshallingTest {
 		IROI roi = new RectangularROI(-3.5, 4.0, 8.0, 6.1, 0.0);
 		ObjectWrapper<IROI> roiWrapper = new ObjectWrapper<>(roi);
 		json = marshaller.marshal(roiWrapper);
-		assertEquals(JSON_FOR_GENERIC_WRAPPED_RECTANGULAR_ROI, json);
+		assertTrue(json.startsWith("{\"object\":{\"@type\":\"roi.rectangular\""));
 	}
 
 	@Test
 	public void testROIListFieldSerialization() throws Exception {
 		IROI roi = new RectangularROI(-3.5, 4.0, 8.0, 6.1, 0.0);
-		ObjectWrapper<List<IROI>> roiWrapper = new ObjectWrapper<>(Arrays.asList(roi));
+		ObjectWrapper<List<IROI>> roiWrapper = new ObjectWrapper<>(new ArrayList<>(Arrays.asList(roi)));
 		json = marshaller.marshal(roiWrapper);
 		assertEquals(JSON_FOR_WRAPPED_RECTANGULAR_ROI_LIST, json);
 	}
@@ -151,7 +153,7 @@ public class ActivemqConnectorServiceJsonMarshallingTest {
 
 	@Test
 	public void testSimpleStringArrayDeserialization() throws Exception {
-		String[] actual = marshaller.unmarshal("[ \"a\", \"b\", \"c\" ]", String[].class);
+		String[] actual = marshaller.unmarshal(JSON_FOR_STRING_ARRAY, String[].class);
 		assertArrayEquals(actual, STRING_ARRAY);
 	}
 
