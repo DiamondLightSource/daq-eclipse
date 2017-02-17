@@ -90,6 +90,10 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	
 	private int lastUpdateCount = 0;
 	
+	private boolean succesfullyInitialised = false;
+	
+	private boolean subscribedToStateChange = false;
+	
 	private final long POSITION_COMPLETE_TIMEOUT = 250; // broadcast every 250 milliseconds
 
 	private static String STATE_ENDPOINT = "state";
@@ -124,59 +128,64 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 	}
 	
 	public void initialize() throws MalcolmDeviceException {
-		setAlive(false);
-    	final DeviceState currentState = getDeviceState();
-		logger.debug("Connecting to '"+getName()+"'. Current state: "+currentState);
-		setAlive(true);
-		
-		stateSubscriber = connectionDelegate.createSubscribeMessage(STATE_ENDPOINT);
-		connector.subscribe(this, stateSubscriber, new IMalcolmListener<MalcolmMessage>() {
+		try {
+			setAlive(false);
+	    	final DeviceState currentState = getDeviceState();
+			logger.debug("Connecting to '"+getName()+"'. Current state: "+currentState);
 			
-			@Override
-			public void eventPerformed(MalcolmEvent<MalcolmMessage> e) {				
-				try {
-					sendScanStateChange(e);										
-				} catch (Exception ne) {
-					logger.error("Problem dispatching message!", ne);
+			stateSubscriber = connectionDelegate.createSubscribeMessage(STATE_ENDPOINT);
+			connector.subscribe(this, stateSubscriber, new IMalcolmListener<MalcolmMessage>() {
+				
+				@Override
+				public void eventPerformed(MalcolmEvent<MalcolmMessage> e) {				
+					try {
+						sendScanStateChange(e);										
+					} catch (Exception ne) {
+						logger.error("Problem dispatching message!", ne);
+					}
 				}
-			}
-		});		
-		
-		scanSubscriber  = connectionDelegate.createSubscribeMessage(CURRENT_STEP_ENDPOINT);
-		connector.subscribe(this, scanSubscriber, new IMalcolmListener<MalcolmMessage>() {
+			});		
 			
-			@Override
-			public void eventPerformed(MalcolmEvent<MalcolmMessage> e) {				
-				try {
-					sendScanEvent(e);										
-				} catch (Exception ne) {
-					logger.error("Problem dispatching message!", ne);
+			scanSubscriber  = connectionDelegate.createSubscribeMessage(CURRENT_STEP_ENDPOINT);
+			connector.subscribe(this, scanSubscriber, new IMalcolmListener<MalcolmMessage>() {
+				
+				@Override
+				public void eventPerformed(MalcolmEvent<MalcolmMessage> e) {				
+					try {
+						sendScanEvent(e);										
+					} catch (Exception ne) {
+						logger.error("Problem dispatching message!", ne);
+					}
 				}
-			}
-		});		
+			});		
+			succesfullyInitialised = true;
+			setAlive(true);
 		
-		connector.subscribeToConnectionStateChange(this, new IMalcolmListener<Boolean>() {
-			
-			@Override
-			public void eventPerformed(MalcolmEvent<Boolean> e) {				
-				try {	
-					setAlive(e.getBean());
-					    java.awt.EventQueue.invokeLater(new Runnable() {
-					        public void run() {
-								if (e.getBean()) {
-									try {
-										getDeviceState();
-									} catch (MalcolmDeviceException e1) {
-										// Swallow error
-									}
+		} finally {
+			if (!subscribedToStateChange) {
+				subscribedToStateChange = true;
+				MalcolmDevice<?> thisDevice = this;
+				Thread subscriberThread = new Thread() {
+					public void run() {
+						try {
+							connector.subscribeToConnectionStateChange(thisDevice, new IMalcolmListener<Boolean>() {
+								@Override
+								public void eventPerformed(MalcolmEvent<Boolean> e) {				
+									handleConnectionStateChange(e.getBean());
 								}
-					        }
-					    });
-				} catch (Exception ne) {
-					logger.error("Problem dispatching message!", ne);
-				}
+							});
+							handleConnectionStateChange(true);
+							setAlive(true);
+						} catch (MalcolmDeviceException ex) {
+							logger.error("Unable to subsribe to state change on '" + thisDevice.getName() + "'", ex);
+						}
+					}
+				};
+				subscriberThread.setDaemon(true);
+				subscriberThread.start();	
 			}
-		});		
+		}	
+		
 	}
 	 
 	/**
@@ -267,6 +276,37 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 		}
 
 		eventDelegate.sendEvent(meb);
+	}
+	
+	/**
+	 * Handle a change in the connection state of this device.
+	 * Event is sent by the communications layer.
+	 * @param connected true if the device has changed to being connected
+	 */
+	private void handleConnectionStateChange(boolean connected) {
+		try {	
+			setAlive(connected);
+			if (connected) {
+				logger.info("Malcolm Device '" + getName() + "' connection state changed to connected");
+			    java.awt.EventQueue.invokeLater(new Runnable() {
+			        public void run() {
+						try {
+							if (!succesfullyInitialised) {
+								initialize();
+							} else {
+								getDeviceState();
+							}
+						} catch (MalcolmDeviceException ex) {
+							logger.warn("Unable to initialise/getDeviceState for device '" + getName() + "' on reconnection", ex);
+						}
+			        }
+			    });
+			} else {
+				logger.warn("Malcolm Device '" + getName() + "' connection state changed to not connected");
+			}
+		} catch (Exception ne) {
+			logger.error("Problem dispatching message!", ne);
+		}
 	}
 
 	@Override
