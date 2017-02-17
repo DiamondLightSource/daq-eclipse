@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.scanning.api.event.queues.models.QueueModelException;
 import org.eclipse.scanning.api.event.queues.models.arguments.Arg;
 import org.eclipse.scanning.api.event.queues.models.arguments.ArrayArg;
 import org.eclipse.scanning.api.event.queues.models.arguments.IArg;
@@ -36,7 +37,7 @@ public class ModelArgsTest {
 	
 	@Test
 	public void testSimpleArgument() {		
-		IArg<String> argumA = new Arg<>(12.);
+		IArg argumA = new Arg(12.);
 		argumA.evaluate();
 		assertEquals("Arg has wrong value", 12., argumA.getValue());
 	}
@@ -72,7 +73,21 @@ public class ModelArgsTest {
 	public void testDecoratedLookup() {
 		Arg baseArg = new Arg<>("211");
 		ArrayArg argumF = new ArrayArg(new LookupArg(baseArg, complexTable));
-		assertEquals("Decorated argument has wrong value for string 311", -7.9, argumF.index(1));
+		assertEquals("Decorated argument has wrong value for string 211, index 1", -7.9, argumF.index(1));
+		
+		baseArg = new Arg<>("111");
+		ArrayArg argumG = new ArrayArg(new LookupArg(baseArg, complexTable), 1);
+		argumG.evaluate();
+		assertEquals("Decorated argument has wrong value for string 111, index 1", -5.4, argumG.getValue());
+		
+		baseArg = new Arg<>("111");
+		argumG = new ArrayArg(new LookupArg(baseArg, complexTable));
+		try {
+			argumG.evaluate();
+		} catch (QueueModelException qme) {
+			//Expected. If the user doesn't supply an index, the evaluation will fail.
+		}
+		
 	}
 
 }

@@ -1,25 +1,42 @@
 package org.eclipse.scanning.api.event.queues.models.arguments;
 
-public class Arg<P, V> implements IArg<V> {
+/**
+ * Basic model argument which holds a single object. Typically this would be a 
+ * String, Double, Integer or another simple type. 
+ * 
+ * @author Michael Wharmby
+ *
+ * @param <V> Type of the value held by this argument.
+ */
+public class Arg<V> implements IArg<V> {
 	
-	private V value;
-	private P parameter;
+	private V parameter,value;
 	
-	public Arg(P parameter) {
+	/**
+	 * Construct a new argument with a given parameter.
+	 * 
+	 * @param parameter value V to be stored in this argument.
+	 */
+	public Arg(V parameter) {
 		this.parameter = parameter;
 	}
 	
-	@SuppressWarnings("unchecked")
+	/**
+	 * Sets the value equal to the parameter.
+	 */
 	@Override
 	public void evaluate() {
-		value = (V)parameter;
+		value = parameter;
 	}
 	
-//	@SuppressWarnings("unchecked")
-//	@Override
-//	public P getParameter() {
-//		return parameter;
-//	}
+	/**
+	 * Return the parameter. This field is populated prior to evaluate() call.
+	 * 
+	 * @return V representing the configured parameter of this object.
+	 */
+	public V getParameter() {
+		return parameter;
+	}
 	
 	@Override
 	public V getValue() {
