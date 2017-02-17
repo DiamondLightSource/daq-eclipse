@@ -136,7 +136,7 @@ def getScanningBrokerUri():
     return uri;
 
 
-def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
+def scan_request(path=None, mon=None, det=None, file=None, allow_preprocess=False):
     """Create a ScanRequest object with the given configuration.
 
     See the mscan() docstring for usage.
@@ -169,6 +169,7 @@ def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
 
     return _instantiate(ScanRequest,
                         {'compoundModel': cmodel,
+                         'filePath' : file,
                          'monitorNames': monitors,
                          'detectors': detector_map,
                          'ignorePreprocess': not allow_preprocess})
@@ -193,7 +194,8 @@ def detector(name, exposure, **kwargs):
 
     model = detector.getModel()
 
-    model.setExposureTime(exposure)
+    if (exposure > 0):
+        model.setExposureTime(exposure)
     
     for key, value in kwargs.iteritems():
         setattr(model, key, value)

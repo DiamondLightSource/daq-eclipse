@@ -178,7 +178,6 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 	        // Intentionally do not catch EventException, that passes straight up.
 			
 		} catch (Exception ne) {
-			ne.printStackTrace();
 			logger.error("Cannot execute run "+getBean().getName()+" "+getBean().getUniqueId(), ne);
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.FAILED);
@@ -370,7 +369,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 				Object dmodel = detectors.get(name);
 				IRunnableDevice<Object> detector = service.getRunnableDevice(name);
 				if (detector==null) {
-					detector = (IRunnableDevice<Object>)service.createRunnableDevice(dmodel, false);
+					detector = service.createRunnableDevice(dmodel, false);
 					detector.setName(name); // Not sure if this is ok. For now name must match that in table
 				}
 				ret.add(detector);
