@@ -80,9 +80,9 @@ public class ScannableViewerTest2 extends ShellTest {
 			for (String name : Services.getConnector().getScannableNames()) {
 				synchExec(()->viewer.setScannableSelected(name));
 				synchExec(()->viewer.removeScannable());
-				synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
 			}
 			
+			synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
 			synchExec(()->viewer.reset());
 	
 			assertEquals(0, bot.table(0).rowCount());
