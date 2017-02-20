@@ -164,7 +164,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		try {
 			PvaClientChannel pvaChannel = pvaClient.createChannel(device.getName(),"pva");
 	        pvaChannel.issueConnect();
-	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
+	        Status status = pvaChannel.waitConnect(0); // Wait forever for this connection.
 	        if(!status.isOK()) {
 	        	String errMEssage = "Failed to connect to device '" + device.getName() + "' (" + status.getType() + ": " + status.getMessage() + ")";
 	        	logger.error(errMEssage);
