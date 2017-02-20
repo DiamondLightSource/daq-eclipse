@@ -1,3 +1,14 @@
+/*-
+ *******************************************************************************
+ * Copyright (c) 2011, 2016 Diamond Light Source Ltd.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Matthew Gerring - initial API and implementation and/or initial documentation
+ *******************************************************************************/
 package org.eclipse.scanning.test.ui;
 
 import static org.junit.Assert.assertEquals;
@@ -69,9 +80,9 @@ public class ScannableViewerTest2 extends ShellTest {
 			for (String name : Services.getConnector().getScannableNames()) {
 				synchExec(()->viewer.setScannableSelected(name));
 				synchExec(()->viewer.removeScannable());
-				synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
 			}
 			
+			synchExec(()->viewer.refresh()); // Shouldn't need this! Does not need it in the main UI.
 			synchExec(()->viewer.reset());
 	
 			assertEquals(0, bot.table(0).rowCount());

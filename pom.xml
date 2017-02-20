@@ -29,10 +29,9 @@
 		<module>org.eclipse.scanning.points</module>
 		<module>org.eclipse.scanning.sequencer</module>
 		<module>org.eclipse.scanning.server</module>
-		<module>org.eclipse.scanning.test</module>
-		
-		<module>uk.ac.diamond.daq.activemq.connector</module>
-		<module>uk.ac.diamond.daq.activemq.connector.test</module>
+		<module>org.eclipse.scanning.test</module>	
+		<module>org.eclipse.scanning.connector.activemq</module>
+		<module>org.eclipse.scanning.connector.activemq.test</module>
 	</modules>
 
 	<properties>

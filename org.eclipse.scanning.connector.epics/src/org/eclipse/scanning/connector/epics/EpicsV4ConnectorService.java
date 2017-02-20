@@ -1,3 +1,14 @@
+/*-
+ *******************************************************************************
+ * Copyright (c) 2011, 2016 Diamond Light Source Ltd.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Matthew Gerring - initial API and implementation and/or initial documentation
+ *******************************************************************************/
 package org.eclipse.scanning.connector.epics;
 
 import java.net.URI;
@@ -153,7 +164,7 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 		try {
 			PvaClientChannel pvaChannel = pvaClient.createChannel(device.getName(),"pva");
 	        pvaChannel.issueConnect();
-	        Status status = pvaChannel.waitConnect(REQUEST_TIMEOUT);
+	        Status status = pvaChannel.waitConnect(0); // Wait forever for this connection.
 	        if(!status.isOK()) {
 	        	String errMEssage = "Failed to connect to device '" + device.getName() + "' (" + status.getType() + ": " + status.getMessage() + ")";
 	        	logger.error(errMEssage);
