@@ -91,6 +91,7 @@ public class ScanClusterProcessingTest extends NexusTest {
 		checker.checkNexusFile(shape);
 		
 		// Check the processing bean was submitted successfully
+		Thread.sleep(200);
 		checker.checkSubmittedBean(false);
 	}
 	
