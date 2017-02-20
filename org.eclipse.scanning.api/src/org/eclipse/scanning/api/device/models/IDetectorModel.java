@@ -22,7 +22,7 @@ import org.eclipse.scanning.api.annotation.MinimumValue;
  * @author Colin Palmer
  *
  */
-public interface IDetectorModel extends ITimeoutable, INameable {
+public interface IDetectorModel extends ITimeoutable, INameable, IReflectedModel {
 
 	/**
 	 * Get the exposure time to be used for the detector, in seconds.

@@ -14,10 +14,14 @@ package org.eclipse.scanning.test.command;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
+import org.eclipse.scanning.api.device.models.ClusterProcessingModel;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.BoundingBox;
@@ -27,8 +31,9 @@ import org.eclipse.scanning.api.points.models.RasterModel;
 import org.eclipse.scanning.api.points.models.RepeatedPointModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.command.ParserServiceImpl;
-import org.eclipse.scanning.command.PyExpressionNotImplementedException;
 import org.eclipse.scanning.command.factory.PyExpressionFactory;
+import org.eclipse.scanning.example.detector.MandelbrotModel;
+import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,8 +50,7 @@ public class PyExpresserTest {
 	}
 
 	@Test
-	public void testScanRequestWithMonitor_Step()
-			throws Exception {
+	public void testScanRequestWithMonitor_Step() throws Exception {
 
 		StepModel smodel = new StepModel();
 		smodel.setStart(0);
@@ -194,10 +198,75 @@ public class PyExpresserTest {
 				"grid(axes=('myFast', 'mySlow'), start=(0.0, 1.0), stop=(10.0, 12.0), count=(3, 4), snake=False)",
 				factory.pyExpress(gmodel, new ArrayList<>(), true));
 	}
+	
+	@Test
+	public void testScanRequestWithProcessing() throws Exception {
+
+		BoundingBox bbox = new BoundingBox();
+		bbox.setFastAxisStart(0);
+		bbox.setSlowAxisStart(1);
+		bbox.setFastAxisLength(10);
+		bbox.setSlowAxisLength(11);
+
+		GridModel gmodel = new GridModel();
+		gmodel.setFastAxisName("p");
+		gmodel.setSlowAxisName("q");
+		gmodel.setBoundingBox(bbox);
+		gmodel.setFastAxisPoints(2);
+		gmodel.setSlowAxisPoints(2);
+
+		ScanRequest<IROI> request = new ScanRequest<>();
+		request.setCompoundModel(new CompoundModel(Arrays.asList(gmodel)));
+		Map<String,Object> detectors = new LinkedHashMap<>();
+		detectors.put("mandelbrot", new MandelbrotModel("p", "q"));
+		detectors.put("processing", new ClusterProcessingModel("processing", "mandelbrot", "/tmp/something.nxs"));
+		request.setDetectors(detectors);
+
+		String mscan = factory.pyExpress(request, false);
+		String expected = "mscan(grid(('p', 'q'), (0.0, 1.0), (10.0, 12.0), count=(2, 2), snake=False), [detector('mandelbrot', 0.1), detector('processing', -1.0)])";
+		assertEquals(expected, mscan);
+		
+		mscan = factory.pyExpress(request, true);
+		expected = "mscan(path=[grid(axes=('p', 'q'), start=(0.0, 1.0), stop=(10.0, 12.0), count=(2, 2), snake=False)], det=[detector('mandelbrot', 0.1, maxIterations=500, escapeRadius=10.0, columns=301, rows=241, points=1000, maxRealCoordinate=1.5, maxImaginaryCoordinate=1.2, realAxisName='p', imaginaryAxisName='q', enableNoise=false, noiseFreeExposureTime=5.0, saveImage=true, saveSpectrum=true, saveValue=true), detector('processing', -1.0, detectorName='mandelbrot', processingFilePath='/tmp/something.nxs')])";
+		assertEquals(expected, mscan);
+	}
 
 	@Test
-	public void testRasterModel()
-			throws Exception {
+	public void testClusterProcessingModel() throws Exception {
+
+		ClusterProcessingModel cmodel = new ClusterProcessingModel("processing", "mandelbrot", "/tmp/something.nxs");
+
+		String detector = factory.pyExpress(cmodel, true);
+		String expected = "detector('processing', -1.0, detectorName='mandelbrot', processingFilePath='/tmp/something.nxs')";
+		assertEquals(expected, detector);
+	}
+
+	@Test
+	public void testMandelbrotModel() throws Exception {
+
+		MandelbrotModel mmodel = new MandelbrotModel("p", "q");
+
+		String detector = factory.pyExpress(mmodel, false);
+		String expected = "detector('mandelbrot', 0.1)";
+		assertEquals(expected, detector);
+	}
+
+	@Test
+	public void testDummyMalcolmModel() throws Exception {
+
+		DummyMalcolmModel mmodel = new DummyMalcolmModel();
+		mmodel.setName("malcolm");
+		mmodel.setExposureTime(0.1);
+		mmodel.setAxesToMove(Arrays.asList("p", "q"));
+
+		String detector = factory.pyExpress(mmodel, false);
+		String expected = "detector('malcolm', 0.1)";
+		assertEquals(expected, detector);
+	}
+
+	
+	@Test
+	public void testRasterModel() throws Exception {
 
 		BoundingBox bbox = new BoundingBox();
 		bbox.setFastAxisStart(0);

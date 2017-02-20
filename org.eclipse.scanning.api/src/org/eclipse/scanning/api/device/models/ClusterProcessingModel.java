@@ -16,7 +16,7 @@ import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FileType;
 
-public class ClusterProcessingModel implements INameable {
+public class ClusterProcessingModel implements INameable, IReflectedModel {
 	
 	private String name;
 	
@@ -26,8 +26,15 @@ public class ClusterProcessingModel implements INameable {
 	@FieldDescriptor(file=FileType.EXISTING_FILE, hint="The full path of the processing file")
 	private String processingFilePath;
 	
-	// TODO more fields to add, ask Jake
-	
+	public ClusterProcessingModel() {
+		
+	}
+	public ClusterProcessingModel(String name, String detectorName, String processingFilePath) {
+		this.name               = name;
+		this.detectorName       = detectorName;
+		this.processingFilePath = processingFilePath;
+	}
+
 	public String getName() {
 		return name;
 	}
