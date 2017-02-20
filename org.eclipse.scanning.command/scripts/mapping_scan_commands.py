@@ -104,7 +104,6 @@ def submit(request, now=False, block=True,
 
     See the mscan() docstring for details of `now` and `block`.
     """
-    
     scan_bean = ScanBean(request) # Generates a sensible name for the scan from the request.
    
     # Throws an exception if we made a bad bean
@@ -186,13 +185,11 @@ def detector(name, exposure, **kwargs):
     
     detector = getRunnableDeviceService().getRunnableDevice(name)
 
-    try:
-        assert detector is not None
-    except AssertionError:
-        raise ValueError("Detector '"+name+"' not found.")
-
+    assert detector is not None, "Detector '"+name+"' not found."
+    
     model = detector.getModel()
-
+    assert model is not None, "The model of detector '"+name+"' appears to be None."
+    
     if (exposure > 0):
         model.setExposureTime(exposure)
     
