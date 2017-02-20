@@ -146,8 +146,10 @@ public class ValidatorService implements IValidatorService {
 	
 	private <T> IRunnableDevice<T> getDeviceFromModel(T model) {
 		
+		if (dservice==null) return null;
+
 		IRunnableDevice<T> device = null;
-		if (model instanceof INameable && dservice!=null) {
+		if (model instanceof INameable) {
 			try {
 				final String deviceName = ((INameable) model).getName();
 				device = dservice.getRunnableDevice(deviceName);
@@ -162,16 +164,17 @@ public class ValidatorService implements IValidatorService {
 				Method getName = model.getClass().getMethod("getName");
 				String name = (String)getName.invoke(model);
 				device = dservice.getRunnableDevice(name);
-				
+
 			} catch (Exception ne) {
 				try { 
 					device  = dservice.createRunnableDevice(model, false);
 				} catch (Exception legallyPossible) {
-					// Do nothing
+					// Do nothing, if we cannot get it, then we cannot get it.
 				}
 			}
-			
+
 		}
+
 		return device;
 	}
 
