@@ -291,6 +291,7 @@ public class MScanServletWithProcessingTest extends AbstractJythonTest {
 		assertTrue(servlet.isConnected());
 		
 		IRunnableDevice<?> device = dservice.getRunnableDevice("processing");
+		assertTrue(device.getModel()!=null);
 		
 		String cmd = "sr = scan_request(grid(axes=('yNex', 'xNex'), start=(0, 0), stop=(3, 3), count=(2, 2), snake=True), "
                 + "det=[detector('mandelbrot', 0.1), detector('processing', -1, detectorName='mandelbrot', processingFilePath='/tmp/sum.nxs')],"
@@ -368,7 +369,7 @@ public class MScanServletWithProcessingTest extends AbstractJythonTest {
 			checker.checkNexusFile(2, 2);
 			
 			// Check the processing bean was submitted successfully
-			checker.checkSubmittedBean();
+			checker.checkSubmittedBean(true);
 
 			return beans;
 			

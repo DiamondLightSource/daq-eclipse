@@ -181,8 +181,11 @@ public class ScanClusterProcessingChecker {
 	}
 
 
-	public void checkSubmittedBean() throws Exception {
+	public void checkSubmittedBean(boolean allowEmpty) throws Exception {
+		
 		List<StatusBean> statusSet = consumer.getStatusSet();
+		if (allowEmpty && statusSet.isEmpty()) return;
+		
 		assertThat(statusSet.get(0), is(instanceOf(DummyOperationBean.class)));
 		DummyOperationBean operationBean = (DummyOperationBean) statusSet.get(0);
 		
