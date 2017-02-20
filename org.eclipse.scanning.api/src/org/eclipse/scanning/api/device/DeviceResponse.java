@@ -13,6 +13,7 @@ package org.eclipse.scanning.api.device;
 
 import java.util.Collection;
 
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.ITerminatable;
 import org.eclipse.scanning.api.ModelValidationException;
@@ -200,8 +201,8 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 			
 		} else if (request.getDeviceModel()!=null) { // Modelled device created
 			
-			String name = request.getDeviceModel() instanceof IDetectorModel
-                        ? ((IDetectorModel)request.getDeviceModel()).getName()
+			String name = request.getDeviceModel() instanceof INameable
+                        ? ((INameable)request.getDeviceModel()).getName()
                         : null;
 			IRunnableDevice<Object> device = name != null ? dservice.getRunnableDevice(name) : null;
 			if (device==null) dservice.createRunnableDevice(request.getDeviceModel(), request.isConfigure());

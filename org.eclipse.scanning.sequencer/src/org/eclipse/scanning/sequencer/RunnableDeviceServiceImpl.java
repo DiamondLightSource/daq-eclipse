@@ -27,6 +27,7 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PostConfigure;
 import org.eclipse.scanning.api.annotation.scan.PreConfigure;
@@ -216,8 +217,15 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, 
                 // If the model has a name for the device, we use
                 // it automatically.
                 try {
-                    final Method getName = model.getClass().getMethod("getName");
-                    String name = (String)getName.invoke(model);
+                	String name = null;
+                	// Try with INameable first as faster than reflection
+                	if (model instanceof INameable) name = ((INameable) model).getName(); 
+                	
+                	// Try with reflection
+                	if (name == null) {
+	                	final Method getName = model.getClass().getMethod("getName");
+	                    name = (String)getName.invoke(model);
+                	}
                     ascanner.setName(name);
                 } catch (NoSuchMethodException ignored) {
                 	// getName() is not compulsory in the model
