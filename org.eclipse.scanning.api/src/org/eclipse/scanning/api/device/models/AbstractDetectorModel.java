@@ -13,7 +13,7 @@ package org.eclipse.scanning.api.device.models;
 
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 
-public abstract class AbstractDetectorModel implements IDetectorModel {
+public abstract class AbstractDetectorModel implements IDetectorModel, IReflectedModel {
 
 	private long timeout;
 	
