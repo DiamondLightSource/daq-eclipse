@@ -11,11 +11,12 @@
  *******************************************************************************/
 package org.eclipse.scanning.api.device.models;
 
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.annotation.ui.DeviceType;
 import org.eclipse.scanning.api.annotation.ui.FieldDescriptor;
 import org.eclipse.scanning.api.annotation.ui.FileType;
 
-public class ClusterProcessingModel {
+public class ClusterProcessingModel implements INameable {
 	
 	private String name;
 	
