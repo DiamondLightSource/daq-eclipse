@@ -6,7 +6,9 @@ addons:
   sonarqube:
     token:
       secure: $SONAR_TOKEN # See https://travis-ci.org/DiamondLightSource/daq-eclipse/settings, here be variables
-
+    github_token:
+      secure: $GITHUB_READ_REPO
+      
 language: java
 
 # Makes build faster to cache maven things.
