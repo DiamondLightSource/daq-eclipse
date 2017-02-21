@@ -5,7 +5,7 @@ sudo: required
 addons:
   sonarqube:
     token:
-      secure: ${SONAR_TOKEN} # See https://travis-ci.org/DiamondLightSource/daq-eclipse/settings, here be variables
+      secure: "${SONAR_TOKEN}" # See https://travis-ci.org/DiamondLightSource/daq-eclipse/settings, here be variables
 
 language: java
 
