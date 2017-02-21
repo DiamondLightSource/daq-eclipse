@@ -45,6 +45,7 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.script.IScriptService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
@@ -69,19 +70,13 @@ import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class ScanServletTest extends BrokerTest {
 
 	private static ScanServlet servlet; 
-	
-	@BeforeClass
-	public static void init() {
-		ScanPointGeneratorFactory.init();
-	}
 	
 	private static IRunnableDeviceService      dservice;
 	private static IScannableDeviceService     connector;
@@ -96,6 +91,8 @@ public class ScanServletTest extends BrokerTest {
 	@BeforeClass
 	public static void create() throws Exception {
 		
+		ScanPointGeneratorFactory.init();
+
 		marshaller = new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
 						new ScanningExampleClassRegistry(),
@@ -153,14 +150,12 @@ public class ScanServletTest extends BrokerTest {
 		 *  This would be done by spring on the GDA Server
 		 *  @see org.eclipse.scanning.server.servlet.AbstractConsumerServlet
 		 *  In spring we have something like:
-
 		    {@literal <bean id="scanner" class="org.eclipse.scanning.server.servlet.ScanServlet">}
 		    {@literal    <property name="broker"      value="tcp://p45-control:61616" />}
 		    {@literal    <property name="submitQueue" value="uk.ac.diamond.p45.submitQueue" />}
 		    {@literal    <property name="statusSet"   value="uk.ac.diamond.p45.statusSet"   />}
 		    {@literal    <property name="statusTopic" value="uk.ac.diamond.p45.statusTopic" />}
 		    {@literal </bean>}
-
 		 */
 		servlet = new ScanServlet();
 		servlet.setBroker(uri.toString());
@@ -170,6 +165,12 @@ public class ScanServletTest extends BrokerTest {
 		servlet.connect(); // Gets called by Spring automatically
 
 	}
+	
+	@Before
+	public void before() throws Exception {
+		servlet.getConsumer().cleanQueue("org.eclipse.scanning.test.servlet.submitQueue");
+		servlet.getConsumer().cleanQueue("org.eclipse.scanning.test.servlet.statusSet");
+	}
 
 	@AfterClass
 	public static void disconnect()  throws Exception {
@@ -177,8 +178,7 @@ public class ScanServletTest extends BrokerTest {
 	}
 	
 	/**
-	 * This test mimiks a client submitting a scan. The client may submit any status bean
-	 * to the consumer of course and then  
+	 * This test mimiks a client submitting a scan. 
 	 * 
 	 * @throws Exception
 	 */
@@ -190,8 +190,7 @@ public class ScanServletTest extends BrokerTest {
 	}
 	
 	/**
-	 * This test mimiks a client submitting a scan. The client may submit any status bean
-	 * to the consumer of course and then  
+	 * This test mimiks a client submitting a scan. 
 	 * 
 	 * @throws Exception
 	 */

@@ -409,7 +409,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	private void terminateProcess(IConsumerProcess<U> process) throws EventException {
 		// TODO More to terminate than call terminate? 
 		// Relies on process always setting state correctly to TERMINATED.
-		process.terminate();
+		if (process!=null) process.terminate();
 	}
 
 	@Override

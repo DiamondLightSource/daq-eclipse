@@ -28,6 +28,7 @@ import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.Random;
 import org.eclipse.january.dataset.SliceND;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.annotation.scan.PointStart;
@@ -36,7 +37,6 @@ import org.eclipse.scanning.api.annotation.scan.ScanFinally;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
-import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.device.models.ScanMode;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
@@ -96,8 +96,8 @@ public class DummyMalcolmTriggeredDetector<T extends DummyMalcolmTriggeredModel>
 	
 	@Override
 	public void validate(T model) throws ValidationException {
-		if (model instanceof IDetectorModel) {
-			IDetectorModel dmodel = (IDetectorModel)model;
+		if (model instanceof INameable) {
+			INameable dmodel = (INameable)model;
 		    if (dmodel.getName()==null || dmodel.getName().length()<1) {
 		    	throw new ModelValidationException("The name must be set!", model, "name");
 		    }

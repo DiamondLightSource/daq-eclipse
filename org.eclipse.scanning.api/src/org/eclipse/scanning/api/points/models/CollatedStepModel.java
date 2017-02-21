@@ -33,6 +33,11 @@ public class CollatedStepModel extends StepModel {
 	public List<String> getNames() {
 		return names;
 	}
+	public String getName() {
+		if (super.getName()!=null) return super.getName();
+		return names.get(0);
+	}
+
 	public void setNames(List<String> name) {
 		this.names = name;
 	}

@@ -134,6 +134,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_INFO, true);
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_CMD,  true);
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_VERBOSE_SCAN_CMD,  false);
 		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_SCAN_TIME,  true);
 		this.pservice = ServiceHolder.getGeneratorService();
 		this.vservice = ServiceHolder.getValidatorService();
@@ -491,7 +492,8 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 	        	if (Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_SCAN_CMD)) {
 	        		try {
 	        			final IParserService pyService = ServiceHolder.getParserService();
-		        		final String cmd = pyService.getCommand(req, true);
+	        			boolean verbose = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_VERBOSE_SCAN_CMD);
+		        		final String cmd = pyService.getCommand(req, verbose);
 			        	styledString.append("\n\nScan Command:\n");
 			        	styledString.append(cmd, FontStyler.CODE);
 	        		} catch (Exception ne) {
@@ -693,11 +695,14 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 		MenuManager     rightClick     = new MenuManager();
 		mans.add(rightClick);
 		
+
+		
 		IAction showInfo = createPreferenceAction("Show scan information", DevicePreferenceConstants.SHOW_SCAN_INFO, "icons/information-white.png");
 		IAction showCmd = createPreferenceAction("Show scan command", DevicePreferenceConstants.SHOW_SCAN_CMD, "icons/information-green.png");
+		IAction showVerbose = createPreferenceAction("Show verbose scan command", DevicePreferenceConstants.SHOW_VERBOSE_SCAN_CMD, "icons/information-purple.png");
 		IAction showTime = createPreferenceAction("Show time estimation", DevicePreferenceConstants.SHOW_SCAN_TIME, "icons/information-red.png");
 	
-		ViewUtil.addGroups("show", mans, showInfo, showCmd, showTime);
+		ViewUtil.addGroups("show", mans, showInfo, showCmd, showVerbose, showTime);
 		
 		this.submitAction = new Action("Submit current scan\n(Submits it to the queue of scans to be run.)", Activator.getImageDescriptor("icons/shoe--arrow.png")) {
 			public void run() {

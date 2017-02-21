@@ -18,6 +18,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.eclipse.dawnsci.analysis.api.processing.IOperationBean;
+import org.eclipse.scanning.api.ModelValidationException;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.annotation.scan.ScanStart;
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IWritableDetector;
@@ -63,6 +65,14 @@ public class ClusterProcessingRunnableDevice extends AbstractRunnableDevice<Clus
 		} catch (Exception e) {
 			logger.error("Could not submit processing bean for processing step" + getName());
 		}
+	}
+	
+	@Override
+	public void validate(ClusterProcessingModel model) throws ValidationException {
+        super.validate(model);
+        if (model.getDetectorName()==null || model.getDetectorName().length()<1) {
+        	throw new ModelValidationException("The detector must be set", model, "detectorName");
+        }
 	}
 	
 	private ISubmitter<StatusBean> getSubmitter() throws Exception {
