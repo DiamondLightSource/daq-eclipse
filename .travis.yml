@@ -1,4 +1,11 @@
-sudo: false
+dist: trusty
+sudo: required
+
+# SonarQube
+addons:
+  sonarqube:
+    token:
+      secure: ${SONAR_TOKEN} # See https://travis-ci.org/DiamondLightSource/daq-eclipse/settings, here be variables
 
 language: java
 
@@ -18,6 +25,7 @@ branches:
 
 jdk:
  - oraclejdk8
+
  
 # Handle git submodules manually
 git:
@@ -61,3 +69,5 @@ env:
 script: 
  - mvn -q clean install surefire:test -Dtest.includes=org/eclipse/scanning/**/Suite.java 
  - mvn -q surefire:test -Dtest.includes=org/eclipse/scanning/**/UISuite.java -Dlog4j.configuration=log4j.properties
+ - sonar-scanner
+  
