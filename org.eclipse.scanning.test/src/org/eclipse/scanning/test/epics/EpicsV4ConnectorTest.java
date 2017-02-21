@@ -35,6 +35,8 @@ import org.eclipse.scanning.example.malcolm.ExampleMalcolmModel;
 import org.eclipse.scanning.malcolm.core.AbstractMalcolmDevice;
 import org.eclipse.scanning.malcolm.core.MalcolmService;
 import org.eclipse.scanning.points.PointGeneratorService;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -44,12 +46,24 @@ import org.junit.Test;
  */
 public class EpicsV4ConnectorTest {
 
-	private EpicsV4ConnectorService connectorService;
-
-	private IMalcolmService service;
-
+	private IMalcolmService      service;
 	private ExampleMalcolmDevice dummyMalcolmDevice;
+	
+	@Before
+	public void before() throws Exception {
+		// The real service, get it from OSGi outside this test!
+		// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
+		this.service = new MalcolmService(new EpicsV4ConnectorService(), null);
 
+	}
+	
+	@After
+	public void after() throws Exception {
+		// Stop the device
+		if (dummyMalcolmDevice!=null) dummyMalcolmDevice.stop();
+		service.dispose();
+	}
+	
 	/**
 	 * Starts an instance of the ExampleMalcolmDevice and then attempts to get the device state from 
 	 * it to check that the Epics V4 connection mechanism is working.
@@ -59,13 +73,6 @@ public class EpicsV4ConnectorTest {
 	public void ConnectToValidDevice() throws Exception {
 
 		try {
-			// Setup the objects
-			this.connectorService = new EpicsV4ConnectorService();
-
-			// The real service, get it from OSGi outside this test!
-			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
-			this.service = new MalcolmService(connectorService, null);
-
 			// Start the dummy test device
 			new Thread(new DeviceRunner()).start();
 
@@ -80,11 +87,7 @@ public class EpicsV4ConnectorTest {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
-		} finally {
-			// Stop the device
-			dummyMalcolmDevice.stop();
-			Thread.sleep(1000);
-		}
+		} 
 	}
 
 	/**
@@ -96,16 +99,6 @@ public class EpicsV4ConnectorTest {
 	public void ConnectToInvalidDevice() throws Exception {
 
 		try {
-			// Setup the objects
-			this.connectorService = new EpicsV4ConnectorService();
-
-			// The real service, get it from OSGi outside this test!
-			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
-			this.service = new MalcolmService(connectorService, null);
-
-			// Start the dummy test device
-			//new Thread(new DeviceRunner()).start();
-
 			// Get the device
 			IMalcolmDevice<ExampleMalcolmModel> modelledDevice = service.getDevice("INVALID_DEVICE");
 
@@ -130,13 +123,6 @@ public class EpicsV4ConnectorTest {
 	public void GetNonExistantAttribute() throws Exception {
 
 		try {
-			// Setup the objects
-			this.connectorService = new EpicsV4ConnectorService();
-
-			// The real service, get it from OSGi outside this test!
-			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
-			this.service = new MalcolmService(connectorService, null);
-
 			// Start the dummy test device
 			new Thread(new DeviceRunner()).start();
 
@@ -152,10 +138,7 @@ public class EpicsV4ConnectorTest {
 			assertEquals(MalcolmDeviceException.class, ex.getClass());
 			assertTrue("Message was: " + ex.getMessage(), ex.getMessage().contains("CreateGet failed for 'NON_EXISTANT'"));
 			assertTrue(ex.getMessage().contains("illegal pvRequest"));
-		} finally {
-			// Stop the device
-			dummyMalcolmDevice.stop();
-		}
+		} 
 	}
 
 	/**
@@ -167,13 +150,6 @@ public class EpicsV4ConnectorTest {
 	public void ConnectToValidDeviceButOfflineWhenConfigure() throws Exception {
 
 		try {
-			// Setup the objects
-			this.connectorService = new EpicsV4ConnectorService();
-
-			// The real service, get it from OSGi outside this test!
-			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
-			this.service = new MalcolmService(connectorService, null);
-
 			// Start the dummy test device
 			new Thread(new DeviceRunner()).start();
 
@@ -217,11 +193,7 @@ public class EpicsV4ConnectorTest {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
-		} finally {
-			// Stop the device (if not stopped already)
-			dummyMalcolmDevice.stop();
-			Thread.sleep(1000);
-		}
+		} 
 	}
 
 	/**
@@ -233,13 +205,6 @@ public class EpicsV4ConnectorTest {
 	public void ConnectToValidDeviceButOfflineWhenRun() throws Exception {
 
 		try {
-			// Setup the objects
-			this.connectorService = new EpicsV4ConnectorService();
-
-			// The real service, get it from OSGi outside this test!
-			// Not required in OSGi mode (do not add this to your real code GET THE SERVICE FROM OSGi!)
-			this.service = new MalcolmService(connectorService, null);
-
 			// Start the dummy test device
 			new Thread(new DeviceRunner()).start();
 
@@ -285,10 +250,6 @@ public class EpicsV4ConnectorTest {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			fail(ex.getMessage());
-		} finally {
-			// Stop the device (if not stopped already)
-			dummyMalcolmDevice.stop();
-			Thread.sleep(1000);
 		}
 	}
 
