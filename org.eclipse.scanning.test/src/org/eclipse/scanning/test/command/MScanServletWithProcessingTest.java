@@ -89,13 +89,7 @@ import org.junit.runners.MethodSorters;
 public class MScanServletWithProcessingTest extends AbstractJythonTest {
 
 	
-	private static ScanServlet servlet; 
-	
-	@BeforeClass
-	public static void init() {
-		ScanPointGeneratorFactory.init();
-	}
-	
+	private static ScanServlet                 servlet; 	
 	private static IRunnableDeviceService      dservice;
 	private static IScannableDeviceService     connector;
 	private static IPointGeneratorService      gservice;
@@ -113,6 +107,8 @@ public class MScanServletWithProcessingTest extends AbstractJythonTest {
 	@BeforeClass
 	public static void create() throws Exception {
 		
+		ScanPointGeneratorFactory.init();
+
 		marshaller = new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
 						new ScanningExampleClassRegistry(),

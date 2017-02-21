@@ -78,11 +78,6 @@ public class ScanServletTest extends BrokerTest {
 
 	private static ScanServlet servlet; 
 	
-	@BeforeClass
-	public static void init() {
-		ScanPointGeneratorFactory.init();
-	}
-	
 	private static IRunnableDeviceService      dservice;
 	private static IScannableDeviceService     connector;
 	private static IPointGeneratorService      gservice;
@@ -96,6 +91,8 @@ public class ScanServletTest extends BrokerTest {
 	@BeforeClass
 	public static void create() throws Exception {
 		
+		ScanPointGeneratorFactory.init();
+
 		marshaller = new MarshallerService(
 				Arrays.asList(new ScanningAPIClassRegistry(),
 						new ScanningExampleClassRegistry(),
