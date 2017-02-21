@@ -192,7 +192,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 	}
 
 	public boolean isConnected() {
-		return isConnected;
+		return isConnected && (consumer!=null ? !consumer.isDisconnected() : true);
 	}
 
 	public boolean isPurgeQueue() {

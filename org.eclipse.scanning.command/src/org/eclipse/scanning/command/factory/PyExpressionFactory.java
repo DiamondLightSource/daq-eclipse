@@ -12,7 +12,7 @@
 package org.eclipse.scanning.command.factory;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +20,8 @@ import org.eclipse.dawnsci.analysis.api.roi.IROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.CircularROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.PolygonalROI;
 import org.eclipse.dawnsci.analysis.dataset.roi.RectangularROI;
+import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.device.models.IReflectedModel;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.models.ArrayModel;
 import org.eclipse.scanning.api.points.models.GridModel;
@@ -45,21 +47,24 @@ public class PyExpressionFactory {
 
 	private static Map<Class<?>, PyModelExpresser<?>> expressers;
 	static {
-		Map<Class<?>, PyModelExpresser<?>> exp = new HashMap<Class<?>, PyModelExpresser<?>>(7);
+		Map<Class<?>, PyModelExpresser<?>> exp = new LinkedHashMap<Class<?>, PyModelExpresser<?>>(7);
+		
 		exp.put(StepModel.class,           new StepModelExpresser());
 		exp.put(GridModel.class,           new GridModelExpresser());
 		exp.put(RasterModel.class,         new RasterModelExpresser());
 		exp.put(ArrayModel.class,          new ArrayModelExpresser());
 		exp.put(RepeatedPointModel.class,  new RepeatedPointExpresser());
 		
-		exp.put(Collection.class,     new ROICollectionExpresser());
-		exp.put(List.class,           new ROICollectionExpresser());
-		exp.put(CircularROI.class,    new CircularROIExpresser());
-		exp.put(RectangularROI.class, new RectangularROIExpresser());
-		exp.put(PolygonalROI.class,   new PolygonalROIExpresser());
+		exp.put(Collection.class,      new ROICollectionExpresser());
+		exp.put(List.class,            new ROICollectionExpresser());
+		exp.put(CircularROI.class,     new CircularROIExpresser());
+		exp.put(RectangularROI.class,  new RectangularROIExpresser());
+		exp.put(PolygonalROI.class,    new PolygonalROIExpresser());
 		
-		exp.put(ScanRequest.class,    new ScanRequestExpresser());
+		exp.put(ScanRequest.class,     new ScanRequestExpresser());
 		
+		exp.put(IReflectedModel.class, new ReflectedModelExpressor());
+
 		expressers = exp;
 	}
 	
@@ -77,11 +82,22 @@ public class PyExpressionFactory {
 		if (expressers.containsKey(model.getClass())) {
 			expresser = (PyModelExpresser<T>)expressers.get(model.getClass());
 		} else {
-			Class[] classes = model.getClass().getInterfaces();
-			for (Class class1 : classes) {
-				if (expressers.containsKey(class1)) {
-					expresser = (PyModelExpresser<T>)expressers.get(class1);
-					break;
+			Class clazz = model.getClass();
+			while(!clazz.equals(Object.class)) {
+				try {
+					Class[] classes = clazz.getInterfaces();
+					for (Class class1 : classes) {
+						if (expressers.containsKey(class1)) {
+							expresser = (PyModelExpresser<T>)expressers.get(class1);
+							break;
+						}
+					}
+				} finally {
+					try {
+					    clazz = clazz.getSuperclass();
+					} catch (Exception ne) {
+						break;
+					}
 				}
 			}
 		}

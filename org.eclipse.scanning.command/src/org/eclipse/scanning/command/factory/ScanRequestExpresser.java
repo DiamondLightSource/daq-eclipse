@@ -14,11 +14,10 @@ package org.eclipse.scanning.command.factory;
 import java.util.Collection;
 
 import org.eclipse.dawnsci.analysis.api.roi.IROI;
-import org.eclipse.scanning.api.device.models.IDetectorModel;
+import org.eclipse.scanning.api.device.models.IReflectedModel;
+import org.eclipse.scanning.api.device.models.ModelReflection;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
-import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.command.ParserServiceImpl;
-import org.eclipse.scanning.command.PyExpressionNotImplementedException;
 
 class ScanRequestExpresser extends PyModelExpresser<ScanRequest<?>> {
 
@@ -82,12 +81,7 @@ class ScanRequestExpresser extends PyModelExpresser<ScanRequest<?>> {
 			for (String detectorName : request.getDetectors().keySet()) {
 				if (listPartiallyWritten) fragment += ", ";
 				Object model = request.getDetectors().get(detectorName);
-				if (model instanceof IDetectorModel) { // Probably is but does not have to be
-					IDetectorModel dmodel = (IDetectorModel)model;
-					fragment += "detector('"+detectorName+"', "+dmodel.getExposureTime()+")";
-					// TODO We could compute the diffs between this model and the current
-					// server version of it and add these as command line arguments.
-				}
+				fragment += factory.pyExpress(model, verbose);
 				listPartiallyWritten |= true;
 			}
 			

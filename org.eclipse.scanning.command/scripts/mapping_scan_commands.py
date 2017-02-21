@@ -32,18 +32,17 @@ interest (ROI) when using grid(). They are: circ(), rect(), poly().
 import sys
 
 from java.lang import System
-
-from java.util import HashMap, ArrayList
 from java.net import URI
+from java.util import HashMap, ArrayList
 from org.eclipse.dawnsci.analysis.dataset.roi import (
     CircularROI, RectangularROI, PolygonalROI, PolylineROI, PointROI)
-from org.eclipse.scanning.api.points.models import (
-    StepModel, GridModel, RasterModel, SinglePointModel,
-    OneDEqualSpacingModel, OneDStepModel, ArrayModel,
-    BoundingBox, BoundingLine, CompoundModel, RepeatedPointModel)
-from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
 from org.eclipse.scanning.api.event.IEventService import (
     SUBMISSION_QUEUE, STATUS_TOPIC)
+from org.eclipse.scanning.api.event.scan import (ScanBean, ScanRequest)
+from org.eclipse.scanning.api.points.models import (
+    StepModel, CollatedStepModel, GridModel, RasterModel, SinglePointModel,
+    OneDEqualSpacingModel, OneDStepModel, ArrayModel,
+    BoundingBox, BoundingLine, CompoundModel, RepeatedPointModel)
 from org.eclipse.scanning.command.Services import (
     getEventService, getRunnableDeviceService)
 
@@ -105,7 +104,6 @@ def submit(request, now=False, block=True,
 
     See the mscan() docstring for details of `now` and `block`.
     """
-    
     scan_bean = ScanBean(request) # Generates a sensible name for the scan from the request.
    
     # Throws an exception if we made a bad bean
@@ -136,7 +134,7 @@ def getScanningBrokerUri():
     return uri;
 
 
-def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
+def scan_request(path=None, mon=None, det=None, file=None, allow_preprocess=False):
     """Create a ScanRequest object with the given configuration.
 
     See the mscan() docstring for usage.
@@ -169,6 +167,7 @@ def scan_request(path=None, mon=None, det=None, allow_preprocess=False):
 
     return _instantiate(ScanRequest,
                         {'compoundModel': cmodel,
+                         'filePath' : file,
                          'monitorNames': monitors,
                          'detectors': detector_map,
                          'ignorePreprocess': not allow_preprocess})
@@ -186,14 +185,13 @@ def detector(name, exposure, **kwargs):
     
     detector = getRunnableDeviceService().getRunnableDevice(name)
 
-    try:
-        assert detector is not None
-    except AssertionError:
-        raise ValueError("Detector '"+name+"' not found.")
-
+    assert detector is not None, "Detector '"+name+"' not found."
+    
     model = detector.getModel()
-
-    model.setExposureTime(exposure)
+    assert model is not None, "The model of detector '"+name+"' appears to be None."
+    
+    if (exposure > 0):
+        model.setExposureTime(exposure)
     
     for key, value in kwargs.iteritems():
         setattr(model, key, value)
@@ -233,6 +231,37 @@ def step(axis=None, start=None, stop=None, step=None):
                  'step': step})
 
     return model, _listify(roi)
+
+def cstep(names=None, start=None, stop=None, step=None):
+    """Define a step scan path to be passed to mscan().
+
+    Note that this function may be called with or without keyword syntax. That
+    is, the following are mutually equivalent:
+    >>> step(axis=my_scannable, start=0, stop=10, step=1)
+    >>> step(['x','y'], 0, 10, 1)
+    
+    TODO This command is untested and no scan point generator exists than can do
+    this on the Jython side.
+    
+    """
+    try:
+        assert None not in (names, start, stop, step)
+    except (TypeError, ValueError):
+        raise ValueError(
+            '`axis`, `start`, `stop` and `step` must be provided.')
+
+    # No such thing as ROIs for StepModels.
+    roi = None
+
+    model = _instantiate(
+                CollatedStepModel,
+                {'start': start,
+                 'stop': stop,
+                 'step': step,
+                 'names': names})
+
+    return model, _listify(roi)
+
 
 def repeat(axis=None, count=None, value=None, sleep=None):
     """Define a repeat scan path to be passed to mscan().

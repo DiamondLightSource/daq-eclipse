@@ -59,20 +59,20 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 
 	static final FieldCreate fieldCreate = FieldFactory.getFieldCreate();
     static final PVDataCreate pvDataCreate = PVDataFactory.getPVDataCreate();
-    static final double REQUEST_TIMEOUT = 0.25;
+    static final double REQUEST_TIMEOUT = 1.0;
 	
 	private static final Logger logger = LoggerFactory.getLogger(EpicsV4ConnectorService.class);
 	
 	private EpicsV4MessageMapper mapper;
 	
-	PvaClient pvaClient;
+	private PvaClient pvaClient;
     
     private Map<Long, Collection<EpicsV4MonitorListener>> listeners;
     
     public EpicsV4ConnectorService() {
 		mapper = new EpicsV4MessageMapper();
 		this.listeners = new Hashtable<Long, Collection<EpicsV4MonitorListener>>(7);
-		pvaClient = PvaClient.get("pva");
+		pvaClient = PvaClient.get("pva"); // Should this be "pva" or the no-argument one?
 	}
     
 	@Override
@@ -82,8 +82,8 @@ public class EpicsV4ConnectorService implements IMalcolmConnectorService<Malcolm
 
 	@Override
 	public void disconnect() throws MalcolmDeviceException {
-        pvaClient.destroy();
-	}
+        //pvaClient.destroy();
+ 	}
 	
 	public PVStructure pvMarshal(Object anyObject) throws Exception {
 		return mapper.pvMarshal(anyObject);

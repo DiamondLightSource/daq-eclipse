@@ -11,18 +11,19 @@
  *******************************************************************************/
 package org.eclipse.scanning.points.validation;
 
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IValidator;
 import org.eclipse.scanning.api.IValidatorService;
 import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
-import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
@@ -140,10 +141,17 @@ public class ValidatorService implements IValidatorService {
 			}
 		}
 		
-		if (model instanceof IDetectorModel && dservice!=null) {
-			IRunnableDevice<Object> device=null;
+		return getDeviceFromModel(model);
+	}
+	
+	private <T> IRunnableDevice<T> getDeviceFromModel(T model) {
+		
+		if (dservice==null) return null;
+
+		IRunnableDevice<T> device = null;
+		if (model instanceof INameable) {
 			try {
-				final String deviceName = ((IDetectorModel) model).getName();
+				final String deviceName = ((INameable) model).getName();
 				device = dservice.getRunnableDevice(deviceName);
 				if (device == null) {
 					device = dservice.createRunnableDevice(model, false);
@@ -151,18 +159,23 @@ public class ValidatorService implements IValidatorService {
 			} catch (ScanningException e) {
 				logger.trace("No device found for "+model, e);
 			}
-			if (device!=null) return (IValidator<T>)device;
 		} else {
 			try {
-				IRunnableDevice<Object> device  = dservice.createRunnableDevice(model, false);
-				return (IValidator<T>)device;
-			} catch (Exception legallyPossible) {
-				// Do nothing
+				Method getName = model.getClass().getMethod("getName");
+				String name = (String)getName.invoke(model);
+				device = dservice.getRunnableDevice(name);
+
+			} catch (Exception ne) {
+				try { 
+					device  = dservice.createRunnableDevice(model, false);
+				} catch (Exception legallyPossible) {
+					// Do nothing, if we cannot get it, then we cannot get it.
+				}
 			}
-			
+
 		}
-		
-		return null;
+
+		return device;
 	}
 
 }

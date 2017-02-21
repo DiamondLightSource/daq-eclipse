@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.scanning.points.classregistry;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -194,7 +193,18 @@ public class ScanningAPIClassRegistry implements IClassRegistry {
 		registerClass(tmp, ScriptResponse.class);
 		
 
-		idToClassMap = Collections.unmodifiableMap(tmp);
+		idToClassMap = tmp;
+	}
+	
+	public ScanningAPIClassRegistry() {
+		
+	}
+	public ScanningAPIClassRegistry(Class<?>... extras) {
+		if (extras!=null) {
+			for (Class<?> class1 : extras) {
+				registerClass(idToClassMap, class1);
+			}
+		}
 	}
 	
 	private static void registerClass(Map<String, Class<?>> map, Class<?> clazz) {

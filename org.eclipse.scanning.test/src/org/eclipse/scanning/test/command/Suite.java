@@ -19,6 +19,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	ScanRequestCreationTest.class,
 	SubmissionTest.class,
 	MScanServletTest.class,
+	MScanServletWithProcessingTest.class,
 	PyExpresserTest.class
 })
 public class Suite { }

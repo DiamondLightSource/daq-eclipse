@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.eclipse.scanning.api.IModelProvider;
+import org.eclipse.scanning.api.INameable;
 import org.eclipse.scanning.api.IScanAttributeContainer;
 import org.eclipse.scanning.api.ModelValidationException;
 import org.eclipse.scanning.api.ValidationException;
@@ -549,11 +550,14 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	 */
 	@Override
 	public void validate(T model) throws ValidationException {
-		if (model instanceof IDetectorModel) {
-			IDetectorModel dmodel = (IDetectorModel)model;
+		if (model instanceof INameable) {
+			INameable dmodel = (INameable)model;
 		    if (dmodel.getName()==null || dmodel.getName().length()<1) {
 		    	throw new ModelValidationException("The name must be set!", model, "name");
 		    }
+		}
+		if (model instanceof IDetectorModel) {
+			IDetectorModel dmodel = (IDetectorModel)model;
 			if (dmodel.getExposureTime()<=0) throw new ModelValidationException("The exposure time for '"+getName()+"' must be non-zero!", model, "exposureTime");
 		}
 	}
