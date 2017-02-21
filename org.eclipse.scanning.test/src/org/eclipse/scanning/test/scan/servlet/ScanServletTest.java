@@ -45,6 +45,7 @@ import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.IScanPathModel;
 import org.eclipse.scanning.api.points.models.StepModel;
 import org.eclipse.scanning.api.script.IScriptService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
@@ -69,11 +70,9 @@ import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class ScanServletTest extends BrokerTest {
 
@@ -169,6 +168,12 @@ public class ScanServletTest extends BrokerTest {
 		servlet.connect(); // Gets called by Spring automatically
 
 	}
+	
+	@Before
+	public void before() throws Exception {
+		servlet.getConsumer().cleanQueue("org.eclipse.scanning.test.servlet.submitQueue");
+		servlet.getConsumer().cleanQueue("org.eclipse.scanning.test.servlet.statusSet");
+	}
 
 	@AfterClass
 	public static void disconnect()  throws Exception {
@@ -176,8 +181,7 @@ public class ScanServletTest extends BrokerTest {
 	}
 	
 	/**
-	 * This test mimiks a client submitting a scan. The client may submit any status bean
-	 * to the consumer of course and then  
+	 * This test mimiks a client submitting a scan. 
 	 * 
 	 * @throws Exception
 	 */
@@ -189,8 +193,7 @@ public class ScanServletTest extends BrokerTest {
 	}
 	
 	/**
-	 * This test mimiks a client submitting a scan. The client may submit any status bean
-	 * to the consumer of course and then  
+	 * This test mimiks a client submitting a scan. 
 	 * 
 	 * @throws Exception
 	 */
@@ -230,7 +233,6 @@ public class ScanServletTest extends BrokerTest {
 		runAndCheck(bean, 100);
 	}
 	
-	@Ignore("Cannot get this to run reliably on travis.")
 	@Test
 	public void testStepGridScanNested5() throws Exception {
 		

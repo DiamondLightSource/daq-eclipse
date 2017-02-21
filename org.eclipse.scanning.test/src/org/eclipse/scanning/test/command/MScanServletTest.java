@@ -28,6 +28,7 @@ import org.eclipse.dawnsci.remotedataset.test.mock.LoaderServiceMock;
 import org.eclipse.scanning.api.device.IDeviceWatchdogService;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.ISubmitter;
 import org.eclipse.scanning.api.event.core.ISubscriber;
@@ -36,6 +37,7 @@ import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.scan.ScanEvent;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
@@ -59,10 +61,9 @@ import org.eclipse.scanning.test.scan.mock.MockWritableDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandelbrotDetector;
 import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class MScanServletTest extends AbstractJythonTest {
 
@@ -161,6 +162,12 @@ public class MScanServletTest extends AbstractJythonTest {
 	@AfterClass
 	public static void disconnect()  throws Exception {
 		servlet.disconnect();
+	}
+	
+	@Before
+	public void before() throws Exception {
+		servlet.getConsumer().cleanQueue(EventConstants.SUBMISSION_QUEUE);
+		servlet.getConsumer().cleanQueue(EventConstants.STATUS_SET);
 	}
 	
 	@Test

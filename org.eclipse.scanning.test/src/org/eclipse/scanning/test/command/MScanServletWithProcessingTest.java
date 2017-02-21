@@ -35,6 +35,7 @@ import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.device.models.ClusterProcessingModel;
+import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.IEventService;
 import org.eclipse.scanning.api.event.core.IConsumer;
 import org.eclipse.scanning.api.event.core.ISubmitter;
@@ -232,6 +233,11 @@ public class MScanServletWithProcessingTest extends AbstractJythonTest {
 		File output = File.createTempFile("test_nexus", ".nxs");
 		output.deleteOnExit();
 		path = output.getAbsolutePath().replace("\\\\", "\\").replace('\\', '/');
+		
+		servlet.getConsumer().cleanQueue(EventConstants.SUBMISSION_QUEUE);
+		servlet.getConsumer().cleanQueue(EventConstants.STATUS_SET);
+		pconsumer.cleanQueue(PROCESSING_QUEUE_NAME);
+		pconsumer.cleanQueue("scisoft.operation.STATUS_SET");
 	}
 
 	@Test
