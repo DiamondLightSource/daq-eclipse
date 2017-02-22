@@ -12,8 +12,11 @@
 package org.eclipse.scanning.api.filter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A springable class which encapsulates information for a given feature.
@@ -138,7 +141,17 @@ public class Filter implements IFilter<String> {
 		Collection<String> excludes = match(getExcludes(), items);
 		ret.removeAll(excludes);
 		Collection<String> includes = match(getIncludes(), items);
-		ret.addAll(includes);
+		
+		Collection<String> done = new HashSet<>();
+		for (final String item : includes) {
+			
+			if (done.contains(item)) continue;
+			int ecount = (int)ret.stream().filter(t->t.equals(item)).count();
+			int icount = (int)includes.stream().filter(t->t.equals(item)).count();
+			ret.addAll(Arrays.stream(new String[icount-ecount]).map(nothing->item).collect(Collectors.toList()));
+			
+			done.add(item);
+		}
 
 		return ret;
 	}
