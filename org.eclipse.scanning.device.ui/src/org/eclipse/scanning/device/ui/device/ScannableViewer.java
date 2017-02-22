@@ -17,8 +17,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -73,7 +71,9 @@ public class ScannableViewer {
 	public ScannableViewer() {
 		IEventService eservice = ServiceHolder.getEventService();
 		try {
-			Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_ACTIVATED_ONLY, true);
+			if (Activator.getDefault()!=null) {
+			    Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_ACTIVATED_ONLY, true);
+			}
 			this.cservice = eservice.createRemoteService(new URI(CommandConstants.getScanningBrokerUri()), IScannableDeviceService.class);
 		    this.defaultIcon = Activator.getImageDescriptor("icons/camera-lens.png").createImage();
 		    this.ticked      = Activator.getImageDescriptor("icons/ticked.png").createImage();
@@ -110,7 +110,9 @@ public class ScannableViewer {
 
 	private Collection<String> getMonitors() throws Exception {
 		
-		boolean onlyActivated = Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_ACTIVATED_ONLY);
+		boolean onlyActivated = Activator.getDefault()!=null
+				              ? Activator.getDefault().getPreferenceStore().getBoolean(DevicePreferenceConstants.SHOW_ACTIVATED_ONLY)
+				              : true;
 		final Collection<DeviceInformation<?>> scannables = cservice.getDeviceInformation();
 		final List<String> ret = new ArrayList<String>();
 		for (DeviceInformation<?> info : scannables) {
