@@ -103,5 +103,10 @@ public class DevicePreferenceConstants {
 	 */
 	public static final String SHOW_MALCOLM = "org.eclipse.scanning.device.ui.scan.showMalcolm";
 
+	/**
+	 * 
+	 */
+	public static final String SHOW_ACTIVATED_ONLY = "org.eclipse.scanning.device.ui.scan.monitor.showActivatedOnly";
+
 
 }
