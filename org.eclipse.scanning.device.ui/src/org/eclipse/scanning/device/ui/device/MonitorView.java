@@ -24,6 +24,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.device.ui.Activator;
+import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
@@ -73,6 +74,13 @@ public class MonitorView extends ViewPart {
 		List<IContributionManager> mans = new ArrayList<>(Arrays.asList(managers));
 		MenuManager     rightClick     = new MenuManager();
 		mans.add(rightClick);
+		
+		Activator.getDefault().getPreferenceStore().setDefault(DevicePreferenceConstants.SHOW_ACTIVATED_ONLY, true);
+        IAction showActivated = createPreferenceAction("Show existing monitors only.", DevicePreferenceConstants.SHOW_ACTIVATED_ONLY, "icons/funnel--minus.png");
+
+        ViewUtil.addGroups("view", mans, showActivated);
+        
+		
 		// Action to add a new ControlNode
 		final IAction addNode = new Action("Add monitor", Activator.getImageDescriptor("icons/ui-toolbar--plus.png")) {
 			public void run() {
@@ -116,6 +124,24 @@ public class MonitorView extends ViewPart {
 		
 		ViewUtil.addGroups("refresh", mans, refresh);
 	}
+	
+	
+	private IAction createPreferenceAction(String label, String preference, String icon) {
+		IAction ret = new Action(label, IAction.AS_CHECK_BOX) {
+			public void run() {
+				Activator.getDefault().getPreferenceStore().setValue(preference, isChecked());
+				try {
+					viewer.reset();
+				} catch (Exception e) {
+					logger.error("Cannot refresh scannable viewer!", e);
+				}
+			}
+		};
+		ret.setImageDescriptor(Activator.getImageDescriptor(icon));
+		ret.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(preference));	
+		return ret;
+	}
+
 
 	@Override
 	public void setFocus() {
