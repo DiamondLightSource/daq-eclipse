@@ -54,6 +54,7 @@ public class CompoundSpgIterator extends AbstractScanPointIterator {
 	
 	public SerializableIterator<IPosition> pyIterator;
 	private IPosition currentPoint;
+	private int index = -1;
 
 	public CompoundSpgIterator(CompoundGenerator gen) throws GeneratorException {
 		this.gen       = gen;
@@ -94,7 +95,6 @@ public class CompoundSpgIterator extends AbstractScanPointIterator {
 		return pyIterator.toDict();
     }
     
-	private int index = -1;
 	@Override
 	public boolean hasNext() {
 		// TODO: Commented out until Python ROIs are ready
