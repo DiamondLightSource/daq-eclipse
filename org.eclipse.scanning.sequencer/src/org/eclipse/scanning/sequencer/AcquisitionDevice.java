@@ -75,6 +75,10 @@ import org.slf4j.LoggerFactory;
  */
 final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implements IPositionListener {
 	
+	// This field is used to provide the getActiveScanner() method on the service.
+	// It should not be accessed from elsewhere.
+	private static AcquisitionDevice current;
+	
 	// Scanning stuff
 	private IPositioner                          positioner;
 	private LevelRunner<IRunnableDevice<?>>      runners;
@@ -199,6 +203,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	@Override
 	public void run(IPosition parent) throws ScanningException, InterruptedException {
 		
+		
 		if (getDeviceState()!=DeviceState.READY) throw new ScanningException("The device '"+getName()+"' is not ready. It is in state "+getDeviceState());
 		
 		ScanModel model = getModel();
@@ -215,6 +220,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		boolean errorFound = false;
 		IPosition pos = null;
 		try {
+			current = this;
 			if (latch!=null) latch.countDown();
 			this.latch = new CountDownLatch(1);
 	        // TODO Should we validate the position iterator that all
@@ -256,7 +262,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	
 	        	// Check if we are paused, blocks until we are not
 	        	boolean continueRunning = checkPaused();
-	        	if (!continueRunning) return; // finally block performed 
+	        	if (!continueRunning) return;  // finally block performed 
 
 	        	// Run to the position
         		manager.invoke(PointStart.class, pos);
@@ -265,14 +271,13 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	IPosition written = writers.await();          // Wait for the previous write out to return, if any
 	       		if (written!=null) manager.invoke(WriteComplete.class, written);
 	        	
-        		nexusScanFileManager.flushNexusFile(); // flush the nexus file
-	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
+ 	        	runners.run(pos);              // GDA8: collectData() / GDA9: run() for Malcolm
 	        	writers.run(pos, false);       // Do not block on the readout, move to the next position immediately.
 	        	
 	        	// Send an event about where we are in the scan
         		manager.invoke(PointEnd.class, pos);
 	        	positionComplete(pos, count, size);
-	        	++count;
+	        	count+=Math.max(innerSize, 1);
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
@@ -292,6 +297,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			
 		} finally {
 			close(errorFound, pos);
+			current = null;
 		}
 	}
 
@@ -561,11 +567,31 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	}
 	
 	@Override
-	public void seek(int stepNumber) throws ScanningException {
-		// TODO FIXME The positioner should seek back to the previous position!!
+	public void seek(int stepNumber) throws ScanningException, InterruptedException {
+		// This is the values of all motors at this global (including malcolm) scan
+		// position. Therefore we do not need a subscan moderator but can run the iterator
+		// to the point
+		IPosition pos = positionForStep(stepNumber);
+		if (pos == null) throw new ScanningException("Seek position is invalid "+stepNumber);
+		
+		positioner.setPosition(pos);
 		if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 			if (device instanceof IPausableDevice) ((IPausableDevice)device).seek(stepNumber);
 		}
+	}
+
+	private IPosition positionForStep(int stepNumber) {
+		/*
+		 * IMPORTANT We do not keep the positions in memory because there can be millions.
+		 * Running over them is fast however.
+		 */
+		int count=0;
+		for (IPosition pos : model.getPositionIterable()) {
+        	pos.setStepIndex(count);
+			if (count == stepNumber) return pos;
+			count++;
+		}
+		return null;
 	}
 
 	@Override
@@ -688,6 +714,19 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		}
 		
 		return scanRank;   		
+	}
+
+	@Override
+	public IPositioner getPositioner() {
+		return positioner;
+	}
+
+	/**
+	 * This method must remain package private.
+	 * @return
+	 */
+	static AcquisitionDevice getCurrent() {
+		return current;
 	}
 
 }
