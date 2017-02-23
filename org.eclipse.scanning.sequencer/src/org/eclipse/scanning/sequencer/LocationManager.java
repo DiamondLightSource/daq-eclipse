@@ -168,7 +168,7 @@ public final class LocationManager {
 		
 		double innerPercentComplete = 0;
 		if (stepNumber > -1) {
-			innerPercentComplete = ((double) (stepNumber + 1) / innerSize);
+			innerPercentComplete = (double) (stepNumber + 1) / innerSize;
 		}
 		double outerPercentComplete = 0;
 		if (outerCount > -1) {
