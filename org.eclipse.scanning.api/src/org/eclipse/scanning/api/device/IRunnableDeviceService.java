@@ -205,5 +205,16 @@ public interface IRunnableDeviceService extends IPositionerService {
      */
 	Collection<DeviceInformation<?>> getDeviceInformationIncludingNonAlive() throws ScanningException;
 
-
+    /**
+     * This is a convenience method for getting the currently active scanner. 
+     * It is useful if the scan is paused and it is required to seek the scan
+     * to a new location from Jython. The returned scanner will be null unless
+     * a scan is currently running, therefore it is of limited usage normally.
+     * 
+     * @return current actively scanning device.
+     */
+	default IRunnableDevice<?> getActiveScanner() {
+		throw new IllegalArgumentException("The get active scanner method is not availble!");
+	}
+	
 }

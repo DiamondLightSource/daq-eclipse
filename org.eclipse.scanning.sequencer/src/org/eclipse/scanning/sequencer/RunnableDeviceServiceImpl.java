@@ -421,4 +421,9 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, 
 	public Collection<Object> getScanParticipants() {
 		return participants; // May be null
 	}
+	
+	@Override
+	public IRunnableDevice<?> getActiveScanner() {
+		return AcquisitionDevice.getCurrent(); // Package private method. Do not use globally!
+	}
 }
