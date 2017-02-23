@@ -35,7 +35,7 @@ public class SeekTest extends AbstractAcquisitionTest {
     
 		try {
 			scanner.start(null);		
-			Thread.sleep(100);	
+			scanner.latch(100, TimeUnit.MILLISECONDS); // Latch onto the scan, breaking before it is finished.
 			scanner.pause();
 			
 			IPosition first   = scanner.getModel().getPositionIterable().iterator().next();
@@ -68,7 +68,7 @@ public class SeekTest extends AbstractAcquisitionTest {
 		});
 		try {
 			scanner.start(null);		
-			Thread.sleep(100);	
+			scanner.latch(100, TimeUnit.MILLISECONDS); // Latch onto the scan, breaking before it is finished.
 			scanner.pause();
 			
 			IPosition first   = scanner.getModel().getPositionIterable().iterator().next();
@@ -103,7 +103,7 @@ public class SeekTest extends AbstractAcquisitionTest {
     
 		try {
 			scanner.start(null);		
-			Thread.sleep(100);	
+			scanner.latch(100, TimeUnit.MILLISECONDS); // Latch onto the scan, breaking before it is finished.
 			scanner.pause();
 			
 			IPosition first   = scanner.getModel().getPositionIterable().iterator().next();
@@ -127,7 +127,7 @@ public class SeekTest extends AbstractAcquisitionTest {
     
 		try {
 			scanner.start(null);		
-			Thread.sleep(100);	
+			scanner.latch(100, TimeUnit.MILLISECONDS); // Latch onto the scan, breaking before it is finished.
 			scanner.pause();
 			
 			IPosition first   = scanner.getModel().getPositionIterable().iterator().next();
