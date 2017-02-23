@@ -428,9 +428,10 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, 
 		return participants; // May be null
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
-	public IRunnableDevice<?> getActiveScanner() {
-		return RunnableDeviceServiceImpl.currentScanningDevice; // Package private method. Do not use globally!
+	public <T> IRunnableDevice<T> getActiveScanner() {
+		return (IRunnableDevice<T>)RunnableDeviceServiceImpl.currentScanningDevice; // Package private method. Do not use globally!
 	}
 
 	/**

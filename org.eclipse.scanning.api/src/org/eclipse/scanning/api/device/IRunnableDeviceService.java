@@ -213,7 +213,7 @@ public interface IRunnableDeviceService extends IPositionerService {
      * 
      * @return current actively scanning device.
      */
-	default IRunnableDevice<?> getActiveScanner() {
+	default <T> IRunnableDevice<T> getActiveScanner() {
 		throw new IllegalArgumentException("The get active scanner method is not availble!");
 	}
 	
