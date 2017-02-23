@@ -74,11 +74,7 @@ import org.slf4j.LoggerFactory;
  * @author Matthew Gerring
  */
 final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implements IPositionListener {
-	
-	// This field is used to provide the getActiveScanner() method on the service.
-	// It should not be accessed from elsewhere.
-	private static AcquisitionDevice current;
-	
+		
 	// Scanning stuff
 	private IPositioner                          positioner;
 	private LevelRunner<IRunnableDevice<?>>      runners;
@@ -220,7 +216,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		boolean errorFound = false;
 		IPosition pos = null;
 		try {
-			current = this;
+			RunnableDeviceServiceImpl.setCurrentScanningDevice(this);
 			if (latch!=null) latch.countDown();
 			this.latch = new CountDownLatch(1);
 	        // TODO Should we validate the position iterator that all
@@ -297,7 +293,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			
 		} finally {
 			close(errorFound, pos);
-			current = null;
+			RunnableDeviceServiceImpl.setCurrentScanningDevice(null);
 		}
 	}
 
@@ -719,14 +715,6 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	@Override
 	public IPositioner getPositioner() {
 		return positioner;
-	}
-
-	/**
-	 * This method must remain package private.
-	 * @return
-	 */
-	static AcquisitionDevice getCurrent() {
-		return current;
 	}
 
 }
