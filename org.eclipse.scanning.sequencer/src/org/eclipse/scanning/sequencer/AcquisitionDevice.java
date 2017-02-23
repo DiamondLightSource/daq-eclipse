@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -112,6 +113,12 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	private int outerCount = 0;
 	private int innerSize = 0;
 	private int totalSize = 0;
+	
+	/**
+	 * The current position iterator we are using
+	 * to move over the CPU scan.
+	 */
+	private Iterator<IPosition> positionIterator;
 		
 	/**
 	 * Package private constructor, devices are created by the service.
@@ -204,18 +211,15 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
-				
-		CompoundModel<?> cmodel = getBean().getScanRequest()!=null ? getBean().getScanRequest().getCompoundModel() : null;
-		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), cmodel, model.getDetectors(), ServiceHolder.getGeneratorService());
-		manager.addContext(moderator);
-		
+						
 		manager.addContext(getBean());
 		manager.addContext(model);
-		manager.addContext(moderator);
 	
 		boolean errorFound = false;
 		IPosition pos = null;
 		try {
+			createModerator();
+
 			RunnableDeviceServiceImpl.setCurrentScanningDevice(this);
 			if (latch!=null) latch.countDown();
 			this.latch = new CountDownLatch(1);
@@ -225,12 +229,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		final int size  = getEstimatedSize(moderator.getOuterIterable());
     		int count = 0;
-    		outerSize = size;
-    		innerSize = getEstimatedSize(moderator.getInnerIterable());
-    		totalSize = getEstimatedSize(model.getPositionIterable());
-    		fireStart(size);
+    		fireStart(outerSize);
     		
     		// We allow monitors which can block a position until a setpoint is
     		// reached or add an extra record to the NeXus file.
@@ -245,10 +245,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
     		// The scan loop
         	pos = null; // We want the last point when we are done so don't use foreach
         	boolean firedFirst = false;
-	        for (IPosition position : moderator.getOuterIterable()) {
+	        while (positionIterator.hasNext()) {
 	        	outerCount = count;
                 
-	        	pos = position;
+	        	pos = positionIterator.next();
 	        	pos.setStepIndex(count);
 	        	
 	        	if (!firedFirst) {
@@ -272,7 +272,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	
 	        	// Send an event about where we are in the scan
         		manager.invoke(PointEnd.class, pos);
-	        	positionComplete(pos, count, size);
+	        	positionComplete(pos, count, outerSize);
 	        	count+=Math.max(innerSize, 1);
 	        }
 	        
@@ -295,6 +295,19 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			close(errorFound, pos);
 			RunnableDeviceServiceImpl.setCurrentScanningDevice(null);
 		}
+	}
+
+	private void createModerator() throws ScanningException, GeneratorException {
+		
+		CompoundModel<?> cmodel = getBean().getScanRequest()!=null ? getBean().getScanRequest().getCompoundModel() : null;
+		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), cmodel, model.getDetectors(), ServiceHolder.getGeneratorService());
+		manager.addContext(moderator);
+		
+		outerSize = getEstimatedSize(moderator.getOuterIterable());
+		innerSize = getEstimatedSize(moderator.getInnerIterable());
+		totalSize = getEstimatedSize(model.getPositionIterable());
+
+		positionIterator = moderator.getOuterIterable().iterator();
 	}
 
 	private void fireFirst(IPosition firstPosition) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException, EventException {
