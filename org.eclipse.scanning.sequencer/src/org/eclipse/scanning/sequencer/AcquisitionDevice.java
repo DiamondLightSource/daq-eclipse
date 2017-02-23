@@ -609,9 +609,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 */
 	@Override
 	public void positionPerformed(PositionEvent evt) throws ScanningException {
-		IPosition position = evt.getPosition();
 		if (location.isInnerScan()) {
-			innerPositionPercentComplete(position.getStepIndex());
+			innerPositionPercentComplete();
 		}
 	}
 
@@ -620,7 +619,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 * @param innerCount The count representing the progress of of the inner scan
 	 * @throws Exception
 	 */
-	private void innerPositionPercentComplete(int innerCount) {
+	private void innerPositionPercentComplete() {
 		
 		final ScanBean bean = getBean();
 		bean.setMessage("Point " + location.getOverallCount() + " of " + location.getTotalSize());
