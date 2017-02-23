@@ -27,7 +27,7 @@ public interface IPausableDevice<T> extends IRunnableDevice<T> {
 	 * Seek to/from a point number (absolute) in the scan.
 	 * @param amount
 	 */
-	void seek(int stepNumber) throws ScanningException;
+	void seek(int stepNumber) throws ScanningException, InterruptedException;
 	
 	/**
 	 * Allowed when the device is in Paused state. Will block until the device is unpaused.
