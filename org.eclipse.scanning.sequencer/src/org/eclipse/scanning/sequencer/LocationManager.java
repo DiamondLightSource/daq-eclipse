@@ -23,7 +23,7 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
  * @author Matthew Gerring
  *
  */
-class LocationManager {
+public final class LocationManager {
 
 
 	/**
