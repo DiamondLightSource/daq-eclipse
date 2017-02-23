@@ -404,15 +404,22 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		getBean().setMessage(ne.getMessage());
 
 	}
+	
+	private ScanInformation getScanInformation(int size) {
+		ScanInformation scanInformation = getModel().getScanInformation();
+		if (scanInformation == null) {
+			ScanInformation info = new ScanInformation();
+			info.setSize(size);
+			info.setRank(getScanRank(getModel().getPositionIterable()));
+			info.setScannableNames(getScannableNames(getModel().getPositionIterable()));
+			info.setFilePath(getModel().getFilePath());
+		}
+		
+		return scanInformation;
+	}
 
 	private void fireStart(int size) throws Exception {
-		
-		ScanInformation info = new ScanInformation();
-		info.setSize(size);
-		info.setRank(getScanRank(getModel().getPositionIterable()));
-		info.setScannableNames(getScannableNames(getModel().getPositionIterable()));
-		info.setFilePath(getModel().getFilePath());
-		manager.addContext(info);
+		manager.addContext(getScanInformation(size));
 		
 		// Setup the bean to sent
 		getBean().setSize(size);	        
