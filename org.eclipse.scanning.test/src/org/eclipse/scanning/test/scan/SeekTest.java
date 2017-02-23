@@ -11,11 +11,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IDeviceController;
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.server.servlet.Services;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -93,6 +95,26 @@ public class SeekTest extends AbstractAcquisitionTest {
 		} finally {
 			scanner.abort();
 		}
+	}
+
+	@Test
+	public void staticScannerAvaileForJython() throws Exception {
+
+		IDeviceController controller = createTestScanner(null);
+		IRunnableDevice<ScanModel> scanner = (IRunnableDevice<ScanModel>)controller.getDevice();
+    
+		try {
+			scanner.start(null);		
+			scanner.latch(100, TimeUnit.MILLISECONDS); // Latch onto the scan, breaking before it is finished.
+
+            assertTrue(Services.getRunnableDeviceService().getActiveScanner()!=null);
+			scanner.latch(10, TimeUnit.SECONDS);
+		
+		} finally {
+			scanner.abort();
+		}
+        assertTrue(Services.getRunnableDeviceService().getActiveScanner()==null);
+
 	}
 
 	@Test(expected=ScanningException.class)
