@@ -75,7 +75,9 @@ public class CompoundSpgIterator extends AbstractScanPointIterator {
         @SuppressWarnings("unchecked")
 		SerializableIterator<IPosition> iterator = (SerializableIterator<IPosition>)  compoundGeneratorFactory.createObject(
 				iterators, excluders, mutators);
-		pyIterator = iterator;
+        
+        index = -1;
+        pyIterator = iterator;
 	}
 
 	private IPosition createFirstPosition() throws GeneratorException {
@@ -92,6 +94,7 @@ public class CompoundSpgIterator extends AbstractScanPointIterator {
 		return pyIterator.toDict();
     }
     
+	private int index = -1;
 	@Override
 	public boolean hasNext() {
 		// TODO: Commented out until Python ROIs are ready
@@ -106,6 +109,8 @@ public class CompoundSpgIterator extends AbstractScanPointIterator {
 //			
 //			if (gen.containsPoint(x, y)) {
 			currentPoint = point;
+			index++;
+			currentPoint.setStepIndex(index);
 			return true;
 //			}
 		}

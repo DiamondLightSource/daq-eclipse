@@ -32,11 +32,13 @@ public class CompoundIterator implements Iterator<IPosition> {
 	private CompoundGenerator     gen;
 	private IPosition             pos;
 	private Iterator<? extends IPosition>[] iterators;
+	private int index;
 
 	public CompoundIterator(CompoundGenerator gen) throws GeneratorException {
 		this.gen       = gen;
 		this.iterators = initIterators();
 		this.pos       = createFirstPosition();
+		this.index     = -1;
 	}
 
 	private IPosition createFirstPosition() throws GeneratorException {
@@ -57,6 +59,9 @@ public class CompoundIterator implements Iterator<IPosition> {
 	@Override
 	public boolean hasNext() {
         next = getNext(); 
+        index++;
+        next.setStepIndex(index);
+        
         justDidNext = true;
         return next!=null;
 	}
