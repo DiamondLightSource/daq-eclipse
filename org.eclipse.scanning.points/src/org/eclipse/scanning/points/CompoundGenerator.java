@@ -157,6 +157,7 @@ class CompoundGenerator extends AbstractGenerator<CompoundModel> implements PySe
 		
 		List<IPosition> points = new ArrayList<>(size());
 		createPoints(0, points, null);
+		for (int i = 0; i < points.size(); i++) points.get(i).setStepIndex(i);
 		return points;
 	}
 

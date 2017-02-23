@@ -95,6 +95,7 @@ final class ScannablePositioner extends LevelRunner<IScannable<?>> implements IP
 				throw new ScanningException("Cannout read value of "+name, ne);
 			}
 		}
+		ret.setStepIndex(position.getStepIndex());
 		return ret;
 	}
   

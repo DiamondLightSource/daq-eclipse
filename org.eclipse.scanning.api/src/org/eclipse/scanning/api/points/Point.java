@@ -13,8 +13,6 @@
 package org.eclipse.scanning.api.points;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

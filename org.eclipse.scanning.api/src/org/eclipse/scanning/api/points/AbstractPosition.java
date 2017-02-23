@@ -183,6 +183,9 @@ public abstract class AbstractPosition implements IPosition, Serializable {
         	buf.append(get(name));
         	if (it.hasNext()) buf.append(", ");
 		}
+        buf.append(", step=");
+        buf.append(getStepIndex());
+        
     	buf.append("]");
     	return buf.toString();
 	}

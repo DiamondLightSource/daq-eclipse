@@ -28,4 +28,29 @@ public interface IPositionListenable {
 	 */
 	void removePositionListener(IPositionListener listener);
 
+    /**
+     * If there is a current IPositioner available, this is returned.
+     * Often an IPositionListenable will not implement getPositioner() or
+     * may not be back by an object directly moving position.
+     * <p><b>Use with Caution!</b>
+     * 
+     * @return
+     */
+	default IPositioner getPositioner() {
+		return null;
+	}
+
+    /**
+     * If there is a current IPositioner available, this is returned.
+     * Often an IPositionListenable will not implement getPositioner() or
+     * may not be back by an object directly moving position.
+     * <p><b>Use with Caution!</b>
+     * 
+     * @return
+     * @throws IllegalArgumentException if there is no positioner
+     */
+	default void setPositioner(IPositioner positioner) {
+		throw new IllegalArgumentException("The positioner of "+getClass().getSimpleName()+" may not be set");
+	}
+
 }
