@@ -109,10 +109,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	/**
 	 * Variables used to monitor progress of inner scans
 	 */
-	private int outerSize = 0;
+	private int outerSize  = 0;
 	private int outerCount = 0;
-	private int innerSize = 0;
-	private int totalSize = 0;
+	private int innerSize  = 0;
+	private int totalSize  = 0;
+	private int stepNumber = -1;
 	
 	/**
 	 * The current position iterator we are using
@@ -218,7 +219,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		boolean errorFound = false;
 		IPosition pos = null;
 		try {
-			createModerator();
+			createPositionIterator();
 
 			RunnableDeviceServiceImpl.setCurrentScanningDevice(this);
 			if (latch!=null) latch.countDown();
@@ -229,7 +230,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		int count = 0;
+			stepNumber = 0;
     		fireStart(outerSize);
     		
     		// We allow monitors which can block a position until a setpoint is
@@ -246,10 +247,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
         	pos = null; // We want the last point when we are done so don't use foreach
         	boolean firedFirst = false;
 	        while (positionIterator.hasNext()) {
-	        	outerCount = count;
+	        	outerCount++;
                 
 	        	pos = positionIterator.next();
-	        	pos.setStepIndex(count);
+	        	pos.setStepIndex(stepNumber);
 	        	
 	        	if (!firedFirst) {
 	        		fireFirst(pos);
@@ -272,8 +273,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	
 	        	// Send an event about where we are in the scan
         		manager.invoke(PointEnd.class, pos);
-	        	positionComplete(pos, count, outerSize);
-	        	count+=Math.max(innerSize, 1);
+	        	positionComplete(pos, stepNumber, outerSize);
+	        	stepNumber+=Math.max(innerSize, 1);
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
@@ -297,17 +298,23 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		}
 	}
 
-	private void createModerator() throws ScanningException, GeneratorException {
+	private Iterator<IPosition> createPositionIterator() throws ScanningException {
 		
 		CompoundModel<?> cmodel = getBean().getScanRequest()!=null ? getBean().getScanRequest().getCompoundModel() : null;
 		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), cmodel, model.getDetectors(), ServiceHolder.getGeneratorService());
 		manager.addContext(moderator);
 		
-		outerSize = getEstimatedSize(moderator.getOuterIterable());
-		innerSize = getEstimatedSize(moderator.getInnerIterable());
-		totalSize = getEstimatedSize(model.getPositionIterable());
+		try {
+			stepNumber = 0;
+			outerSize  = getEstimatedSize(moderator.getOuterIterable());
+			innerSize  = getEstimatedSize(moderator.getInnerIterable());
+			totalSize  = getEstimatedSize(model.getPositionIterable());
+		} catch (GeneratorException se) {
+			throw new ScanningException("Cannot create the position iterator!", se);
+		}
 
 		positionIterator = moderator.getOuterIterable().iterator();
+		return positionIterator;
 	}
 
 	private void fireFirst(IPosition firstPosition) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException, EventException {
@@ -580,25 +587,32 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		// This is the values of all motors at this global (including malcolm) scan
 		// position. Therefore we do not need a subscan moderator but can run the iterator
 		// to the point
-		IPosition pos = positionForStep(stepNumber);
-		if (pos == null) throw new ScanningException("Seek position is invalid "+stepNumber);
-		
+		if (stepNumber<0) throw new ScanningException("Seek position is invalid "+stepNumber);
+		if (stepNumber>totalSize)  throw new ScanningException("Seek position is invalid "+stepNumber);
+
+		IPosition pos = runUpTo(stepNumber, createPositionIterator());
 		positioner.setPosition(pos);
 		if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 			if (device instanceof IPausableDevice) ((IPausableDevice)device).seek(stepNumber);
 		}
 	}
 
-	private IPosition positionForStep(int stepNumber) {
+	/**
+	 * Runs the iterator up to the required step
+	 * @param stepNumber
+	 * @param iterator - the OUTER iterator!
+	 * @return
+	 */
+	private IPosition runUpTo(int location, Iterator<IPosition> iterator) {
 		/*
 		 * IMPORTANT We do not keep the positions in memory because there can be millions.
 		 * Running over them is fast however.
 		 */
-		int count=0;
-		for (IPosition pos : model.getPositionIterable()) {
-        	pos.setStepIndex(count);
-			if (count == stepNumber) return pos;
-			count++;
+		while(iterator.hasNext()) {
+			IPosition pos = iterator.next();
+        	pos.setStepIndex(stepNumber);
+			if (stepNumber == location) return pos;
+			stepNumber+=Math.max(innerSize, 1);
 		}
 		return null;
 	}
