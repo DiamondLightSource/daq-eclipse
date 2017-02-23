@@ -19,7 +19,6 @@ import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.server.servlet.Services;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class SeekTest extends AbstractAcquisitionTest {
