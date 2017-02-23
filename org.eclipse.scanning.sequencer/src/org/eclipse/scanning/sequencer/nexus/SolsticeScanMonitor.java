@@ -19,26 +19,32 @@ import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_SOLSTICE_SCAN;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.PROPERTY_NAME_UNIQUE_KEYS_PATH;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.SCANNABLE_NAME_SOLSTICE_SCAN_MONITOR;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.dawnsci.nexus.INexusDevice;
 import org.eclipse.dawnsci.nexus.NXcollection;
+import org.eclipse.dawnsci.nexus.NexusBaseClass;
 import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
+import org.eclipse.dawnsci.nexus.NexusScanInfo.ScanRole;
+import org.eclipse.dawnsci.nexus.builder.DelegatingNexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
-import org.eclipse.dawnsci.nexus.builder.NexusObjectWrapper;
 import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.DatasetFactory;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.IntegerDataset;
 import org.eclipse.january.dataset.LazyWriteableDataset;
 import org.eclipse.january.dataset.SliceND;
+import org.eclipse.scanning.api.AbstractScannable;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanningException;
-import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
@@ -52,13 +58,13 @@ import org.slf4j.LoggerFactory;
  * progressed.
  * @author Matthew Dickie
  */
-public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionListener {
+public class SolsticeScanMonitor extends AbstractScannable<Object> implements INexusDevice<NXcollection> {
 	
-	private static final Logger logger = LoggerFactory.getLogger(ScanPointsWriter.class);
-
+	private static final Logger logger = LoggerFactory.getLogger(SolsticeScanMonitor.class);
+	
 	// Nexus
 	private List<NexusObjectProvider<?>> nexusObjectProviders = null;
-	private NexusObjectWrapper<NXcollection> nexusProvider = null;
+	private NexusObjectProvider<NXcollection> nexusProvider = null;
 	
 	// Writing Datasets
 	private ILazyWriteableDataset uniqueKeys = null;
@@ -68,10 +74,21 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	private boolean malcolmScan = false;
 	private final ScanModel model;
 	
-	public ScanPointsWriter(ScanModel model) {
+	public SolsticeScanMonitor(ScanModel model) {
 		this.model = model;
+		setName(SCANNABLE_NAME_SOLSTICE_SCAN_MONITOR);
 	}
 
+	public void setNexusObjectProviders(Map<ScanRole, List<NexusObjectProvider<?>>> nexusObjectProviderMap) {
+		EnumSet<ScanRole> deviceTypes = EnumSet.complementOf(EnumSet.of(ScanRole.METADATA));
+		List<NexusObjectProvider<?>> nexusObjectProviderList = nexusObjectProviderMap.entrySet().stream()
+			.filter(e -> deviceTypes.contains(e.getKey())) // filter where key is in deviceType set
+			.flatMap(e -> e.getValue().stream())  // concatenate value lists into a single stream
+			.collect(Collectors.toList());  // collect in a list
+
+		this.nexusObjectProviders = nexusObjectProviderList;
+	}
+	
 	public void setNexusObjectProviders(List<NexusObjectProvider<?>> nexusObjectProviders) {
 		this.nexusObjectProviders = nexusObjectProviders;
 	}
@@ -85,13 +102,10 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 	 */
 	@Override
 	public NexusObjectProvider<NXcollection> getNexusProvider(NexusScanInfo info) {
-		
 		// Note: NexusScanFileManager relies on this method returning the same object each time
 		if (nexusProvider == null) {
-			NXcollection scanPointsCollection = createNexusObject(info);
-			nexusProvider = new NexusObjectWrapper<NXcollection>(GROUP_NAME_SOLSTICE_SCAN, scanPointsCollection);
-			nexusProvider.setPrimaryDataFieldName(FIELD_NAME_UNIQUE_KEYS);
-			nexusProvider.setAxisDataFieldNames(FIELD_NAME_UNIQUE_KEYS);
+			nexusProvider = new DelegatingNexusObjectProvider<>(GROUP_NAME_SOLSTICE_SCAN,
+							NexusBaseClass.NX_COLLECTION, () -> createNexusObject(info));
 		}
 		
 		return nexusProvider;
@@ -126,7 +140,7 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 				new int[] { 1 }, new int[] { -1 }, new int[] { 1 }, null);
 		scanFinished.setFillValue(0);
 		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);
-
+		
 		// create a sub-collection for the unique keys field and keys from each external file
 		final NXcollection keysCollection = NexusNodeFactory.createNXcollection();
 		scanPointsCollection.addGroupNode(GROUP_NAME_KEYS, keysCollection);
@@ -151,18 +165,6 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		return scanPointsCollection;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.scanning.api.scan.event.IPositionListener#positionPerformed(org.eclipse.scanning.api.scan.PositionEvent)
-	 */
-	@Override
-	public void positionPerformed(PositionEvent event) throws ScanningException {
-		try {
-			writePosition(event.getPosition());
-		} catch (Exception e) {
-			throw new ScanningException("Could not write position to NeXus file", e);
-		}
-	}
-
 	/**
 	 * Called when the scan completes to write '1' to the scan finished dataset.
 	 * @throws ScanningException
@@ -177,6 +179,16 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 		} catch (Exception e) {
 			throw new ScanningException("Could not write scanFinished to NeXus file", e);
 		}
+	}
+
+	@Override
+	public Object getPosition() throws Exception {
+		return null;
+	}
+
+	@Override
+	public void setPosition(Object value, IPosition position) throws Exception {
+		writePosition(position);
 	}
 
 	/**
@@ -194,16 +206,27 @@ public class ScanPointsWriter implements INexusDevice<NXcollection>, IPositionLi
 			String uniqueKeysPath = (String) nexusObjectProvider.getPropertyValue(PROPERTY_NAME_UNIQUE_KEYS_PATH);
 			if (uniqueKeysPath != null) {
 				for (String externalFileName : nexusObjectProvider.getExternalFileNames()) {
-					// we just use the final segment of the file name as the dataset name,
-					// This assumes that we won't have files with the same name in different dirs
-					// Note: the name doesn't matter for processing purposes 
-					String datasetName = new File(externalFileName).getName();
-					if (uniqueKeysCollection.getSymbolicNode(datasetName) == null) {
-						uniqueKeysCollection.addExternalLink(datasetName, externalFileName,
-								uniqueKeysPath);
-					}
+					addLinkToExternalFile(uniqueKeysCollection, externalFileName, uniqueKeysPath);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Add a link to the unique keys dataset of the external file if not already present.
+	 * @param uniqueKeysCollection unique keys collection to add link to
+	 * @param externalFileName name of external file
+	 * @param uniqueKeysPath path to unique keys dataset in external file
+	 */
+	private void addLinkToExternalFile(final NXcollection uniqueKeysCollection,
+			String externalFileName, String uniqueKeysPath) {
+		// we just use the final segment of the file name as the dataset name,
+		// This assumes that we won't have files with the same name in different dirs
+		// Note: the name doesn't matter for processing purposes 
+		String datasetName = new File(externalFileName).getName();
+		if (uniqueKeysCollection.getSymbolicNode(datasetName) == null) {
+			uniqueKeysCollection.addExternalLink(datasetName, externalFileName,
+					uniqueKeysPath);
 		}
 	}
 
