@@ -425,7 +425,7 @@ public abstract class AbstractRunnableDevice<T> implements IRunnableEventDevice<
 	}
 	
 	@Override
-	public void seek(int stepNumber) throws ScanningException {
+	public void seek(int stepNumber) throws ScanningException, InterruptedException {
        // Do nothing
 	}
 

@@ -77,7 +77,7 @@ class DeviceController implements IDeviceController {
 		logger.debug("Controller pausing on "+getName()+" because of id "+id);
 		device.pause();
 	}
-	public void seek(String id, int stepNumber) throws ScanningException {
+	public void seek(String id, int stepNumber) throws ScanningException, InterruptedException {
 		
 		// If any of the others think it should be paused, we do not resume
 		Map<String, DeviceState> copy = new HashMap<>(states);

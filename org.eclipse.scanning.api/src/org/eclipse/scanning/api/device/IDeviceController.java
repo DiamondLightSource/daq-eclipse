@@ -65,7 +65,7 @@ public interface IDeviceController {
 	 * Make a seek
 	 * @param id
 	 */
-	void seek(String id, int step)throws ScanningException;
+	void seek(String id, int step)throws ScanningException, InterruptedException;
 	
 	/**
 	 * Make an abort

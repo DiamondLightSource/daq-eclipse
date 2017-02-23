@@ -86,6 +86,12 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, 
 	 */
 	private static final Map<String, IRunnableDevice> namedDevices;
 	
+	
+	// This field is used to provide the getActiveScanner() method on the service.
+	// It should not be accessed from elsewhere.
+	private static IRunnableDevice<?> currentScanningDevice;
+
+	
 	// Use a factory pattern to register the types.
 	// This pattern can always be extended by extension points
 	// to allow point generators to be dynamically registered. 
@@ -421,4 +427,19 @@ public final class RunnableDeviceServiceImpl implements IRunnableDeviceService, 
 	public Collection<Object> getScanParticipants() {
 		return participants; // May be null
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> IRunnableDevice<T> getActiveScanner() {
+		return (IRunnableDevice<T>)RunnableDeviceServiceImpl.currentScanningDevice; // Package private method. Do not use globally!
+	}
+
+	/**
+	 * Package private, think before stopping this.
+	 * @param currentScanningDevice
+	 */
+	static void setCurrentScanningDevice(IRunnableDevice<?> currentScanningDevice) {
+		RunnableDeviceServiceImpl.currentScanningDevice = currentScanningDevice;
+	}
+
 }
