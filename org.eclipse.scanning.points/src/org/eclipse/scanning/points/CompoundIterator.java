@@ -60,7 +60,7 @@ public class CompoundIterator implements Iterator<IPosition> {
 	public boolean hasNext() {
         next = getNext(); 
         index++;
-        next.setStepIndex(index);
+        if (next!=null) next.setStepIndex(index);
         
         justDidNext = true;
         return next!=null;

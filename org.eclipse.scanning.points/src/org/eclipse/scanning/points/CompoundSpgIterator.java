@@ -110,7 +110,7 @@ public class CompoundSpgIterator extends AbstractScanPointIterator {
 //			if (gen.containsPoint(x, y)) {
 			currentPoint = point;
 			index++;
-			currentPoint.setStepIndex(index);
+			if (currentPoint!=null) currentPoint.setStepIndex(index);
 			return true;
 //			}
 		}
