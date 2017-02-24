@@ -55,11 +55,11 @@ class ScanRequestValidator implements IValidator<ScanRequest<?>> {
 		try {
 			Map<String, Object> dmodels = req.getDetectors();
 			if (dmodels!=null) {
-				if (dmodels.isEmpty()) throw new ModelValidationException("The detector models are empty!", req, "detectors");
-			    validateMalcolmRules(dmodels);
-		        validateDetectors(dmodels);
-		        validateAnnotations(dmodels);
-
+				if (!dmodels.isEmpty()) {
+				    validateMalcolmRules(dmodels);
+			        validateDetectors(dmodels);
+			        validateAnnotations(dmodels);
+				}
 			}
 			
 			
