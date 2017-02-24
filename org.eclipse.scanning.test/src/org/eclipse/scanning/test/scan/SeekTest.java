@@ -19,7 +19,6 @@ import org.eclipse.scanning.api.scan.event.IPositionListener;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.server.servlet.Services;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class SeekTest extends AbstractAcquisitionTest {
@@ -55,7 +54,6 @@ public class SeekTest extends AbstractAcquisitionTest {
 		}
 	}
 	
-	@Ignore("This MUST pass but requires a larger refactor so seeing that the initial changes do with the tests first.")
 	@Test
 	public void seekFirstRestartsInCorrectLocation() throws Exception {
 		
@@ -90,7 +88,7 @@ public class SeekTest extends AbstractAcquisitionTest {
 			// The scan should restart from where it is seeked to.
 			// Therefore the steps should be size (25) + stopped.getStepIndex()
 			assertEquals("The scan should restart from where it is seeked to.",
-					     25+stopped.getStepIndex(), steps.size());
+					     25+stopped.getStepIndex()+1, steps.size());
 			
 		} finally {
 			scanner.abort();
