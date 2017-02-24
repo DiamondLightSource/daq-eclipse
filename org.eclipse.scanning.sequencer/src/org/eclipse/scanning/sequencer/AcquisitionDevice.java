@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -46,11 +47,8 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
-import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
-import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.models.CompoundModel;
 import org.eclipse.scanning.api.scan.IScanService;
 import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.ScanInformation;
@@ -106,12 +104,16 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	private CountDownLatch latch;
 	
 	/**
-	 * Variables used to monitor progress of inner scans
+	 * Manages the positions we reach in the scan, including
+	 * the outer scan location.
 	 */
-	private int outerSize = 0;
-	private int outerCount = 0;
-	private int innerSize = 0;
-	private int totalSize = 0;
+	private LocationManager location;
+
+	/**
+	 * The current position iterator we are using
+	 * to move over the CPU scan.
+	 */
+	private Iterator<IPosition> positionIterator;
 		
 	/**
 	 * Package private constructor, devices are created by the service.
@@ -193,6 +195,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		long after = System.currentTimeMillis();
 		setConfigureTime(after-before);
+		
+		location = new LocationManager(getBean(), model, manager);
 	}
 
 
@@ -204,19 +208,17 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		ScanModel model = getModel();
 		if (model.getPositionIterable()==null) throw new ScanningException("The model must contain some points to scan!");
-				
-		CompoundModel<?> cmodel = getBean().getScanRequest()!=null ? getBean().getScanRequest().getCompoundModel() : null;
-		SubscanModerator moderator = new SubscanModerator(model.getPositionIterable(), cmodel, model.getDetectors(), ServiceHolder.getGeneratorService());
-		manager.addContext(moderator);
-		
+						
 		manager.addContext(getBean());
 		manager.addContext(model);
-		manager.addContext(moderator);
 	
 		boolean errorFound = false;
 		IPosition pos = null;
 		try {
-			RunnableDeviceServiceImpl.setCurrentScanningDevice(this);
+			this.positionIterator = location.createPositionIterator();
+
+			RunnableDeviceServiceImpl.setCurrentScanningDevice(this); // Alows Jython to get and pause/seek.
+			
 			if (latch!=null) latch.countDown();
 			this.latch = new CountDownLatch(1);
 	        // TODO Should we validate the position iterator that all
@@ -225,12 +227,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		final int size  = getEstimatedSize(moderator.getOuterIterable());
-    		int count = 0;
-    		outerSize = size;
-    		innerSize = getEstimatedSize(moderator.getInnerIterable());
-    		totalSize = getEstimatedSize(model.getPositionIterable());
-    		fireStart(size);
+    		fireStart(location.getOuterSize());
     		
     		// We allow monitors which can block a position until a setpoint is
     		// reached or add an extra record to the NeXus file.
@@ -245,11 +242,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
     		// The scan loop
         	pos = null; // We want the last point when we are done so don't use foreach
         	boolean firedFirst = false;
-	        for (IPosition position : moderator.getOuterIterable()) {
-	        	outerCount = count;
+	        while (positionIterator.hasNext()) {
                 
-	        	pos = position;
-	        	pos.setStepIndex(count);
+	        	pos = positionIterator.next();
+	        	pos.setStepIndex(location.getStepNumber());
 	        	
 	        	if (!firedFirst) {
 	        		fireFirst(pos);
@@ -272,8 +268,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        	
 	        	// Send an event about where we are in the scan
         		manager.invoke(PointEnd.class, pos);
-	        	positionComplete(pos, count, size);
-	        	count+=Math.max(innerSize, 1);
+	        	positionComplete(pos);
 	        }
 	        
 	        // On the last iteration we must wait for the final readout.
@@ -295,6 +290,10 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			close(errorFound, pos);
 			RunnableDeviceServiceImpl.setCurrentScanningDevice(null);
 		}
+	}
+	
+	private void positionComplete(IPosition pos) throws EventException, ScanningException {
+    	positionComplete(pos, location.getStepNumber(), location.getOuterSize());
 	}
 
 	private void fireFirst(IPosition firstPosition) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException, ScanningException, EventException {
@@ -567,27 +566,16 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		// This is the values of all motors at this global (including malcolm) scan
 		// position. Therefore we do not need a subscan moderator but can run the iterator
 		// to the point
-		IPosition pos = positionForStep(stepNumber);
-		if (pos == null) throw new ScanningException("Seek position is invalid "+stepNumber);
-		
+		if (stepNumber<0) throw new ScanningException("Seek position is invalid "+stepNumber);
+		if (stepNumber>location.getTotalSize())  throw new ScanningException("Seek position is invalid "+stepNumber);
+
+		// We just changed the location from where we run the scan from and require a new location.
+		this.positionIterator = location.createPositionIterator();
+		IPosition pos = location.seek(stepNumber, positionIterator);
 		positioner.setPosition(pos);
 		if (getModel().getDetectors()!=null) for (IRunnableDevice<?> device : getModel().getDetectors()) {
 			if (device instanceof IPausableDevice) ((IPausableDevice)device).seek(stepNumber);
 		}
-	}
-
-	private IPosition positionForStep(int stepNumber) {
-		/*
-		 * IMPORTANT We do not keep the positions in memory because there can be millions.
-		 * Running over them is fast however.
-		 */
-		int count=0;
-		for (IPosition pos : model.getPositionIterable()) {
-        	pos.setStepIndex(count);
-			if (count == stepNumber) return pos;
-			count++;
-		}
-		return null;
 	}
 
 	@Override
@@ -622,9 +610,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 */
 	@Override
 	public void positionPerformed(PositionEvent evt) throws ScanningException {
-		IPosition position = evt.getPosition();
-		if (outerSize > 0 && innerSize > 0) {
-			innerPositionPercentComplete(position.getStepIndex());
+		if (location.isInnerScan()) {
+			innerPositionPercentComplete();
 		}
 	}
 
@@ -633,23 +620,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	 * @param innerCount The count representing the progress of of the inner scan
 	 * @throws Exception
 	 */
-	private void innerPositionPercentComplete(int innerCount) {
-		final ScanBean bean = getBean();
-		int overallCount = (outerCount * innerSize) + innerCount + 1; 
-		bean.setMessage("Point " + overallCount + " of " + totalSize);
+	private void innerPositionPercentComplete() {
 		
-		double innerPercentComplete = 0;
-		if (innerCount > -1) {
-			innerPercentComplete = ((double) (innerCount + 1) / innerSize);
-		}
-		double outerPercentComplete = 0;
-		if (outerCount > -1) {
-			outerPercentComplete = ((double) (outerCount) / outerSize) * 100;
-		}
-		double innerPercentOfOuter = 100 / (double) outerSize;
-		innerPercentOfOuter *= innerPercentComplete;
-		outerPercentComplete += innerPercentOfOuter;
-		bean.setPercentComplete(outerPercentComplete);
+		final ScanBean bean = getBean();
+		bean.setMessage("Point " + location.getOverallCount() + " of " + location.getTotalSize());
+		bean.setPercentComplete(location.getOuterPercent());
 		
 		if (getPublisher() != null) {
 			try {
@@ -658,23 +633,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 				logger.warn("An error occurred publishing percent complete event ", e);
 			}
 		}
-	}
-
-	private int getEstimatedSize(Iterable<IPosition> gen) throws GeneratorException {
-		
-		int size=0;
-		if (gen instanceof IDeviceDependentIterable) {
-			size = ((IDeviceDependentIterable)gen).size();
-			
-		} else if (gen instanceof IPointGenerator<?>) {
-			size = ((IPointGenerator<?>)gen).size();
-			
-		} else if (gen!=null) {
-		    for (IPosition unused : gen) size++; // Fast even for large stuff providing they do not check hardware on the next() call.
-		}
-		return size;   		
-	}
-	
+	}	
 
 	private Collection<IScannable<?>> getScannables(ScanModel model) throws ScanningException {
 		final Collection<String>   names = getScannableNames(model.getPositionIterable());
