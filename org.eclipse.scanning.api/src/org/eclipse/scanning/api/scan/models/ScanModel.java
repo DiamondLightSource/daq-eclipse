@@ -22,6 +22,7 @@ import org.eclipse.scanning.api.IScannable;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.IPosition;
+import org.eclipse.scanning.api.scan.ScanInformation;
 
 /**
  * A Model describing a scan to be performed.
@@ -79,6 +80,8 @@ public class ScanModel {
 	 * annotated methods which the scan should call at different points.
 	 */
 	private List<?> annotationParticipants;
+	
+	private ScanInformation scanInformation;
 	
 	public ScanModel() {
 		this(null);
@@ -238,6 +241,14 @@ public class ScanModel {
 
 	public void setAnnotationParticipants(List<?> annotationParticipants) {
 		this.annotationParticipants = annotationParticipants;
+	}
+	
+	public ScanInformation getScanInformation() {
+		return scanInformation;
+	}
+
+	public void setScanInformation(ScanInformation scanInformation) {
+		this.scanInformation = scanInformation;
 	}
 	
 }

@@ -53,7 +53,7 @@ public class ScanEstimator {
 	/**
 	 * Estimated time of scan
 	 */
-	private final long  scanTime;
+	private final long  estimatedScanTime;
 
 	/**
 	 * 
@@ -112,7 +112,7 @@ public class ScanEstimator {
 		this.size          = getEstimatedSize(gen);
 		this.rank          = gen.iterator().next().getScanRank(); // The rank of the scan is constant
 		this.timePerPoint  = timePerPoint;
-		this.scanTime      = size*timePerPoint;
+		this.estimatedScanTime      = size*timePerPoint;
 	}
 
 	private int getEstimatedSize(IPointGenerator<?> gen) throws GeneratorException {
@@ -140,8 +140,8 @@ public class ScanEstimator {
 		this.timePerPoint = timePerPoint;
 	}
 
-	public long getScanTime() {
-		return scanTime;
+	public long getEstimatedScanTime() {
+		return estimatedScanTime;
 	}
 
 	public int getRank() {

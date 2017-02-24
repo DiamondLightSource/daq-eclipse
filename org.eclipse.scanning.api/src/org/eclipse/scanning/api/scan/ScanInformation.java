@@ -34,6 +34,7 @@ public class ScanInformation {
 	private transient ScanEstimator  estimator;
 	private int[] shape;
 	private ScanMode scanMode;
+	private long estimatedScanTime;
 	
 	public ScanInformation() {
 		
@@ -126,6 +127,12 @@ public class ScanInformation {
 		// We calculate shape on the fly because it can be expensive to estimate.
 		shape = estimator!=null ? estimator.getShape() : null;
 		return shape;
+	}
+	
+	public long getEstimatedScanTime() {
+		if (estimatedScanTime > 0) return estimatedScanTime;
+		estimatedScanTime = estimator != null ? estimator.getEstimatedScanTime() : 0;
+		return estimatedScanTime;
 	}
 
 	public void setShape(int[] shape) {
