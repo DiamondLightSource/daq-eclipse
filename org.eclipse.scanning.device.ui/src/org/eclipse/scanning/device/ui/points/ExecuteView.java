@@ -509,7 +509,7 @@ public class ExecuteView extends ViewPart implements ISelectionListener {
 
 	        		try {
 	        			final ScanEstimator estimator = new ScanEstimator(ServiceHolder.getGeneratorService(), req);
-	        			long time = estimator.getScanTime();
+	        			long time = estimator.getEstimatedScanTime();
 	        			Format format = (time<HOUR_IN_MS) ? new SimpleDateFormat("mm'm' ss's'") : new SimpleDateFormat("h'h' mm'm' ss's'");
 	        			timeString = "   "+format.format(new Date(time));
 	        		} catch (Exception ne) {

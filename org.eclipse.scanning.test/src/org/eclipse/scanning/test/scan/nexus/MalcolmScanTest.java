@@ -56,6 +56,7 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.event.scan.DeviceState;
+import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPosition;
@@ -176,12 +177,20 @@ public class MalcolmScanTest extends NexusTest {
 		IRunnableDevice<ScanModel> scanner = createMalcolmGridScan(malcolmDevice, output, shape); // Outer scan of another scannable, for instance temp.
 		scanner.run(null);
 		
+		checkSize(scanner, shape);
 		checkFiles();
 
 		// Check we reached ready (it will normally throw an exception on error)
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 		checkNexusFile(scanner, shape); // Step model is +1 on the size
+	}
 	
+	private void checkSize(IRunnableDevice<?> scanner, int[] shape) {
+		@SuppressWarnings("unchecked")
+		ScanBean bean =  ((AbstractRunnableDevice<ScanBean>) scanner).getBean();
+		int expectedSize = Arrays.stream(shape).reduce(1, (x, y) -> x * y);
+		System.err.println("Expected size = " + expectedSize + ", shape = " + Arrays.toString(shape));
+		assertEquals(expectedSize, bean.getSize());
 	}
 	
 	private void checkFiles() {
