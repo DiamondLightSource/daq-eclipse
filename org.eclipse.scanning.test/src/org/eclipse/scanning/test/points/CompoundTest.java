@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.scanning.test.points;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -146,11 +147,11 @@ public class CompoundTest {
 		PyList gens = (PyList) dict.get("generators");
 		PyDictionary line1 = (PyDictionary) gens.get(0);
 
-		assertEquals("Temperature", (String) ((PyList) line1.get("name")).get(0));
-		assertEquals("mm", line1.get("units"));
+		assertEquals("Temperature", (String) ((PyList) line1.get("axes")).get(0));
+		assertArrayEquals(new String[] {"mm"}, ((PyList) line1.get("units")).toArray());
 		assertEquals(290.0, (double) ((PyList) line1.get("start")).get(0), 1E-10);
 		assertEquals(295.0, (double) ((PyList) line1.get("stop")).get(0), 1E-10);
-		assertEquals(6, (int) line1.get("num"));
+		assertEquals(6, (int) line1.get("size"));
 
 		PyList excluders = (PyList) dict.get("excluders");
 		PyList mutators = (PyList) dict.get("mutators");
@@ -171,17 +172,17 @@ public class CompoundTest {
 		PyDictionary line1 = (PyDictionary) gens.get(0);
 		PyDictionary line2 = (PyDictionary) gens.get(1);
 
-		assertEquals("Temperature", (String) ((PyList) line1.get("name")).get(0));
-		assertEquals("mm", line1.get("units"));
+		assertEquals("Temperature", (String) ((PyList) line1.get("axes")).get(0));
+		assertArrayEquals(new String[] {"mm"}, ((PyList) line1.get("units")).toArray());
 		assertEquals(290.0, (double) ((PyList) line1.get("start")).get(0), 1E-10);
 		assertEquals(295.0, (double) ((PyList) line1.get("stop")).get(0), 1E-10);
-		assertEquals(6, (int) line1.get("num"));
+		assertEquals(6, (int) line1.get("size"));
 		
-		assertEquals("Position", (String) ((PyList) line2.get("name")).get(0));
-		assertEquals("mm", line2.get("units"));
+		assertEquals("Position", (String) ((PyList) line2.get("axes")).get(0));
+		assertArrayEquals(new String[] {"mm"}, ((PyList) line1.get("units")).toArray());
 		assertEquals(1.0, (double) ((PyList) line2.get("start")).get(0), 1E-10);
 		assertEquals(4.0, (double) ((PyList) line2.get("stop")).get(0), 1E-10);
-		assertEquals(6, (int) line2.get("num"));
+		assertEquals(6, (int) line2.get("size"));
 
 		PyList excluders = (PyList) dict.get("excluders");
 		PyList mutators = (PyList) dict.get("mutators");

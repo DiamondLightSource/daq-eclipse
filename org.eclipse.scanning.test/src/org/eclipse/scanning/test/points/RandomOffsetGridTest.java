@@ -12,15 +12,16 @@
 
 package org.eclipse.scanning.test.points;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
-import java.util.List;
+import java.util.Iterator;
 
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.IPosition;
-import org.eclipse.scanning.api.points.Point;
 import org.eclipse.scanning.api.points.models.BoundingBox;
+import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.points.models.RandomOffsetGridModel;
 import org.eclipse.scanning.points.PointGeneratorService;
 import org.junit.Before;
@@ -44,22 +45,27 @@ public class RandomOffsetGridTest {
 		box.setFastAxisLength(5);
 		box.setSlowAxisLength(10);
 
-		RandomOffsetGridModel model = new RandomOffsetGridModel("x", "y");
-		model.setSlowAxisPoints(5);
-		model.setFastAxisPoints(5);
-		model.setBoundingBox(box);
-		model.setSeed(10);
-		model.setOffset(25);
+		RandomOffsetGridModel rm = new RandomOffsetGridModel("x", "y");
+		rm.setSlowAxisPoints(5);
+		rm.setFastAxisPoints(5);
+		rm.setBoundingBox(box);
+		rm.setSeed(10);
+		rm.setOffset(25);
+		IPointGenerator<RandomOffsetGridModel> rg = service.createGenerator(rm);
+		GeneratorUtil.testGeneratorPoints(rg, 5, 5);
 
-		IPointGenerator<RandomOffsetGridModel> gen = service.createGenerator(model);
-		List<IPosition> pointList = gen.createPoints();
-		
-		assertEquals(new Point("x", 0, 0.012403455250000084,"y", 0, 0.09924303325000006), pointList.get(0));
-		assertEquals(new Point("x", 1, 0.837235318,"y", 0, 0.1643560529999999), pointList.get(1));
-		assertEquals(new Point("x", 2, 2.20470153075,"y", 0, 0.018593022749999966), pointList.get(2));
-		assertEquals(new Point("x", 3, 3.057925353,"y", 0, -0.024424061750000003), pointList.get(3));
-		assertEquals(new Point("x", 4, 3.78130160075,"y", 0, 0.021858763000000003), pointList.get(4));
-		assertEquals(new Point("x", 0, 0.09698760274999996,"y", 1, 1.83863665575), pointList.get(5));
+		GridModel m = new GridModel("x", "y");
+		m.setSlowAxisPoints(5);
+		m.setFastAxisPoints(5);
+		m.setBoundingBox(box);
+		IPointGenerator<GridModel> g = service.createGenerator(m);
+
+		for (Iterator<IPosition> it1 = rg.iterator(), it2 = g.iterator(); it1.hasNext() && it2.hasNext();) {
+			IPosition t1 = it1.next();
+			IPosition t2 = it2.next();
+			assertTrue(Math.abs(t1.getValue("x") - t2.getValue("x")) <= 0.25 * 1.25);
+			assertTrue(Math.abs(t1.getValue("y") - t2.getValue("y")) <= 0.25 * 2.5);
+		}
 	}
 
 }
