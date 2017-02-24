@@ -217,7 +217,8 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		try {
 			this.positionIterator = location.createPositionIterator();
 
-			RunnableDeviceServiceImpl.setCurrentScanningDevice(this);
+			RunnableDeviceServiceImpl.setCurrentScanningDevice(this); // Alows Jython to get and pause/seek.
+			
 			if (latch!=null) latch.countDown();
 			this.latch = new CountDownLatch(1);
 	        // TODO Should we validate the position iterator that all

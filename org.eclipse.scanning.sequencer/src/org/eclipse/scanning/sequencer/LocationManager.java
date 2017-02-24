@@ -135,6 +135,8 @@ public final class LocationManager {
 	 * @return null if position not found.
 	 */
 	public IPosition seek(int location, Iterator<IPosition> iterator) {
+		
+		stepNumber=0;
 		/*
 		 * IMPORTANT We do not keep the positions in memory because there can be millions.
 		 * Running over them is fast however.
