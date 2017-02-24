@@ -22,7 +22,6 @@ import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.PROPERTY_NA
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.SCANNABLE_NAME_SOLSTICE_SCAN_MONITOR;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;

@@ -314,19 +314,20 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	}
 	
 	private NexusScanInfo createScanInfo(ScanModel scanModel, List<String> scannableNames) throws ScanningException {
-		final NexusScanInfo scanInfo = new NexusScanInfo(scannableNames);
+		final NexusScanInfo nexusScanInfo = new NexusScanInfo(scannableNames);
 
 		final int scanRank = getScanRank(scanModel);
-		scanInfo.setRank(scanRank);
+		nexusScanInfo.setRank(scanRank);
 		
-		scanInfo.setDetectorNames(getDeviceNames(scanModel.getDetectors()));
+		nexusScanInfo.setDetectorNames(getDeviceNames(scanModel.getDetectors()));
 
 		Collection<IScannable<?>> perPoint = model.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_POINT).collect(Collectors.toList());
 		Collection<IScannable<?>> perScan  = model.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_SCAN).collect(Collectors.toList());
-        scanInfo.setMonitorNames(getDeviceNames(perPoint));
-		scanInfo.setMetadataScannableNames(getDeviceNames(perScan));
+        nexusScanInfo.setMonitorNames(getDeviceNames(perPoint));
+		nexusScanInfo.setMetadataScannableNames(getDeviceNames(perScan));
 		
-		return scanInfo;
+		
+		return nexusScanInfo;
 	}
 	
 	protected int getScanRank(ScanModel model) throws ScanningException {

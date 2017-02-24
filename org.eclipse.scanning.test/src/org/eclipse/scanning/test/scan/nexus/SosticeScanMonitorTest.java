@@ -13,8 +13,10 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_RANK;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_SHAPE;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_UNIQUE_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_KEYS;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -45,7 +47,9 @@ import org.eclipse.january.dataset.SliceND;
 import org.eclipse.january.io.ILazySaver;
 import org.eclipse.scanning.api.points.MapPosition;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.sequencer.nexus.SolsticeConstants;
 import org.eclipse.scanning.sequencer.nexus.SolsticeScanMonitor;
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -183,6 +187,17 @@ public class SosticeScanMonitorTest {
 		DataNode scanRankDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_RANK);
 		assertEquals(scanRank, scanRankDataNode.getDataset().getSlice().getInt());
 		
+		// assert scan shape set correctly
+		DataNode scanShapeDataNode = solsticeScanCollection.getDataNode(SolsticeConstants.FIELD_NAME_SCAN_SHAPE);
+		assertNotNull(scanFinishedDataNode);
+		
+		
+		// assert scan estimated duration set correctly
+		// TODO
+		
+		// assert scan actual duration dataset created correctly
+		// TODO
+		
 		// assert unique keys dataset created correctly
 		NXcollection keysCollection = (NXcollection) solsticeScanCollection.getGroupNode(GROUP_NAME_KEYS);
 		assertNotNull(keysCollection);
@@ -232,10 +247,13 @@ public class SosticeScanMonitorTest {
 		NXcollection solsticeScanCollection = scanPointsWriter.createNexusObject(scanInfo);
 		
 		// Assert
+		
 		DataNode scanFinishedDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
 		ILazyWriteableDataset scanFinishedDataset = (ILazyWriteableDataset) scanFinishedDataNode.getDataset();
 		MockLazySaver scanFinishedSaver = new MockLazySaver();
 		scanFinishedDataset.setSaver(scanFinishedSaver);
+		
+		DataNode estimatedTimeDataNode = solsticeScanCollection.getDataNode(SolsticeConstants.FIELD_NAME_SCAN_SHAPE);
 		
 		// assert unique keys dataset created correctly
 		NXcollection keysCollection = (NXcollection) solsticeScanCollection.getGroupNode(GROUP_NAME_KEYS);
@@ -277,22 +295,32 @@ public class SosticeScanMonitorTest {
 		scanPointsWriter.scanFinished();
 
 		// assert
+		IDataset writtenToScanFinishedData = scanFinishedSaver.getLastWrittenData();
+		assertNotNull(writtenToScanFinishedData);
+		assertEquals(0, writtenToScanFinishedData.getRank());
+		assertArrayEquals(new int[0], writtenToScanFinishedData.getShape());
+		assertTrue(DTypeUtils.getDType(writtenToScanFinishedData)==Dataset.INT);
+		assertEquals(1, writtenToScanFinishedData.getInt());
+		
+		IDataset scanShapeDataset = solsticeScanCollection.getDataset(FIELD_NAME_SCAN_SHAPE);
+		assertNotNull(scanShapeDataset);
+		
 		IDataset writtenToUniqueKeysData = uniqueKeysSaver.getLastWrittenData();
-		assertTrue(writtenToUniqueKeysData!=null);
+		assertNotNull(writtenToUniqueKeysData);
 		int[] expectedShape = new int[scanInfo.getRank()];
 		Arrays.fill(expectedShape, 1);
-		assertTrue(Arrays.equals(writtenToUniqueKeysData.getShape(), expectedShape));
+		assertArrayEquals(writtenToUniqueKeysData.getShape(), expectedShape);
 		assertTrue(DTypeUtils.getDType(writtenToUniqueKeysData)==Dataset.INT);
 		int[] valuePos = new int[scanRank]; // all zeros
 		assertTrue(writtenToUniqueKeysData.getInt(valuePos)==(stepIndex+1));
 
 		SliceND uniqueKeysSlice = uniqueKeysSaver.getLastSlice();
 		assertTrue(uniqueKeysSlice!=null);
-		assertTrue(Arrays.equals(uniqueKeysSlice.getShape(), expectedShape));
-		assertTrue(Arrays.equals(uniqueKeysSlice.getStart(), indices));
-		assertTrue(Arrays.equals(uniqueKeysSlice.getStep(), expectedShape)); // all ones
+		assertArrayEquals(uniqueKeysSlice.getShape(), expectedShape);
+		assertArrayEquals(uniqueKeysSlice.getStart(), indices);
+		assertArrayEquals(uniqueKeysSlice.getStep(), expectedShape); // all ones
 		int[] stopIndices = Arrays.stream(indices).map(x -> x + 1).toArray(); 
-		assertTrue(Arrays.equals(uniqueKeysSlice.getStop(), stopIndices));
+		assertArrayEquals(uniqueKeysSlice.getStop(), stopIndices);
 	}
 	
 }

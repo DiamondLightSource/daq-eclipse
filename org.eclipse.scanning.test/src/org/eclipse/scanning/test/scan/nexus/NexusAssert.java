@@ -16,6 +16,7 @@ import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_TARGET;
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_SUFFIX_INDICES;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_FINISHED;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_SHAPE;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_UNIQUE_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_SOLSTICE_SCAN;
@@ -41,6 +42,8 @@ import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.january.dataset.PositionIterator;
+import org.eclipse.scanning.sequencer.nexus.SolsticeConstants;
+import org.junit.Assert;
 
 /**
  * 
@@ -105,8 +108,12 @@ public class NexusAssert {
 	
 	public static void assertScanPointsGroup(NXentry entry, boolean malcolmScan,
 			List<String> expectedExternalFiles, int... sizes) {
+		assertScanFinished(entry);
+		
 		NXcollection solsticeScanCollection = entry.getCollection(GROUP_NAME_SOLSTICE_SCAN);
 		assertNotNull(solsticeScanCollection);
+
+//		assertScanShape(solsticeScanCollection, sizes);
 		 
 		NXcollection keysCollection = (NXcollection) solsticeScanCollection.getGroupNode(GROUP_NAME_KEYS);
 		assertNotNull(keysCollection);
@@ -116,8 +123,22 @@ public class NexusAssert {
 		if (expectedExternalFiles != null && !expectedExternalFiles.isEmpty()) {
 			assertUniqueKeysExternalFileLinks(keysCollection, expectedExternalFiles, malcolmScan, sizes);
 		}
-			
-		assertScanFinished(entry);
+	}
+	
+	private static void assertScanShape(NXcollection solsticeScanCollection, int... sizes) {
+		DataNode shapeDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_SHAPE);
+		assertNotNull(shapeDataNode);
+		IDataset shapeDataset;
+		try {
+			shapeDataset = shapeDataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
+		assertEquals(1, shapeDataset.getRank());
+		assertArrayEquals(new int[sizes.length], shapeDataset.getShape());
+		for (int i = 0; i < sizes.length; i++) {
+			assertEquals(sizes[i], shapeDataset.getInt(i));
+		}
 	}
 
 	private static void assertUniqueKeys(NXcollection keysCollection, int... sizes) {
