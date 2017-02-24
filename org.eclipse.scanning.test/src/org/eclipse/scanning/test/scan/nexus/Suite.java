@@ -30,7 +30,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	ScanMetadataTest.class,
 	ScanProcessingTest.class,
 	ScanClusterProcessingTest.class,
-	ScanPointsWriterTest.class,
+	SosticeScanMonitorTest.class,
 	LinearScanTest.class,
 	NexusStepScanSpeedTest.class
 

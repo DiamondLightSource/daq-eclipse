@@ -44,13 +44,12 @@ import org.eclipse.january.dataset.LazyDataset;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.january.io.ILazySaver;
 import org.eclipse.scanning.api.points.MapPosition;
-import org.eclipse.scanning.api.scan.PositionEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
-import org.eclipse.scanning.sequencer.nexus.ScanPointsWriter;
+import org.eclipse.scanning.sequencer.nexus.SolsticeScanMonitor;
 import org.junit.Test;
 
 
-public class ScanPointsWriterTest {
+public class SosticeScanMonitorTest {
 	
 	public static class MockLazySaver implements ILazySaver {
 
@@ -154,7 +153,7 @@ public class ScanPointsWriterTest {
 			nexusObjectProviders.add(new ExternalFileWritingPositioner(positionerName));
 		}
 
-		ScanPointsWriter scanPointsWriter = new ScanPointsWriter(new ScanModel());
+		SolsticeScanMonitor scanPointsWriter = new SolsticeScanMonitor(new ScanModel());
 		scanPointsWriter.setNexusObjectProviders(nexusObjectProviders);
 		
 		final int scanRank = 2;
@@ -220,7 +219,7 @@ public class ScanPointsWriterTest {
 			nexusObjectProviders.add(new ExternalFileWritingPositioner(positionerName));
 		}
 
-		ScanPointsWriter scanPointsWriter = new ScanPointsWriter(new ScanModel());
+		SolsticeScanMonitor scanPointsWriter = new SolsticeScanMonitor(new ScanModel());
 		scanPointsWriter.setNexusObjectProviders(nexusObjectProviders);
 		
 		final int scanRank = 2;
@@ -274,7 +273,7 @@ public class ScanPointsWriterTest {
 		position.setDimensionNames(names);
 		
 		// act
-		scanPointsWriter.positionPerformed(new PositionEvent(position, null));
+		scanPointsWriter.setPosition(null, position);
 		scanPointsWriter.scanFinished();
 
 		// assert

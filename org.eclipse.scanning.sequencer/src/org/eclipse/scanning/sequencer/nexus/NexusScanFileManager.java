@@ -71,11 +71,11 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	private static final Logger logger = LoggerFactory.getLogger(NexusScanFileManager.class);
 
 	private final AbstractRunnableDevice<ScanModel> scanDevice;
-	private ScanPointsWriter scanPointsWriter;
 	private ScanModel model;
 	private NexusScanInfo scanInfo;
 	private NexusFileBuilder fileBuilder;
 	private NexusScanFile nexusScanFile;
+	private SolsticeScanMonitor solsticeScanMonitor;
 	
 	// we need to cache various things as they are used more than once
 	/**
@@ -125,14 +125,15 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		setMetadataScannables(model, scannableNames);
 
 		this.scanInfo = createScanInfo(model, scannableNames);
+		
+		// create the scan points writer and add it as a monitor and run listener
+		solsticeScanMonitor = createSolsticeScanMonitor(model);
+
 		nexusDevices = extractNexusDevices(model);
 		
 		// convert this to a map of nexus object providers for each type
 		nexusObjectProviders = extractNexusProviders();
-		
-		// create the scan points writer and add it as a monitor and run listener
-		scanPointsWriter = createScanPointsWriter();
-		scanDevice.addPositionListener(scanPointsWriter);
+		solsticeScanMonitor.setNexusObjectProviders(nexusObjectProviders);
 	}
 	
 	/**
@@ -185,13 +186,11 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	 * @throws ScanningException
 	 */
 	public void scanFinished() throws ScanningException {
-		scanPointsWriter.scanFinished();
+		solsticeScanMonitor.scanFinished();
 		try {
 			nexusScanFile.close();
 		} catch (NexusException e) {
 			throw new ScanningException("Could not close nexus file", e);
-		} finally {
-			scanDevice.removePositionListener(scanPointsWriter);
 		}
 	}
 	
@@ -353,19 +352,18 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		return devices.stream().map(d -> d.getName()).collect(Collectors.toSet());
 	}
 	
-	protected ScanPointsWriter createScanPointsWriter() {
-		ScanPointsWriter scanPointsWriter = new ScanPointsWriter(model);
+	protected SolsticeScanMonitor createSolsticeScanMonitor(ScanModel scanModel) {
+		SolsticeScanMonitor solsticeScanMonitor = new SolsticeScanMonitor(model);
 		
-		// get the nexus object providers for all device types excluding metadata scannables
-		EnumSet<ScanRole> deviceTypes = EnumSet.complementOf(EnumSet.of(ScanRole.METADATA));
-		List<NexusObjectProvider<?>> nexusObjectProviders = this.nexusObjectProviders.entrySet().stream()
-			.filter(e -> deviceTypes.contains(e.getKey())) // filter where key is in deviceType set
-			.flatMap(e -> e.getValue().stream())  // concatenate value lists into a single stream
-			.collect(Collectors.toList());  // collect in a list
+		// add the solstice scan monitor to the list of monitors in the scan
+		List<IScannable<?>> monitors = scanModel.getMonitors();
+		if (monitors == null || monitors.isEmpty()) {
+			scanModel.setMonitors(solsticeScanMonitor);
+		} else {
+			monitors.add(solsticeScanMonitor);
+		}
 		
-		scanPointsWriter.setNexusObjectProviders(nexusObjectProviders);
-		
-		return scanPointsWriter;
+		return solsticeScanMonitor;
 	}
 	
 	/**
@@ -383,7 +381,6 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		for (ScanRole deviceType : EnumSet.allOf(ScanRole.class)) {
 			addDevicesToEntry(entryBuilder, deviceType);
 		}
-		entryBuilder.add(scanPointsWriter.getNexusProvider(scanInfo));
 		
 		// create the NXdata groups
 		createNexusDataGroups(entryBuilder);
@@ -499,6 +496,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 	private void createNXDataGroups(NexusEntryBuilder entryBuilder, NexusObjectProvider<?> detector) throws NexusException {
 		List<NexusObjectProvider<?>> scannables = nexusObjectProviders.get(ScanRole.SCANNABLE);
 		List<NexusObjectProvider<?>> monitors = new LinkedList<>(nexusObjectProviders.get(ScanRole.MONITOR));
+		monitors.remove(solsticeScanMonitor.getNexusProvider(scanInfo));
 
 		// determine the primary device - i.e. the device whose primary dataset to make the @signal field
 		NexusObjectProvider<?> primaryDevice = null;
@@ -507,7 +505,6 @@ public class NexusScanFileManager implements INexusScanFileManager {
 			// if there's a detector then it is the primary device
 			primaryDevice = detector;
 			primaryDeviceType = ScanRole.DETECTOR;
-			monitors.remove(scanPointsWriter.getNexusProvider(scanInfo));
 		} else if (!monitors.isEmpty()) {
 			// otherwise the first monitor is the primary device (and therefore is not a data device)
 			primaryDevice = monitors.remove(0);
@@ -753,8 +750,4 @@ public class NexusScanFileManager implements INexusScanFileManager {
 		}
 	}
 
-	public ScanPointsWriter getScanPointsWriter() {
-		return scanPointsWriter;
-	}
-	
 }
