@@ -146,26 +146,30 @@ public class ExampleMalcolmDevice {
                     return;
                 }
                 
-                if (methodName.equals("configure")) {
-                	pvRecord.getPVStructure().getSubField(PVString.class, "state.value").put("CONFIGURING");
-                } else if (methodName.equals("run")) {
-                    pvRecord.getPVStructure().getSubField(PVString.class, "state.value").put("RUNNING");
-                }
 
-                try {
-    				Thread.sleep(2000);
-    			} catch (InterruptedException e1) {
-    				e1.printStackTrace();
-    			}
-
-            	pvRecord.getPVStructure().getSubField(PVString.class, "state.value").put("READY");
-                
                 Structure mapStructure = fieldCreate.createFieldBuilder().
             			setId("malcolm:core/Map:1.0").
             			createStructure();
+                PVStructure returnPvStructure = pvDataCreate.createPVStructure(mapStructure);
+                
+                if (methodName.equals("validate")) {
+                	returnPvStructure = args;
+                } else if (methodName.equals("configure")) {
+                	pvRecord.getPVStructure().getSubField(PVString.class, "state.value").put("CONFIGURING");
+                } else if (methodName.equals("run")) {
+                    pvRecord.getPVStructure().getSubField(PVString.class, "state.value").put("RUNNING");
+                    try {
+        				Thread.sleep(2000);
+        			} catch (InterruptedException e1) {
+        				e1.printStackTrace();
+        			}
+                }
+
+
+            	pvRecord.getPVStructure().getSubField(PVString.class, "state.value").put("READY");
                 
             	pvRecord.releaseControl();
-                callback.requestDone(statusOk, pvDataCreate.createPVStructure(mapStructure));
+                callback.requestDone(statusOk, returnPvStructure);
                 return;
                 
             }

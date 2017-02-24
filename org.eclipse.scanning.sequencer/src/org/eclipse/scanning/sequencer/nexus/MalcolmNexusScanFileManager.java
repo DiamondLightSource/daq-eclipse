@@ -111,7 +111,7 @@ public class MalcolmNexusScanFileManager extends NexusScanFileManager {
 	private Set<String> getAxesToMove(IRunnableDevice<?> device) {
 		try {
 			return ((IMalcolmDevice<?>) device).getAxesToMove();
-		} catch (MalcolmDeviceException e) {
+		} catch (ScanningException e) {
 			throw new RuntimeException(e);
 		}
 	}

@@ -163,6 +163,7 @@ public class EpicsV4MessageMapper {
 		result.setType(Type.RETURN);
 		result.setEndpoint(message.getEndpoint());
 		result.setId(message.getId());
+		result.setRawValue(structure.toString());
 				
 		if (structure.getStructure().getID().startsWith(ERROR_TYPE)) {
 			result.setType(Type.ERROR);
@@ -182,6 +183,7 @@ public class EpicsV4MessageMapper {
 		result.setType(Type.UPDATE);
 		result.setEndpoint(message.getEndpoint());
 		result.setId(message.getId());
+		result.setRawValue(structure.toString());
 				
 		Object returnedObject = getEndpointObjectFromPVStructure(structure, message.getEndpoint());
 		
@@ -196,6 +198,7 @@ public class EpicsV4MessageMapper {
 		result.setType(Type.RETURN);
 		result.setEndpoint(message.getEndpoint());
 		result.setId(message.getId());
+		result.setRawValue(structure.toString());
 						
 		if (structure.getStructure().getID().startsWith(ERROR_TYPE)) {
 			result.setType(Type.ERROR);

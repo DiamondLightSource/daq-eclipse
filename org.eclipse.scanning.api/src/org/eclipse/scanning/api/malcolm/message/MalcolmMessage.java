@@ -36,6 +36,7 @@ public class MalcolmMessage {
 	private String message;
 	private Object arguments;
 	private Object value;
+	private Object rawValue;
 	
 	public Type getType() {
 		return type;
@@ -69,6 +70,7 @@ public class MalcolmMessage {
 		result = prime * result + ((param == null) ? 0 : param.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		result = prime * result + ((rawValue == null) ? 0 : rawValue.hashCode());
 		return result;
 	}
 	
@@ -114,6 +116,11 @@ public class MalcolmMessage {
 			if (other.value != null)
 				return false;
 		} else if (!value.equals(other.value))
+			return false;
+		if (rawValue == null) {
+			if (other.rawValue != null)
+				return false;
+		} else if (!rawValue.equals(other.rawValue))
 			return false;
 		return true;
 	}
@@ -161,5 +168,11 @@ public class MalcolmMessage {
 	}
 	public void setEndpoint(String endPoint) {
 		this.endpoint = endPoint;
+	}
+	public Object getRawValue() {
+		return rawValue;
+	}
+	public void setRawValue(Object rawValue) {
+		this.rawValue = rawValue;
 	}
 }

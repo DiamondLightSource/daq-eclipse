@@ -47,4 +47,18 @@ public interface IValidator<T> {
 	default void setService(IValidatorService vservice) {
 		
 	}
+	
+	/**
+	 * Same as Validaiton method above but returns any results sent back by validation.
+	 * 
+	 * @param model
+	 * @return
+	 * @throws ValidationException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	default Object validateWithReturn(T model) throws ValidationException, InstantiationException, IllegalAccessException {
+		validate(model);
+		return null; // They should implement a validation which throws an exception
+	}
 }

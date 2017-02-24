@@ -178,6 +178,8 @@ public class DeviceResponse implements IResponseProcess<DeviceRequest> {
 					tdevice.terminate(action.to());
 				} else if (action==DeviceAction.VALIDATE) {
 					device.validate(request.getDeviceModel());
+				} else if (action==DeviceAction.VALIDATEWITHRETURN) {
+					request.setDeviceValue(device.validateWithReturn(request.getDeviceModel()));
 				} else if (action==DeviceAction.CONFIGURE) {
 					device.configure(request.getDeviceModel());
 				} else if (action==DeviceAction.RUN) {
