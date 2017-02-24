@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.scanning.api.annotation.UiHidden;
 
@@ -132,5 +134,22 @@ public final class Point extends AbstractPosition {
 			indices.put(xName, xIndex);
 		}
 		return indices;
+	}
+
+	private static final String VERTEX = "([a-zA-Z0-9_])+\\((\\d+)\\)=([-+]?[0-9]*\\.?[0-9]+)";
+	private static final Pattern POSITION = Pattern.compile(VERTEX + ", " + VERTEX);
+
+	/**
+	 * Parse a point from the toString() method into an instance of Point
+	 * @param asString
+	 * @return
+	 */
+	public static Point parse(String asString) {
+		Matcher m = POSITION.matcher(asString);
+		if (m.matches()) {
+			return new Point(m.group(4), Integer.parseInt(m.group(5)), Double.parseDouble(m.group(6)),
+					m.group(1), Integer.parseInt(m.group(2)), Double.parseDouble(m.group(3)));
+		}
+		throw new RuntimeException("Unparsable string" + asString);
 	}
 }
