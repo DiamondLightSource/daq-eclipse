@@ -56,6 +56,8 @@ import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.classregistry.ScanningExampleClassRegistry;
+import org.eclipse.scanning.example.detector.MandelbrotDetector;
+import org.eclipse.scanning.example.detector.MandelbrotModel;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmDevice;
 import org.eclipse.scanning.example.malcolm.DummyMalcolmModel;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
@@ -102,7 +104,13 @@ public abstract class AbstractAcquisitionTest {
 		impl._register(MockDetectorModel.class, MockWritableDetector.class);
 		impl._register(MockWritingMandlebrotModel.class, MockWritingMandelbrotDetector.class);
 		impl._register(DummyMalcolmModel.class, DummyMalcolmDevice.class);
+		impl._register(MandelbrotModel.class, MandelbrotDetector.class);
 		ServiceHolder.setRunnableDeviceService(sservice);
+
+		MandelbrotModel model = new MandelbrotModel("xNex", "yNex");
+		model.setName("mandelbrot");
+		model.setExposureTime(0.05);
+		impl.createRunnableDevice(model);
 
 		gservice  = new PointGeneratorService();
 
@@ -151,7 +159,20 @@ public abstract class AbstractAcquisitionTest {
 	}
 	
 	protected <T> IDeviceController createTestScanner(IScannable<?> monitor, IRunnableDevice<T> device, T dmodel, int dims) throws Exception {
-		
+		return createTestScanner(monitor, device, dmodel, dims, null, null);
+	}
+	
+	protected <T> IDeviceController createTestScanner(IRunnableDevice<T> device, List<String> axisNames, String filePath) throws Exception {
+		return createTestScanner(null, device, null, 2, axisNames, filePath);
+	}
+	
+    private <T> IDeviceController createTestScanner(IScannable<?>     monitor, 
+    		                                         IRunnableDevice<T> device, 
+    		                                         T dmodel, 
+    		                                         int dims,
+    		                                         List<String> axisNames,
+    		                                         String filePath) throws Exception {
+
 		List<IScanPathModel> models = new ArrayList<>();
 		if (dims>2) {
 			for (int i = dims; i>2; i--) {
@@ -159,7 +180,8 @@ public abstract class AbstractAcquisitionTest {
 			}
 		}
 		// Create scan points for a grid and make a generator
-		GridModel gmodel = new GridModel("x", "y");
+		if (axisNames==null) axisNames = Arrays.asList("x", "y");
+		GridModel gmodel = new GridModel(axisNames.get(0), axisNames.get(1));
 		gmodel.setSlowAxisPoints(5);
 		gmodel.setFastAxisPoints(5);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));	
@@ -187,6 +209,7 @@ public abstract class AbstractAcquisitionTest {
 		// Create the model for a scan.
 		final ScanModel  smodel = new ScanModel();
 		smodel.setPositionIterable(gen);
+        smodel.setFilePath(filePath);
 		
 		if (device==null) device = (IRunnableDevice<T>)detector;
 		smodel.setDetectors(device);
