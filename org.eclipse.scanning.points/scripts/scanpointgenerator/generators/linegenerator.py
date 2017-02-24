@@ -26,7 +26,6 @@ class LineGenerator(Generator):
             alternate(bool): Specifier to reverse direction if
                 generator is nested
         """
-
         self.axes = to_list(axes)
         self.start = to_list(start)
         self.stop = to_list(stop)
@@ -41,6 +40,8 @@ class LineGenerator(Generator):
            len(self.axes) != len(self.stop):
             raise ValueError(
                 "Dimensions of axes, start and stop do not match")
+        if len(self.axes) != len(self.units):
+            raise ValueError("Provided units do not match number of axes")
 
         self.size = size
 

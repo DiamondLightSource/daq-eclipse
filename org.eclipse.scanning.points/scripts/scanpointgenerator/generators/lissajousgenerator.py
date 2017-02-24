@@ -23,14 +23,16 @@ class LissajousGenerator(Generator):
                 curve. Default is 250 * num_lobes
         """
 
-        self.axes = axes
-        self.units = {d:u for d,u in zip(axes, units)}
-        self.alternate = alternate
-
         if len(self.axes) != len(set(self.axes)):
             raise ValueError("Axis names cannot be duplicated; given %s" %
                              axes)
 
+        if len(units) != len(axes):
+            raise ValueError("Provided units do not match number of axes")
+
+        self.axes = axes
+        self.units = {d:u for d,u in zip(axes, units)}
+        self.alternate = alternate
         num_lobes = int(num_lobes)
 
         self.x_freq = num_lobes

@@ -23,6 +23,9 @@ class SpiralGenerator(Generator):
                 generator is nested
         """
 
+        if len(self.axes) != len(set(self.axes)):
+            raise ValueError("Axis names cannot be duplicated; given %s" %
+                             axes)
         self.axes = axes
         self.centre = centre
         self.radius = radius
