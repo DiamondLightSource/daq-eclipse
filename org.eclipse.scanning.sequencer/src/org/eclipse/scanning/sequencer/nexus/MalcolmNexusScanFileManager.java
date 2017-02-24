@@ -86,8 +86,8 @@ public class MalcolmNexusScanFileManager extends NexusScanFileManager {
 		return super.getNexusScannable(scannableName);
 	}
 	
-	protected ScanPointsWriter createScanPointsWriter() {
-		ScanPointsWriter scanPointsWriter = super.createScanPointsWriter();
+	protected SolsticeScanMonitor createSolsticeScanMonitor(ScanModel scanModel) {
+		SolsticeScanMonitor scanPointsWriter = super.createSolsticeScanMonitor(scanModel);
 		scanPointsWriter.setMalcolmScan(true);
 		return scanPointsWriter;
 	}
