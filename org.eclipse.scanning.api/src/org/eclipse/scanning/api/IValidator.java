@@ -49,16 +49,18 @@ public interface IValidator<T> {
 	}
 	
 	/**
-	 * Same as Validaiton method above but returns any results sent back by validation.
+	 * Same as Validation method above but returns any results sent back by validation.
 	 * 
 	 * @param model
 	 * @return
 	 * @throws ValidationException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
 	 */
-	default Object validateWithReturn(T model) throws ValidationException, InstantiationException, IllegalAccessException {
-		validate(model);
+	default Object validateWithReturn(T model) throws ValidationException {
+		try {
+			validate(model);
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new ValidationException(e);
+		}
 		return null; // They should implement a validation which throws an exception
 	}
 }

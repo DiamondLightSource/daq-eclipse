@@ -350,51 +350,35 @@ public class DetectorView extends EventConnectionView {
 
 			ValidateResults validateResults = new ValidateResults(info.getName(), validateReturn);
 				
-			try {
-				PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							if (PageUtil.getPage().findView(ValidateResultsView.ID) == null) {
-								IViewPart viewPart = PageUtil.getPage().showView(ValidateResultsView.ID);
-								if (viewPart instanceof ValidateResultsView) {
-									ValidateResultsView validateResultsView = (ValidateResultsView)viewPart;
-									validateResultsView.update(validateResults);
-								}
-							} else {
-								PageUtil.getPage().showView(ValidateResultsView.ID);
-							}
-						} catch (PartInitException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-				);
-			} catch (Exception e) {
-				logger.warn("Unable to show validate results view", e);
-			}
+			showValidationResultsView(validateResults);
 				
 			selectionProvider.fireSelection(new StructuredSelection(validateResults));
 						
 			device.configure(model);
 			
-		} catch (ScanningException ne) {
+		} catch (ScanningException|ValidationException ne) {
 			ErrorDialog.openError(getViewSite().getShell(), "Configure Failed", "The configure of '"+info.getName()+"' failed", 
                                             new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", ne.getMessage(), ne));
 			logger.error("Cannot configure '"+info.getName()+"'", ne);
-		} catch (ValidationException ne) {
-			ErrorDialog.openError(getViewSite().getShell(), "Configure Failed", "The configure of '"+info.getName()+"' failed", 
-                    new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", ne.getMessage(), ne));
-			logger.error("Cannot configure '"+info.getName()+"'", ne);
-		} catch (InstantiationException ne) {
-			ErrorDialog.openError(getViewSite().getShell(), "Configure Failed", "The configure of '"+info.getName()+"' failed", 
-                    new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", ne.getMessage(), ne));
-			logger.error("Cannot configure '"+info.getName()+"'", ne);
-		} catch (IllegalAccessException ne) {
-			ErrorDialog.openError(getViewSite().getShell(), "Configure Failed", "The configure of '"+info.getName()+"' failed", 
-                    new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", ne.getMessage(), ne));
-			logger.error("Cannot configure '"+info.getName()+"'", ne);
 		}
+	}
+	
+	private void showValidationResultsView(ValidateResults validateResults) {
+		PlatformUI.getWorkbench().getDisplay().asyncExec(() -> {
+			try {
+				if (PageUtil.getPage().findView(ValidateResultsView.ID) == null) {
+					IViewPart viewPart = PageUtil.getPage().showView(ValidateResultsView.ID);
+					if (viewPart instanceof ValidateResultsView) {
+						ValidateResultsView validateResultsView = (ValidateResultsView)viewPart;
+						validateResultsView.update(validateResults);
+					}
+				} else {
+					PageUtil.getPage().showView(ValidateResultsView.ID);
+				}
+			} catch (PartInitException e) {
+				logger.warn("Unable to show validate results view " + e);
+			}
+		});
 	}
 
 	private DeviceInformation<?> getSelection() {

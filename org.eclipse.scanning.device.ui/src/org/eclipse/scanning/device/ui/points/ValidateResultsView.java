@@ -90,7 +90,9 @@ public class ValidateResultsView extends ViewPart implements ISelectionListener 
 
 	@Override
 	public void dispose() {
-		if (PageUtil.getPage(getSite())!=null) PageUtil.getPage(getSite()).removeSelectionListener(this);
+		if (PageUtil.getPage(getSite())!=null) {
+			PageUtil.getPage(getSite()).removeSelectionListener(this);
+		}
 		super.dispose();
 	}
 	
@@ -116,7 +118,9 @@ public class ValidateResultsView extends ViewPart implements ISelectionListener 
 	 * @param results the ValidationResults object
 	 */
 	public void update(ValidateResults results) {
-		if (results == null) return;
+		if (results == null) {
+			return;
+		}
 		
 		try {
 
@@ -152,28 +156,15 @@ public class ValidateResultsView extends ViewPart implements ISelectionListener 
 		StyledString styledString = new StyledString();
 		if (results.getResults() != null) {
 			if (results.getResults() instanceof String) {
-				// Parse out key information from the raw PVStructure string
+				// Print out all the results from the raw PVStructure string, but style key information 
 				String resultString = (String)results.getResults();
-	
 				styledString.append(resultString);
 				
-				int durationIndex = resultString.indexOf("double duration");
-				if (durationIndex != -1) {
-					int indexOfNewLine = resultString.substring(durationIndex).indexOf("\n");
-					if (indexOfNewLine == -1) {
-						indexOfNewLine = resultString.substring(durationIndex).length() - 1;
-					}
-			    	styledString.setStyle(durationIndex + "double".length(), indexOfNewLine - "double".length(), FontStyler.BOLD);		    	
-				}
+				// Style the duration
+				adjustStyleOfDuration(styledString, resultString);
 				
-				int axesToMoveIndex = resultString.indexOf("string[] axesToMove");
-				if (axesToMoveIndex != -1) {
-					int indexOfNewLine = resultString.substring(axesToMoveIndex).indexOf("\n");
-					if (indexOfNewLine == -1) {
-						indexOfNewLine = resultString.substring(axesToMoveIndex).length();
-					}
-			    	styledString.setStyle(axesToMoveIndex + "string[]".length(), indexOfNewLine - "string[]".length(), FontStyler.BOLD);		    	
-				}
+				// Style the axes to move
+				adjustStyleOfAxesToMove(styledString, resultString);
 				
 			} else {
 				// not a string, just print out the results object
@@ -183,6 +174,38 @@ public class ValidateResultsView extends ViewPart implements ISelectionListener 
 		
 		return styledString;
 		
+	}
+	
+	/**
+	 * Adjust the style of the duration section of the styled string if it has one
+	 * @param styledString
+	 * @param resultString
+	 */
+	private void adjustStyleOfDuration(StyledString styledString, String resultString) {
+		int durationIndex = resultString.indexOf("double duration");
+		if (durationIndex != -1) {
+			int indexOfNewLine = resultString.substring(durationIndex).indexOf('\n');
+			if (indexOfNewLine == -1) {
+				indexOfNewLine = resultString.substring(durationIndex).length() - 1;
+			}
+	    	styledString.setStyle(durationIndex + "double".length(), indexOfNewLine - "double".length(), FontStyler.BOLD);		    	
+		}
+	}
+	
+	/**
+	 * Adjust the style of the AxesToMove section of the styled string if it has one
+	 * @param styledString
+	 * @param resultString
+	 */
+	private void adjustStyleOfAxesToMove(StyledString styledString, String resultString) {
+		int axesToMoveIndex = resultString.indexOf("string[] axesToMove");
+		if (axesToMoveIndex != -1) {
+			int indexOfNewLine = resultString.substring(axesToMoveIndex).indexOf('\n');
+			if (indexOfNewLine == -1) {
+				indexOfNewLine = resultString.substring(axesToMoveIndex).length();
+			}
+	    	styledString.setStyle(axesToMoveIndex + "string[]".length(), indexOfNewLine - "string[]".length(), FontStyler.BOLD);		    	
+		}
 	}
 
 	/**
@@ -200,19 +223,23 @@ public class ValidateResultsView extends ViewPart implements ISelectionListener 
 	 * @param styledString The text with which to set the display to in StyledString format
 	 */
 	private void setThreadSafeText(StyledText text, StyledString styledString) {
-		if (text.isDisposed()) return;
-    	text.getDisplay().syncExec(new Runnable() {
-    		public void run() {
-    			if (text.isDisposed()) return;
-	        	text.setText(styledString.toString());
-	        	text.setStyleRanges(styledString.getStyleRanges());
-    		}
+		if (text.isDisposed()) {
+			return;
+		}
+    	text.getDisplay().syncExec(() -> {
+			if (text.isDisposed()) {
+				return;
+			}
+	    	text.setText(styledString.toString());
+	    	text.setStyleRanges(styledString.getStyleRanges());
     	});	
     }
 
 	@Override
 	public void setFocus() {
-		if (text!=null && !text.isDisposed()) text.setFocus();
+		if (text!=null && !text.isDisposed()) {
+			text.setFocus();
+		}
 	}
 
 	/**

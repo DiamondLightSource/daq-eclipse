@@ -152,11 +152,11 @@ public class ExampleMalcolmDevice {
             			createStructure();
                 PVStructure returnPvStructure = pvDataCreate.createPVStructure(mapStructure);
                 
-                if (methodName.equals("validate")) {
+                if ("validate".equals(methodName)) {
                 	returnPvStructure = args;
-                } else if (methodName.equals("configure")) {
+                } else if ("configure".equals(methodName)) {
                 	pvRecord.getPVStructure().getSubField(PVString.class, "state.value").put("CONFIGURING");
-                } else if (methodName.equals("run")) {
+                } else if ("run".equals(methodName)) {
                     pvRecord.getPVStructure().getSubField(PVString.class, "state.value").put("RUNNING");
                     try {
         				Thread.sleep(2000);
