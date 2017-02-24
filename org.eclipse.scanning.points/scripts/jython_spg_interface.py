@@ -5,7 +5,7 @@ from org.eclipse.scanning.points import SerializableIterator
 from java.util import ArrayList
 
 from scanpointgenerator import LineGenerator
-from scanpointgenerator import ArrayGenerator
+#from scanpointgenerator import ArrayGenerator #NOT AVAILABLE YET
 from scanpointgenerator import SpiralGenerator
 from scanpointgenerator import LissajousGenerator
 from scanpointgenerator import CompoundGenerator
@@ -66,7 +66,7 @@ class JavaIteratorWrapper(SerializableIterator):
         return self.generator.to_dict()
     
     def size(self):
-        return self.generator.num
+        return self.generator.size
 
 
 class JLineGenerator1D(JavaIteratorWrapper):
@@ -78,7 +78,9 @@ class JLineGenerator1D(JavaIteratorWrapper):
         super(JLineGenerator1D, self).__init__()
         
         self.name = name
-        self.generator = LineGenerator(name, units, start, stop, num_points, alternate_direction)
+        line_gen = LineGenerator(name, units, start, stop, num_points, alternate_direction)
+        self.generator = CompoundGenerator([line_gen], [], [])
+        self.generator.prepare()
         logging.debug(self.generator.to_dict())
     
     def _iterator(self):
@@ -103,7 +105,9 @@ class JLineGenerator2D(JavaIteratorWrapper):
         stop = stop.tolist()
         
         self.names = names
-        self.generator = LineGenerator(names, units, start, stop, num_points, alternate_direction)
+        line_gen = LineGenerator(names, units, start, stop, num_points, alternate_direction)
+        self.generator = CompoundGenerator([line_gen], [], [])
+        self.generator.prepare()
         logging.debug(self.generator.to_dict())
     
     def _iterator(self):
@@ -122,6 +126,7 @@ class JLineGenerator2D(JavaIteratorWrapper):
             
 
 class JArrayGenerator(JavaIteratorWrapper):
+    pass
     """
     Create an ArrayGenerator and wrap the points into java Scalar objects
     """
@@ -155,11 +160,12 @@ class JSpiralGenerator(JavaIteratorWrapper):
         super(JSpiralGenerator, self).__init__()
         
         self.names = names
-        self.generator = SpiralGenerator(names, units, centre, radius, scale, alternate_direction)
+        spiral_gen = SpiralGenerator(names, units, centre, radius, scale, alternate_direction)
+        self.generator = CompoundGenerator([spiral_gen], [], [])
+        self.generator.prepare()
         logging.debug(self.generator.to_dict())
 
     def _iterator(self):
-        
         x_name = self.names[0]
         y_name = self.names[1]
         
@@ -183,7 +189,9 @@ class JLissajousGenerator(JavaIteratorWrapper):
         super(JLissajousGenerator, self).__init__()
         
         self.names = names
-        self.generator = LissajousGenerator(names, units, box, num_lobes, num_points)
+        liss_gen = LissajousGenerator(names, units, box, num_lobes, num_points)
+        self.generator = CompoundGenerator([liss_gen], [], [])
+        self.generator.prepare()
         logging.debug(self.generator.to_dict())
     
     def _iterator(self):
