@@ -278,7 +278,13 @@ public class AnnotationManager {
                 	    arguments[index] = context.get(i);
                     }
 				}
-				method.invoke(instance, arguments);
+				boolean accessible = method.isAccessible();
+				try {
+					method.setAccessible(true);
+					method.invoke(instance, arguments);
+				} finally {
+					method.setAccessible(accessible);
+				}
 			} else {
 				method.invoke(instance);
 			}
