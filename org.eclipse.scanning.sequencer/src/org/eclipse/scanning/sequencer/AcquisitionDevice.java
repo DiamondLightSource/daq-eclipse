@@ -227,7 +227,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	        // Sometimes logic is needed to implement collision avoidance
 			
     		// Set the size and declare a count
-    		fireStart(location.getOuterSize());
+    		fireStart(location.getTotalSize());
     		
     		// We allow monitors which can block a position until a setpoint is
     		// reached or add an extra record to the NeXus file.
@@ -406,16 +406,16 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 	}
 	
 	private ScanInformation getScanInformation(int size) {
-		ScanInformation scanInformation = getModel().getScanInformation();
-		if (scanInformation == null) {
-			ScanInformation info = new ScanInformation();
-			info.setSize(size);
-			info.setRank(getScanRank(getModel().getPositionIterable()));
-			info.setScannableNames(getScannableNames(getModel().getPositionIterable()));
-			info.setFilePath(getModel().getFilePath());
+		ScanInformation scanInfo = getModel().getScanInformation();
+		if (scanInfo == null) {
+			scanInfo = new ScanInformation();
+			scanInfo.setSize(size);
+			scanInfo.setRank(getScanRank(getModel().getPositionIterable()));
+			scanInfo.setScannableNames(getScannableNames(getModel().getPositionIterable()));
+			scanInfo.setFilePath(getModel().getFilePath());
 		}
 		
-		return scanInformation;
+		return scanInfo;
 	}
 
 	private void fireStart(int size) throws Exception {
