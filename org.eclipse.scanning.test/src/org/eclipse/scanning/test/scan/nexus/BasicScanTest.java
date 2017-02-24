@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.scanning.test.scan.nexus;
 
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.SCANNABLE_NAME_SOLSTICE_SCAN_MONITOR;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanNotFinished;
@@ -53,6 +54,7 @@ import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IRunListener;
 import org.eclipse.scanning.api.scan.event.RunEvent;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.sequencer.nexus.SolsticeConstants;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -165,7 +167,8 @@ public class BasicScanTest extends NexusTest {
 		final Collection<String> scannableNames = pos.getNames();
 		
 		List<IScannable<?>> perPoint  = scanModel.getMonitors() != null
-                ? scanModel.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_POINT).collect(Collectors.toList())
+                ? scanModel.getMonitors().stream().filter(scannable -> scannable.getMonitorRole()==MonitorRole.PER_POINT)
+                		.filter(scannable -> !scannable.getName().equals(SCANNABLE_NAME_SOLSTICE_SCAN_MONITOR)).collect(Collectors.toList())
                 : null;
         final boolean hasMonitor = perPoint != null && !perPoint.isEmpty();
  		
