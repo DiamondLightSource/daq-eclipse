@@ -47,7 +47,12 @@ public enum DeviceAction {
 	/**
 	 * Disable device, stopping all activity.
 	 */
-	DISABLE;
+	DISABLE,
+	
+	/**
+	 * Validate, with an expectation that the result will be returned
+	 */
+	VALIDATEWITHRETURN;
 	
 	public static DeviceAction as(TerminationPreference pref) {
 		switch(pref) {
