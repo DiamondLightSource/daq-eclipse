@@ -300,7 +300,12 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 			scanModel.setScanMetadata(req.getScanMetadata());
 			scanModel.setBean(bean);
 			
-			configureDetectors(req.getDetectors(), scanModel, estimator, generator);
+			ScanInformation scanInfo = new ScanInformation(estimator);
+			scanInfo.setFilePath(bean.getFilePath());
+			scanInfo.setScannableNames(getScannableNames(generator));
+			scanModel.setScanInformation(scanInfo);
+			
+			configureDetectors(req.getDetectors(), scanModel, generator);
 			
 			IPausableDevice<ScanModel> device = (IPausableDevice<ScanModel>) Services.getRunnableDeviceService().createRunnableDevice(scanModel, publisher, false);
 			IDeviceController controller = Services.getWatchdogService().create(device);
@@ -318,17 +323,12 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 		}
 	}
 
-	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, ScanEstimator estimator, IPointGenerator<?> generator) throws Exception {
-		
-		ScanInformation info = new ScanInformation(estimator);
-		info.setFilePath(model.getFilePath());
-		info.setScannableNames(getScannableNames(model.getPositionIterable()));
-		
+	private void configureDetectors(Map<String, Object> dmodels, ScanModel model, IPointGenerator<?> generator) throws Exception {
 		for (IRunnableDevice<?> device : model.getDetectors()) {
 			
 			AnnotationManager manager = new AnnotationManager(Activator.createResolver());
 			manager.addDevices(device);
-			manager.addContext(info);
+			manager.addContext(model.getScanInformation());
 			
 			@SuppressWarnings("unchecked")
 			IRunnableDevice<Object> odevice = (IRunnableDevice<Object>)device;

@@ -20,7 +20,7 @@ import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 
-class DelegatingSelectionProvider implements ISelectionProvider, ISelectionChangedListener {
+public class DelegatingSelectionProvider implements ISelectionProvider, ISelectionChangedListener {
 
 	private Set<ISelectionChangedListener> listeners;
 	private ISelectionProvider             wrapped;

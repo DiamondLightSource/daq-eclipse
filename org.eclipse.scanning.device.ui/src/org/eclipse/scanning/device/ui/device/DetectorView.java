@@ -34,6 +34,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.scanning.api.ValidationException;
 import org.eclipse.scanning.api.device.IActivatable;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDeviceService;
@@ -43,7 +44,11 @@ import org.eclipse.scanning.device.ui.Activator;
 import org.eclipse.scanning.device.ui.DevicePreferenceConstants;
 import org.eclipse.scanning.device.ui.EventConnectionView;
 import org.eclipse.scanning.device.ui.ServiceHolder;
+import org.eclipse.scanning.device.ui.points.ValidateResults;
+import org.eclipse.scanning.device.ui.points.ValidateResultsView;
+import org.eclipse.scanning.device.ui.util.PageUtil;
 import org.eclipse.scanning.device.ui.util.ViewUtil;
+import org.eclipse.scanning.event.ui.view.DelegatingSelectionProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -53,6 +58,9 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +81,8 @@ public class DetectorView extends EventConnectionView {
 	private TableViewer       viewer;
 	private Image             ticked, unticked, defaultIcon;
 	private Map<String,Image> iconMap;
-
+	private DelegatingSelectionProvider       selectionProvider;
+	
 	// Services
 	private IRunnableDeviceService dservice;
 	
@@ -122,7 +131,8 @@ public class DetectorView extends EventConnectionView {
 		}
 		viewer.setInput(new Object());
 		
-		getSite().setSelectionProvider(viewer);
+		selectionProvider = new DelegatingSelectionProvider(viewer);
+		getSite().setSelectionProvider(selectionProvider);
 		
 		createActions();
 		initializeToolBar();
@@ -332,13 +342,43 @@ public class DetectorView extends EventConnectionView {
 		try {
 			IRunnableDevice<Object> device = dservice.getRunnableDevice(info.getName());
 			Object model = info.getModel();
+
+			// Pass null to 'clear' the validation results view
+			selectionProvider.fireSelection(new StructuredSelection(new ValidateResults(info.getName(), null)));
+			
+			Object validateReturn = device.validateWithReturn(model);
+
+			ValidateResults validateResults = new ValidateResults(info.getName(), validateReturn);
+				
+			showValidationResultsView(validateResults);
+				
+			selectionProvider.fireSelection(new StructuredSelection(validateResults));
+						
 			device.configure(model);
 			
-		} catch (ScanningException ne) {
+		} catch (ScanningException|ValidationException ne) {
 			ErrorDialog.openError(getViewSite().getShell(), "Configure Failed", "The configure of '"+info.getName()+"' failed", 
                                             new Status(IStatus.ERROR, "org.eclipse.scanning.device.ui", ne.getMessage(), ne));
 			logger.error("Cannot configure '"+info.getName()+"'", ne);
 		}
+	}
+	
+	private void showValidationResultsView(ValidateResults validateResults) {
+		PlatformUI.getWorkbench().getDisplay().asyncExec(() -> {
+			try {
+				if (PageUtil.getPage().findView(ValidateResultsView.ID) == null) {
+					IViewPart viewPart = PageUtil.getPage().showView(ValidateResultsView.ID);
+					if (viewPart instanceof ValidateResultsView) {
+						ValidateResultsView validateResultsView = (ValidateResultsView)viewPart;
+						validateResultsView.update(validateResults);
+					}
+				} else {
+					PageUtil.getPage().showView(ValidateResultsView.ID);
+				}
+			} catch (PartInitException e) {
+				logger.warn("Unable to show validate results view " + e);
+			}
+		});
 	}
 
 	private DeviceInformation<?> getSelection() {
