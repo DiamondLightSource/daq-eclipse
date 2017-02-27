@@ -102,6 +102,19 @@ class _RunnableDevice<M> extends _AbstractRemoteDevice<M> implements IRunnableDe
 		}
 	}
 	
+	@Override
+	public Object validateWithReturn(M model) throws ValidationException {
+		try {
+			DeviceRequest res = requester.post(new DeviceRequest(info.getName(), DeviceAction.VALIDATEWITHRETURN, model));
+			res.checkException();
+			return res.getDeviceValue();
+		} catch (ValidationException ve) {
+			throw ve;
+		} catch (Exception ne) {
+            throw new ValidationException(ne);
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public DeviceState getDeviceState() throws ScanningException {
