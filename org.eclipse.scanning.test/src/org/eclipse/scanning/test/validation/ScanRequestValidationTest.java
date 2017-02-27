@@ -50,10 +50,7 @@ public class ScanRequestValidationTest extends AbstractValidationTest {
 		validator.validate(req);
 	}
 	
-
-	
-	@Test(expected=ModelValidationException.class)
-	public void emptyDetectorModelsNotAllowed() throws Exception {
+	public void emptyDetectorModelsAllowed() throws Exception {
 		
 		GridModel gmodel = new GridModel("stage_x", "stage_y");
 		gmodel.setBoundingBox(new BoundingBox(10, -10, 100, -100));
