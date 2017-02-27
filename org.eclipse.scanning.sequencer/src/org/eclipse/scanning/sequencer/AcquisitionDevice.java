@@ -47,10 +47,12 @@ import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.scan.DeviceState;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IDeviceDependentIterable;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.IScanService;
 import org.eclipse.scanning.api.scan.PositionEvent;
+import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.event.IPositionListener;
@@ -364,7 +366,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			
 			} finally {    	    
 	    		// only fire end if finished normally
-	    		if (!errorFound) fireEnd();	
+	    		if (!errorFound) fireEnd(last);	
 			}
 			
 		} finally {
@@ -405,10 +407,11 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 
 	}
 	
-	private ScanInformation getScanInformation(int size) {
+	private ScanInformation getScanInformation(int size) throws GeneratorException {
 		ScanInformation scanInfo = getModel().getScanInformation();
 		if (scanInfo == null) {
-			scanInfo = new ScanInformation();
+			scanInfo = new ScanInformation(
+					new ScanEstimator(model.getPositionIterable(), model.getDetectors()));
 			scanInfo.setSize(size);
 			scanInfo.setRank(getScanRank(getModel().getPositionIterable()));
 			scanInfo.setScannableNames(getScannableNames(getModel().getPositionIterable()));
@@ -433,7 +436,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		getBean().setPreviousStatus(Status.RUNNING);
 	}
 
-	private void fireEnd() throws ScanningException {
+	private void fireEnd(IPosition lastPosition) throws ScanningException {
 		
 		// Setup the bean to sent
 		getBean().setPreviousStatus(getBean().getStatus());
@@ -443,7 +446,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 		
 		// Will send the state of the scan off.
 		try {
-			manager.invoke(ScanEnd.class);
+			manager.invoke(ScanEnd.class, lastPosition);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException  | EventException e) {
 			throw new ScanningException(e);
 		}
