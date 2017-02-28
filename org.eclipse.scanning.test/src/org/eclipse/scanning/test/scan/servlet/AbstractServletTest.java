@@ -168,7 +168,11 @@ public abstract class AbstractServletTest extends BrokerTest {
 
 	@After
 	public void disconnect()  throws Exception {
-		if (servlet!=null) servlet.disconnect();
+		if (servlet!=null) {
+			servlet.getConsumer().cleanQueue(servlet.getSubmitQueue());
+			servlet.getConsumer().cleanQueue(servlet.getStatusSet());
+			servlet.disconnect();
+		}
 	}
 	
 	protected ScanBean createStepScan() throws IOException {
