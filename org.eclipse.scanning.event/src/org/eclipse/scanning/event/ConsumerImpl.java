@@ -451,14 +451,34 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	public void run() throws EventException {
 		
 		startJobManager();
+		init();
+		
+		while(isActive()) {
+        	try {
+	            boolean ok = consume();
+	            if (!ok) break;
+	                     		
+        	} catch (Throwable ne) {
+        		boolean stayAlive = processException(ne);
+        		if (stayAlive) {
+        			continue;
+        		} else {
+        			break;
+        		}
+        	}
+
+		}
+	}
+
+	private void init() throws EventException {
+		
+		this.waitTime = 0;
 
 		if (runner!=null) {
 			alive.setAlive(true);
 		} else {
 			throw new EventException("Cannot start a consumer without a runner to run things!");
 		}
-		
-		waitTime = 0;
 		
 		// We process the paused state
 		PauseBean pbean = getPauseBean(getSubmitQueueName());
@@ -473,29 +493,6 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		
 		// It is possible to call start() and then awaitStart().
 		if (latchStart!=null) latchStart.countDown();
-		while(isActive()) {
-        	try {
-	            boolean ok = consume();
-	            if (!ok) break;
-	            
-        	} catch (EventException | InterruptedException ne) {
-        		if (Thread.interrupted()) break;
- 				logger.error("Cannot consume message ", ne);
-       		    if (isDurable()) {
-       		    	continue;
-       		    }
-        		break;
-         		
-        	} catch (Throwable ne) {
-        		boolean ok = manageError(ne);
-        		if (ok) {
-        			continue;
-        		} else {
-        			break;
-        		}
-        	}
-
-		}
 	}
 
 	private boolean consume() throws Exception {
@@ -523,7 +520,16 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
         return true;
 	}
 
-	private boolean manageError(Throwable ne) throws EventException {
+	private boolean processException(Throwable ne) throws EventException {
+
+		if (ne instanceof EventException || ne instanceof InterruptedException) {
+			if (Thread.interrupted()) return false;
+			logger.error("Cannot consume message ", ne);
+			if (isDurable()) {
+				return true;
+			}
+			return false;
+		}
 
 		logger.debug("Error in consumer!", ne);
 		if (ne.getClass().getSimpleName().contains("Json")) {
