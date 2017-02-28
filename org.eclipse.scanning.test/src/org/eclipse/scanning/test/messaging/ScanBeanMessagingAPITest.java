@@ -11,11 +11,9 @@
  *******************************************************************************/
 package org.eclipse.scanning.test.messaging;
 
-import static org.eclipse.scanning.api.event.EventConstants.SUBMISSION_QUEUE;
-import static org.eclipse.scanning.api.event.EventConstants.STATUS_TOPIC;
 import static org.eclipse.scanning.api.event.EventConstants.STATUS_SET;
-import static org.eclipse.scanning.api.event.EventConstants.POSITION_TOPIC;
-import static org.junit.Assert.assertEquals;
+import static org.eclipse.scanning.api.event.EventConstants.STATUS_TOPIC;
+import static org.eclipse.scanning.api.event.EventConstants.SUBMISSION_QUEUE;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -44,6 +42,7 @@ import org.eclipse.scanning.api.event.servlet.IConnectable;
 import org.eclipse.scanning.api.event.status.StatusBean;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.scan.ScanningException;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.detector.DarkImageDetector;
 import org.eclipse.scanning.example.detector.DarkImageModel;
@@ -55,14 +54,13 @@ import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorService;
 import org.eclipse.scanning.points.validation.ValidatorService;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
+import org.eclipse.scanning.sequencer.watchdog.DeviceWatchdogService;
 import org.eclipse.scanning.server.servlet.DeviceServlet;
 import org.eclipse.scanning.server.servlet.ScanServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.BrokerTest;
 import org.junit.After;
 import org.junit.Test;
-
-import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 /**
  * Class to test the API changes for ScanRequest messaging.
@@ -112,7 +110,8 @@ public class ScanBeanMessagingAPITest extends BrokerTest {
 		Services.setRunnableDeviceService(dservice);
 		Services.setGeneratorService(pointGenService);
 		Services.setValidatorService(validator);
-
+		Services.setWatchdogService(new DeviceWatchdogService());
+		
 		org.eclipse.dawnsci.nexus.ServiceHolder.setNexusFileFactory(new NexusFileFactoryHDF5());
 		(new org.eclipse.scanning.sequencer.ServiceHolder()).setFactory(new DefaultNexusBuilderFactory());
 		
@@ -176,7 +175,7 @@ public class ScanBeanMessagingAPITest extends BrokerTest {
 		scanServlet.setPauseOnStart(false);
 		scanServlet.setDurable(true);
 		scanServlet.connect();
-		
+	
 		dservlet = new DeviceServlet();
 		dservlet.setBroker(uri.toString());
 		dservlet.connect();
@@ -227,7 +226,7 @@ public class ScanBeanMessagingAPITest extends BrokerTest {
 		
 		submitter.submit(sentBean);
 		
-		boolean ok = latch.await(15, TimeUnit.SECONDS);
+		boolean ok = latch.await(25, TimeUnit.SECONDS);
 
 		if (!ok) throw new Exception("The latch broke before the scan responded!");
 		
