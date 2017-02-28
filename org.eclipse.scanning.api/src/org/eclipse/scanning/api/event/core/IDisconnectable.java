@@ -34,5 +34,7 @@ public interface IDisconnectable {
 	/**
 	 * 
 	 */
-	public boolean isDisconnected();
+	default boolean isDisconnected() {
+		return false;
+	}
 }
