@@ -63,7 +63,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 	private boolean         blocking = true;
 	private boolean         durable  = true;
 	private boolean         purgeQueue = true;
-	private boolean         pauseOnStart = true;
+	private boolean         pauseOnStart = false;
 	
 	// Recommended to configure these as
 	protected String        submitQueue = IEventService.SUBMISSION_QUEUE;
