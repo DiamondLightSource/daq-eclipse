@@ -28,9 +28,6 @@ import org.eclipse.scanning.api.device.models.MalcolmModel;
  * @author Matthew Dickie
  */
 public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable {
-
-	// timeout is added to the dummy model so that it can be increased for debugging purposes
-	private long timeout = -1;
 	
 	private List<DummyMalcolmControlledDetectorModel> dummyDetectorModels = Collections.emptyList();
 
@@ -50,6 +47,7 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable {
 		setAxesToMove(axes); // determines the _set (i.e. demand) values to be written
 		setPositionerNames(axes); // determines the value (a.k.a rbv) values to be written
 		setDummyDetectorModels(Arrays.asList(detModel));
+		setTimeout(-1);
 	}
 	
 	public List<DummyMalcolmControlledDetectorModel> getDummyDetectorModels() {
@@ -59,14 +57,6 @@ public class DummyMalcolmModel extends MalcolmModel implements ITimeoutable {
 
 	public void setDummyDetectorModels(List<DummyMalcolmControlledDetectorModel> dummyDetectorModels) {
 		this.dummyDetectorModels = dummyDetectorModels;
-	}
-	
-	public long getTimeout() {
-		return timeout;
-	}
-
-	public void setTimeout(long timeout) {
-		this.timeout = timeout;
 	}
 
 	public List<String> getPositionerNames() {
