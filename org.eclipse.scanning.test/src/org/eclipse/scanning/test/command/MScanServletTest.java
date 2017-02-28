@@ -161,13 +161,15 @@ public class MScanServletTest extends AbstractJythonTest {
 
 	@AfterClass
 	public static void disconnect()  throws Exception {
+		servlet.getConsumer().cleanQueue(servlet.getSubmitQueue());
+		servlet.getConsumer().cleanQueue(servlet.getStatusSet());
 		servlet.disconnect();
 	}
 	
 	@Before
 	public void before() throws Exception {
-		servlet.getConsumer().cleanQueue(EventConstants.SUBMISSION_QUEUE);
-		servlet.getConsumer().cleanQueue(EventConstants.STATUS_SET);
+		servlet.getConsumer().cleanQueue(servlet.getSubmitQueue());
+		servlet.getConsumer().cleanQueue(servlet.getStatusSet());
 	}
 	
 	@Test

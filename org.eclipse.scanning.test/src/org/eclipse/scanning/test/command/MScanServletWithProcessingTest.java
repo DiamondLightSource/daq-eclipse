@@ -219,6 +219,8 @@ public class MScanServletWithProcessingTest extends AbstractJythonTest {
 	@AfterClass
 	public static void disconnect()  throws Exception {
 		pconsumer.disconnect();
+		servlet.getConsumer().cleanQueue(servlet.getSubmitQueue());
+		servlet.getConsumer().cleanQueue(servlet.getStatusSet());
 		servlet.disconnect();
 	}
 	
@@ -230,8 +232,8 @@ public class MScanServletWithProcessingTest extends AbstractJythonTest {
 		output.deleteOnExit();
 		path = output.getAbsolutePath().replace("\\\\", "\\").replace('\\', '/');
 		
-		servlet.getConsumer().cleanQueue(EventConstants.SUBMISSION_QUEUE);
-		servlet.getConsumer().cleanQueue(EventConstants.STATUS_SET);
+		servlet.getConsumer().cleanQueue(servlet.getSubmitQueue());
+		servlet.getConsumer().cleanQueue(servlet.getStatusSet());
 		pconsumer.cleanQueue(PROCESSING_QUEUE_NAME);
 		pconsumer.cleanQueue("scisoft.operation.STATUS_SET");
 	}
