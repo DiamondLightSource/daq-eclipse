@@ -20,6 +20,7 @@ import org.eclipse.scanning.api.event.EventException;
  * @author Matthew Gerring
  *
  */
+@FunctionalInterface
 public interface IDisconnectable {
 
 	/**
