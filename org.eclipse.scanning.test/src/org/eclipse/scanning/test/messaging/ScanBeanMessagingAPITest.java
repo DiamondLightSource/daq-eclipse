@@ -173,8 +173,9 @@ public class ScanBeanMessagingAPITest extends BrokerTest {
 		scanServlet.setStatusTopic(STATUS_TOPIC);
 		scanServlet.setStatusSet(STATUS_SET);
 		scanServlet.setBroker(uri.toString());
-		scanServlet.connect();
+		scanServlet.setPauseOnStart(false);
 		scanServlet.setDurable(true);
+		scanServlet.connect();
 		
 		dservlet = new DeviceServlet();
 		dservlet.setBroker(uri.toString());
@@ -284,7 +285,7 @@ public class ScanBeanMessagingAPITest extends BrokerTest {
 								 			  + "\"snake\":false"
 								 + "}]},"
 								 + "\"ignorePreprocess\":false,"
-								 + "\"filePath\":\"" + tempfile + "\","
+								 + "\"filePath\":\"" + tempfile.getAbsolutePath().replace('\\', '/') + "\","
 								 + "\"detectors\":{\"drt_mock_mandelbrot_detector\":{\"@type\":\"MandelbrotModel\","
 								 								+ "\"columns\":301,"
 								 								+ "\"enableNoise\":false,"
@@ -332,7 +333,7 @@ public class ScanBeanMessagingAPITest extends BrokerTest {
 								 			  + "\"snake\":false"
 								 + "}]},"
 								 + "\"ignorePreprocess\":false,"
-								 + "\"filePath\":\"" + tempfile + "\","
+								 + "\"filePath\":\"" + tempfile.getAbsolutePath().replace('\\', '/') + "\","
 								 + "\"detectors\":{\"drt_mock_mandelbrot_detector\":{\"@type\":\"MandelbrotModel\","
 								 								+ "\"columns\":301,"
 								 								+ "\"enableNoise\":false,"
