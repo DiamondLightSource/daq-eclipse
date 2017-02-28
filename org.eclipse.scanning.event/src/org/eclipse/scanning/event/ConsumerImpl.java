@@ -71,7 +71,8 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	private ISubmitter<U>                 mover;
 	private boolean                       pauseOnStart=false;
 	private CountDownLatch                latchStart;
-
+	private int                           waitTime = 0;
+	
 	private IProcessCreator<U>            runner;
 	private boolean                       durable;
 	private MessageConsumer               mconsumer;
@@ -257,7 +258,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				
 				if (rem == null && b.getUniqueId().equals(bean.getUniqueId())) { 
 					// Something went wrong, not sure why it does this, TODO investigate
-					if (overrideMap == null) overrideMap = new Hashtable<>(7);
+					createOverrideMap();
 					overrideMap.put(b.getUniqueId(), bean);
 					continue;
 				}
@@ -292,6 +293,10 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				throw new EventException("Cannot close session!", e);
 			}
 		}
+	}
+
+	private void createOverrideMap() {
+		if (overrideMap == null) overrideMap = new Hashtable<>(7);
 	}
 
 	@Override
@@ -395,21 +400,25 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				} else {
 					IConsumerProcess<U> process = ref.get();
 					if (process!=null) {
-						process.getBean().setStatus(bean.getStatus());
-						process.getBean().setMessage(bean.getMessage());
-						if (bean.getStatus()==Status.REQUEST_TERMINATE) {
-							processes.remove(bean.getUniqueId());
-							if (process.isPaused()) process.resume();
-							process.terminate();
-						} else if (bean.getStatus()==Status.REQUEST_PAUSE) {
-							process.pause();
-						} else if (bean.getStatus()==Status.REQUEST_RESUME) {
-							process.resume();
-						}
+						manageProcess(process, bean);
 					}
 				}
 			} catch (EventException ne) {
 				logger.error("Internal error, please contact your support representative.", ne);
+			}
+		}
+
+		private void manageProcess(IConsumerProcess<U> process, U bean) throws EventException {
+			process.getBean().setStatus(bean.getStatus());
+			process.getBean().setMessage(bean.getMessage());
+			if (bean.getStatus()==Status.REQUEST_TERMINATE) {
+				processes.remove(bean.getUniqueId());
+				if (process.isPaused()) process.resume();
+				process.terminate();
+			} else if (bean.getStatus()==Status.REQUEST_PAUSE) {
+				process.pause();
+			} else if (bean.getStatus()==Status.REQUEST_RESUME) {
+				process.resume();
 			}
 		}
 	}
@@ -449,7 +458,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 			throw new EventException("Cannot start a consumer without a runner to run things!");
 		}
 		
-		long waitTime = 0;
+		waitTime = 0;
 		
 		// We process the paused state
 		PauseBean pbean = getPauseBean(getSubmitQueueName());
@@ -466,71 +475,89 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		if (latchStart!=null) latchStart.countDown();
 		while(isActive()) {
         	try {
-        		checkPaused(); // blocks until not paused.
-        		if (!isActive()) break; // Might have pasued for a long time.
-        		
-        		// Consumes messages from the queue.
-	        	Message m = getMessage(uri, getSubmitQueueName());
-	            if (m!=null) {
-		        	waitTime = 0; // We got a message
-	            	
-	            	// TODO FIXME Check if we have the max number of processes
-	            	// exceeded and wait until we don't...
-	            	
-	            	TextMessage t = (TextMessage)m;
-	            	
-	            	final String json  = t.getText();
-	            	
-					@SuppressWarnings("unchecked")
-					final U bean   = (U) service.unmarshal(json, getBeanClass());
-                    
-	            	executeBean(bean);
-	            	
-	            }
+	            boolean ok = consume();
+	            if (!ok) break;
 	            
         	} catch (EventException | InterruptedException ne) {
         		if (Thread.interrupted()) break;
  				logger.error("Cannot consume message ", ne);
-       		    if (isDurable()) continue;
+       		    if (isDurable()) {
+       		    	continue;
+       		    }
         		break;
          		
         	} catch (Throwable ne) {
-        		logger.debug("Error in consumer!", ne);
-        		if (ne.getClass().getSimpleName().contains("Json")) {
-            		logger.error("Fatal except deserializing object!", ne);
-            		continue;
+        		boolean ok = manageError(ne);
+        		if (ok) {
+        			continue;
+        		} else {
+        			break;
         		}
-        		if (ne.getClass().getSimpleName().endsWith("UnrecognizedPropertyException")) {
-        			logger.error("Cannot deserialize bean!", ne);
-            		continue;
-        		}
-        		
-        		if (ne.getClass().getSimpleName().endsWith("ClassCastException")) {
-    				logger.error("Problem with serialization?", ne);
-        		}
-
-        		
-        		if (!isDurable()) break;
-        		        		
-       			try {
-       				if (Thread.interrupted()) break;
-					Thread.sleep(Constants.getNotificationFrequency());
-				} catch (InterruptedException e) {
-					throw new EventException("The consumer was unable to wait!", e);
-				}
-       			
-       			waitTime+=Constants.getNotificationFrequency();
-    			checkTime(waitTime); 
-    			
-        		logger.warn(getName()+" ActiveMQ connection to "+uri+" lost.");
-        		logger.warn("We will check every 2 seconds for 24 hours, until it comes back.");
-
-        		continue;
         	}
 
 		}
 	}
-	
+
+	private boolean consume() throws Exception {
+		
+		checkPaused(); // blocks until not paused.
+		if (!isActive()) return false; // Might have pasued for a long time.
+		
+		// Consumes messages from the queue.
+    	Message m = getMessage(uri, getSubmitQueueName());
+        if (m!=null) {
+        	waitTime = 0; // We got a message
+        	
+        	// TODO FIXME Check if we have the max number of processes
+        	// exceeded and wait until we don't...
+        	
+        	TextMessage t = (TextMessage)m;
+        	
+        	final String json  = t.getText();
+        	
+			@SuppressWarnings("unchecked")
+			final U bean   = (U) service.unmarshal(json, getBeanClass());
+            
+        	executeBean(bean);   
+        }
+        return true;
+	}
+
+	private boolean manageError(Throwable ne) throws EventException {
+
+		logger.debug("Error in consumer!", ne);
+		if (ne.getClass().getSimpleName().contains("Json")) {
+			logger.error("Fatal except deserializing object!", ne);
+			return true;
+		}
+		if (ne.getClass().getSimpleName().endsWith("UnrecognizedPropertyException")) {
+			logger.error("Cannot deserialize bean!", ne);
+			return true;
+		}
+
+		if (ne.getClass().getSimpleName().endsWith("ClassCastException")) {
+			logger.error("Problem with serialization?", ne);
+		}
+
+
+		if (!isDurable()) return false;
+
+		try {
+			if (Thread.interrupted()) return false;
+			Thread.sleep(Constants.getNotificationFrequency());
+		} catch (InterruptedException e) {
+			throw new EventException("The consumer was unable to wait!", e);
+		}
+
+		waitTime+=Constants.getNotificationFrequency();
+		checkTime(waitTime); 
+
+		logger.warn(getName()+" ActiveMQ connection to "+uri+" lost.");
+		logger.warn("We will check every 2 seconds for 24 hours, until it comes back.");
+
+		return true;
+	}
+
 	private void checkStartPaused() throws EventException {
 		
 		if (!isPauseOnStart()) { 
@@ -623,16 +650,17 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	@Override
 	public ConsumerStatus getConsumerStatus() {
 		
-		if (processes!=null && processes.size()>0) {
-			List<WeakReference<IConsumerProcess<U>>> refs = new ArrayList<>(processes.values());
-			for (WeakReference<IConsumerProcess<U>> ref : refs) {
-				IConsumerProcess<U> process = ref.get();
-				if (process!=null) {
-					if (process.isBlocking() && process.isPaused()) return ConsumerStatus.PAUSED;
-				}
-			}
+		if (processes==null || processes.size()<1) {
+			return awaitPaused ? ConsumerStatus.PAUSED : ConsumerStatus.RUNNING;
 		}
 
+		List<WeakReference<IConsumerProcess<U>>> refs = new ArrayList<>(processes.values());
+		for (WeakReference<IConsumerProcess<U>> ref : refs) {
+			IConsumerProcess<U> process = ref.get();
+			if (process!=null && process.isBlocking() && process.isPaused()) {
+				return ConsumerStatus.PAUSED;
+			}
+		}
 		return awaitPaused ? ConsumerStatus.PAUSED : ConsumerStatus.RUNNING;
 	}
 
