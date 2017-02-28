@@ -186,24 +186,18 @@ public class ScanBeanMessagingAPITest extends BrokerTest {
 	@After
 	public void stop() throws EventException {
 		
+		if (scanServlet!=null) {
+			scanServlet.getConsumer().cleanQueue(scanServlet.getSubmitQueue());
+			scanServlet.getConsumer().cleanQueue(scanServlet.getStatusSet());
+		}
+
 		disconnect(scanServlet);
-//		disconnect(dservlet);
 		disconnect(submitter);
 		disconnect(subscriber);
 	}
 	
-	protected void disconnect(IDisconnectable service) {
-		try {
-    	if (service!=null) service.disconnect();
-		} catch (EventException e) {
-		}
-	}
-	
-	protected void disconnect(IConnectable service) {
-		try {
-    	if (service!=null) service.disconnect();
-		} catch (EventException e) {
-		}
+	protected void disconnect(IDisconnectable service) throws EventException {
+		if (service!=null) service.disconnect();
 	}
 	
 	public List<String> getMessageResponses(String sentJson, int messageNum) throws Exception {
