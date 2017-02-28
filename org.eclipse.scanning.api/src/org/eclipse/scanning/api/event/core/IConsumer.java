@@ -87,6 +87,14 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 */
 	void stop() throws EventException;
 
+	/**
+	 * Awaits the start of the consumer. There are occasions
+	 * when the consumer should start in its own thread but
+	 * still provide the ability to await the startup process.
+	 * 
+	 * @throws Exception
+	 */
+	void awaitStart() throws InterruptedException;
 
 	/**
 	 * Starts the consumer and block. Similar to Thread.run()
@@ -141,6 +149,36 @@ public interface IConsumer<T> extends IQueueConnection<T> {
 	 */
 	public boolean isActive();
 
+	/**
+	 * Durable consumers try to keep going when there are exceptions.
+	 * @return
+	 */
 	public boolean isDurable();
+	
+	/**
+	 * Durable consumers try to keep going when there are exceptions.
+	 * @param durable
+	 */
 	public void setDurable(boolean durable);
+	
+	/**
+	 * If the consumer should pause when it is started with
+	 * jobs in the queue and wait until the user requires it to unpause.
+	 * 
+	 * NOTE: setPauseOnStartup(...) must be called before the consumer is started!
+	 * 
+	 * @return
+	 */
+	boolean isPauseOnStart();
+	
+	/**
+	 * If the consumer should pause when it is started with
+	 * jobs in the queue and wait until the user requires it to unpause.
+	 * 
+	 * NOTE: setPauseOnStartup(...) must be called before the consumer is started!
+	 * 
+	 * @param pauseOnStart
+	 */
+	void setPauseOnStart(boolean pauseOnStart);
+
 }

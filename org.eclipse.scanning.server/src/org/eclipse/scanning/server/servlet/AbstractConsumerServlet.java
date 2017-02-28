@@ -94,6 +94,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
     	consumer.setName(getName());
     	consumer.setDurable(isDurable());
     	consumer.setRunner(new DoObjectCreator<B>());
+    	consumer.setPauseOnStart(true);
     	
     	// Purge old jobs, we wouldn't want those running.
     	// This suggests that DAQ should have one

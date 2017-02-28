@@ -19,6 +19,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -68,6 +69,8 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	private ISubscriber<IBeanListener<U>> manager;
 	private ISubscriber<IBeanListener<ConsumerCommandBean>> command;
 	private ISubmitter<U>                 mover;
+	private boolean                       pauseOnStart=false;
+	private CountDownLatch                latchStart;
 
 	private IProcessCreator<U>            runner;
 	private boolean                       durable;
@@ -297,7 +300,8 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	
 	@Override
 	public void start() throws EventException {
-				
+		
+		latchStart = new CountDownLatch(1);
 		final Thread consumerThread = new Thread("Consumer Thread "+getName()) {
 			public void run() {
 				try {
@@ -320,6 +324,16 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		consumerThread.start();
 		
 	}
+	
+	/**
+	 * Awaits the start of the consumer
+	 * @throws InterruptedException 
+	 * @throws Exception
+	 */
+	public void awaitStart() throws InterruptedException {
+		if (latchStart!=null) latchStart.await();
+	}
+
 	
 	private PauseBean getPauseBean(String submissionQueueName) {
 		
@@ -429,6 +443,15 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		PauseBean pbean = getPauseBean(getSubmitQueueName());
 		if (pbean!=null) processPause(pbean); // Might set the pause lock and block on checkPaused().
 		 
+		// We should pause if there are things in the queue
+		// This is because on a server restart the user will 
+		// need to choose the visit again and get the baton.
+		// NOTE: Not all consumers check the submit queue and
+		// pause before they start.
+        checkStartPaused();
+		
+		// It is possible to call start() and then awaitStart().
+		if (latchStart!=null) latchStart.countDown();
 		while(isActive()) {
         	try {
         		checkPaused(); // blocks until not paused.
@@ -496,6 +519,28 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		}
 	}
 	
+	private void checkStartPaused() throws EventException {
+		
+		if (!isPauseOnStart()) { 
+			return;
+		}
+		
+		List<U> items = getSubmissionQueue();
+		if (items!=null && items.size()>0) {
+			pause();
+
+			IPublisher<PauseBean> pauser = eservice.createPublisher(getUri(), IEventService.CMD_TOPIC);
+			pauser.setStatusSetName(IEventService.CMD_SET); // The set that other clients may check
+			pauser.setStatusSetAddRequired(true);
+
+			PauseBean pbean = new PauseBean();
+			pbean.setQueueName(getSubmitQueueName()); // The queue we are pausing
+			pbean.setPause(true);
+			pauser.broadcast(pbean);
+
+		}
+	}
+
 	private void checkPaused() throws Exception {
 		
 		if (!isActive()) throw new Exception("The consumer is not active and cannot be paused!");
@@ -700,5 +745,15 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	@Override
 	public void setDurable(boolean durable) {
 		this.durable = durable;
+	}
+
+	@Override
+	public boolean isPauseOnStart() {
+		return pauseOnStart;
+	}
+
+	@Override
+	public void setPauseOnStart(boolean pauseOnStart) {
+		this.pauseOnStart = pauseOnStart;
 	}
 }
