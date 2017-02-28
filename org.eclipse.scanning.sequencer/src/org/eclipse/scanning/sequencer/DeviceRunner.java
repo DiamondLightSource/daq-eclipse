@@ -65,11 +65,6 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 		for (IRunnableDevice<?> device : devices) {
 			if (device instanceof AbstractRunnableDevice) {
 				Object model = ((AbstractRunnableDevice<?>)device).getModel();
-				if (model instanceof IMalcolmModel) {
-					time = Long.MAX_VALUE; // no timeout for malcolm scans
-					break;
-					// TODO: use estimated scan time (x2?)
-				}
 				long timeout = -1;
 				if (model instanceof ITimeoutable) {
 					timeout = ((ITimeoutable)model).getTimeout();
