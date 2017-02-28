@@ -63,6 +63,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 	private boolean         blocking = true;
 	private boolean         durable  = true;
 	private boolean         purgeQueue = true;
+	private boolean         pauseOnStart = false;
 	
 	// Recommended to configure these as
 	protected String        submitQueue = IEventService.SUBMISSION_QUEUE;
@@ -94,6 +95,7 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
     	consumer.setName(getName());
     	consumer.setDurable(isDurable());
     	consumer.setRunner(new DoObjectCreator<B>());
+    	consumer.setPauseOnStart(pauseOnStart);
     	
     	// Purge old jobs, we wouldn't want those running.
     	// This suggests that DAQ should have one
@@ -205,6 +207,14 @@ public abstract class AbstractConsumerServlet<B extends StatusBean> implements I
 
 	public void setConsumer(IConsumer<B> consumer) {
 		this.consumer = consumer;
+	}
+
+	public boolean isPauseOnStart() {
+		return pauseOnStart;
+	}
+
+	public void setPauseOnStart(boolean pauseOnStart) {
+		this.pauseOnStart = pauseOnStart;
 	}
 
 }
