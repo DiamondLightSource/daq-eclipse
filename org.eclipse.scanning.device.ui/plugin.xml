@@ -41,6 +41,13 @@
       </view>
       <view
             category="org.eclipse.scanning.device.ui"
+            class="org.eclipse.scanning.device.ui.points.ValidateResultsView"
+            icon="icons/report.png"
+            id="org.eclipse.scanning.device.ui.scan.validateResultsView"
+            name="Validation Results">
+      </view>
+      <view
+            category="org.eclipse.scanning.device.ui"
             class="org.eclipse.scanning.device.ui.device.ControlView"
             icon="icons/ui-slider-050.png"
             id="org.eclipse.scanning.device.ui.device.ControlView"

@@ -175,7 +175,7 @@ public abstract class AbstractMalcolmDevice<M extends IMalcolmModel> extends Abs
 	}
 
 	@Override
-	public Set<String> getAxesToMove() throws MalcolmDeviceException {
+	public Set<String> getAxesToMove() throws ScanningException {
 		String[] axesToMove = (String[]) getAttributeValue(ATTRIBUTE_NAME_AXES_TO_MOVE);
 		return new HashSet<>(Arrays.asList(axesToMove));
 	}

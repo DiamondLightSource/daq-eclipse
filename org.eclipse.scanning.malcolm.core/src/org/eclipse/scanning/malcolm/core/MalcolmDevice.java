@@ -379,22 +379,30 @@ public class MalcolmDevice<M extends MalcolmModel> extends AbstractMalcolmDevice
 
 	@Override
 	public void validate(M params) throws ValidationException {
+		validateWithReturn(params);
+	}
+	
+	@Override
+	public Object validateWithReturn(M params) throws ValidationException {
 		if (Boolean.getBoolean("org.eclipse.scanning.malcolm.skipvalidation")) {
 			logger.warn("Skipping Malcolm Validate");
-			return;
+			return null;
 		}
 		
 		final EpicsMalcolmModel epicsModel = createEpicsMalcolmModel(params);
-		
+		MalcolmMessage reply = null;
 		try {
 			final MalcolmMessage msg   = connectionDelegate.createCallMessage("validate", epicsModel);
-			final MalcolmMessage reply = connector.send(this, msg);
+			reply = connector.send(this, msg);
 			if (reply.getType()==Type.ERROR) {
 				throw new ValidationException("Error from Malcolm Device Connection: " + reply.getMessage());
 			}
+			
 		} catch (MalcolmDeviceException mde) {
 			throw new ValidationException(mde);
 		}
+
+		return reply.getRawValue();
 	}
 	
 	@Override

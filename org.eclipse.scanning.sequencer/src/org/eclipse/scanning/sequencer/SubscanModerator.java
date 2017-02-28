@@ -132,7 +132,7 @@ public class SubscanModerator {
 		this.outerIterable = gservice.createCompoundGenerator(compoundModel.clone(outer));
 	}
 
-	private List<String> getAxes(List<IRunnableDevice<?>> detectors) throws MalcolmDeviceException {
+	private List<String> getAxes(List<IRunnableDevice<?>> detectors) throws ScanningException {
 		List<String> ret = new ArrayList<>();
 		for (IRunnableDevice<?> device : detectors) {
 			// TODO Deal with the axes of other subscan devices as they arise.
