@@ -42,5 +42,17 @@ public class MScanServletTest extends AbstractMScanTest {
 		pi.exec("sr = scan_request(grid(axes=('xNex', 'yNex'), start=(0.0, 1.0), stop=(10.0, 12.0), count=(3, 4), snake=False, roi=[circ(origin=(0.0, 0.0), radius=1.0)]), det=detector('mandelbrot', 0.1))");
 		runAndCheck("sr", false, 10);
 	}
+	
+	@Test(expected=Exception.class)
+	public void testGridScanWithBadTimeout() throws Exception {
+		pi.exec("sr = scan_request(grid(axes=('xNex', 'yNex'), start=(0, 0), stop=(10, 10), count=(2, 2), snake=True), det=detector('mandelbrot', 1.2, timeout=1))");
+		runAndCheck("sr", false, 10);
+	}
+	
+	@Test
+	public void testGridScanWithGoodTimeout() throws Exception {
+		pi.exec("sr = scan_request(grid(axes=('xNex', 'yNex'), start=(0, 0), stop=(10, 10), count=(2, 2), snake=True), det=detector('mandelbrot', 1.2, timeout=2))");
+		runAndCheck("sr", false, 10);
+	}
 
 }
