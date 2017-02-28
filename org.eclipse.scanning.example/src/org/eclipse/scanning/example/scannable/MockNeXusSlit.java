@@ -115,7 +115,8 @@ public class MockNeXusSlit extends MockScannable implements INexusDevice<NXslit>
 		return nexusDelegate;
 	}
 
-	public void setPosition(Number value, IPosition position) throws Exception {
+	public void setPosition(Number initialValue, IPosition position) throws Exception {
+		Number value = initialValue;
 
 		if (value!=null) {
 			int index = position!=null ? position.getIndex(getName()) : -1;
@@ -177,13 +178,15 @@ public class MockNeXusSlit extends MockScannable implements INexusDevice<NXslit>
 	private static void registerAttributes(NXobject nexusObject, IScanAttributeContainer container) throws NexusException {
 		// We create the attributes, if any
 		nexusObject.setField("name", container.getName());
-		if (container.getScanAttributeNames()!=null) for(String attrName : container.getScanAttributeNames()) {
-			try {
-				nexusObject.setField(attrName, container.getScanAttribute(attrName));
-			} catch (Exception e) {
-				throw new NexusException(MessageFormat.format(
-						"An exception occurred attempting to get the value of the attribute ''{0}'' for the device ''{1}''",
-						container.getName(), attrName), e);
+		if (container.getScanAttributeNames()!=null) {
+			for(String attrName : container.getScanAttributeNames()) {
+				try {
+					nexusObject.setField(attrName, container.getScanAttribute(attrName));
+				} catch (Exception e) {
+					throw new NexusException(MessageFormat.format(
+							"An exception occurred attempting to get the value of the attribute ''{0}'' for the device ''{1}''",
+							container.getName(), attrName), e);
+				}
 			}
 		}
 	}
