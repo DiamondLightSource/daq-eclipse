@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.scanning.test.scan;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,11 +18,10 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.dawnsci.json.MarshallerService;
-import org.eclipse.scanning.api.device.IScannableDeviceService;
-import org.eclipse.scanning.api.device.IRunnableDeviceService;
 import org.eclipse.scanning.api.device.IPausableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
+import org.eclipse.scanning.api.device.IRunnableDeviceService;
+import org.eclipse.scanning.api.device.IScannableDeviceService;
 import org.eclipse.scanning.api.event.EventConstants;
 import org.eclipse.scanning.api.event.EventException;
 import org.eclipse.scanning.api.event.IEventService;
@@ -37,15 +35,14 @@ import org.eclipse.scanning.api.malcolm.MalcolmDeviceOperationCancelledException
 import org.eclipse.scanning.api.points.GeneratorException;
 import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
-import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.models.BoundingBox;
 import org.eclipse.scanning.api.points.models.GridModel;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.scannable.MockScannableConnector;
 import org.eclipse.scanning.points.PointGeneratorService;
-import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.scan.mock.MockDetectorModel;
@@ -55,8 +52,6 @@ import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class ThreadScanTest extends BrokerTest {
 	
