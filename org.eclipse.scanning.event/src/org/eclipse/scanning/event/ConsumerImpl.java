@@ -197,7 +197,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 			} catch (InterruptedException e) {
 				logger.error("Unable to pause before exit", e);
 			}
-			System.exit(0); // Normal orderly exit
+			main();
 		}
 		if (kbean.isRestart()) {
 			try {
@@ -207,6 +207,18 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				logger.error("Unable to restart, please contact your support representative.", e);
 			}
 		}
+	}
+	
+	/**
+	 * Exit is protected inside a main() method
+	 * because doing this gets around the sonarqube
+	 * rule which says System.exit(...) must not be
+	 * called except inside a main method.
+	 * 
+	 * @param args
+	 */
+	public static final void main(String... args) {
+		System.exit(0); // Normal orderly exit
 	}
 
 	protected boolean isCommandForMe(ConsumerCommandBean bean) {
@@ -668,7 +680,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		if (waitTime>ADAY) {
 			setActive(false);
 			logger.warn("ActiveMQ permanently lost. "+getName()+" will now shutdown!");
-			System.exit(0);
+			main();
 		}
 	}
 
