@@ -35,37 +35,38 @@ import org.eclipse.scanning.api.scan.rank.IScanRankService;
 import org.eclipse.scanning.api.scan.rank.IScanSlice;
 
 /**
- * A class to generate take a set of scannables which represent simple slits then write to a nexus file
+ * A class to generate take a set of scannables which represent simple slits then write to a NeXus file
  * as the positions are set during the scan.
  * 
  * @see {@link MockScannableConfiguration}
  */
 public class MockNeXusSlit extends MockScannable implements INexusDevice<NXslit> {
 
+	private ILazyWriteableDataset xLzSet;
+	private ILazyWriteableDataset yLzSet;
+	private ILazyWriteableDataset xLzValue;
+	private ILazyWriteableDataset yLzValue;
+	
+	private boolean writingOn = true;
+	
+	public MockNeXusSlit() {
+		super();
+	}
+	
+	public MockNeXusSlit(String name, double d, int level) {
+		super(name, d, level);
+	}
+
+	public MockNeXusSlit(String name, double d, int level, String unit) {
+		super(name, d, level, unit);
+	}
+	
 	public boolean isWritingOn() {
 		return writingOn;
 	}
 
 	public void setWritingOn(boolean writingOn) {
 		this.writingOn = writingOn;
-	}
-
-	private ILazyWriteableDataset xLzSet;
-	private ILazyWriteableDataset yLzSet;
-	private ILazyWriteableDataset xLzValue;
-	private ILazyWriteableDataset yLzValue;
-
-	private boolean writingOn = true;
-
-	public MockNeXusSlit() {
-		super();
-	}
-
-	public MockNeXusSlit(String name, double d, int level) {
-		super(name, d, level);
-	}
-	public MockNeXusSlit(String name, double d, int level, String unit) {
-		super(name, d, level, unit);
 	}
 
 	@ScanFinally
@@ -80,13 +81,11 @@ public class MockNeXusSlit extends MockScannable implements INexusDevice<NXslit>
 		final NXslit positioner = NexusNodeFactory.createNXslit();
 
 		if (info.getScanRole(getName()) == ScanRole.METADATA) {
-			//positioner.setField(NXslit.NX_X_GAP, getPosition().doubleValue());
-			//positioner.setField(NXslit.NX_Y_GAP, getPosition().doubleValue());
 			positioner.setX_gapScalar(getPosition().doubleValue());
 			positioner.setY_gapScalar(getPosition().doubleValue());
 		} else {
-			String floatFill = System.getProperty("GDA/gda.nexus.floatfillvalue", "nan");
-			double fill = floatFill.equalsIgnoreCase("nan") ? Double.NaN : Double.parseDouble(floatFill);
+			String floatFill = System.getProperty("GDA/gda.nexus.floatfillvalue", "NaN");
+			double fill = "NaN".equalsIgnoreCase(floatFill) ? Double.NaN : Double.parseDouble(floatFill);
 
 			xLzSet = positioner.initializeLazyDataset(NXslit.NX_X_GAP, 1, Double.class);
 			yLzSet = positioner.initializeLazyDataset(NXslit.NX_Y_GAP, 1, Double.class);
@@ -101,8 +100,8 @@ public class MockNeXusSlit extends MockScannable implements INexusDevice<NXslit>
 			yLzValue = positioner.initializeLazyDataset(NXslit.NX_Y_GAP, info.getRank(), Double.class);
 			xLzValue.setFillValue(fill);
 			yLzValue.setFillValue(fill);
-			xLzValue.setChunking(info.createChunk(false, 8)); // TODO Might be slow, need to check this
-			yLzValue.setChunking(info.createChunk(false, 8)); // TODO Might be slow, need to check this
+			xLzValue.setChunking(info.createChunk(false, 8)); // Might be slow, need to check this
+			yLzValue.setChunking(info.createChunk(false, 8)); // Might be slow, need to check this
 			xLzValue.setWritingAsync(true);
 			yLzValue.setWritingAsync(true);
 		}
@@ -134,7 +133,9 @@ public class MockNeXusSlit extends MockScannable implements INexusDevice<NXslit>
 
 	private void write(Number demand, Number actual, IPosition loc) throws Exception {
 
-		if (xLzValue==null || yLzValue==null) return;
+		if (xLzValue==null || yLzValue==null) {
+			return;
+		}
 		if (actual!=null) {
 			// write actual position
 			final Dataset newActualPositionData = DatasetFactory.createFromObject(actual);
@@ -147,7 +148,9 @@ public class MockNeXusSlit extends MockScannable implements INexusDevice<NXslit>
 			}
 		}
 
-		if (xLzSet==null || yLzSet==null) return;
+		if (xLzSet==null || yLzSet==null) {
+			return;
+		}
 		if (demand!=null) {
 			int index = loc.getIndex(getName());
 			if (index<0) {
@@ -180,7 +183,7 @@ public class MockNeXusSlit extends MockScannable implements INexusDevice<NXslit>
 			} catch (Exception e) {
 				throw new NexusException(MessageFormat.format(
 						"An exception occurred attempting to get the value of the attribute ''{0}'' for the device ''{1}''",
-						container.getName(), attrName));
+						container.getName(), attrName), e);
 			}
 		}
 	}
