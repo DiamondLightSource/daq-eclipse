@@ -249,6 +249,15 @@ class JCompoundGenerator(JavaIteratorWrapper):
                 scan_name.add(axis)
                 
             self.dimension_names.add(scan_name)
+        for excluder in excluders:
+            # axes connected by excluders are "unrolled"
+            matched_axes = [a for a in self.axes_ordering if a in excluder.scannables]
+            if len(matched_axes) == 0:
+                continue
+            inner_axis = matched_axes[0]
+            inner_idx = self.axes_ordering.index(inner_axis)
+            for a in matched_axes[1:]:
+                self.index_locations[a] = inner_idx
         
         logging.debug("Index Locations:")
         logging.debug(self.index_locations)
