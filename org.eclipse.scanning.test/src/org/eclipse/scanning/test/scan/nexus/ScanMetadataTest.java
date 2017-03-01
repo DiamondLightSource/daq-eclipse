@@ -242,7 +242,7 @@ public class ScanMetadataTest extends NexusTest {
 		NXentry entry = rootNode.getEntry();
 		checkMetadata(entry, scanMetadata);
 		// check that the scan points have been written correctly
-		assertSolsticeScanGroup(entry, sizes);
+		assertSolsticeScanGroup(entry, false, sizes);
 		
 		NXinstrument instrument = entry.getInstrument();
 

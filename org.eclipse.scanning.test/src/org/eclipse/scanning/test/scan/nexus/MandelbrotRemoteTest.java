@@ -218,7 +218,7 @@ public class MandelbrotRemoteTest extends NexusTest {
 		NXinstrument instrument = entry.getInstrument();
 		
 		// check that the scan points have been written correctly
-		assertSolsticeScanGroup(entry, sizes);
+		assertSolsticeScanGroup(entry, false, sizes);
 		
 		LinkedHashMap<String, List<String>> detectorDataFields = new LinkedHashMap<>();
 		// axis for additional dimensions of a datafield, e.g. image

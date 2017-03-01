@@ -196,7 +196,7 @@ public class ScanProcessingTest extends NexusTest {
 		NXentry entry = rootNode.getEntry();
 		
 		// check that the scan points have been written correctly
-		assertSolsticeScanGroup(entry, sizes);
+		assertSolsticeScanGroup(entry, false, sizes);
 		
 		LinkedHashMap<String, Integer> detectorDataFields = new LinkedHashMap<>();
 		detectorDataFields.put(NXdetector.NX_DATA, 2); // num additional dimensions
