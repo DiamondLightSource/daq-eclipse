@@ -19,7 +19,6 @@ import org.eclipse.scanning.api.device.AbstractRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.IRunnableEventDevice;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
-import org.eclipse.scanning.api.device.models.IMalcolmModel;
 import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.scan.ScanningException;
 
@@ -63,29 +62,27 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 	private long calculateTimeout(Collection<IRunnableDevice<?>> devices) {
 		long time = Long.MIN_VALUE;
 		for (IRunnableDevice<?> device : devices) {
-			if (device instanceof AbstractRunnableDevice) {
-				Object model = ((AbstractRunnableDevice<?>)device).getModel();
-				if (model instanceof IMalcolmModel) {
-					time = Long.MAX_VALUE; // no timeout for malcolm scans
-					break;
-					// TODO: use estimated scan time (x2?)
-				}
-				long timeout = -1;
-				if (model instanceof ITimeoutable) {
-					timeout = ((ITimeoutable)model).getTimeout();
-				    if (timeout<0 && model instanceof IDetectorModel) {
-				    	IDetectorModel dmodel = (IDetectorModel)model;
-				    	timeout = Math.round(dmodel.getExposureTime());
-				    }
-				} else if (model instanceof IDetectorModel) {
-			    	IDetectorModel dmodel = (IDetectorModel)model;
-			    	timeout = (long)Math.ceil(dmodel.getExposureTime());
-				}
-				time = Math.max(time, timeout);
-			}
+			time = Math.max(time, getTimeout(device));
 		}
 		if (time<=0) time = 10; // seconds
 		return time;
+	}
+
+	private long getTimeout(IRunnableDevice<?> device) {
+		
+		Object model = device.getModel();
+		long timeout = -1;
+		if (model instanceof ITimeoutable) {
+			timeout = ((ITimeoutable)model).getTimeout();
+			if (timeout<0 && model instanceof IDetectorModel) {
+				IDetectorModel dmodel = (IDetectorModel)model;
+				timeout = Math.round(dmodel.getExposureTime());
+			}
+		} else if (model instanceof IDetectorModel) {
+			IDetectorModel dmodel = (IDetectorModel)model;
+			timeout = (long)Math.ceil(dmodel.getExposureTime());
+		}
+		return timeout;
 	}
 
 	@Override

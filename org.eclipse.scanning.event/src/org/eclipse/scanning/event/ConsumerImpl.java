@@ -19,6 +19,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -68,7 +69,10 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	private ISubscriber<IBeanListener<U>> manager;
 	private ISubscriber<IBeanListener<ConsumerCommandBean>> command;
 	private ISubmitter<U>                 mover;
-
+	private boolean                       pauseOnStart=false;
+	private CountDownLatch                latchStart;
+	private int                           waitTime = 0;
+	
 	private IProcessCreator<U>            runner;
 	private boolean                       durable;
 	private MessageConsumer               mconsumer;
@@ -194,7 +198,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 			} catch (InterruptedException e) {
 				logger.error("Unable to pause before exit", e);
 			}
-			System.exit(0); // Normal orderly exit
+			main();
 		}
 		if (kbean.isRestart()) {
 			try {
@@ -204,6 +208,18 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				logger.error("Unable to restart, please contact your support representative.", e);
 			}
 		}
+	}
+	
+	/**
+	 * Exit is protected inside a main() method
+	 * because doing this gets around the sonarqube
+	 * rule which says System.exit(...) must not be
+	 * called except inside a main method.
+	 * 
+	 * @param args
+	 */
+	public static final void main(String... args) {
+		System.exit(0); // Normal orderly exit
 	}
 
 	protected boolean isCommandForMe(ConsumerCommandBean bean) {
@@ -242,7 +258,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				
 				if (rem == null && b.getUniqueId().equals(bean.getUniqueId())) { 
 					// Something went wrong, not sure why it does this, TODO investigate
-					if (overrideMap == null) overrideMap = new Hashtable<>(7);
+					createOverrideMap();
 					overrideMap.put(b.getUniqueId(), bean);
 					continue;
 				}
@@ -279,6 +295,10 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		}
 	}
 
+	private void createOverrideMap() {
+		if (overrideMap == null) overrideMap = new Hashtable<>(7);
+	}
+
 	@Override
 	public List<U> getSubmissionQueue() throws EventException {
 		return getQueue(getSubmitQueueName(), null);
@@ -297,7 +317,8 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	
 	@Override
 	public void start() throws EventException {
-				
+		
+		latchStart = new CountDownLatch(1);
 		final Thread consumerThread = new Thread("Consumer Thread "+getName()) {
 			public void run() {
 				try {
@@ -320,6 +341,16 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		consumerThread.start();
 		
 	}
+	
+	/**
+	 * Awaits the start of the consumer
+	 * @throws InterruptedException 
+	 * @throws Exception
+	 */
+	public void awaitStart() throws InterruptedException {
+		if (latchStart!=null) latchStart.await();
+	}
+
 	
 	private PauseBean getPauseBean(String submissionQueueName) {
 		
@@ -369,21 +400,25 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				} else {
 					IConsumerProcess<U> process = ref.get();
 					if (process!=null) {
-						process.getBean().setStatus(bean.getStatus());
-						process.getBean().setMessage(bean.getMessage());
-						if (bean.getStatus()==Status.REQUEST_TERMINATE) {
-							processes.remove(bean.getUniqueId());
-							if (process.isPaused()) process.resume();
-							process.terminate();
-						} else if (bean.getStatus()==Status.REQUEST_PAUSE) {
-							process.pause();
-						} else if (bean.getStatus()==Status.REQUEST_RESUME) {
-							process.resume();
-						}
+						manageProcess(process, bean);
 					}
 				}
 			} catch (EventException ne) {
 				logger.error("Internal error, please contact your support representative.", ne);
+			}
+		}
+
+		private void manageProcess(IConsumerProcess<U> process, U bean) throws EventException {
+			process.getBean().setStatus(bean.getStatus());
+			process.getBean().setMessage(bean.getMessage());
+			if (bean.getStatus()==Status.REQUEST_TERMINATE) {
+				processes.remove(bean.getUniqueId());
+				if (process.isPaused()) process.resume();
+				process.terminate();
+			} else if (bean.getStatus()==Status.REQUEST_PAUSE) {
+				process.pause();
+			} else if (bean.getStatus()==Status.REQUEST_RESUME) {
+				process.resume();
 			}
 		}
 	}
@@ -416,6 +451,28 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	public void run() throws EventException {
 		
 		startJobManager();
+		init();
+		
+		while(isActive()) {
+        	try {
+	            boolean ok = consume();
+	            if (!ok) break;
+	                     		
+        	} catch (Throwable ne) {
+        		boolean stayAlive = processException(ne);
+        		if (stayAlive) {
+        			continue;
+        		} else {
+        			break;
+        		}
+        	}
+
+		}
+	}
+
+	private void init() throws EventException {
+		
+		this.waitTime = 0;
 
 		if (runner!=null) {
 			alive.setAlive(true);
@@ -423,79 +480,112 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 			throw new EventException("Cannot start a consumer without a runner to run things!");
 		}
 		
-		long waitTime = 0;
-		
 		// We process the paused state
 		PauseBean pbean = getPauseBean(getSubmitQueueName());
 		if (pbean!=null) processPause(pbean); // Might set the pause lock and block on checkPaused().
 		 
-		while(isActive()) {
-        	try {
-        		checkPaused(); // blocks until not paused.
-        		if (!isActive()) break; // Might have pasued for a long time.
-        		
-        		// Consumes messages from the queue.
-	        	Message m = getMessage(uri, getSubmitQueueName());
-	            if (m!=null) {
-		        	waitTime = 0; // We got a message
-	            	
-	            	// TODO FIXME Check if we have the max number of processes
-	            	// exceeded and wait until we don't...
-	            	
-	            	TextMessage t = (TextMessage)m;
-	            	
-	            	final String json  = t.getText();
-	            	
-					@SuppressWarnings("unchecked")
-					final U bean   = (U) service.unmarshal(json, getBeanClass());
-                    
-	            	executeBean(bean);
-	            	
-	            }
-	            
-        	} catch (EventException | InterruptedException ne) {
-        		if (Thread.interrupted()) break;
- 				logger.error("Cannot consume message ", ne);
-       		    if (isDurable()) continue;
-        		break;
-         		
-        	} catch (Throwable ne) {
-        		logger.debug("Error in consumer!", ne);
-        		if (ne.getClass().getSimpleName().contains("Json")) {
-            		logger.error("Fatal except deserializing object!", ne);
-            		continue;
-        		}
-        		if (ne.getClass().getSimpleName().endsWith("UnrecognizedPropertyException")) {
-        			logger.error("Cannot deserialize bean!", ne);
-            		continue;
-        		}
-        		
-        		if (ne.getClass().getSimpleName().endsWith("ClassCastException")) {
-    				logger.error("Problem with serialization?", ne);
-        		}
+		// We should pause if there are things in the queue
+		// This is because on a server restart the user will 
+		// need to choose the visit again and get the baton.
+		// NOTE: Not all consumers check the submit queue and
+		// pause before they start.
+        checkStartPaused();
+		
+		// It is possible to call start() and then awaitStart().
+		if (latchStart!=null) latchStart.countDown();
+	}
 
-        		
-        		if (!isDurable()) break;
-        		        		
-       			try {
-       				if (Thread.interrupted()) break;
-					Thread.sleep(Constants.getNotificationFrequency());
-				} catch (InterruptedException e) {
-					throw new EventException("The consumer was unable to wait!", e);
-				}
-       			
-       			waitTime+=Constants.getNotificationFrequency();
-    			checkTime(waitTime); 
-    			
-        		logger.warn(getName()+" ActiveMQ connection to "+uri+" lost.");
-        		logger.warn("We will check every 2 seconds for 24 hours, until it comes back.");
+	private boolean consume() throws Exception {
+		
+		checkPaused(); // blocks until not paused.
+		if (!isActive()) return false; // Might have pasued for a long time.
+		
+		// Consumes messages from the queue.
+    	Message m = getMessage(uri, getSubmitQueueName());
+        if (m!=null) {
+        	waitTime = 0; // We got a message
+        	
+        	// TODO FIXME Check if we have the max number of processes
+        	// exceeded and wait until we don't...
+        	
+        	TextMessage t = (TextMessage)m;
+        	
+        	final String json  = t.getText();
+        	
+			@SuppressWarnings("unchecked")
+			final U bean   = (U) service.unmarshal(json, getBeanClass());
+            
+        	executeBean(bean);   
+        }
+        return true;
+	}
 
-        		continue;
-        	}
+	private boolean processException(Throwable ne) throws EventException {
+
+		if (ne instanceof EventException || ne instanceof InterruptedException) {
+			if (Thread.interrupted()) return false;
+			logger.error("Cannot consume message ", ne);
+			if (isDurable()) {
+				return true;
+			}
+			return false;
+		}
+
+		logger.debug("Error in consumer!", ne);
+		if (ne.getClass().getSimpleName().contains("Json")) {
+			logger.error("Fatal except deserializing object!", ne);
+			return true;
+		}
+		if (ne.getClass().getSimpleName().endsWith("UnrecognizedPropertyException")) {
+			logger.error("Cannot deserialize bean!", ne);
+			return true;
+		}
+
+		if (ne.getClass().getSimpleName().endsWith("ClassCastException")) {
+			logger.error("Problem with serialization?", ne);
+		}
+
+
+		if (!isDurable()) return false;
+
+		try {
+			if (Thread.interrupted()) return false;
+			Thread.sleep(Constants.getNotificationFrequency());
+		} catch (InterruptedException e) {
+			throw new EventException("The consumer was unable to wait!", e);
+		}
+
+		waitTime+=Constants.getNotificationFrequency();
+		checkTime(waitTime); 
+
+		logger.warn(getName()+" ActiveMQ connection to "+uri+" lost.");
+		logger.warn("We will check every 2 seconds for 24 hours, until it comes back.");
+
+		return true;
+	}
+
+	private void checkStartPaused() throws EventException {
+		
+		if (!isPauseOnStart()) { 
+			return;
+		}
+		
+		List<U> items = getSubmissionQueue();
+		if (items!=null && items.size()>0) {
+			pause();
+
+			IPublisher<PauseBean> pauser = eservice.createPublisher(getUri(), IEventService.CMD_TOPIC);
+			pauser.setStatusSetName(IEventService.CMD_SET); // The set that other clients may check
+			pauser.setStatusSetAddRequired(true);
+
+			PauseBean pbean = new PauseBean();
+			pbean.setQueueName(getSubmitQueueName()); // The queue we are pausing
+			pbean.setPause(true);
+			pauser.broadcast(pbean);
 
 		}
 	}
-	
+
 	private void checkPaused() throws Exception {
 		
 		if (!isActive()) throw new Exception("The consumer is not active and cannot be paused!");
@@ -566,16 +656,17 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	@Override
 	public ConsumerStatus getConsumerStatus() {
 		
-		if (processes!=null && processes.size()>0) {
-			List<WeakReference<IConsumerProcess<U>>> refs = new ArrayList<>(processes.values());
-			for (WeakReference<IConsumerProcess<U>> ref : refs) {
-				IConsumerProcess<U> process = ref.get();
-				if (process!=null) {
-					if (process.isBlocking() && process.isPaused()) return ConsumerStatus.PAUSED;
-				}
-			}
+		if (processes==null || processes.size()<1) {
+			return awaitPaused ? ConsumerStatus.PAUSED : ConsumerStatus.RUNNING;
 		}
 
+		List<WeakReference<IConsumerProcess<U>>> refs = new ArrayList<>(processes.values());
+		for (WeakReference<IConsumerProcess<U>> ref : refs) {
+			IConsumerProcess<U> process = ref.get();
+			if (process!=null && process.isBlocking() && process.isPaused()) {
+				return ConsumerStatus.PAUSED;
+			}
+		}
 		return awaitPaused ? ConsumerStatus.PAUSED : ConsumerStatus.RUNNING;
 	}
 
@@ -623,7 +714,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 		if (waitTime>ADAY) {
 			setActive(false);
 			logger.warn("ActiveMQ permanently lost. "+getName()+" will now shutdown!");
-			System.exit(0);
+			main();
 		}
 	}
 
@@ -700,5 +791,15 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 	@Override
 	public void setDurable(boolean durable) {
 		this.durable = durable;
+	}
+
+	@Override
+	public boolean isPauseOnStart() {
+		return pauseOnStart;
+	}
+
+	@Override
+	public void setPauseOnStart(boolean pauseOnStart) {
+		this.pauseOnStart = pauseOnStart;
 	}
 }

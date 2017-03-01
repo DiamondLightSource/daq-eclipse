@@ -19,6 +19,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 
 	ScanTest.class,
+	SeekTest.class,
+	ParserTest.class,
 	BenchmarkScanTest.class,
 	ScanFinishedTest.class,
 	PreprocessTest.class,
@@ -27,8 +29,8 @@ import org.junit.runners.Suite.SuiteClasses;
 	RunnableDeviceServiceConfigureTest.class,
 	WatchdogTopupTest.class,
 	WatchdogShutterTest.class,
-	WatchdogCombinedTest.class
-
+	WatchdogCombinedTest.class,
+	ThreadScanTest.class
 })
 public class Suite {
 }

@@ -27,7 +27,7 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 	private UUID consumerId;
 	
 	private boolean clearSubmitQueue = false, clearStatQueue = false;
-	private boolean started = false, stopped = false, disconnected = false;
+	private boolean started = false, stopped = false, disconnected = false, pauseOnStart=false;
 	
 	private String statusQueueName = "statQ", submitQueueName = "submQ";
 	private String name;
@@ -262,6 +262,16 @@ public class MockConsumer<U extends StatusBean> implements IConsumer<U> {
 	
 	public void addToSubmitQueue(U bean) {
 		submitQueue.add(bean);
+	}
+	public boolean isPauseOnStart() {
+		return pauseOnStart;
+	}
+	public void setPauseOnStart(boolean pauseOnStart) {
+		this.pauseOnStart = pauseOnStart;
+	}
+	@Override
+	public void awaitStart() {
+		throw new IllegalArgumentException("The method awaitStart() is not implemented for "+getClass().getSimpleName());
 	}
 	
 

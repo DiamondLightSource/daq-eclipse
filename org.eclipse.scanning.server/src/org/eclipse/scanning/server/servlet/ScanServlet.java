@@ -45,6 +45,10 @@ import org.eclipse.scanning.api.scan.process.ProcessingException;
  */
 public class ScanServlet extends AbstractConsumerServlet<ScanBean> {
 	
+	public ScanServlet() {
+		setPauseOnStart(true);
+	}
+	
 	@Override
 	public String getName() {
 		return "Scan Consumer";

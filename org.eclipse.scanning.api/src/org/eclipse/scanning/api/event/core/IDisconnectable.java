@@ -20,6 +20,7 @@ import org.eclipse.scanning.api.event.EventException;
  * @author Matthew Gerring
  *
  */
+@FunctionalInterface
 public interface IDisconnectable {
 
 	/**
@@ -34,5 +35,7 @@ public interface IDisconnectable {
 	/**
 	 * 
 	 */
-	public boolean isDisconnected();
+	default boolean isDisconnected() {
+		return false;
+	}
 }

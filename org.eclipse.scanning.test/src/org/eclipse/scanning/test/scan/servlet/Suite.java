@@ -18,7 +18,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 
 	ScanProcessTest.class,
-	ScanServletTest.class
+	ScanServletTest.class,
+	StartServerTest.class
 })
 public class Suite {
 }
