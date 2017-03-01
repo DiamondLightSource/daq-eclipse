@@ -15,7 +15,7 @@ import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.SCANNABLE_N
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanNotFinished;
-import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSolsticeScanGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -152,7 +152,7 @@ public class BasicScanTest extends NexusTest {
 		NXinstrument instrument = entry.getInstrument();
 		
 		// check the scan points have been written correctly
-		assertScanPointsGroup(entry, sizes);
+		assertSolsticeScanGroup(entry, sizes);
 		
 		DataNode dataNode = null;
 		IDataset dataset = null;

@@ -12,9 +12,12 @@
 package org.eclipse.scanning.sequencer.nexus;
 
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_CMD;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_DURATION;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_ESTIMATED_DURATION;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_MODELS;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_RANK;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_SHAPE;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_UNIQUE_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_SOLSTICE_SCAN;
@@ -22,6 +25,13 @@ import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.PROPERTY_NA
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.SCANNABLE_NAME_SOLSTICE_SCAN_MONITOR;
 
 import java.io.File;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +70,9 @@ import org.slf4j.LoggerFactory;
 public class SolsticeScanMonitor extends AbstractScannable<Object> implements INexusDevice<NXcollection> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(SolsticeScanMonitor.class);
-	
+	private static final DateTimeFormatter formatter = new DateTimeFormatterBuilder().
+			appendPattern("HH:mm:ss").appendFraction(ChronoField.NANO_OF_SECOND, 3, 3, true).toFormatter();
+
 	// Nexus
 	private List<NexusObjectProvider<?>> nexusObjectProviders = null;
 	private NexusObjectProvider<NXcollection> nexusProvider = null;
@@ -68,10 +80,13 @@ public class SolsticeScanMonitor extends AbstractScannable<Object> implements IN
 	// Writing Datasets
 	private ILazyWriteableDataset uniqueKeys = null;
 	private ILazyWriteableDataset scanFinished = null;
+	private ILazyWriteableDataset scanDuration = null;
 
 	// State
 	private boolean malcolmScan = false;
 	private final ScanModel model;
+	private Instant scanStartTime = null;
+
 	
 	public SolsticeScanMonitor(ScanModel model) {
 		this.model = model;
@@ -109,7 +124,7 @@ public class SolsticeScanMonitor extends AbstractScannable<Object> implements IN
 		
 		return nexusProvider;
 	}
-
+	
 	public NXcollection createNexusObject(NexusScanInfo info) {
 		final NXcollection scanPointsCollection = NexusNodeFactory.createNXcollection();
 		
@@ -140,6 +155,24 @@ public class SolsticeScanMonitor extends AbstractScannable<Object> implements IN
 		scanFinished.setFillValue(0);
 		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_FINISHED, scanFinished);
 		
+		// write the scan shape
+		int[] shape = info.getShape();
+		logger.info("Estimated scan shape " + Arrays.toString(shape));
+		scanPointsCollection.setDataset(FIELD_NAME_SCAN_SHAPE, DatasetFactory.createFromObject(shape));
+		
+		// write the estimated scan duration
+		long estimatedScanTimeMillis = model.getScanInformation().getEstimatedScanTime();
+		String estimateScanTimeStr = durationInMillisToString(Duration.ofMillis(estimatedScanTimeMillis));
+		logger.info("Estimated scan time " + estimateScanTimeStr);
+		scanPointsCollection.setField(FIELD_NAME_SCAN_ESTIMATED_DURATION, estimateScanTimeStr);
+		
+		scanDuration = new LazyWriteableDataset(FIELD_NAME_SCAN_DURATION, String.class,
+				new int[] { 1 }, new int[] { -1 }, new int[] { 1 }, null);
+		scanPointsCollection.createDataNode(FIELD_NAME_SCAN_DURATION, scanDuration);
+		scanStartTime = Instant.now(); // record the current time
+		// TODO: should use @ScanStart but add this monitor to the scanmodel after the annotation manager is created
+		// also there's no end of scan annotation that takes place before the nexus file is closed
+		
 		// create a sub-collection for the unique keys field and keys from each external file
 		final NXcollection keysCollection = NexusNodeFactory.createNXcollection();
 		scanPointsCollection.addGroupNode(GROUP_NAME_KEYS, keysCollection);
@@ -163,20 +196,47 @@ public class SolsticeScanMonitor extends AbstractScannable<Object> implements IN
 		
 		return scanPointsCollection;
 	}
-
+	
+	private String durationInMillisToString(Duration duration) {
+		long days = duration.toDays();
+		duration = duration.minusDays(days);
+		
+		LocalTime durationAsTime = LocalTime.MIDNIGHT.plus(duration);
+		String result = formatter.format(durationAsTime);
+		
+		if (days > 0) result = String.format("%dd ", days) + result;
+		return result;
+	}
+	
 	/**
-	 * Called when the scan completes to write '1' to the scan finished dataset.
+	 * Called when the scan completes to: 
+	 * <ul>
+	 * <li>write the scan finished (by writing '1' to the scan finished dataset;</li>
+	 * <li>write the scan duration.</li>
+	 * </ul>
 	 * @throws ScanningException
 	 */
 	public void scanFinished() throws ScanningException {
-		// Note: we don't use IRunListener.runPerformed as other run listeners expect the
-		// file to be closed when that method is called
-		final Dataset dataset = DatasetFactory.createFromObject(IntegerDataset.class, 1, null);
+		// 
+		// Note: we don't use scanFinally as that is called after the nexus file is closed.
+		final Dataset scanFinishedDataset = DatasetFactory.createFromObject(IntegerDataset.class, 1, null);
 		try {
-			this.scanFinished.setSlice(null, dataset,
+			this.scanFinished.setSlice(null, scanFinishedDataset,
 					new int[] { 0 }, new int[] { 1 }, new int[] { 1 });
 		} catch (Exception e) {
 			throw new ScanningException("Could not write scanFinished to NeXus file", e);
+		}
+		
+		Duration scanDurationObj = Duration.between(scanStartTime, Instant.now());
+		String scanDurationStr = durationInMillisToString(scanDurationObj);
+		logger.info("Scan finished in " + scanDurationStr);
+		
+		final Dataset scanDurationDataset = DatasetFactory.createFromObject(scanDurationStr);
+		try {
+			this.scanDuration.setSlice(null, scanDurationDataset,
+					new int[] { 0 }, new int[] { 1 }, new int[] { 1 });
+		} catch (Exception e) {
+			throw new ScanningException("Could not write scan duration to NeXus file", e);
 		}
 	}
 

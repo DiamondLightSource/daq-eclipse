@@ -164,11 +164,22 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			}
 		}
 		
+		// Create the manager and populate it
+		if (manager!=null) manager.dispose(); // It is allowed to configure more than once.
+		manager = createAnnotationManager(model);
+
+		// create the location manager
+		location = new LocationManager(getBean(), model, manager);
+		
+		// add the scan information to the context - it is created if not set on the scan model
+		manager.addContext(getScanInformation(location.getTotalSize()));
+		
 		// create the nexus file, if appropriate
 		nexusScanFileManager = NexusScanFileManagerFactory.createNexusScanFileManager(this);
 		nexusScanFileManager.configure(model);
 		nexusScanFileManager.createNexusFile(Boolean.getBoolean("org.eclipse.scanning.sequencer.nexus.async"));
 		
+		// create the runners and writers
 		if (model.getDetectors()!=null) {
 			runners = new DeviceRunner(model.getDetectors());
 			if (nexusScanFileManager.isNexusWritingEnabled()) {
@@ -181,26 +192,25 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 			writers = LevelRunner.createEmptyRunner();
 		}
 		
-		// Create the manager and populate it
-		if (manager!=null) manager.dispose(); // It is allowed to configure more than once.
+		// notify that the device is now ready
+		setDeviceState(DeviceState.READY); 
 		
-		Collection<Object> globalParticipants = ((IScanService)runnableDeviceService).getScanParticipants();
+		// record the time taken to configure the device
+		long after = System.currentTimeMillis();
+		setConfigureTime(after-before);
+	}
 
-		manager = new AnnotationManager(SequencerActivator.getInstance());
+	private AnnotationManager createAnnotationManager(ScanModel model) throws ScanningException {
+		Collection<Object> globalParticipants = ((IScanService)runnableDeviceService).getScanParticipants();
+		AnnotationManager manager = new AnnotationManager(SequencerActivator.getInstance());
 		manager.addDevices(getScannables(model));
 		if (model.getMonitors()!=null)               manager.addDevices(model.getMonitors());
 		if (model.getAnnotationParticipants()!=null) manager.addDevices(model.getAnnotationParticipants());
 		if (globalParticipants!=null)                manager.addDevices(globalParticipants);
 		if (model.getDetectors()!=null)              manager.addDevices(model.getDetectors());
 		
-		setDeviceState(DeviceState.READY); // Notify 
-		
-		long after = System.currentTimeMillis();
-		setConfigureTime(after-before);
-		
-		location = new LocationManager(getBean(), model, manager);
+		return manager;
 	}
-
 
 	@Override
 	public void run(IPosition parent) throws ScanningException, InterruptedException {
@@ -407,23 +417,30 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 
 	}
 	
-	private ScanInformation getScanInformation(int size) throws GeneratorException {
+	private ScanInformation getScanInformation(int size) throws ScanningException {
 		ScanInformation scanInfo = getModel().getScanInformation();
 		if (scanInfo == null) {
-			scanInfo = new ScanInformation(
-					new ScanEstimator(model.getPositionIterable(), model.getDetectors()));
+			ScanEstimator estimator;
+			try {
+				estimator = new ScanEstimator(model.getPositionIterable(), model.getDetectors());
+			} catch (GeneratorException e) {
+				logger.error("Could not create scan estimator", e);
+				throw new ScanningException("Could not create scan estimator", e);
+			}
+			
+			scanInfo = new ScanInformation(estimator);
 			scanInfo.setSize(size);
 			scanInfo.setRank(getScanRank(getModel().getPositionIterable()));
 			scanInfo.setScannableNames(getScannableNames(getModel().getPositionIterable()));
 			scanInfo.setFilePath(getModel().getFilePath());
+			
+			getModel().setScanInformation(scanInfo);
 		}
 		
 		return scanInfo;
 	}
 
 	private void fireStart(int size) throws Exception {
-		manager.addContext(getScanInformation(size));
-		
 		// Setup the bean to sent
 		getBean().setSize(size);	        
 		getBean().setPreviousStatus(getBean().getStatus());

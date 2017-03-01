@@ -11,7 +11,7 @@
  *******************************************************************************/
 package org.eclipse.scanning.test.scan.nexus;
 
-import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSolsticeScanGroup;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -196,7 +196,7 @@ public class ScanProcessingTest extends NexusTest {
 		NXentry entry = rootNode.getEntry();
 		
 		// check that the scan points have been written correctly
-		assertScanPointsGroup(entry, sizes);
+		assertSolsticeScanGroup(entry, sizes);
 		
 		LinkedHashMap<String, Integer> detectorDataFields = new LinkedHashMap<>();
 		detectorDataFields.put(NXdetector.NX_DATA, 2); // num additional dimensions

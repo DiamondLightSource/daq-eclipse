@@ -15,6 +15,8 @@ import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_SIGNAL;
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_NAME_TARGET;
 import static org.eclipse.dawnsci.nexus.builder.data.NexusDataBuilder.ATTR_SUFFIX_INDICES;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_DURATION;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_ESTIMATED_DURATION;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_SHAPE;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_UNIQUE_KEYS;
@@ -25,6 +27,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,8 +47,6 @@ import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.IDataset;
 import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.january.dataset.PositionIterator;
-import org.eclipse.scanning.sequencer.nexus.SolsticeConstants;
-import org.junit.Assert;
 
 /**
  * 
@@ -98,22 +101,23 @@ public class NexusAssert {
 		assertNotNull(nxData.getDataNode(expectedSignalFieldName));
 	}
 	
-	public static void assertScanPointsGroup(NXentry entry, int... sizes) {
-		assertScanPointsGroup(entry, false, sizes);
+	public static void assertSolsticeScanGroup(NXentry entry, int... sizes) {
+		assertSolsticeScanGroup(entry, false, sizes);
 	}
 	
-	public static void assertScanPointsGroup(NXentry entry, boolean malcolmScan, int... sizes) {
-		assertScanPointsGroup(entry, malcolmScan, null, sizes);
+	public static void assertSolsticeScanGroup(NXentry entry, boolean malcolmScan, int... sizes) {
+		assertSolsticeScanGroup(entry, malcolmScan, null, sizes);
 	}
 	
-	public static void assertScanPointsGroup(NXentry entry, boolean malcolmScan,
+	public static void assertSolsticeScanGroup(NXentry entry, boolean malcolmScan,
 			List<String> expectedExternalFiles, int... sizes) {
 		assertScanFinished(entry);
 		
 		NXcollection solsticeScanCollection = entry.getCollection(GROUP_NAME_SOLSTICE_SCAN);
 		assertNotNull(solsticeScanCollection);
 
-//		assertScanShape(solsticeScanCollection, sizes);
+		assertScanShape(solsticeScanCollection, sizes);
+		assertScanTimes(solsticeScanCollection);
 		 
 		NXcollection keysCollection = (NXcollection) solsticeScanCollection.getGroupNode(GROUP_NAME_KEYS);
 		assertNotNull(keysCollection);
@@ -134,13 +138,52 @@ public class NexusAssert {
 		} catch (DatasetException e) {
 			throw new AssertionError("Could not get data from lazy dataset", e);
 		}
+		assertEquals(Integer.class, shapeDataset.getElementClass());
 		assertEquals(1, shapeDataset.getRank());
-		assertArrayEquals(new int[sizes.length], shapeDataset.getShape());
+		assertArrayEquals(new int[] { sizes.length }, shapeDataset.getShape());
 		for (int i = 0; i < sizes.length; i++) {
 			assertEquals(sizes[i], shapeDataset.getInt(i));
 		}
 	}
+	
+	private static final DateTimeFormatter formatter = new DateTimeFormatterBuilder().
+			appendPattern("HH:mm:ss").appendFraction(ChronoField.NANO_OF_SECOND, 3, 3, true).toFormatter();
 
+	private static void assertScanTimes(NXcollection solsticeScanCollection) {
+		DataNode estimatedTimeDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_ESTIMATED_DURATION);
+		assertNotNull(estimatedTimeDataNode);
+		IDataset estimatedTimeDataset;
+		try {
+			estimatedTimeDataset = estimatedTimeDataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
+		
+		assertEquals(String.class, estimatedTimeDataset.getElementClass());
+		assertEquals(0, estimatedTimeDataset.getRank());
+		assertArrayEquals(new int[]{}, estimatedTimeDataset.getShape());
+		String estimatedTime = estimatedTimeDataset.getString();
+		assertNotNull(estimatedTime);
+		formatter.parse(estimatedTime); // throws exception if not a valid time
+		
+		DataNode actualTimeDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_DURATION);
+		assertNotNull(actualTimeDataNode);
+		IDataset actualTimeDataset;
+		try {
+			actualTimeDataset = actualTimeDataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
+		
+		// written as a 1d dataset of rank 1, as we can't write a scalar lazy writeable dataset
+		assertEquals(String.class, actualTimeDataset.getElementClass());
+		assertEquals(1, actualTimeDataset.getRank());
+		assertArrayEquals(new int[]{ 1 }, actualTimeDataset.getShape());
+		String actualTime = actualTimeDataset.getString(0);
+		assertNotNull(actualTime);
+		formatter.parse(estimatedTime); // throws exception if not a valid time
+	}
+	
 	private static void assertUniqueKeys(NXcollection keysCollection, int... sizes) {
 		// check the unique keys field - contains the step number for each scan point
 		DataNode dataNode = keysCollection.getDataNode(FIELD_NAME_UNIQUE_KEYS);

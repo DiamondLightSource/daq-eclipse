@@ -126,7 +126,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 
 		this.scanInfo = createScanInfo(model, scannableNames);
 		
-		// create the scan points writer and add it as a monitor and run listener
+		// create the scan points writer and add it to the scan as a monitor
 		solsticeScanMonitor = createSolsticeScanMonitor(model);
 
 		nexusDevices = extractNexusDevices(model);
@@ -318,6 +318,7 @@ public class NexusScanFileManager implements INexusScanFileManager {
 
 		final int scanRank = getScanRank(scanModel);
 		nexusScanInfo.setRank(scanRank);
+		nexusScanInfo.setShape(scanModel.getScanInformation().getShape());
 		
 		nexusScanInfo.setDetectorNames(getDeviceNames(scanModel.getDetectors()));
 
