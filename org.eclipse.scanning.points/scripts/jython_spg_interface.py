@@ -5,7 +5,7 @@ from org.eclipse.scanning.points import SerializableIterator
 from java.util import ArrayList
 
 from scanpointgenerator import LineGenerator
-#from scanpointgenerator import ArrayGenerator #NOT AVAILABLE YET
+from scanpointgenerator import ArrayGenerator
 from scanpointgenerator import SpiralGenerator
 from scanpointgenerator import LissajousGenerator
 from scanpointgenerator import CompoundGenerator
@@ -126,7 +126,6 @@ class JLineGenerator2D(JavaIteratorWrapper):
             
 
 class JArrayGenerator(JavaIteratorWrapper):
-    pass
     """
     Create an ArrayGenerator and wrap the points into java Scalar objects
     """
@@ -137,7 +136,9 @@ class JArrayGenerator(JavaIteratorWrapper):
         points = points.tolist()  # Convert from array to list
         
         self.name = name
-        self.generator = ArrayGenerator(name, units, points)
+        array_gen = ArrayGenerator(name, units, points)
+        self.generator = CompoundGenerator([array_gen], [], [])
+        self.generator.prepare()
         logging.debug(self.generator.to_dict())
     
     def _iterator(self):
