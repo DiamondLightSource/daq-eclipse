@@ -13,7 +13,7 @@ package org.eclipse.scanning.test.scan.nexus;
 
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
-import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSolsticeScanGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
 import static org.junit.Assert.assertArrayEquals;
@@ -218,7 +218,7 @@ public class MandelbrotRemoteTest extends NexusTest {
 		NXinstrument instrument = entry.getInstrument();
 		
 		// check that the scan points have been written correctly
-		assertScanPointsGroup(entry, sizes);
+		assertSolsticeScanGroup(entry, sizes);
 		
 		LinkedHashMap<String, List<String>> detectorDataFields = new LinkedHashMap<>();
 		// axis for additional dimensions of a datafield, e.g. image

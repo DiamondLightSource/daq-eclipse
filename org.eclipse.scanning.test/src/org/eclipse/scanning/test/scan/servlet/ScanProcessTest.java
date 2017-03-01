@@ -238,8 +238,11 @@ public class ScanProcessTest {
 		ScanBean scanBean = new ScanBean();
 		ScanRequest<?> scanRequest = new ScanRequest<>();
 		
-		CompoundModel cmodel = new CompoundModel<>(Arrays.asList(new RepeatedPointModel("T1", 5, 290.2, 100), new GridModel("xNex", "yNex")));
-		cmodel.setRegions(Arrays.asList(new ScanRegion<IROI>(new RectangularROI(0, 0, 3, 3, 0), "xNex", "yNex")));
+		final int numPoints = 5;
+		CompoundModel cmodel = new CompoundModel<>(Arrays.asList(
+				new RepeatedPointModel("T1", numPoints, 290.2, 100), new GridModel("xNex", "yNex")));
+		cmodel.setRegions(Arrays.asList(new ScanRegion<IROI>(
+				new RectangularROI(0, 0, 3, 3, 0), "xNex", "yNex")));
 		scanRequest.setCompoundModel(cmodel);
 		
 		final Map<String, Object> dmodels = new HashMap<String, Object>(3);
@@ -266,10 +269,14 @@ public class ScanProcessTest {
 		// Assert
 		assertTrue("The time to do a scan of roughly 500ms of sleep was "+(after-before), (10000 > (after-before)));
 		
-		// Important: the number of sleeps must be five
+		// Important: the number of sleeps must be five  (it's currently ten - see below)
 		// It will be greater if the scanning iterated when
 		// figuring things out and slept incorrectly.
-		assertEquals(5, RepeatedPointIterator._getSleepCount());
+		// TODO: DAQ-487 currently the points in the scan are interated over twice,
+		// once at the beginning of the scan by the scan estimator to get the shape,
+		// then again while performing the scan. Instead we should get the shape from the generators
+		// before the scan. When this is done the line below can be reverted to expect a single iteration again.
+		assertEquals(numPoints * 2, RepeatedPointIterator._getSleepCount());
 	}
 
 	

@@ -5,7 +5,6 @@ import static org.eclipse.scanning.sequencer.analysis.ClusterProcessingRunnableD
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_SOLSTICE_SCAN;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
-import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
 import static org.hamcrest.CoreMatchers.equalTo;

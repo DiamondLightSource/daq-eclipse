@@ -15,7 +15,7 @@ import static org.eclipse.scanning.example.malcolm.DummyMalcolmDevice.FILE_EXTEN
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertDataNodesEqual;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertIndices;
-import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertScanPointsGroup;
+import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSolsticeScanGroup;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -242,7 +242,7 @@ public class MalcolmScanTest extends NexusTest {
 		
 		// check that the scan points have been written correctly
 		List<String> expectedExternalFiles = getExpectedExternalFiles(dummyMalcolmModel);
-		assertScanPointsGroup(entry, true, expectedExternalFiles, sizes);
+		assertSolsticeScanGroup(entry, true, expectedExternalFiles, sizes);
 		
 		// map from detector name -> primary data fields
 		Map<String, List<String>> primaryDataFieldNamesPerDetector = getExpectedPrimaryDataFieldsPerDetector();

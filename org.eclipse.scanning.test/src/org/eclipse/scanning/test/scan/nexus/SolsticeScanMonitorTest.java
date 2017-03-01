@@ -11,18 +11,26 @@
  *******************************************************************************/
 package org.eclipse.scanning.test.scan.nexus;
 
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_DURATION;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_ESTIMATED_DURATION;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_FINISHED;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_RANK;
+import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_SCAN_SHAPE;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.FIELD_NAME_UNIQUE_KEYS;
 import static org.eclipse.scanning.sequencer.nexus.SolsticeConstants.GROUP_NAME_KEYS;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.dawnsci.analysis.api.tree.DataNode;
@@ -35,21 +43,27 @@ import org.eclipse.dawnsci.nexus.NexusNodeFactory;
 import org.eclipse.dawnsci.nexus.NexusScanInfo;
 import org.eclipse.dawnsci.nexus.builder.AbstractNexusObjectProvider;
 import org.eclipse.dawnsci.nexus.builder.NexusObjectProvider;
+import org.eclipse.january.DatasetException;
 import org.eclipse.january.IMonitor;
 import org.eclipse.january.dataset.DTypeUtils;
 import org.eclipse.january.dataset.Dataset;
 import org.eclipse.january.dataset.IDataset;
+import org.eclipse.january.dataset.ILazyDataset;
 import org.eclipse.january.dataset.ILazyWriteableDataset;
 import org.eclipse.january.dataset.LazyDataset;
 import org.eclipse.january.dataset.SliceND;
 import org.eclipse.january.io.ILazySaver;
+import org.eclipse.scanning.api.points.IPosition;
 import org.eclipse.scanning.api.points.MapPosition;
+import org.eclipse.scanning.api.points.StaticPosition;
+import org.eclipse.scanning.api.scan.ScanEstimator;
+import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.models.ScanModel;
 import org.eclipse.scanning.sequencer.nexus.SolsticeScanMonitor;
 import org.junit.Test;
 
 
-public class SosticeScanMonitorTest {
+public class SolsticeScanMonitorTest {
 	
 	public static class MockLazySaver implements ILazySaver {
 
@@ -153,21 +167,27 @@ public class SosticeScanMonitorTest {
 			nexusObjectProviders.add(new ExternalFileWritingPositioner(positionerName));
 		}
 
-		SolsticeScanMonitor scanPointsWriter = new SolsticeScanMonitor(new ScanModel());
-		scanPointsWriter.setNexusObjectProviders(nexusObjectProviders);
+		ScanModel scanModel = new ScanModel();
+		Iterable<IPosition> positions = Collections.nCopies(25, new StaticPosition());
+		ScanEstimator scanEstimator = new ScanEstimator(positions, null, 100);
+		scanModel.setScanInformation(new ScanInformation(scanEstimator));
+		SolsticeScanMonitor solsticeScanMonitor = new SolsticeScanMonitor(scanModel);
+		solsticeScanMonitor.setNexusObjectProviders(nexusObjectProviders);
 		
-		final int scanRank = 2;
+		final int[] scanShape = new int[] { 8, 5 };
+		final int scanRank = scanShape.length;
 		NexusScanInfo scanInfo = new NexusScanInfo();
 		scanInfo.setRank(scanRank);
+		scanInfo.setShape(scanShape);
 		int[] expectedChunking = new int[scanInfo.getRank()];
 		Arrays.fill(expectedChunking, 1);
 		expectedChunking[expectedChunking.length-1] = 8;
 
 		// Act
-		NXcollection solsticeScanCollection = scanPointsWriter.createNexusObject(scanInfo);
+		NXcollection solsticeScanCollection = solsticeScanMonitor.createNexusObject(scanInfo);
 		
 		// Assert
-		assertTrue(solsticeScanCollection!=null);
+		assertNotNull(solsticeScanCollection);
 
 		// assert scan finished dataset created correctly - value must be false
 		DataNode scanFinishedDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
@@ -182,6 +202,42 @@ public class SosticeScanMonitorTest {
 		// assert scan rank set correctly
 		DataNode scanRankDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_RANK);
 		assertEquals(scanRank, scanRankDataNode.getDataset().getSlice().getInt());
+		
+		// assert scan shape set correctly
+		DataNode scanShapeDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_SHAPE);
+		assertNotNull(scanFinishedDataNode);
+		IDataset shapeDataset = scanShapeDataNode.getDataset().getSlice();
+		assertNotNull(shapeDataset);
+		assertEquals(1, shapeDataset.getRank());
+		assertEquals(Integer.class, shapeDataset.getElementClass());
+		assertArrayEquals(new int[] { scanRank }, shapeDataset.getShape());
+		for (int i = 0; i < scanShape.length; i++) {
+			assertEquals(scanShape[i], shapeDataset.getInt(i));
+		}
+		
+		// assert that the estimated time has been written
+		DataNode estimatedTimeDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_ESTIMATED_DURATION);
+		assertNotNull(estimatedTimeDataNode);
+		IDataset estimatedTimeDataset;
+		try {
+			estimatedTimeDataset = estimatedTimeDataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
+		
+		assertEquals(String.class, estimatedTimeDataset.getElementClass());
+		assertEquals(0, estimatedTimeDataset.getRank());
+		assertArrayEquals(new int[]{}, estimatedTimeDataset.getShape());
+		String estimatedTime = estimatedTimeDataset.getString();
+		assertNotNull(estimatedTime);
+		assertEquals("00:00:02.500", estimatedTime);
+		
+		// assert the actual time dataset has been created - note it hasn't been written to yet
+		DataNode actualTimeDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_DURATION);
+		assertNotNull(actualTimeDataNode);
+		ILazyDataset actualTimeDataset = actualTimeDataNode.getDataset();
+		assertNotNull(actualTimeDataset);
+		assertEquals(String.class, actualTimeDataset.getElementClass());
 		
 		// assert unique keys dataset created correctly
 		NXcollection keysCollection = (NXcollection) solsticeScanCollection.getGroupNode(GROUP_NAME_KEYS);
@@ -219,24 +275,69 @@ public class SosticeScanMonitorTest {
 			nexusObjectProviders.add(new ExternalFileWritingPositioner(positionerName));
 		}
 
-		SolsticeScanMonitor scanPointsWriter = new SolsticeScanMonitor(new ScanModel());
-		scanPointsWriter.setNexusObjectProviders(nexusObjectProviders);
+		ScanModel scanModel = new ScanModel();
+		Iterable<IPosition> positions = Collections.nCopies(25, new StaticPosition());
+		ScanEstimator scanEstimator = new ScanEstimator(positions, null, 100);
+		scanModel.setScanInformation(new ScanInformation(scanEstimator));
+		SolsticeScanMonitor solsticeScanMonitor = new SolsticeScanMonitor(scanModel);
+		solsticeScanMonitor.setNexusObjectProviders(nexusObjectProviders);
 		
-		final int scanRank = 2;
+		final int[] scanShape = new int[] { 8, 5 };
+		final int scanRank = scanShape.length;
 		NexusScanInfo scanInfo = new NexusScanInfo();
 		scanInfo.setRank(scanRank);
+		scanInfo.setShape(scanShape);
 		int[] expectedChunking = new int[scanInfo.getRank()];
 		Arrays.fill(expectedChunking, 1);
 
 		// Act
-		NXcollection solsticeScanCollection = scanPointsWriter.createNexusObject(scanInfo);
+		NXcollection solsticeScanCollection = solsticeScanMonitor.createNexusObject(scanInfo);
 		
 		// Assert
+		assertNotNull(solsticeScanCollection);
 		DataNode scanFinishedDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_FINISHED);
 		ILazyWriteableDataset scanFinishedDataset = (ILazyWriteableDataset) scanFinishedDataNode.getDataset();
 		MockLazySaver scanFinishedSaver = new MockLazySaver();
 		scanFinishedDataset.setSaver(scanFinishedSaver);
+		DataNode actualTimeDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_DURATION);
+		ILazyWriteableDataset actualTimeDataset = (ILazyWriteableDataset) actualTimeDataNode.getDataset();
+		MockLazySaver actualTimeSaver = new MockLazySaver();
+		actualTimeDataset.setSaver(actualTimeSaver);
 		
+		// assert scan shape set correctly
+		DataNode scanShapeDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_SHAPE);
+		assertNotNull(scanFinishedDataNode);
+		IDataset shapeDataset = scanShapeDataNode.getDataset().getSlice();
+		assertNotNull(shapeDataset);
+		assertEquals(1, shapeDataset.getRank());
+		assertEquals(Integer.class, shapeDataset.getElementClass());
+		assertArrayEquals(new int[] { scanRank }, shapeDataset.getShape());
+		for (int i = 0; i < scanShape.length; i++) {
+			assertEquals(scanShape[i], shapeDataset.getInt(i));
+		}
+		
+		DataNode estimatedTimeDataNode = solsticeScanCollection.getDataNode(FIELD_NAME_SCAN_ESTIMATED_DURATION);
+		assertNotNull(estimatedTimeDataNode);
+		IDataset estimatedTimeDataset;
+		try {
+			estimatedTimeDataset = estimatedTimeDataNode.getDataset().getSlice();
+		} catch (DatasetException e) {
+			throw new AssertionError("Could not get data from lazy dataset", e);
+		}
+		
+		// assert that the estimated time has been written
+		assertEquals(String.class, estimatedTimeDataset.getElementClass());
+		assertEquals(0, estimatedTimeDataset.getRank());
+		assertArrayEquals(new int[]{}, estimatedTimeDataset.getShape());
+		String estimatedTime = estimatedTimeDataset.getString();
+		assertNotNull(estimatedTime);
+		assertEquals("00:00:02.500", estimatedTime);
+		
+		// assert the actual time dataset has been created - note it hasn't been written to yet
+		assertNotNull(actualTimeDataset);
+		assertEquals(String.class, actualTimeDataset.getElementClass());
+
+		// TODO what can we assert about the value		
 		// assert unique keys dataset created correctly
 		NXcollection keysCollection = (NXcollection) solsticeScanCollection.getGroupNode(GROUP_NAME_KEYS);
 		assertNotNull(keysCollection);
@@ -257,7 +358,7 @@ public class SosticeScanMonitorTest {
 			}
 		}
 		
-		// test calling positionPerformed
+		// test calling setPosition
 		// arrange
 		double[] pos = new double[] { 172.5, 56.3 };
 		int[] indices = new int[] { 8, 3 };
@@ -273,26 +374,47 @@ public class SosticeScanMonitorTest {
 		position.setDimensionNames(names);
 		
 		// act
-		scanPointsWriter.setPosition(null, position);
-		scanPointsWriter.scanFinished();
+		solsticeScanMonitor.setPosition(null, position);
+		solsticeScanMonitor.scanFinished();
 
 		// assert
+		// check data written to scan finished dataset
+		IDataset writtenToScanFinishedData = scanFinishedSaver.getLastWrittenData();
+		assertNotNull(writtenToScanFinishedData);
+		assertEquals(0, writtenToScanFinishedData.getRank());
+		assertArrayEquals(new int[0], writtenToScanFinishedData.getShape());
+		assertTrue(DTypeUtils.getDType(writtenToScanFinishedData)==Dataset.INT);
+		assertEquals(1, writtenToScanFinishedData.getInt());
+		
+		// check data written to actual time dataset
+		IDataset writtenToActualTimeDataset = actualTimeSaver.getLastWrittenData();
+		assertNotNull(writtenToActualTimeDataset);
+		assertEquals(0, writtenToActualTimeDataset.getRank());
+		assertArrayEquals(new int[0], writtenToActualTimeDataset.getShape());
+		assertTrue(DTypeUtils.getDType(writtenToActualTimeDataset)==Dataset.STRING);
+		
+		DateTimeFormatter formatter = new DateTimeFormatterBuilder().
+				appendPattern("HH:mm:ss").appendFraction(ChronoField.NANO_OF_SECOND, 3, 3, true).toFormatter();
+		String actualTime = writtenToActualTimeDataset.getString();
+		formatter.parse(actualTime);
+		
+		// check data written to unique keys dataset
 		IDataset writtenToUniqueKeysData = uniqueKeysSaver.getLastWrittenData();
-		assertTrue(writtenToUniqueKeysData!=null);
+		assertNotNull(writtenToUniqueKeysData);
 		int[] expectedShape = new int[scanInfo.getRank()];
 		Arrays.fill(expectedShape, 1);
-		assertTrue(Arrays.equals(writtenToUniqueKeysData.getShape(), expectedShape));
+		assertArrayEquals(writtenToUniqueKeysData.getShape(), expectedShape);
 		assertTrue(DTypeUtils.getDType(writtenToUniqueKeysData)==Dataset.INT);
 		int[] valuePos = new int[scanRank]; // all zeros
 		assertTrue(writtenToUniqueKeysData.getInt(valuePos)==(stepIndex+1));
 
 		SliceND uniqueKeysSlice = uniqueKeysSaver.getLastSlice();
 		assertTrue(uniqueKeysSlice!=null);
-		assertTrue(Arrays.equals(uniqueKeysSlice.getShape(), expectedShape));
-		assertTrue(Arrays.equals(uniqueKeysSlice.getStart(), indices));
-		assertTrue(Arrays.equals(uniqueKeysSlice.getStep(), expectedShape)); // all ones
+		assertArrayEquals(uniqueKeysSlice.getShape(), expectedShape);
+		assertArrayEquals(uniqueKeysSlice.getStart(), indices);
+		assertArrayEquals(uniqueKeysSlice.getStep(), expectedShape); // all ones
 		int[] stopIndices = Arrays.stream(indices).map(x -> x + 1).toArray(); 
-		assertTrue(Arrays.equals(uniqueKeysSlice.getStop(), stopIndices));
+		assertArrayEquals(uniqueKeysSlice.getStop(), stopIndices);
 	}
 	
 }

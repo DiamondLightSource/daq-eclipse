@@ -11,9 +11,13 @@
  *******************************************************************************/
 package org.eclipse.scanning.api.scan;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.eclipse.scanning.api.device.IRunnableDevice;
 import org.eclipse.scanning.api.device.models.IDetectorModel;
 import org.eclipse.scanning.api.event.scan.ScanRequest;
 import org.eclipse.scanning.api.points.GeneratorException;
@@ -63,7 +67,7 @@ public class ScanEstimator {
 	/**
 	 * 
 	 */
-	private final IPointGenerator<?> generator;
+	private final Iterable<IPosition> generator;
 	
 	/**
 	 * 
@@ -89,6 +93,15 @@ public class ScanEstimator {
 	public ScanEstimator(IPointGeneratorService pservice, ScanRequest<?> request, long timePerPoint) throws GeneratorException {
 		this(pservice.createCompoundGenerator(request.getCompoundModel()), request.getDetectors(), timePerPoint);
 	}
+	
+	public ScanEstimator(Iterable<IPosition> positionIterable, List<IRunnableDevice<?>> detectors) throws GeneratorException {
+		this(positionIterable, detectorsToModels(detectors), 0);
+	}
+
+	private static Collection<Object> detectorsToModels(List<IRunnableDevice<?>> detectors) {
+		return detectors == null ? null : detectors.stream().map(d -> d.getModel()).collect(Collectors.toList());
+	}
+	
 	/**
 	 * 
 	 * @param pservice
@@ -97,35 +110,46 @@ public class ScanEstimator {
 	 * @throws GeneratorException
 	 */
 	public ScanEstimator(IPointGenerator<?> gen, Map<String, Object> detectors, long timePerPoint) throws GeneratorException {
-
-		
-		this.generator = gen;
-		
+		this(gen, detectors == null ? null : detectors.values(), timePerPoint);
+	}
+	
+	/**
+	 * Create a scan estimator for the given positions, (optional) detectors and (optional) time per point
+	 * @param positionIterable iteratable over positions in the scan
+	 * @param detectorModels detector models, may be <code>null</code>
+	 * @param timePerPoint time per point, only used if <code> detectorModels</code> is <code>null</code>
+	 * @throws GeneratorException if the scan estimator cannot be created
+	 */
+	public ScanEstimator(Iterable<IPosition> positionIterable, Collection<Object> detectorModels, long timePerPoint) throws GeneratorException {
 		// TODO FIXME If some detectors are malcolm, they may have a wait time.
 		// If some are malcolm we may wish to ignore the input point time from the user
 		// in favour of the malcolm time per point or maybe the device tells us how long it will take?
-		if (detectors!=null) for (Object model : detectors.values()) {
-			if (model instanceof IDetectorModel) {
-				timePerPoint = Math.max(timePerPoint, Math.round(1000*((IDetectorModel)model).getExposureTime()));
-			}
+		if (detectorModels != null && !detectorModels.isEmpty()) {
+			timePerPoint = detectorModels.stream().filter(IDetectorModel.class::isInstance)
+					.map(m -> Math.round(((IDetectorModel) m).getExposureTime() * 1000))
+					.reduce(0l, Math::max);
 		}
-		this.size          = getEstimatedSize(gen);
-		this.rank          = gen.iterator().next().getScanRank(); // The rank of the scan is constant
-		this.timePerPoint  = timePerPoint;
-		this.estimatedScanTime      = size*timePerPoint;
+		
+		this.generator = positionIterable;
+		this.size = getEstimatedSize(positionIterable);
+		this.rank = positionIterable.iterator().next().getScanRank();
+		this.timePerPoint = timePerPoint;
+		this.estimatedScanTime = size * timePerPoint;
 	}
 
-	private int getEstimatedSize(IPointGenerator<?> gen) throws GeneratorException {
+	private int getEstimatedSize(Iterable<IPosition> gen) throws GeneratorException {
 		
 		int size=0;
 		if (gen instanceof IDeviceDependentIterable) {
 			size = ((IDeviceDependentIterable)gen).size();
 			
-		} else {
+		} else if (gen instanceof IPointGenerator) {
 			size = ((IPointGenerator<?>)gen).size();
-			
-		} 
-		return size;   		
+		} else  {
+			for (@SuppressWarnings("unused") IPosition unused : gen) size++; // Fast even for large stuff providing they do not check hardware on the next() call.
+		}
+		
+		return size;
 	}
 
 	public int getSize() {
@@ -169,14 +193,21 @@ public class ScanEstimator {
 			}
 		}
 		
-		this.shape = new int[getRank()];
+		final int scanRank = getRank();
+		// special case for scans of rank 0 - i.e. acquire scans
+		if (scanRank == 0) return new int[0]; 
+			
+		// the shape is created from the indices for each dimension for the final scan point
+		this.shape = new int[scanRank];
 		for (int i = 0; i < shape.length; i++) {
 			shape[i] = last.getIndex(i)+1;
 		}
 		
+		// however, for the case snake scans the index for the last dimension is 0, so to make
+		// sure we have the correct index for that dimension we through the points again until
+		// the index of that dimension stops increasing - this is assumed to be the maximum
 		iterator = generator.iterator();
 		int lastInnerIndex = -1;
-		final int scanRank = getRank();
 		while (iterator.hasNext()) {
 			int innerIndex = iterator.next().getIndex(scanRank - 1);
 			if (innerIndex <= lastInnerIndex) {
