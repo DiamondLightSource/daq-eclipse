@@ -44,6 +44,8 @@ public class MScanServletWithProcessingTest extends AbstractMScanTest {
 
 	@AfterClass
 	public static void disconnect()  throws Exception {
+		pconsumer.cleanQueue(pconsumer.getSubmitQueueName());
+		pconsumer.cleanQueue(pconsumer.getStatusSetName());
 		pconsumer.disconnect();
 		servlet.getConsumer().cleanQueue(servlet.getSubmitQueue());
 		servlet.getConsumer().cleanQueue(servlet.getStatusSet());

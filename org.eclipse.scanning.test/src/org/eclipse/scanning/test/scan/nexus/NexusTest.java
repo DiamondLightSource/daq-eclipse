@@ -52,7 +52,8 @@ import org.eclipse.scanning.test.scan.mock.MockWritingMandlebrotModel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 /**
@@ -64,6 +65,8 @@ import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
  *
  */
 public class NexusTest extends TmpTest {
+	
+	private static Logger logger = LoggerFactory.getLogger(NexusTest.class);
 	
 	protected static IScannableDeviceService connector;
 	protected static IScanService            dservice;
@@ -123,7 +126,11 @@ public class NexusTest extends TmpTest {
 	
 	@After
 	public void deleteFile() {
-//		output.delete(); 
+		try {
+			output.delete(); 
+		} catch (Exception ne) {
+			logger.trace("Cannot delete file!", ne);
+		}
 	}
 
 	protected MandelbrotModel createMandelbrotModel() {

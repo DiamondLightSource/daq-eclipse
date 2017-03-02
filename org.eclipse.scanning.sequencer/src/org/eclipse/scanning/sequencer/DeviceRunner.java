@@ -114,7 +114,7 @@ class DeviceRunner extends LevelRunner<IRunnableDevice<?>> {
 			try {
 				if (detector instanceof AbstractRunnableDevice) ((AbstractRunnableDevice)detector).setBusy(true);
 			    detector.run(position);
-			} catch (Exception ne) {
+			} catch (Throwable ne) {
 				abort(detector, position, ne);
 			} finally {
 				if (detector instanceof AbstractRunnableDevice) ((AbstractRunnableDevice)detector).setBusy(false);

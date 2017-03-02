@@ -34,7 +34,8 @@ public class BrokerDelegate {
         systemUsage.getStoreUsage().setLimit(1024 * 1024 * 8);
         systemUsage.getTempUsage().setLimit(1024 * 1024 * 8);
         service.start();
-		service.waitUntilStarted();
+		boolean ok = service.waitUntilStarted();
+		if (!ok) throw new Exception("Broker was not started properly!");
 	}
 
 	public void stop() throws Exception {

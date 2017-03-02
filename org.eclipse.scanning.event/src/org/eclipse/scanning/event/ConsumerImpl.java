@@ -324,13 +324,11 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 				try {
 					ConsumerImpl.this.run();
 				} catch (Exception ne) {
-					logger.error("Internal error running consumer "+getName(), ne);
-					ne.printStackTrace();
+					logger.trace("Internal error running consumer "+getName(), ne);
 					try {
 						ConsumerImpl.this.stop();
 					} catch (EventException e) {
 						logger.error("Cannot complete stop", ne);
-						ne.printStackTrace();
 					}
 				}
 			}
@@ -524,7 +522,7 @@ final class ConsumerImpl<U extends StatusBean> extends AbstractQueueConnection<U
 
 		if (ne instanceof EventException || ne instanceof InterruptedException) {
 			if (Thread.interrupted()) return false;
-			logger.error("Cannot consume message ", ne);
+			logger.trace("Cannot consume message ", ne);
 			if (isDurable()) {
 				return true;
 			}

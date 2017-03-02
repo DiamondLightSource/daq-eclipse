@@ -177,8 +177,13 @@ public class MandelbrotDetector extends AbstractRunnableDevice<MandelbrotModel> 
 		double a = 1.0;
 		double b = 1.0;
 		if (pos.size() > 0) {
-			a = (Double) pos.get(model.getRealAxisName());
-			b = (Double) pos.get(model.getImaginaryAxisName());
+			Object da = pos.get(model.getRealAxisName());
+			Object db = (Double) pos.get(model.getImaginaryAxisName());
+			if (da==null || db==null) {
+				throw new ScanningException("One of the axis names in the scan does not match the Mandelbrot model!");
+			}
+			a = (Double)da;
+			b = (Double)db;
 		}
 
 		// Calculate the data for the image spectrum and total
