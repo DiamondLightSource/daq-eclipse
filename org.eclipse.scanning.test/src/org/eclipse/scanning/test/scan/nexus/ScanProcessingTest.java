@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -77,7 +78,7 @@ public class ScanProcessingTest extends NexusTest {
 		NexusAssert.assertScanNotFinished(getNexusRoot(scanner).getEntry());
 		scanner.run(null);
 	
-		Thread.sleep(100);
+		scanner.latch(100, TimeUnit.MILLISECONDS);
 		// Check we reached ready (it will normally throw an exception on error)
 		checkNexusFile(scanner, shape); // Step model is +1 on the size
 	}
@@ -196,7 +197,7 @@ public class ScanProcessingTest extends NexusTest {
 		NXentry entry = rootNode.getEntry();
 		
 		// check that the scan points have been written correctly
-		assertSolsticeScanGroup(entry, sizes);
+		assertSolsticeScanGroup(entry, false, sizes);
 		
 		LinkedHashMap<String, Integer> detectorDataFields = new LinkedHashMap<>();
 		detectorDataFields.put(NXdetector.NX_DATA, 2); // num additional dimensions

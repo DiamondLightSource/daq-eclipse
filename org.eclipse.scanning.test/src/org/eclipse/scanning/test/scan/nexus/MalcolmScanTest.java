@@ -150,31 +150,47 @@ public class MalcolmScanTest extends NexusTest {
 	
 	@Test
 	public void test2DMalcolmScan() throws Exception {
-		testMalcolmScan(8, 5);
+		testMalcolmScan(false, 8, 5);
 	}
+	
+	@Test
+	public void test2DMalcolmSnakeScan() throws Exception {
+		testMalcolmScan(true, 8, 5);
+	}
+	
+	@Test
+	public void test2DMalcolmSnakeWithOddNumberOfLinesScan() throws Exception {
+		testMalcolmScan(true, 7, 5);
+	}
+	
 
 	@Test
 	public void test3DMalcolmScan() throws Exception {
-		testMalcolmScan(3, 2, 5);
+		testMalcolmScan(false, 3, 2, 5);
+	}
+	
+	@Test
+	public void test3DMalcolmSnakeScan() throws Exception {
+		testMalcolmScan(true, 3, 2, 5);
 	}
 	
 	@Test
 	public void test4DMalcolmScan() throws Exception {
-		testMalcolmScan(3,3,2,2);
+		testMalcolmScan(false,3,3,2, 2);
 	}
 	
 	@Test
 	public void test5DMalcolmScan() throws Exception {
-		testMalcolmScan(1,1,1,2,2);
+		testMalcolmScan(false,1,1,1,2, 2);
 	}
 	
 	@Test
 	public void test8DMalcolmScan() throws Exception {
-		testMalcolmScan(1,1,1,1,1,1,2,2);
+		testMalcolmScan(false,1,1,1,1,1,1,2, 2);
 	}
 	
-	private void testMalcolmScan(int... shape) throws Exception {
-		IRunnableDevice<ScanModel> scanner = createMalcolmGridScan(malcolmDevice, output, shape); // Outer scan of another scannable, for instance temp.
+	private void testMalcolmScan(boolean snake, int... shape) throws Exception {
+		IRunnableDevice<ScanModel> scanner = createMalcolmGridScan(malcolmDevice, output, snake, shape); // Outer scan of another scannable, for instance temp.
 		scanner.run(null);
 		
 		checkSize(scanner, shape);
@@ -182,7 +198,7 @@ public class MalcolmScanTest extends NexusTest {
 
 		// Check we reached ready (it will normally throw an exception on error)
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
-		checkNexusFile(scanner, shape); // Step model is +1 on the size
+		checkNexusFile(scanner, snake, shape); // Step model is +1 on the size
 	}
 	
 	private void checkSize(IRunnableDevice<?> scanner, int[] shape) {
@@ -232,7 +248,7 @@ public class MalcolmScanTest extends NexusTest {
 		return expectedFileNames;
 	}
 	
-	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws Exception {
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, boolean snake, int... sizes) throws Exception {
 		final DummyMalcolmModel dummyMalcolmModel = malcolmDevice.getModel();
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		
@@ -242,7 +258,7 @@ public class MalcolmScanTest extends NexusTest {
 		
 		// check that the scan points have been written correctly
 		List<String> expectedExternalFiles = getExpectedExternalFiles(dummyMalcolmModel);
-		assertSolsticeScanGroup(entry, true, expectedExternalFiles, sizes);
+		assertSolsticeScanGroup(entry, true, expectedExternalFiles, snake, sizes);
 		
 		// map from detector name -> primary data fields
 		Map<String, List<String>> primaryDataFieldNamesPerDetector = getExpectedPrimaryDataFieldsPerDetector();
@@ -357,7 +373,7 @@ public class MalcolmScanTest extends NexusTest {
 		}
 	}
 	
-	private IRunnableDevice<ScanModel> createMalcolmGridScan(final IRunnableDevice<?> malcolmDevice, File file, int... size) throws Exception {
+	private IRunnableDevice<ScanModel> createMalcolmGridScan(final IRunnableDevice<?> malcolmDevice, File file, boolean snake, int... size) throws Exception {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel(); // Note stage_x and stage_y scannables controlled by malcolm
@@ -366,6 +382,7 @@ public class MalcolmScanTest extends NexusTest {
 		gmodel.setSlowAxisName("stage_y");
 		gmodel.setSlowAxisPoints(size[size.length-2]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
+		gmodel.setSnake(snake);
 		
 		IPointGenerator<?> gen = gservice.createGenerator(gmodel);
 		

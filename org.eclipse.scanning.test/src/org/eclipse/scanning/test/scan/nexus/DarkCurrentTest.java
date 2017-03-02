@@ -137,7 +137,7 @@ public class DarkCurrentTest extends NexusTest {
 		NXroot rootNode = (NXroot) nexusTree.getGroupNode();
 		
 		// check that the scan points have been written correctly
-		assertSolsticeScanGroup(rootNode.getEntry(), sizes);
+		assertSolsticeScanGroup(rootNode.getEntry(), false, sizes);
 
 		Collection<String> positionerNames = scanModel.getPositionIterable().iterator().next().getNames();
 		
