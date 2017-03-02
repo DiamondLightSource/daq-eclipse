@@ -16,6 +16,7 @@ import static org.eclipse.scanning.api.event.EventConstants.ACQUIRE_RESPONSE_TOP
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertAxes;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertSignal;
 import static org.eclipse.scanning.test.scan.nexus.NexusAssert.assertTarget;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -67,6 +68,7 @@ import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.AcquireServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.BrokerTest;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -118,6 +120,17 @@ public class AcquireRequestTest extends BrokerTest {
 		assertThat(response.getMessage(), is(nullValue()));
 		
 		checkNexusFile(response);
+	}
+	
+	@Test(timeout=1000)
+	public void testAcquireFailure() throws Exception {
+		// test that the server returns after an exception and the client isn't left to timeout
+		AcquireRequest request = createRequest();
+		request.setDetectorName("nosuchdetector");
+		AcquireRequest response = requester.post(request);
+		assertThat(response, is(notNullValue()));
+		assertThat(response.getStatus(), is(Status.FAILED));
+		assertThat(response.getMessage(), containsString("nosuchdetector"));
 	}
 	
 	private AcquireRequest createRequest() throws IOException {
@@ -205,6 +218,8 @@ public class AcquireRequestTest extends BrokerTest {
 			List<String> expectedAxesNames = signalFieldAxes.get(sourceFieldName);
 			assertAxes(nxData, expectedAxesNames.toArray(new String[expectedAxesNames.size()]));
 		}
+		
+		nf.close();
 	}
 
 }
