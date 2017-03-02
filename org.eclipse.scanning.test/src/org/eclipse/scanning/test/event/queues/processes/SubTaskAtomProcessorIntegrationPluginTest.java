@@ -69,6 +69,7 @@ public class SubTaskAtomProcessorIntegrationPluginTest extends BrokerTest {
 	@After
 	public void tearDown() throws EventException {
 		queueControl.stopQueueService(false);
+		queueService.disposeService();
 	}
 	
 	@Test

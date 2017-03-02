@@ -242,19 +242,18 @@ abstract class LevelRunner<L extends ILevel> {
 	 * @param pos
 	 * @param ne
 	 */
-	protected void abort(INameable device, Object value, IPosition pos, Exception ne) {
+	protected void abort(INameable device, Object value, IPosition pos, Throwable ne) {
 		String message = "Cannot run device named '"+device.getName()+"' value is '"+value+"' and position is '"+pos+"'\nMessage: "+ne.getMessage();
 		abort(device, message, pos, ne);
 	}
 
-	protected void abort(INameable device, IPosition pos, Exception ne) {
+	protected void abort(INameable device, IPosition pos, Throwable ne) {
 		String message = "Cannot run device named '"+device.getName()+"' position is '"+pos+"'\nMessage: "+ne.getMessage();
 		abort(device, message, pos, ne);
 	}
 
-	private void abort(INameable device, String message, IPosition pos, Exception ne) {
-		logger.error(message, ne); // Just for testing we make sure that the stack is visible.
-        System.err.println(message);
+	private void abort(INameable device, String message, IPosition pos, Throwable ne) {
+		//logger.error(message, ne); // Just for testing we make sure that the stack is visible.
         abortException = ne instanceof ScanningException 
         		       ? (ScanningException)ne
         		       : new ScanningException(ne.getMessage(), ne);

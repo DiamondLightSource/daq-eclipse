@@ -57,8 +57,14 @@ public class ScanRequestCreationTest extends AbstractJythonTest {
 	
 	private IPointGeneratorService service;
 	
+	public ScanRequestCreationTest() {
+		super(false);
+	}
+	
 	@Before
 	public void before() throws Exception {
+		
+		createMarshaller();
 		service = new PointGeneratorService();
 		Services.setEventService(new EventServiceImpl(new ActivemqConnectorService()));
 		

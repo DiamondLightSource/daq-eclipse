@@ -69,6 +69,7 @@ public class HeartbeatTest extends BrokerTest {
 	@After
 	public void dispose() throws EventException {
 		publisher.disconnect();
+		subscriber.disconnect();
 		Constants.setNotificationFrequency(2000);
 		Constants.setTimeout(Constants.TIMEOUT);
 	}

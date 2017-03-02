@@ -29,6 +29,7 @@ import org.eclipse.scanning.test.event.queues.dummy.DummyAtomProcess;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBean;
 import org.eclipse.scanning.test.event.queues.dummy.DummyBeanProcess;
 import org.eclipse.scanning.test.event.queues.util.EventInfrastructureFactoryService;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -59,6 +60,12 @@ public class QueueServicePluginTest extends BrokerTest {
 		queueService.init();
 	}
 	
+	@After
+	public void tearDown() throws EventException {
+		queueControl.stopQueueService(false);
+		queueService.disposeService();
+	}
+
 	@Test
 	public void testRunningBean() throws EventException {
 		dummyBean = new DummyBean("Bob", 50);

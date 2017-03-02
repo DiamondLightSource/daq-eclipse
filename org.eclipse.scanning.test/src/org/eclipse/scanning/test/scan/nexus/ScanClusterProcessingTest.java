@@ -68,6 +68,8 @@ public class ScanClusterProcessingTest extends NexusTest {
 	
 	@AfterClass
 	public static void afterClass() throws Exception {
+		consumer.cleanQueue(consumer.getSubmitQueueName());
+		consumer.clearQueue(consumer.getStatusSetName());
 		consumer.disconnect();
 		BrokerTest.stopBroker();
 	}
@@ -92,7 +94,7 @@ public class ScanClusterProcessingTest extends NexusTest {
 		
 		// Check the processing bean was submitted successfully
 		Thread.sleep(200);
-		checker.checkSubmittedBean(false);
+		checker.checkSubmittedBean(true);
 	}
 	
 

@@ -25,13 +25,12 @@ import org.eclipse.scanning.api.event.core.IProcessCreator;
 import org.eclipse.scanning.api.event.core.IPublisher;
 import org.eclipse.scanning.api.event.scan.ScanBean;
 import org.eclipse.scanning.api.event.status.Status;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.server.servlet.Services;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 
 public class SubmissionTest extends AbstractJythonTest {
@@ -48,7 +47,7 @@ public class SubmissionTest extends AbstractJythonTest {
 	@Before
 	public void start() throws Exception {
 
-		setUpNonOSGIActivemqMarshaller();
+		createMarshaller();
 		eservice = new EventServiceImpl(new ActivemqConnectorService());
 		Services.setEventService(eservice);
 
@@ -93,6 +92,8 @@ public class SubmissionTest extends AbstractJythonTest {
 	
 	@After
 	public void stop() throws EventException {
+		consumer.cleanQueue(consumer.getSubmitQueueName());
+		consumer.cleanQueue(consumer.getStatusSetName());
 		consumer.disconnect();
 	}
 

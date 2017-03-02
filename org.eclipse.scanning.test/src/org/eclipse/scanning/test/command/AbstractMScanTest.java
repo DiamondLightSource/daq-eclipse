@@ -89,20 +89,13 @@ public abstract class AbstractMScanTest extends AbstractJythonTest {
 	protected static IEventService               eservice;
 	protected static ILoaderService              lservice;
 	protected static IDeviceWatchdogService      wservice;
-	protected static MarshallerService           marshaller;
 	protected static ValidatorService            validator;
 	protected static INexusFileFactory           fileFactory;
 
 	@BeforeClass
 	public static void create() throws Exception {
 		
-		marshaller = new MarshallerService(
-				Arrays.asList(new ScanningAPIClassRegistry(),
-						new ScanningExampleClassRegistry(),
-						new ScanningTestClassRegistry(DummyOperationBean.class)),
-				Arrays.asList(new PointsModelMarshaller())
-				);
-		ActivemqConnectorService.setJsonMarshaller(marshaller);
+		createMarshaller();
 		eservice  = new EventServiceImpl(new ActivemqConnectorService());
 		
 		// We wire things together without OSGi here
@@ -266,7 +259,7 @@ public abstract class AbstractMScanTest extends AbstractJythonTest {
 			// Ok done that, now we sent it off...
 			pi.exec("submit("+name+", block="+(blocking?"True":"False")+", broker_uri='"+uri+"')");
 			
-			Thread.sleep(200);
+			Thread.sleep(100);
 			boolean ok = latch.await(maxScanTimeS, TimeUnit.SECONDS);
 			if (!ok) throw new Exception("The latch broke before the scan finished!");
 			

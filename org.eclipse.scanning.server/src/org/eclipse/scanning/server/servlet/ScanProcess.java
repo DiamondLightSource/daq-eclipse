@@ -178,7 +178,7 @@ public class ScanProcess implements IConsumerProcess<ScanBean> {
 	        // Intentionally do not catch EventException, that passes straight up.
 			
 		} catch (Exception ne) {
-			logger.error("Cannot execute run "+getBean().getName()+" "+getBean().getUniqueId(), ne);
+			logger.trace("Cannot execute run "+getBean().getName()+" "+getBean().getUniqueId(), ne);
 			bean.setPreviousStatus(Status.RUNNING);
 			bean.setStatus(Status.FAILED);
 			bean.setMessage(ne.getMessage());

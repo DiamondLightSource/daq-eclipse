@@ -115,6 +115,7 @@ class ControlValueLabelProvider extends ColumnLabelProvider implements IStyledLa
 	}
 	
 	private void updatePosition(PositionEvent evt) {
+		if (viewer.getViewer().isCellEditorActive()) return;
 		viewer.safeRefresh(scannableNodes.get(evt.getDevice().getName()));
 	}
 
