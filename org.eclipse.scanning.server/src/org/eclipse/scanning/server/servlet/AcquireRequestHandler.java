@@ -11,8 +11,6 @@
  *******************************************************************************/
 package org.eclipse.scanning.server.servlet;
 
-import java.lang.reflect.InvocationTargetException;
-
 import org.eclipse.scanning.api.annotation.scan.AnnotationManager;
 import org.eclipse.scanning.api.annotation.scan.PostConfigure;
 import org.eclipse.scanning.api.annotation.scan.PreConfigure;
@@ -27,7 +25,6 @@ import org.eclipse.scanning.api.points.IPointGenerator;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
 import org.eclipse.scanning.api.points.models.StaticModel;
 import org.eclipse.scanning.api.scan.IFilePathService;
-import org.eclipse.scanning.api.scan.ScanEstimator;
 import org.eclipse.scanning.api.scan.ScanInformation;
 import org.eclipse.scanning.api.scan.ScanningException;
 import org.eclipse.scanning.api.scan.models.ScanModel;
@@ -35,6 +32,12 @@ import org.eclipse.scanning.server.application.Activator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A handler for {@link AcquireRequest}. Performs a scan with a single empty point
+ * with the detector as specified in the request.
+ * 
+ * @author Matthew Dickie
+ */
 public class AcquireRequestHandler implements IResponseProcess<AcquireRequest> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AcquireRequestHandler.class);
@@ -66,36 +69,36 @@ public class AcquireRequestHandler implements IResponseProcess<AcquireRequest> {
 
 			bean.setStatus(Status.COMPLETE);
 			bean.setMessage(null);
-		} catch (ScanningException | InterruptedException e) {
+		} catch (Exception e) {
+			// if an exception occurs set the bean status to failed and add the
+			// exception message as the bean's message.
 			e.printStackTrace();
+			logger.error("Cannot acquire data for detector " + getBean().getDetectorName(), e);
 			bean.setStatus(Status.FAILED);
 			bean.setMessage(e.getMessage());
-			logger.error("Cannot acquire data for detector " + getBean().getDetectorName(), e);
-			throw new EventException(e);
 		}
 		
 		return bean;
 	}
 	
-	private IRunnableDevice<?> createRunnableDevice(AcquireRequest request) throws ScanningException, EventException {
+	private IRunnableDevice<?> createRunnableDevice(AcquireRequest request) throws Exception {
 		final ScanModel scanModel = new ScanModel();
 
-		try {
-			IPointGeneratorService pointGenService = Services.getGeneratorService();
-			IPointGenerator<?> gen = pointGenService.createGenerator(new StaticModel());
-			scanModel.setPositionIterable(gen);
-			
-			scanModel.setFilePath(getOutputFilePath(request));
-			IRunnableDeviceService deviceService = Services.getRunnableDeviceService();
-			IRunnableDevice<?> detector = deviceService.getRunnableDevice(bean.getDetectorName());
-			scanModel.setDetectors(detector);
-			
-			configureDetector(detector, request.getDetectorModel(), scanModel);
-			return deviceService.createRunnableDevice(scanModel, null);
-		} catch (Exception e) {
-			if (e instanceof EventException) throw (EventException) e;
-			throw new EventException(e);
+		IPointGeneratorService pointGenService = Services.getGeneratorService();
+		IPointGenerator<?> gen = pointGenService.createGenerator(new StaticModel());
+		scanModel.setPositionIterable(gen);
+		
+		scanModel.setFilePath(getOutputFilePath(request));
+		IRunnableDeviceService deviceService = Services.getRunnableDeviceService();
+		IRunnableDevice<?> detector = deviceService.getRunnableDevice(bean.getDetectorName());
+		if (detector == null) {
+			throw new ScanningException("No such detector: "+ bean.getDetectorName());
 		}
+		
+		scanModel.setDetectors(detector);
+		
+		configureDetector(detector, request.getDetectorModel(), scanModel);
+		return deviceService.createRunnableDevice(scanModel, null);
 	}
 
 	private String getOutputFilePath(AcquireRequest request) throws EventException {
