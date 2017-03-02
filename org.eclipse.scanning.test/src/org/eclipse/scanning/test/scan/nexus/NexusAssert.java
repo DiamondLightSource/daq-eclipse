@@ -101,16 +101,16 @@ public class NexusAssert {
 		assertNotNull(nxData.getDataNode(expectedSignalFieldName));
 	}
 	
-	public static void assertSolsticeScanGroup(NXentry entry, int... sizes) {
-		assertSolsticeScanGroup(entry, false, sizes);
+	public static void assertSolsticeScanGroup(NXentry entry, boolean snake, int... sizes) {
+		assertSolsticeScanGroup(entry, false, snake, sizes);
 	}
 	
-	public static void assertSolsticeScanGroup(NXentry entry, boolean malcolmScan, int... sizes) {
-		assertSolsticeScanGroup(entry, malcolmScan, null, sizes);
+	public static void assertSolsticeScanGroup(NXentry entry, boolean malcolmScan, boolean snake, int... sizes) {
+		assertSolsticeScanGroup(entry, malcolmScan, null, snake, sizes);
 	}
 	
 	public static void assertSolsticeScanGroup(NXentry entry, boolean malcolmScan,
-			List<String> expectedExternalFiles, int... sizes) {
+			List<String> expectedExternalFiles, boolean snake, int... sizes) {
 		assertScanFinished(entry);
 		
 		NXcollection solsticeScanCollection = entry.getCollection(GROUP_NAME_SOLSTICE_SCAN);
@@ -122,7 +122,7 @@ public class NexusAssert {
 		NXcollection keysCollection = (NXcollection) solsticeScanCollection.getGroupNode(GROUP_NAME_KEYS);
 		assertNotNull(keysCollection);
 		if (!malcolmScan) {
-			assertUniqueKeys(keysCollection, sizes);
+			assertUniqueKeys(keysCollection, snake, sizes);
 		}
 		if (expectedExternalFiles != null && !expectedExternalFiles.isEmpty()) {
 			assertUniqueKeysExternalFileLinks(keysCollection, expectedExternalFiles, malcolmScan, sizes);
@@ -183,9 +183,10 @@ public class NexusAssert {
 		assertNotNull(actualTime);
 		formatter.parse(estimatedTime); // throws exception if not a valid time
 	}
-	
-	private static void assertUniqueKeys(NXcollection keysCollection, int... sizes) {
-		// check the unique keys field - contains the step number for each scan point
+
+	private static void assertUniqueKeys(NXcollection keysCollection, boolean snake, int... sizes) {
+		// check the unique keys field - contains the step number for each scan
+		// point
 		DataNode dataNode = keysCollection.getDataNode(FIELD_NAME_UNIQUE_KEYS);
 		assertNotNull(dataNode);
 		IDataset dataset;
@@ -196,13 +197,34 @@ public class NexusAssert {
 		}
 		assertEquals(Dataset.INT32, DTypeUtils.getDType(dataset));
 		assertEquals(sizes.length, dataset.getRank());
-		assertArrayEquals(sizes, dataset.getShape());
-		PositionIterator iter = new PositionIterator(dataset.getShape());
-		
+		final int[] shape = dataset.getShape();
+		assertArrayEquals(sizes, shape);
+		PositionIterator iter = new PositionIterator(shape);
+
 		int expectedPos = 1;
-		while (iter.hasNext()) { // hasNext also increments the position iterator (ugh!)
-			assertEquals(expectedPos, dataset.getInt(iter.getPos()));
-			expectedPos++;
+
+		if (snake) {
+			final int lineSize = shape[shape.length - 1];
+			boolean isBackwardLine = false;
+			while (iter.hasNext()) { // hasNext also increments the position iterator (ugh!)
+				assertEquals(expectedPos, dataset.getInt(iter.getPos()));
+				if (!isBackwardLine && expectedPos % lineSize == 0) { // end of forward line of snake scan
+					isBackwardLine = true;
+					expectedPos = expectedPos + lineSize;
+				} else if (isBackwardLine && expectedPos % lineSize == 1) { // end of backward line of snake scan
+					isBackwardLine = false;
+					expectedPos = expectedPos + lineSize;
+				} else if (isBackwardLine) {
+					expectedPos--;
+				} else {
+					expectedPos++;
+				}
+			}
+		} else {
+			while (iter.hasNext()) { // hasNext also increments the position iterator (ugh!)
+				assertEquals(expectedPos, dataset.getInt(iter.getPos()));
+				expectedPos++;
+			}
 		}
 	}
 	

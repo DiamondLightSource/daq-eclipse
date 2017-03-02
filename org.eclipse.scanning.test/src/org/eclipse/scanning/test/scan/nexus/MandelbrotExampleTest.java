@@ -93,10 +93,10 @@ public class MandelbrotExampleTest extends NexusTest {
 	@Test
 	public void test2ConsecutiveSmallScans() throws Exception {	
 		
-		IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, 2, 2);
+		IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, false, 2, 2);
 		scanner.run(null);
 
-		scanner = createGridScan(detector, output, 2, 2);
+		scanner = createGridScan(detector, output, false, 2, 2);
 		scanner.run(null);
 	}
 	
@@ -109,7 +109,7 @@ public class MandelbrotExampleTest extends NexusTest {
 	public void testWriteTime2Dvs3D() throws Exception {
 
 		// Tell configure detector to write 1 image into a 2D scan
-		IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, 8, 5);
+		IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, false, 8, 5);
 		ScanModel mod = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		IPosition first = mod.getPositionIterable().iterator().next();
 		detector.run(first);
@@ -122,7 +122,7 @@ public class MandelbrotExampleTest extends NexusTest {
 		
 		File soutput = File.createTempFile("test_mandel_nexus", ".nxs");
 		soutput.deleteOnExit();
-		scanner = createGridScan(detector, soutput, 10, 8, 5);
+		scanner = createGridScan(detector, soutput, false, 10, 8, 5);
 		mod = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		first = mod.getPositionIterable().iterator().next();
 		detector.run(first);
@@ -138,7 +138,17 @@ public class MandelbrotExampleTest extends NexusTest {
 
 	@Test
 	public void test2DNexusScan() throws Exception {
-		testScan(8,5);
+		testScan(false, 8, 5);
+	}
+	
+	@Test
+	public void test2DSnakeNexusScan() throws Exception {
+		testScan(true, 8, 5);
+	}
+	
+	@Test
+	public void test2DSnakeWithOddNumberOfLinesNexusScan() throws Exception {
+		testScan(true, 7, 5);
 	}
 	
 	@Test
@@ -170,7 +180,7 @@ public class MandelbrotExampleTest extends NexusTest {
 		detector.getModel().setSaveImage(false);
 		try {
 			
-			IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, new int[]{8,5}); // Outer scan of another scannable, for instance temp.
+			IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, false, new int[]{8,5}); // Outer scan of another scannable, for instance temp.
 			assertScanNotFinished(getNexusRoot(scanner).getEntry());
 			scanner.run(null);
 			
@@ -202,14 +212,19 @@ public class MandelbrotExampleTest extends NexusTest {
 	
 	@Test
 	public void test3DNexusScan() throws Exception {
-		testScan(3,2,5);
+		testScan(false, 3, 2, 5);
+	}
+	
+	@Test
+	public void test3DSnakeNexusScan() throws Exception {
+		testScan(true, 3, 2, 5);
 	}
 	
 	// TODO Why does this not pass?
 	//@Test
 	public void test3DNexusScanLarge() throws Exception {
 		long before = System.currentTimeMillis();
-		testScan(300,2,5);
+		testScan(false,300,2, 5);
 		long after = System.currentTimeMillis();
 		long diff  = after-before;
 		assertTrue(diff<20000);
@@ -217,17 +232,17 @@ public class MandelbrotExampleTest extends NexusTest {
 
 	@Test
 	public void test4DNexusScan() throws Exception {
-		testScan(3,3,2,2);
+		testScan(false,3,3,2, 2);
 	}
 	
 	@Test
 	public void test5DNexusScan() throws Exception {
-		testScan(1,1,1,2,2);
+		testScan(false,1,1,1,2, 2);
 	}
 	
 	@Test
 	public void test8DNexusScan() throws Exception {
-		testScan(1,1,1,1,1,1,2,2);
+		testScan(false,1,1,1,1,1,1,2, 2);
 	}
 	
 	private NXroot getNexusRoot(IRunnableDevice<ScanModel> scanner) throws Exception {
@@ -241,17 +256,17 @@ public class MandelbrotExampleTest extends NexusTest {
 		return (NXroot) nexusTree.getGroupNode();
 	}
 
-	private void testScan(int... shape) throws Exception {
+	private void testScan(boolean snake, int... shape) throws Exception {
 		
-		IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, shape); // Outer scan of another scannable, for instance temp.
+		IRunnableDevice<ScanModel> scanner = createGridScan(detector, output, snake, shape); // Outer scan of another scannable, for instance temp.
 		assertScanNotFinished(getNexusRoot(scanner).getEntry());
 		scanner.run(null);
 	
 		// Check we reached ready (it will normally throw an exception on error)
-		checkNexusFile(scanner, shape); // Step model is +1 on the size
+		checkNexusFile(scanner, snake, shape); // Step model is +1 on the size
 	}
 
-	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, int... sizes) throws Exception {
+	private void checkNexusFile(IRunnableDevice<ScanModel> scanner, boolean snake, int... sizes) throws Exception {
 		final ScanModel scanModel = ((AbstractRunnableDevice<ScanModel>) scanner).getModel();
 		assertEquals(DeviceState.READY, scanner.getDeviceState());
 
@@ -260,7 +275,7 @@ public class MandelbrotExampleTest extends NexusTest {
 		NXinstrument instrument = entry.getInstrument();
 		
 		// check that the scan points have been written correctly
-		assertSolsticeScanGroup(entry, sizes);
+		assertSolsticeScanGroup(entry, snake, sizes);
 		
 		LinkedHashMap<String, List<String>> signalFieldAxes = new LinkedHashMap<>();
 		// axis for additional dimensions of a datafield, e.g. image
@@ -360,7 +375,7 @@ public class MandelbrotExampleTest extends NexusTest {
 		}
 	}
 	
-	private IRunnableDevice<ScanModel> createGridScan(final IRunnableDevice<?> detector, File file, int... size) throws Exception {
+	private IRunnableDevice<ScanModel> createGridScan(final IRunnableDevice<?> detector, File file, boolean snake, int... size) throws Exception {
 		
 		// Create scan points for a grid and make a generator
 		GridModel gmodel = new GridModel();
@@ -369,6 +384,7 @@ public class MandelbrotExampleTest extends NexusTest {
 		gmodel.setSlowAxisName("yNex");
 		gmodel.setSlowAxisPoints(size[size.length-2]);
 		gmodel.setBoundingBox(new BoundingBox(0,0,3,3));
+		gmodel.setSnake(snake);
 		
 		IPointGenerator<?> gen = gservice.createGenerator(gmodel);
 		
