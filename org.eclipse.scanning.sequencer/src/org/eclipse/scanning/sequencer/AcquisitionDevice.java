@@ -547,6 +547,7 @@ final class AcquisitionDevice extends AbstractRunnableDevice<ScanModel> implemen
 
 			setDeviceState(DeviceState.ABORTED);
     		manager.invoke(ScanAbort.class);
+			RunnableDeviceServiceImpl.setCurrentScanningDevice(null);
 			
 		} catch (ScanningException s) {
 			throw s;
