@@ -190,7 +190,7 @@ public class MonitorTest extends NexusTest {
 		NXinstrument instrument = entry.getInstrument();
 		
 		// check that the scan points have been written correctly
-		assertSolsticeScanGroup(entry, sizes);
+		assertSolsticeScanGroup(entry, false, sizes);
 		
 		String detectorName = scanModel.getDetectors().get(0).getName();
 		NXdetector detector = instrument.getDetector(detectorName);
