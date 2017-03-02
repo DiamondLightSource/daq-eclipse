@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -160,7 +161,7 @@ public class MandelbrotRemoteTest extends NexusTest {
 		remote.setWritingExpected(true); // We know that we are writing to this file, so we declare it.
 		
 		remote.connect();
-		Thread.sleep(1000);
+		scanner.latch(1, TimeUnit.SECONDS);
 		try {
 			
 			final List<DataEvent> events = new ArrayList<DataEvent>(7);
@@ -180,7 +181,7 @@ public class MandelbrotRemoteTest extends NexusTest {
 				@Override
 				public void runPerformed(RunEvent evt) throws ScanningException{
 					try {
-						Thread.sleep(500);// Finish off writing nexus file. The Remomte dataset event laggs slightly while nexus flushes.
+						scanner.latch(500, TimeUnit.MILLISECONDS); // Finish off writing nexus file. The Remote dataset event lags slightly while nexus flushes.
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
