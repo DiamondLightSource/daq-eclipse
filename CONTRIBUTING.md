@@ -1,7 +1,7 @@
-# Contributing to daq-eclipse
+# Contributing to Eclipse Scanning
 
 ## Basic Ethos
-We try to make the daq-eclipse project the heart of GDA9 at Diamond Light Source. Unlike previous versions of GDA we would like to make this system entirely open and very easy to reuse. To this end there are .product files in the repository to make running a dummy acquisition server and a dummy acquisition client very easy. There are also .target files to define the external repositories which provide the required libraries to run the project.
+We try to make the Eclipse Scanning project the heart of GDA9 at Diamond Light Source. Unlike previous versions of GDA we would like to make this system entirely open and very easy to reuse. To this end there are .product files in the repository to make running a dummy acquisition server and a dummy acquisition client very easy. There are also .target files to define the external repositories which provide the required libraries to run the project.
 
 The dummy server starts a local activemq (which can be switched off from the arguments). This messaging system is the only route for client and server connections for this project. Unlike previous versions of GDA, there is no CORBA or RMI to configure. The ethos of the project is to be code agnostic. Therefore JSON has been chosen with text messages. The text messages may be sent and received in any language, for instance in python STOMP and in Java JMS but activeMQ supports a wide range of languages. No data is sent in the messaging system. The NeXus file format has been used to store data and link information is published using activemq.
 
@@ -34,7 +34,7 @@ If you would like to contribute, you should provide tests for everything that yo
 
 ## Reoute 2 - Non-Committer Pull Request
 * Fork the repository on github and push your changes there.
-* Create a pull request from your fork to daq-eclipse
+* Create a pull request from your fork to Eclipse Scanning
 * Follow steps 4-7 above from here.
 * A committer will merge your request once the test passes and the review items are addressed.
 
