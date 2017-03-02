@@ -40,6 +40,7 @@ import org.eclipse.scanning.points.classregistry.ScanningAPIClassRegistry;
 import org.eclipse.scanning.points.serialization.PointsModelMarshaller;
 import org.eclipse.scanning.test.BrokerTest;
 import org.eclipse.scanning.test.ScanningTestClassRegistry;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -66,6 +67,13 @@ public class MappingScanTest extends BrokerTest{
 		// In production we would normally
 		publisher = eservice.createPublisher(uri, IEventService.SCAN_TOPIC); // Do not copy this leave as null!
 		subscriber = eservice.createSubscriber(uri, IEventService.SCAN_TOPIC); // Do not copy this leave as null!
+	}
+
+	@After
+	public void disconnect() throws Exception {
+		
+		publisher.disconnect();
+		subscriber.disconnect();
 	}
 
 	/**

@@ -83,7 +83,7 @@ public class BrokerTest extends TmpTest {
 
 	@AfterClass
 	public final static void stopBroker() throws Exception {
-		delegate.stop();
+		if (delegate!=null) delegate.stop();
 	}
 
 }

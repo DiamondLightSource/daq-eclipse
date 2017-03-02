@@ -57,6 +57,7 @@ import org.eclipse.scanning.api.event.core.IRequester;
 import org.eclipse.scanning.api.event.scan.AcquireRequest;
 import org.eclipse.scanning.api.event.status.Status;
 import org.eclipse.scanning.api.points.IPointGeneratorService;
+import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 import org.eclipse.scanning.event.EventServiceImpl;
 import org.eclipse.scanning.example.detector.MandelbrotDetector;
 import org.eclipse.scanning.example.detector.MandelbrotModel;
@@ -66,10 +67,9 @@ import org.eclipse.scanning.sequencer.RunnableDeviceServiceImpl;
 import org.eclipse.scanning.server.servlet.AcquireServlet;
 import org.eclipse.scanning.server.servlet.Services;
 import org.eclipse.scanning.test.BrokerTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.eclipse.scanning.connector.activemq.ActivemqConnectorService;
 
 public class AcquireRequestTest extends BrokerTest {
 	
@@ -77,6 +77,7 @@ public class AcquireRequestTest extends BrokerTest {
 	private IEventService eventService;
 	private IPointGeneratorService pointGenService;
 	private IRequester<AcquireRequest> requester;
+	private AcquireServlet acquireServlet;
 	
 	@Before
 	public void createServices() throws Exception {
@@ -94,16 +95,18 @@ public class AcquireRequestTest extends BrokerTest {
 		org.eclipse.dawnsci.nexus.ServiceHolder.setNexusFileFactory(new NexusFileFactoryHDF5());
 		(new org.eclipse.scanning.sequencer.ServiceHolder()).setFactory(new DefaultNexusBuilderFactory());
 		
-		connect();
-	}
-
-	private void connect() throws Exception {
-		AcquireServlet acquireServlet = new AcquireServlet();
+		this.acquireServlet = new AcquireServlet();
 		acquireServlet.setBroker(uri.toString());
 		acquireServlet.connect();
 		
 		requester = eventService.createRequestor(uri, ACQUIRE_REQUEST_TOPIC, ACQUIRE_RESPONSE_TOPIC);
 		requester.setTimeout(10, TimeUnit.SECONDS);
+	}
+	
+	@After
+	public void stop() throws Exception {
+		requester.disconnect();
+		acquireServlet.disconnect();
 	}
 	
 	@Test
