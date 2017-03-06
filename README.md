@@ -1,3 +1,9 @@
+
+This repository is now closed see https://github.com/eclipse/scanning
+
+The repository exists now so that history of files is possible to see.
+
+
 # [daq-eclipse](http://diamondlightsource.github.io/daq-eclipse)  
 
 
