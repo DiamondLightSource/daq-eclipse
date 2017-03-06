@@ -1,3 +1,4 @@
+
 ###
 # Copyright (c) 2016 Diamond Light Source Ltd.
 #
@@ -12,3 +13,4 @@
 # 
 ###
 __version__ = '1.6.1'
+
