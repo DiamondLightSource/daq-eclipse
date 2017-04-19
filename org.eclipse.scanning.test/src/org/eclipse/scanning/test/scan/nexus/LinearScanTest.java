@@ -161,13 +161,13 @@ public class LinearScanTest extends BrokerTest{
 
 	@Test
 	public void testSimpleGridScan() throws Exception {
-			
+		// TODO: is this test broken
 		doScan(null, 2, new int[]{5,5,64,64}, createGridModel());
 	}
 	
 	@Test
 	public void testWrappedGridScan() throws Exception {
-			
+		// TODO: is this test broken
 		doScan(null, 3, new int[]{4,5,5,64,64}, new StepModel("T", 290, 300, 3), createGridModel());
 	}
 	
