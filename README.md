@@ -1,7 +1,18 @@
 
-This repository is now closed and replaced with https://github.com/eclipse/scanning which is the open source project to which the repository was moving to over about a year and a half. The move has been compeleted please use https://github.com/eclipse/scanning.
+This repository is now closed and has been replaced with https://github.com/eclipse/scanning which is the open source project to which the repository has been moved.
 
-The repository exists now so that history of files is possible to see.
+This repository now exists to hold the projects which weren't moved to https://github.com/eclipse/scanning and hold the history of files.
+
+To use `git replace` to import this history into your current eclipse scanning repository:
+
+    cd scanning.git
+    git remote add project-history git://github.com/DiamondLightSource/daq-eclipse.git
+    git fetch project-history
+    git replace -g 712c0bb1fa039a203c7187240affa4ae3ddebedf f76df577dc007570d9309aadf48eaf480daf851b
+
+To reverse this, simply delete the replace spec:
+
+    git replace -d 712c0bb1fa039a203c7187240affa4ae3ddebedf
 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

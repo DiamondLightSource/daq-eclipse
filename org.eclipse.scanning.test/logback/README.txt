@@ -1,1 +1,0 @@
-Do not put these jars in the binary build.
