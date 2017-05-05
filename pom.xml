@@ -11,27 +11,6 @@
 	</prerequisites>
 
 	<modules>
-        <module>org.eclipse.scanning.target.platform</module>
-		<module>../org.eclipse.dawnsci</module>
-
-		<module>org.eclipse.scanning.api</module>
-		<module>org.eclipse.scanning.command</module>
-		<module>org.eclipse.scanning.connector.epics</module>
-		<module>org.eclipse.scanning.event</module>
-		<module>org.eclipse.scanning.event.queues</module>
-		<module>org.eclipse.scanning.event.ui</module>
-		<module>org.eclipse.scanning.device.ui</module>
-		<module>org.eclipse.scanning.example</module>
-		<module>org.eclipse.scanning.example.xcen</module>
-		<module>org.eclipse.scanning.example.xcen.test</module>
-		<module>org.eclipse.scanning.example.xcen.ui</module>
-		<module>org.eclipse.scanning.malcolm.core</module>
-		<module>org.eclipse.scanning.points</module>
-		<module>org.eclipse.scanning.sequencer</module>
-		<module>org.eclipse.scanning.server</module>
-		<module>org.eclipse.scanning.test</module>	
-		<module>org.eclipse.scanning.connector.activemq</module>
-		<module>org.eclipse.scanning.connector.activemq.test</module>
 	</modules>
 
 	<properties>
@@ -78,13 +57,6 @@
 						<arch>x86_64</arch>
 					</environment>
 				</environments>
-				<target>
-					<artifact>
-						<groupId>org.eclipse</groupId>
-						<artifactId>org.eclipse.scanning.target.platform</artifactId>
-						<version>1.0.0-SNAPSHOT</version>
-					</artifact>
-				</target>
 			</configuration>
 		</plugin>
 		   
@@ -98,8 +70,6 @@
                 <testClassesDirectory>${basedir}/bin</testClassesDirectory>
 	            <excludes>
 	              <exclude>**repository/*</exclude>
-				  <exclude>org/eclipse/richbeans/**</exclude>
-				  <exclude>org/eclipse/dawnsci/**</exclude>
 	            </excludes>
            		<includes>
 		          <include>${test.includes}</include>
