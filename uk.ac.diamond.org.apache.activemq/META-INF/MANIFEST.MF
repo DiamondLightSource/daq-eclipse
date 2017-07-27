@@ -3,7 +3,26 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Activemq
 Bundle-SymbolicName: uk.ac.diamond.org.apache.activemq
 Bundle-Version: 5.9.0
-Bundle-ClassPath: .
+Bundle-ClassPath: jars/activemq-amqp-5.9.0.jar,
+ jars/activemq-broker-5.9.0.jar,
+ jars/activemq-camel-5.9.0.jar,
+ jars/activemq-client-5.9.0.jar,
+ jars/activemq-console-5.9.0.jar,
+ jars/activemq-http-5.9.0.jar,
+ jars/activemq-jdbc-store-5.9.0.jar,
+ jars/activemq-kahadb-store-5.9.0.jar,
+ jars/activemq-leveldb-store-5.9.0.jar,
+ jars/activemq-mqtt-5.9.0.jar,
+ jars/activemq-openwire-legacy-5.9.0.jar,
+ jars/activemq-protobuf-1.1.jar,
+ jars/activemq-spring-5.9.0.jar,
+ jars/activemq-stomp-5.9.0.jar,
+ jars/geronimo-j2ee-management_1.1_spec-1.0.1.jar,
+ jars/geronimo-jms_1.1_spec-1.1.1.jar,
+ jars/geronimo-jta_1.0.1B_spec-1.0.1.jar,
+ jars/hawtbuf-1.9.jar,
+ jars/jasypt-1.9.1.jar,
+ jars/log4j-1.2.17.jar
 Bundle-Vendor: Diamond Light Source (Apache Foundation)
 Export-Package: javax.jms,
  org.apache.activemq,

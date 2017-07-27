@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-amqp-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-broker-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-camel-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-client-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-console-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-http-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-jdbc-store-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-kahadb-store-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-leveldb-store-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-mqtt-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-openwire-legacy-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-protobuf-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-spring-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/activemq-stomp-5.9.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/geronimo-j2ee-management_1.1_spec-1.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/geronimo-jms_1.1_spec-1.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/geronimo-jta_1.0.1B_spec-1.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/hawtbuf-1.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/jasypt-1.9.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="jars/log4j-1.2.17.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path=""/>
